@@ -1,0 +1,90 @@
+<section class="screen" data-screen="CUS-S07" data-title="Gold Bullion">
+  <div class="screen-block">
+    <div class="section-label">Create Request · Step 1 of 2</div>
+    <h1 class="screen-heading">Buy / Sell Gold Bullion</h1>
+    <div class="progress-bar" style="margin-bottom:1.25rem"><span style="width:50%"></span></div>
+  </div>
+
+  <div class="card frame-deco" style="margin-bottom:1.5rem">
+    <div class="field-row">
+      <span class="field-label">Transaction Direction</span>
+      <select style="width:auto;min-height:36px;padding:0.25rem 0.5rem">
+        <option selected>BUY (I want to buy bullion)</option>
+        <option>SELL (I want to sell my bullion)</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Target Region</span>
+      <select style="width:auto;min-height:36px;padding:0.25rem 0.5rem">
+        <option selected>Dubai</option>
+        <option>Abu Dhabi</option>
+        <option>Sharjah</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Minimum Value Rule Badge (Requirements-raw L26) -->
+  <div class="notice notice-warning" style="margin-bottom:1.25rem">
+    <strong>Platform Rule (Minimum Value):</strong> Gold Bullion transactions require a minimum value of <strong>AED 500</strong>.
+  </div>
+
+  <div class="form-section">
+    <h2 class="section-title">1. Bar Specifications</h2>
+    
+    <div class="field">
+      <label class="field-label">Bar Weight <span class="field-hint">*</span></label>
+      <select>
+        <option>100 gram bar</option>
+        <option selected>1 Kilogram bar (1000 g)</option>
+        <option>10 Tola bar (116.64 g)</option>
+        <option>50 gram bar</option>
+        <option>10 gram bar</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Quantity <span class="field-hint">*</span></label>
+      <input type="number" value="1" min="1" />
+    </div>
+
+    <div class="field">
+      <label class="field-label">Purity Standard <span class="field-hint">*</span></label>
+      <select>
+        <option selected>24K 999.9 Fine Gold (LBMA Good Delivery Standard)</option>
+        <option>24K 995.0 Fine Gold</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Preferred Refiner / Brand</label>
+      <select>
+        <option selected>Any LBMA / DGD Accredited Refiner</option>
+        <option>Emirates Gold</option>
+        <option>Al Etihad Gold</option>
+        <option>Valcambi / PAMP</option>
+        <option>Metalor</option>
+      </select>
+    </div>
+
+    <div class="card card-gold-rate" style="padding:0.75rem;margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="field-hint">Indicative 1 KG 24K Melt Value:</span>
+        <strong style="color:var(--gold-200)">AED 512,400.00</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2 class="section-title">2. Photos &amp; Certification</h2>
+    <div class="media-grid" style="margin-bottom:8px">
+      <img src="assets/images/bullion.jpg" alt="Gold bullion reference" />
+      <div class="slot-upload" data-nav="CUS-S08">+ Add Photo</div>
+    </div>
+    <div class="field-hint">Include photos showing refiner stamp, weight marking, and certificate.</div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn btn-gold btn-block gold-light" data-nav="CUS-S09">Continue to Review &amp; Publish →</button>
+    <button type="button" class="btn btn-secondary btn-block">Save as Draft</button>
+  </div>
+</section>

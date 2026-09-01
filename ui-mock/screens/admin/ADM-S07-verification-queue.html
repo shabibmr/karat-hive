@@ -1,0 +1,65 @@
+<section class="screen" data-screen="ADM-S07" data-title="KYC Verification Queue">
+  <div class="screen-block">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="section-label">Compliance Reviewer</div>
+        <h1 class="screen-heading" style="margin:0">KYC Verification Queue (7 Pending)</h1>
+      </div>
+      <span class="status-chip status-pending">Oldest First</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem">
+    <!-- Left Pane: Business Details -->
+    <div class="card frame-deco">
+      <h3 class="section-title" style="font-size:1.1rem">Declared Business Profile</h3>
+
+      <div class="field-row">
+        <span class="field-label">Legal Name</span>
+        <strong>Al Noor Jewellery LLC</strong>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Trade Licence</span>
+        <strong>CN-1092834</strong>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Licence Expiry</span>
+        <strong>30 June 2027</strong>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Emirate</span>
+        <strong>Dubai (Deira)</strong>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Contact Person</span>
+        <strong>Ahmed Hassan (+971 4 555 0101)</strong>
+      </div>
+
+      <div style="margin-top:1rem">
+        <label class="field-label">Admin Review Rationale / Notes</label>
+        <textarea rows="3" placeholder="Enter reason for approval or rejection...">Document verified against Dubai DED database. Expiry and seal match declared details.</textarea>
+      </div>
+    </div>
+
+    <!-- Right Pane: Document Viewer -->
+    <div class="card frame-deco">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 class="section-title" style="font-size:1.1rem;margin:0">Document Inspector</h3>
+        <span class="status-chip status-success">Trade_Licence_Dubai.pdf</span>
+      </div>
+
+      <div style="border:1px dashed var(--border-standard);padding:1rem;text-align:center;border-radius:8px;background:var(--bg-primary);min-height:220px;display:grid;place-content:center">
+        <img src="assets/placeholders/doc-id.svg" alt="Licence preview" style="width:64px;height:64px;margin:0 auto 12px" />
+        <strong style="color:var(--gold-200)">Trade_Licence_Dubai_2026.pdf</strong>
+        <span class="field-hint">PDF Document · 2.4 MB · 300 DPI High-Res Scan</span>
+        <button type="button" class="btn btn-sm btn-secondary" style="margin-top:12px">🔍 Open Fullscreen Viewer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions-row">
+    <button type="button" class="btn btn-gold gold-light" style="flex:1">✓ Approve Vendor &amp; Activate Market Access</button>
+    <button type="button" class="btn btn-secondary" style="flex:1">✉️ Request More Information</button>
+    <button type="button" class="btn btn-danger" style="flex:1">✕ Reject Application</button>
+  </div>
+</section>

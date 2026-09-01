@@ -1,0 +1,89 @@
+<section class="screen" data-screen="CUS-S06" data-title="Gold Coins">
+  <div class="screen-block">
+    <div class="section-label">Create Request · Step 1 of 2</div>
+    <h1 class="screen-heading">Buy / Sell Gold Coins</h1>
+    <div class="progress-bar" style="margin-bottom:1.25rem"><span style="width:50%"></span></div>
+  </div>
+
+  <div class="card frame-deco" style="margin-bottom:1.5rem">
+    <div class="field-row">
+      <span class="field-label">Transaction Direction</span>
+      <select style="width:auto;min-height:36px;padding:0.25rem 0.5rem">
+        <option selected>BUY (I want to buy coins)</option>
+        <option>SELL (I want to sell my coins)</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Target Region</span>
+      <select style="width:auto;min-height:36px;padding:0.25rem 0.5rem">
+        <option selected>Dubai</option>
+        <option>Abu Dhabi</option>
+        <option>Sharjah</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2 class="section-title">1. Coin Specifications</h2>
+    
+    <div class="field">
+      <label class="field-label">Coin Denomination / Weight <span class="field-hint">*</span></label>
+      <select>
+        <option>1 oz (31.10 g)</option>
+        <option selected>1 Sovereign (7.98 g / 22K)</option>
+        <option>8 gram (Local Gold Coin)</option>
+        <option>10 gram (Pure 24K Coin)</option>
+        <option>Custom Weight</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Quantity <span class="field-hint">*</span></label>
+      <input type="number" value="2" min="1" />
+    </div>
+
+    <div class="field">
+      <label class="field-label">Purity <span class="field-hint">*</span></label>
+      <select>
+        <option selected>24K 999.9 Fine Gold</option>
+        <option>22K Gold Sovereign Standard</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Preferred Mint / Brand</label>
+      <select>
+        <option selected>Any Verified Refiner (Emirates Gold, PAMP, Royal Mint)</option>
+        <option>Emirates Gold</option>
+        <option>PAMP Suisse</option>
+        <option>Valcambi</option>
+        <option>Royal Mint Sovereign</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="field-check">
+        <input type="checkbox" checked />
+        <span>Sealed Assay Certificate Card Required</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2 class="section-title">2. Budget &amp; Photo</h2>
+    <div class="field">
+      <label class="field-label">Max Target Budget (AED)</label>
+      <input type="number" value="16500" placeholder="e.g. 16500" />
+    </div>
+
+    <div class="media-grid" style="margin-bottom:8px">
+      <img src="assets/images/coin.jpg" alt="Gold coins reference" />
+      <div class="slot-upload" data-nav="CUS-S08">+ Add Photo</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn btn-gold btn-block gold-light" data-nav="CUS-S09">Continue to Review &amp; Publish →</button>
+    <button type="button" class="btn btn-secondary btn-block">Save as Draft</button>
+  </div>
+</section>

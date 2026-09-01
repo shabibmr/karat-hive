@@ -1,0 +1,113 @@
+/* Karat Hive design tokens — Antigravity Light Theme */
+:root {
+  --sapphire-900: #0a1128;
+  --sapphire-800: #111a36;
+  --sapphire-700: #182344;
+  
+  --gold-700: #856404;
+  --gold-600: #a67c00;
+  --gold-500: #b8860b;
+  --gold-400: #c59e26;
+  --gold-300: #d4af37;
+  --gold-200: #e6c86e;
+  --gold-100: #f7e7a7;
+  --gold-50:  #fdf9e8;
+
+  --cream-100: #ffffff;
+  --cream-200: #faf8f5;
+  --cream-300: #f3ede2;
+  --cream-400: #e8dfcf;
+
+  --slate-900: #0f172a;
+  --slate-800: #1e293b;
+  --slate-700: #334155;
+  --slate-600: #475569;
+  --slate-500: #64748b;
+  --slate-400: #94a3b8;
+  --slate-300: #cbd5e1;
+  --slate-200: #e2e8f0;
+  --slate-100: #f1f5f9;
+
+  --muted-gold: #856404;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+  --whatsapp: #25d366;
+
+  /* Semantic Theme Variables — Light Theme */
+  --bg-primary: #faf8f5;
+  --bg-elevated: #ffffff;
+  --bg-surface: #f3ede2;
+  --bg-glass: rgba(255, 255, 255, 0.88);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #856404;
+
+  --accent-primary: #c59e26;
+  --accent-highlight: #d4af37;
+  --accent-specular: #fff8dc;
+
+  --border-subtle: rgba(197, 160, 38, 0.16);
+  --border-standard: rgba(197, 160, 38, 0.32);
+  --border-strong: rgba(197, 160, 38, 0.65);
+
+  --gold-metallic: linear-gradient(
+    135deg,
+    #b8860b 0%,
+    #d4af37 28%,
+    #f7e7a7 50%,
+    #d4af37 72%,
+    #9e7506 100%
+  );
+
+  --radius-card: 16px;
+  --radius-pill: 999px;
+  --radius-sm: 10px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-ui: "DM Sans", system-ui, -apple-system, sans-serif;
+
+  --motion-instant: 100ms;
+  --motion-fast: 180ms;
+  --motion-standard: 280ms;
+  --motion-emphasized: 420ms;
+  --motion-luxury: 700ms;
+  --motion-gold-sweep: 1100ms;
+  --motion-reveal: 900ms;
+
+  --touch-min: 44px;
+  --phone-max: 430px;
+
+  /* Antigravity Floating Depth & Shadows */
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(184, 134, 11, 0.06);
+  --shadow-card: 0 10px 30px -5px rgba(184, 134, 11, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  --shadow-elevated: 0 20px 45px -10px rgba(15, 23, 42, 0.08), 0 8px 20px -4px rgba(184, 134, 11, 0.12);
+  --shadow-glow: 0 0 24px rgba(212, 175, 55, 0.28);
+  --shadow-phone: 0 25px 70px -10px rgba(15, 23, 42, 0.14), 0 10px 30px -5px rgba(184, 134, 11, 0.15);
+
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-instant: 0ms;
+    --motion-fast: 0ms;
+    --motion-standard: 0ms;
+    --motion-emphasized: 0ms;
+    --motion-luxury: 0ms;
+    --motion-gold-sweep: 0ms;
+    --motion-reveal: 0ms;
+  }
+}
+

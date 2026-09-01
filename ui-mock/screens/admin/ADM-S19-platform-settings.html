@@ -1,0 +1,35 @@
+<section class="screen" data-screen="ADM-S19" data-title="Platform Settings">
+  <div class="screen-block">
+    <div class="section-label">System Configuration</div>
+    <h1 class="screen-heading">Platform Settings</h1>
+  </div>
+
+  <div class="card frame-deco" style="margin-bottom:1.5rem">
+    <h3 class="section-title" style="font-size:1.1rem">Request &amp; Offer Expiry Parameters</h3>
+    
+    <div class="field-row">
+      <span class="field-label">Request Hard Expiry Window</span>
+      <strong>48 Hours (Fixed SRS)</strong>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Allowed Offer Validity Options (Hours)</label>
+      <input type="text" value="12, 24, 48" />
+      <div class="field-hint">SRS FR-VEN-013 vs Entity schema parameters.</div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Max Media Images per Request</label>
+      <input type="number" value="5" />
+    </div>
+
+    <div class="field">
+      <label class="field-label">Max Image Upload Size (MB)</label>
+      <input type="number" value="10" />
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn btn-gold btn-block gold-light">Save Platform Configuration</button>
+  </div>
+</section>

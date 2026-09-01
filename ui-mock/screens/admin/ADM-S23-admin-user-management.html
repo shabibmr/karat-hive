@@ -1,0 +1,41 @@
+<section class="screen" data-screen="ADM-S23" data-title="Admin User Management">
+  <div class="screen-block">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="section-label">Team Permissions</div>
+        <h1 class="screen-heading" style="margin:0">Admin User Access (4)</h1>
+      </div>
+      <button type="button" class="btn btn-sm btn-gold gold-light">+ Invite Admin</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Admin Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>2FA Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Super Admin</strong></td>
+          <td>admin@karathive.ae</td>
+          <td><span class="status-chip status-success">SUPER_ADMIN</span></td>
+          <td><span class="status-chip status-success">ACTIVE (TOTP)</span></td>
+          <td><button type="button" class="btn btn-sm btn-secondary">Edit Role</button></td>
+        </tr>
+        <tr>
+          <td><strong>KYC Reviewer 1</strong></td>
+          <td>kyc@karathive.ae</td>
+          <td><span class="status-chip status-published">COMPLIANCE_OFFICER</span></td>
+          <td><span class="status-chip status-success">ACTIVE (TOTP)</span></td>
+          <td><button type="button" class="btn btn-sm btn-secondary">Edit Role</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

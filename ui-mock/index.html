@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#FAF8F5" />
+  <title>Karat Hive — UI Mock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/shell.css" />
+  <link rel="stylesheet" href="css/screens.css" />
+</head>
+<body>
+  <div id="app" class="app-with-side">
+    <!-- Side section: explanation doc (desktop rail; drawer on small) -->
+    <aside id="explain-panel" class="explain-panel" aria-label="Mock explanation">
+      <div class="explain-panel-toolbar">
+        <span class="explain-panel-kicker">Explanation</span>
+        <button type="button" class="btn btn-sm btn-ghost" id="btn-explain-close" aria-label="Close explanation">Close</button>
+      </div>
+      <div id="explain-panel-body" class="explain-panel-body">
+        <p class="field-hint">Loading guide…</p>
+      </div>
+    </aside>
+    <button type="button" class="explain-fab" id="btn-explain-open" aria-controls="explain-panel" aria-expanded="false" title="Open explanation">
+      Docs
+    </button>
+
+    <div class="app-main">
+    <!-- Role login -->
+    <section id="view-login" class="login-page">
+      <div class="login-brand">
+        <img src="assets/brand/logo-mark.svg" alt="" width="64" height="64" />
+        <h1>Karat Hive</h1>
+        <p>Your gold. Your choice.</p>
+      </div>
+      <div class="role-cards" role="group" aria-label="Login as role">
+        <button type="button" class="role-card gold-light" data-role="customer">
+          <span class="role-icon" aria-hidden="true">◇</span>
+          <span>
+            <strong>Customer</strong>
+            <span>Create requests · compare offers</span>
+          </span>
+        </button>
+        <button type="button" class="role-card gold-light" data-role="vendor">
+          <span class="role-icon" aria-hidden="true">◈</span>
+          <span>
+            <strong>Vendor</strong>
+            <span>Matched requests · submit offers</span>
+          </span>
+        </button>
+        <button type="button" class="role-card gold-light" data-role="admin">
+          <span class="role-icon" aria-hidden="true">▣</span>
+          <span>
+            <strong>Admin</strong>
+            <span>Platform oversight portal</span>
+          </span>
+        </button>
+      </div>
+      <p class="login-note">Mock only — choose a role. No password. Serve via HTTP for screen loading.</p>
+    </section>
+
+    <!-- Customer / Vendor phone shell -->
+    <section id="view-mobile" class="shell-mobile hidden">
+      <div class="phone-frame">
+        <header class="top-bar">
+          <button type="button" class="btn-icon" id="btn-back" aria-label="Back">‹</button>
+          <div class="top-bar-title" id="top-title">Karat Hive</div>
+          <span class="screen-id-pill" id="screen-id-pill">—</span>
+          <div class="top-bar-actions">
+            <button type="button" class="btn-icon" id="btn-screen-map" aria-label="All screens" title="Screen map">☰</button>
+            <button type="button" class="btn-icon" id="btn-logout" aria-label="Logout" title="Logout">⎋</button>
+          </div>
+        </header>
+        <main id="screen-root" aria-live="polite"></main>
+        <nav class="bottom-nav" id="bottom-nav" aria-label="Primary"></nav>
+      </div>
+    </section>
+
+    <!-- Admin shell -->
+    <section id="view-admin" class="shell-admin hidden">
+      <div class="admin-sidebar-backdrop" id="admin-backdrop"></div>
+      <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="admin-brand">
+          <img src="assets/brand/logo-mark.svg" alt="" width="32" height="32" />
+          <strong>Karat Hive</strong>
+        </div>
+        <nav class="admin-nav" id="admin-nav" aria-label="Admin"></nav>
+        <button type="button" class="btn btn-secondary btn-block" id="btn-admin-logout" style="margin-top:auto">Logout</button>
+      </aside>
+      <div class="admin-main">
+        <header class="admin-top">
+          <button type="button" class="btn-icon admin-menu-btn" id="btn-admin-menu" aria-label="Menu">☰</button>
+          <div class="top-bar-title" id="admin-title">Dashboard</div>
+          <span class="screen-id-pill" id="admin-screen-id">ADM-S02</span>
+          <button type="button" class="btn btn-sm btn-secondary" id="btn-admin-map">Screens</button>
+        </header>
+        <main id="admin-screen-root" aria-live="polite"></main>
+      </div>
+    </section>
+    </div><!-- /.app-main -->
+  </div>
+
+  <div class="screen-map" id="screen-map" role="dialog" aria-modal="true" aria-labelledby="screen-map-title">
+    <div class="screen-map-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h2 id="screen-map-title">Screen map</h2>
+        <button type="button" class="btn btn-sm btn-ghost" id="btn-map-close">Close</button>
+      </div>
+      <div class="screen-map-list" id="screen-map-list"></div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/gold-light.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

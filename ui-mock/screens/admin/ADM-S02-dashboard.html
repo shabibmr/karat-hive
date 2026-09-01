@@ -1,0 +1,84 @@
+<section class="screen" data-screen="ADM-S02" data-title="Admin Dashboard">
+  <div class="screen-block">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="section-label">Platform Overview</div>
+        <h1 class="screen-heading" style="margin:0">Admin Control Center</h1>
+      </div>
+      <span class="status-chip status-success">● System Operational</span>
+    </div>
+  </div>
+
+  <div class="admin-metrics" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); display: grid; gap: 12px; margin-bottom: 1.5rem;">
+    <div class="metric-card gold-light" style="cursor:pointer" data-nav="ADM-S03">
+      <div class="metric-value">1,420</div>
+      <div class="metric-label">3.2.1 Customers</div>
+      <span style="font-size:0.8rem;color:var(--gold-300)">Customer List →</span>
+    </div>
+    <div class="metric-card gold-light" style="cursor:pointer" data-nav="ADM-S05">
+      <div class="metric-value">185</div>
+      <div class="metric-label">3.2.2 Vendors</div>
+      <span style="font-size:0.8rem;color:var(--gold-300)">Vendor List (7 KYC pending) →</span>
+    </div>
+    <div class="metric-card" style="cursor:pointer" data-nav="ADM-S08">
+      <div class="metric-value">890</div>
+      <div class="metric-label">3.2.3 Requests</div>
+      <span style="font-size:0.8rem;color:var(--gold-300)">All Requests (68% w/ Offers) →</span>
+    </div>
+    <div class="metric-card" style="cursor:pointer" data-nav="ADM-S10">
+      <div class="metric-value">2,340</div>
+      <div class="metric-label">3.2.4 Offers</div>
+      <span style="font-size:0.8rem;color:var(--gold-300)">All Active &amp; Past Offers →</span>
+    </div>
+    <div class="metric-card" style="cursor:pointer" data-nav="ADM-S12">
+      <div class="metric-value">512</div>
+      <div class="metric-label">3.2.5 Connections</div>
+      <span style="font-size:0.8rem;color:var(--gold-300)">Active Connections →</span>
+    </div>
+    <div class="metric-card" style="cursor:pointer" data-nav="ADM-S17">
+      <div class="metric-value" style="color:var(--gold-200)">AED 4.2M</div>
+      <div class="metric-label">3.2.6 Platform Statistics</div>
+      <span style="font-size:0.8rem;color:var(--gold-300)">Reports &amp; Analytics →</span>
+    </div>
+  </div>
+
+  <div class="screen-block">
+    <div class="section-label">Quick Action Queues</div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Queue Item</th>
+            <th>Type</th>
+            <th>Submitted</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Al Noor Jewellery LLC</strong> (CN-1092834)</td>
+            <td>KYC Verification</td>
+            <td>10 Aug 05:30</td>
+            <td><span class="status-chip status-pending">PENDING</span></td>
+            <td><button type="button" class="btn btn-sm btn-gold" data-nav="ADM-S07">Review KYC</button></td>
+          </tr>
+          <tr>
+            <td><strong>Report #AB-2026-081</strong> (Inappropriate quote)</td>
+            <td>Abuse Report</td>
+            <td>10 Aug 04:12</td>
+            <td><span class="status-chip status-error">HIGH PRIORITY</span></td>
+            <td><button type="button" class="btn btn-sm btn-secondary" data-nav="ADM-S21">Inspect</button></td>
+          </tr>
+          <tr>
+            <td><strong>Review #REV-9912</strong> (By Fatima M.)</td>
+            <td>Review Moderation</td>
+            <td>09 Aug 22:40</td>
+            <td><span class="status-chip status-published">MODERATION</span></td>
+            <td><button type="button" class="btn btn-sm btn-secondary" data-nav="ADM-S16">Approve</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

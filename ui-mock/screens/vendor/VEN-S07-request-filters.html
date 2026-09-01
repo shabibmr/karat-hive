@@ -1,0 +1,63 @@
+<section class="screen vendor-dense" data-screen="VEN-S07" data-title="Request Filters">
+  <div class="screen-block">
+    <div class="section-label">Feed Preferences</div>
+    <h1 class="screen-heading">Filter &amp; Sort Requests</h1>
+  </div>
+
+  <div class="card frame-deco" style="margin-bottom:1.5rem">
+    <div class="field">
+      <label class="field-label">Request Type</label>
+      <div class="chips">
+        <button type="button" class="chip is-selected">All Types</button>
+        <button type="button" class="chip">Find Ornament</button>
+        <button type="button" class="chip">Sell Old Gold</button>
+        <button type="button" class="chip">Coins</button>
+        <button type="button" class="chip">Bullion</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Transaction Direction</label>
+      <div class="chips">
+        <button type="button" class="chip is-selected">BUY &amp; SELL</button>
+        <button type="button" class="chip">BUY Only</button>
+        <button type="button" class="chip">SELL Only</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Region Filter</label>
+      <div class="chips">
+        <button type="button" class="chip is-selected">Dubai</option>
+        <button type="button" class="chip">Abu Dhabi</button>
+        <button type="button" class="chip">Sharjah</button>
+      </div>
+    </div>
+
+    <div class="field" style="grid-template-columns: 1fr 1fr; display: grid; gap: 8px;">
+      <div>
+        <label class="field-label">Min Weight (g)</label>
+        <input type="number" value="10" />
+      </div>
+      <div>
+        <label class="field-label">Max Weight (g)</label>
+        <input type="number" value="500" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Sort Feed By</label>
+      <select>
+        <option selected>Newest First</option>
+        <option>Expiring Soonest (48h Hard Deadline)</option>
+        <option>Highest Value / Weight</option>
+        <option>Fewest Offers Submitted</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn btn-gold btn-block gold-light" data-nav="VEN-S06">Apply Filters →</button>
+    <button type="button" class="btn btn-secondary btn-block" data-nav="VEN-S06">Reset All Filters</button>
+  </div>
+</section>

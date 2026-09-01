@@ -1,0 +1,572 @@
+<title>Spec-Project Dashboard</title>
+<style>
+  :root {
+    --paper: #f3f4f6;
+    --surface: #ffffff;
+    --surface-2: #f8f9fb;
+    --ink: #1b1e24;
+    --ink-dim: #5b6270;
+    --ink-faint: #8a8f9b;
+    --line: #dde1e7;
+    --line-strong: #c7ccd4;
+    --accent: #2b3a5c;
+    --accent-soft: #e8ebf3;
+    --accent-ink: #1e2a45;
+    --brass: #93691f;
+    --brass-soft: #f4ecd8;
+    --good-bg: #e3f3ea;
+    --good-ink: #19693f;
+    --pending-bg: #fbeedd;
+    --pending-ink: #955c14;
+    --blocked-bg: #fbe6e3;
+    --blocked-ink: #97362d;
+    --shadow: 0 1px 2px rgba(20,22,28,.05), 0 10px 28px -16px rgba(20,22,28,.22);
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "Consolas", "SFMono-Regular", Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14161b;
+      --surface: #1b1e24;
+      --surface-2: #21242c;
+      --ink: #e9eaee;
+      --ink-dim: #a3a9b5;
+      --ink-faint: #767c88;
+      --line: #2c303a;
+      --line-strong: #3a3f4a;
+      --accent: #91a7d9;
+      --accent-soft: #232b3f;
+      --accent-ink: #c3d0ef;
+      --brass: #d5ab57;
+      --brass-soft: #2e2617;
+      --good-bg: #17301f;
+      --good-ink: #57c78d;
+      --pending-bg: #332512;
+      --pending-ink: #e6a752;
+      --blocked-bg: #362019;
+      --blocked-ink: #e88a7d;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14161b;
+    --surface: #1b1e24;
+    --surface-2: #21242c;
+    --ink: #e9eaee;
+    --ink-dim: #a3a9b5;
+    --ink-faint: #767c88;
+    --line: #2c303a;
+    --line-strong: #3a3f4a;
+    --accent: #91a7d9;
+    --accent-soft: #232b3f;
+    --accent-ink: #c3d0ef;
+    --brass: #d5ab57;
+    --brass-soft: #2e2617;
+    --good-bg: #17301f;
+    --good-ink: #57c78d;
+    --pending-bg: #332512;
+    --pending-ink: #e6a752;
+    --blocked-bg: #362019;
+    --blocked-ink: #e88a7d;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -16px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px 96px; }
+  a { color: var(--accent-ink); }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+  .eyebrow {
+    font-family: var(--font-body);
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+  code, .mono { font-family: var(--font-mono); }
+  ::selection { background: var(--accent-soft); }
+  @media (prefers-reduced-motion: no-preference) {
+    .card, .tile, .tl-item { transition: box-shadow .15s ease, transform .15s ease; }
+  }
+
+  /* ---------- masthead ---------- */
+  header.masthead {
+    padding: 44px 0 28px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  header.masthead h1 { font-size: 2.15rem; font-weight: 600; margin-top: 8px; color: var(--ink); }
+  header.masthead .sub { color: var(--ink-dim); max-width: 46ch; margin-top: 10px; font-size: .96rem; }
+  .stamp {
+    font-family: var(--font-body);
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--brass);
+    border: 1px dashed var(--brass);
+    border-radius: 3px;
+    padding: 8px 12px;
+    transform: rotate(1.2deg);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* hero pair */
+  .hero-pair {
+    display: flex;
+    gap: 48px;
+    padding: 28px 0 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .hero-stat .num { font-family: var(--font-display); font-size: 3rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+  .hero-stat .label { font-size: .82rem; color: var(--ink-dim); margin-top: 6px; }
+  .hero-stat.done .num { color: var(--good-ink); }
+  .hero-stat.open .num { color: var(--pending-ink); }
+  .hero-note { color: var(--ink-dim); font-size: .9rem; border-left: 2px solid var(--line-strong); padding-left: 16px; max-width: 30ch; }
+
+  /* ---------- quick nav ---------- */
+  nav.quicknav {
+    position: sticky; top: 0; z-index: 5;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+    display: flex; gap: 4px; padding: 10px 0; margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+  nav.quicknav a {
+    font-size: .82rem; font-weight: 600; color: var(--ink-dim);
+    text-decoration: none; padding: 7px 13px; border-radius: 20px;
+  }
+  nav.quicknav a:hover { background: var(--surface-2); color: var(--ink); }
+  nav.quicknav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  section { padding: 40px 0; border-top: 1px solid var(--line); }
+  section:first-of-type { border-top: none; padding-top: 0; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 1.5rem; font-weight: 600; }
+  .section-head .count { font-size: .84rem; color: var(--ink-dim); }
+
+  /* ---------- stat tiles ---------- */
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .tile {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 20px; box-shadow: var(--shadow);
+  }
+  .tile .eyebrow { display: block; margin-bottom: 10px; }
+  .tile .value { font-family: var(--font-display); font-size: 1.9rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .bar { height: 6px; border-radius: 4px; background: var(--surface-2); margin: 12px 0 10px; overflow: hidden; }
+  .tile .bar > span { display: block; height: 100%; border-radius: 4px; background: var(--good-ink); }
+  .tile.pending .bar > span { background: var(--pending-ink); }
+  .tile .caption { font-size: .8rem; color: var(--ink-dim); }
+
+  /* ---------- ledger table (project status) ---------- */
+  table.ledger { width: 100%; border-collapse: collapse; }
+  table.ledger th {
+    text-align: left; font-size: .72rem; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 600; padding: 0 14px 10px; border-bottom: 1px solid var(--line-strong);
+  }
+  table.ledger td { padding: 14px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.ledger tr:last-child td { border-bottom: none; }
+  table.ledger .doc { font-weight: 600; }
+  table.ledger .detail { color: var(--ink-dim); font-size: .88rem; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: .74rem; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+    white-space: nowrap;
+  }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; }
+  .pill.good { background: var(--good-bg); color: var(--good-ink); }
+  .pill.good::before { background: var(--good-ink); }
+  .pill.pending { background: var(--pending-bg); color: var(--pending-ink); }
+  .pill.pending::before { background: var(--pending-ink); }
+  .pill.blocked { background: var(--blocked-bg); color: var(--blocked-ink); }
+  .pill.blocked::before { background: var(--blocked-ink); }
+
+  /* ---------- milestones ---------- */
+  .timeline { display: flex; flex-direction: column; }
+  .tl-item { display: flex; gap: 16px; padding: 12px 8px; border-radius: 8px; }
+  .tl-item .mark { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 1px; font-size: .72rem; }
+  .tl-item.done .mark { background: var(--good-bg); color: var(--good-ink); }
+  .tl-item.open .mark { background: var(--surface-2); border: 1.5px solid var(--line-strong); color: var(--ink-faint); }
+  .tl-item .title { font-weight: 600; }
+  .tl-item.open .title { color: var(--ink-dim); }
+  .tl-item .desc { font-size: .85rem; color: var(--ink-dim); margin-top: 2px; }
+
+  /* ---------- task cards ---------- */
+  .task-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .task-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 22px;
+    box-shadow: var(--shadow); text-decoration: none; color: inherit; display: block;
+  }
+  .task-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(20,22,28,.08), 0 16px 32px -16px rgba(20,22,28,.28); }
+  .task-card .n { font-family: var(--font-display); font-size: 2.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .task-card.po .n { color: var(--pending-ink); }
+  .task-card.tech .n { color: var(--pending-ink); }
+  .task-card.blocked .n { color: var(--blocked-ink); }
+  .task-card .t { font-weight: 600; margin-top: 6px; }
+  .task-card .d { font-size: .84rem; color: var(--ink-dim); margin-top: 6px; }
+  .task-card .owner { font-size: .74rem; color: var(--ink-faint); margin-top: 14px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+
+  /* ---------- approvals ---------- */
+  .approval-block { margin-bottom: 36px; }
+  .approval-block:last-child { margin-bottom: 0; }
+  .approval-block h3 { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+  .approval-block .who { font-size: .78rem; color: var(--ink-dim); font-weight: 400; font-family: var(--font-body); }
+  .approve-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+  .approve-table .group-row td {
+    padding: 10px 12px; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--brass); background: var(--brass-soft); border-left: 3px solid var(--brass);
+  }
+  .approve-table td.id { font-family: var(--font-mono); font-size: .82rem; font-weight: 600; white-space: nowrap; padding: 9px 12px; color: var(--ink); border-bottom: 1px solid var(--line); }
+  .approve-table td.subject { padding: 9px 12px; border-bottom: 1px solid var(--line); color: var(--ink-dim); font-size: .89rem; }
+  .approve-table tr:hover td { background: var(--surface-2); }
+
+  table.blocked-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+  table.blocked-table th { text-align: left; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; padding: 0 12px 8px; border-bottom: 1px solid var(--line-strong); }
+  table.blocked-table td { padding: 12px; border-bottom: 1px solid var(--line); font-size: .89rem; vertical-align: top; }
+  table.blocked-table .item { font-weight: 600; }
+  table.blocked-table .ref { font-family: var(--font-mono); font-size: .8rem; color: var(--ink-dim); }
+
+  footer {
+    border-top: 1px solid var(--line); margin-top: 20px; padding-top: 24px;
+    font-size: .82rem; color: var(--ink-faint); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+
+  .scroll-x { overflow-x: auto; }
+
+  @media (max-width: 860px) {
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+    .task-cards { grid-template-columns: 1fr; }
+    .hero-pair { gap: 28px; }
+  }
+  @media (max-width: 560px) {
+    .tiles { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <span class="eyebrow">Karat Hive &middot; Specification Repository</span>
+      <h1>Spec-Project Dashboard</h1>
+      <p class="sub">What's written, what's built, and what's still waiting on a signature &mdash; across the requirements, architecture, and screen-design pipeline.</p>
+    </div>
+    <span class="stamp">Snapshot &middot; 17 Aug 2026</span>
+  </header>
+
+  <div class="hero-pair">
+    <div class="hero-stat done">
+      <div class="num">100%</div>
+      <div class="label">Documented &mdash; SRS, architecture &amp; all 67 screens</div>
+    </div>
+    <div class="hero-stat open">
+      <div class="num">0&nbsp;/&nbsp;65</div>
+      <div class="label">Approvals signed off</div>
+    </div>
+    <p class="hero-note">Everything the pipeline can produce on paper is written. Nothing has been signed off yet &mdash; that's the gap this page tracks.</p>
+  </div>
+
+  <nav class="quicknav">
+    <a href="#status">Project Status</a>
+    <a href="#completion">Completion</a>
+    <a href="#milestones">Milestones</a>
+    <a href="#tasks">Tasks</a>
+    <a href="#approvals">Completion Approvals</a>
+  </nav>
+
+  <!-- ===================== COMPLETION STATUS ===================== -->
+  <section id="completion">
+    <div class="section-head">
+      <h2>Completion Status</h2>
+      <span class="count">4 tracks</span>
+    </div>
+    <div class="tiles">
+      <div class="tile">
+        <span class="eyebrow">SRS Traceability</span>
+        <div class="value">100%</div>
+        <div class="bar"><span style="width:100%"></span></div>
+        <div class="caption">88 / 88 non-blank source lines covered &middot; 162 requirements (110 FR &middot; 22 BR &middot; 30 NFR)</div>
+      </div>
+      <div class="tile">
+        <span class="eyebrow">Screens Specced</span>
+        <div class="value">67 / 67</div>
+        <div class="bar"><span style="width:100%"></span></div>
+        <div class="caption">22 Customer &middot; 22 Vendor &middot; 23 Admin &mdash; <code>ui-screens/</code></div>
+      </div>
+      <div class="tile">
+        <span class="eyebrow">Screens Mocked &amp; Wired</span>
+        <div class="value">67 / 67</div>
+        <div class="bar"><span style="width:100%"></span></div>
+        <div class="caption">All partials registered in <code>ui-mock/js/nav.js</code></div>
+      </div>
+      <div class="tile pending">
+        <span class="eyebrow">Approvals Signed Off</span>
+        <div class="value">0 / 65</div>
+        <div class="bar"><span style="width:0%"></span></div>
+        <div class="caption">37 Product Owner &middot; 24 Technical Lead &middot; 4 blocked</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PROJECT STATUS ===================== -->
+  <section id="status">
+    <div class="section-head">
+      <h2>Project Status</h2>
+      <span class="count">Document authority chain</span>
+    </div>
+    <div class="scroll-x">
+    <table class="ledger">
+      <thead>
+        <tr><th style="width:26%">Document</th><th style="width:16%">State</th><th>Detail</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="doc">Requirements-raw.txt</td>
+          <td><span class="pill good">Frozen</span></td>
+          <td class="detail">Sole source input. Never edited &mdash; every requirement traces back to a line number here.</td>
+        </tr>
+        <tr>
+          <td class="doc">CONTEXT.md</td>
+          <td><span class="pill good">Established</span></td>
+          <td class="detail">Ubiquitous language and the binding vocabulary, including the <em>Avoid</em> list under each term.</td>
+        </tr>
+        <tr>
+          <td class="doc">Requirements-Spec-v1.2.md</td>
+          <td><span class="pill pending">Awaiting PO sign-off</span></td>
+          <td class="detail">2,846 lines &middot; 100% traceability coverage &middot; 162 requirements &middot; 37 <code>[ASSUMED]</code> items need Product Owner confirmation.</td>
+        </tr>
+        <tr>
+          <td class="doc">ADR 0001&ndash;0007</td>
+          <td><span class="pill good">Recorded</span></td>
+          <td class="detail">Seven architecture decisions, one each &mdash; introduction-only marketplace, request-driven model, identity masking, WhatsApp hand-off, subscription revenue, Flutter client, Node.js monolith.</td>
+        </tr>
+        <tr>
+          <td class="doc">Architecture-Backend.md</td>
+          <td><span class="pill pending">Draft &middot; sign-off pending</span></td>
+          <td class="detail">14 decisions &mdash; 2 fixed by constraint, 12 <code>[PROPOSED]</code>. Technical Lead sign-off: Pending.</td>
+        </tr>
+        <tr>
+          <td class="doc">Architecture-Frontend.md</td>
+          <td><span class="pill pending">Draft &middot; sign-off pending</span></td>
+          <td class="detail">14 decisions &mdash; 1 fixed, 12 <code>[PROPOSED]</code>, 1 <code>[BLOCKED]</code> (admin data grid). Technical Lead sign-off: Pending.</td>
+        </tr>
+        <tr>
+          <td class="doc">ui-screens/</td>
+          <td><span class="pill good">Complete</span></td>
+          <td class="detail">67 / 67 field-level screen specs, plus the shared-widget catalogue and visual design context.</td>
+        </tr>
+        <tr>
+          <td class="doc">ui-mock/</td>
+          <td><span class="pill good">Complete</span></td>
+          <td class="detail">67 / 67 HTML partials realised and reachable &mdash; every screen registered in the <code>KH_NAV</code> route table.</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- ===================== MILESTONES ===================== -->
+  <section id="milestones">
+    <div class="section-head">
+      <h2>Milestones</h2>
+      <span class="count">7 reached &middot; 4 ahead</span>
+    </div>
+    <div class="timeline">
+      <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">Raw requirement notes captured</div><div class="desc"><code>Requirements-raw.txt</code> frozen as the sole source input.</div></div></div>
+      <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">Ubiquitous language established</div><div class="desc"><code>CONTEXT.md</code> binds the vocabulary used across every downstream document.</div></div></div>
+      <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">SRS v1.2 authored at 100% coverage</div><div class="desc">Every non-blank source line traced to a requirement or a documented gap.</div></div></div>
+      <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">Seven ADRs recorded</div><div class="desc">Foundational shape decisions: settlement, request-model, masking, WhatsApp, subscriptions, Flutter, monolith.</div></div></div>
+      <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">Backend and frontend architecture drafted</div><div class="desc">28 decisions across both documents, derived from the SRS.</div></div></div>
+      <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">All 67 screens specced</div><div class="desc">Field-level inventory complete for Customer, Vendor, and Admin.</div></div></div>
+      <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">All 67 screens mocked &amp; wired</div><div class="desc">Interactive prototype realised in <code>ui-mock/</code>, every screen reachable.</div></div></div>
+      <div class="tl-item open"><div class="mark">&#9675;</div><div><div class="title">Product Owner sign-off on 37 assumed requirements</div><div class="desc">Indexed in SRS Appendix B.3 &mdash; see Completion Approvals below.</div></div></div>
+      <div class="tl-item open"><div class="mark">&#9675;</div><div><div class="title">Technical Lead sign-off on 24 proposed decisions</div><div class="desc">12 backend, 12 frontend &mdash; both documents currently Draft.</div></div></div>
+      <div class="tl-item open"><div class="mark">&#9675;</div><div><div class="title">Resolve 4 blocked, externally-owned decisions</div><div class="desc">Object storage, gold-rate licensing, Admin platform choice, data-grid build-or-buy.</div></div></div>
+      <div class="tl-item open"><div class="mark">&#9675;</div><div><div class="title">Implementation kickoff</div><div class="desc">No <code>package.json</code> or <code>pubspec.yaml</code> exists yet &mdash; the repository is specification-only.</div></div></div>
+    </div>
+  </section>
+
+  <!-- ===================== TASKS ===================== -->
+  <section id="tasks">
+    <div class="section-head">
+      <h2>Open Tasks</h2>
+      <span class="count">65 items outstanding</span>
+    </div>
+    <div class="task-cards">
+      <a class="task-card po" href="#approvals-po">
+        <div class="n">37</div>
+        <div class="t">Requirements awaiting confirmation</div>
+        <div class="d">Every <code>[ASSUMED]</code> item indexed in SRS Appendix B.3 needs a yes/no from the business.</div>
+        <div class="owner">Owner &middot; Product Owner</div>
+      </a>
+      <a class="task-card tech" href="#approvals-techlead">
+        <div class="n">24</div>
+        <div class="t">Decisions awaiting sign-off</div>
+        <div class="d">Every <code>[PROPOSED]</code> row in the backend and frontend decision registers.</div>
+        <div class="owner">Owner &middot; Technical Lead</div>
+      </a>
+      <a class="task-card blocked" href="#approvals-blocked">
+        <div class="n">4</div>
+        <div class="t">Blocked on an external decision</div>
+        <div class="d">Storage provider, licensing terms, platform choice, and a build-or-buy call &mdash; none resolvable in-document.</div>
+        <div class="owner">Owner &middot; Varies</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===================== COMPLETION APPROVALS ===================== -->
+  <section id="approvals">
+    <div class="section-head">
+      <h2>Completion Approvals</h2>
+      <span class="count">The full sign-off ledger</span>
+    </div>
+
+    <!-- PO sign-off -->
+    <div class="approval-block" id="approvals-po">
+      <h3>Product Owner sign-off <span class="who">&mdash; 37 <code>[ASSUMED]</code> requirements, SRS Appendix B.3</span></h3>
+      <div class="scroll-x">
+      <table class="approve-table">
+        <tr class="group-row"><td colspan="2">FR-CUS &middot; Customer &middot; 16</td></tr>
+        <tr><td class="id">FR-CUS-001</td><td class="subject">Customer Registration + OAuth once</td></tr>
+        <tr><td class="id">FR-CUS-002</td><td class="subject">Customer Login &amp; Session</td></tr>
+        <tr><td class="id">FR-CUS-004</td><td class="subject">Account Deactivation &amp; Deletion</td></tr>
+        <tr><td class="id">FR-CUS-015</td><td class="subject">Save Request as Draft</td></tr>
+        <tr><td class="id">FR-CUS-016</td><td class="subject">Edit Published Request</td></tr>
+        <tr><td class="id">FR-CUS-017</td><td class="subject">Cancel Request</td></tr>
+        <tr><td class="id">FR-CUS-018</td><td class="subject">Reference Gold Rate Display</td></tr>
+        <tr><td class="id">FR-CUS-021</td><td class="subject">Sort &amp; Filter Offers</td></tr>
+        <tr><td class="id">FR-CUS-022</td><td class="subject">Offer Detail View</td></tr>
+        <tr><td class="id">FR-CUS-026</td><td class="subject">Decline an Offer</td></tr>
+        <tr><td class="id">FR-CUS-027</td><td class="subject">Customer Connections List</td></tr>
+        <tr><td class="id">FR-CUS-030</td><td class="subject">Edit / Withdraw Own Review</td></tr>
+        <tr><td class="id">FR-CUS-031</td><td class="subject">View Vendor Ratings Before Accepting</td></tr>
+        <tr><td class="id">FR-CUS-032</td><td class="subject">Customer Notifications</td></tr>
+        <tr><td class="id">FR-CUS-033</td><td class="subject">Report a Vendor or Offer</td></tr>
+        <tr><td class="id">FR-CUS-034</td><td class="subject">Customer Settings</td></tr>
+
+        <tr class="group-row"><td colspan="2">FR-VEN &middot; Vendor &middot; 10</td></tr>
+        <tr><td class="id">FR-VEN-001</td><td class="subject">Vendor Registration</td></tr>
+        <tr><td class="id">FR-VEN-002</td><td class="subject">KYC Document Upload</td></tr>
+        <tr><td class="id">FR-VEN-009</td><td class="subject">Search / Filter / Sort Requests</td></tr>
+        <tr><td class="id">FR-VEN-013</td><td class="subject">Offer Validity Period</td></tr>
+        <tr><td class="id">FR-VEN-014</td><td class="subject">Revise / Withdraw Offer</td></tr>
+        <tr><td class="id">FR-VEN-015</td><td class="subject">One Active Offer per Request</td></tr>
+        <tr><td class="id">FR-VEN-025</td><td class="subject">Categories, Regions &amp; Availability</td></tr>
+        <tr><td class="id">FR-VEN-029</td><td class="subject">View Own Ratings</td></tr>
+        <tr><td class="id">FR-VEN-030</td><td class="subject">Report a Customer or Request</td></tr>
+        <tr><td class="id">FR-VEN-031</td><td class="subject">Subscription per Request Type</td></tr>
+
+        <tr class="group-row"><td colspan="2">FR-ADM &middot; Admin &middot; 7</td></tr>
+        <tr><td class="id">FR-ADM-002</td><td class="subject">Admin Provisioning &amp; Roles</td></tr>
+        <tr><td class="id">FR-ADM-012</td><td class="subject">Customer Suspension</td></tr>
+        <tr><td class="id">FR-ADM-019</td><td class="subject">Request Moderation &amp; Removal</td></tr>
+        <tr><td class="id">FR-ADM-028</td><td class="subject">Report Export</td></tr>
+        <tr><td class="id">FR-ADM-031</td><td class="subject">Gold Rate Configuration</td></tr>
+        <tr><td class="id">FR-ADM-032</td><td class="subject">Abuse Report Queue</td></tr>
+        <tr><td class="id">FR-ADM-033</td><td class="subject">Audit Log Viewer</td></tr>
+
+        <tr class="group-row"><td colspan="2">FR-SYS &middot; No human actor &middot; 4</td></tr>
+        <tr><td class="id">FR-SYS-005</td><td class="subject">Request Expiry Processing</td></tr>
+        <tr><td class="id">FR-SYS-009</td><td class="subject">Media Processing</td></tr>
+        <tr><td class="id">FR-SYS-010</td><td class="subject">Gold Rate Ingestion</td></tr>
+        <tr><td class="id">FR-SYS-011</td><td class="subject">Audit Logging</td></tr>
+      </table>
+      </div>
+    </div>
+
+    <!-- Technical Lead sign-off -->
+    <div class="approval-block" id="approvals-techlead">
+      <h3>Technical Lead sign-off <span class="who">&mdash; 24 <code>[PROPOSED]</code> decisions, architecture &sect;3 registers</span></h3>
+      <div class="scroll-x">
+      <table class="approve-table">
+        <tr class="group-row"><td colspan="2">Architecture-Backend.md &middot; 12</td></tr>
+        <tr><td class="id">AD-BE-03</td><td class="subject">TypeScript in strict mode; no JavaScript source in the application tree</td></tr>
+        <tr><td class="id">AD-BE-04</td><td class="subject">NestJS on Fastify as the application framework</td></tr>
+        <tr><td class="id">AD-BE-05</td><td class="subject">Prisma for schema, migrations and the transaction API; raw SQL for the six hot read paths</td></tr>
+        <tr><td class="id">AD-BE-06</td><td class="subject">Transactional outbox in PostgreSQL for all asynchronous work</td></tr>
+        <tr><td class="id">AD-BE-07</td><td class="subject">One binary, two runtime roles (api, worker) selected by environment variable</td></tr>
+        <tr><td class="id">AD-BE-08</td><td class="subject">Masking enforced by explicit presenters with field whitelists</td></tr>
+        <tr><td class="id">AD-BE-09</td><td class="subject">Acceptance serialises on a <code>SELECT&nbsp;&hellip;&nbsp;FOR UPDATE</code> of the parent Request row</td></tr>
+        <tr><td class="id">AD-BE-10</td><td class="subject">PostgreSQL-backed token-bucket rate limiting</td></tr>
+        <tr><td class="id">AD-BE-11</td><td class="subject">Search via PostgreSQL GIN + pg_trgm; no external search engine</td></tr>
+        <tr><td class="id">AD-BE-12</td><td class="subject">Hexagonal ports for all five external integrations</td></tr>
+        <tr><td class="id">AD-BE-13</td><td class="subject">Anonymise-in-place for erasure of transactional records; hard-delete for object storage</td></tr>
+        <tr><td class="id">AD-BE-14</td><td class="subject">OpenAPI generated from code, published as the client contract, diffed in CI</td></tr>
+
+        <tr class="group-row"><td colspan="2">Architecture-Frontend.md &middot; 12</td></tr>
+        <tr><td class="id">AD-FE-02</td><td class="subject">Melos-managed monorepo &mdash; two apps, shared packages</td></tr>
+        <tr><td class="id">AD-FE-03</td><td class="subject">Riverpod for state management and dependency injection</td></tr>
+        <tr><td class="id">AD-FE-04</td><td class="subject">go_router with typed routes and declarative guards</td></tr>
+        <tr><td class="id">AD-FE-05</td><td class="subject">freezed + json_serializable for immutable models and unions</td></tr>
+        <tr><td class="id">AD-FE-06</td><td class="subject">API client generated from the backend's OpenAPI document</td></tr>
+        <tr><td class="id">AD-FE-07</td><td class="subject">Masked and revealed parties are distinct sealed types</td></tr>
+        <tr><td class="id">AD-FE-08</td><td class="subject">Feature-first module structure; layers within a feature</td></tr>
+        <tr><td class="id">AD-FE-09</td><td class="subject">No local database in v1 &mdash; in-memory cache with explicit invalidation</td></tr>
+        <tr><td class="id">AD-FE-10</td><td class="subject">Freshness by push-triggered invalidation plus foreground polling; no WebSocket in v1</td></tr>
+        <tr><td class="id">AD-FE-11</td><td class="subject">Server time offset maintained from <code>meta.serverTime</code></td></tr>
+        <tr><td class="id">AD-FE-13</td><td class="subject">Golden tests in both LTR and RTL for every shared component</td></tr>
+        <tr><td class="id">AD-FE-14</td><td class="subject">Mobile and Admin ship on independent release trains from one repository</td></tr>
+      </table>
+      </div>
+    </div>
+
+    <!-- Blocked -->
+    <div class="approval-block" id="approvals-blocked">
+      <h3>Blocked <span class="who">&mdash; waiting on an external or business decision</span></h3>
+      <div class="scroll-x">
+      <table class="blocked-table">
+        <thead>
+          <tr><th style="width:26%">Item</th><th>Blocks</th><th style="width:16%">Owner</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="item">Object storage provider</div><div class="ref">C-13</div></td>
+            <td>Media, KYC documents, signed URLs, PDPL erasure &mdash; registered as blocking in both architecture documents.</td>
+            <td>Technical Lead</td>
+          </tr>
+          <tr>
+            <td><div class="item">Is the Admin Portal really Flutter Web?</div><div class="ref">C-10 &middot; ADR-0006</div></td>
+            <td>If not, most of the Flutter Web risk and the data-grid decision evaporate.</td>
+            <td>Product Owner</td>
+          </tr>
+          <tr>
+            <td><div class="item">Yahoo Finance redistribution terms</div><div class="ref">Legal</div></td>
+            <td>Displaying reference gold rates to end users.</td>
+            <td>Legal</td>
+          </tr>
+          <tr>
+            <td><div class="item">Admin data grid &mdash; build or buy</div><div class="ref">AD-FE-12</div></td>
+            <td>Fourteen Admin list screens (<code>ADM-S03&ndash;S12, S17, S22</code>) &mdash; must be decided before the first is built.</td>
+            <td>Technical Lead</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Point-in-time snapshot, 17 Aug 2026 &mdash; not a live view. Regenerate after any SRS/ADR/architecture version bump, or once a sign-off actually lands.</span>
+    <span>Karat Hive &middot; docs/project-dashboard.html</span>
+  </footer>
+
+</div>

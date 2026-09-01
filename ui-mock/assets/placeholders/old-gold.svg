@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <rect width="200" height="200" fill="#0A1128"/>
+  <ellipse cx="100" cy="115" rx="55" ry="22" fill="#182344" stroke="#A58A2A"/>
+  <path d="M55 110 Q100 55 145 110" stroke="url(#og)" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <circle cx="100" cy="72" r="10" fill="#D4AF37"/>
+  <defs>
+    <linearGradient id="og" x1="55" y1="90" x2="145" y2="90">
+      <stop stop-color="#8F731B"/><stop offset=".5" stop-color="#D4AF37"/><stop offset="1" stop-color="#9B7B20"/>
+    </linearGradient>
+  </defs>
+</svg>

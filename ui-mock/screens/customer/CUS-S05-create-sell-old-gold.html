@@ -1,0 +1,99 @@
+<section class="screen" data-screen="CUS-S05" data-title="Sell Old Gold">
+  <div class="screen-block">
+    <div class="section-label">Create Request · Step 1 of 2</div>
+    <h1 class="screen-heading">Sell Old Gold</h1>
+    <div class="progress-bar" style="margin-bottom:1.25rem"><span style="width:50%"></span></div>
+  </div>
+
+  <div class="card frame-deco" style="margin-bottom:1.5rem">
+    <div class="field-row">
+      <span class="field-label">Request Type</span>
+      <span class="status-chip status-published">Sell Old Gold (SELL)</span>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Target Region</span>
+      <select style="width:auto;min-height:36px;padding:0.25rem 0.5rem">
+        <option>Dubai</option>
+        <option selected>Abu Dhabi</option>
+        <option>Sharjah</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2 class="section-title">1. Items & Weight</h2>
+    
+    <div class="field">
+      <label class="field-label">Category / Item Types <span class="field-hint">*</span></label>
+      <input type="text" value="Mixed Jewellery (Bangles, Chains, Rings)" />
+    </div>
+
+    <div class="field">
+      <label class="field-label">Total Net Weight (g) <span class="field-hint">*</span></label>
+      <input type="number" step="0.1" value="42.00" placeholder="e.g. 42.0" />
+      <label class="field-check" style="margin-top:4px">
+        <input type="checkbox" checked />
+        <span class="field-hint">Weight is approximate (final weight tested by jeweller upon meeting)</span>
+      </label>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Gold Purity <span class="field-hint">*</span></label>
+      <select>
+        <option>24K Pure Gold</option>
+        <option>22K Gold (AED 469.53 / g)</option>
+        <option selected>21K Gold (AED 448.35 / g)</option>
+        <option>18K Gold (AED 384.30 / g)</option>
+        <option>Mixed Karats (Specified in notes)</option>
+      </select>
+    </div>
+
+    <div class="card card-gold-rate" style="padding:0.75rem;margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="field-hint">Estimated Melt Gold Value (21K @ 42g):</span>
+        <strong style="color:var(--gold-200)">AED 18,830.70</strong>
+      </div>
+      <div class="field-hint" style="margin-top:4px;font-size:0.72rem">Indicative estimate only based on live reference rate. Jewellers quote competitive purchase offers.</div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Item Condition</label>
+      <select>
+        <option selected>Good / Scrap Gold</option>
+        <option>Like New / Resellable</option>
+        <option>Damaged / Broken Pieces</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="field-check">
+        <input type="checkbox" checked />
+        <span>Has original purchase invoice / hallmark certification</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2 class="section-title">2. Photos of Actual Items</h2>
+    <div class="media-grid" style="margin-bottom:8px">
+      <img src="assets/images/old-gold.jpg" alt="Actual items" />
+      <div class="slot-upload" data-nav="CUS-S08">+ Add Photo</div>
+      <div class="slot-upload" data-nav="CUS-S08">+ Add Photo</div>
+    </div>
+    <div class="notice notice-warning" style="font-size:0.8rem">
+      <strong>Notice:</strong> Stock or catalogue photos are not accepted for Sell Old Gold requests. Please upload photos of your actual gold items.
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2 class="section-title">3. Notes</h2>
+    <div class="field">
+      <textarea rows="3" placeholder="Additional details about hallmarking, karat breakdown, or meeting preferences...">42 grams total of 21K gold. Includes 2 bangles and 1 rope chain. Have original purchase bill from 2021.</textarea>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn btn-gold btn-block gold-light" data-nav="CUS-S09">Continue to Review &amp; Publish →</button>
+    <button type="button" class="btn btn-secondary btn-block">Save as Draft</button>
+  </div>
+</section>

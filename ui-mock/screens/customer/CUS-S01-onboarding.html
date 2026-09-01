@@ -1,0 +1,71 @@
+<section class="screen" data-screen="CUS-S01" data-title="Onboarding">
+  <div class="section-label">CUS-S01 - customer</div>
+  <h1 class="screen-heading">Onboarding</h1>
+  <p class="field-hint" style="margin-bottom:1.25rem">All inventory fields with sample data. Mock is read-only.</p>
+  <div class="field" data-kind="input">
+    <div class="field-label">Mobile number <span class="field-hint">*</span></div>
+    <input type="text" value="+971 50 123 4567" readonly />
+    <div class="field-hint">UAE-format / E.164 - Unique among active accounts</div>
+  </div>
+  <div class="field" data-kind="action">
+    <div class="field-label">Send OTP - Action</div>
+    <button type="button" class="btn btn-secondary btn-block">Send OTP</button>
+  </div>
+  <div class="field" data-kind="input">
+    <div class="field-label">OTP code <span class="field-hint">*</span></div>
+    <input type="text" value="482910" readonly />
+    <div class="field-hint">Numeric - Expires 5 minutes after issue</div>
+  </div>
+  <div class="field" data-kind="input">
+    <div class="field-label">Display name <span class="field-hint">*</span></div>
+    <input type="text" value="Sara Al Maktoum" readonly />
+    <div class="field-hint">string ≤ 100 - Registration only</div>
+  </div>
+  <div class="field" data-kind="input">
+    <div class="field-label">Email</div>
+    <input type="email" value="sara@example.ae" readonly />
+    <div class="field-hint">email - Optional at register; verify later via link if supplied</div>
+  </div>
+  <div class="field" data-kind="input">
+    <label class="field-check">
+      <input type="checkbox" checked disabled />
+      <span><span class="field-label" style="text-transform:none;letter-spacing:0;font-size:0.95rem;color:var(--text-primary)">Accept Terms of Service <span class="field-hint">*</span></span>
+      <span class="field-hint">checkbox + version</span></span>
+    </label>
+  </div>
+  <div class="field" data-kind="input">
+    <label class="field-check">
+      <input type="checkbox" checked disabled />
+      <span><span class="field-label" style="text-transform:none;letter-spacing:0;font-size:0.95rem;color:var(--text-primary)">Accept Privacy Policy <span class="field-hint">*</span></span>
+      <span class="field-hint">checkbox + version</span></span>
+    </label>
+  </div>
+  <div class="field" data-kind="action">
+    <div class="field-label">Create account / Continue - Action</div>
+    <button type="button" class="btn btn-gold btn-block gold-light" data-nav="CUS-S03">Create account / Continue</button>
+  </div>
+  <div class="field" data-kind="action">
+    <div class="field-label">OAuth provider (Google / Apple / configured) - Action</div>
+    <button type="button" class="btn btn-secondary btn-block">OAuth provider (Google / Apple / configured)</button>
+  </div>
+  <div class="field" data-kind="display">
+    <div class="field-label">OAuth binding status - Display</div>
+    <div class="field-value">ACTIVE <span class="status-chip status-offers">Offers received</span></div>
+    <div class="field-hint">bound / not bound - Shown when gate is hit</div>
+  </div>
+  <div class="field" data-kind="action">
+    <div class="field-label">Login with mobile + OTP - Action</div>
+    <button type="button" class="btn btn-gold btn-block gold-light">Login with mobile + OTP</button>
+  </div>
+  <div class="field" data-kind="input">
+    <label class="field-check">
+      <input type="checkbox" checked disabled />
+      <span><span class="field-label" style="text-transform:none;letter-spacing:0;font-size:0.95rem;color:var(--text-primary)">Biometric unlock</span>
+      <span class="field-hint">Face ID / fingerprint</span></span>
+    </label>
+  </div>
+  <div class="field" data-kind="action">
+    <div class="field-label">Logout (from session) - Action</div>
+    <button type="button" class="btn btn-secondary btn-block">Logout (from session)</button>
+  </div>
+</section>

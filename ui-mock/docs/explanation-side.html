@@ -1,0 +1,93 @@
+<div class="explain-inner">
+  <header class="explain-header">
+    <div class="section-label">Documentation</div>
+    <h2 class="explain-title">UI Mock guide</h2>
+    <p class="explain-lead">How this prototype works, what to click, and where the truth lives.</p>
+    <a class="explain-export" href="docs/EXPLANATION.md" download target="_blank" rel="noopener">Export full doc (Markdown) ↗</a>
+  </header>
+
+  <nav class="explain-toc" aria-label="Explanation sections">
+    <a href="#ex-what">What this is</a>
+    <a href="#ex-run">Run</a>
+    <a href="#ex-login">Login</a>
+    <a href="#ex-nav">Navigation</a>
+    <a href="#ex-flow">Product flow</a>
+    <a href="#ex-design">Design</a>
+    <a href="#ex-fields">Fields</a>
+    <a href="#ex-sources">Sources</a>
+  </nav>
+
+  <article class="explain-body">
+    <section id="ex-what">
+      <h3>What this is</h3>
+      <p>Static <strong>HTML/CSS/JS</strong> mock of all <strong>67</strong> inventory screens (22 Customer · 22 Vendor · 23 Admin). Hardcoded sample data. No backend.</p>
+      <ul>
+        <li>Customer &amp; Vendor: mobile phone shell</li>
+        <li>Admin: web layout with sidebar</li>
+        <li>Visual system from design context (sapphire + metallic gold)</li>
+      </ul>
+    </section>
+
+    <section id="ex-run">
+      <h3>How to run</h3>
+      <p>Must use HTTP (partials load via <code>fetch</code>):</p>
+      <pre><code>npx --yes serve ui-mock</code></pre>
+      <p>Or <code>python -m http.server</code> from <code>ui-mock/</code>.</p>
+    </section>
+
+    <section id="ex-login">
+      <h3>Login</h3>
+      <p>Role chooser only — <strong>Customer</strong> / <strong>Vendor</strong> / <strong>Admin</strong>. No password.</p>
+      <p>Full auth fields still appear on <code>CUS-S01</code>, <code>VEN-S01</code>/<code>S04</code>, <code>ADM-S01</code> (open via Screen map ☰).</p>
+    </section>
+
+    <section id="ex-nav">
+      <h3>Navigation</h3>
+      <ul>
+        <li>Routes: <code>#/customer/CUS-S02</code>, <code>#/vendor/VEN-S05</code>, <code>#/admin/ADM-S02</code></li>
+        <li>Customer tabs: Home · Requests · Connections · Alerts · Profile</li>
+        <li>Vendor tabs: Home · Requests · Offers · Connect · More</li>
+        <li><strong>☰ Screen map</strong> = every screen for current role</li>
+        <li>Screen ID pill (e.g. <code>CUS-S02</code>) always visible in chrome</li>
+      </ul>
+    </section>
+
+    <section id="ex-flow">
+      <h3>Product flow</h3>
+      <ol>
+        <li>Customer creates a <strong>Request</strong></li>
+        <li>Vendors get matched → submit <strong>Offers</strong></li>
+        <li>Customer compares → <strong>Mark as Interested</strong></li>
+        <li>Identities reveal → <strong>WhatsApp Talk</strong></li>
+        <li>Optional reviews</li>
+      </ol>
+      <p>Until accept: masked labels only (BR-006). After: real name, phone, business on Connection screens.</p>
+    </section>
+
+    <section id="ex-design">
+      <h3>Design notes</h3>
+      <ul>
+        <li>Warm ivory canvas, crystalline glass cards, slate obsidian text, restrained gold</li>
+        <li>Gold-light sweep on heroes/CTAs (disabled if reduced motion)</li>
+        <li>WhatsApp green only on Talk buttons</li>
+        <li>Status = chip + text, not colour alone</li>
+      </ul>
+    </section>
+
+    <section id="ex-fields">
+      <h3>Field completeness</h3>
+      <p>Each screen HTML is built from the matching <code>ui-screens/**/*.md</code> Fields table. Labels match inventory names; values are sample.</p>
+      <p><strong>Suggested path:</strong> Customer Home → create → offers → accept → connection → switch Vendor → Admin queues.</p>
+    </section>
+
+    <section id="ex-sources">
+      <h3>Source of truth</h3>
+      <ul>
+        <li>Fields: <code>ui-screens/…/*.md</code></li>
+        <li>Visual: <code>ui-screens/Karat_Hive_UI_Design_Context.md</code></li>
+        <li>Domain: root <code>CONTEXT.md</code></li>
+        <li>Full write-up: <code>ui-mock/docs/EXPLANATION.md</code></li>
+      </ul>
+    </section>
+  </article>
+</div>

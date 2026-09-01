@@ -1,0 +1,9 @@
+# Local Claude Code scratch scripts (disposable)
+.claude/scratch/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Node (none today; ui-mock is served with `npx serve`)
+node_modules/
