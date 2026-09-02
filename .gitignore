@@ -7,3 +7,11 @@ Thumbs.db
 
 # Node (none today; ui-mock is served with `npx serve`)
 node_modules/
+
+# Flutter / Dart workspace
+.dart_tool/
+.idea/
+*.iml
+build/
+.flutter-plugins
+.flutter-plugins-dependencies

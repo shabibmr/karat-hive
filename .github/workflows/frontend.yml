@@ -1,0 +1,33 @@
+name: frontend
+
+on:
+  push:
+    paths:
+      - 'apps/kh_mobile/**'
+      - 'packages/**'
+      - 'pubspec.yaml'
+      - '.github/workflows/frontend.yml'
+  pull_request:
+    paths:
+      - 'apps/kh_mobile/**'
+      - 'packages/**'
+      - 'pubspec.yaml'
+      - '.github/workflows/frontend.yml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.7'
+          channel: stable
+          cache: true
+      - run: dart pub global activate melos ^8.0.0
+      - run: melos bootstrap
+      - run: melos run analyze --no-select
+      - run: melos run test --no-select
+      - name: Debug APK build
+        working-directory: apps/kh_mobile/karat_hive
+        run: flutter build apk --debug --dart-define-from-file=config/dev.json
