@@ -1,0 +1,42 @@
+# Optional. Default local development uses a native PostgreSQL, not this file.
+# Application process is not started here.
+#
+#   docker compose -f backend/docker/docker-compose.yml up -d
+#
+# DATABASE_URL=postgresql://karat:karat@localhost:5432/karat_hive
+# MinIO S3 API: http://localhost:9000  console: http://localhost:9001
+# Buckets (create after first boot): request-media, kyc, export
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: karat
+      POSTGRES_PASSWORD: karat
+      POSTGRES_DB: karat_hive
+    ports:
+      - '5432:5432'
+    volumes:
+      - kh_pg:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U karat -d karat_hive']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio-dev-password
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - kh_minio:/data
+
+volumes:
+  kh_pg:
+  kh_minio:
