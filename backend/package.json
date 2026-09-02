@@ -20,6 +20,7 @@
     "prisma:validate": "prisma validate",
     "prisma:diff": "prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script",
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "lint": "eslint src",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
