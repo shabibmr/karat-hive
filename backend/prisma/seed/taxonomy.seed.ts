@@ -10,6 +10,9 @@ const REGIONS: Node[] = [
     children: [
       { key: 'ad-city', nameEn: 'Abu Dhabi City', nameAr: 'مدينة أبوظبي' },
       { key: 'al-ain', nameEn: 'Al Ain', nameAr: 'العين' },
+      { key: 'al-dhafra', nameEn: 'Al Dhafra', nameAr: 'الظفرة' },
+      { key: 'khalifa-city', nameEn: 'Khalifa City', nameAr: 'مدينة خليفة' },
+      { key: 'yas-island', nameEn: 'Yas Island', nameAr: 'جزيرة ياس' },
     ],
   },
   {
@@ -17,49 +20,139 @@ const REGIONS: Node[] = [
     nameEn: 'Dubai',
     nameAr: 'دبي',
     children: [
-      { key: 'deira', nameEn: 'Deira', nameAr: 'ديرة' },
+      { key: 'deira', nameEn: 'Deira (Gold Souk)', nameAr: 'ديرة (سوق الذهب)' },
       { key: 'bur-dubai', nameEn: 'Bur Dubai', nameAr: 'بر دبي' },
       { key: 'dubai-marina', nameEn: 'Dubai Marina', nameAr: 'مرسى دبي' },
+      { key: 'downtown-dubai', nameEn: 'Downtown Dubai', nameAr: 'وسط مدينة دبي' },
+      { key: 'jumeirah', nameEn: 'Jumeirah', nameAr: 'جميرا' },
+      { key: 'al-barsha', nameEn: 'Al Barsha', nameAr: 'البرشاء' },
     ],
   },
-  { key: 'sharjah', nameEn: 'Sharjah', nameAr: 'الشارقة' },
-  { key: 'ajman', nameEn: 'Ajman', nameAr: 'عجمان' },
-  { key: 'umm-al-quwain', nameEn: 'Umm Al Quwain', nameAr: 'أم القيوين' },
-  { key: 'ras-al-khaimah', nameEn: 'Ras Al Khaimah', nameAr: 'رأس الخيمة' },
-  { key: 'fujairah', nameEn: 'Fujairah', nameAr: 'الفجيرة' },
+  {
+    key: 'sharjah',
+    nameEn: 'Sharjah',
+    nameAr: 'الشارقة',
+    children: [
+      { key: 'al-majaz', nameEn: 'Al Majaz', nameAr: 'المجاز' },
+      { key: 'al-nahda-shj', nameEn: 'Al Nahda', nameAr: 'النهدة' },
+      { key: 'muwailih', nameEn: 'Muwailih', nameAr: 'مويلح' },
+      { key: 'al-qasimia', nameEn: 'Al Qasimia', nameAr: 'القاسمية' },
+    ],
+  },
+  {
+    key: 'ajman',
+    nameEn: 'Ajman',
+    nameAr: 'عجمان',
+    children: [
+      { key: 'al-nuaimiya', nameEn: 'Al Nuaimiya', nameAr: 'النعيمية' },
+      { key: 'al-rashidiya-ajm', nameEn: 'Al Rashidiya', nameAr: 'الراشدية' },
+      { key: 'al-jurf', nameEn: 'Al Jurf', nameAr: 'الجرف' },
+    ],
+  },
+  {
+    key: 'umm-al-quwain',
+    nameEn: 'Umm Al Quwain',
+    nameAr: 'أم القيوين',
+    children: [
+      { key: 'al-raudah', nameEn: 'Al Raudah', nameAr: 'الروضة' },
+      { key: 'al-salamah', nameEn: 'Al Salamah', nameAr: 'السلمة' },
+      { key: 'uaq-old-town', nameEn: 'Old Town Area', nameAr: 'البلدة القديمة' },
+    ],
+  },
+  {
+    key: 'ras-al-khaimah',
+    nameEn: 'Ras Al Khaimah',
+    nameAr: 'رأس الخيمة',
+    children: [
+      { key: 'al-nakheel', nameEn: 'Al Nakheel', nameAr: 'النخيل' },
+      { key: 'al-hamra', nameEn: 'Al Hamra Village', nameAr: 'قرية الحمراء' },
+      { key: 'al-dhait', nameEn: 'Al Dhait', nameAr: 'الظيت' },
+    ],
+  },
+  {
+    key: 'fujairah',
+    nameEn: 'Fujairah',
+    nameAr: 'الفجيرة',
+    children: [
+      { key: 'al-faseel', nameEn: 'Al Faseel', nameAr: 'الفصيل' },
+      { key: 'mirbah', nameEn: 'Mirbah', nameAr: 'مربح' },
+      { key: 'dibba-fujairah', nameEn: 'Dibba Al Fujairah', nameAr: 'دبا الفجيرة' },
+    ],
+  },
 ];
 
 const CATEGORIES: Node[] = [
   {
-    key: 'ornaments',
-    nameEn: 'Gold Ornaments',
-    nameAr: 'مصوغات ذهبية',
+    key: 'jewellery',
+    nameEn: 'Jewellery',
+    nameAr: 'مجوهرات وحلي ذهبية',
     children: [
       { key: 'rings', nameEn: 'Rings', nameAr: 'خواتم' },
-      { key: 'chains', nameEn: 'Chains & Necklaces', nameAr: 'سلاسل وقلائد' },
-      { key: 'bangles', nameEn: 'Bangles & Bracelets', nameAr: 'أساور' },
-      { key: 'earrings', nameEn: 'Earrings', nameAr: 'أقراط' },
+      { key: 'necklaces', nameEn: 'Chains & Necklaces', nameAr: 'سلاسل وقلائد' },
+      { key: 'bangles', nameEn: 'Bangles & Bracelets', nameAr: 'أساور وغوايش' },
+      { key: 'earrings', nameEn: 'Earrings', nameAr: 'أقراط وحلق' },
+      { key: 'pendants', nameEn: 'Pendants & Medallions', nameAr: 'تعليقات وميداليات' },
+      { key: 'sets', nameEn: 'Full Jewellery Sets', nameAr: 'أطقم مجوهرات كاملة' },
+    ],
+  },
+  {
+    key: 'bullion',
+    nameEn: 'Bullion & Bars',
+    nameAr: 'سبائك ذهبية',
+    children: [
+      { key: 'bars-small', nameEn: 'Small Bars (1g – 20g)', nameAr: 'سبائك صغيرة (1 - 20 غرام)' },
+      {
+        key: 'bars-medium',
+        nameEn: 'Medium Bars (31.1g – 100g)',
+        nameAr: 'سبائك أونصة ومتوسطة (31.1 - 100 غرام)',
+      },
+      {
+        key: 'bars-large',
+        nameEn: 'Large Bars (250g – 500g)',
+        nameAr: 'سبائك كبيرة (250 - 500 غرام)',
+      },
+      { key: 'bars-kilo', nameEn: 'Kilobar (1kg / 1000g)', nameAr: 'سبائك كيلو (1000 غرام)' },
     ],
   },
   {
     key: 'coins',
     nameEn: 'Gold Coins',
-    nameAr: 'عملات ذهبية',
+    nameAr: 'عملات ومسكوكات ذهبية',
     children: [
-      { key: 'coins-investment', nameEn: 'Investment Coins', nameAr: 'عملات استثمارية' },
-      { key: 'coins-collectible', nameEn: 'Collectible Coins', nameAr: 'عملات نادرة' },
+      {
+        key: 'coins-investment',
+        nameEn: 'Investment Coins (Sovereigns, Krugerrand)',
+        nameAr: 'عملات استثمارية وسيادية',
+      },
+      {
+        key: 'coins-commemorative',
+        nameEn: 'Commemorative & Collectible Coins',
+        nameAr: 'عملات تذكارية ونادرة',
+      },
     ],
   },
   {
-    key: 'bullion',
-    nameEn: 'Gold Bullion',
-    nameAr: 'سبائك ذهبية',
+    key: 'old-gold',
+    nameEn: 'Scrap & Old Gold',
+    nameAr: 'ذهب قديم وكسر صهر',
     children: [
-      { key: 'bars-small', nameEn: 'Small Bars (1–50g)', nameAr: 'سبائك صغيرة' },
-      { key: 'bars-large', nameEn: 'Large Bars (100g+)', nameAr: 'سبائك كبيرة' },
+      {
+        key: 'broken-jewellery',
+        nameEn: 'Broken & Used Jewellery',
+        nameAr: 'حلي ومجوهرات مستعملة ومكسورة',
+      },
+      { key: 'melt-scrap', nameEn: 'Melt Scrap & Dental Gold', nameAr: 'كسر صهر وسبك' },
     ],
   },
-  { key: 'old-gold', nameEn: 'Old / Scrap Gold', nameAr: 'ذهب قديم' },
+  {
+    key: 'watches',
+    nameEn: 'Luxury Gold Watches',
+    nameAr: 'ساعات ذهبية فاخرة',
+    children: [
+      { key: 'watches-mens', nameEn: "Men's Gold Watches", nameAr: 'ساعات ذهبية رجالية' },
+      { key: 'watches-womens', nameEn: "Women's Gold Watches", nameAr: 'ساعات ذهبية نسائية' },
+    ],
+  },
 ];
 
 async function seedTree(
@@ -71,11 +164,12 @@ async function seedTree(
   const model: any = kind === 'category' ? prisma.category : prisma.region;
   let order = 0;
   for (const root of nodes) {
+    const rootId = await idFor(prisma, kind, root.key);
     const parent = await model.upsert({
-      where: { id: await idFor(prisma, kind, root.key) },
+      where: { id: rootId },
       update: { nameEn: root.nameEn, nameAr: root.nameAr, displayOrder: order, isActive: true },
       create: {
-        id: await idFor(prisma, kind, root.key),
+        id: rootId,
         nameEn: root.nameEn,
         nameAr: root.nameAr,
         displayOrder: order,
@@ -85,8 +179,9 @@ async function seedTree(
     order += 1;
     let childOrder = 0;
     for (const child of root.children ?? []) {
+      const childId = await idFor(prisma, kind, child.key);
       await model.upsert({
-        where: { id: await idFor(prisma, kind, child.key) },
+        where: { id: childId },
         update: {
           nameEn: child.nameEn,
           nameAr: child.nameAr,
@@ -95,7 +190,7 @@ async function seedTree(
           parentId: parent.id,
         },
         create: {
-          id: await idFor(prisma, kind, child.key),
+          id: childId,
           nameEn: child.nameEn,
           nameAr: child.nameAr,
           displayOrder: childOrder,
