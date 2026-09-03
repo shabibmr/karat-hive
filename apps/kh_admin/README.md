@@ -1,5 +1,17 @@
-# kh_admin
+# hive_admin
 
-Flutter Web **Admin Portal**. Separate app so Admin IA, bundle size, and release cadence stay off the mobile binary.
+A new Flutter project.
 
-Prescribed by `docs/Architecture-Frontend.md` §4–§5 (`AD-FE-02`, `C-10`). Do not import `kh_mobile`.
+## Getting Started
+
+This project is a starting point for a Flutter application.
+
+A few resources to get you started if this is your first Flutter project:
+
+- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

@@ -1,0 +1,150 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:kh_admin/core/auth/auth_models.dart';
+import 'package:kh_admin/core/auth/session_controller.dart';
+import 'package:kh_admin/core/auth/session_state.dart';
+import 'package:kh_admin/core/auth/token_storage.dart';
+import 'package:kh_admin/core/design/theme/kh_colors.dart';
+import 'package:kh_admin/main.dart';
+
+class _FakeTokenStorage extends TokenStorage {
+  @override
+  Future<SessionTokens?> loadTokens() async => null;
+  @override
+  Future<void> saveTokens(SessionTokens tokens) async {}
+  @override
+  Future<void> clearTokens() async {}
+}
+
+void main() {
+  testWidgets('KhAdminApp boots cleanly and renders login for unauthenticated visitor',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          tokenStorageProvider.overrideWithValue(_FakeTokenStorage()),
+        ],
+        child: const KhAdminApp(),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Verify Karat Hive branding renders on login screen
+    expect(find.text('KARAT HIVE'), findsOneWidget);
+    expect(find.text('Administrative Portal'), findsOneWidget);
+  });
+
+  testWidgets('KhAdminApp shell renders on desktop (>= 1280px) when authenticated',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          tokenStorageProvider.overrideWithValue(_FakeTokenStorage()),
+          sessionControllerProvider.overrideWith(
+            (ref) => _AuthenticatedSessionController(),
+          ),
+        ],
+        child: const KhAdminApp(),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // On desktop viewport, fixed sidebar and top bar render
+    expect(find.text('Karat Hive Portal'), findsOneWidget);
+    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('Super Admin'), findsOneWidget);
+  });
+
+  testWidgets('KhAdminApp shell renders navigation drawer when < 1280px',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1024, 768);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          tokenStorageProvider.overrideWithValue(_FakeTokenStorage()),
+          sessionControllerProvider.overrideWith(
+            (ref) => _AuthenticatedSessionController(),
+          ),
+        ],
+        child: const KhAdminApp(),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Hamburger button is visible
+    expect(find.byIcon(Icons.menu), findsOneWidget);
+
+    // Open drawer
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+
+    // Drawer is now open and sidebar contents appear
+    expect(find.text('Karat Hive Portal'), findsOneWidget);
+    expect(find.text('Categories'), findsOneWidget);
+  });
+
+  test('Design tokens expose sapphire/gold/cream palette correctly', () {
+    const colors = KhColors.dark;
+    expect(colors.sapphire900.toARGB32(), 0xFF0A1128);
+    expect(colors.gold400.toARGB32(), 0xFFD4AF37);
+    expect(colors.cream100.toARGB32(), 0xFFFDFBF7);
+    expect(colors.goldPrimary.toARGB32(), 0xFFD4AF37);
+    expect(colors.backgroundPrimary.toARGB32(), 0xFF0A1128);
+  });
+}
+
+class _AuthenticatedSessionController extends StateNotifier<SessionState>
+    implements SessionController {
+  _AuthenticatedSessionController()
+      : super(
+          const SessionState(
+            status: SessionStatus.authenticated,
+            tokens: SessionTokens(
+              accessToken: 'test-access-token',
+              accessExpiresAt: '2026-12-31T23:59:59Z',
+              refreshToken: 'test-refresh-token',
+              refreshExpiresAt: '2026-12-31T23:59:59Z',
+            ),
+            admin: AdminUser(
+              userId: 'admin-1',
+              userType: 'ADMIN',
+              email: 'admin@karathive.ae',
+              displayName: 'Super Admin',
+            ),
+          ),
+        );
+
+  @override
+  Future<void> init() async {}
+
+  @override
+  Future<void> login(String email, String password) async {}
+
+  @override
+  Future<void> loginWithPassword(String email, String password) async {}
+
+  @override
+  Future<void> logout() async {
+    state = const SessionState(status: SessionStatus.unauthenticated);
+  }
+
+  @override
+  Future<bool> silentRefresh() async => true;
+}
