@@ -9,7 +9,7 @@
 | **Date** | 10 August 2026 |
 | **Companion** | [`docs/Architecture-Frontend.md`](Architecture-Frontend.md) — client architecture |
 | **Governs** | Node.js monolith, PostgreSQL, object storage, background workers, all server-side integrations |
-| **Source of truth** | [`docs/Requirements-Spec-v1.2.md`](Requirements-Spec-v1.2.md) · [`docs/adr/0001`–`0007`](adr/) · [`CONTEXT.md`](../CONTEXT.md) |
+| **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`docs/adr/0001`–`0008`](adr/) · [`CONTEXT.md`](../CONTEXT.md) |
 
 ---
 
@@ -76,7 +76,7 @@ Domain nouns — Request, Offer, Connection, Acceptance, Match Set, Fan-out, Tal
 
 ```mermaid
 flowchart LR
-    RAW["Requirements-raw.txt<br/><i>original brief</i>"] --> SRS["Requirements-Spec-v1.2.md<br/><i>what the system does</i>"]
+    RAW["Requirements-raw.txt<br/><i>original brief</i>"] --> SRS["Requirements-Spec-v1.3.md<br/><i>what the system does</i>"]
     SRS --> ADR["adr/0001–0007<br/><i>why the shape is this shape</i>"]
     SRS --> BE["Architecture-Backend.md<br/><i>this document</i>"]
     SRS --> FE["Architecture-Frontend.md"]
@@ -99,9 +99,10 @@ These are not open. They come from `Requirements-raw.txt` L96–L103 and are rec
 
 | ID | Constraint | Architectural consequence |
 |---|---|---|
+| **C-10** | Flutter is the sole client framework; the Admin Portal is a Flutter Web target. | No backend consequence beyond the shared OpenAPI contract (§1.4). Listed here for completeness of the C-10–C-13 set. |
 | **C-11** | Single Node.js monolithic deployable. No service decomposition, **no message broker**. | Asynchronous work must be built on PostgreSQL. §11 exists because of this. |
 | **C-12** | PostgreSQL is the single system of record. **No secondary datastore** for search, cache or analytics. | No Redis, no Elasticsearch. Rate limiting, idempotency, job locks, sessions and search all land in PostgreSQL. §12.6 and §13.6 exist because of this. |
-| **C-13** | Object storage provider **undecided**. | All storage access sits behind a port (§15.3) so the adapter can be written last. |
+| **C-13** | Object storage is S3-compatible: **Cloudflare R2** hosted, **MinIO** local/CI (`docs/adr/0008`). | All storage access sits behind a port (§15.3); the provider is a config choice, and a residency-driven swap does not touch business logic. |
 | **C-05 / BR-006** | Identity masking until Acceptance. | The single most invasive constraint on the code. §9. |
 | **C-07** | Requests hard-expire at 48 h. | A clock the system must honour to the minute, across restarts and instances. §11.3. |
 
@@ -181,7 +182,7 @@ flowchart TB
         PUSH["APNs / FCM"]
         MAIL["Transactional email"]
         RATE["Yahoo Finance<br/><i>gold rate</i>"]
-        OBJ["Object storage<br/><i>provider TBD — C-13</i>"]
+        OBJ["Object storage<br/><i>Cloudflare R2 — C-13</i>"]
     end
 
     WA["WhatsApp<br/><i>client-side deep link only</i>"]
@@ -235,7 +236,7 @@ flowchart TB
     subgraph Data
         PG[("PostgreSQL primary<br/><i>sole write target</i>")]
         RR[("Read replica<br/><i>Admin lists, reports</i>")]
-        OS[("Object storage<br/><i>3 buckets — C-13</i>")]
+        OS[("Object storage<br/><i>R2 — 3 buckets — C-13</i>")]
         SEC["Secret manager"]
     end
 
@@ -259,7 +260,7 @@ flowchart TB
 
 | Environment | Purpose | Data | Notes |
 |---|---|---|---|
-| `local` | Developer machine | Seeded synthetic | Docker Compose: PostgreSQL + MinIO (S3-compatible) stands in for the undecided provider (C-13) |
+| `local` | Developer machine | Seeded synthetic | Docker Compose: PostgreSQL + MinIO (S3-compatible). Staging and production use Cloudflare R2 against the same S3 API (C-13, `docs/adr/0008`) |
 | `ci` | Automated test | Ephemeral, per-run | Full migration run from empty on every build |
 | `staging` | UAT, PO `[ASSUMED]` sign-off, penetration test | Synthetic only — **never** production personal data | Same region and topology as production |
 | `production` | Live | Real | UAE-consistent region (`NFR-020`) |
@@ -268,7 +269,7 @@ flowchart TB
 
 ### 5.2 Regional placement
 
-One region, chosen for UAE data-residency consistency (`NFR-020`, C-13 residency row). Object storage, database, backups and logs all sit in that region. Any log shipping or APM vendor whose ingestion lands outside it needs a documented legal basis before it is enabled — this catches people out late, so it is an infrastructure checklist item, not an afterthought.
+One region, chosen for UAE data-residency consistency (`NFR-020`, SRS §7.6 residency row). Database, backups and logs all sit in that region. Object storage is Cloudflare R2 (`docs/adr/0008`), which places objects by location hint and does not guarantee a UAE region — confirming R2 residency is acceptable for KYC personal data, or swapping the S3 adapter to a residency-compliant provider, is tracked in §22.1. Any log shipping or APM vendor whose ingestion lands outside the region needs a documented legal basis before it is enabled — this catches people out late, so it is an infrastructure checklist item, not an afterthought.
 
 ---
 
@@ -466,7 +467,7 @@ canRevealIdentity(viewerUserId, counterpartyUserId) → boolean
 
 ### 9.4 Media and enumeration
 
-`FR-SYS-003.4` and `NFR-014`. Object keys are random UUIDs, never sequential and never derived from the Request reference. Every read is a signed URL issued after the same `canRevealIdentity` / match-set check that guards the parent entity, valid for 15 minutes. A Vendor who is no longer in a Request's match set stops being issued URLs immediately; any URL already issued dies within the window. `[BLOCKED]` on C-13 only for the signing mechanics, not for the policy.
+`FR-SYS-003.4` and `NFR-014`. Object keys are random UUIDs, never sequential and never derived from the Request reference. Every read is a signed URL issued after the same `canRevealIdentity` / match-set check that guards the parent entity, valid for 15 minutes. A Vendor who is no longer in a Request's match set stops being issued URLs immediately; any URL already issued dies within the window. The signing mechanics are Cloudflare R2 pre-signed URLs (C-13, `docs/adr/0008`).
 
 ### 9.5 Where masking does *not* apply
 
@@ -611,7 +612,7 @@ PostgreSQL is the system of record for every entity in SRS §6 (C-12). Object st
 | Naming | `snake_case` tables and columns, singular table names, matching SRS §6 entity names |
 | Timestamps | `timestamptz`, always UTC (`BR-021`). Display conversion to GST is the client's job |
 | Money | `numeric(12,2)` with a separate currency column fixed to `AED` in v1 (C-01). Never floating point |
-| Weight | `numeric(9,3)` grams (C-02) |
+| Weight | `numeric(10,2)` grams (SRS §6.2, C-02; two decimal places, 0.10–5000.00) |
 | Enums | PostgreSQL enum types for the four state machines, so an invalid state is rejected by the database, not only by the application |
 | Soft state | No generic `deleted_at`. Lifecycle is modelled explicitly by state machines; taxonomy uses `is_active` (`BR-019`) |
 | Migrations | Forward-only, reviewed, run automatically at deploy. Expand-migrate-contract for anything a running instance reads |
@@ -656,7 +657,7 @@ C-12 forbids a search engine, and `FR-VEN-009` and the Admin lists still need te
 | `AUDIT_LOG` | **Retained unaltered.** It is the legal record of what happened, including the erasure itself; anonymising it would defeat `FR-SYS-011.3` |
 | `NOTIFICATION` | Purged (90-day retention anyway) |
 
-Every erasure runs as one auditable job producing a completion certificate for the Admin who actioned it — because "we deleted your data" is a statement someone may have to defend to a regulator. The object-storage half of this is `[BLOCKED]` on C-13: the provider must support programmatic delete with verifiable completion (SRS §7.6).
+Every erasure runs as one auditable job producing a completion certificate for the Admin who actioned it — because "we deleted your data" is a statement someone may have to defend to a regulator. The object-storage half relies on Cloudflare R2's programmatic delete with verifiable completion (SRS §7.6, `docs/adr/0008`).
 
 ### 12.8 Replicas
 
@@ -706,6 +707,8 @@ Cursor pagination on every collection: `?limit=&cursor=`, returning `meta.nextCu
 
 `NFR-030`: OpenAPI generated from the code's schema definitions, published to the client teams as the authoritative reference, and diffed against the previous build in CI. A breaking change without a version bump fails the build. The frontend generates its client from this document (`AD-FE-06` in the [frontend architecture](Architecture-Frontend.md#3-decision-register)), so drift is caught at compile time on both sides.
 
+Until that generated document exists, the pre-code catalogue is [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) (`[PROPOSED]`). First implementation must diff the generated OpenAPI against that inventory. This section remains the style authority (envelope, idempotency, cursors, versioning, rate limiting); the inventory is the path and schema catalogue.
+
 ---
 
 ## 14. Identity, Authentication and Authorisation
@@ -744,7 +747,7 @@ Layer 3 is where authorisation bugs live, because it needs a query. It is implem
 
 ## 15. Integration Ports and Adapters
 
-`AD-BE-12`. Each external system is reached through a narrow port defined in domain terms. The adapter is the only place a vendor SDK is imported, which is what lets the undecided storage provider (C-13) and the legally uncertain rate feed (SRS §7.4) be swapped without touching business logic.
+`AD-BE-12`. Each external system is reached through a narrow port defined in domain terms. The adapter is the only place a vendor SDK is imported, which is what lets the storage provider (C-13 — Cloudflare R2, swappable if `NFR-020` residency requires it) and the legally uncertain rate feed (SRS §7.4) be swapped without touching business logic.
 
 ### 15.1 Notification gateway (SRS §7.3)
 
@@ -760,11 +763,11 @@ Failure behaviour is specified precisely because getting it wrong is a commercia
 
 **`[BLOCKED]` — legal.** Whether Yahoo's terms permit redistribution of rate data to end users is unresolved (SRS §7.4, A-06). The port exists so that a different provider, or manual-entry-only operation, is an adapter change of a day rather than a refactor.
 
-### 15.3 Object storage (SRS §7.6) `[BLOCKED]` on C-13
+### 15.3 Object storage (SRS §7.6) — Cloudflare R2
 
-Port: `presignUpload`, `presignDownload`, `delete`, `head`. The interface is specified against S3 semantics so requirements can be written and tested now; MinIO backs `local` and `ci`. Three buckets with distinct policies — Request media, Vendor KYC, system/export artefacts — no public objects, server-side encryption, signed URLs of 15 minutes by default (`NFR-014`).
+Port: `presignUpload`, `presignDownload`, `delete`, `head`. The interface is specified against S3 semantics; **MinIO** backs `local` and `ci`, **Cloudflare R2** backs `staging` and `production` (C-13, `docs/adr/0008`). Three buckets with distinct policies — Request media, Vendor KYC, system/export artefacts — no public objects, server-side encryption, signed URLs of 15 minutes by default (`NFR-014`).
 
-Provider selection gates signed-URL semantics, the KYC retention policy, PDPL erasure mechanics and the media cost model. It cannot be deferred past the start of media-handling implementation.
+The one open point is residency: R2 does not guarantee a UAE region, so production either confirms that is acceptable for KYC personal data or points this adapter at a residency-compliant S3 provider — a config change, tracked in §22.1 (`NFR-020`).
 
 ### 15.4 OAuth providers
 
@@ -987,9 +990,8 @@ One repository. `packages/` and workspaces are deliberately absent — C-11 says
 
 | # | Item | Blocks | Owner |
 |---|---|---|---|
-| 1 | **Object storage provider** (C-13, SRS §7.6) — `Requirements-raw.txt` L102 is blank | Media upload and display, KYC review and retention, signed-URL semantics, PDPL erasure mechanics, media cost model. `local`/`ci` can proceed on MinIO; **staging cannot** | Product Owner + Infrastructure |
-| 2 | **Yahoo Finance redistribution terms** (SRS §7.4, A-06) | Displaying reference rates to end users. The port and manual-override fallback exist, so this blocks a feature, not the build | Legal |
-| 3 | **Cloud provider and region** (`NFR-020`) | Provisioning, residency compliance, managed-PostgreSQL selection, backup topology | Infrastructure |
+| 1 | **Yahoo Finance redistribution terms** (SRS §7.4, A-06) | Displaying reference rates to end users. The port and manual-override fallback exist, so this blocks a feature, not the build | Legal |
+| 2 | **Cloud provider and region, incl. object-storage residency** (`NFR-020`) | Provisioning, residency compliance, managed-PostgreSQL selection, backup topology. **Object storage** is now Cloudflare R2 (C-13, `docs/adr/0008`), which does not guarantee a UAE region — production either confirms R2 residency is acceptable for KYC personal data or points the S3 adapter at a residency-compliant provider (a config change). `local`/`ci`/demo proceed on MinIO / R2 today | Infrastructure |
 
 ### 22.2 Decisions awaiting Technical Lead sign-off
 
@@ -1087,16 +1089,19 @@ These exist for architectural reasons, carry no domain meaning, and are listed s
 
 **Recommendation:** fold these into SRS §6 at the next revision, or add a note there pointing here, so the data model has one home.
 
+Physical encoding (Prisma DSL + the SQL Prisma cannot express): [`docs/Physical-Data-Model.md`](Physical-Data-Model.md) and [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma). `[PROPOSED]` until `AD-BE-05` is signed off.
+
 ## Appendix D — Revision History and Sign-off
 
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 10 Aug 2026 | Initial backend architecture, derived from SRS v1.2 and ADRs 0001–0007 |
+| 1.1 | 1 Sep 2026 | Re-based on SRS v1.3: C-13 resolved (object storage → Cloudflare R2 hosted, MinIO local/CI; new ADR `0008`); C-10 row added to §2.1. §22.1 blocking list drops the storage-provider item; the region item now names object-storage residency (`NFR-020`) |
 
 | Role | Signs off on | Status |
 |---|---|---|
 | Technical Lead | Every `[PROPOSED]` decision in §3; the module boundaries of §7; the release gates of §20 | Pending |
-| Product Owner | The blocking items in §22.1 — object storage provider above all | Pending |
+| Product Owner | The blocking items in §22.1 | Pending |
 | Infrastructure / DevOps | §5 deployment topology, §5.2 region, §19.3 backup and restore | Pending |
 | Security / Compliance | §18, §12.7 erasure, §5.1 no-production-data-in-staging | Pending |
 

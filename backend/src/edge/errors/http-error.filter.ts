@@ -72,8 +72,8 @@ function headerString(value: string | string[] | undefined): string | undefined 
   return undefined;
 }
 
-function isErrorCode(value: unknown): value is ErrorCode {
-  return typeof value === 'string' && value in ErrorCode;
+export function isErrorCode(value: unknown): value is ErrorCode {
+  return typeof value === 'string' && Object.hasOwn(ErrorCode, value);
 }
 
 function codeForStatus(status: number, explicit: ErrorCode): ErrorCode {

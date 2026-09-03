@@ -25,6 +25,15 @@ export const IDENTITY_KEYS = new Set([
   'addressLine1',
   'nationalId',
   'emiratesId',
+  'customerProfileId',
+  'vendorProfileId',
+  'adminProfileId',
+  'actorUserId',
+  'reporterUserId',
+  'reportedUserId',
+  'recipientUserId',
+  'createdById',
+  'verifiedByAdminId',
 ]);
 
 export function findIdentityKey(value: unknown, skipMeta = true): string | null {
@@ -45,7 +54,7 @@ function walk(value: unknown, skipMeta: boolean): string | null {
   for (const [key, child] of Object.entries(record)) {
     if (skipMeta && key === 'meta') continue;
     if (IDENTITY_KEYS.has(key)) return key;
-    const nested = key === 'data' ? walk(child, skipMeta) : walk(child, skipMeta);
+    const nested = walk(child, skipMeta);
     if (nested) return nested;
   }
   return null;

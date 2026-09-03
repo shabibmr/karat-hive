@@ -56,4 +56,20 @@ describe('OutboxDispatcher', () => {
     expect(claimer.markDone).not.toHaveBeenCalled();
     expect(claimer.markFailure).toHaveBeenCalledOnce();
   });
+
+  it('logs a warning and marks event done when no consumers are registered', async () => {
+    const claimer = {
+      claimBatch: vi.fn(async () => [event({ eventType: 'unknown.event' })]),
+      hasConsumed: vi.fn(async () => false),
+      markConsumed: vi.fn(async () => true),
+      markDone: vi.fn(async () => undefined),
+      markFailure: vi.fn(async () => undefined),
+    };
+    const dispatcher = new OutboxDispatcher(claimer as unknown as OutboxClaimer);
+    const warnSpy = vi.spyOn(dispatcher['logger'], 'warn');
+    await dispatcher.drain('w1');
+    expect(warnSpy).toHaveBeenCalledWith('No consumers for unknown.event; marking done.');
+    expect(claimer.markDone).toHaveBeenCalledWith('evt-1');
+    expect(claimer.markConsumed).not.toHaveBeenCalled();
+  });
 });

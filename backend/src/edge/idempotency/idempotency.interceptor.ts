@@ -14,6 +14,7 @@ import { viewerOf } from '../auth/auth.guard';
 import { clientIpOf } from '../client-ip';
 import { ApiException } from '../errors/api-exception';
 import { ErrorCode } from '../errors/error-codes';
+import { requestIdOf } from '../request-id';
 import {
   hashBody,
   IDEMPOTENCY_IN_FLIGHT,
@@ -64,6 +65,7 @@ export class IdempotencyInterceptor implements NestInterceptor {
       reply,
     });
     if (claimed.kind === 'replay') {
+      reply.header('x-request-id', requestIdOf(request));
       return of(claimed.body);
     }
 
@@ -121,16 +123,13 @@ export class IdempotencyInterceptor implements NestInterceptor {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.IDEMPOTENCY_KEY_REUSED);
     }
     if (!isReplayFresh(existing.createdAt, this.clock.now())) {
-      await this.prisma.idempotencyKey.delete({ where: { id: existing.id } });
-      await this.prisma.idempotencyKey.create({
+      await this.prisma.idempotencyKey.update({
+        where: { id: existing.id },
         data: {
-          key: args.key,
-          route: args.route,
-          callerSubject: args.callerSubject,
-          callerUserId: args.callerUserId,
           bodyHash: args.bodyHash,
           statusCode: IDEMPOTENCY_IN_FLIGHT,
           responseBody: {},
+          createdAt: this.clock.now(),
         },
       });
       return { kind: 'claimed' };

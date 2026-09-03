@@ -105,6 +105,10 @@ export class TokenService {
     }
 
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: existing.userId } });
+    if (user.deletedAt !== null || user.accountState !== 'ACTIVE') {
+      await this.revokeFamily(existing.familyId, now);
+      throw new IdentityAuthError('UNAUTHENTICATED');
+    }
     await this.prisma.refreshToken.update({
       where: { id: existing.id },
       data: { rotatedAt: now },

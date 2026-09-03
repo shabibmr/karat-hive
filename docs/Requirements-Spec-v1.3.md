@@ -4,11 +4,11 @@
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | Software Requirements Specification (SRS) |
-| **Version** | 1.2 |
-| **Status** | Draft — PO walk decisions applied (§1–3, §5, §9) + technology stack fixed (§2.4, §2.5) |
-| **Date** | 10 August 2026 |
-| **Supersedes** | `docs/old/Requirements-Spec-v1.1.md` (v1.1), `docs/old/Requirements-Spec.md` (v1.0) |
-| **Source** | `docs/Requirements-raw.txt` (incl. Technical section, L96–L103) + PO decisions 10 Aug 2026 |
+| **Version** | 1.3 |
+| **Status** | Draft — PO walk decisions applied (§1–3, §5, §9) + technology stack fixed (§2.4, §2.5); C-10 and C-13 resolved (§2.5, §7.6, §9.7) |
+| **Date** | 1 September 2026 |
+| **Supersedes** | `docs/old/Requirements-Spec-v1.2.md` (v1.2), `docs/old/Requirements-Spec-v1.1.md` (v1.1), `docs/old/Requirements-Spec.md` (v1.0) |
+| **Source** | `docs/Requirements-raw.txt` (incl. Technical section, L96–L103) + PO decisions 10 Aug 2026 and 1 Sep 2026 |
 | **Standard** | Structured per IEEE Std 830-1998 |
 
 ---
@@ -30,7 +30,7 @@
 9. [Assumptions, Constraints, Dependencies and Scope Boundaries](#9-assumptions-constraints-dependencies-and-scope-boundaries)
    - 9.5 [Commercial Decisions (resolved)](#95-commercial-decisions-resolved--v11)
    - 9.6 [PO decisions applied in v1.1](#96-product-owner-decisions-applied-in-v11-cross-cutting)
-   - 9.7 [Technology decisions applied in v1.2](#97-technology-decisions-applied-in-v12)
+   - 9.7 [Technology decisions applied](#97-technology-decisions-applied)
 10. [Appendices](#10-appendices)
 
 ---
@@ -122,10 +122,10 @@ Karat Hive is a **new, self-contained system** with no predecessor and no requir
 | Component | Users | Platform |
 |---|---|---|
 | **Mobile App (dual-mode)** | Customers and Vendors / Jewellers | **Flutter** — iOS + Android, one binary, two modes |
-| **Admin Portal** | Platform Admins | **Flutter Web**, responsive from 1280 px `[ASSUMED]` — see C-10 |
+| **Admin Portal** | Platform Admins | **Flutter Web**, responsive from 1280 px — see C-10 |
 | **Backend Platform** | — | **Node.js monolith** over **PostgreSQL** + object storage, with job scheduler and notification gateway inside the same deployable |
 
-The technology stack is prescribed by the source material (`Requirements-raw.txt` L96–L103) and is not an open engineering choice. It is stated as constraints C-10 through C-13 in §2.5 and reasoned about in `docs/adr/0006` and `docs/adr/0007`.
+The technology stack is prescribed by the source material (`Requirements-raw.txt` L96–L103) and is not an open engineering choice. It is stated as constraints C-10 through C-13 in §2.5 and reasoned about in `docs/adr/0006`, `docs/adr/0007` and `docs/adr/0008`.
 
 The Customer and Vendor experiences are delivered as **two modes of one mobile application** (PO decision, v1.1). Mode is determined by account role; a given account operates in exactly one role (Customer **or** Vendor), not both simultaneously. Workflows still differ: a Customer opens the app occasionally to post a Request and review Offers; a Vendor uses it as a working tool, monitoring an inbound request feed throughout the business day. UI density and navigation may diverge by mode within the shared shell.
 
@@ -164,7 +164,7 @@ Two properties of this loop define the product and shape most requirements in §
 | Admin Portal | **Flutter Web**, served over current-and-previous major versions of Chrome, Edge, Safari, and Firefox; responsive from 1280 px upward |
 | Backend runtime | **Node.js** (active LTS at build freeze), deployed as a **single monolithic service** |
 | Database | **PostgreSQL** — the system of record for every entity in §6 |
-| Object storage | S3-compatible object storage for Request media and Vendor KYC documents — **provider not yet selected** (§7.6, C-13) |
+| Object storage | S3-compatible object storage for Request media and Vendor KYC documents — **Cloudflare R2** for hosted environments, **MinIO** for local/CI (§7.6, C-13, `docs/adr/0008`) |
 | Connectivity | Persistent internet connection required; no offline transaction capability in v1 |
 | External dependency | WhatsApp installed on the device for the post-acceptance handoff (with a web fallback — see `FR-CUS-027`) |
 | Gold rate feed | Yahoo Finance (see §7.4) |
@@ -183,10 +183,10 @@ Two properties of this loop define the product and shape most requirements in §
 | C-07 | A published Request **hard-expires 48 hours** after publication. No Customer extension is offered (`FR-SYS-005`). |
 | C-08 | Customer and Vendor mobile experiences ship as **one dual-mode application** (§2.1). |
 | C-09 | Revenue is a **Vendor subscription**, sold **separately per Request type** the Vendor is entitled to serve (`FR-VEN-031`). |
-| C-10 | **Flutter is the sole client framework** for all three user surfaces. The Admin Portal is a Flutter Web target of the same toolchain rather than a separate web application `[ASSUMED]` — the source states Flutter targets "IOS/Android/Web" but does not explicitly bind the Admin Portal to that web target. See `docs/adr/0006`. |
+| C-10 | **Flutter is the sole client framework** for all three user surfaces. The Admin Portal is a Flutter Web target of the same toolchain rather than a separate web application — **confirmed for v1** (Product Owner, 1 Sep 2026). The Flutter Web consequences for the Admin Portal (canvas rendering, no first-party data grid, `NFR-023` keyboard-operability test gate) are accepted and tracked in §7.1. See `docs/adr/0006`. |
 | C-11 | The backend ships as a **single Node.js monolithic deployable**. No service decomposition, no inter-service network contracts, and no message broker in v1. Background work (fan-out, expiry sweeps, rate polling, notification dispatch — `FR-SYS-001`, `-004`, `-005`, `-008`, `-010`) runs as scheduled workers inside that deployable. See `docs/adr/0007`. |
 | C-12 | **PostgreSQL** is the single system of record. Every entity in §6 is relational; no secondary datastore is introduced in v1 for search, cache, or analytics. |
-| C-13 | **Object storage provider is undecided** (`Requirements-raw.txt` L102 is blank). This is a live blocker for `FR-CUS-007` (Request media), `FR-VEN-002` (KYC documents), `FR-SYS-009` (media processing), `NFR-013` (signed, time-limited media URLs) and `NFR-019` (PDPL erasure). See §7.6. |
+| C-13 | **Object storage is S3-compatible.** Provider: **Cloudflare R2** for hosted environments, **MinIO** for local/CI (`Requirements-raw.txt` L102 was blank; resolved 1 Sep 2026, `docs/adr/0008`). All access is behind the storage port of §7.6, so a later provider change does not touch business logic. Production data-residency for personal data (KYC documents) under `NFR-020` is tracked as an open infrastructure item — see `docs/Architecture-Backend.md` §22.1. |
 
 ### 2.6 Assumptions and Dependencies
 
@@ -2314,7 +2314,7 @@ Retained 90 days (`FR-CUS-032`).
 
 A complete screen inventory is given in **Appendix C**. All interfaces support English and Arabic including full right-to-left layout (`NFR-022`).
 
-> **Flutter Web risk on the Admin Portal.** The Admin surface is the least natural fit for the prescribed stack: it is dense-table, keyboard-driven, copy-paste-heavy queue work, and Flutter Web renders to a canvas rather than to DOM. Browser text selection, find-in-page, screen-reader semantics, and native table affordances are all weaker than in a DOM-based portal, and no first-party data-grid equivalent exists. Engineering must decide early whether to adopt a third-party Flutter data-grid package or build one; `NFR-023` keyboard operability is the acceptance gate either way. See `docs/adr/0006`.
+> **Flutter Web risk on the Admin Portal — accepted.** The Admin Portal on Flutter Web is confirmed (C-10), but it is the least natural fit for the stack: dense-table, keyboard-driven, copy-paste-heavy queue work, and Flutter Web renders to a canvas rather than to DOM. Browser text selection, find-in-page, screen-reader semantics, and native table affordances are all weaker than in a DOM-based portal, and no first-party data-grid equivalent exists. Two items stay open: the data-grid **build-or-buy** decision (`AD-FE-12`), and `NFR-023` keyboard operability as the acceptance gate. See `docs/adr/0006`.
 
 ### 7.2 WhatsApp Handoff Interface
 
@@ -2373,22 +2373,22 @@ Requirements: delivery receipts recorded per message where the channel supports 
 | Serialisation | One shared response-serialisation layer applies the masking rules of `FR-SYS-003` / `NFR-013`. Because there is exactly one such layer, masking is a single enforcement point rather than a rule replicated per service |
 | Transactions | The acceptance operation (`FR-SYS-007`) — accept Offer, reject competing Offers, create Connection, reveal identities — executes in **one PostgreSQL transaction**. The monolith makes this a local ACID transaction with no distributed-commit machinery |
 
-### 7.6 Object Storage Interface `[ASSUMED]`
+### 7.6 Object Storage Interface
 
 Request media (`FR-CUS-007`), Vendor KYC documents (`FR-VEN-002`), and processed derivatives (`FR-SYS-009`) are held in object storage, never in PostgreSQL. PostgreSQL stores only keys and metadata (see `REQUEST_MEDIA`, `VENDOR_DOCUMENT` in §6).
 
 | Aspect | Specification |
 |---|---|
-| Provider | **Not selected** — `Requirements-raw.txt` L102 ("Files Storage -") is blank. Specified here as **S3-compatible** so that requirements can be written and tested against a stable interface (C-13) |
+| Provider | **Cloudflare R2**, via its S3-compatible API, for hosted environments. **MinIO** stands in for local and CI. `Requirements-raw.txt` L102 ("Files Storage -") was blank; resolved 1 Sep 2026 (C-13, `docs/adr/0008`) |
 | Buckets | Segregated by sensitivity: Request media, Vendor KYC documents, and system/export artefacts are distinct buckets with distinct policies. KYC documents are never served to any actor other than a Platform Admin |
 | Access | **No public objects.** All reads are via short-lived signed URLs issued by the backend after authorisation; default validity 15 minutes, configurable (`NFR-013`) |
 | Upload | Direct-to-storage via backend-issued pre-signed upload URLs, constrained by content type and maximum size; the backend records the object only after an integrity check |
 | Processing | On ingest: EXIF and geolocation stripped, image re-encoded, thumbnail derivative generated (`FR-SYS-009`). Originals are never served to counterparties before processing completes |
 | Encryption | Server-side encryption at rest, and TLS in transit (`NFR-012`) |
 | Retention & erasure | Object lifecycle mirrors the entity lifecycle. A PDPL erasure request (`NFR-019`) must delete objects as well as rows, so the provider must support programmatic delete with verifiable completion |
-| Residency | Same region policy as the database (`NFR-020`) |
+| Residency | Same region policy as the database (`NFR-020`). Cloudflare R2 places objects by location hint and does not guarantee a UAE region; UAE-residency confirmation for KYC personal data is an open infrastructure item — see `docs/Architecture-Backend.md` §22.1 |
 
-> **Open decision — blocking.** Provider selection gates signed-URL semantics, the KYC retention policy, PDPL erasure mechanics, and the media cost model. It cannot be deferred past the start of media-handling implementation.
+> **Provider selected** (`docs/adr/0008`): Cloudflare R2 for hosted environments, MinIO for local/CI. Signed-URL semantics, KYC retention, PDPL erasure mechanics and the media cost model are all settled against the S3 API. **Remaining:** production data-residency confirmation for KYC documents under `NFR-020`.
 
 ---
 
@@ -2478,7 +2478,7 @@ Request media (`FR-CUS-007`), Vendor KYC documents (`FR-VEN-002`), and processed
 
 ### 9.2 Constraints
 
-Recorded in §2.5 as C-01 through C-09.
+Recorded in §2.5 as C-01 through C-13.
 
 ### 9.3 Dependencies
 
@@ -2491,8 +2491,8 @@ Recorded in §2.5 as C-01 through C-09.
 | SMS gateway (UAE) | External | Medium — OTP deliverability directly gates registration |
 | Cloud region with UAE residency | Infrastructure | Medium — constrains provider and region choice (`NFR-020`) |
 | Apple App Store / Google Play review | Process | Medium — single dual-mode binary; release cadence and the 6-month API support window (`NFR-027`) |
-| **Object storage provider** | Infrastructure | **High** — not yet selected (C-13). Gates media, KYC, signed URLs, and PDPL erasure |
-| **Flutter / Dart SDK** | Platform | Medium — sole client framework (C-10); Flutter Web is the weakest fit for the Admin Portal, and the data-grid gap needs a build-or-buy decision |
+| **Object storage — Cloudflare R2** | Infrastructure | Medium — provider selected (C-13, `adr/0008`); MinIO for local/CI. Production data-residency for KYC personal data under `NFR-020` still needs Infrastructure confirmation |
+| **Flutter / Dart SDK** | Platform | Medium — sole client framework (C-10); Flutter Web is the weakest fit for the Admin Portal, and the data-grid gap needs a build-or-buy decision (`AD-FE-12`) |
 | **Node.js LTS** | Platform | Low — mainstream runtime; pin to an active LTS line and plan the upgrade before end-of-life |
 | **PostgreSQL** | Infrastructure | Low — sole system of record (C-12); managed instance assumed, with PITR per `NFR-011` |
 
@@ -2542,21 +2542,20 @@ Decisions from Product Owner walk 10 August 2026. Residual legal work is noted w
 | Pre-accept contact sharing in free text | **BR-022** retained |
 | Bullion floor | **AED 500** retained |
 
-### 9.7 Technology decisions applied in v1.2
+### 9.7 Technology decisions applied
 
-Sourced from `Requirements-raw.txt` L96–L103. These are prescribed, not recommended; §2.5 records them as constraints C-10 through C-13.
+Sourced from `Requirements-raw.txt` L96–L103. These are prescribed, not recommended; §2.5 records them as constraints C-10 through C-13. Folded in at v1.2; C-10 and C-13 resolved at v1.3.
 
 | Layer | Decision | Recorded as |
 |---|---|---|
-| Frontend | **Flutter**, targeting iOS, Android, and Web | C-10, §2.1, §2.4, §7.1, `adr/0006` |
+| Frontend | **Flutter**, targeting iOS, Android, and Web; Admin Portal is the Flutter Web target (confirmed v1.3) | C-10, §2.1, §2.4, §7.1, `adr/0006` |
 | Backend | **Node.js**, **monolithic** — one deployable, workers in-process | C-11, §2.4, §7.5, `NFR-007`, `NFR-009`, `adr/0007` |
 | Database | **PostgreSQL** — single system of record | C-12, §2.4, §6, `NFR-008`, `NFR-011` |
-| File storage | **Undecided** — source line is blank | C-13, §7.6 — **open** |
+| File storage | **Cloudflare R2** (S3-compatible), hosted; **MinIO** for local/CI (resolved v1.3) | C-13, §7.6, `adr/0008` |
 
-**Two items remain outstanding from this section:**
+**All four technology constraints are now resolved.** One infrastructure follow-up remains:
 
-1. **Object storage provider (blocking).** Nothing in the source names one. Media handling, KYC retention, signed-URL policy, and PDPL erasure all depend on it, so it must be settled before media implementation begins (§7.6).
-2. **Whether the Admin Portal is the Flutter Web target** `[ASSUMED]`. The source states Flutter serves "IOS/Android/Web" but never binds the Admin Portal to that web build. This document assumes it does. If the Product Owner intends a separate DOM-based Admin web application instead, C-10, §2.1, §2.4, §7.1 and the `NFR-023` Flutter Web caveat all revert, and the Admin build becomes materially lower-risk.
+- **Object-storage data residency (`NFR-020`).** Cloudflare R2 does not guarantee a UAE region. For production, either R2 residency is confirmed acceptable for KYC personal data, or the S3-compatible adapter is pointed at a residency-compliant provider — a configuration change, not a redesign. Tracked in `docs/Architecture-Backend.md` §22.1 alongside the cloud-region decision.
 
 ### Appendix A — Glossary
 
@@ -2667,9 +2666,9 @@ Sourced from `Requirements-raw.txt` L96–L103. These are prescribed, not recomm
 | L97–98 | Frontend: Flutter, for iOS / Android / Web | C-10; §2.1, §2.4, §7.1; `NFR-023`; `adr/0006` |
 | L99–100 | Backend: Node.js, monolithic | C-11; §2.4, §7.5; `NFR-007`, `NFR-009`; `adr/0007` |
 | L101 | DB: PostgreSQL | C-12; §2.4, §6; `NFR-008`, `NFR-011` |
-| L102 | "Files Storage -" — value left blank | C-13; §7.6 — recorded as an **open, blocking decision**, not silently resolved |
+| L102 | "Files Storage -" — value left blank | C-13; §7.6 — held open through v1.2, **resolved in v1.3**: Cloudflare R2 (S3-compatible), MinIO for local/CI; `adr/0008` |
 
-**Coverage: 100 %.** All 88 non-blank lines of the source material are accounted for: 82 map to at least one requirement or constraint, and the remaining 6 are structural headings carrying no requirement content (L1, L8, L16, L36, L61, L96). No source item was dropped. The one source item that carries no value — L102, file storage — is preserved as an open decision rather than being answered by inference.
+**Coverage: 100 %.** All 88 non-blank lines of the source material are accounted for: 82 map to at least one requirement or constraint, and the remaining 6 are structural headings carrying no requirement content (L1, L8, L16, L36, L61, L96). No source item was dropped. The one source item that carried no value — L102, file storage — was preserved as an open decision through v1.2 rather than answered by inference, and resolved by Product Owner direction in v1.3 (Cloudflare R2).
 
 #### B.2 Requirement inventory
 
@@ -2825,7 +2824,8 @@ Additionally, individual acceptance criteria carrying an inline `[ASSUMED]` tag 
 |---|---|---|---|
 | 1.0 | 10 Aug 2026 | Requirements Analysis | Initial SRS derived from `docs/Requirements-raw.txt`. 110 functional requirements, 22 business rules, 30 non-functional requirements. 37 requirements marked `[ASSUMED]` and awaiting Product Owner confirmation. File: `docs/old/Requirements-Spec.md` (archived). |
 | 1.1 | 10 Aug 2026 | Requirements Analysis + PO walk | **Product Owner decisions applied** after walk of §1–3, §5, §9. Dual-mode single mobile app; Customer OAuth once before Request; Vendor Awaiting Approval shell; Request hard-expire 48 h (no extension); Vendor subscription per Request type; Yahoo Finance gold rates; hold-for-approval reviews; no vendor verify SLA; liability intro-only confirmed; launch UAE then Kerala then Qatar (post-v1). BR-001/002, C-07–C-09, §9.5–§9.6 updated. File: `docs/old/Requirements-Spec-v1.1.md` (archived). |
-| 1.2 | 10 Aug 2026 | Requirements Analysis | **Technology stack folded in** from the new Technical section of `Requirements-raw.txt` (L96–L103): Flutter for all client surfaces, Node.js monolith, PostgreSQL, object storage undecided. Added constraints **C-10–C-13**, new **§7.6 Object Storage Interface**, new **§9.7**; revised §2.1, §2.4, §7.1, §7.5, `NFR-007`, `NFR-008`, `NFR-009`, `NFR-011`, `NFR-023`, §9.3 dependencies, Appendix B.1 (coverage 81 → 88 source lines). Two items left open rather than inferred: object storage provider, and whether the Admin Portal is the Flutter Web target. New ADRs `0006`, `0007`. File: `docs/Requirements-Spec-v1.2.md`. |
+| 1.2 | 10 Aug 2026 | Requirements Analysis | **Technology stack folded in** from the new Technical section of `Requirements-raw.txt` (L96–L103): Flutter for all client surfaces, Node.js monolith, PostgreSQL, object storage undecided. Added constraints **C-10–C-13**, new **§7.6 Object Storage Interface**, new **§9.7**; revised §2.1, §2.4, §7.1, §7.5, `NFR-007`, `NFR-008`, `NFR-009`, `NFR-011`, `NFR-023`, §9.3 dependencies, Appendix B.1 (coverage 81 → 88 source lines). Two items left open rather than inferred: object storage provider, and whether the Admin Portal is the Flutter Web target. New ADRs `0006`, `0007`. File: `docs/old/Requirements-Spec-v1.2.md` (archived). |
+| 1.3 | 1 Sep 2026 | Requirements Analysis + PO direction | **C-10 and C-13 resolved.** C-10: the Admin Portal is confirmed as the Flutter Web target — `[ASSUMED]` tag removed from §2.1, §2.5, §7.6 heading and the §7.1 callout reframed as an accepted risk; the Flutter Web consequences (data grid, `NFR-023`) remain open. C-13: object storage resolved to **Cloudflare R2** (S3-compatible) for hosted environments with **MinIO** for local/CI — §2.4, §2.5, §7.6, §9.3, §9.7, Appendix B.1 updated; new ADR `0008`. One infrastructure follow-up remains: object-storage data residency under `NFR-020`. Adjacent fix: §9.2 constraint index corrected to "C-01 through C-13". File: `docs/Requirements-Spec-v1.3.md`. |
 
 ---
 
@@ -2838,7 +2838,7 @@ Additionally, individual acceptance criteria carrying an inline `[ASSUMED]` tag 
 | QA Lead | | | |
 | Business Sponsor | | | |
 
-> **Sign-off progress (v1.2):** §9.5 commercial decisions and the §1–3 / §5 / §9 PO walk are **resolved**. The technology stack is now fixed (§9.7), so **Technical Lead sign-off has something concrete to sign against**. Remaining: Legal review of Yahoo Finance redistribution and ToS liability wording; **object storage provider selection (C-13, blocking)**; confirmation that the Admin Portal is the Flutter Web target (C-10); and the remaining Appendix B.3 `[ASSUMED]` items not decided in the PO walk (e.g. media limits, notification edge cases), which should be triaged before build freeze.
+> **Sign-off progress (v1.3):** §9.5 commercial decisions and the §1–3 / §5 / §9 PO walk are **resolved**. The technology stack is fixed and all four constraints C-10–C-13 are now resolved (§9.7), so **Technical Lead sign-off has something concrete to sign against**. Remaining: Legal review of Yahoo Finance redistribution and ToS liability wording; **object-storage data residency for KYC personal data under `NFR-020`** (Infrastructure, non-blocking — swappable behind the S3 adapter); the Admin data-grid build-or-buy decision (`AD-FE-12`); and the remaining Appendix B.3 `[ASSUMED]` items not decided in the PO walk (e.g. media limits, notification edge cases), which should be triaged before build freeze.
 
 ---
 

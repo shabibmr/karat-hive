@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { z } from 'zod';
+import { AllowSuspended } from '../../../edge/auth/allow-suspended.decorator';
 import { Viewer } from '../../../edge/auth/viewer.decorator';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
 import { RevealsIdentity } from '../../../edge/masking/reveals-identity.decorator';
@@ -17,6 +18,7 @@ export class MeController {
   constructor(private readonly me: MeService) {}
 
   @Get()
+  @AllowSuspended()
   get(@Viewer() viewer: ViewerContext): Promise<Me> {
     return this.me.get(viewer);
   }

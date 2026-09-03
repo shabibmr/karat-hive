@@ -4,6 +4,7 @@ import { FastifyRequest } from 'fastify';
 import { IdentityAuthError, SessionQuery, TokenService } from '../../modules/identity';
 import { ApiException } from '../errors/api-exception';
 import { ErrorCode } from '../errors/error-codes';
+import { ALLOW_SUSPENDED_KEY } from './allow-suspended.decorator';
 import { IS_PUBLIC_KEY } from './public.decorator';
 import { VIEWER_CONTEXT_KEY, viewerOf, type ViewerContext } from './viewer-context';
 
@@ -25,18 +26,37 @@ export class AuthGuard implements CanActivate {
     const request = context
       .switchToHttp()
       .getRequest<FastifyRequest & { [VIEWER_CONTEXT_KEY]?: ViewerContext }>();
-    const header = request.headers.authorization;
-    if (typeof header !== 'string' || !header.startsWith('Bearer ')) {
+    const rawHeader = request.headers.authorization;
+    if (typeof rawHeader !== 'string') {
+      throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
+    }
+    const header = rawHeader.trim();
+    if (!header.toLowerCase().startsWith('bearer ')) {
+      throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
+    }
+    const token = header.slice('bearer '.length).trim();
+    if (!token) {
       throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
     }
     try {
-      const claims = await this.tokens.verifyAccess(header.slice('Bearer '.length));
+      const claims = await this.tokens.verifyAccess(token);
       const user = await this.sessions.findUserForViewer(claims.sub);
       if (!user || user.deletedAt !== null) {
         throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
       }
       if (user.tokenVersion !== claims.ver || user.userType !== claims.role) {
         throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
+      }
+      const allowsSuspended = this.reflector.getAllAndOverride<boolean>(ALLOW_SUSPENDED_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
+      if (!allowsSuspended && user.accountState !== 'ACTIVE') {
+        const code =
+          user.accountState === 'SUSPENDED'
+            ? ErrorCode.ACCOUNT_SUSPENDED
+            : ErrorCode.ACCOUNT_DEACTIVATED;
+        throw new ApiException(HttpStatus.FORBIDDEN, code);
       }
       request[VIEWER_CONTEXT_KEY] = {
         userId: user.id,

@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../db/prisma.service';
-import { OUTBOX_CLAIM_LEASE_MS, outboxBackoffAfterFailure } from './outbox.policy';
+import {
+  BACKOFF_MS,
+  OUTBOX_CLAIM_LEASE_MS,
+  OUTBOX_MAX_ATTEMPTS,
+  OUTBOX_MAX_ERROR_LENGTH,
+} from './outbox.policy';
 
 export type ClaimedOutboxEvent = {
   id: string;
@@ -80,33 +85,36 @@ export class OutboxClaimer {
   }
 
   async markFailure(eventId: string, lastError: string, now: Date = new Date()): Promise<void> {
-    const rows = await this.prisma.$queryRaw<Array<{ attempts: number }>>`
+    const safeError =
+      typeof lastError === 'string'
+        ? lastError.slice(0, OUTBOX_MAX_ERROR_LENGTH)
+        : String(lastError ?? '').slice(0, OUTBOX_MAX_ERROR_LENGTH);
+
+    const delay1 = new Date(now.getTime() + BACKOFF_MS[0]);
+    const delay2 = new Date(now.getTime() + BACKOFF_MS[1]);
+    const delay3 = new Date(now.getTime() + BACKOFF_MS[2]);
+
+    const rows = await this.prisma.$queryRaw<Array<{ id: string; attempts: number }>>`
       UPDATE outbox_event
-      SET attempts = attempts + 1
+      SET attempts = attempts + 1,
+          claimed_at = NULL,
+          claimed_by = NULL,
+          last_error = ${safeError},
+          state = CASE
+            WHEN attempts + 1 >= ${OUTBOX_MAX_ATTEMPTS} THEN 'FAILED'::"OutboxState"
+            ELSE 'PENDING'::"OutboxState"
+          END,
+          available_at = CASE
+            WHEN attempts + 1 >= ${OUTBOX_MAX_ATTEMPTS} THEN available_at
+            WHEN attempts + 1 = 1 THEN ${delay1}
+            WHEN attempts + 1 = 2 THEN ${delay2}
+            ELSE ${delay3}
+          END
       WHERE id = ${eventId}::uuid
-      RETURNING attempts
+      RETURNING id, attempts
     `;
-    const attempts = rows[0]?.attempts;
-    if (attempts === undefined) {
+    if (rows.length === 0) {
       throw new Error(`outbox_event ${eventId} missing after failure increment`);
     }
-    const backoff = outboxBackoffAfterFailure(attempts);
-    if (backoff.outcome === 'fail') {
-      await this.prisma.outboxEvent.update({
-        where: { id: eventId },
-        data: { state: 'FAILED', lastError, claimedAt: null, claimedBy: null },
-      });
-      return;
-    }
-    await this.prisma.outboxEvent.update({
-      where: { id: eventId },
-      data: {
-        state: 'PENDING',
-        availableAt: new Date(now.getTime() + backoff.delayMs),
-        claimedAt: null,
-        claimedBy: null,
-        lastError,
-      },
-    });
   }
 }

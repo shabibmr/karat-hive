@@ -1,6 +1,6 @@
 # Karat Hive — UI Screens Inventory
 
-Screen-level field inventory derived from `docs/Requirements-Spec-v1.2.md` (Appendix C + §4 functional requirements + §6 entity dictionary). Domain language follows root `CONTEXT.md`.
+Screen-level field inventory derived from `docs/Requirements-Spec-v1.3.md` (Appendix C + §4 functional requirements + §6 entity dictionary). Domain language follows root `CONTEXT.md`.
 
 **Not included:** visual design, layout, or implementation details.
 
@@ -143,13 +143,13 @@ Every screen file uses this template:
 |---|---|---|
 | Offer validity options | VEN-S09, ADM-S19 | FR-VEN-013: 12 / 24 / 48 h; entity `OFFER.validity_hours`: 24 / 48 / 72 / 168 |
 | Dual-mode shell | Customer/Vendor README | One binary; mode by role |
-| Admin on Flutter Web | ADM-S03…S12, ADM-S17, ADM-S22 | Dense tables, keyboard-driven queue processing, and text selection are not free on a canvas-rendered web target. No first-party data grid — build-or-buy needed. SRS §7.1, `NFR-023`, `adr/0006` |
-| File storage undecided | CUS-S08, VEN-S02, ADM-S07, ADM-S09 | Media and KYC upload/display depend on an unselected object-storage provider. SRS C-13, §7.6 |
+| Admin on Flutter Web | ADM-S03…S12, ADM-S17, ADM-S22 | Flutter Web for the Admin Portal is confirmed (C-10, SRS v1.3) and the risk is accepted. Dense tables, keyboard-driven queue processing, and text selection are not free on a canvas-rendered web target; the data-grid build-or-buy (`AD-FE-12`) is still open. SRS §7.1, `NFR-023`, `adr/0006` |
+| Object storage | CUS-S08, VEN-S02, ADM-S07, ADM-S09 | Provider resolved to Cloudflare R2 (S3-compatible), MinIO for local/CI. SRS C-13, §7.6, `adr/0008`. Production data-residency for KYC under `NFR-020` is an open infra item |
 
 ---
 
 ## Source
 
-- `docs/Requirements-Spec-v1.2.md` — Appendix C, §4, §5, §6, §7.1  
-- `docs/Requirements-Spec-v1.2.md` §2.5 (C-10–C-13) + `docs/adr/0006`, `0007` — stack constraints  
+- `docs/Requirements-Spec-v1.3.md` — Appendix C, §4, §5, §6, §7.1  
+- `docs/Requirements-Spec-v1.3.md` §2.5 (C-10–C-13) + `docs/adr/0006`, `0007`, `0008` — stack constraints  
 - `CONTEXT.md` — ubiquitous language  

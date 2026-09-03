@@ -30,8 +30,9 @@ export function hashBody(body: unknown): string {
   return createHash('sha256').update(canonical).digest('hex');
 }
 
-function stableStringify(value: unknown): string {
+export function stableStringify(value: unknown): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (value instanceof Date) return JSON.stringify(value.toISOString());
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
   const obj = value as Record<string, unknown>;
   const keys = Object.keys(obj).sort();

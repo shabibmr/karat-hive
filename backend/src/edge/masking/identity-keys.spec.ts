@@ -21,4 +21,9 @@ describe('findIdentityKey', () => {
   it('does not treat generic name as identity', () => {
     expect(findIdentityKey({ data: { name: 'Gold coin' } })).toBeNull();
   });
+
+  it('detects customerProfileId and vendorProfileId as identity keys', () => {
+    expect(findIdentityKey({ customerProfileId: 'cust-123' })).toBe('customerProfileId');
+    expect(findIdentityKey({ data: { vendorProfileId: 'vend-123' } })).toBe('vendorProfileId');
+  });
 });

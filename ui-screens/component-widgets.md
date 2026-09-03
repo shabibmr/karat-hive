@@ -364,7 +364,7 @@ Exact build packages may merge pure foundation controls into a design system; do
 # 7. Source & related
 
 - Screens: [README.md](README.md), `customer/`, `vendor/`, `admin/`
-- Requirements: `docs/Requirements-Spec-v1.2.md` Appendix C, §4, §6, §7.1
-- Stack constraints: `docs/Requirements-Spec-v1.2.md` §2.5 (C-10–C-13), `docs/adr/0006`, `docs/adr/0007`
+- Requirements: `docs/Requirements-Spec-v1.3.md` Appendix C, §4, §6, §7.1
+- Stack constraints: `docs/Requirements-Spec-v1.3.md` §2.5 (C-10–C-13), `docs/adr/0006`, `docs/adr/0007`, `docs/adr/0008`
 - Language: `CONTEXT.md` (Identity Masking, Talk, Connection, etc.)
 - Known tension: Offer validity options — component `SH-OFF-03` must read configured set from platform settings (`ADM-S19`), not hard-code

@@ -9,7 +9,7 @@
 | **Date** | 10 August 2026 |
 | **Companion** | [`docs/Architecture-Backend.md`](Architecture-Backend.md) — server architecture and the API contract |
 | **Governs** | The Flutter codebase: dual-mode mobile app (iOS + Android) and the Flutter Web Admin Portal |
-| **Source of truth** | [`docs/Requirements-Spec-v1.2.md`](Requirements-Spec-v1.2.md) · [`docs/adr/0006`](adr/0006-flutter-single-codebase-all-surfaces.md) · [`ui-screens/`](../ui-screens/) · [`CONTEXT.md`](../CONTEXT.md) |
+| **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`docs/adr/0006`](adr/0006-flutter-single-codebase-all-surfaces.md) · [`ui-screens/`](../ui-screens/) · [`CONTEXT.md`](../CONTEXT.md) |
 
 ---
 
@@ -78,12 +78,12 @@ It is written to be sufficient to lay out the repository, fix the state-manageme
 
 | ID | Constraint | Consequence for the client |
 |---|---|---|
-| **C-10** | Flutter is the sole client framework; Admin Portal is a Flutter Web target `[ASSUMED]` | §16 exists entirely because of this, and is the highest-risk section in the document |
+| **C-10** | Flutter is the sole client framework; Admin Portal is a Flutter Web target (confirmed, SRS v1.3) | §16 exists entirely because of this, and is the highest-risk section in the document |
 | **C-08** | Customer and Vendor ship as **one dual-mode application** | Both modes' code is in every install — §17.2 explains why that cannot be deferred away on mobile |
 | **C-05 / BR-006** | Identity masking until Acceptance | §10 — the client models masked and revealed parties as **different types**, so a pre-acceptance screen is structurally incapable of rendering a phone number |
 | **C-07** | Requests hard-expire at 48 h | §11 — countdowns are driven by server time, never device time |
 | **C-03** | WhatsApp handoff, no in-app messaging | The Talk button builds a deep link and reports the tap; there is no message UI to build |
-| **C-13** | Object storage provider undecided | §12 is written against pre-signed URL semantics and is `[BLOCKED]` only on the concrete adapter |
+| **C-13** | Object storage: Cloudflare R2, S3-compatible (`docs/adr/0008`) | §12 is written against pre-signed URL semantics; the flow is provider-agnostic and needs no change |
 
 ### 2.2 Quality attributes that shape the design
 
@@ -519,7 +519,7 @@ A WebSocket would be a better fit for the Vendor feed specifically. It is out of
 
 ## 12. Media Handling
 
-`FR-CUS-007`, `FR-VEN-002`, `NFR-005`. `[BLOCKED]` on C-13 for the concrete provider only; the flow is provider-agnostic.
+`FR-CUS-007`, `FR-VEN-002`, `NFR-005`. Provider is Cloudflare R2 (C-13, `docs/adr/0008`); the flow is provider-agnostic regardless.
 
 ```mermaid
 sequenceDiagram
@@ -760,11 +760,9 @@ The critical paths that always run end to end: Customer publish → Vendor offer
 | # | Item | Blocks | Owner |
 |---|---|---|---|
 | 1 | **Admin data grid — build or buy** (`AD-FE-12`, §16.1) | `ADM-S03`…`ADM-S12`, `ADM-S17`, `ADM-S22` — fourteen screens. Must be decided before the first Admin list is built | Technical Lead |
-| 2 | **Object storage provider** (C-13) | The upload adapter and signed-URL handling in §12. The flow is provider-agnostic, so this blocks integration, not design | Product Owner + Infrastructure |
-| 3 | **Is the Admin Portal really Flutter Web?** (C-10 `[ASSUMED]`, `docs/adr/0006`) | If the PO intends a DOM-based Admin app, §16 and most of §15.2 are void and Admin delivery becomes materially lower-risk. Worth asking **before** the data-grid decision, since it makes that decision moot | Product Owner |
-| 4 | **Visual design and design tokens** | Token values in §8.1. Structure can proceed on placeholders; final look cannot | UX |
+| 2 | **Visual design and design tokens** | Token values in §8.1. Structure can proceed on placeholders; final look cannot | UX |
 
-Item 3 is sequenced deliberately: confirming it first could remove item 1 entirely.
+The Admin Portal as a Flutter Web target is **confirmed** (C-10, SRS v1.3, `docs/adr/0006`) — §16 and §15.2 stand, and the data-grid decision (item 1) is live rather than contingent. Object storage is **resolved** to Cloudflare R2 (C-13, `docs/adr/0008`); §12 is provider-agnostic and needs no frontend decision.
 
 ### 21.2 Awaiting Technical Lead sign-off
 
@@ -774,7 +772,7 @@ Every `[PROPOSED]` row in §3. The ones worth real discussion: `AD-FE-03` (state
 
 | Risk | Likelihood | Impact | Response |
 |---|---|---|---|
-| Flutter Web makes the Admin Portal slow to build and unpleasant to use | **High** | High | §16 in full; the `KhDataTable` facade; the accessibility gate; and an honest early checkpoint after `ADM-S03` — if it is going badly, that is the moment to escalate C-10, not month four |
+| Flutter Web makes the Admin Portal slow to build and unpleasant to use | **High** | High | §16 in full; the `KhDataTable` facade; the accessibility gate; and an honest early checkpoint after `ADM-S03` — if it is going badly, that is the moment to reopen C-10 with the Product Owner, not month four |
 | Admins hit canvas limitations daily — find-in-page, selection, right-click | High | Medium | `SelectionArea` everywhere; in-app find on every list; desktop shortcuts (§16.4) |
 | `NFR-006` cold start missed because both modes ship in one binary | Medium | Medium | §17.2 budget enforced in CI on target-class hardware from the first sprint |
 | RTL defects reach production | Medium | Medium | Mandatory bidirectional goldens (`AD-FE-13`); Arabic in the definition of done, not a later pass |
@@ -828,7 +826,7 @@ Every `[PROPOSED]` row in §3. The ones worth real discussion: `AD-FE-03` (state
 | Requirement | Section |
 |---|---|
 | C-08 dual-mode single app | §4.1, §4.3, §7.2, §17.2 |
-| C-10 Flutter sole framework `[ASSUMED]` | §4, §16, §21.1 |
+| C-10 Flutter sole framework (Admin = Flutter Web, confirmed) | §4, §16, §21.1 |
 | `BR-006`, `BR-007` masking | **§10**, §8.4 |
 | `BR-001` OAuth publish gate | §7.3 |
 | `BR-002`, C-04 Vendor access gating | §7.2 |
@@ -861,11 +859,12 @@ Every `[PROPOSED]` row in §3. The ones worth real discussion: `AD-FE-03` (state
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 10 Aug 2026 | Initial frontend architecture, derived from SRS v1.2, ADR 0006 and `ui-screens/` |
+| 1.1 | 1 Sep 2026 | Re-based on SRS v1.3: C-10 confirmed (Admin Portal = Flutter Web) — §2.1 and Appendix B lose the `[ASSUMED]` tag; C-13 resolved (object storage → Cloudflare R2, `docs/adr/0008`). §21.1 blocking list drops both items; §16 / §15.2 stand as accepted risk |
 
 | Role | Signs off on | Status |
 |---|---|---|
 | Technical Lead | Every `[PROPOSED]` decision in §3; the package structure of §5; the data-grid decision in §16.1 | Pending |
-| Product Owner | §21.1 items 2 and 3 — object storage, and whether Admin is really Flutter Web | Pending |
+| Product Owner | C-10 (Admin Portal = Flutter Web) — **confirmed 1 Sep 2026**; the Admin interaction model in §16 | Pending |
 | UX / Design | §8 token structure; §15 accessibility approach; §16 Admin interaction model | Pending |
 | QA | §20, and the accessibility release gate for Admin | Pending |
 

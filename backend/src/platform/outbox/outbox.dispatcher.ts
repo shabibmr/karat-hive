@@ -50,7 +50,7 @@ export class OutboxDispatcher implements BeforeApplicationShutdown {
       const consumers = this.handlers.get(event.eventType as OutboxEventType) ?? [];
       try {
         if (consumers.length === 0) {
-          this.logger.debug(`No consumers for ${event.eventType}; marking done.`);
+          this.logger.warn(`No consumers for ${event.eventType}; marking done.`);
           await this.claimer.markDone(event.id);
           continue;
         }

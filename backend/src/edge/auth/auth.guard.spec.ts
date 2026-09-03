@@ -1,0 +1,233 @@
+import { describe, expect, it, vi } from 'vitest';
+import { ExecutionContext, HttpStatus } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { AuthGuard } from './auth.guard';
+import { ALLOW_SUSPENDED_KEY } from './allow-suspended.decorator';
+import { IS_PUBLIC_KEY } from './public.decorator';
+import { VIEWER_CONTEXT_KEY, type ViewerContext } from './viewer-context';
+import { ApiException } from '../errors/api-exception';
+import { ErrorCode } from '../errors/error-codes';
+import type { SessionQuery, TokenService, UserForViewer } from '../../modules/identity';
+
+function createMockContext(headers: Record<string, string | undefined> = {}) {
+  const request: { headers: Record<string, string | undefined>; [VIEWER_CONTEXT_KEY]?: ViewerContext } = {
+    headers,
+  };
+  const context = {
+    getHandler: vi.fn(),
+    getClass: vi.fn(),
+    switchToHttp: () => ({
+      getRequest: () => request,
+    }),
+  } as unknown as ExecutionContext;
+  return { context, request };
+}
+
+const mockUser: UserForViewer = {
+  id: 'usr-1',
+  userType: 'CUSTOMER',
+  tokenVersion: 1,
+  accountState: 'ACTIVE',
+  preferredLanguage: 'en',
+  deletedAt: null,
+  vendorProfileId: null,
+  vendorVerificationState: null,
+  vendorActivatedAt: null,
+  customerProfileId: 'cust-1',
+  adminProfileId: null,
+};
+
+describe('AuthGuard', () => {
+  it('allows access when route is marked public', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn((key) => key === IS_PUBLIC_KEY),
+    } as unknown as Reflector;
+    const tokens = {} as TokenService;
+    const sessions = {} as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context } = createMockContext();
+
+    const allowed = await guard.canActivate(context);
+    expect(allowed).toBe(true);
+  });
+
+  it('rejects when authorization header is missing', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn(() => false),
+    } as unknown as Reflector;
+    const tokens = {} as TokenService;
+    const sessions = {} as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context } = createMockContext({});
+
+    await expect(guard.canActivate(context)).rejects.toThrow(ApiException);
+    await expect(guard.canActivate(context)).rejects.toMatchObject({
+      status: HttpStatus.UNAUTHORIZED,
+      errorCode: ErrorCode.UNAUTHENTICATED,
+    });
+  });
+
+  it('rejects when authorization header is not Bearer', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn(() => false),
+    } as unknown as Reflector;
+    const tokens = {} as TokenService;
+    const sessions = {} as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context } = createMockContext({ authorization: 'Basic dXNlcjpwYXNz' });
+
+    await expect(guard.canActivate(context)).rejects.toMatchObject({
+      status: HttpStatus.UNAUTHORIZED,
+      errorCode: ErrorCode.UNAUTHENTICATED,
+    });
+  });
+
+  it('rejects when Bearer token is empty after trimming', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn(() => false),
+    } as unknown as Reflector;
+    const tokens = {} as TokenService;
+    const sessions = {} as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context } = createMockContext({ authorization: 'Bearer    ' });
+
+    await expect(guard.canActivate(context)).rejects.toMatchObject({
+      status: HttpStatus.UNAUTHORIZED,
+      errorCode: ErrorCode.UNAUTHENTICATED,
+    });
+  });
+
+  it('normalizes Bearer header case-insensitively and with surrounding whitespace', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn(() => false),
+    } as unknown as Reflector;
+    const tokens = {
+      verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
+    } as unknown as TokenService;
+    const sessions = {
+      findUserForViewer: vi.fn().mockResolvedValue(mockUser),
+    } as unknown as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context, request } = createMockContext({ authorization: '   bEaReR    valid-token   ' });
+
+    const allowed = await guard.canActivate(context);
+    expect(allowed).toBe(true);
+    expect(tokens.verifyAccess).toHaveBeenCalledWith('valid-token');
+    expect(request[VIEWER_CONTEXT_KEY]?.userId).toBe('usr-1');
+  });
+
+  it('rejects soft-deleted user with UNAUTHENTICATED', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn(() => false),
+    } as unknown as Reflector;
+    const tokens = {
+      verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
+    } as unknown as TokenService;
+    const sessions = {
+      findUserForViewer: vi.fn().mockResolvedValue({ ...mockUser, deletedAt: new Date() }),
+    } as unknown as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context } = createMockContext({ authorization: 'Bearer token' });
+
+    await expect(guard.canActivate(context)).rejects.toMatchObject({
+      status: HttpStatus.UNAUTHORIZED,
+      errorCode: ErrorCode.UNAUTHENTICATED,
+    });
+  });
+
+  it('rejects suspended user when route does not allow suspended', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn((key) => {
+        if (key === ALLOW_SUSPENDED_KEY) return false;
+        return false;
+      }),
+    } as unknown as Reflector;
+    const tokens = {
+      verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
+    } as unknown as TokenService;
+    const sessions = {
+      findUserForViewer: vi.fn().mockResolvedValue({ ...mockUser, accountState: 'SUSPENDED' }),
+    } as unknown as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context } = createMockContext({ authorization: 'Bearer token' });
+
+    await expect(guard.canActivate(context)).rejects.toMatchObject({
+      status: HttpStatus.FORBIDDEN,
+      errorCode: ErrorCode.ACCOUNT_SUSPENDED,
+    });
+  });
+
+  it('rejects deactivated user when route does not allow suspended', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn((key) => {
+        if (key === ALLOW_SUSPENDED_KEY) return false;
+        return false;
+      }),
+    } as unknown as Reflector;
+    const tokens = {
+      verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
+    } as unknown as TokenService;
+    const sessions = {
+      findUserForViewer: vi.fn().mockResolvedValue({ ...mockUser, accountState: 'DEACTIVATED' }),
+    } as unknown as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context } = createMockContext({ authorization: 'Bearer token' });
+
+    await expect(guard.canActivate(context)).rejects.toMatchObject({
+      status: HttpStatus.FORBIDDEN,
+      errorCode: ErrorCode.ACCOUNT_DEACTIVATED,
+    });
+  });
+
+  it('allows suspended user when route has @AllowSuspended()', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn((key) => {
+        if (key === ALLOW_SUSPENDED_KEY) return true;
+        return false;
+      }),
+    } as unknown as Reflector;
+    const tokens = {
+      verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
+    } as unknown as TokenService;
+    const sessions = {
+      findUserForViewer: vi.fn().mockResolvedValue({ ...mockUser, accountState: 'SUSPENDED' }),
+    } as unknown as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context, request } = createMockContext({ authorization: 'Bearer token' });
+
+    const allowed = await guard.canActivate(context);
+    expect(allowed).toBe(true);
+    expect(request[VIEWER_CONTEXT_KEY]?.accountState).toBe('SUSPENDED');
+  });
+
+  it('allows deactivated user when route has @AllowSuspended()', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn((key) => {
+        if (key === ALLOW_SUSPENDED_KEY) return true;
+        return false;
+      }),
+    } as unknown as Reflector;
+    const tokens = {
+      verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
+    } as unknown as TokenService;
+    const sessions = {
+      findUserForViewer: vi.fn().mockResolvedValue({ ...mockUser, accountState: 'DEACTIVATED' }),
+    } as unknown as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context, request } = createMockContext({ authorization: 'Bearer token' });
+
+    const allowed = await guard.canActivate(context);
+    expect(allowed).toBe(true);
+    expect(request[VIEWER_CONTEXT_KEY]?.accountState).toBe('DEACTIVATED');
+  });
+});
