@@ -3,15 +3,21 @@ import { ExecutionContext, HttpStatus } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
 import { ALLOW_SUSPENDED_KEY } from './allow-suspended.decorator';
+import { IS_ADMIN_ONLY_KEY } from './admin-only.decorator';
 import { IS_PUBLIC_KEY } from './public.decorator';
 import { VIEWER_CONTEXT_KEY, type ViewerContext } from './viewer-context';
 import { ApiException } from '../errors/api-exception';
 import { ErrorCode } from '../errors/error-codes';
 import type { SessionQuery, TokenService, UserForViewer } from '../../modules/identity';
 
-function createMockContext(headers: Record<string, string | undefined> = {}) {
-  const request: { headers: Record<string, string | undefined>; [VIEWER_CONTEXT_KEY]?: ViewerContext } = {
+function createMockContext(headers: Record<string, string | undefined> = {}, url = '') {
+  const request: {
+    headers: Record<string, string | undefined>;
+    url: string;
+    [VIEWER_CONTEXT_KEY]?: ViewerContext;
+  } = {
     headers,
+    url,
   };
   const context = {
     getHandler: vi.fn(),
@@ -113,7 +119,9 @@ describe('AuthGuard', () => {
     } as unknown as SessionQuery;
 
     const guard = new AuthGuard(reflector, tokens, sessions);
-    const { context, request } = createMockContext({ authorization: '   bEaReR    valid-token   ' });
+    const { context, request } = createMockContext({
+      authorization: '   bEaReR    valid-token   ',
+    });
 
     const allowed = await guard.canActivate(context);
     expect(allowed).toBe(true);
@@ -229,5 +237,76 @@ describe('AuthGuard', () => {
     const allowed = await guard.canActivate(context);
     expect(allowed).toBe(true);
     expect(request[VIEWER_CONTEXT_KEY]?.accountState).toBe('DEACTIVATED');
+  });
+
+  it('rejects non-admin user on /v1/admin/* route with NOT_FOUND', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn(() => false),
+    } as unknown as Reflector;
+    const tokens = {
+      verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
+    } as unknown as TokenService;
+    const sessions = {
+      findUserForViewer: vi.fn().mockResolvedValue(mockUser),
+    } as unknown as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context } = createMockContext(
+      { authorization: 'Bearer token' },
+      '/v1/admin/categories',
+    );
+
+    await expect(guard.canActivate(context)).rejects.toMatchObject({
+      status: HttpStatus.NOT_FOUND,
+      errorCode: ErrorCode.NOT_FOUND,
+    });
+  });
+
+  it('rejects non-admin user on route with @AdminOnly() with NOT_FOUND', async () => {
+    const reflector = {
+      getAllAndOverride: vi.fn((key) => key === IS_ADMIN_ONLY_KEY),
+    } as unknown as Reflector;
+    const tokens = {
+      verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
+    } as unknown as TokenService;
+    const sessions = {
+      findUserForViewer: vi.fn().mockResolvedValue(mockUser),
+    } as unknown as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context } = createMockContext({ authorization: 'Bearer token' }, '/v1/some-route');
+
+    await expect(guard.canActivate(context)).rejects.toMatchObject({
+      status: HttpStatus.NOT_FOUND,
+      errorCode: ErrorCode.NOT_FOUND,
+    });
+  });
+
+  it('allows admin user on /v1/admin/* route and route with @AdminOnly()', async () => {
+    const adminUser: UserForViewer = {
+      ...mockUser,
+      id: 'adm-1',
+      userType: 'ADMIN',
+      adminProfileId: 'ap-1',
+    };
+    const reflector = {
+      getAllAndOverride: vi.fn((key) => key === IS_ADMIN_ONLY_KEY),
+    } as unknown as Reflector;
+    const tokens = {
+      verifyAccess: vi.fn().mockResolvedValue({ sub: 'adm-1', role: 'ADMIN', ver: 1 }),
+    } as unknown as TokenService;
+    const sessions = {
+      findUserForViewer: vi.fn().mockResolvedValue(adminUser),
+    } as unknown as SessionQuery;
+
+    const guard = new AuthGuard(reflector, tokens, sessions);
+    const { context, request } = createMockContext(
+      { authorization: 'Bearer token' },
+      '/v1/admin/categories',
+    );
+
+    const allowed = await guard.canActivate(context);
+    expect(allowed).toBe(true);
+    expect(request[VIEWER_CONTEXT_KEY]?.role).toBe('ADMIN');
   });
 });

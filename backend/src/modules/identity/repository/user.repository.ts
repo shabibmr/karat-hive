@@ -20,6 +20,10 @@ export class UserRepository {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
+  findAdminProfile(userId: string) {
+    return this.prisma.adminProfile.findUnique({ where: { userId } });
+  }
+
   createVendorUser(
     tx: DbTx,
     input: {

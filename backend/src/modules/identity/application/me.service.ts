@@ -19,7 +19,8 @@ export class MeService {
       user.userType === 'VENDOR'
         ? await this.vendors.vendorMeForUser(user.id, user.accountState)
         : null;
-    return presentMe(user, vendor);
+    const admin = user.userType === 'ADMIN' ? await this.users.findAdminProfile(user.id) : null;
+    return presentMe(user, vendor, admin ? { displayName: admin.displayName } : null);
   }
 
   async get(viewer: ViewerContext): Promise<Me> {

@@ -35,6 +35,17 @@ export class LoginService {
     const now = this.clock.now();
     const user = await this.users.findByEmail(email);
     if (!user || !user.passwordHash) {
+      await withTx(this.prisma, (tx) =>
+        this.audit.append(tx, {
+          actorUserId: null,
+          action: 'ADMIN_LOGIN',
+          entityType: 'user',
+          entityId: null,
+          afterValue: { success: false, reason: 'UNKNOWN_USER' },
+          ipAddress: client.ip ?? null,
+          userAgent: client.userAgent ?? null,
+        }),
+      );
       throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
     }
     if (
@@ -48,20 +59,37 @@ export class LoginService {
 
     const ok = await this.hasher.verify(password, user.passwordHash);
     if (!ok) {
+      const maxFailures = user.userType === 'ADMIN' ? 3 : this.env.LOGIN_MAX_FAILURES;
+      const lockMinutes = user.userType === 'ADMIN' ? 30 : this.env.LOGIN_LOCK_MINUTES;
       const next = registerFailure(
         { failedLoginAttempts: user.failedLoginAttempts, lockedUntil: user.lockedUntil },
         now,
-        this.env.LOGIN_MAX_FAILURES,
-        this.env.LOGIN_LOCK_MINUTES,
+        maxFailures,
+        lockMinutes,
       );
       await this.users.applyLockState(user.id, next);
-      if (next.lockedUntil) {
+      if (user.userType === 'ADMIN') {
         await withTx(this.prisma, (tx) =>
           this.audit.append(tx, {
             actorUserId: user.id,
-            action: 'AUTH_ACCOUNT_LOCKED',
+            action: 'ADMIN_LOGIN',
             entityType: 'user',
             entityId: user.id,
+            afterValue: { success: false, reason: 'BAD_PASSWORD' },
+            ipAddress: client.ip ?? null,
+            userAgent: client.userAgent ?? null,
+          }),
+        );
+      }
+      if (next.lockedUntil) {
+        const lockedUntilIso = next.lockedUntil.toISOString();
+        await withTx(this.prisma, (tx) =>
+          this.audit.append(tx, {
+            actorUserId: user.id,
+            action: user.userType === 'ADMIN' ? 'ADMIN_ACCOUNT_LOCKED' : 'AUTH_ACCOUNT_LOCKED',
+            entityType: 'user',
+            entityId: user.id,
+            afterValue: { lockedUntil: lockedUntilIso },
             ipAddress: client.ip ?? null,
             userAgent: client.userAgent ?? null,
           }),
@@ -76,9 +104,14 @@ export class LoginService {
     }
 
     if (user.userType === 'ADMIN') {
-      throw new ApiException(HttpStatus.NOT_IMPLEMENTED, ErrorCode.INTERNAL);
-    }
-    if (user.userType === 'VENDOR') {
+      // [DEVIATION AD-API: 2FA deferred — checkpoint-1]
+      if (user.accountState === 'SUSPENDED') {
+        throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ACCOUNT_SUSPENDED);
+      }
+      if (user.accountState === 'DEACTIVATED') {
+        throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ACCOUNT_DEACTIVATED);
+      }
+    } else if (user.userType === 'VENDOR') {
       if (user.accountState === 'SUSPENDED') {
         throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ACCOUNT_SUSPENDED);
       }
@@ -86,14 +119,17 @@ export class LoginService {
         throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ACCOUNT_DEACTIVATED);
       }
       await this.vendors.assertMayAuthenticate(user.id);
+    } else {
+      throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
     }
 
     await withTx(this.prisma, (tx) =>
       this.audit.append(tx, {
         actorUserId: user.id,
-        action: 'AUTH_PASSWORD_LOGIN',
+        action: user.userType === 'ADMIN' ? 'ADMIN_LOGIN' : 'AUTH_PASSWORD_LOGIN',
         entityType: 'user',
         entityId: user.id,
+        afterValue: user.userType === 'ADMIN' ? { success: true } : null,
         ipAddress: client.ip ?? null,
         userAgent: client.userAgent ?? null,
       }),

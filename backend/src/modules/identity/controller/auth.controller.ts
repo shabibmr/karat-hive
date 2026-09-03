@@ -121,6 +121,7 @@ export class AuthController {
     return this.session.refresh(body.refreshToken, clientInfoOf(request));
   }
 
+  @Public()
   @Post('logout')
   @HttpCode(204)
   async logout(@Body(zodBody(logoutSchema)) body: z.infer<typeof logoutSchema>): Promise<void> {

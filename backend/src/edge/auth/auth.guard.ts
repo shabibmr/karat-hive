@@ -5,6 +5,7 @@ import { IdentityAuthError, SessionQuery, TokenService } from '../../modules/ide
 import { ApiException } from '../errors/api-exception';
 import { ErrorCode } from '../errors/error-codes';
 import { ALLOW_SUSPENDED_KEY } from './allow-suspended.decorator';
+import { IS_ADMIN_ONLY_KEY } from './admin-only.decorator';
 import { IS_PUBLIC_KEY } from './public.decorator';
 import { VIEWER_CONTEXT_KEY, viewerOf, type ViewerContext } from './viewer-context';
 
@@ -57,6 +58,16 @@ export class AuthGuard implements CanActivate {
             ? ErrorCode.ACCOUNT_SUSPENDED
             : ErrorCode.ACCOUNT_DEACTIVATED;
         throw new ApiException(HttpStatus.FORBIDDEN, code);
+      }
+
+      const isAdminOnly = this.reflector.getAllAndOverride<boolean>(IS_ADMIN_ONLY_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
+      const url = request.url ?? request.raw?.url ?? '';
+      const isAdminRoute = url.startsWith('/v1/admin') || Boolean(isAdminOnly);
+      if (isAdminRoute && user.userType !== 'ADMIN') {
+        throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
       }
       request[VIEWER_CONTEXT_KEY] = {
         userId: user.id,
