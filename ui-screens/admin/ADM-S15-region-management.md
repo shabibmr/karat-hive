@@ -27,8 +27,7 @@ Manage geographic matching taxonomy (emirate → area).
 | Active flag | Input | Yes | boolean | |
 | Create | Action | — | — | |
 | Rename | Action | — | — | |
-| Activate / Deactivate | Action | — | — | |
-| Delete | Action | Conditional | — | Blocked if in use |
+| Activate / Deactivate | Action | — | — | Deactivate (in-use cannot be removed) |
 
 ## Validation & rules
 
@@ -36,7 +35,7 @@ Manage geographic matching taxonomy (emirate → area).
 
 ## Empty / error / edge states
 
-- In-use delete blocked.
+- In-use regions cannot be removed (deactivate only).
 
 ## Related screens
 

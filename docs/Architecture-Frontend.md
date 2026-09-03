@@ -110,11 +110,11 @@ It is written to be sufficient to lay out the repository, fix the state-manageme
 | ID | Decision | Status |
 |---|---|---|
 | `AD-FE-01` | Flutter for all three surfaces; Admin as a Flutter Web target | Fixed (C-10) |
-| `AD-FE-02` | **Melos-managed monorepo** — two apps, shared packages | `[PROPOSED]` |
+| `AD-FE-02` | **Melos-managed monorepo** — two apps, shared packages *(Deferred for Admin Checkpoint-1; built standalone in `apps/kh_admin`)* | `[PROPOSED]` |
 | `AD-FE-03` | **Riverpod** for state management and dependency injection | `[PROPOSED]` |
 | `AD-FE-04` | **go_router** with typed routes and declarative guards | `[PROPOSED]` |
 | `AD-FE-05` | **freezed + json_serializable** for immutable models and unions | `[PROPOSED]` |
-| `AD-FE-06` | API client **generated from the backend's OpenAPI document**, wrapped in hand-written repositories | `[PROPOSED]` |
+| `AD-FE-06` | API client **generated from the backend's OpenAPI document**, wrapped in hand-written repositories *(Deferred for Admin Checkpoint-1; hand-written typed repositories)* | `[PROPOSED]` |
 | `AD-FE-07` | **Masked and revealed parties are distinct sealed types** — not one nullable model | `[PROPOSED]` |
 | `AD-FE-08` | Feature-first module structure; layers within a feature, not across the app | `[PROPOSED]` |
 | `AD-FE-09` | **No local database in v1.** In-memory cache with explicit invalidation only | `[PROPOSED]` |

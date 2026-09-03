@@ -29,9 +29,7 @@ Manage two-level Category taxonomy for Requests and Vendor specialisations.
 | Active flag | Input | Yes | boolean | |
 | Create | Action | — | — | |
 | Rename | Action | — | — | |
-| Reorder | Action | — | — | |
-| Activate / Deactivate | Action | — | — | In-use cannot delete |
-| Delete | Action | Conditional | — | **Blocked if in use** (`BR-019`) |
+| Activate / Deactivate | Action | — | — | Deactivate (in-use cannot be removed) |
 
 ## Validation & rules
 
@@ -40,7 +38,7 @@ Manage two-level Category taxonomy for Requests and Vendor specialisations.
 
 ## Empty / error / edge states
 
-- Delete blocked when in use.
+- In-use categories cannot be removed (deactivate only).
 
 ## Related screens
 

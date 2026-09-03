@@ -824,6 +824,7 @@ body: { email: string, password: string }
 Vendor `ACTIVE` / `PENDING_VERIFICATION` / `VERIFIED` → `200 SessionBundle`.
 Vendor `REJECTED` / `SUSPENDED` / `DEACTIVATED` → `403` with the matching account-state code.
 Admin → `401 TWO_FACTOR_REQUIRED` with `{ challengeId, expiresAt }` (password verified, 2FA not yet).
+> *[DEVIATION AD-API: 2FA deferred — checkpoint-1]*: Admin login returns `200 SessionBundle` directly in Checkpoint-1; 2FA endpoints are deferred. Built in Checkpoint-1.
 Five consecutive Vendor failures → `423 ACCOUNT_LOCKED` (15 minutes) and a security notification.
 Three consecutive Admin failures → `423 ACCOUNT_LOCKED` (30 minutes) and an audit entry (`FR-ADM-001`).
 
@@ -1824,18 +1825,20 @@ POST /v1/admin/connections/{id}/close
   body: { reasonText: string }     // notifies both parties
 ```
 
-### 21.6 Taxonomy (`ADM-S14`, `ADM-S15`, `FR-ADM-024`, `FR-ADM-025`)
+### 21.6 Taxonomy (`ADM-S14`, `ADM-S15`, `FR-ADM-024`, `FR-ADM-025`) — [BUILT - Checkpoint-1]
 
 ```
 GET / POST / PATCH  /v1/admin/categories
 POST                /v1/admin/categories/{id}/deactivate
+GET / POST / PATCH  /v1/admin/regions
+POST                /v1/admin/regions/{id}/deactivate
 ```
 
-Create/rename/reorder/activate/deactivate. Two-level hierarchy. `nameEn` and `nameAr` mandatory. In-use categories cannot be deleted (`BR-019`) → `409 TAXONOMY_IN_USE`. Deactivate hides from new selection; existing associations remain. Changes apply to subsequent Requests only.
+Create/rename/reorder/activate/deactivate. Two-level hierarchy. `nameEn` and `nameAr` mandatory. In-use categories cannot be deleted (`BR-019`) → `409 TAXONOMY_IN_USE`. Deactivate hides from new selection; existing associations remain. Changes apply to subsequent Requests only. Built and audited via `AuditWriter`.
 
-Regions: the same pattern at `/v1/admin/regions` (emirate → area).
+Regions: identical implementation at `/v1/admin/regions` (emirate → area).
 
-There is no DELETE.
+There is no DELETE route (deactivate only).
 
 ### 21.7 Review moderation (`ADM-S16`, `FR-ADM-026`)
 

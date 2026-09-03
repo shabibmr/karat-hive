@@ -2,9 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## What this repository is
-
-**A pre-implementation specification repository for Karat Hive**, a request-driven gold marketplace for the UAE. There is **no application code yet** — no `package.json`, no `pubspec.yaml`, no build, no test suite. The deliverables are specification documents and one static HTML prototype. It is a git repository (remote: `github.com/shabibmr/karat-hive`, private).
+**The repository for Karat Hive**, a request-driven gold marketplace for the UAE. Application code includes the Node.js monolith backend (`backend/`, NestJS 11 + Fastify + Prisma + Vitest) and the Flutter Web Admin Portal (`apps/kh_admin/`, Flutter 3.12+). Specification documents and the static HTML prototype (`ui-mock/`) remain companion references.
 
 Work here is almost always *authoring or revising documents*. Treat consistency across documents as the primary correctness criterion, the way you would treat a passing test suite elsewhere.
 

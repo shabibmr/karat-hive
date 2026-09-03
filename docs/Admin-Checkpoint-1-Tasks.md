@@ -163,41 +163,41 @@ flowchart TD
 
 ### Phase 4: Frontend Setup & Design Tokens (Part B1 & B2)
 
-- [ ] **ADM-FE-001: Flatten kh_admin Project Structure**
+- [x] **ADM-FE-001: Flatten kh_admin Project Structure**
   - **Priority**: P1 | **Estimate**: 1h | **Target File**: `apps/kh_admin/`
   - **Description**: Clean up the redundant nesting between `apps/kh_admin` and `apps/kh_admin/hive_admin`, establishing `apps/kh_admin` as the single clean Flutter Web app root with `pubspec.yaml` `name: kh_admin`.
   - **Acceptance Criteria**: Clean project hierarchy with single `pubspec.yaml`, `lib/`, and `test/` directory.
 
-- [ ] **ADM-FE-002: Add Frontend Dependencies**
+- [x] **ADM-FE-002: Add Frontend Dependencies**
   - **Priority**: P0 | **Estimate**: 0.5h | **Target File**: `apps/kh_admin/pubspec.yaml`
   - **Description**: Add required packages: `flutter_riverpod`, `go_router`, `freezed_annotation`, `json_annotation`, `dio`, `flutter_secure_storage`, `intl`, `flutter_localizations`; dev: `build_runner`, `freezed`, `json_serializable`, `riverpod_lint`.
   - **Acceptance Criteria**: `flutter pub get` succeeds cleanly with zero dependency conflicts.
 
-- [ ] **ADM-FE-003: Admin Design Tokens & ThemeExtension**
+- [x] **ADM-FE-003: Admin Design Tokens & ThemeExtension**
   - **Priority**: P0 | **Estimate**: 2h | **Target File**: `apps/kh_admin/lib/core/design/theme/`
-  - **Description**: Implement admin-density design tokens per `Karat_Hive_UI_Design_Context.md` §4.1: `kh_colors.dart` (sapphire/gold/cream palette), `kh_typography.dart`, `kh_spacing.dart`, `kh_shapes.dart`, and `kh_theme.dart`. Expose through `ThemeExtension` (`context.kh.colors.goldPrimary`). No gold-sweep animations.
+    - **Description**: Implement admin-density design tokens per `Karat_Hive_UI_Design_Context.md` §4.1: `kh_colors.dart` (sapphire/gold/cream palette), `kh_typography.dart`, `kh_spacing.dart`, `kh_shapes.dart`, and `kh_theme.dart`. Expose through `ThemeExtension` (`context.kh.colors.goldPrimary`). No gold-sweep animations.
   - **Acceptance Criteria**: Design tokens accessible via `Theme.of(context).extension<KhTheme>()` or `context.kh`.
 
 ---
 
 ### Phase 5: Frontend Plumbing & Shell (Part B3 & B4)
 
-- [ ] **ADM-FE-004: Typed ApiClient with Envelope Handling**
+- [x] **ADM-FE-004: Typed ApiClient with Envelope Handling**
   - **Priority**: P0 | **Estimate**: 2h | **Target File**: `apps/kh_admin/lib/core/api/api_client.dart`
   - **Description**: Build `ApiClient` with Dio. Read `KH_API_BASE` (default `http://localhost:3000`). Unwrap `{ data, meta }` response envelope and map error envelopes to typed `ApiException` (with `code` and `message`). Include Bearer token interceptor.
   - **Acceptance Criteria**: Successful responses unwrap `data`; error responses throw typed `ApiException`.
 
-- [ ] **ADM-FE-005: Token Storage & SessionController**
+- [x] **ADM-FE-005: Token Storage & SessionController**
   - **Priority**: P0 | **Estimate**: 2h | **Target File**: `apps/kh_admin/lib/core/auth/`
   - **Description**: Implement `AuthRepository` (login, refresh, logout, me) and Riverpod `SessionController` holding tokens, `Me` admin profile, and server time offset. Use `flutter_secure_storage`. Intercept 401s for one-shot refresh; redirect to `/login` if refresh fails.
   - **Acceptance Criteria**: Stored tokens survive reload; 401 triggers silent refresh; invalid session resets state.
 
-- [ ] **ADM-FE-006: GoRouter with Auth Guards & Query State**
+- [x] **ADM-FE-006: GoRouter with Auth Guards & Query State**
   - **Priority**: P0 | **Estimate**: 1.5h | **Target File**: `apps/kh_admin/lib/core/router/app_router.dart`
   - **Description**: Configure `GoRouter` with redirect guard (unauthenticated -> `/login`; authenticated -> `/`). Define routes: `/login`, `/` (dashboard), `/taxonomy/categories`, `/taxonomy/regions`. Encode selection and `showInactive` in URL query parameters (`AD-FE` §16.2).
   - **Acceptance Criteria**: URL query parameters preserve selection across page refreshes; unauthenticated access redirects to `/login`.
 
-- [ ] **ADM-FE-007: KhAdminScaffold Shell (SH-ADM-01)**
+- [x] **ADM-FE-007: KhAdminScaffold Shell (SH-ADM-01)**
   - **Priority**: P0 | **Estimate**: 2.5h | **Target File**: `apps/kh_admin/lib/core/shell/kh_admin_scaffold.dart`
   - **Description**: Build responsive admin shell with:
     - Sidebar navigation (Dashboard, Categories, Regions active; placeholder for other items)
@@ -209,17 +209,17 @@ flowchart TD
 
 ### Phase 6: Frontend Auth & Taxonomy Screens (Part B5 & B6)
 
-- [ ] **ADM-FE-008: Admin Login Screen (ADM-S01)**
+- [x] **ADM-FE-008: Admin Login Screen (ADM-S01)**
   - **Priority**: P0 | **Estimate**: 2h | **Target File**: `apps/kh_admin/lib/features/auth/presentation/login_screen.dart`
   - **Description**: Build password-only login screen with email + password fields, submit handling via `SessionController`, Art-Deco styled card frame, and error messaging (`ACCOUNT_LOCKED`, invalid credentials, server unavailable). Include `// TODO ADM-S01 2FA`.
   - **Acceptance Criteria**: Successful login navigates to dashboard/taxonomy; errors display clearly.
 
-- [ ] **ADM-FE-009: Freezed Taxonomy Models & DTOs**
+- [x] **ADM-FE-009: Freezed Taxonomy Models & DTOs**
   - **Priority**: P0 | **Estimate**: 1.5h | **Target File**: `apps/kh_admin/lib/features/taxonomy/model/`
   - **Description**: Create `TaxonomyNode` model (`id`, `parentId`, `nameEn`, `nameAr`, `icon`, `displayOrder`, `isActive`, `children`) and request DTOs using `freezed` and `json_serializable`. Run `build_runner`.
   - **Acceptance Criteria**: Generated serialization code parses backend tree JSON cleanly.
 
-- [ ] **ADM-FE-010: Typed TaxonomyRepository**
+- [x] **ADM-FE-010: Typed TaxonomyRepository**
   - **Priority**: P0 | **Estimate**: 1.5h | **Target File**: `apps/kh_admin/lib/features/taxonomy/repository/taxonomy_repository.dart`
   - **Description**: Implement repository wrapping `ApiClient` for:
     - `fetchCategories({bool includeInactive})`
@@ -229,17 +229,17 @@ flowchart TD
     - `deactivateCategory(id)` / `deactivateRegion(id)`
   - **Acceptance Criteria**: All 8 backend endpoints typed and accessible.
 
-- [ ] **ADM-FE-011: Riverpod TaxonomyController**
+- [x] **ADM-FE-011: Riverpod TaxonomyController**
   - **Priority**: P0 | **Estimate**: 2h | **Target File**: `apps/kh_admin/lib/features/taxonomy/controller/taxonomy_controller.dart`
   - **Description**: Implement `AsyncNotifier` family over `TaxonomyKind` (`CATEGORY`, `REGION`). Mutation methods perform API calls and invalidate state (`AD-FE-09` in-memory invalidation).
   - **Acceptance Criteria**: State reloads automatically following mutations; loading and error states handled cleanly.
 
-- [ ] **ADM-FE-012: TaxonomyTree Widget (SH-ADM-14)**
+- [x] **ADM-FE-012: TaxonomyTree Widget (SH-ADM-14)**
   - **Priority**: P0 | **Estimate**: 2.5h | **Target File**: `apps/kh_admin/lib/features/taxonomy/presentation/taxonomy_tree.dart`
   - **Description**: Build 2-level expandable tree view. Inactive rows rendered dimmed with an explicit "Inactive" text chip (not color-only, per accessibility §40/§56). Include `showInactive` filter toggle.
   - **Acceptance Criteria**: Tree expands/collapses 2 levels; clicking node selects it; inactive nodes distinct and filterable.
 
-- [ ] **ADM-FE-013: NodeEditorPanel Widget (SH-ADM-08)**
+- [x] **ADM-FE-013: NodeEditorPanel Widget (SH-ADM-08)**
   - **Priority**: P0 | **Estimate**: 2.5h | **Target File**: `apps/kh_admin/lib/features/taxonomy/presentation/node_editor_panel.dart`
   - **Description**: Build side editor panel:
     - `nameEn` and `nameAr` fields (Arabic input RTL-aware)
@@ -250,12 +250,12 @@ flowchart TD
     - Deactivate prompts `SH-FND-15` confirmation dialog; "Delete" wording strictly forbidden (SAM-GAP-9).
   - **Acceptance Criteria**: Edits mutate selected node; deactivation requires confirmation; "Delete" text not present.
 
-- [ ] **ADM-FE-014: TaxonomyScreen (ADM-S14 & ADM-S15)**
+- [x] **ADM-FE-014: TaxonomyScreen (ADM-S14 & ADM-S15)**
   - **Priority**: P0 | **Estimate**: 2h | **Target File**: `apps/kh_admin/lib/features/taxonomy/presentation/taxonomy_screen.dart`
   - **Description**: Shared screen parameterized by `TaxonomyKind`. Integrates `TaxonomyTree`, `NodeEditorPanel`, empty states (`SH-FND-12`), validation banners (`SH-FND-13`), and success toasts (`SH-FND-17`).
   - **Acceptance Criteria**: Screen serves both Categories and Regions paths; URL syncs selected node.
 
-- [ ] **ADM-FE-015: ARB Localization Scaffolding**
+- [x] **ADM-FE-015: ARB Localization Scaffolding**
   - **Priority**: P1 | **Estimate**: 1h | **Target File**: `apps/kh_admin/lib/l10n/`
   - **Description**: Provide `app_en.arb` and `app_ar.arb` for all UI chrome labels, buttons, dialog titles, and error toasts.
   - **Acceptance Criteria**: Screen chrome displays in English and Arabic based on locale.
@@ -264,12 +264,12 @@ flowchart TD
 
 ### Phase 7: Frontend Verification & Tests (Part B7)
 
-- [ ] **ADM-FE-016: Frontend Unit & Widget Tests**
+- [x] **ADM-FE-016: Frontend Unit & Widget Tests**
   - **Priority**: P1 | **Estimate**: 2h | **Target File**: `apps/kh_admin/test/`
   - **Description**: Add unit tests for `taxonomy_controller_test.dart` (load, create, deactivate, invalidate) and widget test for `login_screen_test.dart` (form submission, error rendering).
   - **Acceptance Criteria**: Tests pass cleanly under `flutter test`.
 
-- [ ] **ADM-FE-017: Flutter Analyze & Test Suite Pass**
+- [x] **ADM-FE-017: Flutter Analyze & Test Suite Pass**
   - **Priority**: P0 | **Estimate**: 0.5h | **Target File**: `apps/kh_admin/`
   - **Description**: Run `flutter analyze` and `flutter test` to ensure zero lints, warnings, or regressions.
   - **Acceptance Criteria**: Analysis clean; all tests green.

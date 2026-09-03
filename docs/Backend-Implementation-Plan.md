@@ -409,10 +409,10 @@ reused — v0.2 appends T33–T44 rather than renumbering.
 | ID | Task | Status |
 |---|---|---|
 | T12 | OTP + register Customer/Vendor | pending |
-| T13 | Password + Admin 2FA | pending |
+| T13 | Password + Admin 2FA | partial (password login done; 2FA deferred — checkpoint-1) |
 | T14 | OAuth bind (publish gate) | pending |
-| T15 | Sessions / me / settings / shell guard | pending |
-| T16 | Taxonomy GET + seed | pending |
+| T15 | Sessions / me / settings / shell guard | done (checkpoint-1: me + admin guard) |
+| T16 | Taxonomy GET + seed | done (checkpoint-1: public + admin CRUD + seed) |
 | T17 | Media port + local-disk adapter + complete/process | pending |
 | T18 | Vendor profile, KYC, categories/regions | pending |
 | T19 | Subscriptions read + Admin grant | pending |
