@@ -32,6 +32,9 @@ export const ErrorCode = {
   MEDIA_QUARANTINED: 'MEDIA_QUARANTINED',
   MEDIA_NOT_READY: 'MEDIA_NOT_READY',
   UPLOAD_NOT_COMPLETED: 'UPLOAD_NOT_COMPLETED',
+
+  // --- taxonomy ---
+  TAXONOMY_IN_USE: 'TAXONOMY_IN_USE',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

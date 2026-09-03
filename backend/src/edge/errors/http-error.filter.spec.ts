@@ -83,13 +83,21 @@ describe('HttpErrorFilter', () => {
     const filter = new HttpErrorFilter(mockClock);
 
     it.each([
-      { code: 'toString', status: HttpStatus.BAD_REQUEST, expectedCode: ErrorCode.VALIDATION_FAILED },
+      {
+        code: 'toString',
+        status: HttpStatus.BAD_REQUEST,
+        expectedCode: ErrorCode.VALIDATION_FAILED,
+      },
       { code: 'valueOf', status: HttpStatus.UNAUTHORIZED, expectedCode: ErrorCode.UNAUTHENTICATED },
       { code: 'constructor', status: HttpStatus.FORBIDDEN, expectedCode: ErrorCode.FORBIDDEN },
       { code: '__proto__', status: HttpStatus.NOT_FOUND, expectedCode: ErrorCode.NOT_FOUND },
       { code: 'hasOwnProperty', status: HttpStatus.CONFLICT, expectedCode: ErrorCode.CONFLICT },
       { code: 'isPrototypeOf', status: 423, expectedCode: ErrorCode.ACCOUNT_LOCKED },
-      { code: 'propertyIsEnumerable', status: HttpStatus.TOO_MANY_REQUESTS, expectedCode: ErrorCode.RATE_LIMITED },
+      {
+        code: 'propertyIsEnumerable',
+        status: HttpStatus.TOO_MANY_REQUESTS,
+        expectedCode: ErrorCode.RATE_LIMITED,
+      },
       { code: 'toLocaleString', status: HttpStatus.BAD_GATEWAY, expectedCode: ErrorCode.INTERNAL },
     ])(
       'handles code: "$code" at status $status without throwing and falls back to $expectedCode',
@@ -190,7 +198,11 @@ describe('HttpErrorFilter', () => {
         { path: 'phone', code: 'invalid_phone', message: 'Must be UAE mobile' },
         { path: 'email', code: 'invalid_email', message: 'Must be valid email' },
       ];
-      const exception = new ApiException(HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_FAILED, details);
+      const exception = new ApiException(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.VALIDATION_FAILED,
+        details,
+      );
 
       filter.catch(exception, host);
 

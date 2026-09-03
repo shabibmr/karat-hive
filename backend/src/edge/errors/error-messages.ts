@@ -107,6 +107,10 @@ const MESSAGES: Record<ErrorCode, Record<UiLanguage, string>> = {
     en: 'The upload did not complete. Upload the file again.',
     ar: 'لم يكتمل الرفع. ارفع الملف مرة أخرى.',
   },
+  TAXONOMY_IN_USE: {
+    en: 'This taxonomy item is in use and cannot be deleted.',
+    ar: 'عنصر التصنيف هذا قيد الاستخدام ولا يمكن حذفه.',
+  },
 };
 
 export function resolveLanguage(
