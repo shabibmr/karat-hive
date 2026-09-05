@@ -1,0 +1,21 @@
+name: kh_api
+description: Karat Hive typed API client (contract-first; OpenAPI generation deferred).
+publish_to: none
+resolution: workspace
+version: 0.1.0
+
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  kh_core:
+    path: ../kh_core
+  kh_domain:
+    path: ../kh_domain
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

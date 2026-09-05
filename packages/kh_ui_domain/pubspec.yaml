@@ -1,0 +1,21 @@
+name: kh_ui_domain
+description: Karat Hive domain-aware widgets (Request / Offer / Connection / identity).
+publish_to: none
+resolution: workspace
+version: 0.1.0
+
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  kh_domain:
+    path: ../kh_domain
+  kh_design_system:
+    path: ../kh_design_system
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

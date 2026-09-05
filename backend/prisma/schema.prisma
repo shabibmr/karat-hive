@@ -1,0 +1,1178 @@
+// Karat Hive — physical PostgreSQL schema.
+//
+// Source: SRS v1.3 §5–§6, Architecture-Backend §12 + Appendix B/C,
+//         docs/API-Route-Inventory.md, docs/Async-Contract.md §10 (AD-ASYNC-07),
+//         docs/Screen-API-Map.md §6 (SAM-GAP-1, 4, 6, 8) — folded in at T36.
+// Companion: docs/Physical-Data-Model.md
+//
+// AD-BE-05 is still [PROPOSED]. Table/constraint/index design is the durable
+// artefact; this DSL is the Prisma encoding.
+//
+// Conventions (Architecture §12.2):
+//   - singular snake_case table names matching SRS entities
+//   - UUID PKs (v7 generated in app later; DB default gen_random_uuid for now)
+//   - timestamptz UTC (BR-021)
+//   - money numeric(12,2); weight numeric(10,2) grams (SRS, not Architecture numeric(9,3))
+//   - PostgreSQL enums for state machines
+//   - no generic deleted_at except user.deleted_at
+//
+// Partial unique indexes and pg_trgm GIN indexes cannot be expressed here.
+// See prisma/sql/extensions.sql and prisma/sql/partial-indexes.sql.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserType {
+  CUSTOMER
+  VENDOR
+  ADMIN
+}
+
+/// Marketplace login state for every user type (FR-CUS-002, FR-ADM-012, FR-ADM-016).
+/// Vendor verification is a separate column on vendor_profile — see Physical-Data-Model.md.
+enum UserAccountState {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum PreferredLanguage {
+  en
+  ar
+}
+
+enum VendorVerificationState {
+  REGISTERED
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
+}
+
+enum RequestType {
+  FIND_ORNAMENT
+  SELL_OLD_GOLD
+  GOLD_COIN
+  GOLD_BULLION
+}
+
+enum Direction {
+  BUY
+  SELL
+}
+
+enum RequestState {
+  DRAFT
+  PUBLISHED
+  OFFERS_RECEIVED
+  ACCEPTED
+  CLOSED
+  EXPIRED
+  CANCELLED
+  REMOVED
+}
+
+enum OfferState {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  WITHDRAWN
+  WITHDRAWN_BY_SYSTEM
+}
+
+enum ConnectionState {
+  ACTIVE
+  CLOSED
+}
+
+enum ReviewState {
+  PENDING_MODERATION
+  PUBLISHED
+  REJECTED
+  REDACTED
+  WITHDRAWN
+}
+
+enum SubscriptionState {
+  ACTIVE
+  GRACE
+  EXPIRED
+  CANCELLED
+}
+
+enum Karat {
+  K24 @map("24K")
+  K22 @map("22K")
+  K21 @map("21K")
+  K18 @map("18K")
+}
+
+enum OrnamentType {
+  RING
+  CHAIN
+  BANGLE
+  NECKLACE
+  EARRING
+  BRACELET
+  PENDANT
+  OTHER
+}
+
+enum ItemCondition {
+  NEW
+  LIKE_NEW
+  USED
+  DAMAGED
+}
+
+enum DocumentType {
+  TRADE_LICENCE
+  EMIRATES_ID
+  VAT_CERT
+  TRADING_PERMIT
+  TENANCY
+  OTHER
+}
+
+enum MediaPurpose {
+  REQUEST_IMAGE
+  OFFER_IMAGE
+  PROFILE_PHOTO
+  VENDOR_LOGO
+  VENDOR_SHOP_PHOTO
+  KYC_DOCUMENT
+  EXPORT_ARTEFACT
+}
+
+enum MediaState {
+  PENDING_UPLOAD
+  PENDING_PROCESSING
+  READY
+  QUARANTINED
+  FAILED
+}
+
+enum StorageBucket {
+  REQUEST_MEDIA
+  KYC
+  EXPORT
+}
+
+enum MalwareScanState {
+  PENDING
+  CLEAN
+  QUARANTINED
+}
+
+enum OAuthProvider {
+  GOOGLE
+  APPLE
+}
+
+enum OtpPurpose {
+  REGISTER_CUSTOMER
+  REGISTER_VENDOR
+  LOGIN
+  CHANGE_MOBILE
+}
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+}
+
+enum ContactChannel {
+  WHATSAPP
+  PHONE
+}
+
+enum ClosedBy {
+  CUSTOMER
+  VENDOR
+  ADMIN
+}
+
+enum AuthorType {
+  CUSTOMER
+  VENDOR
+}
+
+enum AbuseEntityType {
+  REQUEST
+  OFFER
+  CONNECTION
+  REVIEW
+  VENDOR
+  CUSTOMER
+}
+
+enum AbuseReportState {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum GoldRateSource {
+  FEED
+  MANUAL_OVERRIDE
+}
+
+enum OutboxState {
+  PENDING
+  CLAIMED
+  DONE
+  FAILED
+}
+
+enum ExportFormat {
+  CSV
+  XLSX
+  PNG
+}
+
+enum ExportJobState {
+  QUEUED
+  RUNNING
+  READY
+  FAILED
+}
+
+enum DataSubjectRequestState {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum DeclineReason {
+  PRICE_TOO_HIGH
+  TERMS_UNSUITABLE
+  NO_LONGER_REQUIRED
+  OTHER
+}
+
+// AD-ASYNC-07: notification_delivery.channel / .status pinned to enums
+// (were free varchar). Closes Physical-Data-Model §8 open encoding.
+enum NotificationChannel {
+  IN_APP
+  PUSH
+  EMAIL
+  SMS
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  BOUNCED
+}
+
+// ---------------------------------------------------------------------------
+// identity
+// ---------------------------------------------------------------------------
+
+model User {
+  id                   String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mobileNumber         String            @unique @map("mobile_number") @db.VarChar(20)
+  mobileVerifiedAt     DateTime?         @map("mobile_verified_at") @db.Timestamptz(6)
+  email                String?           @unique @db.VarChar(255)
+  emailVerifiedAt      DateTime?         @map("email_verified_at") @db.Timestamptz(6)
+  emailPending         String?           @map("email_pending") @db.VarChar(255)
+  passwordHash         String?           @map("password_hash")
+  userType             UserType          @map("user_type")
+  accountState         UserAccountState  @map("account_state")
+  preferredLanguage    PreferredLanguage @default(en) @map("preferred_language")
+  tokenVersion         Int               @default(0) @map("token_version")
+  termsVersion         String?           @map("terms_version") @db.VarChar(32)
+  privacyVersion       String?           @map("privacy_version") @db.VarChar(32)
+  termsAcceptedAt      DateTime?         @map("terms_accepted_at") @db.Timestamptz(6)
+  quietHoursStart      String?           @map("quiet_hours_start") @db.VarChar(5)
+  quietHoursEnd        String?           @map("quiet_hours_end") @db.VarChar(5)
+  lastLoginAt          DateTime?         @map("last_login_at") @db.Timestamptz(6)
+  /// Password-login lockout (FR-VEN-003 AC5, FR-ADM-001). Reset on success.
+  failedLoginAttempts  Int               @default(0) @map("failed_login_attempts")
+  lockedUntil          DateTime?         @map("locked_until") @db.Timestamptz(6)
+  deletedAt            DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  createdAt            DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customerProfile      CustomerProfile?
+  vendorProfile        VendorProfile?
+  adminProfile         AdminProfile?
+  refreshTokens        RefreshToken[]
+  oauthBindings        OauthBinding[]
+  devices              Device[]
+  notifications        Notification[]
+  notificationPreferences NotificationPreference[]
+  otpChallenges        OtpChallenge[]    @relation("OtpUser")
+  abuseReportsFiled    AbuseReport[]     @relation("AbuseReporter")
+  abuseReportsAgainst  AbuseReport[]     @relation("AbuseReported")
+  reviewsAuthored      Review[]          @relation("ReviewAuthor")
+  reviewsReceived      Review[]          @relation("ReviewSubject")
+  auditLogs            AuditLog[]
+  dataSubjectRequests  DataSubjectRequest[]
+  idempotencyKeys      IdempotencyKey[]
+
+  @@index([accountState, createdAt])
+  @@index([userType, accountState])
+  @@map("user")
+}
+
+model CustomerProfile {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String    @unique @map("user_id") @db.Uuid
+  displayName      String    @map("display_name") @db.VarChar(100)
+  photoMediaId     String?   @map("photo_media_id") @db.Uuid
+  defaultRegionId  String?   @map("default_region_id") @db.Uuid
+  aggregateRating  Decimal?  @map("aggregate_rating") @db.Decimal(2, 1)
+  reviewCount      Int       @default(0) @map("review_count")
+  connectionCount  Int       @default(0) @map("connection_count")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user             User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  photoMedia       Media?    @relation("CustomerPhoto", fields: [photoMediaId], references: [id], onDelete: SetNull)
+  defaultRegion    Region?   @relation(fields: [defaultRegionId], references: [id], onDelete: SetNull)
+  requests         Request[]
+  connections      Connection[]
+
+  @@map("customer_profile")
+}
+
+/// SRS §6.2 has no field dictionary for ADMIN_PROFILE. Fields below are [PROPOSED]
+/// from FR-ADM-001 / FR-ADM-002. No role column (AD-API-03).
+model AdminProfile {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String    @unique @map("user_id") @db.Uuid
+  displayName          String    @map("display_name") @db.VarChar(100)
+  totpSecretEncrypted  String?   @map("totp_secret_encrypted")
+  totpConfirmedAt      DateTime? @map("totp_confirmed_at") @db.Timestamptz(6)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  vendorsVerified      VendorProfile[] @relation("VendorVerifiedBy")
+  settingsChanged      PlatformSetting[]
+  notes                AdminNote[]
+  announcements        Announcement[]
+  exportJobs           ExportJob[]
+  reviewsModerated     Review[]  @relation("ReviewModerator")
+  abuseResolved        AbuseReport[]
+  dataSubjectActioned  DataSubjectRequest[] @relation("DataSubjectAdmin")
+
+  @@map("admin_profile")
+}
+
+model RefreshToken {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  familyId         String    @map("family_id") @db.Uuid
+  tokenHash        String    @unique @map("token_hash")
+  rotatedAt        DateTime? @map("rotated_at") @db.Timestamptz(6)
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
+  reuseDetectedAt  DateTime? @map("reuse_detected_at") @db.Timestamptz(6)
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(6)
+  ip               String?   @db.VarChar(64)
+  userAgent        String?   @map("user_agent") @db.VarChar(512)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([familyId])
+  @@map("refresh_token")
+}
+
+model OtpChallenge {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String?    @map("user_id") @db.Uuid
+  mobileNumber String     @map("mobile_number") @db.VarChar(20)
+  purpose      OtpPurpose
+  codeHash     String     @map("code_hash")
+  expiresAt    DateTime   @map("expires_at") @db.Timestamptz(6)
+  attempts     Int        @default(0)
+  consumedAt   DateTime?  @map("consumed_at") @db.Timestamptz(6)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user         User?      @relation("OtpUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([mobileNumber, purpose, createdAt])
+  @@map("otp_challenge")
+}
+
+model OauthBinding {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String         @map("user_id") @db.Uuid
+  provider    OAuthProvider
+  subjectHash String         @unique @map("subject_hash")
+  boundAt     DateTime       @map("bound_at") @db.Timestamptz(6)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@map("oauth_binding")
+}
+
+model Device {
+  id         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String         @map("user_id") @db.Uuid
+  platform   DevicePlatform
+  pushToken  String         @unique @map("push_token")
+  label      String?        @db.VarChar(100)
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("device")
+}
+
+// ---------------------------------------------------------------------------
+// vendor-onboarding + subscription
+// ---------------------------------------------------------------------------
+
+model VendorProfile {
+  id                   String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String                   @unique @map("user_id") @db.Uuid
+  legalBusinessName    String                   @map("legal_business_name") @db.VarChar(200)
+  tradingName          String                   @map("trading_name") @db.VarChar(200)
+  tradeLicenceNumber   String                   @unique @map("trade_licence_number") @db.VarChar(50)
+  licenceExpiryDate    DateTime                 @map("licence_expiry_date") @db.Date
+  businessAddress      String                   @map("business_address")
+  contactPersonName    String                   @map("contact_person_name") @db.VarChar(100)
+  businessEmail        String                   @map("business_email") @db.VarChar(255)
+  logoMediaId          String?                  @map("logo_media_id") @db.Uuid
+  description          String?
+  verificationState    VendorVerificationState  @map("verification_state")
+  /// Marketplace-access state (SRS §5.4). Non-null once the Vendor is VERIFIED and
+  /// has declared >=1 Category and >=1 Region (FR-VEN-025 AC1). The composed
+  /// VendorAccountState "ACTIVE" is `verificationState = VERIFIED && activatedAt != null`.
+  activatedAt          DateTime?                @map("activated_at") @db.Timestamptz(6)
+  verifiedAt           DateTime?                @map("verified_at") @db.Timestamptz(6)
+  verifiedByAdminId    String?                  @map("verified_by_admin_id") @db.Uuid
+  verificationNotes    String?                  @map("verification_notes")
+  /// SAM-GAP-6: Admin's latest Vendor-facing "request more information" free text,
+  /// surfaced as VendorMe.verificationMessage on VEN-S03. Distinct from the internal
+  /// verificationNotes. Written by POST /v1/admin/vendors/{id}/request-info.
+  verificationMessage  String?                  @map("verification_message")
+  businessHours        Json?                    @map("business_hours")
+  awayMode             Boolean                  @default(false) @map("away_mode")
+  aggregateRating      Decimal?                 @map("aggregate_rating") @db.Decimal(2, 1)
+  reviewCount          Int                      @default(0) @map("review_count")
+  /// SAM-GAP-8 [PROPOSED]: 6-month rating time series for VEN-S20, recomputed by the
+  /// rating-aggregation worker (FR-SYS-012, P10 #60), not at read time. Shape:
+  /// [{ "period": "2026-09", "average": 4.6, "count": 12 }]. Structure is this delta's
+  /// choice — Screen-API-Map SAM-GAP-8 names the need, not the encoding.
+  ratingTrend          Json?                    @map("rating_trend")
+  offersSubmittedCount Int                      @default(0) @map("offers_submitted_count")
+  offersAcceptedCount  Int                      @default(0) @map("offers_accepted_count")
+  createdAt            DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user                 User                     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  logoMedia            Media?                   @relation("VendorLogo", fields: [logoMediaId], references: [id], onDelete: SetNull)
+  verifiedByAdmin      AdminProfile?            @relation("VendorVerifiedBy", fields: [verifiedByAdminId], references: [id], onDelete: SetNull)
+  documents            VendorDocument[]
+  subscriptions        VendorTypeSubscription[]
+  categories           VendorCategory[]
+  regions              VendorRegion[]
+  matches              RequestMatch[]
+  offers               Offer[]
+  connections          Connection[]
+  filterPresets        FilterPreset[]
+
+  @@index([verificationState, createdAt])
+  @@map("vendor_profile")
+}
+
+model VendorDocument {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendorProfileId String       @map("vendor_profile_id") @db.Uuid
+  documentType    DocumentType @map("document_type")
+  mediaId         String       @map("media_id") @db.Uuid
+  expiryDate      DateTime?    @map("expiry_date") @db.Date
+  verified        Boolean      @default(false)
+  /// vendor-document-expiry job (FR-VEN-002 AC4). Set once when the 30-day reminder fires.
+  reminderSentAt  DateTime?    @map("reminder_sent_at") @db.Timestamptz(6)
+  uploadedAt      DateTime     @map("uploaded_at") @db.Timestamptz(6)
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  vendorProfile   VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+  media           Media         @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@index([vendorProfileId, documentType])
+  @@map("vendor_document")
+}
+
+model VendorTypeSubscription {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendorProfileId String             @map("vendor_profile_id") @db.Uuid
+  requestType     RequestType        @map("request_type")
+  state           SubscriptionState
+  periodStart     DateTime           @map("period_start") @db.Timestamptz(6)
+  periodEnd       DateTime           @map("period_end") @db.Timestamptz(6)
+  priceAed        Decimal            @map("price_aed") @db.Decimal(12, 2)
+  graceEndsAt     DateTime?          @map("grace_ends_at") @db.Timestamptz(6)
+  paymentReference String?           @map("payment_reference") @db.VarChar(100)
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  vendorProfile   VendorProfile      @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([requestType, state])
+  @@index([vendorProfileId, requestType, state])
+  @@map("vendor_type_subscription")
+}
+
+// ---------------------------------------------------------------------------
+// taxonomy
+// ---------------------------------------------------------------------------
+
+model Category {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  parentId     String?    @map("parent_id") @db.Uuid
+  nameEn       String     @map("name_en") @db.VarChar(100)
+  nameAr       String     @map("name_ar") @db.VarChar(100)
+  displayOrder Int        @map("display_order")
+  isActive     Boolean    @default(true) @map("is_active")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  parent       Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children     Category[] @relation("CategoryTree")
+  requests     Request[]
+  vendors      VendorCategory[]
+
+  @@index([parentId, displayOrder])
+  @@map("category")
+}
+
+model Region {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  parentId     String?    @map("parent_id") @db.Uuid
+  nameEn       String     @map("name_en") @db.VarChar(100)
+  nameAr       String     @map("name_ar") @db.VarChar(100)
+  displayOrder Int        @map("display_order")
+  isActive     Boolean    @default(true) @map("is_active")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  parent       Region?    @relation("RegionTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children     Region[]   @relation("RegionTree")
+  requests     Request[]
+  customers    CustomerProfile[]
+  vendors      VendorRegion[]
+
+  @@index([parentId, displayOrder])
+  @@map("region")
+}
+
+model VendorCategory {
+  vendorProfileId String        @map("vendor_profile_id") @db.Uuid
+  categoryId      String        @map("category_id") @db.Uuid
+
+  vendorProfile   VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+  category        Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@id([vendorProfileId, categoryId])
+  @@index([categoryId, vendorProfileId])
+  @@map("vendor_category")
+}
+
+model VendorRegion {
+  vendorProfileId String        @map("vendor_profile_id") @db.Uuid
+  regionId        String        @map("region_id") @db.Uuid
+
+  vendorProfile   VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+  region          Region        @relation(fields: [regionId], references: [id], onDelete: Restrict)
+
+  @@id([vendorProfileId, regionId])
+  @@index([regionId, vendorProfileId])
+  @@map("vendor_region")
+}
+
+// ---------------------------------------------------------------------------
+// media
+// ---------------------------------------------------------------------------
+
+/// [PROPOSED] unification of the upload-intent pipeline (Architecture §16).
+/// Object bytes live in R2/MinIO; this row is the system of record for keys.
+model Media {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key               String            @unique @db.VarChar(64)
+  purpose           MediaPurpose
+  state             MediaState
+  bucket            StorageBucket
+  contentType       String            @map("content_type") @db.VarChar(100)
+  byteSize          Int               @map("byte_size")
+  exifStripped      Boolean           @default(false) @map("exif_stripped")
+  malwareScanState  MalwareScanState  @default(PENDING) @map("malware_scan_state")
+  thumbnailKey      String?           @map("thumbnail_key") @db.VarChar(64)
+  uploadedByUserId  String?           @map("uploaded_by_user_id") @db.Uuid
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  requestMedia      RequestMedia[]
+  offerMedia        OfferMedia[]
+  vendorDocuments   VendorDocument[]
+  customerPhotos    CustomerProfile[] @relation("CustomerPhoto")
+  vendorLogos       VendorProfile[]   @relation("VendorLogo")
+  exportJobs        ExportJob[]
+  dataSubjectCerts  DataSubjectRequest[]
+
+  @@index([state, createdAt])
+  @@map("media")
+}
+
+// ---------------------------------------------------------------------------
+// requests + matching
+// ---------------------------------------------------------------------------
+
+model Request {
+  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference            String?        @unique @db.VarChar(24)
+  customerProfileId    String         @map("customer_profile_id") @db.Uuid
+  requestType          RequestType    @map("request_type")
+  direction            Direction
+  state                RequestState
+  categoryId           String         @map("category_id") @db.Uuid
+  regionId             String         @map("region_id") @db.Uuid
+  notes                String?
+  weightGrams          Decimal?       @map("weight_grams") @db.Decimal(10, 2)
+  weightIsApproximate  Boolean        @default(false) @map("weight_is_approximate")
+  purityKarat          Karat?         @map("purity_karat")
+  ornamentType         OrnamentType?  @map("ornament_type")
+  condition            ItemCondition?
+  denominationGrams    Decimal?       @map("denomination_grams") @db.Decimal(10, 2)
+  quantity             Int?
+  mintOrRefiner        String?        @map("mint_or_refiner") @db.VarChar(100)
+  budgetMin            Decimal?       @map("budget_min") @db.Decimal(12, 2)
+  budgetMax            Decimal?       @map("budget_max") @db.Decimal(12, 2)
+  budgetIsFlexible     Boolean        @default(false) @map("budget_is_flexible")
+  indicativeValue      Decimal?       @map("indicative_value") @db.Decimal(12, 2)
+  goldRateId           String?        @map("gold_rate_id") @db.Uuid
+  /// FR-CUS-008 gemstone details. Not a named SRS §6.2 column — [PROPOSED] jsonb.
+  gemstones            Json?
+  publishedAt          DateTime?      @map("published_at") @db.Timestamptz(6)
+  expiresAt            DateTime?      @map("expires_at") @db.Timestamptz(6)
+  expiryWarnedAt       DateTime?      @map("expiry_warned_at") @db.Timestamptz(6)
+  /// request-draft-purge job (FR-CUS-015 AC4). Set once when the 27-day warning fires.
+  draftPurgeWarnedAt   DateTime?      @map("draft_purge_warned_at") @db.Timestamptz(6)
+  offerCount           Int            @default(0) @map("offer_count")
+  acceptedOfferId      String?        @unique @map("accepted_offer_id") @db.Uuid
+  cancellationReason   String?        @map("cancellation_reason")
+  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customerProfile      CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Restrict)
+  category             Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  region               Region          @relation(fields: [regionId], references: [id], onDelete: Restrict)
+  goldRate             GoldRate?       @relation(fields: [goldRateId], references: [id], onDelete: SetNull)
+  acceptedOffer        Offer?          @relation("RequestAcceptedOffer", fields: [acceptedOfferId], references: [id], onDelete: Restrict)
+  offers               Offer[]         @relation("OfferOnRequest")
+  media                RequestMedia[]
+  matches              RequestMatch[]
+  connections          Connection[]
+
+  @@index([customerProfileId, state, createdAt])
+  @@index([state, publishedAt])
+  @@index([state, expiresAt])
+  @@index([requestType, state, publishedAt])
+  @@index([categoryId, regionId, state])
+  @@map("request")
+}
+
+model RequestMedia {
+  requestId    String  @map("request_id") @db.Uuid
+  mediaId      String  @map("media_id") @db.Uuid
+  displayOrder Int     @map("display_order")
+
+  request      Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  media        Media   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([requestId, mediaId])
+  @@unique([requestId, displayOrder])
+  @@map("request_media")
+}
+
+/// Largest table by row count (Architecture §12.4). Partitioning is a later
+/// candidate; not in the v1 migration.
+model RequestMatch {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId       String        @map("request_id") @db.Uuid
+  vendorProfileId String        @map("vendor_profile_id") @db.Uuid
+  matchedAt       DateTime      @map("matched_at") @db.Timestamptz(6)
+  viewedAt        DateTime?     @map("viewed_at") @db.Timestamptz(6)
+  isEligible      Boolean       @default(true) @map("is_eligible")
+
+  request         Request       @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  vendorProfile   VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, vendorProfileId])
+  @@index([vendorProfileId, matchedAt(sort: Desc)])
+  @@index([vendorProfileId, isEligible, viewedAt])
+  @@map("request_match")
+}
+
+// ---------------------------------------------------------------------------
+// offers
+// ---------------------------------------------------------------------------
+
+model Offer {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId         String         @map("request_id") @db.Uuid
+  vendorProfileId   String         @map("vendor_profile_id") @db.Uuid
+  state             OfferState
+  offeredPrice      Decimal        @map("offered_price") @db.Decimal(12, 2)
+  makingCharges     Decimal?       @map("making_charges") @db.Decimal(12, 2)
+  ratePerGram       Decimal?       @map("rate_per_gram") @db.Decimal(10, 2)
+  deliveryTimeframe String?        @map("delivery_timeframe") @db.VarChar(100)
+  warrantyTerms     String?        @map("warranty_terms")
+  vendorNote        String?        @map("vendor_note")
+  /// AD-API-07: allowed 12 | 24 | 48 (CHECK in prisma/sql/partial-indexes.sql).
+  /// SRS §6.2 lists 24/48/72/168 — treated as stale. See Physical-Data-Model.md.
+  validityHours     Int            @map("validity_hours")
+  expiresAt         DateTime       @map("expires_at") @db.Timestamptz(6)
+  /// offer-expiry-warning job (FR-VEN-013 AC4). Set once when the T-6h warning fires.
+  expiryWarnedAt    DateTime?      @map("expiry_warned_at") @db.Timestamptz(6)
+  /// SAM-GAP-1: unread-Offer marker on CUS-S02 / CUS-S11. Set by POST /v1/offers/{id}/viewed.
+  viewedByCustomerAt DateTime?     @map("viewed_by_customer_at") @db.Timestamptz(6)
+  revisionCount     Int            @default(0) @map("revision_count")
+  submittedAt       DateTime       @map("submitted_at") @db.Timestamptz(6)
+  decidedAt         DateTime?      @map("decided_at") @db.Timestamptz(6)
+  declineReason     DeclineReason? @map("decline_reason")
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  request           Request        @relation("OfferOnRequest", fields: [requestId], references: [id], onDelete: Restrict)
+  vendorProfile     VendorProfile  @relation(fields: [vendorProfileId], references: [id], onDelete: Restrict)
+  acceptedOnRequest Request?       @relation("RequestAcceptedOffer")
+  revisions         OfferRevision[]
+  media             OfferMedia[]
+  connection        Connection?
+
+  @@index([requestId, state, submittedAt(sort: Desc)])
+  @@index([vendorProfileId, state, submittedAt(sort: Desc)])
+  @@index([state, expiresAt])
+  @@map("offer")
+}
+
+model OfferRevision {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  offerId         String   @map("offer_id") @db.Uuid
+  revisionNumber  Int      @map("revision_number")
+  previousTerms   Json     @map("previous_terms")
+  revisedAt       DateTime @map("revised_at") @db.Timestamptz(6)
+
+  offer           Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@unique([offerId, revisionNumber])
+  @@map("offer_revision")
+}
+
+model OfferMedia {
+  offerId      String @map("offer_id") @db.Uuid
+  mediaId      String @map("media_id") @db.Uuid
+  displayOrder Int    @map("display_order")
+
+  offer        Offer  @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  media        Media  @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([offerId, mediaId])
+  @@unique([offerId, displayOrder])
+  @@map("offer_media")
+}
+
+model FilterPreset {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendorProfileId String        @map("vendor_profile_id") @db.Uuid
+  name            String        @db.VarChar(100)
+  filters         Json
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  vendorProfile   VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([vendorProfileId])
+  @@map("filter_preset")
+}
+
+// ---------------------------------------------------------------------------
+// connections
+// ---------------------------------------------------------------------------
+
+model Connection {
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  offerId            String           @unique @map("offer_id") @db.Uuid
+  requestId          String           @map("request_id") @db.Uuid
+  customerProfileId  String           @map("customer_profile_id") @db.Uuid
+  vendorProfileId    String           @map("vendor_profile_id") @db.Uuid
+  state              ConnectionState
+  identityRevealedAt DateTime         @map("identity_revealed_at") @db.Timestamptz(6)
+  closedAt           DateTime?        @map("closed_at") @db.Timestamptz(6)
+  closedBy           ClosedBy?        @map("closed_by")
+  createdAt          DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  offer              Offer            @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  request            Request          @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  customerProfile    CustomerProfile  @relation(fields: [customerProfileId], references: [id], onDelete: Restrict)
+  vendorProfile      VendorProfile    @relation(fields: [vendorProfileId], references: [id], onDelete: Restrict)
+  contactEvents      ContactEvent[]
+  reviews            Review[]
+
+  @@index([customerProfileId, state, createdAt])
+  @@index([vendorProfileId, state, createdAt])
+  @@index([state, createdAt])
+  @@map("connection")
+}
+
+model ContactEvent {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  connectionId String         @map("connection_id") @db.Uuid
+  initiatedBy  AuthorType     @map("initiated_by")
+  channel      ContactChannel
+  occurredAt   DateTime       @map("occurred_at") @db.Timestamptz(6)
+
+  connection   Connection     @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId, occurredAt])
+  @@map("contact_event")
+}
+
+// ---------------------------------------------------------------------------
+// reviews + abuse
+// ---------------------------------------------------------------------------
+
+model Review {
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  connectionId        String       @map("connection_id") @db.Uuid
+  authorType          AuthorType   @map("author_type")
+  authorUserId        String       @map("author_user_id") @db.Uuid
+  subjectUserId       String       @map("subject_user_id") @db.Uuid
+  rating              Int
+  comment             String?
+  state               ReviewState
+  vendorResponse      String?      @map("vendor_response")
+  vendorResponseState ReviewState? @map("vendor_response_state")
+  moderatedByAdminId  String?      @map("moderated_by_admin_id") @db.Uuid
+  editableUntil       DateTime     @map("editable_until") @db.Timestamptz(6)
+  publishedAt         DateTime?    @map("published_at") @db.Timestamptz(6)
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  connection          Connection   @relation(fields: [connectionId], references: [id], onDelete: Restrict)
+  author              User         @relation("ReviewAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  subject             User         @relation("ReviewSubject", fields: [subjectUserId], references: [id], onDelete: Restrict)
+  moderatedBy         AdminProfile? @relation("ReviewModerator", fields: [moderatedByAdminId], references: [id], onDelete: SetNull)
+
+  @@unique([connectionId, authorType])
+  @@index([subjectUserId, state])
+  @@index([state, createdAt])
+  @@map("review")
+}
+
+model AbuseReport {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporterUserId     String            @map("reporter_user_id") @db.Uuid
+  reportedUserId     String            @map("reported_user_id") @db.Uuid
+  entityType         AbuseEntityType   @map("entity_type")
+  entityId           String            @map("entity_id") @db.Uuid
+  category           String            @db.VarChar(64)
+  description        String
+  state              AbuseReportState
+  resolution         String?
+  resolvedByAdminId  String?           @map("resolved_by_admin_id") @db.Uuid
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  reporter           User              @relation("AbuseReporter", fields: [reporterUserId], references: [id], onDelete: Restrict)
+  reported           User              @relation("AbuseReported", fields: [reportedUserId], references: [id], onDelete: Restrict)
+  resolvedBy         AdminProfile?     @relation(fields: [resolvedByAdminId], references: [id], onDelete: SetNull)
+
+  @@index([state, createdAt])
+  @@index([entityType, entityId])
+  @@index([reportedUserId, state])
+  @@map("abuse_report")
+}
+
+// ---------------------------------------------------------------------------
+// notifications
+// ---------------------------------------------------------------------------
+
+model Notification {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipientUserId  String    @map("recipient_user_id") @db.Uuid
+  type             String    @db.VarChar(64)
+  titleEn          String    @map("title_en") @db.VarChar(200)
+  titleAr          String    @map("title_ar") @db.VarChar(200)
+  bodyEn           String    @map("body_en")
+  bodyAr           String    @map("body_ar")
+  deepLink         String    @map("deep_link") @db.VarChar(300)
+  channelsSent     Json?     @map("channels_sent")
+  isCritical       Boolean   @default(false) @map("is_critical")
+  readAt           DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  recipient        User      @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
+  deliveries       NotificationDelivery[]
+
+  @@index([recipientUserId, createdAt(sort: Desc)])
+  @@index([recipientUserId, readAt])
+  @@map("notification")
+}
+
+model NotificationDelivery {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  notificationId String    @map("notification_id") @db.Uuid
+  channel        NotificationChannel
+  attempt        Int
+  status         NotificationDeliveryStatus
+  providerRef    String?   @map("provider_ref") @db.VarChar(200)
+  lastError      String?   @map("last_error")
+  attemptedAt    DateTime  @map("attempted_at") @db.Timestamptz(6)
+
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId, channel])
+  @@map("notification_delivery")
+}
+
+model NotificationPreference {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId   String @map("user_id") @db.Uuid
+  category String @db.VarChar(64)
+  inApp    Boolean @default(true) @map("in_app")
+  push     Boolean @default(true)
+  email    Boolean @default(true)
+
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+  @@map("notification_preference")
+}
+
+// ---------------------------------------------------------------------------
+// gold-rate, settings, audit
+// ---------------------------------------------------------------------------
+
+model GoldRate {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  purityKarat      Karat          @map("purity_karat")
+  ratePerGramAed   Decimal        @map("rate_per_gram_aed") @db.Decimal(10, 2)
+  source           GoldRateSource
+  feedProvider     String?        @map("feed_provider") @db.VarChar(64)
+  sourceTimestamp  DateTime       @map("source_timestamp") @db.Timestamptz(6)
+  overrideReason   String?        @map("override_reason")
+  overrideExpiresAt DateTime?     @map("override_expires_at") @db.Timestamptz(6)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  requests         Request[]
+
+  @@unique([purityKarat, source, sourceTimestamp])
+  @@index([purityKarat, createdAt(sort: Desc)])
+  @@map("gold_rate")
+}
+
+model PlatformSetting {
+  key                    String        @id @db.VarChar(100)
+  value                  Json
+  dataType               String        @map("data_type") @db.VarChar(32)
+  allowedRange           Json?         @map("allowed_range")
+  requiresConfirmation   Boolean       @default(false) @map("requires_confirmation")
+  lastChangedByAdminId   String?       @map("last_changed_by_admin_id") @db.Uuid
+  updatedAt              DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lastChangedBy          AdminProfile? @relation(fields: [lastChangedByAdminId], references: [id], onDelete: SetNull)
+
+  @@map("platform_setting")
+}
+
+/// Append-only. No updated_at. No ON DELETE CASCADE from user (FR-SYS-011).
+model AuditLog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorUserId  String?  @map("actor_user_id") @db.Uuid
+  action       String   @db.VarChar(100)
+  entityType   String   @map("entity_type") @db.VarChar(64)
+  entityId     String?  @map("entity_id") @db.Uuid
+  beforeValue  Json?    @map("before_value")
+  afterValue   Json?    @map("after_value")
+  ipAddress    String?  @map("ip_address") @db.VarChar(64)
+  userAgent    String?  @map("user_agent") @db.VarChar(512)
+  occurredAt   DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+
+  actor        User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId, occurredAt])
+  @@index([entityType, entityId, occurredAt])
+  @@index([action, occurredAt])
+  @@index([occurredAt])
+  @@map("audit_log")
+}
+
+// ---------------------------------------------------------------------------
+// admin extras (API inventory)
+// ---------------------------------------------------------------------------
+
+model AdminNote {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entityType    String       @map("entity_type") @db.VarChar(64)
+  entityId      String       @map("entity_id") @db.Uuid
+  text          String
+  authorAdminId String       @map("author_admin_id") @db.Uuid
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  author        AdminProfile @relation(fields: [authorAdminId], references: [id], onDelete: Restrict)
+
+  @@index([entityType, entityId, createdAt])
+  @@map("admin_note")
+}
+
+model Announcement {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  titleEn       String       @map("title_en") @db.VarChar(200)
+  titleAr       String       @map("title_ar") @db.VarChar(200)
+  bodyEn        String       @map("body_en")
+  bodyAr        String       @map("body_ar")
+  audience      Json
+  channels      Json
+  critical      Boolean      @default(false)
+  scheduledFor  DateTime?    @map("scheduled_for") @db.Timestamptz(6)
+  cancelledAt   DateTime?    @map("cancelled_at") @db.Timestamptz(6)
+  dispatchStats Json?        @map("dispatch_stats")
+  createdById   String       @map("created_by_id") @db.Uuid
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  createdBy     AdminProfile @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([scheduledFor])
+  @@map("announcement")
+}
+
+model ExportJob {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reportName      String         @map("report_name") @db.VarChar(64)
+  format          ExportFormat
+  filters         Json
+  purpose         String
+  state           ExportJobState
+  mediaId         String?        @map("media_id") @db.Uuid
+  watermark       Json?
+  createdById     String         @map("created_by_id") @db.Uuid
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  completedAt     DateTime?      @map("completed_at") @db.Timestamptz(6)
+
+  createdBy       AdminProfile   @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  media           Media?         @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+
+  @@index([createdById, createdAt])
+  @@index([state, createdAt])
+  @@map("export_job")
+}
+
+// ---------------------------------------------------------------------------
+// outbox / edge / PDPL (Architecture Appendix C)
+// ---------------------------------------------------------------------------
+
+model OutboxEvent {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventType     String      @map("event_type") @db.VarChar(100)
+  aggregateType String      @map("aggregate_type") @db.VarChar(64)
+  aggregateId   String      @map("aggregate_id") @db.Uuid
+  payload       Json
+  availableAt   DateTime    @default(now()) @map("available_at") @db.Timestamptz(6)
+  claimedAt     DateTime?   @map("claimed_at") @db.Timestamptz(6)
+  claimedBy     String?     @map("claimed_by") @db.VarChar(64)
+  attempts      Int         @default(0)
+  state         OutboxState
+  lastError     String?     @map("last_error")
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  consumers     OutboxConsumer[]
+
+  @@index([state, availableAt])
+  @@map("outbox_event")
+}
+
+model OutboxConsumer {
+  eventId   String      @map("event_id") @db.Uuid
+  consumer  String      @db.VarChar(64)
+  consumedAt DateTime   @map("consumed_at") @db.Timestamptz(6)
+
+  event     OutboxEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, consumer])
+  @@map("outbox_consumer")
+}
+
+model JobLock {
+  jobName    String    @id @map("job_name") @db.VarChar(64)
+  owner      String    @db.VarChar(64)
+  leasedUntil DateTime @map("leased_until") @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("job_lock")
+}
+
+model IdempotencyKey {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key           String   @db.VarChar(64)
+  route         String   @db.VarChar(200)
+  callerSubject String   @map("caller_subject") @db.VarChar(80)
+  callerUserId  String?  @map("caller_user_id") @db.Uuid
+  bodyHash      String   @map("body_hash") @db.VarChar(64)
+  statusCode    Int      @map("status_code")
+  responseBody  Json     @map("response_body")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  caller        User?    @relation(fields: [callerUserId], references: [id], onDelete: SetNull)
+
+  @@unique([key, route, callerSubject])
+  @@index([createdAt])
+  @@map("idempotency_key")
+}
+
+model RateLimitBucket {
+  scope        String   @db.VarChar(64)
+  subject      String   @db.VarChar(80)
+  tokens       Decimal  @db.Decimal(12, 3)
+  windowStart  DateTime @map("window_start") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@id([scope, subject])
+  @@map("rate_limit_bucket")
+}
+
+model DataSubjectRequest {
+  id                String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String                    @map("user_id") @db.Uuid
+  state             DataSubjectRequestState
+  reason            String?
+  actionedByAdminId String?                   @map("actioned_by_admin_id") @db.Uuid
+  certificateMediaId String?                  @map("certificate_media_id") @db.Uuid
+  createdAt         DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  completedAt       DateTime?                 @map("completed_at") @db.Timestamptz(6)
+
+  user              User                      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  actionedBy        AdminProfile?             @relation("DataSubjectAdmin", fields: [actionedByAdminId], references: [id], onDelete: SetNull)
+  certificate       Media?                    @relation(fields: [certificateMediaId], references: [id], onDelete: SetNull)
+
+  @@index([userId, state])
+  @@map("data_subject_request")
+}

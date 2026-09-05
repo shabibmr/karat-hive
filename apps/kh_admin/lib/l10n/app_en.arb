@@ -1,0 +1,84 @@
+{
+  "@@locale": "en",
+  "appTitle": "Karat Hive Admin Portal",
+  "@appTitle": {
+    "description": "Title of the administrative web portal"
+  },
+  "loginTitle": "PLATFORM ADMIN",
+  "loginSubtitle": "Karat Hive Internal Management Portal",
+  "loginInstructions": "Please sign in with your administrative credentials.",
+  "emailLabel": "Admin Email",
+  "emailHint": "admin@karathive.ae",
+  "emailRequired": "Admin email is required",
+  "emailInvalid": "Please enter a valid email address",
+  "passwordLabel": "Password",
+  "passwordHint": "Enter your password",
+  "passwordRequired": "Password is required",
+  "passwordTooShort": "Password must be at least 8 characters",
+  "signInButton": "Authenticate & Enter Portal",
+  "signingIn": "Authenticating...",
+  "errorAccountLocked": "Your administrative account has been temporarily locked due to consecutive failed login attempts. Please wait 30 minutes or contact security.",
+  "errorInvalidCredentials": "Invalid administrative credentials. Please check your email and password.",
+  "errorServerUnavailable": "Administrative service unavailable. Please check your connection and try again.",
+  "errorUnknown": "An unexpected error occurred. Please try again.",
+
+  "categoriesTitle": "Category Management",
+  "categoriesSubtitle": "Manage two-level product category taxonomy for requests and vendor specialisations.",
+  "regionsTitle": "Region Management",
+  "regionsSubtitle": "Manage geographic matching taxonomy (emirates and areas) for marketplace routing.",
+  "showInactive": "Show Inactive",
+  "hideInactive": "Hide Inactive",
+  "addRootCategory": "+ Add Category",
+  "addRootRegion": "+ Add Region",
+  "addChildCategory": "Add Subcategory",
+  "addChildRegion": "Add Area",
+  "editCategory": "Edit Category",
+  "editRegion": "Edit Region",
+  "createRootCategory": "New Root Category",
+  "createRootRegion": "New Root Region",
+  "newChildCategory": "New Subcategory",
+  "newChildRegion": "New Area",
+  "nameEnLabel": "Name (English)",
+  "nameArLabel": "Name (Arabic)",
+  "nameEnRequired": "English name is required and cannot be blank",
+  "nameArRequired": "Arabic name is required and cannot be blank",
+  "iconLabel": "Icon",
+  "displayOrderLabel": "Display Order",
+  "activeStatusLabel": "Active Status",
+  "activeStatusDescription": "Inactive nodes are hidden from customer/vendor selection but preserve existing associations.",
+  "saveButton": "Save Changes",
+  "createButton": "Create",
+  "deactivateButton": "Deactivate",
+  "deactivateConfirmTitle": "Deactivate {name}?",
+  "@deactivateConfirmTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deactivateConfirmBody": "Are you sure you want to deactivate \"{name}\"? Inactive nodes cannot be selected for new requests, but existing associations are preserved. This action can be reversed later.",
+  "@deactivateConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cancel": "Cancel",
+  "confirmDeactivate": "Deactivate",
+  "statusActive": "Active",
+  "statusInactive": "Inactive",
+  "emptyCategoriesTitle": "No Categories Found",
+  "emptyCategoriesBody": "No product categories have been configured yet. Create a root category to start building the taxonomy.",
+  "emptyRegionsTitle": "No Regions Found",
+  "emptyRegionsBody": "No regions have been configured yet. Create a root emirate or region to begin.",
+  "toastCategoryCreated": "Category created successfully.",
+  "toastCategoryUpdated": "Category updated successfully.",
+  "toastCategoryDeactivated": "Category deactivated successfully.",
+  "toastRegionCreated": "Region created successfully.",
+  "toastRegionUpdated": "Region updated successfully.",
+  "toastRegionDeactivated": "Region deactivated successfully.",
+  "levelLimitReached": "Maximum hierarchy depth reached (2 levels). Cannot add children to this node.",
+  "selectNodeToEdit": "Select a node from the tree to edit or create a child, or create a new root node."
+}

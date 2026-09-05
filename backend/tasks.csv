@@ -1,0 +1,14 @@
+Task ID|Priority|Phase|Category|Title|Component / File|Effort|Status|Acceptance Criteria
+TASK-001|P0 - Critical|Phase 1|Correctness & Security|Fix Prototype Property Leakage in HttpErrorFilter.isErrorCode|src/edge/errors/http-error.filter.ts|1h|Completed|isErrorCode('toString') returns false; fallback to codeForStatus without crash
+TASK-002|P0 - Critical|Phase 1|Correctness|Fix Date Instance Stripping in stableStringify|src/edge/idempotency/idempotency.policy.ts|1h|Completed|Date instances serialized to ISO strings; different timestamps yield different hashes
+TASK-008|P2 - Medium|Phase 1|Operations|Upgrade Log Level for Unhandled Outbox Event Types|src/platform/outbox/outbox.dispatcher.ts|0.5h|Completed|Unhandled outbox event types logged at WARN level
+TASK-009|P3 - Low|Phase 1|Code Hygiene|Clean Up Redundant Ternary in Identity Key Walker|src/edge/masking/identity-keys.ts|0.5h|Completed|Redundant ternary removed from walk()
+TASK-003|P1 - High|Phase 2|Concurrency & Correctness|Fix Stale Idempotency Key Eviction Race Condition|src/edge/idempotency/idempotency.interceptor.ts|2h|Completed|Replace delete+create with atomic update; no P2025/P2002 under concurrency
+TASK-004|P1 - High|Phase 2|Security|Validate User State in Refresh Token Rotation|src/modules/identity/application/token.service.ts|2h|Completed|Soft-deleted/suspended users cannot rotate refresh tokens; family revoked on violation
+TASK-005|P1 - High|Phase 2|Security & Privacy|Expand Privacy Masking Scanner with Relational Profile Keys|src/edge/masking/identity-keys.ts|1h|Completed|customerProfileId/vendorProfileId/adminProfileId/actorUserId detected by masking interceptor
+TASK-006|P1 - High|Phase 2|Security & Architecture|Refined Account State Enforcement|src/edge/auth/auth.guard.ts|2h|Completed|Mutating and domain operations block suspended users; GET /v1/me remains accessible for status UI
+TASK-010|P3 - Low|Phase 2|Robustness|Normalize Bearer Authentication Scheme Parsing|src/edge/auth/auth.guard.ts|0.5h|Completed|Case-insensitive Bearer prefix and trimmed token
+TASK-007|P2 - Medium|Phase 3|Observability|Propagate x-request-id Header on Idempotency Replay|src/edge/idempotency/idempotency.interceptor.ts|1h|Completed|x-request-id header attached to response on replay
+TASK-011|P2 - Medium|Phase 3|Performance|Consolidate RateLimitService.take Database Transactions|src/edge/rate-limit/rate-limit.service.ts|3h|Completed|Single atomic PostgreSQL upsert with RETURNING reduces roundtrips to 1
+TASK-012|P3 - Low|Phase 3|Performance|Consolidate OutboxClaimer.markFailure Query Execution|src/platform/outbox/outbox.claimer.ts|1h|Completed|Attempts increment and backoff update combined into 1 SQL statement
+TASK-013|P2 - Medium|Phase 4|Quality Assurance|Add Comprehensive Edge Case Unit Tests|src/**/*.spec.ts|3h|Completed|Unit test coverage for prototype check, Date serialization, token rotation, and masking

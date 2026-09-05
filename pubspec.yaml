@@ -1,0 +1,31 @@
+name: karat_hive_workspace
+description: Karat Hive Flutter monorepo root (Melos + Dart pub workspace, AD-FE-02).
+publish_to: none
+
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+
+# Dart pub workspace. kh_admin is intentionally excluded until the Admin vertical
+# starts (it is still a stock `flutter create` project).
+workspace:
+  - apps/kh_mobile/karat_hive
+  - packages/kh_core
+  - packages/kh_domain
+  - packages/kh_api
+  - packages/kh_design_system
+  - packages/kh_l10n
+  - packages/kh_ui_domain
+
+dev_dependencies:
+  melos: ^8.0.0
+
+melos:
+  scripts:
+    analyze:
+      exec: flutter analyze
+      description: Static analysis across every workspace package.
+    test:
+      exec: flutter test
+      packageFilters:
+        dirExists: test
+      description: Run tests in every package that has a test/ directory.

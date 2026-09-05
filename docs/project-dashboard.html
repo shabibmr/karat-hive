@@ -270,7 +270,7 @@
       <h1>Spec-Project Dashboard</h1>
       <p class="sub">What's written, what's built, and what's still waiting on a signature &mdash; across the requirements, architecture, and screen-design pipeline.</p>
     </div>
-    <span class="stamp">Snapshot &middot; 17 Aug 2026</span>
+    <span class="stamp">Snapshot &middot; 1 Sep 2026</span>
   </header>
 
   <div class="hero-pair">
@@ -279,7 +279,7 @@
       <div class="label">Documented &mdash; SRS, architecture &amp; all 67 screens</div>
     </div>
     <div class="hero-stat open">
-      <div class="num">0&nbsp;/&nbsp;65</div>
+      <div class="num">0&nbsp;/&nbsp;63</div>
       <div class="label">Approvals signed off</div>
     </div>
     <p class="hero-note">Everything the pipeline can produce on paper is written. Nothing has been signed off yet &mdash; that's the gap this page tracks.</p>
@@ -320,9 +320,9 @@
       </div>
       <div class="tile pending">
         <span class="eyebrow">Approvals Signed Off</span>
-        <div class="value">0 / 65</div>
+        <div class="value">0 / 63</div>
         <div class="bar"><span style="width:0%"></span></div>
-        <div class="caption">37 Product Owner &middot; 24 Technical Lead &middot; 4 blocked</div>
+        <div class="caption">37 Product Owner &middot; 24 Technical Lead &middot; 2 blocked</div>
       </div>
     </div>
   </section>
@@ -350,14 +350,14 @@
           <td class="detail">Ubiquitous language and the binding vocabulary, including the <em>Avoid</em> list under each term.</td>
         </tr>
         <tr>
-          <td class="doc">Requirements-Spec-v1.2.md</td>
+          <td class="doc">Requirements-Spec-v1.3.md</td>
           <td><span class="pill pending">Awaiting PO sign-off</span></td>
           <td class="detail">2,846 lines &middot; 100% traceability coverage &middot; 162 requirements &middot; 37 <code>[ASSUMED]</code> items need Product Owner confirmation.</td>
         </tr>
         <tr>
-          <td class="doc">ADR 0001&ndash;0007</td>
+          <td class="doc">ADR 0001&ndash;0008</td>
           <td><span class="pill good">Recorded</span></td>
-          <td class="detail">Seven architecture decisions, one each &mdash; introduction-only marketplace, request-driven model, identity masking, WhatsApp hand-off, subscription revenue, Flutter client, Node.js monolith.</td>
+          <td class="detail">Eight architecture decisions, one each &mdash; introduction-only marketplace, request-driven model, identity masking, WhatsApp hand-off, subscription revenue, Flutter client, Node.js monolith, object storage on Cloudflare R2.</td>
         </tr>
         <tr>
           <td class="doc">Architecture-Backend.md</td>
@@ -393,14 +393,14 @@
     <div class="timeline">
       <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">Raw requirement notes captured</div><div class="desc"><code>Requirements-raw.txt</code> frozen as the sole source input.</div></div></div>
       <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">Ubiquitous language established</div><div class="desc"><code>CONTEXT.md</code> binds the vocabulary used across every downstream document.</div></div></div>
-      <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">SRS v1.2 authored at 100% coverage</div><div class="desc">Every non-blank source line traced to a requirement or a documented gap.</div></div></div>
-      <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">Seven ADRs recorded</div><div class="desc">Foundational shape decisions: settlement, request-model, masking, WhatsApp, subscriptions, Flutter, monolith.</div></div></div>
+      <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">SRS v1.3 authored at 100% coverage</div><div class="desc">Every non-blank source line traced to a requirement or a documented gap. C-10 and C-13 resolved.</div></div></div>
+      <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">Eight ADRs recorded</div><div class="desc">Foundational shape decisions: settlement, request-model, masking, WhatsApp, subscriptions, Flutter, monolith, object storage.</div></div></div>
       <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">Backend and frontend architecture drafted</div><div class="desc">28 decisions across both documents, derived from the SRS.</div></div></div>
       <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">All 67 screens specced</div><div class="desc">Field-level inventory complete for Customer, Vendor, and Admin.</div></div></div>
       <div class="tl-item done"><div class="mark">&check;</div><div><div class="title">All 67 screens mocked &amp; wired</div><div class="desc">Interactive prototype realised in <code>ui-mock/</code>, every screen reachable.</div></div></div>
       <div class="tl-item open"><div class="mark">&#9675;</div><div><div class="title">Product Owner sign-off on 37 assumed requirements</div><div class="desc">Indexed in SRS Appendix B.3 &mdash; see Completion Approvals below.</div></div></div>
       <div class="tl-item open"><div class="mark">&#9675;</div><div><div class="title">Technical Lead sign-off on 24 proposed decisions</div><div class="desc">12 backend, 12 frontend &mdash; both documents currently Draft.</div></div></div>
-      <div class="tl-item open"><div class="mark">&#9675;</div><div><div class="title">Resolve 4 blocked, externally-owned decisions</div><div class="desc">Object storage, gold-rate licensing, Admin platform choice, data-grid build-or-buy.</div></div></div>
+      <div class="tl-item open"><div class="mark">&#9675;</div><div><div class="title">Resolve 2 blocked, externally-owned decisions</div><div class="desc">Gold-rate licensing terms, and the Admin data-grid build-or-buy call.</div></div></div>
       <div class="tl-item open"><div class="mark">&#9675;</div><div><div class="title">Implementation kickoff</div><div class="desc">No <code>package.json</code> or <code>pubspec.yaml</code> exists yet &mdash; the repository is specification-only.</div></div></div>
     </div>
   </section>
@@ -409,7 +409,7 @@
   <section id="tasks">
     <div class="section-head">
       <h2>Open Tasks</h2>
-      <span class="count">65 items outstanding</span>
+      <span class="count">63 items outstanding</span>
     </div>
     <div class="task-cards">
       <a class="task-card po" href="#approvals-po">
@@ -425,9 +425,9 @@
         <div class="owner">Owner &middot; Technical Lead</div>
       </a>
       <a class="task-card blocked" href="#approvals-blocked">
-        <div class="n">4</div>
+        <div class="n">2</div>
         <div class="t">Blocked on an external decision</div>
-        <div class="d">Storage provider, licensing terms, platform choice, and a build-or-buy call &mdash; none resolvable in-document.</div>
+        <div class="d">Gold-rate licensing terms and the Admin data-grid build-or-buy call &mdash; neither resolvable in-document.</div>
         <div class="owner">Owner &middot; Varies</div>
       </a>
     </div>
@@ -539,16 +539,6 @@
         </thead>
         <tbody>
           <tr>
-            <td><div class="item">Object storage provider</div><div class="ref">C-13</div></td>
-            <td>Media, KYC documents, signed URLs, PDPL erasure &mdash; registered as blocking in both architecture documents.</td>
-            <td>Technical Lead</td>
-          </tr>
-          <tr>
-            <td><div class="item">Is the Admin Portal really Flutter Web?</div><div class="ref">C-10 &middot; ADR-0006</div></td>
-            <td>If not, most of the Flutter Web risk and the data-grid decision evaporate.</td>
-            <td>Product Owner</td>
-          </tr>
-          <tr>
             <td><div class="item">Yahoo Finance redistribution terms</div><div class="ref">Legal</div></td>
             <td>Displaying reference gold rates to end users.</td>
             <td>Legal</td>
@@ -565,7 +555,7 @@
   </section>
 
   <footer>
-    <span>Point-in-time snapshot, 17 Aug 2026 &mdash; not a live view. Regenerate after any SRS/ADR/architecture version bump, or once a sign-off actually lands.</span>
+    <span>Point-in-time snapshot, 1 Sep 2026 &mdash; not a live view. Regenerate after any SRS/ADR/architecture version bump, or once a sign-off actually lands.</span>
     <span>Karat Hive &middot; docs/project-dashboard.html</span>
   </footer>
 
