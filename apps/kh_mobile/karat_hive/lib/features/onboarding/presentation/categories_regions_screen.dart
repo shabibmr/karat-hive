@@ -5,6 +5,7 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
+import '../../../app/guards.dart';
 import '../controller/categories_regions_controller.dart';
 import '../repository/onboarding_repository.dart';
 
@@ -61,7 +62,7 @@ class CategoriesRegionsScreen extends ConsumerWidget {
             onPressed: state.canSave
                 ? () async {
                     final ok = await controller.save();
-                    if (ok && context.mounted) context.go('/vendor/home');
+                    if (ok && context.mounted) context.go(AppGuards.home);
                   }
                 : null,
           ),

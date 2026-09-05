@@ -8,6 +8,7 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
+import '../../../app/guards.dart';
 import '../../../app/session/session_controller.dart';
 import '../controller/kyc_upload_controller.dart';
 import '../controller/vendor_me_controller.dart';
@@ -57,7 +58,7 @@ class KycUploadScreen extends ConsumerWidget {
                 ? () async {
                     ref.invalidate(vendorMeProvider);
                     await ref.read(sessionProvider.notifier).refreshUser();
-                    if (context.mounted) context.go('/awaiting');
+                    if (context.mounted) context.go(AppGuards.awaiting);
                   }
                 : null,
           ),
