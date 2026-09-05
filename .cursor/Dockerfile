@@ -5,7 +5,6 @@ RUN apt-get update \
         ca-certificates \
         curl \
         git \
+        postgresql \
         postgresql-client \
-        docker.io \
-        docker-compose-v2 \
     && rm -rf /var/lib/apt/lists/*
