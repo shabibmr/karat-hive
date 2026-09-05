@@ -60,8 +60,8 @@ Work still open against the plan of record. Do these in this order.
 |---|---|---|---|
 | **CP1-A03b** | A | Wire `admin.seed.ts` + `seedVendor()` into `prisma/seed/index.ts` | `vendor-dev.seed.ts` exists but is unused; no ADMIN user is seeded |
 | **CP1-A07b** | A | Dedicated masking spec under `backend/test/masking/` | Folder is empty; only the onboarding integration suite asserts no-500 |
-| **CP1-I02** | I | Paste `SUPABASE_SERVICE_ROLE_KEY` into `backend/.env` | Checkpoint outstanding item — local KYC upload path |
-| **CP1-I03** | I | Confirm private Storage bucket `kyc` exists in project `husuemlfcvacrysapwho` | Backend mints signed URLs; no anon policies |
+| ~~CP1-I02~~ | I | Paste `SUPABASE_SERVICE_ROLE_KEY` into `backend/.env` | **Done 6 Sep 2026** — key set, KYC storage round-trip verified |
+| ~~CP1-I03~~ | I | Confirm private Storage bucket `kyc` exists in project `husuemlfcvacrysapwho` | **Done 6 Sep 2026** — bucket confirmed (private, 10 MiB, pdf/jpeg/png) |
 | **CP1-B01a** | B | Add `tooling/golden_runner.dart` | Checkpoint F1; `tooling/` has analysis_options only |
 | **CP1-B01b** | B | `VendorStatusCard` in `kh_ui_domain` | Checklist + picker exist; status card does not |
 | **CP1-B02a** | B | Extract `app/guards.dart` + `unauth` / `awaiting_approval` / `vendor` shells | Redirect lives in `router.dart`; only `splash_screen.dart` exists |
@@ -73,7 +73,7 @@ Work still open against the plan of record. Do these in this order.
 | **CP1-V01** | V | Backend curl walk-through (checkpoint steps 1–10) against local Nest + seeded taxonomy | Must pass before claiming the vertical closed |
 | **CP1-V02** | V | Flutter walk-through: Login → Register → OTP → KYC → curl verify → Categories → Dashboard | `flutter run --dart-define-from-file=config/dev.json` |
 
-Deferred on purpose (do not pull into this checkpoint): ARB/`gen_l10n` (inlined `KhStrings` is the current stand-in), `freezed`/`json_serializable` (hand-written DTOs), listing `kh_admin` in the Dart workspace, standalone `melos.yaml` (Melos 8 config is in root `pubspec.yaml`), real SMS, EXIF/scan worker, OpenAPI generation, Supabase Data-API/RLS.
+Deferred on purpose (do not pull into this checkpoint): ARB/`gen_l10n` (inlined `KhStrings` is the current stand-in), `freezed`/`json_serializable` (hand-written DTOs), listing `kh_admin` in the Dart workspace, standalone `melos.yaml` (Melos 8 config is in root `pubspec.yaml`), real SMS, EXIF/scan worker, OpenAPI generation. (Supabase Data-API/RLS was deferred here → **resolved 6 Sep 2026**, `docs/adr/0009`.)
 
 ---
 
@@ -179,7 +179,7 @@ Depends on A7.
 |---|---|---|---|
 | CP1-A08a | Apply vendor_vertical migration | `cd backend && npx prisma migrate deploy && npx prisma generate` | Columns exist on the Supabase Postgres the API uses. | operator step |
 | CP1-A08b | Extensions + partial indexes | `prisma/sql/extensions.sql`, `partial-indexes.sql` via Supabase SQL (not a Prisma schema reopen) | pg_trgm, offer/subscription partial-unique, validity CHECK. | operator step |
-| **CP1-I03** | Private bucket `kyc` | `insert into storage.buckets (id,name,public) values ('kyc','kyc',false)`. No anon policies. | **open** (confirm) |
+| CP1-I03 | Private bucket `kyc` | `insert into storage.buckets (id,name,public) values ('kyc','kyc',false)`. No anon policies. | **done** (6 Sep 2026 — confirmed private, 10 MiB, pdf/jpeg/png) |
 
 Outbox this slice: `vendor.registered`, `vendor.documents.submitted` (no consumer), `vendor.verification.decided`, `vendor.eligibility.changed` (later). Audit in-tx: `VENDOR_REGISTERED`, `AUTH_OTP_LOGIN`, `AUTH_PASSWORD_LOGIN`, `AUTH_ACCOUNT_LOCKED`, `KYC_UPLOAD_INTENT`, `VENDOR_DOCUMENT_ADDED`, `VENDOR_RESUBMIT`, `VENDOR_VERIFIED`, `VENDOR_REJECTED`, `VENDOR_INFO_REQUESTED`, `VENDOR_ACTIVATED`, `VENDOR_PROFILE_REVERIFY`.
 
@@ -262,9 +262,9 @@ See Track V.
 | ID | Task | Acceptance | Status |
 |---|---|---|---|
 | CP1-I01 | Env files | `backend/.env` + `.env.example` carry every B0 var. **Never** put `SUPABASE_SERVICE_ROLE_KEY` in the Flutter bundle. | partial |
-| **CP1-I02** | Service-role key | Paste into `backend/.env`. Local KYC signed-upload works. | **open** |
-| **CP1-I03** | Bucket `kyc` | Private; service-role bypasses Storage RLS. | **open** (confirm) |
-| CP1-I04 | Open decision log | “Supabase Data-API exposure” recorded; **no action** this checkpoint. | deferred |
+| CP1-I02 | Service-role key | Paste into `backend/.env`. Local KYC signed-upload works. | **done** (6 Sep 2026 — key set, round-trip verified) |
+| CP1-I03 | Bucket `kyc` | Private; service-role bypasses Storage RLS. | **done** (6 Sep 2026) |
+| CP1-I04 | Open decision log | “Supabase Data-API exposure” recorded; deferred this checkpoint → **resolved 6 Sep 2026** (`docs/adr/0009`, `AD-BE-15`): RLS deny-all + `anon`/`authenticated` grants revoked. | **done** |
 
 ---
 
@@ -340,4 +340,4 @@ When this list is closed, mark T12 (vendor), T15 (vendor), T16, T17 (KYC), T18 *
 - `PENDING_VERIFICATION → VERIFIED` via the guarded dev endpoint + seed helper. Real Admin verification is a later vertical.
 - Flutter: Riverpod (`AD-FE-03`), go_router (`AD-FE-04`). One dual-mode binary later; this slice is Vendor-only.
 - No Redis, Kafka, Elasticsearch (`C-12`).
-- Supabase Data-API / RLS: log, do not “fix”.
+- Supabase Data-API / RLS: was "log, do not fix" for this checkpoint → **resolved 6 Sep 2026** (`docs/adr/0009`, `AD-BE-15`); locked down at the database.

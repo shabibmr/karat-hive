@@ -4,9 +4,9 @@
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | Physical PostgreSQL schema (pre-code) |
-| **Version** | 0.2 |
-| **Status** | Draft — `[PROPOSED]`. Assumes `AD-BE-05` (Prisma). Table/constraint/index design survives a DSL change. |
-| **Date** | 1 September 2026 |
+| **Version** | 0.3 |
+| **Status** | Draft — `[PROPOSED]`. Assumes `AD-BE-05` (Prisma) and `AD-BE-15` (managed Postgres on Supabase, Data API off). Table/constraint/index design survives a DSL change. |
+| **Date** | 6 September 2026 |
 | **Encoding** | [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma) |
 | **SQL Prisma cannot express** | [`backend/prisma/sql/`](../backend/prisma/sql/) |
 | **Source of truth** | SRS v1.3 §5–§6 → Architecture-Backend §12 + Appendix B/C → [API-Route-Inventory](API-Route-Inventory.md). T36 deltas from [Async-Contract §10](Async-Contract.md) and [Screen-API-Map §6](Screen-API-Map.md) |
@@ -193,6 +193,18 @@ Object storage for later media work: MinIO or R2 credentials in env. Not needed 
 
 ---
 
+## 10. Managed environments — RLS / Data-API posture
+
+Non-production runs on a managed Supabase Postgres (`AD-BE-15`, [`docs/adr/0009`](adr/0009-managed-postgres-supabase.md)). Supabase auto-exposes every `public` table through PostgREST under a public `anon` key, so the schema is deployed with that path shut:
+
+- **RLS enabled, no policies, on every `public` table** — deny-all for any role that does not bypass RLS.
+- **`anon` / `authenticated` have all privileges and schema `USAGE` on `public` revoked**, and `postgres`' default privileges revoked for them so new Prisma-migrated tables inherit the lockdown.
+- The backend is unaffected: it connects as `postgres`, which owns every table and has `rolbypassrls`. `service_role` (server-only) likewise bypasses RLS.
+
+This is enforced by a Supabase-side migration (`lock_down_data_api_public_schema`), **not** by `schema.prisma` — Prisma does not model RLS or role grants, and identity masking remains a presenter concern in the application (`FR-SYS-003`), not a database policy. Any new table reaches the same posture automatically via the default-privilege revoke; a migration that needs to add real RLS policies (none are planned) would be a deliberate, separate decision.
+
+---
+
 ## Appendix A — SRS §6.2 coverage
 
 | SRS entity | Table | Notes |
@@ -225,4 +237,6 @@ Object storage for later media work: MinIO or R2 credentials in env. Not needed 
 | Version | Date | Change |
 |---|---|---|
 | 0.1 | 1 Sep 2026 | Initial physical model against SRS v1.3, Architecture-Backend §12, API inventory 0.1 |
+| 0.2 | 1 Sep 2026 | T36 fold-in — SAM-GAP / Async-Contract §10 columns and partial indexes into `20260901120000_init` (see T36 status note above) |
+| 0.3 | 6 Sep 2026 | §10 added — RLS / Data-API lockdown for the managed Supabase environment (`AD-BE-15`, `adr/0009`) |
 | 0.2 | 1 Sep 2026 | T36: folded Async-Contract §10 (`AD-ASYNC-07` delivery enums; `offer.expiry_warned_at`, `request.draft_purge_warned_at`, `vendor_document.reminder_sent_at`; 4 job scan indexes) and Screen-API-Map `SAM-GAP-1/4/6/8` (`offer.viewed_by_customer_at`, `AbuseEntityType` += `VENDOR`/`CUSTOMER`, `vendor_profile.verification_message`, `vendor_profile.rating_trend`) into `schema.prisma` and the init migration |
