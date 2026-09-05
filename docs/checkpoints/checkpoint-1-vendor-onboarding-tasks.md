@@ -13,7 +13,7 @@
 
 The checkpoint is the frozen contract for this vertical. This file is the work list: IDs, order, files, acceptance. Do not invent routes, fields, or states that are not in the checkpoint.
 
-**Current tree (4 Sep 2026):** Track A (backend) is largely on disk and has an integration suite. Track B (Flutter) is scaffolded for all 6 screens; goldens, ARB, shells, and most controller tests are still open. Infra still needs the local `SUPABASE_SERVICE_ROLE_KEY`. Use [§ Remaining to close](#remaining-to-close) as the live punch list; the [full register](#full-task-register) is the whole vertical.
+**Current tree (5 Sep 2026):** Track A seed orchestrator now calls `seedAdmin` + `seedVendor` (CP1-A03b); masking spec lives under `backend/test/masking/` (CP1-A07b). Track B (Flutter) is still scaffolded; goldens, ARB, shells, and most controller tests remain open. Infra: `SUPABASE_SERVICE_ROLE_KEY` and private `kyc` bucket recorded done (CP1-I02 / CP1-I03, 6 Sep 2026). Use [§ Remaining to close](#remaining-to-close) as the live punch list; the [full register](#full-task-register) is the whole vertical.
 
 ---
 
@@ -58,8 +58,6 @@ Work still open against the plan of record. Do these in this order.
 
 | ID | Track | Task | Why it is still open |
 |---|---|---|---|
-| **CP1-A03b** | A | Wire `admin.seed.ts` + `seedVendor()` into `prisma/seed/index.ts` | `vendor-dev.seed.ts` exists but is unused; no ADMIN user is seeded |
-| **CP1-A07b** | A | Dedicated masking spec under `backend/test/masking/` | Folder is empty; only the onboarding integration suite asserts no-500 |
 | ~~CP1-I02~~ | I | Paste `SUPABASE_SERVICE_ROLE_KEY` into `backend/.env` | **Done 6 Sep 2026** — key set, KYC storage round-trip verified |
 | ~~CP1-I03~~ | I | Confirm private Storage bucket `kyc` exists in project `husuemlfcvacrysapwho` | **Done 6 Sep 2026** — bucket confirmed (private, 10 MiB, pdf/jpeg/png) |
 | **CP1-B01a** | B | Add `tooling/golden_runner.dart` | Checkpoint F1; `tooling/` has analysis_options only |
@@ -115,7 +113,7 @@ Depends on A2. Parallel with A4/A6 after A2.
 |---|---|---|---|---|
 | CP1-A03 | `GET /v1/categories`, `GET /v1/regions` | `modules/taxonomy/` | Active-only two-level tree, no pagination, empty → `200 data:[]`. Module-public `assertActive(ids)`, `listActive()`. | done (`@Public` — needed by VEN-S01 before auth; see [Deviations](#deviations-already-taken)) |
 | CP1-A03a | Taxonomy + platform-settings seeds | `prisma/seed/taxonomy.seed.ts`, `platform-settings.seed.ts` | UAE 7-emirate region tree; two-level category tree; `request.lifetime_hours=48`, bullion floor, `offer.validity_hours_options=[12,24,48]`, `request.max_concurrent_live=10`, karat list, media limits, `legal.terms_url` / `legal.privacy_url` / `support.contact_url` (SAM-GAP-5). Idempotent upsert. | done |
-| **CP1-A03b** | Admin + vendor-dev seeds, orchestrator | `prisma/seed/admin.seed.ts` (new), `vendor-dev.seed.ts`, `index.ts`, `package.json` `prisma.seed` | One ADMIN user for dev-verify. `seedVendor({state:'PENDING'\|'VERIFIED'\|'ACTIVE'})` exported and **called** from `index.ts`. `npm run seed` is idempotent. | **open** |
+| **CP1-A03b** | Admin + vendor-dev seeds, orchestrator | `prisma/seed/admin.seed.ts` (new), `vendor-dev.seed.ts`, `index.ts`, `package.json` `prisma.seed` | One ADMIN user for dev-verify. `seedVendor({state:'PENDING'\|'VERIFIED'\|'ACTIVE'})` exported and **called** from `index.ts`. `npm run seed` is idempotent. | done |
 
 #### A4 — Identity
 
@@ -168,7 +166,7 @@ Depends on A4+A5+A6.
 | ID | Task | Files | Acceptance | Status |
 |---|---|---|---|---|
 | CP1-A07a | Integration suite per endpoint | `backend/test/integration/vendor-onboarding.spec.ts` | Happy path + every error code + state transitions, against CI Postgres. | done (vertical suite present; extend if a code is unasserted) |
-| **CP1-A07b** | Dedicated masking spec | `backend/test/masking/` | Identity-returning handlers do not 500. Masked fields **absent**, not null. | **open** (folder empty) |
+| **CP1-A07b** | Dedicated masking spec | `backend/test/masking/` | Identity-returning handlers do not 500. Masked fields **absent**, not null. | done (unit + CI integration) |
 | CP1-A07c | Backend CI | `.github/workflows/backend.yml` | `services: postgres:16`; `prisma migrate deploy` + `psql -f prisma/sql/*.sql`; split `check` (lint/build/unit) vs `integration`. | done |
 
 #### A8 — Supabase wiring
@@ -307,7 +305,7 @@ Do not silently reverse these; they are the current tree. Revisit only with a ch
 | freezed + json_serializable | Hand-written `fromJson` | Yes — OpenAPI gen is T31/T35 |
 | Taxonomy GET “any authed role incl. shell” | `@Public` | Yes — VEN-S01 must load cats/regions before a session |
 | `document-rules.ts` | Constants on `vendor-state-machine.ts` | Yes |
-| `admin.seed.ts` + `seedVendor` in orchestrator | Helper file unused; no admin seed | **No — finish CP1-A03b** |
+| `admin.seed.ts` + `seedVendor` in orchestrator | Helper file unused; no admin seed | Done — `index.ts` calls both (CP1-A03b) |
 | Feature `routes.dart` + three shells + `guards.dart` | Single `router.dart` + splash | Finish CP1-B02a or amend the plan |
 | `image_picker` + `file_picker` | `file_picker` only | Acceptable if KYC PDF/image pick works on device |
 

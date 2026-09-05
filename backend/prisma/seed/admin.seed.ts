@@ -4,7 +4,8 @@ import { ScryptPasswordHasher } from '../../src/platform/adapters/crypto/scrypt-
 export async function seedAdmin(prisma: PrismaClient): Promise<void> {
   const email = process.env.SEED_ADMIN_EMAIL || 'admin@karathive.ae';
   const password = process.env.SEED_ADMIN_PASSWORD || 'AdminSecret123!';
-  const mobileNumber = process.env.SEED_ADMIN_MOBILE || '+971500000001';
+  // [PROPOSED] Default is not +971500000001 so CP1-V01 REGISTER_VENDOR can use that number after seed.
+  const mobileNumber = process.env.SEED_ADMIN_MOBILE || '+971500000099';
   const displayName = process.env.SEED_ADMIN_NAME || 'Platform Admin';
 
   const hasher = new ScryptPasswordHasher();
@@ -16,6 +17,7 @@ export async function seedAdmin(prisma: PrismaClient): Promise<void> {
       userType: 'ADMIN',
       accountState: 'ACTIVE',
       passwordHash,
+      mobileNumber,
     },
     create: {
       email,
