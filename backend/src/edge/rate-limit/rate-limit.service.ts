@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../platform/db/prisma.service';
 import { Clock } from '../../shared/clock';
@@ -15,7 +15,7 @@ export type RateLimitDecision = {
 export class RateLimitService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly clock: Clock,
+    @Optional() @Inject(Clock) private readonly clock: Clock = new Clock(),
   ) {}
 
   async take(scope: string, subject: string): Promise<RateLimitDecision> {

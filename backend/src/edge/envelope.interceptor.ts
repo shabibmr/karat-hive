@@ -1,4 +1,11 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import {
+  CallHandler,
+  ExecutionContext,
+  Inject,
+  Injectable,
+  NestInterceptor,
+  Optional,
+} from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Observable, map } from 'rxjs';
 import { Clock } from '../shared/clock';
@@ -11,7 +18,7 @@ export type SuccessEnvelope<T> = {
 
 @Injectable()
 export class EnvelopeInterceptor implements NestInterceptor {
-  constructor(private readonly clock: Clock) {}
+  constructor(@Optional() @Inject(Clock) private readonly clock: Clock = new Clock()) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const http = context.switchToHttp();
@@ -27,7 +34,7 @@ export class EnvelopeInterceptor implements NestInterceptor {
           data: data ?? null,
           meta: {
             requestId,
-            serverTime: this.clock.nowIso(),
+            serverTime: (this.clock ?? new Clock()).nowIso(),
             nextCursor: null,
           },
         };

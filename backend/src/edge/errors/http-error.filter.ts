@@ -4,7 +4,9 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Inject,
   Logger,
+  Optional,
 } from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Clock } from '../../shared/clock';
@@ -26,14 +28,14 @@ type ErrorBody = {
 export class HttpErrorFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpErrorFilter.name);
 
-  constructor(private readonly clock: Clock) {}
+  constructor(@Optional() @Inject(Clock) private readonly clock: Clock = new Clock()) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const reply = ctx.getResponse<FastifyReply>();
     const request = ctx.getRequest<FastifyRequest>();
     const requestId = requestIdOf(request);
-    const serverTime = this.clock.nowIso();
+    const serverTime = (this.clock ?? new Clock()).nowIso();
     const language = resolveLanguage(
       headerString(request.headers['accept-language']),
       viewerOf(request)?.preferredLanguage,

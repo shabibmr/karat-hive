@@ -2,15 +2,17 @@ import {
   CallHandler,
   ExecutionContext,
   HttpStatus,
+  Inject,
   Injectable,
   NestInterceptor,
+  Optional,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { lastValueFrom, Observable, of } from 'rxjs';
 import { PrismaService } from '../../platform/db/prisma.service';
 import { Clock } from '../../shared/clock';
-import { viewerOf } from '../auth/auth.guard';
+import { viewerOf } from '../auth/viewer-context';
 import { clientIpOf } from '../client-ip';
 import { ApiException } from '../errors/api-exception';
 import { ErrorCode } from '../errors/error-codes';
@@ -30,7 +32,7 @@ const HEADER = 'idempotency-key';
 export class IdempotencyInterceptor implements NestInterceptor {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly clock: Clock,
+    @Optional() @Inject(Clock) private readonly clock: Clock = new Clock(),
   ) {}
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<unknown>> {
