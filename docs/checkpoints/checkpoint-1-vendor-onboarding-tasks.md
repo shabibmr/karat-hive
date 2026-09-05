@@ -166,7 +166,7 @@ Depends on A4+A5+A6.
 | ID | Task | Files | Acceptance | Status |
 |---|---|---|---|---|
 | CP1-A07a | Integration suite per endpoint | `backend/test/integration/vendor-onboarding.spec.ts` | Happy path + every error code + state transitions, against CI Postgres. | done (vertical suite present; extend if a code is unasserted) |
-| **CP1-A07b** | Dedicated masking spec | `backend/test/masking/` | Identity-returning handlers do not 500. Masked fields **absent**, not null. | done (unit + integration spec; HTTP smoke still needs local `DATABASE_URL`) |
+| **CP1-A07b** | Dedicated masking spec | `backend/test/masking/` | Identity-returning handlers do not 500. Masked fields **absent**, not null. | done (unit + CI integration) |
 | CP1-A07c | Backend CI | `.github/workflows/backend.yml` | `services: postgres:16`; `prisma migrate deploy` + `psql -f prisma/sql/*.sql`; split `check` (lint/build/unit) vs `integration`. | done |
 
 #### A8 — Supabase wiring
