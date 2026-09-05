@@ -3,6 +3,7 @@ import {
   CanActivate,
   Controller,
   ExecutionContext,
+  HttpCode,
   HttpStatus,
   Inject,
   Injectable,
@@ -46,6 +47,7 @@ export class DevVerifyController {
 
   @Public()
   @UseGuards(DevVerifyGuard)
+  @HttpCode(HttpStatus.OK)
   @Post(':id/verify')
   verify(
     @Param('id') id: string,
