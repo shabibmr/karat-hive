@@ -27,7 +27,11 @@ describe('OutboxClaimer', () => {
       const claimer = new OutboxClaimer(prisma);
       const fixedNow = new Date('2026-09-03T00:00:00.000Z');
 
-      await claimer.markFailure('e0000000-0000-0000-0000-000000000001', 'network timeout', fixedNow);
+      await claimer.markFailure(
+        'e0000000-0000-0000-0000-000000000001',
+        'network timeout',
+        fixedNow,
+      );
 
       // Exactly one query roundtrip executed
       expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
@@ -61,7 +65,9 @@ describe('OutboxClaimer', () => {
 
       await expect(
         claimer.markFailure('e0000000-0000-0000-0000-000000000001', 'not found err'),
-      ).rejects.toThrow('outbox_event e0000000-0000-0000-0000-000000000001 missing after failure increment');
+      ).rejects.toThrow(
+        'outbox_event e0000000-0000-0000-0000-000000000001 missing after failure increment',
+      );
     });
   });
 

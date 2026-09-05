@@ -1,11 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import {
-  bootTestApp,
-  ensureTaxonomy,
-  inject,
-  resetDb,
-  type TestApp,
-} from './helpers';
+import { bootTestApp, ensureTaxonomy, inject, resetDb, type TestApp } from './helpers';
 
 let ctx: TestApp;
 let categoryId: string;
@@ -183,9 +177,7 @@ describe('vendor onboarding vertical', () => {
       url: '/v1/me',
       token: reg.json.data.accessToken,
     });
-    expect(me.json.data.vendor.verificationMessage).toBe(
-      'Upload a clearer trade licence.',
-    );
+    expect(me.json.data.vendor.verificationMessage).toBe('Upload a clearer trade licence.');
   });
 
   it('dev-verify is a 404 without the dev key', async () => {

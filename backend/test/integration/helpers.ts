@@ -15,8 +15,7 @@ export async function bootTestApp(): Promise<TestApp> {
   process.env.OTP_FIXED_CODE = '000000';
   process.env.DEV_VERIFY_ENABLED = 'true';
   process.env.DEV_VERIFY_KEY = process.env.DEV_VERIFY_KEY ?? 'ci-dev-verify';
-  process.env.JWT_ACCESS_SECRET =
-    process.env.JWT_ACCESS_SECRET ?? 'integration-test-access-secret';
+  process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET ?? 'integration-test-access-secret';
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,

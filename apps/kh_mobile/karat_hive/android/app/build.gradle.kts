@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.kh.karat_hive"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

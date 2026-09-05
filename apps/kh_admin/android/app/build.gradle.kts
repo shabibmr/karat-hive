@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.kh.hive_admin"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

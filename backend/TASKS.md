@@ -42,6 +42,7 @@ flowchart TD
 ## 1. Phase 1: Zero-Risk Correctness & Observability
 
 ### TASK-001: Fix Prototype Property Leakage in `HttpErrorFilter.isErrorCode`
+
 - **Status:** ✅ Completed
 - **Priority:** P0 / Critical
 - **Category:** Correctness & Security
@@ -49,6 +50,7 @@ flowchart TD
 - **Resolution:** Replaced `value in ErrorCode` with `Object.hasOwn(ErrorCode, value)` to prevent prototype property leakage.
 
 ### TASK-002: Fix `Date` Instance Stripping in Idempotency Policy `stableStringify`
+
 - **Status:** ✅ Completed
 - **Priority:** P0 / Critical
 - **Category:** Correctness
@@ -56,6 +58,7 @@ flowchart TD
 - **Resolution:** Handled `value instanceof Date` to serialize timestamps to ISO strings before object property inspection. Added tests in `idempotency.policy.spec.ts`.
 
 ### TASK-008: Upgrade Log Level for Unhandled Outbox Event Types
+
 - **Status:** ✅ Completed
 - **Priority:** P2 / Medium
 - **Category:** Architecture & Operations
@@ -63,6 +66,7 @@ flowchart TD
 - **Resolution:** Upgraded unhandled outbox events to log with `this.logger.warn`. Added verification unit tests.
 
 ### TASK-009: Clean Up Redundant Ternary in Identity Key Walker
+
 - **Status:** ✅ Completed
 - **Priority:** P3 / Low (Code Hygiene)
 - **File:** `src/edge/masking/identity-keys.ts`
@@ -73,6 +77,7 @@ flowchart TD
 ## 2. Phase 2: Concurrency & Security Hardening
 
 ### TASK-003: Fix Stale Idempotency Key Eviction Race Condition
+
 - **Status:** ✅ Completed
 - **Priority:** P1 / High
 - **Category:** Concurrency & Correctness
@@ -80,6 +85,7 @@ flowchart TD
 - **Resolution:** Replaced two-step `delete` + `create` on stale keys with an atomic `update` on the existing row.
 
 ### TASK-004: Validate User State in Refresh Token Rotation (`rotateRefresh`)
+
 - **Status:** ✅ Completed
 - **Priority:** P1 / High
 - **Category:** Security
@@ -87,6 +93,7 @@ flowchart TD
 - **Resolution:** Added check in `rotateRefresh` rejecting `user.deletedAt !== null` or `user.accountState !== 'ACTIVE'` by revoking the token family and throwing `IdentityAuthError('UNAUTHENTICATED')`.
 
 ### TASK-005: Expand Privacy Masking Scanner with Relational Profile Keys
+
 - **Status:** ✅ Completed
 - **Priority:** P1 / High
 - **Category:** Security & Privacy
@@ -94,6 +101,7 @@ flowchart TD
 - **Resolution:** Expanded `IDENTITY_KEYS` to include `customerProfileId`, `vendorProfileId`, `adminProfileId`, `actorUserId`, `reporterUserId`, `reportedUserId`, `recipientUserId`, `createdById`, and `verifiedByAdminId`. Added spec tests.
 
 ### TASK-006: Refined Account State Enforcement
+
 - **Status:** ✅ Completed
 - **Priority:** P1 / High
 - **Category:** Security & Architecture
@@ -101,6 +109,7 @@ flowchart TD
 - **Resolution:** Implemented `@AllowSuspended()` decorator and updated `AuthGuard` to reject non-ACTIVE users with `ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` on all standard routes, while permitting `GET /v1/me` for user status notices.
 
 ### TASK-010: Normalize Bearer Authentication Scheme Parsing
+
 - **Status:** ✅ Completed
 - **Priority:** P3 / Low
 - **File:** `src/edge/auth/auth.guard.ts`
@@ -111,6 +120,7 @@ flowchart TD
 ## 3. Phase 3: Observability & Performance Optimization
 
 ### TASK-007: Propagate `x-request-id` Header on Idempotency Replay
+
 - **Status:** ✅ Completed
 - **Priority:** P2 / Medium
 - **Category:** Observability & Consistency
@@ -118,6 +128,7 @@ flowchart TD
 - **Resolution:** Attached `reply.header('x-request-id', requestIdOf(request))` on cached replay responses.
 
 ### TASK-011: Consolidate `RateLimitService.take` Database Transactions
+
 - **Status:** ✅ Completed
 - **Priority:** P2 / Medium
 - **Category:** Performance
@@ -125,6 +136,7 @@ flowchart TD
 - **Resolution:** Replaced interactive 3-step transaction with atomic `UPDATE ... FROM (SELECT ... FOR UPDATE) RETURNING` query with cold-start fallback, reducing hot-path database roundtrips to 1. Added unit tests in `rate-limit.service.spec.ts`.
 
 ### TASK-012: Consolidate `OutboxClaimer.markFailure` Query Execution
+
 - **Status:** ✅ Completed
 - **Priority:** P3 / Low
 - **Category:** Performance
@@ -136,6 +148,7 @@ flowchart TD
 ## 4. Phase 4: Comprehensive QA & Verification
 
 ### TASK-013: Add Comprehensive Edge Case Unit Tests
+
 - **Status:** ✅ Completed
 - **Priority:** P2 / Medium
 - **Category:** Quality Assurance
