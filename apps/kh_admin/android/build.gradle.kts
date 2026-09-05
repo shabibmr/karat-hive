@@ -20,16 +20,16 @@ subprojects {
 }
 
 subprojects {
-    project.plugins.withId("com.android.library") {
+    afterEvaluate {
         val android = project.extensions.findByName("android")
-        try {
-            val method = android?.javaClass?.getMethod("compileSdkVersion", Int::class.javaPrimitiveType)
-            method?.invoke(android, 36)
-        } catch (_: Exception) {
-            try {
-                val method = android?.javaClass?.getMethod("setCompileSdk", Int::class.javaObjectType)
-                method?.invoke(android, 36)
-            } catch (_: Exception) {}
+        if (android != null) {
+            for (m in android.javaClass.methods) {
+                if ((m.name == "setCompileSdk" || m.name == "compileSdkVersion") && m.parameterTypes.size == 1) {
+                    try {
+                        m.invoke(android, 36)
+                    } catch (_: Exception) {}
+                }
+            }
         }
     }
 }
