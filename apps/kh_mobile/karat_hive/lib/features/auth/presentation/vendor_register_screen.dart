@@ -5,6 +5,7 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
+import '../../../app/guards.dart';
 import '../../onboarding/repository/onboarding_repository.dart';
 import '../controller/vendor_register_controller.dart';
 import '../model/register_form_state.dart';
@@ -126,7 +127,7 @@ class VendorRegisterScreen extends ConsumerWidget {
               onPressed: form.detailsComplete ? controller.sendOtp : null,
             ),
             TextButton(
-              onPressed: () => context.go('/vendor/login'),
+              onPressed: () => context.go(AppGuards.login),
               child: const Text('Back to sign in'),
             ),
           ],

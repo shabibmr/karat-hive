@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_l10n/kh_l10n.dart';
+import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../../../app/session/session_controller.dart';
 import '../repository/dashboard_repository.dart';
@@ -15,6 +16,8 @@ class VendorDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = KhStrings.of(context);
     final dash = ref.watch(vendorDashboardProvider);
+    final session = ref.watch(sessionProvider);
+    final vendor = session is SignedIn ? session.user.vendor : null;
 
     return KhScaffold(
       title: s.s('dashboard.title'),
@@ -34,6 +37,14 @@ class VendorDashboardScreen extends ConsumerWidget {
         data: (d) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            if (vendor != null) ...[
+              VendorStatusCard(
+                lifecycle: vendor.lifecycle,
+                tradingName: vendor.tradingName,
+                lifecycleLabel: s.s('lifecycle.${vendor.lifecycle.name}'),
+              ),
+              const SizedBox(height: 16),
+            ],
             _StatCard(label: s.s('dashboard.newRequests'), value: d.newRequests),
             _StatCard(label: s.s('dashboard.pendingOffers'), value: d.pendingOffers),
             _StatCard(

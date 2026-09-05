@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
+import 'package:kh_ui_domain/kh_ui_domain.dart';
 
+import '../../../app/guards.dart';
 import '../../../app/session/session_controller.dart';
 import '../controller/vendor_me_controller.dart';
 import '../repository/onboarding_repository.dart';
@@ -41,13 +43,13 @@ class AwaitingApprovalScreen extends ConsumerWidget {
         data: (vendor) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(vendor.tradingName, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(_reasonText(s, vendor)),
-            if (vendor.verificationMessage != null) ...[
-              const SizedBox(height: 12),
-              KhInlineError(message: vendor.verificationMessage!),
-            ],
+            VendorStatusCard(
+              lifecycle: vendor.lifecycle,
+              tradingName: vendor.tradingName,
+              lifecycleLabel: s.s('lifecycle.${vendor.lifecycle.name}'),
+              subtitle: _reasonText(s, vendor),
+              verificationMessage: vendor.verificationMessage,
+            ),
             const SizedBox(height: 24),
             ..._actions(context, s, vendor, ref),
           ],
@@ -69,13 +71,13 @@ class AwaitingApprovalScreen extends ConsumerWidget {
       VendorLifecycle.verified => [
           KhButton(
             label: s.s('onboarding.categoriesRegions'),
-            onPressed: () => c.go('/vendor/categories-regions'),
+            onPressed: () => c.go(AppGuards.categories),
           ),
         ],
       VendorLifecycle.rejected => [
           KhButton(
             label: s.s('onboarding.uploadKyc'),
-            onPressed: () => c.go('/vendor/onboarding/kyc'),
+            onPressed: () => c.go(AppGuards.kyc),
           ),
           const SizedBox(height: 8),
           KhButton(
@@ -91,7 +93,7 @@ class AwaitingApprovalScreen extends ConsumerWidget {
       _ => [
           KhButton(
             label: s.s('onboarding.uploadKyc'),
-            onPressed: () => c.go('/vendor/onboarding/kyc'),
+            onPressed: () => c.go(AppGuards.kyc),
           ),
         ],
     };

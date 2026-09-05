@@ -1,10 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kh_domain/kh_domain.dart';
 
+import 'guards.dart';
 import 'session/session_controller.dart';
+import 'shells/awaiting_approval_shell.dart';
 import 'shells/splash_screen.dart';
+import 'shells/unauth_shell.dart';
+import 'shells/vendor_shell.dart';
 import '../features/auth/presentation/vendor_login_screen.dart';
 import '../features/auth/presentation/vendor_register_screen.dart';
 import '../features/dashboard/presentation/vendor_dashboard_screen.dart';
@@ -21,65 +24,54 @@ class _SessionListenable extends ChangeNotifier {
 final routerProvider = Provider<GoRouter>((ref) {
   final listenable = _SessionListenable(ref);
   return GoRouter(
-    initialLocation: '/splash',
+    initialLocation: AppGuards.splash,
     refreshListenable: listenable,
-    redirect: (context, state) => _redirect(ref, state.matchedLocation),
+    redirect: (context, state) =>
+        AppGuards.redirect(ref.read(sessionProvider), state.matchedLocation),
     routes: [
-      GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
-      GoRoute(path: '/vendor/login', builder: (_, __) => const VendorLoginScreen()),
-      GoRoute(path: '/vendor/register', builder: (_, __) => const VendorRegisterScreen()),
-      GoRoute(path: '/awaiting', builder: (_, __) => const AwaitingApprovalScreen()),
       GoRoute(
-        path: '/vendor/onboarding/kyc',
-        builder: (_, __) => const KycUploadScreen(),
+        path: AppGuards.splash,
+        builder: (_, __) => const SplashScreen(),
       ),
-      GoRoute(
-        path: '/vendor/categories-regions',
-        builder: (_, __) => const CategoriesRegionsScreen(),
+      ShellRoute(
+        builder: (context, state, child) => UnauthShell(child: child),
+        routes: [
+          GoRoute(
+            path: AppGuards.login,
+            builder: (_, __) => const VendorLoginScreen(),
+          ),
+          GoRoute(
+            path: AppGuards.register,
+            builder: (_, __) => const VendorRegisterScreen(),
+          ),
+        ],
       ),
-      GoRoute(path: '/vendor/home', builder: (_, __) => const VendorDashboardScreen()),
+      ShellRoute(
+        builder: (context, state, child) => AwaitingApprovalShell(child: child),
+        routes: [
+          GoRoute(
+            path: AppGuards.awaiting,
+            builder: (_, __) => const AwaitingApprovalScreen(),
+          ),
+          GoRoute(
+            path: AppGuards.kyc,
+            builder: (_, __) => const KycUploadScreen(),
+          ),
+          GoRoute(
+            path: AppGuards.categories,
+            builder: (_, __) => const CategoriesRegionsScreen(),
+          ),
+        ],
+      ),
+      ShellRoute(
+        builder: (context, state, child) => VendorShell(child: child),
+        routes: [
+          GoRoute(
+            path: AppGuards.home,
+            builder: (_, __) => const VendorDashboardScreen(),
+          ),
+        ],
+      ),
     ],
   );
 });
-
-/// Usability mirror of the server rules — never a security boundary
-/// (Architecture-Frontend §7.3).
-String? _redirect(Ref ref, String location) {
-  final session = ref.read(sessionProvider);
-  const onboardingRoutes = {
-    '/awaiting',
-    '/vendor/onboarding/kyc',
-    '/vendor/categories-regions',
-  };
-
-  switch (session) {
-    case SessionLoading():
-      return location == '/splash' ? null : '/splash';
-    case SignedOut():
-      const authRoutes = {'/vendor/login', '/vendor/register'};
-      return authRoutes.contains(location) ? null : '/vendor/login';
-    case SignedIn(:final vendorLifecycle):
-      if (location == '/splash') return _home(vendorLifecycle);
-      switch (vendorLifecycle) {
-        case VendorLifecycle.active:
-          return onboardingRoutes.contains(location) ||
-                  location == '/vendor/login' ||
-                  location == '/vendor/register'
-              ? '/vendor/home'
-              : null;
-        case VendorLifecycle.verified:
-          return onboardingRoutes.contains(location) ? null : '/awaiting';
-        case VendorLifecycle.pendingVerification:
-        case VendorLifecycle.registered:
-        case VendorLifecycle.rejected:
-          return (location == '/awaiting' || location == '/vendor/onboarding/kyc')
-              ? null
-              : '/awaiting';
-        default:
-          return '/vendor/login';
-      }
-  }
-}
-
-String _home(VendorLifecycle lifecycle) =>
-    lifecycle == VendorLifecycle.active ? '/vendor/home' : '/awaiting';
