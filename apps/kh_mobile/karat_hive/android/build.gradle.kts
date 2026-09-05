@@ -25,21 +25,20 @@ subprojects {
             val android = project.extensions.findByName("android")
             if (android != null) {
                 for (m in android.javaClass.methods) {
-                    if ((m.name == "setCompileSdk" || m.name == "compileSdkVersion") && m.parameterTypes.size == 1) {
-                        try {
-                            m.invoke(android, 36)
-                        } catch (_: Exception) {}
+                    if (m.name == "setCompileSdk" || m.name == "compileSdkVersion") {
+                        if (m.parameterCount == 1) {
+                            val type = m.parameterTypes[0]
+                            try {
+                                if (type == java.lang.Integer::class.java || type == java.lang.Integer.TYPE) {
+                                    m.invoke(android, 36)
+                                } else if (type == java.lang.String::class.java) {
+                                    m.invoke(android, "android-36")
+                                }
+                            } catch (_: Exception) {}
+                        }
                     }
                 }
             }
-        }
-    }
-}
-
-subprojects {
-    tasks.configureEach {
-        if (name.contains("AarMetadata", ignoreCase = true)) {
-            enabled = false
         }
     }
 }
