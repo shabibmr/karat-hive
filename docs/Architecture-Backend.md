@@ -153,6 +153,7 @@ Decisions made by this document. Status `Proposed` means it needs Technical Lead
 | `AD-BE-12` | Hexagonal ports for all five external integrations; adapters are the only place a vendor SDK appears | `[PROPOSED]` |
 | `AD-BE-13` | Anonymise-in-place for erasure of transactional records; hard-delete for object storage | `[PROPOSED]` |
 | `AD-BE-14` | OpenAPI generated from code, published as the client contract, and diffed in CI | `[PROPOSED]` |
+| `AD-BE-15` | Managed PostgreSQL on Supabase (`docs/adr/0009`); the monolith connects directly as `postgres` and the bundled PostgREST **Data API is locked down** — RLS deny-all on every `public` table, `anon`/`authenticated` grants revoked. No Supabase Auth, Realtime or Edge Functions | `[PROPOSED]` |
 
 ### 3.1 Rationale for the contested ones
 
@@ -260,7 +261,7 @@ flowchart TB
 
 | Environment | Purpose | Data | Notes |
 |---|---|---|---|
-| `local` | Developer machine | Seeded synthetic | Docker Compose: PostgreSQL + MinIO (S3-compatible). Staging and production use Cloudflare R2 against the same S3 API (C-13, `docs/adr/0008`) |
+| `local` | Developer machine | Seeded synthetic | Local PostgreSQL (Docker optional) + MinIO (S3-compatible), **or** the shared managed Supabase Postgres (`docs/adr/0009`) — both are fine because the app connects on the plain Postgres wire protocol. Staging and production use Cloudflare R2 against the same S3 API (C-13, `docs/adr/0008`) |
 | `ci` | Automated test | Ephemeral, per-run | Full migration run from empty on every build |
 | `staging` | UAT, PO `[ASSUMED]` sign-off, penetration test | Synthetic only — **never** production personal data | Same region and topology as production |
 | `production` | Live | Real | UAE-consistent region (`NFR-020`) |
@@ -604,6 +605,8 @@ The two expiry sweeps run every minute even though `FR-SYS-004` permits five, be
 
 PostgreSQL is the system of record for every entity in SRS §6 (C-12). Object storage holds bytes only; PostgreSQL holds every key and every piece of metadata (SRS §7.6). There is no state that exists in one and not the other — which is why `NFR-011` requires the two to be backed up on the same schedule and restored together.
 
+The monolith is the **only** database client. No browser, mobile client, or auto-generated REST layer touches PostgreSQL directly. Where the managed provider bundles such a layer — Supabase exposes every `public` table through PostgREST to a public `anon` key — it is disabled at the database: row-level security is enabled with no policies (deny-all) and the `anon`/`authenticated` roles have every privilege on `public` revoked (`AD-BE-15`, `docs/adr/0009`). This is defence for §9: an open data API would let a client read unmasked identity rows and bypass the presenter layer entirely.
+
 ### 12.2 Schema conventions
 
 | Convention | Rule |
@@ -878,6 +881,7 @@ All storage and all API timestamps are UTC (`BR-021`). GST (UTC+4) is a display 
 | A suspended Vendor continuing to act on a live token | Volatile authorisation read per request, never claimed in the JWT (§14.2) |
 | An Admin exfiltrating personal data at scale | `NFR-016` watermarking plus mandatory audit; export volume alerting |
 | A masked field appearing in a log, notification body, or error payload | Logger serialiser masking; notification-body contract tests (§9.5); no internal identifiers in error responses |
+| The managed database provider's bundled REST/Auth/Realtime layer exposing tables under a public key, bypassing §9 | Supabase Data API locked down at the database — RLS deny-all on every `public` table, `anon`/`authenticated` privileges and schema `USAGE` revoked, default privileges revoked so new tables inherit the lockdown (`AD-BE-15`, `docs/adr/0009`); Supabase Auth/Realtime/Edge unused; verified by a `SET ROLE anon` denial check |
 
 ---
 
@@ -991,7 +995,7 @@ One repository. `packages/` and workspaces are deliberately absent — C-11 says
 | # | Item | Blocks | Owner |
 |---|---|---|---|
 | 1 | **Yahoo Finance redistribution terms** (SRS §7.4, A-06) | Displaying reference rates to end users. The port and manual-override fallback exist, so this blocks a feature, not the build | Legal |
-| 2 | **Cloud provider and region, incl. object-storage residency** (`NFR-020`) | Provisioning, residency compliance, managed-PostgreSQL selection, backup topology. **Object storage** is now Cloudflare R2 (C-13, `docs/adr/0008`), which does not guarantee a UAE region — production either confirms R2 residency is acceptable for KYC personal data or points the S3 adapter at a residency-compliant provider (a config change). `local`/`ci`/demo proceed on MinIO / R2 today | Infrastructure |
+| 2 | **Cloud provider and region, incl. object-storage residency** (`NFR-020`) | Provisioning, residency compliance, managed-PostgreSQL selection, backup topology. **Object storage** is now Cloudflare R2 (C-13, `docs/adr/0008`), which does not guarantee a UAE region — production either confirms R2 residency is acceptable for KYC personal data or points the S3 adapter at a residency-compliant provider (a config change). **Managed PostgreSQL** is now Supabase for non-production (`docs/adr/0009`), region `ap-northeast-2` (Seoul) — not UAE-resident, acceptable only because non-production holds synthetic data; production needs a UAE-region managed provider (e.g. AWS RDS `me-central-1`) or a documented legal basis. `local`/`ci`/demo proceed on MinIO / R2 / Supabase today | Infrastructure |
 
 ### 22.2 Decisions awaiting Technical Lead sign-off
 
@@ -1097,6 +1101,7 @@ Physical encoding (Prisma DSL + the SQL Prisma cannot express): [`docs/Physical-
 |---|---|---|
 | 1.0 | 10 Aug 2026 | Initial backend architecture, derived from SRS v1.2 and ADRs 0001–0007 |
 | 1.1 | 1 Sep 2026 | Re-based on SRS v1.3: C-13 resolved (object storage → Cloudflare R2 hosted, MinIO local/CI; new ADR `0008`); C-10 row added to §2.1. §22.1 blocking list drops the storage-provider item; the region item now names object-storage residency (`NFR-020`) |
+| 1.2 | 6 Sep 2026 | `AD-BE-15` added — managed PostgreSQL on Supabase for non-production, PostgREST Data API locked down (new ADR `0009`). §12.1 gains the "monolith is the only database client" paragraph; §18 gains the managed-service attack-surface row; §22.1 item 2 notes the Supabase region is not UAE-resident |
 
 | Role | Signs off on | Status |
 |---|---|---|

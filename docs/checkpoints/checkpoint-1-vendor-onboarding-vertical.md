@@ -2,9 +2,12 @@
 
 > **Status: implemented** on branch `feat/vendor-onboarding-vertical` (3 commits, 2 Sep 2026).
 > Backend vertical verified end-to-end against the Supabase database; Flutter Melos
-> workspace + all 6 screens scaffolded, `melos run analyze`/`test` green. Outstanding:
-> paste `SUPABASE_SERVICE_ROLE_KEY` into `backend/.env` for the local KYC upload path.
+> workspace + all 6 screens scaffolded, `melos run analyze`/`test` green.
 > This document is the plan of record; see the commit messages for what shipped.
+>
+> **Post-checkpoint (6 Sep 2026):** `SUPABASE_SERVICE_ROLE_KEY` set and the KYC storage
+> round-trip verified; the deferred Supabase Data-API / RLS exposure is now **resolved**
+> — locked down at the database, see [`docs/adr/0009`](../adr/0009-managed-postgres-supabase.md).
 
 ## Context
 
@@ -30,7 +33,7 @@ dashboard shell`. Screens **VEN-S04, VEN-S01, VEN-S02, VEN-S03, VEN-S16**, thin 
   signed upload URLs with the service-role key.
 - `PENDING_VERIFICATION → VERIFIED` via a **dev-only guarded verify endpoint** + a Prisma seed helper.
 - **CI**: extend `backend.yml` with a Postgres service; add a new Flutter workflow.
-- Supabase RLS/Data-API exposure: **defer** — log as an open decision, do nothing this checkpoint.
+- Supabase RLS/Data-API exposure: deferred at this checkpoint → **resolved 6 Sep 2026** (`docs/adr/0009`, `AD-BE-15`).
 
 ### Authoritative inputs
 `docs/Requirements-Spec-v1.3.md` (FR-VEN-001/002/003/025/031, BR-002, vendor state machine §5.4, OTP rules
@@ -210,9 +213,11 @@ Features (each: `presentation/ controller/ repository/ model/ routes.dart` per `
    policies; backend uses service-role key (bypasses Storage RLS).
 4. `SUPABASE_SERVICE_ROLE_KEY` + the other B0 vars into `backend/.env`, `.env.example`, CI secrets. Never in
    the client bundle. Frontend `KH_API_BASE_URL` via `--dart-define-from-file config/{dev,staging,prod}.json`.
-5. **Open decision (deferred):** "Supabase Data-API exposure" — RLS off on all 42 public tables + PostgREST
-   exposes them to the anon key. Backend uses a direct connection so this vertical is unaffected; recorded as
-   an open decision, no action this checkpoint.
+5. ~~**Open decision (deferred):** "Supabase Data-API exposure"~~ — **resolved 6 Sep 2026.** Locked down at
+   the database (Supabase migration `lock_down_data_api_public_schema`): RLS deny-all on all 42 `public`
+   tables, `anon`/`authenticated` grants + schema `USAGE` revoked, `postgres` default privileges revoked.
+   Backend connects as `postgres` (owner, `rolbypassrls`) so it is unaffected. See
+   [`docs/adr/0009`](../adr/0009-managed-postgres-supabase.md) and `AD-BE-15`.
 
 ### CI
 - Extend `.github/workflows/backend.yml`: add `services: postgres:16` (health-checked), test env, run

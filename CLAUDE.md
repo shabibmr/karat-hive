@@ -27,7 +27,7 @@ Read in this order when you need to understand a decision. Later documents may n
 | `docs/Requirements-raw.txt` | **Sole source input.** Never edit. Every requirement traces back to a line number here |
 | `CONTEXT.md` | Ubiquitous language. Binding vocabulary, including the `_Avoid_` list under each term |
 | `docs/Requirements-Spec-v1.3.md` | **Authoritative SRS** (~2,850 lines). What the system must do |
-| `docs/adr/0001`–`0008` | Why the shape is this shape. Short, one decision each |
+| `docs/adr/0001`–`0009` | Why the shape is this shape. Short, one decision each |
 | `docs/Architecture-Backend.md`, `docs/Architecture-Frontend.md` | How it gets built. Derived from the SRS; cite it, never restate it |
 | `docs/API-Route-Inventory.md` | Pre-code HTTP catalogue (`[PROPOSED]`). Paths, schemas, errors. Superseded by generated OpenAPI (`NFR-030`) once code exists |
 | `docs/Physical-Data-Model.md` | Pre-code PostgreSQL schema (`[PROPOSED]`). Encoded in `backend/prisma/schema.prisma`. Assumes `AD-BE-05` |
@@ -82,11 +82,12 @@ These are load-bearing. Any document or future code that weakens one is wrong, r
 
 ## Fixed technology stack
 
-Prescribed by the source material (`Requirements-raw.txt` L96–L103), not an open engineering choice — constraints `C-10`–`C-13`, reasoned in `adr/0006`, `adr/0007` and `adr/0008`.
+Prescribed by the source material (`Requirements-raw.txt` L96–L103), not an open engineering choice — constraints `C-10`–`C-13`, reasoned in `adr/0006`, `adr/0007`, `adr/0008` and `adr/0009`.
 
 - **Flutter** for all three surfaces — one dual-mode mobile binary (Customer *or* Vendor by account role), plus Flutter Web for the Admin Portal (`C-10`, confirmed)
 - **Node.js monolith** — single deployable, no service decomposition, **no message broker**
 - **PostgreSQL** — single system of record, **no secondary datastore** for cache, search or queue
+- **Managed Postgres** — Supabase for non-production (`adr/0009`, `AD-BE-15`); the backend connects directly as `postgres`. The bundled PostgREST **Data API is locked down** — RLS deny-all on every `public` table, `anon`/`authenticated` grants revoked. No Supabase Auth / Realtime / Edge. Do not add Supabase client SDKs or RLS policies
 - **Object storage** — Cloudflare R2 (S3-compatible), MinIO for local/CI (`C-13`, `adr/0008`)
 
 `C-11` and `C-12` bite: with no broker and no Redis, asynchronous work uses a PostgreSQL transactional outbox and rate limiting uses PostgreSQL token buckets (backend architecture §11, §13.6). Do not propose Redis, Kafka or Elasticsearch without explicitly framing it as an exception to `C-12`.
@@ -101,7 +102,7 @@ Do not silently resolve these by inference; they are recorded as open on purpose
 | **Admin data grid — build or buy** (`AD-FE-12`) | 14 Admin list screens |
 | **Object-storage data residency** (`NFR-020`) — Cloudflare R2 has no UAE-region guarantee | Production storage of KYC personal data; swappable behind the S3 adapter, so non-blocking |
 
-Resolved (see `docs/old/README.md` and Appendix D of the SRS): `C-10` — Admin Portal is the Flutter Web target (confirmed 1 Sep 2026); `C-13` — object storage is Cloudflare R2 + MinIO (`adr/0008`).
+Resolved (see `docs/old/README.md` and Appendix D of the SRS): `C-10` — Admin Portal is the Flutter Web target (confirmed 1 Sep 2026); `C-13` — object storage is Cloudflare R2 + MinIO (`adr/0008`); **Supabase Data-API / RLS exposure** — locked down at the database 6 Sep 2026 (`adr/0009`, `AD-BE-15`).
 
 ## Writing conventions
 
