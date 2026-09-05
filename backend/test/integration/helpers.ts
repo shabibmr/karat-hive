@@ -44,7 +44,7 @@ export async function resetDb(prisma: PrismaClient): Promise<void> {
       audit_log, outbox_event, refresh_token, otp_challenge,
       vendor_document, vendor_category, vendor_region, vendor_type_subscription,
       media, vendor_profile, customer_profile, admin_profile, "user",
-      rate_limit_bucket, idempotency_record
+      rate_limit_bucket, idempotency_key
     RESTART IDENTITY CASCADE
   `);
 }
