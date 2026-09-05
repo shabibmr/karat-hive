@@ -68,6 +68,10 @@ export async function inject(
       ...(opts.headers ?? {}),
     },
   });
+  if (res.statusCode >= 500) {
+    // eslint-disable-next-line no-console
+    console.error(`[TEST-INJECT-500] ${opts.method} ${opts.url} (${res.statusCode}):`, res.payload);
+  }
   return { status: res.statusCode, json: res.json() };
 }
 

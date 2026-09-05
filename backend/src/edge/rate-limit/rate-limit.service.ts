@@ -67,7 +67,6 @@ export class RateLimitService {
           LEAST(${config.capacity}::numeric, tokens + GREATEST(0.0, EXTRACT(EPOCH FROM (${now}::timestamptz - window_start)) / 60.0) * ${config.refillPerMinute}::numeric) AS refilled
         FROM rate_limit_bucket
         WHERE scope = ${scope} AND subject = ${subject}
-        FOR UPDATE
       ) calc
       WHERE b.scope = ${scope} AND b.subject = ${subject}
       RETURNING

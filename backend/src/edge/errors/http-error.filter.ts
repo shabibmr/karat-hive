@@ -56,6 +56,9 @@ export class HttpErrorFilter implements ExceptionFilter {
       code = codeForStatus(status, code);
     } else {
       this.logger.error(exception);
+      if (process.env.NODE_ENV === 'test') {
+        console.error('[UNHANDLED-EXCEPTION in HttpErrorFilter]:', exception);
+      }
     }
 
     const body: ErrorBody = {
