@@ -1,6 +1,12 @@
-# Seed (not implemented yet)
+# Seed
 
 Run after `prisma migrate` against local Postgres from `backend/docker/docker-compose.yml`.
+
+```bash
+cd backend && npm run seed
+```
+
+Orchestrator (`index.ts`) calls, in order: `seedAdmin` → `seedTaxonomy` → `seedPlatformSettings` → `seedVendor` (CP1-A03b). Re-runs are idempotent. Override fixtures via `SEED_ADMIN_*` and `SEED_VENDOR_*` in `.env` (see `.env.example`). Do not commit `.env`.
 
 Minimum contents for a demonstrable migrate (NFR-002 production-scale seed is later):
 

@@ -2,7 +2,7 @@
 
 > **Source of Truth**: [`docs/Admin-Checkpoint-1-Taxonomy-Plan.md`](Admin-Checkpoint-1-Taxonomy-Plan.md)  
 > **Scope**: End-to-end vertical slice across Backend (NestJS), Database (Supabase/Postgres), and Frontend (`apps/kh_admin` Flutter Web).  
-> **Target Branch**: `feat/checkpoint-1-admin-taxonomy` off `main`  
+> **Target Branch**: backend ADM-BE-001–012 landed on `main` (CP1 merge). Thin follow-up tracks remaining seed/CI items; do not revive `feat/checkpoint-1-admin-taxonomy`.  
 > **Total Tasks**: 23 tasks across 8 execution phases.
 
 ---
@@ -78,32 +78,32 @@ flowchart TD
 
 ### Phase 1: Backend Identity & Auth (Part A1)
 
-- [ ] **ADM-BE-001: PasswordHasher Port & Service**
+- [x] **ADM-BE-001: PasswordHasher Port & Service**
   - **Priority**: P0 | **Estimate**: 1.5h | **Target File**: `backend/src/modules/identity/application/password-hasher.ts`
   - **Description**: Add `argon2` (or `bcrypt`) dependency to `backend/package.json` and implement `PasswordHasher` (`hash`, `verify`) for admin user authentication and seed scripts.
   - **Acceptance Criteria**: Passwords hashed securely; verification passes valid strings and rejects mismatches.
 
-- [ ] **ADM-BE-002: Admin Login in LoginService**
+- [x] **ADM-BE-002: Admin Login in LoginService**
   - **Priority**: P0 | **Estimate**: 2h | **Target File**: `backend/src/modules/identity/application/login.service.ts`
   - **Description**: Replace the `user.userType === 'ADMIN'` throw `NOT_IMPLEMENTED` with admin authentication logic. Verify account state is `ACTIVE`, issue access + refresh tokens via `TokenService`, enforce 3-strike lockout counter, and write `ADMIN_LOGIN` audit logs.
   - **Acceptance Criteria**: Admin user can authenticate with email/password; non-active admin returns 403; bad password increments failed login attempts and returns 401; >=3 failures locks account (423).
 
-- [ ] **ADM-BE-003: AuthController Admin Endpoints**
+- [x] **ADM-BE-003: AuthController Admin Endpoints**
   - **Priority**: P0 | **Estimate**: 1.5h | **Target File**: `backend/src/modules/identity/controller/auth.controller.ts`
   - **Description**: Ensure `POST /v1/auth/login/password`, `POST /v1/auth/refresh`, and `POST /v1/auth/logout` correctly serve admin sessions.
   - **Acceptance Criteria**: Admin login returns `200 SessionBundle` (with `// [DEVIATION AD-API: 2FA deferred — checkpoint-1]`); refresh rotates tokens; logout revokes token.
 
-- [ ] **ADM-BE-004: MeController Admin Branch**
+- [x] **ADM-BE-004: MeController Admin Branch**
   - **Priority**: P1 | **Estimate**: 1h | **Target File**: `backend/src/modules/identity/controller/me.controller.ts`
   - **Description**: Extend `GET /v1/me` to construct and return the admin identity profile (`admin: { displayName }`) when `viewer.role === 'ADMIN'`.
   - **Acceptance Criteria**: `GET /v1/me` with admin token returns `{ userType: "ADMIN", admin: { displayName: "..." } }`.
 
-- [ ] **ADM-BE-005: @AdminOnly Decorator & AuthGuard Enforcement**
+- [x] **ADM-BE-005: @AdminOnly Decorator & AuthGuard Enforcement**
   - **Priority**: P0 | **Estimate**: 1.5h | **Target File**: `backend/src/edge/auth/`
   - **Description**: Create an `@AdminOnly()` decorator and wire into `AuthGuard` such that any `/v1/admin/*` route requires `viewer.role === 'ADMIN'`. Return `404 NOT_FOUND` for non-admin tokens per `AD-API-01`.
   - **Acceptance Criteria**: Non-admin authenticated user receives 404 on `/v1/admin/*`; unauthenticated user receives 401; admin user passes.
 
-- [ ] **ADM-BE-006: SessionBundle & Me Presenters**
+- [x] **ADM-BE-006: SessionBundle & Me Presenters**
   - **Priority**: P1 | **Estimate**: 0.5h | **Target File**: `backend/src/modules/identity/presenter/`
   - **Description**: Ensure TypeScript response DTO types match `API-Route-Inventory.md:763` and `:904` for Admin identity.
   - **Acceptance Criteria**: Strict DTO typing without unwanted fields leaked on the wire.
@@ -112,17 +112,17 @@ flowchart TD
 
 ### Phase 2: Backend Taxonomy Module (Part A2)
 
-- [ ] **ADM-BE-007: TaxonomyRepository Implementation**
+- [x] **ADM-BE-007: TaxonomyRepository Implementation**
   - **Priority**: P0 | **Estimate**: 2.5h | **Target File**: `backend/src/modules/taxonomy/repository/taxonomy.repository.ts`
   - **Description**: Implement Prisma data access for categories and regions supporting `listTree(kind, {includeInactive})`, `create(kind, dto)`, `update(kind, id, dto)`, `deactivate(kind, id)`, and `countReferences(kind, id)`.
   - **Acceptance Criteria**: Queries correctly load self-referential hierarchies and detect active references in `request`, `vendor_category`, and `customer_profile`.
 
-- [ ] **ADM-BE-008: TaxonomyService Business Rules & Audit Logging**
+- [x] **ADM-BE-008: TaxonomyService Business Rules & Audit Logging**
   - **Priority**: P0 | **Estimate**: 2.5h | **Target File**: `backend/src/modules/taxonomy/application/taxonomy.service.ts`
   - **Description**: Implement business logic: enforce strict 2-level hierarchy limit (reject nesting under a node that has a parent with 422), validate `nameEn` + `nameAr`, disallow DELETE (deactivate only), throw `409 TAXONOMY_IN_USE` if delete attempted with references, and wrap all mutations in `prisma.$transaction` with `AuditWriter`.
   - **Acceptance Criteria**: Nesting > 2 levels blocked; blank names rejected; audit entries written for create, update, and deactivate.
 
-- [ ] **ADM-BE-009: AdminTaxonomyController Endpoints**
+- [x] **ADM-BE-009: AdminTaxonomyController Endpoints**
   - **Priority**: P0 | **Estimate**: 2h | **Target File**: `backend/src/modules/taxonomy/controller/admin-taxonomy.controller.ts`
   - **Description**: Expose `@AdminOnly()` endpoints:
     - `GET  /v1/admin/categories` & `/v1/admin/regions`
@@ -131,12 +131,12 @@ flowchart TD
     - `POST /v1/admin/categories/:id/deactivate` & `/v1/admin/regions/:id/deactivate`
   - **Acceptance Criteria**: Controllers accept validated Zod DTOs and return `CategorySummary[]` / `RegionSummary[]`.
 
-- [ ] **ADM-BE-010: Register TaxonomyModule**
+- [x] **ADM-BE-010: Register TaxonomyModule**
   - **Priority**: P1 | **Estimate**: 0.5h | **Target File**: `backend/src/app.module.ts`
   - **Description**: Wire `AdminTaxonomyController`, `TaxonomyService`, and `TaxonomyRepository` into `TaxonomyModule` and register in root `AppModule`.
   - **Acceptance Criteria**: Routes mount cleanly and respond under `/v1/admin/categories` and `/v1/admin/regions`.
 
-- [ ] **ADM-BE-011: Taxonomy & Auth Unit Test Suites**
+- [x] **ADM-BE-011: Taxonomy & Auth Unit Test Suites**
   - **Priority**: P1 | **Estimate**: 2h | **Target File**: `backend/src/modules/taxonomy/application/taxonomy.service.spec.ts`
   - **Description**: Add unit and integration tests covering: 2-level depth validation, blank name rejection, reference counting on deactivate, audit record emission, admin login happy path, and 404 on `/v1/admin/*` for non-admin viewers.
   - **Acceptance Criteria**: All new tests pass with `npm test`.
@@ -145,7 +145,7 @@ flowchart TD
 
 ### Phase 3: Database Seeding & Verification (Part A3 & A4)
 
-- [ ] **ADM-BE-012: Seed Script for Admin & UAE Taxonomy**
+- [x] **ADM-BE-012: Seed Script for Admin & UAE Taxonomy**
   - **Priority**: P0 | **Estimate**: 2h | **Target File**: `backend/prisma/seed/index.ts`
   - **Description**: Create idempotent seed script that populates:
     1. Default Super Admin (`user` + `admin_profile`) using env vars `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`
@@ -154,10 +154,10 @@ flowchart TD
     4. Default `platform_setting` rows
   - **Acceptance Criteria**: `npm run seed` executes idempotently without duplicate key errors; database is populated.
 
-- [ ] **ADM-BE-013: Backend CI Verification & Smoke Test**
+- [ ] **ADM-BE-013: Backend CI Verification & Smoke Test** *(Partial — unit/lint in follow-up PR; HTTP smoke + integration blocked without `DATABASE_URL` / secrets in this agent environment)*
   - **Priority**: P1 | **Estimate**: 1h | **Target File**: `backend/`
   - **Description**: Run full backend pipeline: `npm run lint`, `npm run format:check`, `npm test`, and manual HTTP smoke tests on `/v1/auth/login/password`, `/v1/me`, and `/v1/admin/categories`.
-  - **Acceptance Criteria**: All linters and test suites pass 100% green.
+  - **Acceptance Criteria**: All linters and test suites pass 100% green. Mark Completed only after CI `check` + `integration` and HTTP smoke are evidenced.
 
 ---
 

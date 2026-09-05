@@ -1,18 +1,46 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, scryptSync, randomUUID } from 'node:crypto';
 import type { PrismaClient, VendorVerificationState } from '@prisma/client';
 
 export type SeedVendorState = 'PENDING' | 'VERIFIED' | 'ACTIVE';
 
 function scryptHashSync(plain: string): string {
   // Matches ScryptPasswordHasher format: scrypt$<saltB64>$<hashB64>
-  const { scryptSync, randomBytes } = require('node:crypto') as typeof import('node:crypto');
   const salt = randomBytes(16);
   const derived = scryptSync(plain, salt, 64);
   return `scrypt$${salt.toString('base64')}$${derived.toString('base64')}`;
 }
 
+async function removeExistingDevVendor(
+  prisma: PrismaClient,
+  keys: { mobileNumber: string; email: string },
+): Promise<void> {
+  const users = await prisma.user.findMany({
+    where: { OR: [{ mobileNumber: keys.mobileNumber }, { email: keys.email }] },
+    include: { vendorProfile: { include: { documents: true } } },
+  });
+
+  for (const user of users) {
+    const profile = user.vendorProfile;
+    if (profile) {
+      const mediaIds = profile.documents.map((d) => d.mediaId);
+      await prisma.vendorDocument.deleteMany({ where: { vendorProfileId: profile.id } });
+      await prisma.vendorCategory.deleteMany({ where: { vendorProfileId: profile.id } });
+      await prisma.vendorRegion.deleteMany({ where: { vendorProfileId: profile.id } });
+      await prisma.vendorTypeSubscription.deleteMany({ where: { vendorProfileId: profile.id } });
+      await prisma.vendorProfile.delete({ where: { id: profile.id } });
+      if (mediaIds.length > 0) {
+        await prisma.media.deleteMany({ where: { id: { in: mediaIds } } });
+      }
+    }
+    await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+    await prisma.idempotencyKey.deleteMany({ where: { userId: user.id } });
+    await prisma.otpChallenge.deleteMany({ where: { userId: user.id } });
+    await prisma.user.delete({ where: { id: user.id } });
+  }
+}
+
 /**
- * Creates (or resets) a dev Vendor at a chosen lifecycle. Idempotent per mobile number.
+ * Creates (or resets) a dev Vendor at a chosen lifecycle. Idempotent per mobile/email.
  * Password is `Passw0rd!dev` for the VERIFIED/ACTIVE fixtures.
  */
 export async function seedVendor(
@@ -22,7 +50,7 @@ export async function seedVendor(
   const mobileNumber = opts.mobileNumber ?? '+971500000090';
   const email = opts.email ?? 'dev.vendor@karathive.test';
 
-  await prisma.user.deleteMany({ where: { mobileNumber } });
+  await removeExistingDevVendor(prisma, { mobileNumber, email });
 
   const verificationState: VendorVerificationState =
     opts.state === 'PENDING' ? 'PENDING_VERIFICATION' : 'VERIFIED';
