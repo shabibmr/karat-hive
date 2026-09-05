@@ -1,0 +1,31 @@
+{
+  "name": "Karat Hive",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "install": "bash scripts/cloud-agent-install.sh",
+  "start": "bash scripts/cloud-agent-start.sh",
+  "ports": [
+    {
+      "name": "backend-api",
+      "port": 3000
+    },
+    {
+      "name": "ui-mock",
+      "port": 5173
+    }
+  ],
+  "terminals": [
+    {
+      "name": "backend",
+      "command": "cd backend && npm run start:dev",
+      "description": "NestJS API (Fastify) on port 3000"
+    },
+    {
+      "name": "ui-mock",
+      "command": "npx --yes serve ui-mock -l 5173",
+      "description": "HTML prototype on port 5173"
+    }
+  ]
+}
