@@ -1,5 +1,12 @@
 name: backend
 
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   JWT_ACCESS_SECRET, DEV_VERIFY_KEY, SUPABASE_SERVICE_ROLE_KEY
+# Repository variables (same page, Variables tab): remaining B0 env
+#   JWT_REFRESH_TTL_DAYS, OTP_*, LOGIN_*, PASSWORD_MIN_LENGTH, SUPABASE_URL,
+#   SUPABASE_STORAGE_BUCKET_KYC, SIGNED_UPLOAD_TTL_SECONDS, DEV_VERIFY_ENABLED
+# DATABASE_URL is the workflow Postgres service, not a hosted secret.
+
 on:
   push:
     paths:
@@ -51,10 +58,24 @@ jobs:
           --health-retries 5
     env:
       NODE_ENV: test
+      # Ephemeral service-container Postgres. Do not bind DATABASE_URL to the
+      # hosted instance — migrate/seed/truncate would hit live data.
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/kh_test
-      JWT_ACCESS_SECRET: ci-test-access-secret-000
-      DEV_VERIFY_ENABLED: 'true'
-      DEV_VERIFY_KEY: ci-dev-verify
+      JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+      JWT_REFRESH_TTL_DAYS: ${{ vars.JWT_REFRESH_TTL_DAYS || '14' }}
+      OTP_DEV_MODE: ${{ vars.OTP_DEV_MODE || 'fixed' }}
+      OTP_FIXED_CODE: ${{ vars.OTP_FIXED_CODE || '000000' }}
+      OTP_TTL_SECONDS: ${{ vars.OTP_TTL_SECONDS || '300' }}
+      OTP_MAX_PER_NUMBER_PER_HOUR: ${{ vars.OTP_MAX_PER_NUMBER_PER_HOUR || '5' }}
+      LOGIN_MAX_FAILURES: ${{ vars.LOGIN_MAX_FAILURES || '5' }}
+      LOGIN_LOCK_MINUTES: ${{ vars.LOGIN_LOCK_MINUTES || '15' }}
+      PASSWORD_MIN_LENGTH: ${{ vars.PASSWORD_MIN_LENGTH || '10' }}
+      SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_STORAGE_BUCKET_KYC: ${{ vars.SUPABASE_STORAGE_BUCKET_KYC || 'kyc' }}
+      SIGNED_UPLOAD_TTL_SECONDS: ${{ vars.SIGNED_UPLOAD_TTL_SECONDS || '900' }}
+      DEV_VERIFY_ENABLED: ${{ vars.DEV_VERIFY_ENABLED || 'true' }}
+      DEV_VERIFY_KEY: ${{ secrets.DEV_VERIFY_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
