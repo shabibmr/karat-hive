@@ -9,9 +9,9 @@ class SubscriptionsClient {
     final r = await _client.send('GET', '/v1/me/subscriptions');
     return r.when(
       ok: (d) {
-        final list = (d as List?) ??
-            (d is Map ? (d['data'] as List?) : null) ??
-            const [];
+        final list = (d is List)
+            ? d
+            : (d is Map ? (d['data'] as List?) : null) ?? const [];
         return Ok(list
             .map((e) => VendorSubscriptionItem.fromJson(e as Map<String, dynamic>))
             .toList(growable: false));

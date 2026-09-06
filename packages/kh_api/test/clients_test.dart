@@ -41,6 +41,10 @@ class MemoryTokenStorage implements TokenStorage {
   Future<void> clear() async => _tokens = null;
 }
 
+extension ResultUnwrap<T> on Result<T> {
+  T unwrap() => (this as Ok<T>).value;
+}
+
 void main() {
   late MemoryTokenStorage tokens;
   late ServerClock clock;

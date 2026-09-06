@@ -89,7 +89,7 @@ No backend dependency. Start day one, in parallel with Track A.
 | CP2-A12 | Eligibility recompute (`T37`) | consumer `matching:eligibility-recompute` | On `vendor.eligibility.changed`, recompute that Vendor's match set — additions and removals. Subscription lapse removes future matches without deleting Offer history | done |
 | CP2-A13 | Real dashboard aggregates | `GET /v1/me/dashboard` (`V`) | Replaces CP-1 zeroes: `newRequests{count, preview≤3}`, `pendingOffers{count, expiringWithin24h}`, `activeConnections{count, noTalkCount}`, rating, `subscriptions[]`. `goldRates` stays `null` behind `AD-API-09` | done |
 | CP2-A14 | Masking spec extension | `backend/test/masking/` | For `RequestForVendor` and every new presenter, named Customer fields are **absent**, not null. Competitor price, terms and identity absent from all match and request payloads (`BR-008`) | done |
-| CP2-A15 | Integration suite | `backend/test/integration/vendor-feed.spec.ts` | Happy path plus every error code and state transition, against CI Postgres. Includes the unsubscribed-Vendor empty-feed case | in-prog |
+| CP2-A15 | Integration suite | `backend/test/integration/vendor-feed.spec.ts` | Happy path plus every error code and state transition, against CI Postgres. Includes the unsubscribed-Vendor empty-feed case | done |
 
 ## CP-2 Track B — Flutter features
 
