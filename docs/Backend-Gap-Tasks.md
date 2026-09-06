@@ -8,7 +8,7 @@
 | **Date** | 6 September 2026 |
 | **Source snapshot** | [`backend_code_review_and_gap_report.md`](backend_code_review_and_gap_report.md) |
 | **Plan of record (phases)** | [`Backend-Implementation-Plan.md`](Backend-Implementation-Plan.md) v0.5 (P0–P12, T01–T44). Status in that file was checked against the code on 6 September 2026. |
-| **Does not override** | SRS v1.3 · API-Route-Inventory · Architecture-Backend · Async-Contract · Physical-Data-Model |
+| **Does not override** | SRS v1.3 (except marketplace login — [`adr/0010`](adr/0010-google-signin-only-login.md)) · API-Route-Inventory (until G2-D02) · Async-Contract · Physical-Data-Model |
 | **Branch** | `docs/backend-gap-tasks` |
 | **Prefix** | `G2-*` — stable, never reused. Each row maps to an existing `Tnn` where one exists. |
 
@@ -24,8 +24,8 @@ Identity defects first — they write bad rows on every Google sign-in. Then fin
 
 ```mermaid
 flowchart TD
-  D["G2-D01 Google vs BR-001"]
-  A["Track A — stop AuthGuard writes"]
+  D["G2-D01 Google-only login — decided"]
+  A["Track A — stop AuthGuard writes + Google session"]
   I["Track I — identity leftovers T12–T15"]
   P["Track P — platform leftovers T16/T17/T19/T44"]
   R["Track R — Requests T20/T42"]
@@ -46,8 +46,8 @@ flowchart TD
 | Gate | Passes when |
 |---|---|
 | A | `AuthGuard.canActivate` performs no inserts/updates. Unbound Firebase token does not create a `User`. Unit tests in `auth.guard.spec.ts` and `session.query.spec.ts` cover the rejected paths. |
-| I | Customer OTP → `POST /v1/auth/register/customer` → `GET /v1/me` returns `customer`. Vendor/Admin password login still works. |
-| R | Publish refused without OAuth binding (`403 OAUTH_REQUIRED`). Draft never appears in any Vendor query. |
+| I | Google → session → register Customer or Vendor with terms + real mobile → `GET /v1/me` returns the matching profile. No auto-created Vendor. |
+| R | Publish refused if the Customer has no Google binding (`403 OAUTH_REQUIRED`). Draft never appears in any Vendor query. |
 | C | Two concurrent accepts → exactly one Connection and one `409 OFFER_ALREADY_ACCEPTED` (`test/concurrency/accept.spec.ts`). |
 | GR | Generated OpenAPI diffs in CI (`NFR-030`). Masking suite fails the build on a leaked identity key. |
 
@@ -55,16 +55,18 @@ flowchart TD
 
 ## Open decisions — do not implement around these
 
-Do not silently resolve these by inference. They are recorded as open on purpose. **G2-D01 blocks Track A path selection**; stop-the-bleeding tasks G2-A01–A09 can land before it.
+Do not silently resolve these by inference. They are recorded as open on purpose.
 
-| ID | Decision | Blocks | Options (do not pick in code) |
+| ID | Decision | Blocks | Status |
 |---|---|---|---|
-| **G2-D01** | Is Google Sign-In a **login mechanism**, or does `BR-001` / Architecture-Backend §14.3 still hold (OAuth binds identity; Customer logs in with OTP)? | Track A path L vs path B; Flutter auth clients | **L** — Google is an additional login provider: add `POST /v1/auth/firebase/session` (not in the inventory today) and issue a Karat Hive `SessionBundle`. **B** — honour the spec: Firebase ID token is only accepted by `POST /v1/auth/oauth/bind`; clients revert to OTP/password login. |
-| **G2-D02** | If path L is chosen: inventory amendment for the new route, request body (role, terms, privacy), and any new error code. `ONBOARDING_REQUIRED` is **not** in inventory §5. | G2-A10–A14 | Expand inventory §5 / §8 and `error-codes.ts` together, or reuse `UNAUTHENTICATED` + a documented client convention. Do not invent a code in handlers only. |
-| **G2-D03** | T36 `[PROPOSED]` schema deltas (SAM-GAP columns + Async-Contract §10). Columns are already in the init migration; Technical Lead still owes sign-off. | G2-R10, G2-O09, G2-P05, G2-ADM08, G2-F05 (`SAM-GAP-4` enum) | Sign off in place, or a follow-up migration. **Do not revert** `20260901120000_init`. |
-| **G2-D04** | Yahoo Finance redistribution terms for **end-user display**. | Populating `GET /v1/gold-rates.rates` in production | Ship ingest + Admin override + `goldRates.endUserDisplay` flag. Until Legal signs off, `available: false, reason: "DISPLAY_NOT_LICENSED"`. |
+| **G2-D01** | Marketplace login | Track A path | **Decided 6 Sep 2026.** Google is the **only** Customer/Vendor login ([`adr/0010`](adr/0010-google-signin-only-login.md)). Path B (OTP/password login) is **n/a**. |
+| **G2-D02** | API list + error codes for the Google session route | G2-A10–A13 | **Open.** Inventory §8/§5 and `error-codes.ts` must list the new route before the handler. `ONBOARDING_REQUIRED` is not in the catalogue today. |
+| **G2-D03** | T36 extra columns | — | **Decided.** Columns are in the schema. Jobs that use them are **open**, not blocked. Do not revert the init migration. |
+| **G2-D04** | Yahoo Finance redistribution terms for **end-user display**. | Populating `GET /v1/gold-rates.rates` in production | **Still blocked** on Legal. Ship ingest + Admin override + `goldRates.endUserDisplay` flag. Until then, `available: false, reason: "DISPLAY_NOT_LICENSED"`. |
+| **G2-D05** | SAM-GAP-7 (who may set categories) | Replacing the current guard | **Decided: keep the API list** (active-only). Code that lets a verified Vendor set categories is a **temporary shortcut**. How first activation works after the shortcut is removed is **open**. |
+| **G2-D06** | Admin login | G2-I05, G2-I06, G2-I12 | **Open.** Marketplace is Google-only. Admin may still be email + password + 2FA, or also Google. |
 
-Resolved in Checkpoint 1 and **not reopened here:** `SAM-GAP-7` — `VendorAccessGuard` admits `VERIFIED` (pre-`ACTIVE`) on categories/regions/availability. Admin Portal = Flutter Web (`C-10`). Object storage = R2 + MinIO (`C-13`). Supabase Data API locked down (`adr/0009`).
+Already closed and not reopened: Admin Portal = Flutter Web (`C-10`). Object storage = R2 + MinIO (`C-13`). Supabase Data API locked down (`adr/0009`). Password hashing = scrypt (`AD-BE-16`).
 
 ---
 
@@ -93,11 +95,11 @@ The snapshot is directionally right: P0–P5 (minus leftovers) are on disk; P6�
 | Report claim | Correction |
 |---|---|
 | TSK-BE-01…27 as the work list | Too coarse (one ID = entire P6). Split into `G2-*` with files and acceptance. Map onto existing **T12–T44**; do not run a parallel ID universe. |
-| `POST /v1/auth/firebase/session` as required work | That path is **not in the inventory**. It is option L of **G2-D01**, and needs **G2-D02** before any handler. |
+| `POST /v1/auth/firebase/session` as required work | **Now required** (`adr/0010`). Still missing from the API list — **G2-D02** must add it before the handler. |
 | `ONBOARDING_REQUIRED` as the AuthGuard miss | Not in inventory §5. Either amend the catalogue or use `UNAUTHENTICATED`. |
 | T15 “sessions / me / settings / shell guard = done” (Implementation Plan) | Overstated. `GET/PATCH /v1/me` and the vendor shell guard exist. Sessions list/delete, settings, password change/reset, mobile change, deactivate, deletion, devices do **not**. Track I. |
 | “11 of 16 modules empty” | Accurate for marketplace modules. `audit` is a 17th folder with a writer only; `identity` / `taxonomy` / `media` / `vendor-onboarding` are the implemented four. |
-| Dual-token mode (HS256 + RS256) on every request | Workable as a transition, not a destination. Architecture §14.2: access token is a Karat Hive JWT. Path L exchanges Firebase → `SessionBundle`; path B never accepts Firebase as a bearer on domain routes. |
+| Dual-token mode (HS256 + RS256) on every request | Transition only. After G2-A10/A12, domain routes take the Karat Hive access token. Google token is valid on the session-exchange route only. |
 | AuthGuard 60 s `UserForViewer` cache | **Rejected.** Architecture §14.2: volatile authorisation is cached **within the request only**. A TTL cache would delay `FR-ADM-016` suspension. Request-scoped memoisation of the User row is already implied; do not add a process cache. |
 | Storage path-traversal task | Report itself notes `randomUUID()` keys are safe. No task. |
 | All 15 jobs as one task (TSK-BE-26) | Jobs land **with their domain phase** (Implementation Plan scheduled-job table). Track-local job rows below. |
@@ -117,7 +119,9 @@ Do these in this order. Struck rows are already on `main`.
 
 | ID | Track | Task | Why it is still open |
 |---|---|---|---|
-| **G2-D01** | D | Product Owner: Google login vs `BR-001` | Live clients already send Firebase as bearer. Spec says OAuth is not login. |
+| ~~G2-D01~~ | D | Google is the only marketplace login | **Decided** — [`adr/0010`](adr/0010-google-signin-only-login.md) |
+| **G2-D02** | D | Add the Google session route to the API list | Handler must not land first |
+| **G2-D06** | D | Admin login: Google or password + 2FA? | Not decided |
 | **G2-A01** | A | AuthGuard read-only | Every authenticated request can insert `User` + `VendorProfile`. |
 | **G2-A02** | A | Require `emailVerified` before email match | Account takeover via unverified Firebase email. |
 | **G2-A03** | A | Refuse non-E.164 mobile | `+fb_…` corrupts OTP and Talk. |
@@ -154,7 +158,7 @@ Copied from the Implementation Plan so this file is executable on its own. Later
 |---|---|---|
 | P0 scaffold, toolchain, CI | T01–T04, T33–T35 done | OpenAPI generator is T31 / G2-GR05 |
 | P1 platform spine | T05–T11, F01–F17 done | — |
-| Vendor OTP, vendor register, password login, refresh, logout | CP1-A04 done | Customer register missing; Admin 2FA missing |
+| Vendor OTP, vendor register, password login, refresh, logout | CP1-A04 done | Not the intended marketplace login (`adr/0010`). Keep until Google session lands. Admin login **open**. |
 | `GET/PATCH /v1/me` (vendor + admin branches) | CP1-A04f done | Customer branch missing |
 | Taxonomy public + admin CRUD + seeds | T16 / CP1-A03 done | `GET /v1/platform-config` missing |
 | Media KYC path (intent / complete / delete, local + Supabase) | T17 partial | EXIF/scan/thumbnail worker |
@@ -173,18 +177,20 @@ Files are starting points, not a closed set. Acceptance is the merge bar.
 
 | ID | Task | Acceptance | Status | Maps to |
 |---|---|---|---|---|
-| G2-D01 | Product Owner records whether Google Sign-In is login (path L) or OAuth-bind-only (path B). | Written decision in this file's revision history **or** a new `docs/adr/0010`. Path L amends Architecture §14.1/§14.3. Path B requires Flutter clients to stop sending Firebase as bearer on domain routes. | open | — |
-| G2-D02 | If path L: inventory §8 + §5 + `error-codes.ts` + `error-messages.ts` (`en`/`ar`) updated in the same change as the handler. | New route and codes appear in the inventory before the controller. No handler-only codes. | blocked on D01=L | AD-API-nn |
-| G2-D03 | Technical Lead signs T36 `[PROPOSED]` columns / enums. | Sign-off note on Implementation Plan T36. No init-migration revert. | open | T36 |
+| G2-D01 | Product Owner: Google Sign-In vs OTP/password login. | [`adr/0010`](adr/0010-google-signin-only-login.md): Google is the **only** Customer/Vendor login. | **done** | — |
+| G2-D02 | API list §8 + §5 + `error-codes.ts` + `error-messages.ts` (`en`/`ar`) updated in the same change as the Google session handler. | New route and codes appear in the inventory before the controller. No handler-only codes. | open | AD-API-nn |
+| G2-D03 | T36 extra columns. | Columns are in the schema. Jobs unblocked. No init-migration revert. | **done** | T36 |
 | G2-D04 | Legal: Yahoo redistribution. | Flag `goldRates.endUserDisplay` remains false until signed. | `[BLOCKED]` | T30 |
+| G2-D05 | SAM-GAP-7: keep the API list (active-only). Code shortcut stays until replaced. | API list not edited. Guard may keep admitting `VERIFIED` until a later task replaces it. | **done** (shortcut accepted as temporary) | T18 |
+| G2-D06 | Admin login: Google vs email + password + 2FA. | Written choice. Until then do not remove Admin password login. | open | T13 |
 
 ---
 
 ### Track A — Firebase / AuthGuard defects
 
-Stop the bleeding **before** D01. Path L / path B rows are mutually exclusive.
+Stop the bleeding first (A01–A09). Then Google session (A10–A13). Path B is **n/a**.
 
-#### A1 — Stop writing in the guard (D01-independent)
+#### A1 — Stop writing in the guard
 
 | ID | Task | Files | Acceptance | Status | Maps to |
 |---|---|---|---|---|---|
@@ -198,47 +204,44 @@ Stop the bleeding **before** D01. Path L / path B rows are mutually exclusive.
 | G2-A08 | Regression tests for A01–A06. | `session.query.spec.ts`, `auth.guard.spec.ts`, integration if DB is up | Covers: unbound token, unverified email, verified email match, E.164 reject, no Vendor insert, issuer mismatch. | open | T32 |
 | G2-A09 | Marketplace use requires stamped `termsVersion`, `privacyVersion`, `termsAcceptedAt`. Auto-provisioned nulls fail closed. | register handlers, Me presenter, publish gate | `POST /v1/auth/register/*` remains the only writer of those columns (plus any D02 session-completer). | open | T12 |
 
-#### A2 — Path L (only if G2-D01 = Google is login)
+#### A2 — Google session (`adr/0010`)
 
-Blocked on G2-D01 and G2-D02. Inventory must list the route first.
-
-| ID | Task | Files | Acceptance | Status | Maps to |
-|---|---|---|---|---|---|
-| G2-A10 | `POST /v1/auth/firebase/session` `@Public @RevealsIdentity`. Verifies Firebase ID token; looks up binding; returns `SessionBundle`. Does **not** create a User. | `auth.controller.ts`, new application service | Unbound token → documented error (D02). Bound token → same `SessionBundle` shape as password/OTP login. Idempotent. | blocked | T10 / D02 |
-| G2-A11 | Completer: existing `POST /v1/auth/register/customer` and `/register/vendor` accept a verified Firebase identity **in addition to** `challengeId`, still requiring terms/privacy and (Customer) E.164 OTP or verified Firebase phone. | `registration.service.ts`, Zod bodies | Role is explicit in the route, never inferred. Terms stamped. No Admin register. | blocked | T12 |
-| G2-A12 | After exchange, domain routes accept **only** the Karat Hive HS256 access token. Firebase RS256 is valid on G2-A10 (and bind, if kept) only. | `auth.guard.ts` | A Firebase bearer on `GET /v1/me` is 401 once the client has a `SessionBundle`. Documents the client migration. | blocked | T10 |
-| G2-A13 | Rate-limit the exchange route with the auth bucket. Audit `AUTH_FIREBASE_SESSION`. | rate-limit policy, audit writer | Same per-IP/per-subject limits as password login. | blocked | T09 |
-
-#### A3 — Path B (only if G2-D01 = honour BR-001)
+Inventory must list the route first (G2-D02).
 
 | ID | Task | Files | Acceptance | Status | Maps to |
 |---|---|---|---|---|---|
-| G2-A20 | AuthGuard rejects RS256 Firebase tokens on all domain routes. | `auth.guard.ts` | `isFirebaseToken` true → `401 UNAUTHENTICATED` (or `OAUTH_TOKEN_INVALID` if used only on bind). | blocked | T10 |
-| G2-A21 | `POST /v1/auth/oauth/bind` (`BR-001`, `FR-CUS-001`). Authenticated Customer. Server-side Google token verify. Stores hashed subject. One binding per User. | new handler in `identity/` | Duplicate → `409 OAUTH_ALREADY_BOUND`. Bad token → `401 OAUTH_TOKEN_INVALID`. Publish still checks the binding, not the guard. | blocked | **T14** |
-| G2-A22 | Client follow-up (out of this backend file, listed so it is not forgotten): Flutter stops sending Firebase as domain bearer; login is OTP/password; bind is the publish gate. | `apps/kh_mobile`, `apps/kh_admin` | Not a backend merge gate. | blocked | — |
+| G2-A10 | `POST /v1/auth/firebase/session` `@Public @RevealsIdentity`. Verifies Google ID token; looks up binding; returns `SessionBundle`. Does **not** create a User. | `auth.controller.ts`, new application service | Unbound token → documented error (D02). Bound token → Karat Hive `SessionBundle`. Idempotent. | blocked on D02 | T14 / T10 |
+| G2-A11 | Completer: `POST /v1/auth/register/customer` and `/register/vendor` accept a verified Google identity, still requiring terms/privacy and an E.164 mobile (OTP or verified Google phone). Role is the route, never inferred. | `registration.service.ts`, Zod bodies | Terms stamped. No Admin register via Google. | blocked on D02 | T12 |
+| G2-A12 | After exchange, domain routes accept **only** the Karat Hive access token. Google token is valid on G2-A10 only. | `auth.guard.ts` | A Google bearer on `GET /v1/me` is 401 once the client has a `SessionBundle`. | blocked on D02 | T10 |
+| G2-A13 | Rate-limit the exchange route with the auth bucket. Audit `AUTH_FIREBASE_SESSION`. | rate-limit policy, audit writer | Same per-IP/per-subject limits as today’s password login. | blocked on D02 | T09 |
+| G2-A14 | Flutter: after Google Sign-In, call the session route, then send the Karat Hive access token on other calls. | `apps/kh_mobile`, `apps/kh_admin` | Not a backend merge gate. Listed so it is not forgotten. | open | — |
+
+#### A3 — Path B (OTP/password login) — n/a
+
+`adr/0010` rejected this path. IDs G2-A20–A22 are **not used**. Do not implement `POST /v1/auth/oauth/bind` as a second login.
 
 ---
 
 ### Track I — Identity leftovers (P2)
 
-`T12` pending, `T13` partial (password login done, 2FA not), `T14` pending, `T15` overstated as done.
+`T12`/`T14` follow `adr/0010` (Google login). `T13` Admin method is **open** (G2-D06). `T15` still partial.
 
 | ID | Task | Endpoint / files | Acceptance | Status | Maps to |
 |---|---|---|---|---|---|
-| G2-I01 | Add `REGISTER_CUSTOMER` to OTP request Zod enum. Service already branches on it. | `auth.controller.ts` `otpRequestSchema` | Inventory §8 purpose union is accepted. Unknown LOGIN number still returns a dummy challenge (no enumeration). | open | T12 |
-| G2-I02 | `POST /v1/auth/register/customer`. Body per inventory: `challengeId`, `displayName`, `email?`, `preferredLanguage`, `defaultRegionId?`, `termsVersion`, `privacyVersion`. | `registration.service.ts`, presenter | One transaction: challenge consumed, `User` CUSTOMER/`ACTIVE`, `CustomerProfile`, terms stamp, `SessionBundle` 201. Duplicate mobile → `409 MOBILE_ALREADY_REGISTERED`. `@RevealsIdentity`. | open | **T12** |
+| G2-I01 | OTP request body: keep `CHANGE_MOBILE` (and Vendor register if still used for phone proof). Add `REGISTER_CUSTOMER` only if phone proof still uses OTP. **Do not** treat OTP `LOGIN` as marketplace login. | `auth.controller.ts` `otpRequestSchema` | Google is the login (`adr/0010`). OTP, if present, proves a number. | open | T12 |
+| G2-I02 | `POST /v1/auth/register/customer` after Google (G2-A11). Body: display name, terms/privacy, real E.164 mobile (OTP or verified Google phone), `preferredLanguage`, `defaultRegionId?`. | `registration.service.ts`, presenter | One transaction: `User` CUSTOMER/`ACTIVE`, `CustomerProfile`, terms stamp, Google binding, `SessionBundle` 201. Duplicate mobile → `409 MOBILE_ALREADY_REGISTERED`. `@RevealsIdentity`. | open | **T12** |
 | G2-I03 | `customer` branch on `GET /v1/me` and Customer fields on `PATCH /v1/me` (`displayName`, `email`, `preferredLanguage`, `defaultRegionId`, `photoMediaKey`). | `me.service.ts`, `me.presenter.ts`, `me.controller.ts` | Shape matches inventory §9 `CustomerProfile`. Email change is pending-until-verified (`emailPending` `[PROPOSED]` — implement or explicitly defer in the PR). | open | T15 |
 | G2-I04 | `GET /v1/auth/sessions` · `DELETE /v1/auth/sessions/{id}` | `session.service.ts`, new controller methods | List current refresh families for the caller. Delete revokes that family. | open | T15 |
-| G2-I05 | `POST /v1/auth/password` (set/change, Vendor/Admin). | identity | Enforces `NFR-012` / `PASSWORD_POLICY`. Revokes other sessions on change if inventory says so. | open | T13 |
-| G2-I06 | `POST /v1/auth/password/reset/request` · `/confirm` (`AD-API-10`). | identity | Request does not enumerate accounts. Confirm sets password and revokes all sessions. | open | T13 |
+| G2-I05 | `POST /v1/auth/password` (set/change). | identity | **Not** marketplace login. Needed only if Admin still uses passwords (G2-D06). Vendor password change is **n/a** under `adr/0010`. | blocked on D06 | T13 |
+| G2-I06 | `POST /v1/auth/password/reset/request` · `/confirm` (`AD-API-10`). | identity | Same as G2-I05 — Admin only if G2-D06 keeps passwords. | blocked on D06 | T13 |
 | G2-I07 | `POST /v1/me/mobile/change` with `challengeId` purpose `CHANGE_MOBILE`. | `me.controller.ts` | New number E.164 + verified OTP. Old number released. | open | T15 |
 | G2-I08 | `POST /v1/me/deactivate`. Customer: closes live Requests, blocks login. Vendor: `403` if an `ACTIVE` Connection exists (`[PROPOSED]` in inventory). | identity | `accountState = DEACTIVATED`. Subsequent auth → `403 ACCOUNT_DEACTIVATED`. | open | T15 |
 | G2-I09 | `POST /v1/me/deletion-requests` + `/{id}/confirm` (`FR-CUS-004`, `NFR-019`). Refuse if a Connection was created in the last 30 days. | identity | Two-step + OTP. Worker completion may stub as queued until G2-N07. | open | T15 |
 | G2-I10 | `GET/PATCH /v1/me/settings` (language, default region, notification preferences, quiet hours). | `modules/settings/` | Inventory §9 settings object. Quiet hours evaluated at **dispatch** time later (G2-N02), stored now. | open | T15 |
 | G2-I11 | `POST /v1/devices` · `DELETE /v1/devices/{id}` | identity | Stores push device tokens for G2-N04. `[PROPOSED]` in inventory — implement as specified. | open | T15 |
-| G2-I12 | Admin 2FA: `POST /v1/auth/admin/2fa/setup` · `/confirm` · `/verify`. Password login returns `401 TWO_FACTOR_REQUIRED` until verify. | identity, `login.service.ts` | Enrolment returns `{ otpauthUri, backupCodes }`. Self-registration of Admin remains impossible. | open | **T13** |
-| G2-I13 | Customer OTP login round-trip integration test. | `test/integration/` | REGISTER_CUSTOMER OTP → register → refresh → `GET /v1/me` has `customer`, no `vendor`. | open | T12 |
-| G2-I14 | Surface `oauthBound` on Customer `Me`. False until G2-A21 / path L completer. | `me.presenter.ts` | Publish (G2-R05) reads this fact from the binding row, not from the presenter. | open | T14 / T15 |
+| G2-I12 | Admin 2FA: `POST /v1/auth/admin/2fa/setup` · `/confirm` · `/verify`. | identity, `login.service.ts` | Only if G2-D06 keeps password login. Self-registration of Admin remains impossible. | blocked on D06 | **T13** |
+| G2-I13 | Customer Google round-trip integration test. | `test/integration/` | Google session → register customer → refresh → `GET /v1/me` has `customer`, no `vendor`. | open | T12 |
+| G2-I14 | Surface `oauthBound` on Customer `Me` (true after Google login/completer). | `me.presenter.ts` | Publish (G2-R05) reads the binding row, not only the presenter. | open | T14 / T15 |
 
 `GET /v1/me` `liveRequestCount` / `canCreateRequest` (`SAM-GAP-2`) land with G2-R02, not here.
 
@@ -252,7 +255,7 @@ Blocked on G2-D01 and G2-D02. Inventory must list the route first.
 | G2-P02 | Media processing worker on `media.uploaded`: magic-byte inspect, EXIF strip, re-encode, thumbnail, malware stub → `READY` / `QUARANTINED`. Dev KYC shortcut may stay for `NODE_ENV!=production`. | `modules/media/`, outbox consumer | Customer Request images cannot publish while `PENDING_PROCESSING` (`MEDIA_NOT_READY`). Quarantine blocks parent (`MEDIA_QUARANTINED`). | open | T17 leftover · P4 #30 |
 | G2-P03 | `GET /v1/me/subscriptions` read-only. | `modules/subscription/` | Empty list is valid. Shape per inventory §20. Dashboard currently returns `[]` — replace the stub. | open | **T19** |
 | G2-P04 | Admin grant/patch: `POST /v1/admin/vendors/{id}/subscriptions`, `PATCH …/subscriptions/{requestType}` (`AD-API-04`). Emit `vendor.eligibility.changed`. | `subscription/` + admin controller | No Vendor POST to subscribe. Entitlement check used by matching/offers is the real table, not a stub. | open | T19 |
-| G2-P05 | `vendor-document-expiry` job, daily 02:00 GST. `vendor_document` within 30 days of `expiry_date` with no `reminder_sent_at` → `vendor.document.expiring`. | scheduler + vendor-onboarding | Needs T36 column (already in init). Lease via `job_lock`. | blocked on D03 | **T44** |
+| G2-P05 | `vendor-document-expiry` job, daily 02:00 GST. `vendor_document` within 30 days of `expiry_date` with no `reminder_sent_at` → `vendor.document.expiring`. | scheduler + vendor-onboarding | Column exists. Lease via `job_lock`. | open | **T44** |
 | G2-P06 | `GET /v1/me/vendor/performance` empty-safe until reviews exist; `ratingTrend[]` filled by G2-F04 (`SAM-GAP-8`). | vendor-onboarding or reviews | Does not scan other Vendors' prices (`BR-008`). | open | T18 leftover |
 | G2-P07 | `GET /v1/me/vendor/performance/export` signed CSV in the exports bucket. | media + vendor | Own records only. Watermark + audit (`NFR-016`) can wait for G2-ADM07 if the same export pipeline is shared — say so in the PR. | open | T18 |
 
@@ -268,11 +271,11 @@ Module is empty. State machine is a pure domain function (`NFR-029`).
 | G2-R02 | `POST /v1/requests` draft. Optional attributes per type. Expose `liveRequestCount` / `canCreateRequest` on `GET /v1/me` (`SAM-GAP-2`). | controller + service | Customer only (`BR-005`). Concurrent live cap checked at publish, advertised here. | open | T20 · P6 #38 |
 | G2-R03 | `PATCH /v1/requests/{id}`. Draft: wide. Published: `BR-014` structural fields immutable → `409 STRUCTURAL_FIELD_IMMUTABLE`. Emit `request.edited` to **pending-Offer Vendors only** (Async-Contract §11). | requests | Contact-detail scan on notes (`BR-022`) → `422 CONTACT_DETAILS_IN_TEXT`. | open | T20 |
 | G2-R04 | `GET /v1/me/requests`, `GET /v1/requests/{id}` Customer presenter (no Vendor identity). Vendor presenter on the same GET is a **match-set** read — lands with G2-M02, still no Customer identity. | presenters | Masking suite: Vendor `mobileNumber` / `tradingName` absent from Customer payload. | open | T20 · P6 #41 |
-| G2-R05 | `POST /v1/requests/{id}/publish` *Idempotency-Key required*. Checks: OAuth bound (`403 OAUTH_REQUIRED`), media `READY`, bullion floor (`BULLION_BELOW_MINIMUM`), gold rate available for bullion (`503 GOLD_RATE_UNAVAILABLE` — flag-aware), concurrent live limit, contact scan. Snapshot `expires_at = published_at + lifetime` (`BR-020`, `C-07`). Outbox `request.published`. | requests | Draft never appears in Vendor queries. Idempotent replay 24 h. | open | T20 · P6 #39 |
+| G2-R05 | `POST /v1/requests/{id}/publish` *Idempotency-Key required*. Checks: Google binding present (`403 OAUTH_REQUIRED` — login already bound it under `adr/0010`), media `READY`, bullion floor (`BULLION_BELOW_MINIMUM`), gold rate available for bullion (`503 GOLD_RATE_UNAVAILABLE` — flag-aware), concurrent live limit, contact scan. Snapshot `expires_at = published_at + lifetime` (`BR-020`, `C-07`). Outbox `request.published`. | requests | Draft never appears in Vendor queries. Idempotent replay 24 h. | open | T20 · P6 #39 |
 | G2-R06 | `POST /v1/requests/{id}/cancel`. Refused if `ACCEPTED` (`REQUEST_NOT_CANCELLABLE`, `BR-013`). Outbox `request.cancelled`. | requests | Competing Offers terminate per SRS §5.2. | open | T20 |
 | G2-R07 | `POST /v1/requests/{id}/duplicate` → new `DRAFT`. | requests | Copies type/attributes/media keys per inventory. | open | T20 |
 | G2-R08 | Request media: Customer images use the Request-media bucket via existing media port (not KYC). | media + requests | `maxRequestImages` from platform-config. Unattached delete still 204. | open | T17 / T20 |
-| G2-R09 | Draft purge job `request-draft-purge` hourly: warn 27 d (`request.draft.purge_warning`), hard-delete draft + `request_media` at 30 d (`FR-CUS-015` AC4). | scheduler | Needs `draft_purge_warned_at` (T36). | blocked on D03 | **T42** |
+| G2-R09 | Draft purge job `request-draft-purge` hourly: warn 27 d (`request.draft.purge_warning`), hard-delete draft + `request_media` at 30 d (`FR-CUS-015` AC4). | scheduler | Column `draft_purge_warned_at` exists. | open | **T42** |
 | G2-R10 | Domain tests: publish without OAuth, without READY media, bullion below floor, notes with a phone number. | `requests/*.spec.ts` | Every inventory error code in §5.3 that this phase can emit is asserted. | open | T20 |
 
 ---
@@ -303,7 +306,7 @@ Module is empty. State machine is a pure domain function (`NFR-029`).
 | G2-O06 | `GET /v1/me/offers`, `GET /v1/offers/{id}` Vendor presenter. **No competing price, terms, or identity** (`BR-008`). Offer count only. | presenters | Masking + competitor-terms suite. | open | T22 |
 | G2-O07 | `GET /v1/offers/{id}/vendor-rating` (`FR-CUS-031`). Aggregates only. | offers / reviews | Hidden Customer ratings of this Vendor are not leaked (`BR-018`). | open | T22 · P8 #50 |
 | G2-O08 | Offer expiry sweep `offer-expiry-sweep` at **1 min**. Synchronous expiry check on accept as well (`FR-SYS-004`). | scheduler | Pending past `expires_at` → expired. Accept of expired → `409 OFFER_EXPIRED`. | open | T22 · P8 #51 |
-| G2-O09 | `offer-expiry-warning` at 5 min, once, within 6 h of `expires_at` (`FR-VEN-013` AC4). | scheduler | Needs `expiry_warned_at` (T36). | blocked on D03 | **T41** |
+| G2-O09 | `offer-expiry-warning` at 5 min, once, within 6 h of `expires_at` (`FR-VEN-013` AC4). | scheduler | Column `expiry_warned_at` exists. | open | **T41** |
 
 ---
 
@@ -331,7 +334,7 @@ Commercial spine. The phase is not done without G2-C06.
 | G2-F02 | `GET /v1/me/reviews`; `PATCH /v1/reviews/{id}` within 14 days; `POST …/withdraw`; Vendor `POST …/response`; `POST …/flag`. | reviews | `REVIEW_EDIT_WINDOW_CLOSED` after 14 d. | open | T26 |
 | G2-F03 | Rating aggregation worker on `review.published` / `review.moderated` + 5 min reconcile (`rating-reconcile`). Full recompute. Emits 6-month `ratingTrend[]` (`SAM-GAP-8`). Customer ratings hidden from other Customers (`BR-018`). | reviews worker | Idempotent. Feeds G2-P06 and G2-O07. | open | T26 · P10 #60 |
 | G2-F04 | `POST /v1/abuse-reports`. Reporter identity withheld. | `modules/abuse/` | Presenter omits reporter. | open | **T27** |
-| G2-F05 | `SAM-GAP-4`: screens report a Vendor or Customer with no Request/Offer/Connection in hand. Either widen `AbuseEntityType` (migration — D03) **or** require the client to resolve to one of the four. Record the choice; do not pick silently. | schema + abuse | Inventory and schema agree. | blocked on D03 | T27 / T36 |
+| G2-F05 | `SAM-GAP-4`: screens report a Vendor or Customer with no Request/Offer/Connection in hand. Schema enum already has `VENDOR` and `CUSTOMER`. | schema + abuse | Report API accepts those types. | open | T27 / T36 |
 
 ---
 
@@ -344,7 +347,7 @@ Notification **bodies** are `Notification-Catalogue.md` (sequence doc #4, not ye
 | G2-N01 | In-app centre: `GET /v1/notifications`, `POST …/{id}/read`, `POST …/read-all`, `GET …/unread-count`. | `modules/notifications/` | Persist **regardless of push** (`FR-SYS-008.6`). | open | T28 · P10 #62 |
 | G2-N02 | Dispatcher consumes the 21 Async-Contract events. Quiet hours + preferences evaluated at **dispatch**, not enqueue, except critical (`FR-SYS-008.2`). | notifications consumer | Unknown event type → `logger.warn` (already the outbox behaviour). Placeholder copy keyed by event name. | open | T28 |
 | G2-N03 | Push port + FCM/APNs adapters. Stub OK if credentials absent; in-app still written. | `platform/ports` + adapters | No new datastore. Device tokens from G2-I11. | open | T28 |
-| G2-N04 | `notification-retry` 1 min: `notification_delivery` `FAILED` and `attempt < 3`. Distinct from outbox drain. | scheduler | Needs delivery enums (T36). | blocked on D03 | **T38** |
+| G2-N04 | `notification-retry` 1 min: `notification_delivery` `FAILED` and `attempt < 3`. Distinct from outbox drain. | scheduler | Schema columns exist. | open | **T38** |
 | G2-N05 | Request expiry warning (T−6 h, 5 min job) + hard expiry 48 h (1 min job) (`FR-SYS-005`, `C-07`). | scheduler + requests | Countdown at zero must not still read live. | open | T28 · P10 #63 |
 | G2-N06 | `retention-purge` daily 03:00 GST: notifications > 90 d, orphan media > 30 d, `idempotency_key` > 24 h. Audit never (`NFR-021`). | scheduler | Idempotent. Pairs with G2-I09. | open | **T39** |
 
@@ -363,7 +366,7 @@ Taxonomy CUD is **done** (Checkpoint 1). Non-Admin on `/v1/admin` → `404` is *
 | G2-ADM05 | Review moderation: list/approve/reject/redact. | admin + reviews | Feeds G2-F03. | open | T29 · #70 |
 | G2-ADM06 | Reports `GET /v1/admin/reports/{name}`; `POST /v1/admin/exports` + `GET …/exports/{id}`. Watermark + audit (`NFR-016`). | admin | Async. No PII in the filename. | open | T29 · #71 |
 | G2-ADM07 | Announcements create/list/cancel. **No preview endpoint** unless reversing Async-Contract §11 (`SAM-GAP-10`). | admin | Cancel only before dispatch. | open | T29 · #72 |
-| G2-ADM08 | `announcement-dispatch` 1 min job. Dispatch guard + `announcement.scheduled`. Audience count computed **at dispatch**. | scheduler | Needs T36 guard decision. | blocked on D03 | **T43** |
+| G2-ADM08 | `announcement-dispatch` 1 min job. Dispatch guard + `announcement.scheduled`. Audience count computed **at dispatch**. Guard: `dispatch_stats IS NULL` (column exists). | scheduler | Do not add a preview endpoint (`SAM-GAP-10` / Async-Contract §11). | open | **T43** |
 | G2-ADM09 | `GET /v1/admin/settings`, `PATCH /v1/admin/settings/{key}` (`BR-020` — no retroactive rewrite of live Requests/Offers). Includes gold-rate poll interval and staleness threshold (`SAM-GAP-11`). | settings | Changes audit. | open | T29 · #72 |
 | G2-ADM10 | Abuse queue list/detail/resolve. | admin + abuse | Reporter remains masked. | open | T29 |
 | G2-ADM11 | `GET /v1/admin/audit-log` rows carry `before` / `after` / `ip` / `userAgent` in full (`SAM-GAP-12`). Add `GET …/audit-log/{id}` only if the list row cannot. | admin + audit | Append-only; no update/delete path. | open | T29 |
@@ -423,7 +426,7 @@ IDs are not replaced. This register **splits** the pending/partial T-rows.
 | T01–T11, T33–T35 | done | — |
 | T12 | pending | G2-I01, G2-I02, G2-I13, G2-A06/A09/A11 |
 | T13 | partial | G2-I05, G2-I06, G2-I12 |
-| T14 | pending | G2-A21 (path B) or G2-A10–A13 (path L) + G2-I14 |
+| T14 | pending | G2-A10–A14 + G2-I14 (`adr/0010`; path B n/a) |
 | T15 | marked done — **overstated** | G2-I03, G2-I04, G2-I07–I11 |
 | T16 | done except config | G2-P01 |
 | T17 | KYC path done | G2-P02, G2-R08 |
@@ -442,21 +445,21 @@ IDs are not replaced. This register **splits** the pending/partial T-rows.
 | T30 | pending | G2-GR01–GR03 |
 | T31 | pending | G2-GR05 |
 | T32 | pending | G2-GR06–GR09, G2-A08 |
-| T36 | `[PROPOSED]` in init | G2-D03 |
+| T36 | done (columns in schema) | G2-D03 |
 | T37 | pending | G2-M05 |
 | T38 | pending | G2-N04 |
 | T39 | pending | G2-N06 |
 | T40 | pending | G2-GR04 |
-| T41 | blocked on T36 | G2-O09 |
-| T42 | blocked on T36 | G2-R09 |
-| T43 | blocked on T36 | G2-ADM08 |
-| T44 | blocked on T36 | G2-P05 |
+| T41 | pending | G2-O09 |
+| T42 | pending | G2-R09 |
+| T43 | pending | G2-ADM08 |
+| T44 | pending | G2-P05 |
 
 Report IDs `TSK-BE-01`–`TSK-BE-27` are **retired**. Do not allocate new work to them.
 
 | Retired | Replacement |
 |---|---|
-| TSK-BE-01 | G2-D01, G2-A01–A13 / A20–A22 |
+| TSK-BE-01 | G2-D01, G2-A01–A14 (A20–A22 unused) |
 | TSK-BE-02 | G2-I01–I03 |
 | TSK-BE-03 | G2-P01 |
 | TSK-BE-04–07 | G2-R01–R10 |
@@ -471,7 +474,7 @@ Report IDs `TSK-BE-01`–`TSK-BE-27` are **retired**. Do not allocate new work t
 
 ## Explicitly not in this list
 
-- Flutter / Admin Portal implementation (except G2-A22 as a reminder).
+- Flutter / Admin Portal implementation (except G2-A14 as a reminder).
 - Admin data grid build-vs-buy (`AD-FE-12`).
 - Docker as a required local dependency.
 - In-app WhatsApp, payment/settlement, Redis/Kafka/ES.
@@ -500,8 +503,8 @@ Report IDs `TSK-BE-01`–`TSK-BE-27` are **retired**. Do not allocate new work t
 
 | Document | Role after this file exists |
 |---|---|
-| SRS v1.3 | Still what the system must do |
-| API-Route-Inventory | Still the HTTP catalogue; G2-D02 may amend it |
+| SRS v1.3 | Still what the system must do, **except** marketplace login — that is [`adr/0010`](adr/0010-google-signin-only-login.md) until the SRS is rewritten |
+| API-Route-Inventory | Still the HTTP catalogue; G2-D02 must add the Google session route. SAM-GAP-7 stays as written (active-only) |
 | Backend-Implementation-Plan | Still the phase order P0–P12 and T01–T44. This file is the **executable split** of the pending T-rows plus Firebase defects the plan never named |
 | Backend-Gap-Fix-Plan | Closed (F01–F17). Do not append G2 IDs there |
 | checkpoint-1-vendor-onboarding-tasks | Closed except deferred V01/V02 walks. Do not pull P6+ into it |
@@ -515,3 +518,4 @@ Report IDs `TSK-BE-01`–`TSK-BE-27` are **retired**. Do not allocate new work t
 | Version | Date | Change |
 |---|---|---|
 | 0.1 | 6 Sep 2026 | Initial register. Reviewed `backend_code_review_and_gap_report.md` against the tree, inventory, and T01–T44. Retired TSK-BE-01–27. Recorded G2-D01 as blocking. |
+| 0.2 | 6 Sep 2026 | Product choices: G2-D01 done (`adr/0010` Google-only marketplace login); G2-D03 done (T36 columns); G2-D05 API list kept for SAM-GAP-7 (code shortcut temporary); G2-D06 Admin login still open. Path B n/a. Jobs unblocked. |

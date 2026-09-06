@@ -4,8 +4,8 @@
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | Backend implementation plan and task list |
-| **Version** | 0.5 |
-| **Status** | Working backlog. Does not override the SRS or architecture. Last checked against `backend/` on 6 September 2026. |
+| **Version** | 0.6 |
+| **Status** | Working backlog. Does not override the SRS. Last checked against `backend/` on 6 September 2026. Marketplace login: [`adr/0010`](adr/0010-google-signin-only-login.md). |
 | **Date** | 6 September 2026 |
 | **Source of truth** | [`Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`Architecture-Backend.md`](Architecture-Backend.md) · [`API-Route-Inventory.md`](API-Route-Inventory.md) · [`Physical-Data-Model.md`](Physical-Data-Model.md) · [`Async-Contract.md`](Async-Contract.md) (`AD-ASYNC-nn` — outbox payloads and the 15 scheduled jobs; feeds P2/P7/P10/P12, T05/T21/T23/T28) |
 | **Coverage inputs** | [`Screen-API-Map.md`](Screen-API-Map.md) (`SAM-GAP-nn`) · [`Spec-Document-Sequence.md`](Spec-Document-Sequence.md) |
@@ -53,10 +53,12 @@ Checked against `backend/src`, `backend/prisma`, `backend/test`, and `.github/wo
 | OpenAPI generator | Not a dependency. `backend/openapi/` is empty |
 | Contract and performance test suites | Folders empty. Masking tests **do** exist under `test/masking/` |
 
-Two facts that disagree with older docs. I have **not** rewritten those older docs:
+**Decided (6 September 2026), not guessed:**
 
-1. **Google Sign-In.** Code accepts a Google token as the login on every request, and a new Google user is created as a Vendor. Original rule `BR-001` says Google is not a login — it is a one-time identity check before a Customer publishes a Request.
-2. **Password hashing.** Code uses scrypt. Architecture-Backend §14.1 still says Argon2id.
+1. **Google is the only marketplace login** ([`adr/0010`](adr/0010-google-signin-only-login.md)). Customer and Vendor do not log in with OTP or password. The SRS and the API list still describe the old login; they need a later rewrite. Code today also **creates a Vendor automatically** on first Google use — that is a bug to fix, not the design.
+2. **Password hashing is scrypt** (`AD-BE-16`). Architecture-Backend now matches the code.
+3. **T36 extra columns are done** in the schema. Jobs that use them can be built in their phase. Do not revert the init migration.
+4. **SAM-GAP-7:** the API list still says only an **active** Vendor may set categories. The code currently lets a **verified** Vendor do it so first activation works. That code is a **temporary shortcut**. Do not change the API list. A later change must replace the shortcut without trapping new Vendors.
 
 ---
 
@@ -86,7 +88,7 @@ T01 has already frozen the init migration. Columns that were still open at that 
 
 | Gap | Sev | Backend consequence | Phase / task | Code today |
 |---|---|---|---|---|
-| `SAM-GAP-7` | **H** | A verified Vendor must set Categories/Regions to become `ACTIVE`, but the API list marks those routes as active-only. | **P5 #34**, T18 | **Built.** `VendorAccessGuard` allows `VERIFIED` (not yet active) on categories, regions, and availability. The API list still says active-only. |
+| `SAM-GAP-7` | **H** | A verified Vendor must set Categories/Regions to become `ACTIVE`, but the API list marks those routes as active-only. | **P5 #34**, T18 | **Temporary shortcut in code.** Guard allows `VERIFIED` (not yet active). API list is unchanged (active-only). Replace the shortcut later; do not edit the API list for this. |
 | `SAM-GAP-4` | M | Abuse reports against a Vendor or a Customer with no Request/Offer/Connection in hand | **P10 #61**, T27 | Enum in schema already has `VENDOR` and `CUSTOMER`. Report API is not built. |
 | `SAM-GAP-1` | M | `offer.viewed_by_customer_at` + unread count on Customer Request list | **P8 #49**, T22 | Column exists. Presenter not built. |
 | `SAM-GAP-3` | M | `connectionId?` on a Customer Request when accepted — join, no new column | **P9 #56**, T24 | Not built. |
@@ -136,7 +138,7 @@ T01–T04 and T33–T35 (except the OpenAPI generator, which stays T31).
 
 Named init migration exists. `npm run build` is clean. API boots without Docker. `/health` works with no database. `/ready` waits for migrate. Tests, lint, and CI run. Worker start sets `KH_ROLE=worker`.
 
-T36 columns are already in the init migration. Do not revert that migration. The leftover is paperwork (sign-off), not a missing column — see T36.
+T36 columns are in the init migration and are **done**. Do not revert that migration. Jobs that read those columns are still unwritten (T41–T44 and friends).
 
 **Gate:** met.
 
@@ -161,20 +163,20 @@ T36 columns are already in the init migration. Do not revert that migration. The
 
 Routes: API inventory §8–§9.
 
-| Item | Plan | Code |
+| Item | Intended now | Code today |
 |---|---|---|
-| 15. OTP issue/verify | Customer and Vendor | **Vendor only** in the request body (`REGISTER_VENDOR`, `LOGIN`, `CHANGE_MOBILE`). The database enum already has `REGISTER_CUSTOMER`. Dummy challenge on unknown LOGIN numbers: built. |
-| 16. Register | Customer + Vendor | **Vendor only.** `POST /v1/auth/register/customer` is missing. |
-| 17. Password login + Admin 2FA | Both | Password login **built** (Vendor and Admin). Admin 2FA **not built**. |
-| 18. OAuth bind (publish gate, not login) (`BR-001`) | `POST /v1/auth/oauth/bind` | **Not built.** What exists instead: the auth guard treats a Google token as a login and, if the person is new, creates a Vendor. |
-| 19. Refresh, logout, sessions, password set/reset, devices | All | Refresh and logout **built**. Sessions list/delete, password set/reset, devices **not built**. |
+| 15. OTP | Not a login. May still prove a mobile number for Talk. | Vendor OTP request/verify **built**. Customer purpose missing from the HTTP body. |
+| 16. Register after Google | New Google user picks Customer or Vendor, accepts terms, supplies a real mobile number. | Vendor register **built** (old OTP path). Customer register **missing**. Google auto-creates a Vendor (bug). |
+| 17. Password + Admin 2FA | Not marketplace login. Admin method **open**. | Password login **built** (Vendor and Admin). Admin 2FA **not built**. |
+| 18. Login | Google only (`adr/0010`). Exchange Google token → Karat Hive session. | Google token accepted on every request. New users become Vendors. No session-exchange route. |
+| 19. Refresh, logout, sessions, password set/reset, devices | Refresh/logout stay. Password set/reset only if Admin still uses passwords. | Refresh and logout **built**. Sessions list/delete, password set/reset, devices **not built**. |
 | 20. `GET/PATCH /v1/me`, mobile change, deactivate, deletion-request | All | `GET/PATCH /v1/me` **built** for Vendor and Admin. No `customer` object. Mobile change, deactivate, deletion-request **not built**. |
 | 21. Settings + notification preferences | — | **Not built.** `modules/settings/` is empty. |
 | 22. Vendor shell: marketplace routes `403 VENDOR_NOT_ACTIVE` | — | **Built** on vendor-onboarding routes (`VendorAccessGuard`). |
 
-**Gate:** Vendor register/login/refresh works. Customer register/login round-trip does not. Suspended user cannot authenticate: built.
+**Gate (old):** Vendor password/OTP login works. **Gate (intended):** Google → session bundle → `GET /v1/me` for both Customer and Vendor, with no auto-created Vendor. Not met.
 
-Leftovers: [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) Track A (Google path) and Track I.
+Leftovers: [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) Track A (Google session) and Track I.
 
 ---
 
@@ -206,7 +208,7 @@ Leftovers: [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) Track A (Google path) 
 32. Vendor profile GET/PATCH; `BR-004` re-verification on legal name / licence / address. `VendorMe` carries `verificationMessage?`. **Built.**
 33. KYC documents via media; resubmit after reject. **Built.**
 33a. **Vendor document expiry job** (`vendor-document-expiry`, daily 02:00 GST). **Not built.** Column `reminder_sent_at` is in the schema.
-34. Categories / Regions / away mode (`FR-VEN-025`). **Built.** Guard admits `VERIFIED` before first `ACTIVE` (SAM-GAP-7 in code).
+34. Categories / Regions / away mode (`FR-VEN-025`). **Built as a temporary shortcut:** guard admits `VERIFIED` before first `ACTIVE`. API list still says active-only (SAM-GAP-7). Do not change the API list.
 35. `GET /v1/me/subscriptions` read-only. **Not built.** Dashboard returns `subscriptions: []`.
 36. Admin grant/patch subscriptions (`AD-API-04`). **Not built.**
 37. Dashboard counts (`GET /v1/me/dashboard`). **Built as zeros** until P7/P8.
@@ -387,9 +389,9 @@ Working backlog. Tick in this file as work lands. IDs are stable and never reuse
 
 | ID | Task | Status |
 |---|---|---|
-| T12 | OTP + register Customer/Vendor | **partial** — Vendor OTP + Vendor register done. Customer OTP purpose not in the HTTP body. Customer register missing. |
-| T13 | Password + Admin 2FA | **partial** — password login done (Vendor and Admin). 2FA not built. |
-| T14 | OAuth bind (publish gate) | pending — `POST /v1/auth/oauth/bind` missing. Google token is currently treated as login. |
+| T12 | OTP + register Customer/Vendor | **partial** — Vendor register exists. Intended login is Google (`adr/0010`), not OTP. Customer register after Google is still missing. Phone OTP may still prove a number for Talk. |
+| T13 | Password + Admin 2FA | **partial** — password login exists in code. Not the intended marketplace login. Admin 2FA not built. Admin login method is **open**. |
+| T14 | Google session (was OAuth bind) | **pending** — intended: exchange Google token for a Karat Hive session (`adr/0010`). Do not build `POST /v1/auth/oauth/bind` as a second login. Code today auto-creates Vendors inside the guard (bug). |
 | T15 | Sessions / me / settings / shell guard | **partial** — `GET/PATCH /v1/me` (Vendor/Admin) + vendor shell guard done. No Customer `me`, sessions list/delete, settings, password change/reset, mobile change, deactivate, deletion, devices. |
 | T16 | Taxonomy GET + seed | **partial** — public + admin CRUD + seed done. `GET /v1/platform-config` missing (P3 gate). |
 | T17 | Media port + local-disk adapter + complete/process | **partial** — KYC upload-intent/complete/delete done. Image-clean worker not built. |
@@ -426,15 +428,15 @@ Working backlog. Tick in this file as work lands. IDs are stable and never reuse
 | T33 | Test runner + `npm test`; `start:worker` sets `KH_ROLE=worker` | P0 | done (`KH_ROLE`; `APP_ROLE` alias) |
 | T34 | ESLint + Prettier + `eslint-plugin-boundaries` + `npm run lint` | P0 | done |
 | T35 | CI workflow (build · lint · test); choose the Nest/Zod → OpenAPI generator | P0 → feeds T31 | CI done (`.github/workflows/backend.yml`); generator still T31 |
-| T36 | Fold SAM-GAP columns and Async-Contract §10 deltas into schema | P0 | **Columns are in the schema.** Jobs that use them are still pending. Do not revert the init migration. Sign-off on the original `[PROPOSED]` labels is still open paperwork. |
+| T36 | Fold SAM-GAP columns and Async-Contract §10 deltas into schema | P0 | **done** (columns in schema). Jobs that use them: T41–T44 and related rows, still pending. |
 | T37 | Match-set recompute on `vendor.eligibility.changed` (`FR-SYS-002.3`) | P7 | pending |
 | T38 | Notification retry job (`FR-SYS-008.3`) | P10 | pending |
 | T39 | Retention purge job, daily 03:00 GST (`NFR-021`, `FR-SYS-009.6`) | P10 | pending |
 | T40 | Gold-rate stale alert (`FR-SYS-010.5`) | P12 | pending |
-| T41 | Offer expiry warning job (`FR-VEN-013` AC4) | P8 | pending (column exists) |
-| T42 | Draft purge job — warn 27 d, delete 30 d (`FR-CUS-015` AC4) | P6 | pending (column exists) |
+| T41 | Offer expiry warning job (`FR-VEN-013` AC4) | P8 | pending |
+| T42 | Draft purge job — warn 27 d, delete 30 d (`FR-CUS-015` AC4) | P6 | pending |
 | T43 | Announcement dispatch job (`FR-ADM-029`) | P11 | pending |
-| T44 | Vendor document expiry job (`FR-VEN-002` AC4) | P5 | pending (column exists) |
+| T44 | Vendor document expiry job (`FR-VEN-002` AC4) | P5 | pending |
 
 ---
 
@@ -468,9 +470,8 @@ Nest + Fastify + Prisma is what the repo runs. `AD-BE-04` / `AD-BE-05` are still
 
 Open, not guessed:
 
-- **Google Sign-In vs `BR-001`.** Code uses Google as login and creates a Vendor. The original rule says Google is not a login. See [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) G2-D01.
-- **T36 paperwork.** Columns are in the database. Original `[PROPOSED]` labels were never signed off in writing.
-- **SAM-GAP-7.** Code allows a verified-but-not-active Vendor to set categories. The API list still says active-only. The API list has not been edited in this version.
+- **Admin login.** Marketplace login is Google (`adr/0010`). Whether Admins also use Google, or stay on email + password + 2FA, is not decided.
+- **SAM-GAP-7 shortcut.** API list stays active-only. Code currently lets verified Vendors set categories. How first activation works after the shortcut is removed is not decided.
 
 ---
 
@@ -483,3 +484,4 @@ Open, not guessed:
 | 0.3 | 1 Sep 2026 | P0/P1 review-gap fixes (`docs/Backend-Gap-Fix-Plan.md` F01–F17). T33–T35 toolchain closed except OpenAPI generator (T31). T36 columns remain in init as `[PROPOSED]`. |
 | 0.4 | 6 Sep 2026 | Pointer to [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) (`G2-*`) as the post-CP1 executable split of pending T-rows plus Firebase AuthGuard defects. T15 corrected from "done" to **partial** (me + shell guard only). |
 | 0.5 | 6 Sep 2026 | Rewrote status against the code. Replaced the 1 Sep "empty repo" snapshot. P0 and P1 marked done. P2–P5 marked partly built with leftovers. P6–P12 marked not built. T12/T16/T17 corrected to partial. T36: columns exist; jobs still pending. SAM-GAP-7 and SAM-GAP-4 recorded as present in code/schema. Did not change SRS, architecture, or the API list. |
+| 0.6 | 6 Sep 2026 | Product choices: Google is the only marketplace login (`adr/0010`); SAM-GAP-7 code is a temporary shortcut (API list unchanged); T36 columns treated as done; password hashing is scrypt (`AD-BE-16`). Admin login still open. |
