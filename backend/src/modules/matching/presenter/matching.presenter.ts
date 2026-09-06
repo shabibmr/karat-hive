@@ -4,15 +4,8 @@ import {
   type VendorRequestView,
 } from '../../requests/presenter/request-vendor.presenter';
 
-export type MatchItemView = {
-  matchId: string;
-  matchedAt: string;
-  viewedAt: string | null;
-  request: VendorRequestView;
-};
-
 export type MatchesListView = {
-  data: MatchItemView[];
+  data: VendorRequestView[];
   meta: {
     nextCursor: string | null;
   };
@@ -25,19 +18,16 @@ export function presentMatch(
       region?: { nameEn?: string; nameAr?: string };
     };
   },
-): MatchItemView {
+): VendorRequestView {
   const regionName = match.request.region?.nameEn ?? 'UAE';
-  const vendorRequest = presentVendorRequest(match.request, {
-    label: `Customer in ${regionName}`,
-    region: regionName,
-    ratingScore: 5.0,
-    dealCount: 1,
-  });
-
-  return {
-    matchId: match.id,
-    matchedAt: match.matchedAt.toISOString(),
-    viewedAt: match.viewedAt ? match.viewedAt.toISOString() : null,
-    request: vendorRequest,
-  };
+  return presentVendorRequest(
+    match.request as Parameters<typeof presentVendorRequest>[0],
+    {
+      label: `Customer in ${regionName}`,
+      region: regionName,
+      ratingScore: 5.0,
+      dealCount: 1,
+    },
+    match.viewedAt,
+  );
 }

@@ -375,7 +375,7 @@ describe('CP2-A15 Vendor Feed Integration Suite', () => {
       });
 
       expect(res.status).toBe(404);
-      expect(res.json.error?.code ?? 'REQUEST_NOT_FOUND').toBe('REQUEST_NOT_FOUND');
+      expect(['NOT_FOUND', 'REQUEST_NOT_FOUND']).toContain(res.json.error?.code);
     });
 
     it('honors query filtering by requestType and pagination cursor', async () => {

@@ -71,7 +71,7 @@ export async function inject(
     url: opts.url,
     payload: opts.body as never,
     headers: {
-      'content-type': 'application/json',
+      ...(opts.body !== undefined ? { 'content-type': 'application/json' } : {}),
       ...(opts.token ? { authorization: `Bearer ${opts.token}` } : {}),
       ...(opts.headers ?? {}),
     },
