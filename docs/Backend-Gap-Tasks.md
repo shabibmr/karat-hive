@@ -59,12 +59,12 @@ Do not silently resolve these by inference. They are recorded as open on purpose
 
 | ID | Decision | Blocks | Status |
 |---|---|---|---|
-| **G2-D01** | Marketplace login | Track A path | **Decided 6 Sep 2026.** Google is the **only** Customer/Vendor login ([`adr/0010`](adr/0010-google-signin-only-login.md)). Path B (OTP/password login) is **n/a**. |
+| **G2-D01** | Login | Track A path | **Decided 6 Sep 2026.** Google is the **only** login for Customer, Vendor, and Admin ([`adr/0010`](adr/0010-google-signin-only-login.md)). Path B (OTP/password login) is **n/a**. |
 | **G2-D02** | API list + error codes for the Google session route | G2-A10–A13 | **Open.** Inventory §8/§5 and `error-codes.ts` must list the new route before the handler. `ONBOARDING_REQUIRED` is not in the catalogue today. |
 | **G2-D03** | T36 extra columns | — | **Decided.** Columns are in the schema. Jobs that use them are **open**, not blocked. Do not revert the init migration. |
 | **G2-D04** | Yahoo Finance redistribution terms for **end-user display**. | Populating `GET /v1/gold-rates.rates` in production | **Still blocked** on Legal. Ship ingest + Admin override + `goldRates.endUserDisplay` flag. Until then, `available: false, reason: "DISPLAY_NOT_LICENSED"`. |
 | **G2-D05** | SAM-GAP-7 (who may set categories) | Replacing the current guard | **Decided: keep the API list** (active-only). Code that lets a verified Vendor set categories is a **temporary shortcut**. How first activation works after the shortcut is removed is **open**. |
-| **G2-D06** | Admin login | G2-I05, G2-I06, G2-I12 | **Open.** Marketplace is Google-only. Admin may still be email + password + 2FA, or also Google. |
+| **G2-D06** | Admin login | G2-I05, G2-I06, G2-I12 | **Decided 6 Sep 2026.** Admin uses Google only (`adr/0010`). No Admin password. No platform 2FA. Admin still cannot self-register. |
 
 Already closed and not reopened: Admin Portal = Flutter Web (`C-10`). Object storage = R2 + MinIO (`C-13`). Supabase Data API locked down (`adr/0009`). Password hashing = scrypt (`AD-BE-16`).
 
@@ -121,7 +121,7 @@ Do these in this order. Struck rows are already on `main`.
 |---|---|---|---|
 | ~~G2-D01~~ | D | Google is the only marketplace login | **Decided** — [`adr/0010`](adr/0010-google-signin-only-login.md) |
 | **G2-D02** | D | Add the Google session route to the API list | Handler must not land first |
-| **G2-D06** | D | Admin login: Google or password + 2FA? | Not decided |
+| ~~G2-D06~~ | D | Admin login is Google only | **Decided** — [`adr/0010`](adr/0010-google-signin-only-login.md) |
 | **G2-A01** | A | AuthGuard read-only | Every authenticated request can insert `User` + `VendorProfile`. |
 | **G2-A02** | A | Require `emailVerified` before email match | Account takeover via unverified Firebase email. |
 | **G2-A03** | A | Refuse non-E.164 mobile | `+fb_…` corrupts OTP and Talk. |
@@ -158,7 +158,7 @@ Copied from the Implementation Plan so this file is executable on its own. Later
 |---|---|---|
 | P0 scaffold, toolchain, CI | T01–T04, T33–T35 done | OpenAPI generator is T31 / G2-GR05 |
 | P1 platform spine | T05–T11, F01–F17 done | — |
-| Vendor OTP, vendor register, password login, refresh, logout | CP1-A04 done | Not the intended marketplace login (`adr/0010`). Keep until Google session lands. Admin login **open**. |
+| Vendor OTP, vendor register, password login, refresh, logout | CP1-A04 done | Not the intended login (`adr/0010`). Keep until Google session lands, then remove password/OTP login. |
 | `GET/PATCH /v1/me` (vendor + admin branches) | CP1-A04f done | Customer branch missing |
 | Taxonomy public + admin CRUD + seeds | T16 / CP1-A03 done | `GET /v1/platform-config` missing |
 | Media KYC path (intent / complete / delete, local + Supabase) | T17 partial | EXIF/scan/thumbnail worker |
@@ -177,12 +177,12 @@ Files are starting points, not a closed set. Acceptance is the merge bar.
 
 | ID | Task | Acceptance | Status | Maps to |
 |---|---|---|---|---|
-| G2-D01 | Product Owner: Google Sign-In vs OTP/password login. | [`adr/0010`](adr/0010-google-signin-only-login.md): Google is the **only** Customer/Vendor login. | **done** | — |
+| G2-D01 | Product Owner: Google Sign-In vs OTP/password login. | [`adr/0010`](adr/0010-google-signin-only-login.md): Google is the **only** login (Customer, Vendor, Admin). | **done** | — |
 | G2-D02 | API list §8 + §5 + `error-codes.ts` + `error-messages.ts` (`en`/`ar`) updated in the same change as the Google session handler. | New route and codes appear in the inventory before the controller. No handler-only codes. | open | AD-API-nn |
 | G2-D03 | T36 extra columns. | Columns are in the schema. Jobs unblocked. No init-migration revert. | **done** | T36 |
 | G2-D04 | Legal: Yahoo redistribution. | Flag `goldRates.endUserDisplay` remains false until signed. | `[BLOCKED]` | T30 |
 | G2-D05 | SAM-GAP-7: keep the API list (active-only). Code shortcut stays until replaced. | API list not edited. Guard may keep admitting `VERIFIED` until a later task replaces it. | **done** (shortcut accepted as temporary) | T18 |
-| G2-D06 | Admin login: Google vs email + password + 2FA. | Written choice. Until then do not remove Admin password login. | open | T13 |
+| G2-D06 | Admin login: Google vs email + password + 2FA. | Google only. No password. No platform 2FA. No self-register. | **done** | T13 |
 
 ---
 
@@ -211,10 +211,11 @@ Inventory must list the route first (G2-D02).
 | ID | Task | Files | Acceptance | Status | Maps to |
 |---|---|---|---|---|---|
 | G2-A10 | `POST /v1/auth/firebase/session` `@Public @RevealsIdentity`. Verifies Google ID token; looks up binding; returns `SessionBundle`. Does **not** create a User. | `auth.controller.ts`, new application service | Unbound token → documented error (D02). Bound token → Karat Hive `SessionBundle`. Idempotent. | blocked on D02 | T14 / T10 |
-| G2-A11 | Completer: `POST /v1/auth/register/customer` and `/register/vendor` accept a verified Google identity, still requiring terms/privacy and an E.164 mobile (OTP or verified Google phone). Role is the route, never inferred. | `registration.service.ts`, Zod bodies | Terms stamped. No Admin register via Google. | blocked on D02 | T12 |
+| G2-A11 | Completer: `POST /v1/auth/register/customer` and `/register/vendor` accept a verified Google identity, still requiring terms/privacy and an E.164 mobile (OTP or verified Google phone). Role is the route, never inferred. | `registration.service.ts`, Zod bodies | Terms stamped. **No Admin register via Google.** A provisioned Admin signs in with Google (email must match the Admin row). | blocked on D02 | T12 |
 | G2-A12 | After exchange, domain routes accept **only** the Karat Hive access token. Google token is valid on G2-A10 only. | `auth.guard.ts` | A Google bearer on `GET /v1/me` is 401 once the client has a `SessionBundle`. | blocked on D02 | T10 |
 | G2-A13 | Rate-limit the exchange route with the auth bucket. Audit `AUTH_FIREBASE_SESSION`. | rate-limit policy, audit writer | Same per-IP/per-subject limits as today’s password login. | blocked on D02 | T09 |
-| G2-A14 | Flutter: after Google Sign-In, call the session route, then send the Karat Hive access token on other calls. | `apps/kh_mobile`, `apps/kh_admin` | Not a backend merge gate. Listed so it is not forgotten. | open | — |
+| G2-A14 | Flutter: after Google Sign-In, call the session route, then send the Karat Hive access token on other calls. | `apps/kh_mobile`, `apps/kh_admin` | Not a backend merge gate. Listed so it is not forgotten. Admin app uses the same Google session. | open | — |
+| G2-A15 | Remove leftover password login, OTP `LOGIN` purpose, and Admin 2FA routes after G2-A10 works. | `auth.controller.ts`, `login.service.ts` | Those paths 404 or are deleted. Seed Admin signs in with Google. | open | T13 |
 
 #### A3 — Path B (OTP/password login) — n/a
 
@@ -224,7 +225,7 @@ Inventory must list the route first (G2-D02).
 
 ### Track I — Identity leftovers (P2)
 
-`T12`/`T14` follow `adr/0010` (Google login). `T13` Admin method is **open** (G2-D06). `T15` still partial.
+`T12`/`T14` follow `adr/0010` (Google login). `T13` is **n/a** (G2-D06 done — no password, no 2FA). `T15` still partial.
 
 | ID | Task | Endpoint / files | Acceptance | Status | Maps to |
 |---|---|---|---|---|---|
@@ -232,14 +233,14 @@ Inventory must list the route first (G2-D02).
 | G2-I02 | `POST /v1/auth/register/customer` after Google (G2-A11). Body: display name, terms/privacy, real E.164 mobile (OTP or verified Google phone), `preferredLanguage`, `defaultRegionId?`. | `registration.service.ts`, presenter | One transaction: `User` CUSTOMER/`ACTIVE`, `CustomerProfile`, terms stamp, Google binding, `SessionBundle` 201. Duplicate mobile → `409 MOBILE_ALREADY_REGISTERED`. `@RevealsIdentity`. | open | **T12** |
 | G2-I03 | `customer` branch on `GET /v1/me` and Customer fields on `PATCH /v1/me` (`displayName`, `email`, `preferredLanguage`, `defaultRegionId`, `photoMediaKey`). | `me.service.ts`, `me.presenter.ts`, `me.controller.ts` | Shape matches inventory §9 `CustomerProfile`. Email change is pending-until-verified (`emailPending` `[PROPOSED]` — implement or explicitly defer in the PR). | open | T15 |
 | G2-I04 | `GET /v1/auth/sessions` · `DELETE /v1/auth/sessions/{id}` | `session.service.ts`, new controller methods | List current refresh families for the caller. Delete revokes that family. | open | T15 |
-| G2-I05 | `POST /v1/auth/password` (set/change). | identity | **Not** marketplace login. Needed only if Admin still uses passwords (G2-D06). Vendor password change is **n/a** under `adr/0010`. | blocked on D06 | T13 |
-| G2-I06 | `POST /v1/auth/password/reset/request` · `/confirm` (`AD-API-10`). | identity | Same as G2-I05 — Admin only if G2-D06 keeps passwords. | blocked on D06 | T13 |
+| G2-I05 | `POST /v1/auth/password` (set/change). | identity | **n/a** — no password login (`adr/0010`). | n/a | T13 |
+| G2-I06 | `POST /v1/auth/password/reset/request` · `/confirm` (`AD-API-10`). | identity | **n/a** — no password login (`adr/0010`). | n/a | T13 |
 | G2-I07 | `POST /v1/me/mobile/change` with `challengeId` purpose `CHANGE_MOBILE`. | `me.controller.ts` | New number E.164 + verified OTP. Old number released. | open | T15 |
 | G2-I08 | `POST /v1/me/deactivate`. Customer: closes live Requests, blocks login. Vendor: `403` if an `ACTIVE` Connection exists (`[PROPOSED]` in inventory). | identity | `accountState = DEACTIVATED`. Subsequent auth → `403 ACCOUNT_DEACTIVATED`. | open | T15 |
 | G2-I09 | `POST /v1/me/deletion-requests` + `/{id}/confirm` (`FR-CUS-004`, `NFR-019`). Refuse if a Connection was created in the last 30 days. | identity | Two-step + OTP. Worker completion may stub as queued until G2-N07. | open | T15 |
 | G2-I10 | `GET/PATCH /v1/me/settings` (language, default region, notification preferences, quiet hours). | `modules/settings/` | Inventory §9 settings object. Quiet hours evaluated at **dispatch** time later (G2-N02), stored now. | open | T15 |
 | G2-I11 | `POST /v1/devices` · `DELETE /v1/devices/{id}` | identity | Stores push device tokens for G2-N04. `[PROPOSED]` in inventory — implement as specified. | open | T15 |
-| G2-I12 | Admin 2FA: `POST /v1/auth/admin/2fa/setup` · `/confirm` · `/verify`. | identity, `login.service.ts` | Only if G2-D06 keeps password login. Self-registration of Admin remains impossible. | blocked on D06 | **T13** |
+| G2-I12 | Admin 2FA: `POST /v1/auth/admin/2fa/setup` · `/confirm` · `/verify`. | identity | **n/a** — no platform 2FA (`adr/0010`). | n/a | **T13** |
 | G2-I13 | Customer Google round-trip integration test. | `test/integration/` | Google session → register customer → refresh → `GET /v1/me` has `customer`, no `vendor`. | open | T12 |
 | G2-I14 | Surface `oauthBound` on Customer `Me` (true after Google login/completer). | `me.presenter.ts` | Publish (G2-R05) reads the binding row, not only the presenter. | open | T14 / T15 |
 
@@ -370,7 +371,7 @@ Taxonomy CUD is **done** (Checkpoint 1). Non-Admin on `/v1/admin` → `404` is *
 | G2-ADM09 | `GET /v1/admin/settings`, `PATCH /v1/admin/settings/{key}` (`BR-020` — no retroactive rewrite of live Requests/Offers). Includes gold-rate poll interval and staleness threshold (`SAM-GAP-11`). | settings | Changes audit. | open | T29 · #72 |
 | G2-ADM10 | Abuse queue list/detail/resolve. | admin + abuse | Reporter remains masked. | open | T29 |
 | G2-ADM11 | `GET /v1/admin/audit-log` rows carry `before` / `after` / `ip` / `userAgent` in full (`SAM-GAP-12`). Add `GET …/audit-log/{id}` only if the list row cannot. | admin + audit | Append-only; no update/delete path. | open | T29 |
-| G2-ADM12 | Admin user provisioning: list/create/suspend/revoke/password-reset. Coarse role (`AD-API-03`). No self-register. Unauthenticated `POST /v1/auth/register/admin` → `404 ADMIN_SELF_REGISTRATION_FORBIDDEN` (add code to catalogue if missing from `error-codes.ts`). | admin + identity | Create does not set a password in the body; reset emails. | open | T29 · #72 |
+| G2-ADM12 | Admin user provisioning: list/create/suspend/revoke. Coarse role (`AD-API-03`). No self-register. Unauthenticated `POST /v1/auth/register/admin` → `404 ADMIN_SELF_REGISTRATION_FORBIDDEN` (add code to catalogue if missing from `error-codes.ts`). | admin + identity | Create stores the Admin email they will use with Google. No password in the body. No password-reset route. | open | T29 · #72 |
 | G2-ADM13 | `POST /v1/admin/{collection}/{id}/notes` (`AD-API-12`). | admin | `[PROPOSED]` — implement as specified. | open | T29 · #73 |
 
 ---
@@ -425,7 +426,7 @@ IDs are not replaced. This register **splits** the pending/partial T-rows.
 |---|---|---|
 | T01–T11, T33–T35 | done | — |
 | T12 | pending | G2-I01, G2-I02, G2-I13, G2-A06/A09/A11 |
-| T13 | partial | G2-I05, G2-I06, G2-I12 |
+| T13 | n/a (`adr/0010`) | G2-I05, G2-I06, G2-I12 unused; G2-A15 removes leftover password login |
 | T14 | pending | G2-A10–A14 + G2-I14 (`adr/0010`; path B n/a) |
 | T15 | marked done — **overstated** | G2-I03, G2-I04, G2-I07–I11 |
 | T16 | done except config | G2-P01 |
@@ -519,3 +520,4 @@ Report IDs `TSK-BE-01`–`TSK-BE-27` are **retired**. Do not allocate new work t
 |---|---|---|
 | 0.1 | 6 Sep 2026 | Initial register. Reviewed `backend_code_review_and_gap_report.md` against the tree, inventory, and T01–T44. Retired TSK-BE-01–27. Recorded G2-D01 as blocking. |
 | 0.2 | 6 Sep 2026 | Product choices: G2-D01 done (`adr/0010` Google-only marketplace login); G2-D03 done (T36 columns); G2-D05 API list kept for SAM-GAP-7 (code shortcut temporary); G2-D06 Admin login still open. Path B n/a. Jobs unblocked. |
+| 0.3 | 6 Sep 2026 | G2-D06 done: Admin Google-only. T13 / I05 / I06 / I12 n/a. G2-A15 removes leftover password login. |

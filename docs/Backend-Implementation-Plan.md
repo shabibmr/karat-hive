@@ -4,7 +4,7 @@
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | Backend implementation plan and task list |
-| **Version** | 0.6 |
+| **Version** | 0.7 |
 | **Status** | Working backlog. Does not override the SRS. Last checked against `backend/` on 6 September 2026. Marketplace login: [`adr/0010`](adr/0010-google-signin-only-login.md). |
 | **Date** | 6 September 2026 |
 | **Source of truth** | [`Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`Architecture-Backend.md`](Architecture-Backend.md) · [`API-Route-Inventory.md`](API-Route-Inventory.md) · [`Physical-Data-Model.md`](Physical-Data-Model.md) · [`Async-Contract.md`](Async-Contract.md) (`AD-ASYNC-nn` — outbox payloads and the 15 scheduled jobs; feeds P2/P7/P10/P12, T05/T21/T23/T28) |
@@ -55,7 +55,7 @@ Checked against `backend/src`, `backend/prisma`, `backend/test`, and `.github/wo
 
 **Decided (6 September 2026), not guessed:**
 
-1. **Google is the only marketplace login** ([`adr/0010`](adr/0010-google-signin-only-login.md)). Customer and Vendor do not log in with OTP or password. The SRS and the API list still describe the old login; they need a later rewrite. Code today also **creates a Vendor automatically** on first Google use — that is a bug to fix, not the design.
+1. **Google is the only login** for Customer, Vendor, **and Admin** ([`adr/0010`](adr/0010-google-signin-only-login.md)). OTP, password, and platform 2FA are not login. Admin still cannot self-register. The SRS and the API list still describe the old login; they need a later rewrite. Code today also **creates a Vendor automatically** on first Google use — that is a bug to fix, not the design.
 2. **Password hashing is scrypt** (`AD-BE-16`). Architecture-Backend now matches the code.
 3. **T36 extra columns are done** in the schema. Jobs that use them can be built in their phase. Do not revert the init migration.
 4. **SAM-GAP-7:** the API list still says only an **active** Vendor may set categories. The code currently lets a **verified** Vendor do it so first activation works. That code is a **temporary shortcut**. Do not change the API list. A later change must replace the shortcut without trapping new Vendors.
@@ -167,9 +167,9 @@ Routes: API inventory §8–§9.
 |---|---|---|
 | 15. OTP | Not a login. May still prove a mobile number for Talk. | Vendor OTP request/verify **built**. Customer purpose missing from the HTTP body. |
 | 16. Register after Google | New Google user picks Customer or Vendor, accepts terms, supplies a real mobile number. | Vendor register **built** (old OTP path). Customer register **missing**. Google auto-creates a Vendor (bug). |
-| 17. Password + Admin 2FA | Not marketplace login. Admin method **open**. | Password login **built** (Vendor and Admin). Admin 2FA **not built**. |
+| 17. Password + Admin 2FA | **Not used.** Google is the only login (`adr/0010`), including Admin. | Password login **still in code**. Admin 2FA **not built** — do not build it. Remove password login after Google session works. |
 | 18. Login | Google only (`adr/0010`). Exchange Google token → Karat Hive session. | Google token accepted on every request. New users become Vendors. No session-exchange route. |
-| 19. Refresh, logout, sessions, password set/reset, devices | Refresh/logout stay. Password set/reset only if Admin still uses passwords. | Refresh and logout **built**. Sessions list/delete, password set/reset, devices **not built**. |
+| 19. Refresh, logout, sessions, password set/reset, devices | Refresh/logout stay. Password set/reset **n/a**. Devices stay. | Refresh and logout **built**. Sessions list/delete and devices **not built**. Password set/reset must not be added. |
 | 20. `GET/PATCH /v1/me`, mobile change, deactivate, deletion-request | All | `GET/PATCH /v1/me` **built** for Vendor and Admin. No `customer` object. Mobile change, deactivate, deletion-request **not built**. |
 | 21. Settings + notification preferences | — | **Not built.** `modules/settings/` is empty. |
 | 22. Vendor shell: marketplace routes `403 VENDOR_NOT_ACTIVE` | — | **Built** on vendor-onboarding routes (`VendorAccessGuard`). |
@@ -390,7 +390,7 @@ Working backlog. Tick in this file as work lands. IDs are stable and never reuse
 | ID | Task | Status |
 |---|---|---|
 | T12 | OTP + register Customer/Vendor | **partial** — Vendor register exists. Intended login is Google (`adr/0010`), not OTP. Customer register after Google is still missing. Phone OTP may still prove a number for Talk. |
-| T13 | Password + Admin 2FA | **partial** — password login exists in code. Not the intended marketplace login. Admin 2FA not built. Admin login method is **open**. |
+| T13 | Password + Admin 2FA | **n/a** — Google is the only login, including Admin (`adr/0010`). Password login in code is leftover to remove. Do not build 2FA. |
 | T14 | Google session (was OAuth bind) | **pending** — intended: exchange Google token for a Karat Hive session (`adr/0010`). Do not build `POST /v1/auth/oauth/bind` as a second login. Code today auto-creates Vendors inside the guard (bug). |
 | T15 | Sessions / me / settings / shell guard | **partial** — `GET/PATCH /v1/me` (Vendor/Admin) + vendor shell guard done. No Customer `me`, sessions list/delete, settings, password change/reset, mobile change, deactivate, deletion, devices. |
 | T16 | Taxonomy GET + seed | **partial** — public + admin CRUD + seed done. `GET /v1/platform-config` missing (P3 gate). |
@@ -470,7 +470,6 @@ Nest + Fastify + Prisma is what the repo runs. `AD-BE-04` / `AD-BE-05` are still
 
 Open, not guessed:
 
-- **Admin login.** Marketplace login is Google (`adr/0010`). Whether Admins also use Google, or stay on email + password + 2FA, is not decided.
 - **SAM-GAP-7 shortcut.** API list stays active-only. Code currently lets verified Vendors set categories. How first activation works after the shortcut is removed is not decided.
 
 ---
@@ -485,3 +484,4 @@ Open, not guessed:
 | 0.4 | 6 Sep 2026 | Pointer to [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) (`G2-*`) as the post-CP1 executable split of pending T-rows plus Firebase AuthGuard defects. T15 corrected from "done" to **partial** (me + shell guard only). |
 | 0.5 | 6 Sep 2026 | Rewrote status against the code. Replaced the 1 Sep "empty repo" snapshot. P0 and P1 marked done. P2–P5 marked partly built with leftovers. P6–P12 marked not built. T12/T16/T17 corrected to partial. T36: columns exist; jobs still pending. SAM-GAP-7 and SAM-GAP-4 recorded as present in code/schema. Did not change SRS, architecture, or the API list. |
 | 0.6 | 6 Sep 2026 | Product choices: Google is the only marketplace login (`adr/0010`); SAM-GAP-7 code is a temporary shortcut (API list unchanged); T36 columns treated as done; password hashing is scrypt (`AD-BE-16`). Admin login still open. |
+| 0.7 | 6 Sep 2026 | Admin login is Google only (`adr/0010`). T13 / platform 2FA are n/a. |
