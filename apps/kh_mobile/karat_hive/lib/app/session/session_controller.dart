@@ -1,8 +1,12 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+import '../../core/firebase/firebase_auth_service.dart';
 import '../di.dart';
 
 sealed class SessionState {
@@ -30,14 +34,35 @@ class SignedIn extends SessionState {
 class SessionController extends Notifier<SessionState> {
   KhApi get _api => ref.read(khApiProvider);
   TokenStorage get _storage => ref.read(tokenStorageProvider);
+  FirebaseAuthService get _authService => ref.read(firebaseAuthServiceProvider);
+  StreamSubscription<User?>? _authSub;
 
   @override
   SessionState build() {
+    _authSub?.cancel();
+    _authSub = _authService.authStateChanges.listen((fbUser) {
+      if (fbUser == null) {
+        _checkLegacySession();
+      } else {
+        refreshUser();
+      }
+    });
+    ref.onDispose(() => _authSub?.cancel());
+
     _restore();
     return const SessionLoading();
   }
 
   Future<void> _restore() async {
+    final fbUser = _authService.currentUser;
+    if (fbUser != null) {
+      await refreshUser();
+      return;
+    }
+    await _checkLegacySession();
+  }
+
+  Future<void> _checkLegacySession() async {
     final tokens = await _storage.read();
     if (tokens == null) {
       state = const SignedOut();
@@ -50,7 +75,31 @@ class SessionController extends Notifier<SessionState> {
     final result = await _api.me();
     state = result.when(
       ok: (user) => SignedIn(user),
-      err: (_) => const SignedOut(),
+      err: (failure) {
+        final fbUser = _authService.currentUser;
+        if (fbUser != null) {
+          // Firebase authenticated; fallback to initial MeUser for onboarding
+          return SignedIn(
+            MeUser(
+              userId: fbUser.uid,
+              userType: 'VENDOR',
+              mobileNumber: fbUser.phoneNumber ?? '',
+              preferredLanguage: 'en',
+              email: fbUser.email,
+              vendor: const VendorMe(
+                vendorProfileId: '',
+                lifecycle: VendorLifecycle.registered,
+                awaitingApproval: true,
+                tradingName: '',
+                legalBusinessName: '',
+                categoryCount: 0,
+                regionCount: 0,
+              ),
+            ),
+          );
+        }
+        return const SignedOut();
+      },
     );
   }
 
@@ -61,8 +110,11 @@ class SessionController extends Notifier<SessionState> {
 
   Future<void> signOut() async {
     final tokens = await _storage.read();
-    await _api.logout(tokens?.refreshToken);
-    await _storage.clear();
+    if (tokens != null) {
+      await _api.logout(tokens.refreshToken);
+      await _storage.clear();
+    }
+    await _authService.signOut();
     state = const SignedOut();
   }
 }

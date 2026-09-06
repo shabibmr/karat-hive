@@ -134,7 +134,7 @@ class _OtpTab extends StatelessWidget {
   }
 }
 
-class _PasswordTab extends ConsumerWidget {
+class _PasswordTab extends ConsumerStatefulWidget {
   const _PasswordTab({
     required this.email,
     required this.password,
@@ -148,34 +148,60 @@ class _PasswordTab extends ConsumerWidget {
   final VoidCallback onSubmit;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Padding(
-        padding: const EdgeInsets.only(top: 16),
-        child: Column(
-          children: [
-            KhTextField(
-              label: 'Business email',
-              controller: email,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            KhTextField(label: 'Password', controller: password, obscure: true),
-            KhButton(label: 'Sign in', onPressed: onSubmit, busy: busy),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              key: const Key('google-signin-button'),
-              onPressed: busy
-                  ? null
-                  : () async {
-                      try {
-                        final auth = ref.read(firebaseAuthServiceProvider);
-                        await auth.signInWithGoogle();
-                      } catch (e) {
-                        debugPrint('Google Sign-In error: $e');
+  ConsumerState<_PasswordTab> createState() => _PasswordTabState();
+}
+
+class _PasswordTabState extends ConsumerState<_PasswordTab> {
+  bool _googleSigningIn = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isBusy = widget.busy || _googleSigningIn;
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        children: [
+          KhTextField(
+            label: 'Business email',
+            controller: widget.email,
+            keyboardType: TextInputType.emailAddress,
+          ),
+          KhTextField(label: 'Password', controller: widget.password, obscure: true),
+          KhButton(label: 'Sign in', onPressed: widget.onSubmit, busy: isBusy),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            key: const Key('google-signin-button'),
+            onPressed: isBusy
+                ? null
+                : () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    setState(() => _googleSigningIn = true);
+                    try {
+                      final auth = ref.read(firebaseAuthServiceProvider);
+                      await auth.signInWithGoogle();
+                    } catch (e) {
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          SnackBar(content: Text('Google Sign-In failed: $e')),
+                        );
                       }
-                    },
-              icon: const Icon(Icons.account_circle_outlined, size: 20),
-              label: const Text('Sign in with Google'),
-            ),
-          ],
-        ),
-      );
+                    } finally {
+                      if (mounted) {
+                        setState(() => _googleSigningIn = false);
+                      }
+                    }
+                  },
+            icon: _googleSigningIn
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.account_circle_outlined, size: 20),
+            label: Text(_googleSigningIn ? 'Signing in...' : 'Sign in with Google'),
+          ),
+        ],
+      ),
+    );
+  }
 }

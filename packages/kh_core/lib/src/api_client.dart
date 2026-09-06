@@ -8,6 +8,8 @@ import 'failure.dart';
 import 'result.dart';
 import 'token_storage.dart';
 
+typedef TokenGetter = Future<String?> Function();
+typedef TokenRefreshHandler = Future<bool> Function();
 typedef RefreshCallback = Future<SessionTokens?> Function(String refreshToken);
 
 /// Dio wrapper implementing the interceptor chain from Architecture-Frontend §9.2:
@@ -20,8 +22,12 @@ class KhApiClient {
     required this.serverClock,
     this.localeCode = 'en',
     RefreshCallback? onRefresh,
+    TokenGetter? tokenGetter,
+    TokenRefreshHandler? onTokenRefresh,
     Dio? dio,
   })  : _onRefresh = onRefresh,
+        _tokenGetter = tokenGetter,
+        _onTokenRefresh = onTokenRefresh,
         dio = dio ?? Dio() {
     this.dio.options
       ..baseUrl = baseUrl
@@ -36,8 +42,21 @@ class KhApiClient {
   final ServerClock serverClock;
   String localeCode;
   final RefreshCallback? _onRefresh;
+  final TokenGetter? _tokenGetter;
+  final TokenRefreshHandler? _onTokenRefresh;
 
   Future<void>? _refreshing;
+
+  /// Returns the current active token, prioritizing [tokenGetter] (e.g. Firebase ID token)
+  /// before falling back to [tokenStorage] (session tokens).
+  Future<String?> getActiveToken() async {
+    if (_tokenGetter != null) {
+      final token = await _tokenGetter();
+      if (token != null && token.isNotEmpty) return token;
+    }
+    final tokens = await tokenStorage.read();
+    return tokens?.accessToken;
+  }
 
   /// GET/POST/PATCH/PUT/DELETE returning the unwrapped `data` payload or a [Failure].
   Future<Result<dynamic>> send(
@@ -112,6 +131,9 @@ class KhApiClient {
   }
 
   Future<bool> _tryRefresh() async {
+    if (_onTokenRefresh != null) {
+      return _onTokenRefresh();
+    }
     final cb = _onRefresh;
     if (cb == null) return false;
     _refreshing ??= () async {
@@ -144,9 +166,9 @@ class _ChainInterceptor extends Interceptor {
     if (_isMutating(options.method)) {
       options.headers.putIfAbsent('idempotency-key', _uuid);
     }
-    final tokens = await _client.tokenStorage.read();
-    if (tokens != null) {
-      options.headers['authorization'] = 'Bearer ${tokens.accessToken}';
+    final token = await _client.getActiveToken();
+    if (token != null && token.isNotEmpty) {
+      options.headers['authorization'] = 'Bearer $token';
     }
     handler.next(options);
   }
@@ -170,9 +192,9 @@ class _ChainInterceptor extends Interceptor {
       if (ok) {
         final opts = err.requestOptions;
         opts.extra['kh.retried'] = true;
-        final tokens = await _client.tokenStorage.read();
-        if (tokens != null) {
-          opts.headers['authorization'] = 'Bearer ${tokens.accessToken}';
+        final token = await _client.getActiveToken();
+        if (token != null && token.isNotEmpty) {
+          opts.headers['authorization'] = 'Bearer $token';
         }
         try {
           final retry = await _client.dio.fetch<dynamic>(opts);

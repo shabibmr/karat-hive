@@ -81,10 +81,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final authService = ref.read(firebaseAuthServiceProvider);
-      final cred = await authService.signInWithGoogle();
-      if (cred != null && cred.user != null) {
-        // Authenticated with Google Firebase Auth
-      }
+      await authService.signInWithGoogle();
+      // On successful sign-in, SessionController's authStateChanges listener
+      // triggers _syncFirebaseUser -> authenticated, and RouterNotifier routes to /
     } catch (e) {
       if (!mounted) return;
       setState(() {
