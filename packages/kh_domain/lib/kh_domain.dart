@@ -5,3 +5,4 @@ export 'src/taxonomy.dart';
 export 'src/vendor_document.dart';
 export 'src/session.dart';
 export 'src/vendor_dashboard.dart';
+export 'src/party.dart';

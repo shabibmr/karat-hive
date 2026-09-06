@@ -1,5 +1,7 @@
 library kh_ui_domain;
 
+export 'src/expiry_countdown.dart';
+
 import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
