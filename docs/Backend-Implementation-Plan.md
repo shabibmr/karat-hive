@@ -5,7 +5,7 @@
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | Backend implementation plan and task list |
 | **Version** | 0.7 |
-| **Status** | Working backlog. Does not override the SRS. Last checked against `backend/` on 6 September 2026. Marketplace login: [`adr/0010`](adr/0010-google-signin-only-login.md). |
+| **Status** | Working backlog. Does not override the SRS. Last checked against `backend/` on 6 September 2026. Login (all roles): [`adr/0010`](adr/0010-google-signin-only-login.md). |
 | **Date** | 6 September 2026 |
 | **Source of truth** | [`Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`Architecture-Backend.md`](Architecture-Backend.md) · [`API-Route-Inventory.md`](API-Route-Inventory.md) · [`Physical-Data-Model.md`](Physical-Data-Model.md) · [`Async-Contract.md`](Async-Contract.md) (`AD-ASYNC-nn` — outbox payloads and the 15 scheduled jobs; feeds P2/P7/P10/P12, T05/T21/T23/T28) |
 | **Coverage inputs** | [`Screen-API-Map.md`](Screen-API-Map.md) (`SAM-GAP-nn`) · [`Spec-Document-Sequence.md`](Spec-Document-Sequence.md) |
@@ -174,7 +174,7 @@ Routes: API inventory §8–§9.
 | 21. Settings + notification preferences | — | **Not built.** `modules/settings/` is empty. |
 | 22. Vendor shell: marketplace routes `403 VENDOR_NOT_ACTIVE` | — | **Built** on vendor-onboarding routes (`VendorAccessGuard`). |
 
-**Gate (old):** Vendor password/OTP login works. **Gate (intended):** Google → session bundle → `GET /v1/me` for both Customer and Vendor, with no auto-created Vendor. Not met.
+**Gate (old):** Vendor password/OTP login works. **Gate (intended):** Google → session bundle → `GET /v1/me` for Customer, Vendor, and provisioned Admin, with no auto-created Vendor or Admin. Not met.
 
 Leftovers: [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) Track A (Google session) and Track I.
 
