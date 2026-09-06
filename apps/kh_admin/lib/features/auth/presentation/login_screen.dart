@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_exception.dart';
 import '../../../core/auth/session_controller.dart';
 import '../../../core/design/theme/kh_theme.dart';
+import '../../../core/firebase/firebase.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Admin Login Screen (ADM-S01)
@@ -62,6 +63,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
       setState(() {
         _errorMessage = _resolveErrorMessage(e);
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _errorMessage = null;
+      _isSubmitting = true;
+    });
+
+    try {
+      final authService = ref.read(firebaseAuthServiceProvider);
+      final cred = await authService.signInWithGoogle();
+      if (cred != null && cred.user != null) {
+        // Authenticated with Google Firebase Auth
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Google Sign-In failed: ${e.toString()}';
       });
     } finally {
       if (mounted) {
@@ -401,6 +428,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   : Text(
                                       l10n?.signInButton ?? 'Authenticate & Enter Portal',
                                     ),
+                            ),
+                            SizedBox(height: spacing.md),
+                            Row(
+                              children: [
+                                Expanded(child: Divider(color: colors.borderStandard)),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: spacing.sm),
+                                  child: Text(
+                                    'OR',
+                                    style: typography.caption.copyWith(color: colors.textMuted),
+                                  ),
+                                ),
+                                Expanded(child: Divider(color: colors.borderStandard)),
+                              ],
+                            ),
+                            SizedBox(height: spacing.md),
+                            OutlinedButton.icon(
+                              key: const Key('login-google-button'),
+                              onPressed: _isSubmitting ? null : _handleGoogleSignIn,
+                              icon: const Icon(Icons.account_circle_outlined, size: 20),
+                              label: const Text('Sign in with Google'),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: Size(double.infinity, spacing.buttonHeight + 8),
+                                side: BorderSide(color: colors.borderStandard),
+                                foregroundColor: colors.textPrimary,
+                              ),
                             ),
                           ],
                         ),

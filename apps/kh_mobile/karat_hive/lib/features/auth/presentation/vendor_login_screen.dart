@@ -5,6 +5,7 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
 import '../../../app/guards.dart';
+import '../../../core/firebase/firebase.dart';
 import '../controller/vendor_login_controller.dart';
 
 class VendorLoginScreen extends ConsumerStatefulWidget {
@@ -133,7 +134,7 @@ class _OtpTab extends StatelessWidget {
   }
 }
 
-class _PasswordTab extends StatelessWidget {
+class _PasswordTab extends ConsumerWidget {
   const _PasswordTab({
     required this.email,
     required this.password,
@@ -147,7 +148,7 @@ class _PasswordTab extends StatelessWidget {
   final VoidCallback onSubmit;
 
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context, WidgetRef ref) => Padding(
         padding: const EdgeInsets.only(top: 16),
         child: Column(
           children: [
@@ -158,6 +159,22 @@ class _PasswordTab extends StatelessWidget {
             ),
             KhTextField(label: 'Password', controller: password, obscure: true),
             KhButton(label: 'Sign in', onPressed: onSubmit, busy: busy),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              key: const Key('google-signin-button'),
+              onPressed: busy
+                  ? null
+                  : () async {
+                      try {
+                        final auth = ref.read(firebaseAuthServiceProvider);
+                        await auth.signInWithGoogle();
+                      } catch (e) {
+                        debugPrint('Google Sign-In error: $e');
+                      }
+                    },
+              icon: const Icon(Icons.account_circle_outlined, size: 20),
+              label: const Text('Sign in with Google'),
+            ),
           ],
         ),
       );
