@@ -15,6 +15,7 @@ dependencies:
   go_router: ^14.6.2
   file_picker: ^8.1.4
   dio: ^5.7.0
+  firebase_core: ^4.14.0
   kh_core:
     path: ../../../packages/kh_core
   kh_domain:

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "132845397292",
+    "project_id": "karat-hive-app",
+    "storage_bucket": "karat-hive-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:132845397292:android:53d6808d53eae29c6c3889",
+        "android_client_info": {
+          "package_name": "com.kh.hive_admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5Wld2fyrVtkld6Ab2BVRd5kSL81c7GM4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:132845397292:android:5322fdb390fadf896c3889",
+        "android_client_info": {
+          "package_name": "com.kh.karat_hive"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5Wld2fyrVtkld6Ab2BVRd5kSL81c7GM4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
