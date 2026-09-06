@@ -80,7 +80,15 @@ export async function inject(
     // eslint-disable-next-line no-console
     console.error(`[TEST-INJECT-500] ${opts.method} ${opts.url} (${res.statusCode}):`, res.payload);
   }
-  return { status: res.statusCode, json: res.json() };
+  let json: any = null;
+  if (res.payload && res.payload.trim().length > 0) {
+    try {
+      json = res.json();
+    } catch {
+      json = res.payload;
+    }
+  }
+  return { status: res.statusCode, json };
 }
 
 /** taxonomy is required by register/vendor — seed a minimal tree if empty. */
