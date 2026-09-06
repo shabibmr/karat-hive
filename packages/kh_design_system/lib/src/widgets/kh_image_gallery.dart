@@ -29,7 +29,7 @@ class _KhImageGalleryState extends State<KhImageGallery> {
       return Container(
         height: 120,
         decoration: BoxDecoration(
-          color: tokens.border.withValues(alpha: 0.2),
+          color: tokens.ink.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(tokens.radius.md),
         ),
         child: Center(
@@ -59,7 +59,7 @@ class _KhImageGalleryState extends State<KhImageGallery> {
             child: Container(
               height: widget.height,
               width: double.infinity,
-              color: tokens.border.withValues(alpha: 0.15),
+              color: tokens.ink.withValues(alpha: 0.06),
               child: Image.network(
                 widget.imageUrls[_selectedIndex],
                 fit: BoxFit.cover,
@@ -93,7 +93,7 @@ class _KhImageGalleryState extends State<KhImageGallery> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(tokens.radius.sm),
                       border: Border.all(
-                        color: isSelected ? tokens.gold : tokens.border,
+                        color: isSelected ? tokens.gold : tokens.ink.withValues(alpha: 0.15),
                         width: isSelected ? 2 : 1,
                       ),
                     ),
