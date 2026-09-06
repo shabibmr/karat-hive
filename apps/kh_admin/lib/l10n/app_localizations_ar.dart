@@ -67,14 +67,51 @@ class AppLocalizationsAr extends AppLocalizations {
   String get errorUnknown => 'حدث خطأ غير متوقع. يرجى إعادة المحاولة.';
 
   @override
-  String get categoriesTitle => 'إدارة الفئات';
+  String get dashboardEyebrow => 'نظرة عامة على المنصة';
+
+  @override
+  String get dashboardHeading => 'مركز التحكم الإداري';
+
+  @override
+  String get systemOperational => 'النظام يعمل';
+
+  @override
+  String get dashboardSampleDataNotice =>
+      'أرقام إرشادية للعرض فقط. لم يتم تنفيذ نقطة نهاية لوحة التحكم الإدارية (GET /v1/admin/dashboard) بعد — ولا يعكس أي رقم أدناه بيانات المنصة الفعلية.';
+
+  @override
+  String get quickActionQueues => 'قوائم الإجراءات السريعة';
+
+  @override
+  String get queueColumnItem => 'عنصر القائمة';
+
+  @override
+  String get queueColumnType => 'النوع';
+
+  @override
+  String get queueColumnSubmitted => 'تاريخ الإرسال';
+
+  @override
+  String get queueColumnStatus => 'الحالة';
+
+  @override
+  String get queueColumnAction => 'الإجراء';
+
+  @override
+  String get categoriesEyebrow => 'إعدادات التصنيف';
+
+  @override
+  String get categoriesTitle => 'فئات المنتجات';
 
   @override
   String get categoriesSubtitle =>
       'إدارة تصنيف فئات المنتجات المكون من مستويين للطلبات وتخصصات التجار.';
 
   @override
-  String get regionsTitle => 'إدارة المناطق';
+  String get regionsEyebrow => 'التصنيف الجغرافي';
+
+  @override
+  String get regionsTitle => 'مناطق الإمارات وأسواق الذهب';
 
   @override
   String get regionsSubtitle =>

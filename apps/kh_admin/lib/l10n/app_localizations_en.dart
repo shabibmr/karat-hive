@@ -67,14 +67,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorUnknown => 'An unexpected error occurred. Please try again.';
 
   @override
-  String get categoriesTitle => 'Category Management';
+  String get dashboardEyebrow => 'Platform Overview';
+
+  @override
+  String get dashboardHeading => 'Admin Control Center';
+
+  @override
+  String get systemOperational => 'SYSTEM OPERATIONAL';
+
+  @override
+  String get dashboardSampleDataNotice =>
+      'Indicative sample figures. The admin dashboard endpoint (GET /v1/admin/dashboard) is not implemented yet — no number below reflects live platform data.';
+
+  @override
+  String get quickActionQueues => 'Quick Action Queues';
+
+  @override
+  String get queueColumnItem => 'Queue Item';
+
+  @override
+  String get queueColumnType => 'Type';
+
+  @override
+  String get queueColumnSubmitted => 'Submitted';
+
+  @override
+  String get queueColumnStatus => 'Status';
+
+  @override
+  String get queueColumnAction => 'Action';
+
+  @override
+  String get categoriesEyebrow => 'Taxonomy Config';
+
+  @override
+  String get categoriesTitle => 'Product Categories';
 
   @override
   String get categoriesSubtitle =>
       'Manage two-level product category taxonomy for requests and vendor specialisations.';
 
   @override
-  String get regionsTitle => 'Region Management';
+  String get regionsEyebrow => 'Geographic Taxonomy';
+
+  @override
+  String get regionsTitle => 'UAE Regions & Souk Zones';
 
   @override
   String get regionsSubtitle =>

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_exception.dart';
 import '../../../core/design/theme/kh_theme.dart';
+import '../../../core/design/widgets/kh_screen_header.dart';
 import '../../../core/router/taxonomy_query_params.dart';
 import '../../../l10n/app_localizations.dart';
 import '../controller/taxonomy_controller.dart';
@@ -242,9 +243,12 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
     final asyncNodes = ref.watch(taxonomyControllerProvider(widget.kind));
 
     final isCategory = widget.kind == TaxonomyKind.category;
+    final eyebrow = isCategory
+        ? (l10n?.categoriesEyebrow ?? 'Taxonomy Config')
+        : (l10n?.regionsEyebrow ?? 'Geographic Taxonomy');
     final title = isCategory
-        ? (l10n?.categoriesTitle ?? 'Category Management')
-        : (l10n?.regionsTitle ?? 'Region Management');
+        ? (l10n?.categoriesTitle ?? 'Product Categories')
+        : (l10n?.regionsTitle ?? 'UAE Regions & Souk Zones');
     final subtitle = isCategory
         ? (l10n?.categoriesSubtitle ??
             'Manage two-level product category taxonomy for requests and vendor specialisations.')
@@ -256,35 +260,43 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Screen Title & Subtitle Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: typography.displayL),
-                    SizedBox(height: spacing.xxs),
-                    Text(
-                      subtitle,
-                      style: typography.bodySmall.copyWith(color: colors.textSecondary),
-                    ),
-                  ],
+          // ADM-S14/S15 screen header: eyebrow, heading, and the primary
+          // create action at the far edge, as in ui-mock/screens/admin/.
+          KhScreenHeader(
+            eyebrow: eyebrow,
+            heading: title,
+            supportingText: subtitle,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  key: const Key('taxonomy-refresh-button'),
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Refresh',
+                  color: colors.textSecondary,
+                  onPressed: () {
+                    ref.read(taxonomyControllerProvider(widget.kind).notifier).reload();
+                  },
                 ),
-              ),
-              SizedBox(width: spacing.md),
-              // Refresh button
-              IconButton(
-                key: const Key('taxonomy-refresh-button'),
-                icon: const Icon(Icons.refresh),
-                tooltip: 'Refresh',
-                color: colors.textSecondary,
-                onPressed: () {
-                  ref.read(taxonomyControllerProvider(widget.kind).notifier).reload();
-                },
-              ),
-            ],
+                SizedBox(width: spacing.sm),
+                ElevatedButton(
+                  key: const Key('taxonomy-add-root-button'),
+                  onPressed: () {
+                    context.updateTaxonomyQuery(clearSelected: true);
+                    setState(() {
+                      _localSelectedId = null;
+                      _editorMode = EditorMode.createRoot;
+                      _panelErrorMessage = null;
+                    });
+                  },
+                  child: Text(
+                    isCategory
+                        ? (l10n?.addRootCategory ?? '+ Add Category')
+                        : (l10n?.addRootRegion ?? '+ Add Region'),
+                  ),
+                ),
+              ],
+            ),
           ),
 
           SizedBox(height: spacing.lg),
@@ -395,15 +407,14 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                                 .copyWith(color: colors.textSecondary),
                           ),
                           SizedBox(height: spacing.xl),
-                          ElevatedButton.icon(
+                          ElevatedButton(
                             key: const Key('empty-state-cta-button'),
                             onPressed: () {
                               setState(() {
                                 _editorMode = EditorMode.createRoot;
                               });
                             },
-                            icon: const Icon(Icons.add, size: 18),
-                            label: Text(
+                            child: Text(
                               isCategory
                                   ? (l10n?.addRootCategory ?? '+ Add Category')
                                   : (l10n?.addRootRegion ?? '+ Add Region'),
@@ -431,13 +442,6 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                         setState(() {
                           _localSelectedId = node.id;
                           _editorMode = EditorMode.edit;
-                          _panelErrorMessage = null;
-                        });
-                      },
-                      onCreateRoot: () {
-                        setState(() {
-                          _localSelectedId = null;
-                          _editorMode = EditorMode.createRoot;
                           _panelErrorMessage = null;
                         });
                       },

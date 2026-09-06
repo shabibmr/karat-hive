@@ -206,10 +206,76 @@ abstract class AppLocalizations {
   /// **'An unexpected error occurred. Please try again.'**
   String get errorUnknown;
 
+  /// No description provided for @dashboardEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform Overview'**
+  String get dashboardEyebrow;
+
+  /// No description provided for @dashboardHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Control Center'**
+  String get dashboardHeading;
+
+  /// No description provided for @systemOperational.
+  ///
+  /// In en, this message translates to:
+  /// **'SYSTEM OPERATIONAL'**
+  String get systemOperational;
+
+  /// No description provided for @dashboardSampleDataNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Indicative sample figures. The admin dashboard endpoint (GET /v1/admin/dashboard) is not implemented yet — no number below reflects live platform data.'**
+  String get dashboardSampleDataNotice;
+
+  /// No description provided for @quickActionQueues.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Action Queues'**
+  String get quickActionQueues;
+
+  /// No description provided for @queueColumnItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue Item'**
+  String get queueColumnItem;
+
+  /// No description provided for @queueColumnType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get queueColumnType;
+
+  /// No description provided for @queueColumnSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get queueColumnSubmitted;
+
+  /// No description provided for @queueColumnStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get queueColumnStatus;
+
+  /// No description provided for @queueColumnAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get queueColumnAction;
+
+  /// No description provided for @categoriesEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxonomy Config'**
+  String get categoriesEyebrow;
+
   /// No description provided for @categoriesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Category Management'**
+  /// **'Product Categories'**
   String get categoriesTitle;
 
   /// No description provided for @categoriesSubtitle.
@@ -218,10 +284,16 @@ abstract class AppLocalizations {
   /// **'Manage two-level product category taxonomy for requests and vendor specialisations.'**
   String get categoriesSubtitle;
 
+  /// No description provided for @regionsEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Geographic Taxonomy'**
+  String get regionsEyebrow;
+
   /// No description provided for @regionsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Region Management'**
+  /// **'UAE Regions & Souk Zones'**
   String get regionsTitle;
 
   /// No description provided for @regionsSubtitle.

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/auth/auth_models.dart';
+import 'package:kh_admin/core/auth/auth_repository.dart';
+import 'package:kh_admin/core/auth/dev_auth.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/auth/session_state.dart';
 import 'package:kh_admin/core/auth/token_storage.dart';
@@ -15,6 +18,30 @@ class _FakeTokenStorage extends TokenStorage {
   Future<void> saveTokens(SessionTokens tokens) async {}
   @override
   Future<void> clearTokens() async {}
+}
+
+/// Stands in for the backend during the dev auto-login test: a real
+/// `POST /v1/auth/login/password` round trip, minus the network.
+class _SeededAdminAuthRepository extends AuthRepository {
+  _SeededAdminAuthRepository() : super(ApiClient());
+
+  @override
+  Future<SessionBundle> login(String email, String password) async {
+    return const SessionBundle(
+      tokens: SessionTokens(
+        accessToken: 'dev-access',
+        accessExpiresAt: '2026-12-31T23:59:59Z',
+        refreshToken: 'dev-refresh',
+        refreshExpiresAt: '2026-12-31T23:59:59Z',
+      ),
+      user: AdminUser(
+        userId: 'seed-admin',
+        userType: 'ADMIN',
+        email: 'admin@karathive.ae',
+        displayName: 'Platform Admin',
+      ),
+    );
+  }
 }
 
 void main() {
@@ -107,6 +134,48 @@ void main() {
     expect(colors.cream100.toARGB32(), 0xFFFDFBF7);
     expect(colors.goldPrimary.toARGB32(), 0xFFD4AF37);
     expect(colors.backgroundPrimary.toARGB32(), 0xFF0A1128);
+  });
+
+  testWidgets(
+      'dev auto-login lands on the dashboard shell with the Categories nav item',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          tokenStorageProvider.overrideWithValue(_FakeTokenStorage()),
+          authRepositoryProvider
+              .overrideWithValue(_SeededAdminAuthRepository()),
+          devAuthConfigProvider.overrideWithValue(
+            const DevAuthConfig(
+              autoLogin: true,
+              email: 'admin@karathive.ae',
+              password: 'AdminSecret123!',
+            ),
+          ),
+        ],
+        child: const KhAdminApp(),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // The login screen must never appear.
+    expect(find.text('Administrative Portal'), findsNothing);
+
+    // We land inside the shell, on the dashboard, with Categories reachable.
+    expect(find.text('Karat Hive Portal'), findsOneWidget);
+    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('Categories'), findsOneWidget);
+
+    // The bypass is always visible so it cannot ship unnoticed.
+    expect(find.byKey(const Key('dev-autologin-badge')), findsOneWidget);
   });
 }
 

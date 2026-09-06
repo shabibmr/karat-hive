@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/taxonomy/model/taxonomy_kind.dart';
 import '../../features/taxonomy/presentation/taxonomy_screen.dart';
 import '../auth/session_controller.dart';
@@ -66,7 +67,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => const _DashboardPlaceholderScreen(),
+            builder: (context, state) => const DashboardScreen(),
           ),
           GoRoute(
             path: '/taxonomy/categories',
@@ -100,32 +101,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-
-class _DashboardPlaceholderScreen extends StatelessWidget {
-  const _DashboardPlaceholderScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    final typography = context.kh.typography;
-    final colors = context.kh.colors;
-    final spacing = context.kh.spacing;
-
-    return Padding(
-      padding: EdgeInsets.all(spacing.xl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Dashboard', style: typography.displayL),
-          SizedBox(height: spacing.xs),
-          Text(
-            'Karat Hive administrative operations center overview.',
-            style: typography.body.copyWith(color: colors.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _GenericPlaceholderScreen extends StatelessWidget {
   const _GenericPlaceholderScreen({
