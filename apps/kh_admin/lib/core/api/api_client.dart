@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/session_controller.dart';
 import '../auth/token_storage.dart';
+import '../firebase/firebase_auth_service.dart';
 import 'api_exception.dart';
 
 /// Default base URL read from `--dart-define=KH_API_BASE`, defaulting to `http://localhost:3000`.
@@ -225,12 +226,21 @@ class ApiClient {
 /// Provider for [ApiClient] wired with session tokens and silent 401 refresh handler.
 final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
+  final authService = ref.watch(firebaseAuthServiceProvider);
   return ApiClient(
     tokenGetter: () async {
+      final fbToken = await authService.getIdToken();
+      if (fbToken != null && fbToken.isNotEmpty) {
+        return fbToken;
+      }
       final session = ref.read(sessionControllerProvider);
       return session.tokens?.accessToken ?? await tokenStorage.getAccessToken();
     },
     onUnauthorized: () async {
+      final refreshed = await authService.getIdToken(forceRefresh: true);
+      if (refreshed != null && refreshed.isNotEmpty) {
+        return true;
+      }
       return ref.read(sessionControllerProvider.notifier).silentRefresh();
     },
   );

@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "132845397292",
+    "project_id": "karat-hive-app",
+    "storage_bucket": "karat-hive-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:132845397292:android:53d6808d53eae29c6c3889",
+        "android_client_info": {
+          "package_name": "com.kh.hive_admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "132845397292-u3p5dbh1eprebodg9r716ds4jv45ae26.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kh.hive_admin",
+            "certificate_hash": "7444bb2b31eee9bd70b1ae2843b5bac6c029298d"
+          }
+        },
+        {
+          "client_id": "132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5Wld2fyrVtkld6Ab2BVRd5kSL81c7GM4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "132845397292-pref5rmuu9bul4ukha5jibbffuvnpri3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kh.karatHive"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:132845397292:android:5322fdb390fadf896c3889",
+        "android_client_info": {
+          "package_name": "com.kh.karat_hive"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "132845397292-2le5s0tqstmussqlura420n4829dai4l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kh.karat_hive",
+            "certificate_hash": "7444bb2b31eee9bd70b1ae2843b5bac6c029298d"
+          }
+        },
+        {
+          "client_id": "132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5Wld2fyrVtkld6Ab2BVRd5kSL81c7GM4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "132845397292-pref5rmuu9bul4ukha5jibbffuvnpri3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kh.karatHive"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

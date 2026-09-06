@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../firebase/firebase_auth_service.dart';
+import 'auth_models.dart';
 import 'auth_repository.dart';
 import 'session_state.dart';
 import 'token_storage.dart';
@@ -11,23 +14,80 @@ class SessionController extends StateNotifier<SessionState> {
   SessionController({
     required TokenStorage tokenStorage,
     required AuthRepository authRepository,
+    FirebaseAuthService? firebaseAuthService,
   })  : _tokenStorage = tokenStorage,
         _authRepository = authRepository,
+        _firebaseAuthService = firebaseAuthService,
         super(const SessionState()) {
+    _initAuthListener();
     init();
   }
 
   final TokenStorage _tokenStorage;
   final AuthRepository _authRepository;
+  final FirebaseAuthService? _firebaseAuthService;
+  StreamSubscription<User?>? _firebaseAuthSub;
   Completer<bool>? _refreshCompleter;
+
+  void _initAuthListener() {
+    _firebaseAuthSub = _firebaseAuthService?.authStateChanges.listen((fbUser) {
+      if (fbUser != null) {
+        _syncFirebaseUser(fbUser);
+      } else {
+        _checkLegacySession();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _firebaseAuthSub?.cancel();
+    super.dispose();
+  }
 
   /// Initializes session on app start by reading stored tokens and validating with /v1/me.
   Future<void> init() async {
     state = state.copyWith(status: SessionStatus.loading);
+    final fbUser = _firebaseAuthService?.currentUser;
+    if (fbUser != null) {
+      await _syncFirebaseUser(fbUser);
+      return;
+    }
+    await _checkLegacySession();
+  }
+
+  Future<void> _syncFirebaseUser(User fbUser) async {
+    try {
+      final me = await _authRepository.getMe();
+      state = state.copyWith(
+        status: SessionStatus.authenticated,
+        admin: me,
+        clearError: true,
+      );
+    } catch (_) {
+      // Backend /v1/me not available or user not in DB yet; construct admin profile from Firebase identity
+      state = state.copyWith(
+        status: SessionStatus.authenticated,
+        admin: AdminUser(
+          userId: fbUser.uid,
+          userType: 'ADMIN',
+          email: fbUser.email,
+          displayName: fbUser.displayName ?? fbUser.email ?? 'Platform Admin',
+        ),
+        clearError: true,
+      );
+    }
+  }
+
+  Future<void> _checkLegacySession() async {
     try {
       final tokens = await _tokenStorage.loadTokens();
       if (tokens == null) {
-        state = state.copyWith(status: SessionStatus.unauthenticated);
+        state = state.copyWith(
+          status: SessionStatus.unauthenticated,
+          clearAdmin: true,
+          clearTokens: true,
+        );
         return;
       }
 
@@ -126,8 +186,11 @@ class SessionController extends StateNotifier<SessionState> {
     );
     try {
       await _authRepository.logout(currentTokens?.refreshToken);
+    } catch (_) {
+      // Ignore API logout errors on teardown
     } finally {
       await _tokenStorage.clearTokens();
+      await _firebaseAuthService?.signOut();
     }
   }
 }
@@ -137,8 +200,10 @@ final StateNotifierProvider<SessionController, SessionState>
     StateNotifierProvider<SessionController, SessionState>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
   final authRepository = ref.watch(authRepositoryProvider);
+  final firebaseAuth = ref.watch(firebaseAuthServiceProvider);
   return SessionController(
     tokenStorage: tokenStorage,
     authRepository: authRepository,
+    firebaseAuthService: firebaseAuth,
   );
 });
