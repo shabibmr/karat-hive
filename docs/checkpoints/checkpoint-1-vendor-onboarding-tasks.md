@@ -13,7 +13,7 @@
 
 The checkpoint is the frozen contract for this vertical. This file is the work list: IDs, order, files, acceptance. Do not invent routes, fields, or states that are not in the checkpoint.
 
-**Current tree (5 Sep 2026):** Track A seed orchestrator now calls `seedAdmin` + `seedVendor` (CP1-A03b); masking spec lives under `backend/test/masking/` (CP1-A07b). Track B (Flutter) is still scaffolded; goldens, ARB, shells, and most controller tests remain open. Infra: `SUPABASE_SERVICE_ROLE_KEY` and private `kyc` bucket recorded done (CP1-I02 / CP1-I03, 6 Sep 2026). Use [§ Remaining to close](#remaining-to-close) as the live punch list; the [full register](#full-task-register) is the whole vertical.
+**Current tree (6 Sep 2026):** Track A backend vertical is on `main`. Track B onboarding/dashboard/goldens/CI landed on `feat/cp1-closeout` and merged. Login/auth (Google Sign-In backend session, CP1-V01/V02 walks) is **out of this close-out**. Use [§ Remaining to close](#remaining-to-close) as the live punch list; the [full register](#full-task-register) is the whole vertical.
 
 ---
 
@@ -64,12 +64,12 @@ Work still open against the plan of record. Do these in this order.
 | ~~CP1-B01b~~ | B | `VendorStatusCard` in `kh_ui_domain` | **Done** (landed earlier on main) |
 | ~~CP1-B02a~~ | B | Extract `app/guards.dart` + shells | **Done** (landed earlier on main) |
 | ~~CP1-B02b~~ | B | `config/staging.json` | **Done on feat/cp1-closeout** |
-| **CP1-B06a** | B | Controller tests for register / login | **Superseded — Google Sign-In (`feat/firebase-setup`)**. KYC controller test added on close-out. |
-| **CP1-B06b** | B | Widget tests for login/register SH-FND-12/13 | **Superseded — Google Sign-In**. Onboarding screens still tested. |
+| ~~CP1-B06a~~ | B | Controller tests for register / login | **Superseded — login/auth skipped.** KYC + categories/regions controller tests added on close-out. |
+| ~~CP1-B06b~~ | B | Widget tests for login/register SH-FND-12/13 | **Superseded — login/auth skipped.** Awaiting + dashboard SH-FND-12/13 added on close-out. |
 | ~~CP1-B06c~~ | B | LTR + RTL goldens for `kh_design_system` | **Done on feat/cp1-closeout** |
 | ~~CP1-B06d~~ | B | Frontend CI goldens | **Done on feat/cp1-closeout** (`frontend.yml` goldens job + admin job) |
-| **CP1-V01** | V | Backend walk-through | OTP steps 1–3 **superseded — Google Sign-In**. Remaining: minted-JWT / Google session KYC + dashboard. |
-| **CP1-V02** | V | Flutter walk-through | Register/OTP **superseded**. After `feat/firebase-setup` merge: Google Sign-In → KYC → categories → dashboard. |
+| **CP1-V01** | V | Backend walk-through | **Deferred — login/auth skipped.** OTP steps 1–3 superseded. KYC + dashboard HTTP cases exist in `vendor-media.spec.ts` (minted JWT). Live curl walk waits on a real session. |
+| **CP1-V02** | V | Flutter walk-through | **Deferred — login/auth skipped.** Widget tests cover awaiting / KYC / categories / dashboard with a fake session. |
 
 Deferred on purpose (do not pull into this checkpoint): ARB/`gen_l10n` (inlined `KhStrings` is the current stand-in), `freezed`/`json_serializable` (hand-written DTOs), listing `kh_admin` in the Dart workspace, standalone `melos.yaml` (Melos 8 config is in root `pubspec.yaml`), real SMS, EXIF/scan worker, OpenAPI generation. (Supabase Data-API/RLS was deferred here → **resolved 6 Sep 2026**, `docs/adr/0009`.)
 
@@ -193,9 +193,9 @@ Outbox this slice: `vendor.registered`, `vendor.documents.submitted` (no consume
 | CP1-B01c | `kh_core` | `packages/kh_core` | `Result<T,Failure>`; flavor `Env`; `Clock`; Dio factory (correlation, auth + single-flight refresh, locale, idempotency-key, server-time, envelope→`Failure`); `TokenStorage`; `AppLogger` with PII masking. | done |
 | CP1-B01d | `kh_domain` | `packages/kh_domain` | `VendorLifecycle` + `AwaitingApprovalReason` (unknown → `.unknown`, `NFR-027`); `VendorMe`, `MeUser`, `SessionBundle`, `Category`/`Region`, `DocumentType`, `VendorDocument`; VOs as needed. | done |
 | CP1-B01e | `kh_l10n` | `packages/kh_l10n` | en+ar strings for auth/onboarding/shell; `MoneyFormatter`; `RelativeTimeFormatter`. ARB generation deferred. | partial (inlined table; no Arabic-Indic numerals) |
-| CP1-B01f | `kh_design_system` | `packages/kh_design_system` | Tokens via `ThemeExtension`; `KhScaffold` / `KhButton` / `KhTextField`; `SH-AUTH-02` OTP; `SH-MED-04` upload tile; `SH-FND-12/13/14`. `EdgeInsetsDirectional` only. Semantics inline. | partial (widgets present; no LTR+RTL goldens, no named `KhAppBar` / SH-SHELL-05/06) |
-| **CP1-B01b** | `kh_ui_domain` | `packages/kh_ui_domain` | `VendorStatusCard`, `DocumentChecklist`, `CategoryRegionPicker`. | **partial** (status card missing) |
-| **CP1-B01a** | Golden runner | `tooling/golden_runner.dart` | Shared LTR+RTL golden helper. | **open** |
+| CP1-B01f | `kh_design_system` | `packages/kh_design_system` | Tokens via `ThemeExtension`; `KhScaffold` / `KhButton` / `KhTextField`; `SH-AUTH-02` OTP; `SH-MED-04` upload tile; `SH-FND-12/13/14`. `EdgeInsetsDirectional` only. Semantics inline. | done (LTR+RTL goldens on close-out; named `KhAppBar` / SH-SHELL-05/06 still deferred) |
+| CP1-B01b | `kh_ui_domain` | `packages/kh_ui_domain` | `VendorStatusCard`, `DocumentChecklist`, `CategoryRegionPicker`. | done |
+| CP1-B01a | Golden runner | `tooling/golden_runner.dart` | Shared LTR+RTL golden helper. | done |
 
 #### B2 — App shell, API client, session
 
@@ -206,8 +206,8 @@ Depends on B1. Swap `kh_api` onto real A4 when up.
 | CP1-B02 | `kh_api` | `packages/kh_api` | Hand-written client: auth / me / vendor / media / taxonomy. DTOs match this vertical’s schemas. Envelope unwrap. DTO→domain. No OpenAPI gen. | done |
 | CP1-B02c | App bootstrap | `apps/kh_mobile/karat_hive/lib/{main_dev,main_staging,main_prod,bootstrap,app/app}.dart` | `ProviderScope` + env + restore tokens + `MaterialApp.router` + l10n + RTL. Delete counter `main.dart`. | done (`main.dart` remains as a thin entry) |
 | CP1-B02d | Session | `app/session/session_controller.dart` | Keep-alive `Notifier<SessionState>`: tokens, `MeUser`, `VendorLifecycle`; signIn / refresh / signOut. | done |
-| **CP1-B02a** | Router + guards + shells | `app/router.dart`, `app/guards.dart`, `app/shells/{unauth,awaiting_approval,vendor}_shell.dart` | Guard chain: not bootstrapped → `/splash`; not authed → `/vendor/login`; `pendingVerification\|rejected` → `/awaiting`; `verified` without cats/regions → `/awaiting` (CTA → `/vendor/categories-regions`); `active` → `/vendor/home`. Never authoritative. | **partial** (redirect in `router.dart`; splash only) |
-| **CP1-B02b** | Flavor config | `config/{dev,staging,prod}.json` | `KH_API_BASE_URL` via `--dart-define-from-file`. Dev uses `http://10.0.2.2:3000` on Android emulator. | **partial** (no staging) |
+| CP1-B02a | Router + guards + shells | `app/router.dart`, `app/guards.dart`, `app/shells/{unauth,awaiting_approval,vendor}_shell.dart` | Guard chain: not bootstrapped → `/splash`; not authed → `/vendor/login`; `pendingVerification\|rejected` → `/awaiting`; `verified` without cats/regions → `/awaiting` (CTA → `/vendor/categories-regions`); `active` → `/vendor/home`. Never authoritative. | done |
+| CP1-B02b | Flavor config | `config/{dev,staging,prod}.json` | `KH_API_BASE_URL` via `--dart-define-from-file`. Dev uses `http://10.0.2.2:3000` on Android emulator. | done |
 
 #### B3 — Auth feature
 
@@ -227,9 +227,9 @@ Depends on B3 + A5 + A6.
 
 | ID | Screen | Files | Acceptance | Status |
 |---|---|---|---|---|
-| CP1-B04a | VEN-S02 KYC | `kyc_upload_screen.dart`, `kyc_upload_controller.dart` | `SH-MED-04` tile per `DocumentType`. Per-file: intent → `dio.put(uploadUrl)` with progress → complete → poll `READY` → attach. Retry; survives nav. | done (scaffold) |
-| CP1-B04b | VEN-S03 awaiting | `awaiting_approval_screen.dart` | Status, `verificationMessage`, CTAs, logout. Foreground-poll `GET /v1/me`. | done (scaffold) |
-| CP1-B04c | VEN-S16 categories/regions | `categories_regions_screen.dart` | `CategoryRegionPicker`; save; optional away mode. | done (scaffold) |
+| CP1-B04a | VEN-S02 KYC | `kyc_upload_screen.dart`, `kyc_upload_controller.dart` | `SH-MED-04` tile per `DocumentType`. Per-file: intent → `dio.put(uploadUrl)` with progress → complete → poll `READY` → attach. Retry; survives nav. | done |
+| CP1-B04b | VEN-S03 awaiting | `awaiting_approval_screen.dart` | Status, `verificationMessage`, CTAs, logout. Foreground-poll `GET /v1/me`. | done |
+| CP1-B04c | VEN-S16 categories/regions | `categories_regions_screen.dart` | `CategoryRegionPicker`; save; optional away mode. | done |
 | CP1-B04d | Onboarding repository | wraps `VendorApi` + `MediaApi` | Attach, resubmit, set cats/regions. | done |
 
 #### B5 — Dashboard
@@ -238,16 +238,16 @@ Depends on A5 + B2.
 
 | ID | Screen | Files | Acceptance | Status |
 |---|---|---|---|---|
-| CP1-B05 | VEN-S05 (thin) | `features/dashboard/` | Zeroed counts, gold-rate placeholder, rating, subscription summary, pull-to-refresh. `GET /v1/me/dashboard`. | done (scaffold) |
+| CP1-B05 | VEN-S05 (thin) | `features/dashboard/` | Zeroed counts, gold-rate placeholder, rating, subscription summary, pull-to-refresh. `GET /v1/me/dashboard`. | done |
 
 #### B6 — Tests + frontend CI
 
 | ID | Task | Acceptance | Status |
 |---|---|---|---|
-| **CP1-B06a** | Controller tests | loading / empty / error / data per screen. | **partial** (login only) |
-| **CP1-B06b** | Widget tests | Every `SH-FND-12` / `SH-FND-13` state on the 6 screens. | **partial** (login error only) |
-| **CP1-B06c** | Goldens | LTR + RTL for every `kh_design_system` widget (`AD-FE-13`). | **open** |
-| **CP1-B06d** | `.github/workflows/frontend.yml` | Pinned Flutter → bootstrap → `melos run analyze` → `melos run test` → goldens → optional `flutter build apk --debug`. Path filter `apps/**`, `packages/**`, workspace file. | **partial** (no goldens; path filter omits a `melos.yaml` that does not exist) |
+| CP1-B06a | Controller tests | loading / empty / error / data per screen. | done for KYC + categories/regions. Login/register tests **skipped** (auth out of this close-out). |
+| CP1-B06b | Widget tests | Every `SH-FND-12` / `SH-FND-13` state on the 6 screens. | done for awaiting + dashboard. Login/register **skipped** (auth out of this close-out). |
+| CP1-B06c | Goldens | LTR + RTL for every `kh_design_system` widget (`AD-FE-13`). | done |
+| CP1-B06d | `.github/workflows/frontend.yml` | Pinned Flutter → bootstrap → `melos run analyze` → `melos run test` → goldens → optional `flutter build apk --debug`. Path filter `apps/**`, `packages/**`, workspace file. | done |
 
 #### B7 — End-to-end walk-through
 
@@ -306,7 +306,7 @@ Do not silently reverse these; they are the current tree. Revisit only with a ch
 | Taxonomy GET “any authed role incl. shell” | `@Public` | Yes — VEN-S01 must load cats/regions before a session |
 | `document-rules.ts` | Constants on `vendor-state-machine.ts` | Yes |
 | `admin.seed.ts` + `seedVendor` in orchestrator | Helper file unused; no admin seed | Done — `index.ts` calls both (CP1-A03b) |
-| Feature `routes.dart` + three shells + `guards.dart` | Single `router.dart` + splash | Finish CP1-B02a or amend the plan |
+| Feature `routes.dart` + three shells + `guards.dart` | `guards.dart` + unauth/awaiting/vendor shells | Keep — CP1-B02a done |
 | `image_picker` + `file_picker` | `file_picker` only | Acceptable if KYC PDF/image pick works on device |
 
 ---

@@ -278,7 +278,7 @@ flowchart TD
 
 ### Phase 8: Reconciliation & Release (Part C & Git)
 
-- [ ] **ADM-DOC-001: Spec Docs & Deviation Notes Reconciliation**
+- [x] **ADM-DOC-001: Spec Docs & Deviation Notes Reconciliation**
   - **Priority**: P1 | **Estimate**: 1h | **Target Files**: `docs/` & `ui-screens/`
   - **Description**: Update documentation:
     1. Reword `ui-screens/admin/ADM-S14-*.md` & `ADM-S15-*.md` Delete -> Deactivate (**SAM-GAP-9**)
@@ -286,25 +286,19 @@ flowchart TD
     3. Update `docs/API-Route-Inventory.md` (§21.6 taxonomy and admin auth marked built, 2FA deviation noted)
     4. Annotate `docs/Backend-Implementation-Plan.md` and `docs/Architecture-Frontend.md`
     5. Update `CLAUDE.md`.
-  - **Acceptance Criteria**: Documentation reflects current checkpoint implementation.
+  - **Acceptance Criteria**: Documentation reflects current checkpoint implementation. **Done 6 Sep 2026** — SAM-GAP-9 resolved in screen files + Screen-API-Map; §21.6 `[BUILT]`; T16–T18 marked done for the vendor/taxonomy path; Admin lives at `apps/kh_admin`.
 
-- [ ] **ADM-E2E-001: End-to-End Click-Through & Verification** (Google Sign-In; blocked on `feat/firebase-setup` merge into `feat/cp1-closeout`. Password login is not a gate.)
+- [ ] **ADM-E2E-001: End-to-End Click-Through & Verification** — **deferred (login/auth skipped).** Google Sign-In backend session is out of this close-out. Password login is not a gate.
   - **Priority**: P0 | **Estimate**: 1.5h | **Target File**: Local environment
-  - **Description**: Verify complete workflow:
+  - **Description**: Verify complete workflow after auth lands:
     1. Start backend with seed data
-    2. Log into Admin Flutter Web app with seeded admin credentials
+    2. Sign in to Admin Flutter Web
     3. Create, edit, and deactivate categories and regions
     4. Verify URL query state preservation on browser refresh
     5. Confirm mutation audit rows written to PostgreSQL `audit_log`.
   - **Acceptance Criteria**: End-to-end journey executes without errors; audit trail confirmed.
 
-- [ ] **ADM-GIT-001: Staged Commits & Draft PR Creation**
+- [x] **ADM-GIT-001: Staged Commits & Draft PR Creation**
   - **Priority**: P1 | **Estimate**: 0.5h | **Target File**: Git repository
-  - **Description**: Create branch `feat/checkpoint-1-admin-taxonomy` off `main`. Stage work into 6 atomic commits:
-    1. `backend: password login, refresh, /v1/me, admin-surface guard`
-    2. `backend: taxonomy module (categories + regions CRUD) + audit`
-    3. `backend: seed script — admin user + UAE taxonomy + platform settings`
-    4. `kh_admin: foundation — deps, design tokens, api client, auth, router, shell`
-    5. `kh_admin: taxonomy screens (ADM-S14 + ADM-S15)`
-    6. `docs: reconcile SAM-GAP-9, mark built endpoints, note checkpoint-1 deviations`
-  - **Acceptance Criteria**: Clean git history; draft PR opened.
+  - **Description**: Original six-commit `feat/checkpoint-1-admin-taxonomy` stack was superseded. Taxonomy + vendor close-out landed on `main` via `feat/cp1-closeout` (`4ad4908`, 6 Sep 2026).
+  - **Acceptance Criteria**: Clean git history; draft PR opened. **Done** — on `main`.

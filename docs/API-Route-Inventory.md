@@ -302,7 +302,7 @@ RatingSummary = {
 ### 4.5 Taxonomy summaries
 
 ```
-CategorySummary = { id: UUID, nameEn: string, nameAr: string, parentId?: UUID, isActive: boolean, displayOrder: integer }
+CategorySummary = { id: UUID, nameEn: string, nameAr: string, parentId?: UUID, isActive: boolean, displayOrder: integer, icon?: string }
 RegionSummary   = { id: UUID, nameEn: string, nameAr: string, parentId?: UUID, isActive: boolean, displayOrder: integer }
 ```
 
@@ -1834,7 +1834,7 @@ GET / POST / PATCH  /v1/admin/regions
 POST                /v1/admin/regions/{id}/deactivate
 ```
 
-Create/rename/reorder/activate/deactivate. Two-level hierarchy. `nameEn` and `nameAr` mandatory. In-use categories cannot be deleted (`BR-019`) → `409 TAXONOMY_IN_USE`. Deactivate hides from new selection; existing associations remain. Changes apply to subsequent Requests only. Built and audited via `AuditWriter`.
+Create/rename/reorder/activate/deactivate. Two-level hierarchy. `nameEn` and `nameAr` mandatory. Category `icon` is optional (`VARCHAR(100)`). In-use categories cannot be deleted (`BR-019`) → `409 TAXONOMY_IN_USE`. Deactivate hides from new selection; existing associations remain. Changes apply to subsequent Requests only. Built and audited via `AuditWriter`.
 
 Regions: identical implementation at `/v1/admin/regions` (emirate → area).
 

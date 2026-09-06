@@ -413,8 +413,8 @@ reused — v0.2 appends T33–T44 rather than renumbering.
 | T14 | OAuth bind (publish gate) | pending |
 | T15 | Sessions / me / settings / shell guard | done (checkpoint-1: me + admin guard) |
 | T16 | Taxonomy GET + seed | done (checkpoint-1: public + admin CRUD + seed) |
-| T17 | Media port + local-disk adapter + complete/process | pending |
-| T18 | Vendor profile, KYC, categories/regions | pending |
+| T17 | Media port + local-disk adapter + complete/process | done (checkpoint-1: KYC path — signed upload, complete, unattached delete; EXIF/scan worker remains P4) |
+| T18 | Vendor profile, KYC, categories/regions | done (checkpoint-1: profile, documents, categories/regions, shell guard, dashboard zeros) |
 | T19 | Subscriptions read + Admin grant | pending |
 
 ### P6–P9 Marketplace spine
