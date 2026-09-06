@@ -1,5 +1,4 @@
 import 'package:kh_core/kh_core.dart';
-import 'package:kh_domain/kh_domain.dart';
 import '../dtos.dart';
 
 class AuthClient {

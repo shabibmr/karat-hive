@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
-import 'package:kh_domain/kh_domain.dart';
 
 class MockHttpAdapter implements HttpClientAdapter {
   MockHttpAdapter(this.handler);
