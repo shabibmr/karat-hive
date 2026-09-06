@@ -4,54 +4,59 @@
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | Backend implementation plan and task list |
-| **Version** | 0.4 |
-| **Status** | Draft — working backlog. Does not override the SRS or architecture. |
+| **Version** | 0.5 |
+| **Status** | Working backlog. Does not override the SRS or architecture. Last checked against `backend/` on 6 September 2026. |
 | **Date** | 6 September 2026 |
 | **Source of truth** | [`Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`Architecture-Backend.md`](Architecture-Backend.md) · [`API-Route-Inventory.md`](API-Route-Inventory.md) · [`Physical-Data-Model.md`](Physical-Data-Model.md) · [`Async-Contract.md`](Async-Contract.md) (`AD-ASYNC-nn` — outbox payloads and the 15 scheduled jobs; feeds P2/P7/P10/P12, T05/T21/T23/T28) |
 | **Coverage inputs** | [`Screen-API-Map.md`](Screen-API-Map.md) (`SAM-GAP-nn`) · [`Spec-Document-Sequence.md`](Spec-Document-Sequence.md) |
-| **Tasks** | [§ Task list](#task-list-t01t44) · P0/P1 review fixes: [`Backend-Gap-Fix-Plan.md`](Backend-Gap-Fix-Plan.md) (F01–F17, D01–D04) · Post-CP1 executable split: [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) (`G2-*`) |
+| **Day-to-day leftover list** | [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) (`G2-*`) — splits the open T-rows into smaller tasks |
+| **Closed P0/P1 fixes** | [`Backend-Gap-Fix-Plan.md`](Backend-Gap-Fix-Plan.md) (F01–F17) |
 
-Build the **Node.js monolith** (`C-11`) so every route in the API inventory is implemented against PostgreSQL (`C-12`). Flutter clients are out of scope. OpenAPI is generated from this code (`NFR-030`, `AD-BE-14`).
+Build the **Node.js monolith** (`C-11`) so every route in the API inventory is implemented against PostgreSQL (`C-12`). Flutter apps are out of scope here. OpenAPI is generated from this code (`NFR-030`, `AD-BE-14`).
 
-**Local runtime: no Docker.** PostgreSQL 16 on the host. When media lands, an S3-compatible endpoint or a local-disk adapter behind the same port. `backend/docker/` stays optional and unused.
+**Local runtime: no Docker.** PostgreSQL on the host (managed Supabase for non-production — `adr/0009`). File storage uses a local-disk adapter in tests and Supabase Storage for KYC in checkpoint-1; production target remains Cloudflare R2 (`adr/0008`). `backend/docker/` stays optional and unused.
+
+This file is the **order of work** (P0–P12) and the **T01–T44 tick list**. For the next small tasks, use [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md).
 
 ---
 
-## Already done
+## Where the code is today (6 September 2026)
 
-Verified against the working tree, 1 Sep 2026.
+Checked against `backend/src`, `backend/prisma`, `backend/test`, and `.github/workflows`.
 
-| Artefact | Status |
+### Built
+
+| Area | What is on disk |
 |---|---|
-| SRS v1.3, ADRs 0001–0008, Architecture-Backend, API inventory, Physical-Data-Model, Screen-API-Map, Async-Contract | Authoritative / companion |
-| `backend/prisma/schema.prisma` + `docs/Physical-Data-Model.md` | Written; `prisma validate` passed |
-| `backend/prisma/sql/` — `extensions.sql`, `partial-indexes.sql` (+ `README.md`) | Written, not yet folded into a named Prisma migration |
-| Nest 11 + Fastify 5 + Prisma 5 + Zod `package.json`, `npm install` | Done (`node_modules` present) |
-| `src/config/env.ts`, `edge/envelope.interceptor.ts`, `edge/errors/{error-codes,http-error.filter}.ts`, `edge/masking/masking.interceptor.ts`, `edge/request-id.ts`, `edge/health/health.controller.ts` | Source written |
-| `src/platform/db/prisma.{module,service}.ts` (lazy connect) | Source written |
-| `src/shared/{money,weight,result}.ts` | Stubs written — `Karat` / `Purity` still missing (P1 #14) |
-| `backend/src/main.ts` / `app.module.ts` | Written, **not yet built or run** |
-| `backend/README.md` (local Postgres, no Docker, `/health` vs `/ready`) | **Written** — P0 #6 / T04 is done bar a re-read after T01 |
-| `prisma/migrations/_diff.sql` | Raw `migrate diff` dump, 1 129 lines; **not** a deployable migration folder |
-| `backend/docker/` (`docker-compose.yml`, `init/01-extensions.sql`) | Present, optional, unused by the no-Docker path |
-| `backend/{openapi,test/{contract,masking,concurrency,performance}}/` | Empty `.gitkeep` folders |
-| The 16 `src/modules/*` domain modules | Empty `application/controller/domain/presenter/repository` folders + `.gitkeep` only |
+| Specs | SRS v1.3, ADRs 0001–**0009**, Architecture-Backend, API inventory, Physical-Data-Model, Screen-API-Map, Async-Contract |
+| Database | Named Prisma migrations from `20260901120000_init` through `20260906120000_category_icon`. Extra columns listed under T36 (warning timestamps, `verification_message`, `viewed_by_customer_at`, abuse types `VENDOR` and `CUSTOMER`) are **in the schema**. The jobs that use those columns are not written yet. |
+| Tooling | Nest 11 + Fastify 5 + Prisma 5 + Zod. `npm run build`, `npm test` (Vitest), `npm run lint`, CI (`.github/workflows/backend.yml`). Worker start script sets `KH_ROLE=worker`. |
+| Shared values | `Money`, `Weight`, `Result`, `Karat`, `Purity` |
+| Health | `GET /health` (no database). `GET /ready` (database + migrations). |
+| Platform spine (P0–P1) | Outbox (write, claim, consumer marker, backoff). Job lock + scheduler. Audit writer. Idempotency. Rate-limit buckets. Auth guard + ViewerContext. Masking interceptor. Error codes with English and Arabic messages. |
+| Identity (part of P2) | Vendor OTP request/verify. Vendor register. Email/password login (Vendor and Admin). Refresh and logout. `GET/PATCH /v1/me` (Vendor and Admin only). Google ID-token check inside the auth guard — see P2 leftover. |
+| Taxonomy (part of P3) | Public category and region trees. Admin create/update/deactivate. Seeds for UAE regions, categories, platform settings, one Admin user, and a Vendor seed helper. |
+| Media (part of P4) | Upload-intent, complete, delete. Local-disk adapter (tests) and Supabase Storage adapter (KYC). In development, KYC files are marked ready without the later image-clean worker. |
+| Vendor onboarding (part of P5) | Profile get/patch, KYC documents, resubmit, categories/regions, away mode, thin dashboard (counts are zeros), dev-verify shortcut. A verified Vendor who is not yet fully active **can** set categories and regions (code comment: SAM-GAP-7). |
+| Admin hide | A non-Admin token on `/v1/admin` returns `404`. Admin taxonomy routes are live. |
 
-### Not present yet — and every phase gate assumes it
+### Not built
 
-The gates below say "tests green", "masking suite fails the build", "CI diff". None of that
-can run today. These are **P0 work**, not P12 work.
+| Area | Evidence |
+|---|---|
+| Customer register, Customer profile on `GET /v1/me`, session list/delete, password change/reset, mobile change, deactivate, delete-my-account, settings, device tokens, Admin 2FA, OAuth bind route | No matching routes in `auth.controller.ts` / `me.controller.ts` |
+| `GET /v1/platform-config` | No handler. The setting **values** are seeded. |
+| Image-clean worker (strip hidden photo data, virus stub, thumbnails) | KYC is marked ready in development; no worker |
+| Vendor subscriptions (read + Admin grant) | `modules/subscription/` is empty |
+| Requests, matching, offers, connections, reviews, abuse, notifications, gold-rate, Admin (except taxonomy) | Empty module folders |
+| Background jobs except outbox drain | `main.ts` registers only `outbox.drain` |
+| OpenAPI generator | Not a dependency. `backend/openapi/` is empty |
+| Contract and performance test suites | Folders empty. Masking tests **do** exist under `test/masking/` |
 
-| Missing | Consumed by | Task |
-|---|---|---|
-| Test runner (no `jest` / `vitest`, no `test` script in `package.json`) | Every phase gate; T25, T32 | **T33** |
-| ESLint + Prettier + `eslint-plugin-boundaries`; no `lint` script | P1 #13, T11 | **T34** |
-| CI workflow (no `.github/` in the repo at all) | `NFR-030` OpenAPI diff, build-failing masking gate | **T35** |
-| OpenAPI generator wired to Nest/Zod (no `@nestjs/swagger` or zod-to-openapi dependency) | T31 | **T35** |
-| `start:worker` sets no `APP_ROLE`; it is byte-identical to `start:prod` | P1 #8 job locking, `AD-BE-07` | **T33** |
+Two facts that disagree with older docs. I have **not** rewritten those older docs:
 
-Stray artefact: a root `package-lock.json` containing an empty `packages: {}` — an accidental
-root `npm install`. Delete it; the Node tree lives under `backend/` only (backend README, §21).
+1. **Google Sign-In.** Code accepts a Google token as the login on every request, and a new Google user is created as a Vendor. Original rule `BR-001` says Google is not a login — it is a one-time identity check before a Customer publishes a Request.
+2. **Password hashing.** Code uses scrypt. Architecture-Backend §14.1 still says Argon2id.
 
 ---
 
@@ -75,27 +80,22 @@ root `npm install`. Delete it; the Node tree lives under `backend/` only (backen
 [`Screen-API-Map.md`](Screen-API-Map.md) §6 maps all 67 screens onto the inventory and records
 13 unmet needs as `SAM-GAP-nn`. They are **not** resolved here — each needs Technical Lead
 sign-off, the same as any `[PROPOSED]` row. This table only says *where the work lands if it is
-accepted*, so no gap gets discovered at P8 that a P0 migration should have carried.
+accepted*.
 
-**Five of them add columns** (`SAM-GAP-1`, `3`, `4`, `6`, `8`). `SAM-GAP-4` widens a PostgreSQL
-enum. Decide those **before T01 freezes the init migration**; anything undecided becomes a
-follow-up migration, which is acceptable but noisier.
+T01 has already frozen the init migration. Columns that were still open at that time are now **in the schema** (see T36). The API list and the screen map have not all been updated to match.
 
-| Gap | Sev | Backend consequence | Phase / task |
-|---|---|---|---|
-| `SAM-GAP-7` | **H** | Auth scope contradiction: `FR-VEN-025` AC1 needs a `VERIFIED`-but-not-yet-`ACTIVE` Vendor to set Categories/Regions *in order to* become `ACTIVE`, but Route Index marks those `PUT`s `V` (ACTIVE only). The guard must admit a `Vshell`-plus state or first activation is unreachable. | **P5 #34**, T18. Blocks the P5 gate |
-| `SAM-GAP-4` | M | `AbuseEntityType` gains `VENDOR` \| `CUSTOMER` — a PostgreSQL enum, cheapest before T01 | **P0 decision → P10 #61**, T27 |
-| `SAM-GAP-1` | M | `offer.viewed_by_customer_at` column + `unreadOfferCount` on the `RequestForCustomer` list row (or `POST /v1/offers/{id}/viewed`, mirroring `/matches/{id}/viewed`) | **P8 #49**, T22 |
-| `SAM-GAP-3` | M | `connectionId?` on `RequestForCustomer` when `state = ACCEPTED`. No new column — `connection.offer_id` is unique, so it is a presenter join | **P9 #56**, T24 |
-| `SAM-GAP-6` | M | `vendor_profile.verification_message` (latest Admin free-text) surfaced as `verificationMessage?` on `VendorMe`; written by `POST /v1/admin/vendors/{id}/request-info` | **P5 #32** + **P11 #67**, T18 |
-| `SAM-GAP-8` | M | `ratingTrend[]` on `GET /v1/me/vendor/performance` — a 6-month aggregate over `review`, computed by the rating worker, not at read time | **P10 #60**, T26 |
-| `SAM-GAP-2` | L | `liveRequestCount` / `canCreateRequest` on `GET /v1/me` so the client blocks flow entry instead of dead-ending on `CONCURRENT_REQUEST_LIMIT` | **P6 #38**, T20 |
-| `SAM-GAP-5` | L | Three seed keys — `legal.termsUrl`, `legal.privacyUrl`, `supportContactUrl` — on `platform_setting`, served by `GET /v1/platform-config` | **P3 #25**, T16 |
-| `SAM-GAP-10` | L | `POST /v1/admin/announcements/preview` → `{ estimatedRecipients }`, or accept post-send `deliveryStats` only. **Async-Contract §11 already answers this**: the count is computed at dispatch and is not previewable. Build the preview only as a deliberate reversal | **P11 #72 / #72a**, T29 |
-| `SAM-GAP-9`, `11`, `12`, `13` | L | No backend work. Screen-file wording (`ADM-S14`/`S15` Delete), settings write-through (`ADM-S20`), audit row self-sufficiency (`ADM-S22`), Admin role selector (`ADM-S23`, already deferred by `AD-API-03`) | Out of this plan |
-
-`SAM-GAP-12` is a **verification** item for P11 #72: `GET /v1/admin/audit-log` rows must carry
-`before` / `after` / `ip` / `userAgent` in full, or the screen's detail view has no source.
+| Gap | Sev | Backend consequence | Phase / task | Code today |
+|---|---|---|---|---|
+| `SAM-GAP-7` | **H** | A verified Vendor must set Categories/Regions to become `ACTIVE`, but the API list marks those routes as active-only. | **P5 #34**, T18 | **Built.** `VendorAccessGuard` allows `VERIFIED` (not yet active) on categories, regions, and availability. The API list still says active-only. |
+| `SAM-GAP-4` | M | Abuse reports against a Vendor or a Customer with no Request/Offer/Connection in hand | **P10 #61**, T27 | Enum in schema already has `VENDOR` and `CUSTOMER`. Report API is not built. |
+| `SAM-GAP-1` | M | `offer.viewed_by_customer_at` + unread count on Customer Request list | **P8 #49**, T22 | Column exists. Presenter not built. |
+| `SAM-GAP-3` | M | `connectionId?` on a Customer Request when accepted — join, no new column | **P9 #56**, T24 | Not built. |
+| `SAM-GAP-6` | M | `verificationMessage?` on `VendorMe` | **P5 #32** + **P11 #67**, T18 | Column and VendorMe field exist. Admin `request-info` route is only on the **dev-verify** shortcut, not the real Admin module. |
+| `SAM-GAP-8` | M | `ratingTrend[]` on Vendor performance | **P10 #60**, T26 | Not built. |
+| `SAM-GAP-2` | L | `liveRequestCount` / `canCreateRequest` on `GET /v1/me` | **P6 #38**, T20 | Not built. |
+| `SAM-GAP-5` | L | Seed keys `legal.termsUrl`, `legal.privacyUrl`, `supportContactUrl` served by `GET /v1/platform-config` | **P3 #25**, T16 | **Seeded.** Config **route** is not built. |
+| `SAM-GAP-10` | L | Announcement preview vs count-at-dispatch | **P11 #72 / #72a**, T29 | Not built. Async-Contract §11: count at dispatch, not previewable. |
+| `SAM-GAP-9`, `11`, `12`, `13` | L | No backend work, or verify audit-log fields at P11 | Out of this plan / P11 #72 | — |
 
 ---
 
@@ -126,125 +126,98 @@ flowchart TD
 
 **P9 is the commercial spine.** Nothing after it is more important than getting P9 correct.
 
----
-
-## P0 — Finish interrupted scaffold (no Docker)
-
-**Before item 1 — T36, the one genuinely blocking decision.** Two documents now propose columns
-that do not exist in `schema.prisma`. The init migration has never been run, so this is the last
-cheap moment to fold them in; everything undecided becomes a follow-up migration against a
-schema nobody has deployed.
-
-*From [`Screen-API-Map.md`](Screen-API-Map.md)* — `SAM-GAP-1` (`offer.viewed_by_customer_at`),
-`3` (presenter join, no column), `4` (**widen the `AbuseEntityType` enum**), `6`
-(`vendor_profile.verification_message`), `8` (rating-trend aggregate).
-
-*From [`Async-Contract.md`](Async-Contract.md) §10* — five deltas that **four jobs cannot be
-built without**: `notification_delivery.channel` / `.status` as enums (`AD-ASYNC-07`, which also
-closes a Physical-Data-Model §8 open encoding), `offer.expiry_warned_at`,
-`request.draft_purge_warned_at`, `vendor_document.reminder_sent_at`, and the announcement
-dispatch guard (`dispatch_stats IS NULL`, or an explicit `dispatched_at`). Its item 6 is a
-documentation fix: `outbox_consumer` is missing from Architecture Appendix C and
-Physical-Data-Model Appendix A.
-
-Async-Contract §10 also lists **four partial indexes** the new jobs scan against —
-`offer_expiry_warn`, `request_draft_age`, `vendor_doc_expiry`, `announcement_due`. Prisma cannot
-express them, so they go into `prisma/sql/partial-indexes.sql` and therefore into the same
-assembled migration as item 1. Miss them and four sweeps table-scan.
-
-Whatever is accepted updates `schema.prisma` **and** `docs/Physical-Data-Model.md` together.
-
-1. Assemble `prisma/migrations/20260901120000_init/migration.sql` from `_diff.sql` + `prisma/sql/extensions.sql` + `prisma/sql/partial-indexes.sql`. Add `migration_lock.toml`. Delete `_diff.sql`.
-2. `npm run build`. Fix TypeScript until clean (`strict`).
-3. Start `npm run start:dev`. **Do not start Docker.**
-4. `GET /health` → 200 envelope even if Postgres is down.
-5. `GET /ready` → 503 until a local Postgres exists and `prisma migrate deploy` has run — then verify it flips to 200 against a real local Postgres 16. `/ready` is untested until that round-trip runs once.
-6. `backend/README.md` — **already written**; re-read it after T01 so the migrate command matches the real migration folder name.
-
-**Toolchain (T33–T35) lands in this phase, not P12.** Every later gate is a lie until it does:
-a test runner + `npm test`, an `APP_ROLE`-aware `start:worker`, ESLint/Prettier with
-`eslint-plugin-boundaries` wired to `npm run lint`, and a CI workflow that runs build + lint +
-test. The OpenAPI generator (T31) can wait; the harness that will fail the build cannot.
-
-**Gate:** process boots; `/health` verified with curl; `/ready` observed at 200 after
-`migrate deploy`; `npm test` and `npm run lint` both execute (zero tests is fine, "no such
-script" is not). Domain code does not start before this.
+**Phase status:** P0 **done**. P1 **done**. P2–P5 **partly built** (leftovers listed in each phase). P6–P12 **not built**.
 
 ---
 
-## P1 — Platform spine
+## P0 — Scaffold (done)
 
-Used by every later module. Implement once.
+T01–T04 and T33–T35 (except the OpenAPI generator, which stays T31).
 
-7. **Outbox** (`platform/outbox`): insert in the same transaction as the domain write; worker claims `FOR UPDATE SKIP LOCKED`; `outbox_consumer` unique `(event_id, consumer)`; backoff then `FAILED`.
-8. **Scheduler + `job_lock`**: lease table, register jobs, no duplicate fire across `APP_ROLE=worker` instances. Short renewed leases so a killed worker expires rather than wedging the job ([Architecture-Backend](Architecture-Backend.md) §11.4). Needs the `APP_ROLE`-aware `start:worker` from T33 — today that script does not set it.
-9. **Audit writer**: append-only helper used inside the domain transaction (`FR-SYS-011`). No update/delete path.
-10. **Idempotency** (`edge/idempotency`): required keys on publish / offer submit / accept / media intent; 24 h replay; 409 on key reuse with different body.
-11. **Rate limit** (`edge/rate-limit`): PostgreSQL token bucket (`AD-BE-10`); stricter on OTP, auth, search.
-12. **Auth guard + ViewerContext** (`edge/auth`): JWT access + refresh rotation + reuse detection. No entitlements in the token (Architecture-Backend §14.2).
-13. **eslint-plugin-boundaries** (or equivalent) so imports cannot skip `modules/*/index.ts`. The 16 module folders exist but none has an `index.ts` yet — the rule has nothing to guard until P2 writes the first one, so land the config in P0 (T34) and the rule here.
-14. Shared value objects already stubbed (`Money`, `Weight`, `Result`) — add `Karat` / `Purity` and clock offset via `meta.serverTime`.
+Named init migration exists. `npm run build` is clean. API boots without Docker. `/health` works with no database. `/ready` waits for migrate. Tests, lint, and CI run. Worker start sets `KH_ROLE=worker`.
 
-**Gate:** unit tests for outbox claim and job_lock; no HTTP domain routes yet.
+T36 columns are already in the init migration. Do not revert that migration. The leftover is paperwork (sign-off), not a missing column — see T36.
+
+**Gate:** met.
 
 ---
 
-## P2 — Identity and sessions
+## P1 — Platform spine (done)
+
+7. **Outbox** (`platform/outbox`): insert in the same transaction as the domain write; worker claims `FOR UPDATE SKIP LOCKED`; `outbox_consumer` unique `(event_id, consumer)`; backoff then `FAILED`. **Built.** `main.ts` registers `outbox.drain` every 5 seconds when `KH_ROLE` is `worker` or `all`.
+8. **Scheduler + `job_lock`**: lease table, register jobs, no duplicate fire across worker instances. **Built.** No domain jobs are registered yet besides outbox drain.
+9. **Audit writer**: append-only helper used inside the domain transaction (`FR-SYS-011`). **Built.**
+10. **Idempotency** (`edge/idempotency`): required keys on publish / offer submit / accept / media intent; 24 h replay; 409 on key reuse with different body. **Built.**
+11. **Rate limit** (`edge/rate-limit`): PostgreSQL token buckets. **Built.**
+12. **Auth guard + ViewerContext**: Karat Hive access JWT + refresh rotation + reuse detection. **Built.** The guard also accepts a Google ID token — that extra path is listed under P2, not here.
+13. **eslint-plugin-boundaries** so imports cannot skip `modules/*/index.ts`. **Built.**
+14. Shared value objects: `Money`, `Weight`, `Result`, `Karat`, `Purity`. **Built.**
+
+**Gate:** met (unit tests for outbox claim and job lock).
+
+---
+
+## P2 — Identity and sessions (partly built)
 
 Routes: API inventory §8–§9.
 
-15. OTP issue/verify (`FR-CUS-001`, `FR-CUS-002`, `FR-VEN-001`, `FR-VEN-003`) — dummy challenge on unknown LOGIN numbers to avoid enumeration.
-16. Customer register; Vendor register → `PENDING_VERIFICATION` + shell.
-17. Password login (Vendor + Admin); Admin 2FA setup/confirm/verify (`FR-ADM-001`).
-18. OAuth bind (Customer publish gate only — not login) (`BR-001`).
-19. Refresh, logout, sessions, password set/reset, devices.
-20. `GET/PATCH /v1/me`, mobile change, deactivate, deletion-request (PDPL job may stub as queued).
-21. Settings + notification preferences.
-22. Vendor shell enforcement: marketplace routes `403 VENDOR_NOT_ACTIVE` (`BR-002`).
+| Item | Plan | Code |
+|---|---|---|
+| 15. OTP issue/verify | Customer and Vendor | **Vendor only** in the request body (`REGISTER_VENDOR`, `LOGIN`, `CHANGE_MOBILE`). The database enum already has `REGISTER_CUSTOMER`. Dummy challenge on unknown LOGIN numbers: built. |
+| 16. Register | Customer + Vendor | **Vendor only.** `POST /v1/auth/register/customer` is missing. |
+| 17. Password login + Admin 2FA | Both | Password login **built** (Vendor and Admin). Admin 2FA **not built**. |
+| 18. OAuth bind (publish gate, not login) (`BR-001`) | `POST /v1/auth/oauth/bind` | **Not built.** What exists instead: the auth guard treats a Google token as a login and, if the person is new, creates a Vendor. |
+| 19. Refresh, logout, sessions, password set/reset, devices | All | Refresh and logout **built**. Sessions list/delete, password set/reset, devices **not built**. |
+| 20. `GET/PATCH /v1/me`, mobile change, deactivate, deletion-request | All | `GET/PATCH /v1/me` **built** for Vendor and Admin. No `customer` object. Mobile change, deactivate, deletion-request **not built**. |
+| 21. Settings + notification preferences | — | **Not built.** `modules/settings/` is empty. |
+| 22. Vendor shell: marketplace routes `403 VENDOR_NOT_ACTIVE` | — | **Built** on vendor-onboarding routes (`VendorAccessGuard`). |
 
-**Gate:** register/login/refresh round-trip against local Postgres; suspended user cannot authenticate.
+**Gate:** Vendor register/login/refresh works. Customer register/login round-trip does not. Suspended user cannot authenticate: built.
 
----
-
-## P3 — Taxonomy and platform settings
-
-23. `GET /v1/categories`, `GET /v1/regions` (active only).
-24. `GET /v1/platform-config` from `platform_setting`.
-25. Seed: UAE region tree, category tree, settings defaults (`C-07` 48 h, bullion AED 500, validity `[12,24,48]`, karat list, media limits), plus `legal.termsUrl`, `legal.privacyUrl`, `supportContactUrl` (`SAM-GAP-5` — `CUS-S21` / `VEN-S18` link to them and nothing serves them today). `subscriptionContactUrl` already exists.
-26. One local Admin user in seed (no self-register).
-
-**Gate:** config endpoint returns the defaults the Request form needs.
+Leftovers: [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) Track A (Google path) and Track I.
 
 ---
 
-## P4 — Media port
+## P3 — Taxonomy and platform settings (partly built)
 
-27. Storage **port**: `presignUpload`, `presignDownload`, `delete`, `head`.
-28. Adapters: S3/R2/MinIO for hosted; **local filesystem adapter** for no-Docker dev `[PROPOSED]` — same interface, files under `backend/.data/storage`. Not a second datastore; bytes only.
-29. `POST /v1/media/upload-intent`, `POST /v1/media/{key}/complete`, `DELETE /v1/media/{key}`.
-30. Worker: magic-byte inspect, EXIF strip, re-encode, thumbnail, malware stub → `READY` / `QUARANTINED` (`FR-SYS-009`).
-31. KYC bucket never issued to Customer/Vendor; Admin URL audited (`NFR-015`).
+23. `GET /v1/categories`, `GET /v1/regions` (active only). **Built.**
+24. `GET /v1/platform-config` from `platform_setting`. **Not built.** This is the P3 gate.
+25. Seed: UAE region tree, category tree, settings defaults (`C-07` 48 h, bullion AED 500, validity `[12,24,48]`, karat list, media limits), plus `legal.terms_url`, `legal.privacy_url`, `support.contact_url` (`SAM-GAP-5`). **Seeded.** `subscriptionContactUrl` is **not** in the seed file.
+26. One local Admin user in seed (no self-register). **Built.**
 
-**Gate:** upload-intent → put bytes → complete → `READY` on local disk; quarantine blocks parent publish.
+**Gate:** not met — config endpoint is missing. Request forms have no server source for 48 h / bullion floor / validity hours.
 
 ---
 
-## P5 — Vendor onboarding and subscriptions
+## P4 — Media port (partly built)
 
-32. Vendor profile GET/PATCH; `BR-004` re-verification on legal name / licence / address. `VendorMe` also carries `verificationMessage?` — the Admin's latest free-text request-for-information, which `VEN-S03` renders and no read model currently exposes (`SAM-GAP-6`).
-33. KYC documents via media; resubmit after reject.
-33a. **Vendor document expiry job** (`vendor-document-expiry`, daily 02:00 GST) — `vendor_document` within 30 days of `expiry_date` with no `reminder_sent_at`; emits `vendor.document.expiring` to Vendor and Admin (`FR-VEN-002` AC4). Needs the `reminder_sent_at` column from T36. Without it a trade licence lapses unnoticed and the Vendor silently loses eligibility.
-34. Categories / Regions / away mode (`FR-VEN-025`). **`SAM-GAP-7` decides the guard here.** `FR-VEN-025` AC1 and the `VEN-S03` flow require a `VERIFIED`-but-not-yet-`ACTIVE` Vendor to set Categories and Regions *in order to* reach `ACTIVE`; the Route Index marks `PUT /v1/me/vendor/categories`, `/regions` and `PATCH /v1/me/vendor/availability` as `V` (ACTIVE only). Implementing the index literally makes first activation unreachable. Resolve before writing the guard — do not pick one reading silently.
-35. `GET /v1/me/subscriptions` read-only.
-36. Admin grant/patch subscriptions (`AD-API-04`) — can land with P11; stub entitlement check now so matching can proceed.
-37. Dashboard counts (`GET /v1/me/dashboard`) — empty-safe until P7/P8.
+27. Storage port: `presignUpload`, `presignDownload`, `delete`, `head`. **Built.**
+28. Adapters: local filesystem for tests; Supabase Storage for KYC in checkpoint-1. Production target remains R2/MinIO (`adr/0008`). **Built for the KYC path.**
+29. `POST /v1/media/upload-intent`, `POST /v1/media/{key}/complete`, `DELETE /v1/media/{key}`. **Built.**
+30. Worker: magic-byte inspect, EXIF strip, re-encode, thumbnail, malware stub → `READY` / `QUARANTINED` (`FR-SYS-009`). **Not built.** Dev KYC is marked `READY` in the complete call.
+31. KYC bucket never issued to Customer/Vendor; Admin URL audited (`NFR-015`). KYC path hides the URL on Vendor document list. Real Admin signed-URL route is not built.
 
-**Gate:** Vendor in shell cannot hit `/v1/matches`; `ACTIVE` + subscription required to offer; a
-newly `VERIFIED` Vendor can complete the `VEN-S03` → `ACTIVE` path end to end (`SAM-GAP-7`).
+**Gate:** KYC upload-intent → put bytes → complete works. Image-clean worker and Request-image bucket are still open.
+
+---
+
+## P5 — Vendor onboarding and subscriptions (partly built)
+
+32. Vendor profile GET/PATCH; `BR-004` re-verification on legal name / licence / address. `VendorMe` carries `verificationMessage?`. **Built.**
+33. KYC documents via media; resubmit after reject. **Built.**
+33a. **Vendor document expiry job** (`vendor-document-expiry`, daily 02:00 GST). **Not built.** Column `reminder_sent_at` is in the schema.
+34. Categories / Regions / away mode (`FR-VEN-025`). **Built.** Guard admits `VERIFIED` before first `ACTIVE` (SAM-GAP-7 in code).
+35. `GET /v1/me/subscriptions` read-only. **Not built.** Dashboard returns `subscriptions: []`.
+36. Admin grant/patch subscriptions (`AD-API-04`). **Not built.**
+37. Dashboard counts (`GET /v1/me/dashboard`). **Built as zeros** until P7/P8.
+
+**Gate:** Vendor in shell cannot hit marketplace routes that use `VendorAccessGuard`. `/v1/matches` does not exist yet. A newly `VERIFIED` Vendor can complete categories → `ACTIVE` on the Vendor routes that exist. Subscriptions are still missing, so matching/offers cannot enforce `BR-002` for Request type.
 
 ---
 
 ## P6 — Requests (Customer)
+
+**Status: not built.** `modules/requests/` is empty.
 
 State machine SRS §5.2 as a pure domain function (`NFR-029`).
 
@@ -253,7 +226,7 @@ State machine SRS §5.2 as a pure domain function (`NFR-029`).
 40. `POST .../cancel`, `POST .../duplicate`.
 41. `GET /v1/me/requests`, `GET /v1/requests/{id}` Customer presenter (no Vendor identity).
 42. Snapshot `expires_at = published_at + lifetime` (`BR-020`).
-42a. **Draft purge job** (`request-draft-purge`, hourly) — warn at 27 days (`request.draft.purge_warning`), hard-delete draft + `request_media` at 30 days (`FR-CUS-015` AC4). Needs `request.draft_purge_warned_at` from T36. This job deletes Customer data on a timer; land it with the draft rules that create it, not months later.
+42a. **Draft purge job** (`request-draft-purge`, hourly) — warn at 27 days (`request.draft.purge_warning`), hard-delete draft + `request_media` at 30 days (`FR-CUS-015` AC4). Column `draft_purge_warned_at` is in the schema. This job deletes Customer data on a timer; land it with the draft rules that create it, not months later.
 42b. Emit `request.edited` and `request.cancelled` (Async-Contract §4.3, §4.4). `request.edited` notifies **pending-Offer Vendors only** — a `[PROPOSED]` scope choice recorded in Async-Contract §11, not a free decision.
 
 **Gate:** publish refused without OAuth; draft never appears in any Vendor query.
@@ -261,6 +234,8 @@ State machine SRS §5.2 as a pure domain function (`NFR-029`).
 ---
 
 ## P7 — Matching and Vendor feed
+
+**Status: not built.** `modules/matching/` is empty.
 
 43. Fan-out worker on `request.published`: eligibility `VERIFIED` + `ACTIVE` + category + region + live Type Subscription (`FR-SYS-002`); `ON CONFLICT DO NOTHING`. Zero matches is a valid outcome, not an error — the Request stays published and the gap is recorded for the liquidity report (`FR-SYS-001.3`, `FR-ADM-027`).
 43a. **Match-set recompute** on `vendor.eligibility.changed` (`FR-SYS-002.3`) — emitted by `vendor-onboarding` and `subscription` when Categories, Regions, verification or a Type Subscription change. Upsert on `(request_id, vendor_profile_id)`. Without it a Vendor who subscribes mid-Request never sees live Requests they now qualify for.
@@ -274,20 +249,24 @@ State machine SRS §5.2 as a pure domain function (`NFR-029`).
 
 ## P8 — Offers
 
+**Status: not built.** `modules/offers/` is empty.
+
 State machine SRS §5.3.
 
 47. `POST /v1/requests/{id}/offers` — subscription, match set, `BR-009` unique, note scan, validity clamp to Request remaining life.
 48. Revise (max 3) / withdraw.
-49. `GET /v1/me/offers`, `GET /v1/requests/{id}/offers`, `GET /v1/offers/{id}` role presenters (`BR-008` — no competing terms). `GET /v1/offers/{id}` is also the current-terms snapshot `VEN-S10` reads before a revise. Unread state (`SAM-GAP-1`): `viewedByCustomerAt` on `OfferForCustomer` + `unreadOfferCount` on the `RequestForCustomer` list row — `CUS-S02` and `CUS-S11` both render a marker that nothing currently feeds.
+49. `GET /v1/me/offers`, `GET /v1/requests/{id}/offers`, `GET /v1/offers/{id}` role presenters (`BR-008` — no competing terms). `GET /v1/offers/{id}` is also the current-terms snapshot `VEN-S10` reads before a revise. Unread state (`SAM-GAP-1`): `viewedByCustomerAt` on `OfferForCustomer` + `unreadOfferCount` on the `RequestForCustomer` list row — `CUS-S02` and `CUS-S11` both render a marker that nothing currently feeds. Column `viewed_by_customer_at` is in the schema.
 50. `GET /v1/offers/{id}/vendor-rating` (`FR-CUS-031`).
 51. Offer expiry sweep (1 min, not the permitted 5 — Async-Contract §6 cadence note; plus a synchronous check on accept) (`FR-SYS-004`).
-51a. **Offer expiry warning job** (`offer-expiry-warning`, 5 min) — pending Offers within 6 h of `expires_at`, warned once, emits `offer.expiry.warning` (`FR-VEN-013` AC4). Needs `offer.expiry_warned_at` from T36. Symmetric with the Customer's Request warning at #63; a Vendor's Offer currently lapses silently.
+51a. **Offer expiry warning job** (`offer-expiry-warning`, 5 min) — pending Offers within 6 h of `expires_at`, warned once, emits `offer.expiry.warning` (`FR-VEN-013` AC4). Column `expiry_warned_at` is in the schema. Symmetric with the Customer's Request warning at #63; a Vendor's Offer currently lapses silently.
 
 **Gate:** second pending Offer from same Vendor → 409; Vendor payload never includes another Vendor’s price.
 
 ---
 
 ## P9 — Acceptance and Connections (spine)
+
+**Status: not built.** `modules/connections/` is empty.
 
 52. Domain: `SELECT … FOR UPDATE` Request; Offer `PENDING` and unexpired; Request open.
 53. One transaction: Offer `ACCEPTED`, Request `ACCEPTED`, other `PENDING` → `REJECTED`, insert Connection, audit `IDENTITY_REVEALED`, outbox notifications (`AD-BE-09`).
@@ -303,11 +282,13 @@ State machine SRS §5.3.
 
 ## P10 — Reviews, abuse, notifications
 
+**Status: not built.** `modules/reviews/`, `modules/abuse/`, `modules/notifications/` are empty.
+
 59. Reviews hold-for-approval; one per party (`BR-016`, `BR-017`); edit window 14 days; Vendor response + flag.
 60. Rating aggregation worker (`FR-SYS-012`) — on `review.published` / `review.moderated`, plus a 5-minute reconciliation; full recompute, so idempotent by construction. Customer ratings hidden from other Customers (`BR-018`). Same worker emits the 6-month `ratingTrend[]` for `GET /v1/me/vendor/performance` that `VEN-S20` charts (`SAM-GAP-8`) — an aggregate, not a read-time scan.
-61. `POST /v1/abuse-reports`; reporter identity withheld. `SAM-GAP-4`: `CUS-S22` and `VEN-S21` report a Vendor or a Customer directly, with no Request/Offer/Connection in hand, but `AbuseEntityType` is `REQUEST | OFFER | CONNECTION | REVIEW`. Either the enum widens (a migration — decide at P0) or the screens must always resolve to one of the four.
-62. In-app notification centre + preferences + quiet hours; push adapters (APNs/FCM) behind ports — stub OK if credentials absent; **persist in-app regardless of push** (`FR-SYS-008.6`).
-62a. **Notification retry job** (`notification-retry`, 1 min) — `notification_delivery` rows `FAILED` with `attempt < 3` (`FR-SYS-008.3`). Distinct from outbox drain: the outbox guarantees the event, this guarantees the delivery. Needs the `notification_delivery` enums from T36.
+61. `POST /v1/abuse-reports`; reporter identity withheld. Schema enum already includes `VENDOR` and `CUSTOMER` (`SAM-GAP-4`).
+62. In-app notification centre + preferences + quiet hours; push adapters (APNs/FCM) behind ports — stub OK if credentials absent; **persist in-app regardless of push** (`FR-SYS-008.6`). Adapter folders `platform/adapters/{apns,fcm,email}` exist and are empty.
+62a. **Notification retry job** (`notification-retry`, 1 min) — `notification_delivery` rows `FAILED` with `attempt < 3` (`FR-SYS-008.3`). Distinct from outbox drain: the outbox guarantees the event, this guarantees the delivery.
 63. Request T−6 h warning + hard expiry 48 h worker (`FR-SYS-005`, `C-07`). Both sweeps run at 1 min, not the 5 the spec permits — a Customer-visible countdown at zero while the Request still reads live is a trust problem (Async-Contract §6 cadence note).
 63a. **Retention purge job** (`retention-purge`, daily 03:00 GST) — notifications past 90 d, orphan media past 30 d (`FR-SYS-009.6`), `idempotency_key` past 24 h; audit never (`NFR-021`, `AD-BE-13`). Idempotent by construction. Pairs with the PDPL erasure path stubbed at P2 #20.
 
@@ -315,28 +296,32 @@ State machine SRS §5.3.
 
 ## P11 — Admin (`/v1/admin`)
 
-64. Guard: non-Admin token on `/v1/admin` → 404 (do not advertise). Admin token on marketplace mutating routes → 403.
+**Status: taxonomy only.** `modules/admin/` is empty. Admin taxonomy lives in `modules/taxonomy/`.
+
+64. Guard: non-Admin token on `/v1/admin` → 404 (do not advertise). Admin token on marketplace mutating routes → 403. **404 hide is built** in `AuthGuard`.
 65. Dashboard metrics (`FR-ADM-003`–`009`) via **named read-only views** owned by source modules (Architecture-Backend §7.3 exception).
 66. Customers: list/detail/suspend/reactivate/erasure.
-67. Vendors: list/detail/KYC signed URL (audited)/verification queue/verify/reject/request-info/activate/suspend/deactivate + subscription grant.
+67. Vendors: list/detail/KYC signed URL (audited)/verification queue/verify/reject/request-info/activate/suspend/deactivate + subscription grant. Checkpoint-1 has a **dev-verify** shortcut, not these Admin routes.
 68. Requests/Offers/Connections oversight + Request remove + Admin close Connection.
-69. Taxonomy CUD (deactivate, never delete).
+69. Taxonomy CUD (deactivate, never delete). **Built.**
 70. Review moderation approve/reject/redact.
 71. Reports + async exports (watermark + audit, `NFR-016`).
 72. Announcements; platform settings (`BR-020`); gold-rate override; abuse queue; audit log viewer; Admin user provisioning (no role column). Two screen-driven checks: `ADM-S18` has a "zero audience" edge state that implies a pre-send recipient estimate — either `POST /v1/admin/announcements/preview` or an accepted post-send-only count (`SAM-GAP-10`); and `GET /v1/admin/audit-log` rows must carry `before` / `after` / `ip` / `userAgent` in full, or `ADM-S22`'s detail view has no source and needs `GET /v1/admin/audit-log/{id}` (`SAM-GAP-12`).
-72a. **Announcement dispatch job** (`announcement-dispatch`, 1 min) — due, uncancelled, not-yet-dispatched announcements; sets the dispatch guard and emits `announcement.scheduled` (`FR-ADM-029`). Needs the T36 guard decision (`dispatch_stats IS NULL` vs an explicit `dispatched_at`). Note Async-Contract §11 resolves `SAM-GAP-10` the other way: the audience count is computed **at dispatch**, not previewable — so #72's preview endpoint is now a deliberate choice against that, or is dropped.
+72a. **Announcement dispatch job** (`announcement-dispatch`, 1 min) — due, uncancelled, not-yet-dispatched announcements; sets the dispatch guard and emits `announcement.scheduled` (`FR-ADM-029`). Note Async-Contract §11 resolves `SAM-GAP-10` the other way: the audience count is computed **at dispatch**, not previewable — so #72's preview endpoint is now a deliberate choice against that, or is dropped.
 73. Internal notes `POST /v1/admin/{collection}/{id}/notes`.
 
 ---
 
 ## P12 — Gold rate, OpenAPI, release gates
 
+**Status: not built.** `modules/gold-rate/` is empty. OpenAPI generator is not a dependency.
+
 74. Gold-rate poll port (Yahoo adapter, 15 min configurable) + manual override; never fabricate `0`; feature flag `goldRates.endUserDisplay` (`AD-API-09`). Upsert on `(purity_karat, source, source_timestamp)` — Async-Contract §6 records that Architecture §11.3's two-column key is wrong and the schema constraint wins.
 74a. **Gold-rate stale alert** (`gold-rate-stale-alert`, 15 min), de-duplicated per window — Admin alerted after 2 h of ingestion failure (`FR-SYS-010.5`). `ADM-S20` surfaces both the poll interval and the staleness threshold; they are `platform_setting` keys written through `PATCH /v1/admin/settings/{key}`, not a dedicated route (`SAM-GAP-11`).
-75. Generate OpenAPI from Nest/Zod into `backend/openapi/`; CI diff (`NFR-030`). Neither `@nestjs/swagger` nor a zod-to-openapi bridge is a dependency yet — pick one at T35 and keep Zod the single source of shape, so schemas are not written twice. First commit diffs against the inventory, not against empty.
+75. Generate OpenAPI from Nest/Zod into `backend/openapi/`; CI diff (`NFR-030`). Neither `@nestjs/swagger` nor a zod-to-openapi bridge is a dependency yet — pick one at T31 and keep Zod the single source of shape, so schemas are not written twice. First commit diffs against the inventory, not against empty.
 76. Contract tests: every inventory route, every role, error codes. The error catalogue is a closed enum (inventory §5) — assert no handler invents a code outside it.
-77. Masking suite as a **build-failing** gate (`NFR-013`). Needs the T33 runner and the T35 CI job; without both this is a wish, not a gate.
-78. State-machine exhaustive tests Request/Offer/Vendor/Connection (`NFR-029`) — legal transitions and the 409 for every illegal one.
+77. Masking suite as a **build-failing** gate (`NFR-013`). Unit and some integration masking tests exist; this item is the CI gate on every identity-bearing route, including P6–P9 when they land.
+78. State-machine exhaustive tests Request/Offer/Vendor/Connection (`NFR-029`) — legal transitions and the 409 for every illegal one. Vendor machine tests exist from checkpoint-1.
 79. Performance tests for the six hot paths ([Physical-Data-Model](Physical-Data-Model.md) §6) — **after** a production-scale seed; may trail functionally.
 
 ---
@@ -345,43 +330,37 @@ State machine SRS §5.3.
 
 Same completeness check the Screen-API map runs against the inventory, applied to
 [`Async-Contract.md`](Async-Contract.md) §6 — which is now the authority here, superseding
-Architecture §11.3. It preserves the eleven §11.3 jobs and adds four (`AD-ASYNC-08`). **Eight
-of the fifteen had no phase in v0.1 of this plan.**
+Architecture §11.3.
 
-| Job (Async-Contract §6) | `job_lock` key | Cadence | Phase |
-|---|---|---|---|
-| Outbox drain | — (`SKIP LOCKED`) | 5 s | P1 #7 |
-| Media processing | — (event) | on `media.uploaded` | P4 #30 |
-| Vendor document expiry **[new]** | `vendor-document-expiry` | Daily 02:00 GST | **P5 #33a** |
-| Draft purge **[new]** | `request-draft-purge` | Hourly | **P6 #42a** |
-| Match-set recompute | — (event) | on `vendor.eligibility.changed` | **P7 #43a** |
-| Offer expiry sweep | `offer-expiry-sweep` | 1 min | P8 #51 |
-| Offer expiry warning **[new]** | `offer-expiry-warning` | 5 min | **P8 #51a** |
-| Rating reconcile | `rating-reconcile` | 5 min | P10 #60 |
-| Notification retry | `notification-retry` | 1 min | **P10 #62a** |
-| Request expiry sweep | `request-expiry-sweep` | 1 min | P10 #63 |
-| Request expiry warning | `request-expiry-warning` | 5 min | P10 #63 |
-| Retention purge | `retention-purge` | Daily 03:00 GST | **P10 #63a** |
-| Announcement dispatch **[new]** | `announcement-dispatch` | 1 min | **P11 #72a** |
-| Gold rate poll | `gold-rate-poll` | 15 min | P12 #74 |
-| Gold rate stale alert | `gold-rate-stale-alert` | 15 min | **P12 #74a** |
+| Job (Async-Contract §6) | `job_lock` key | Cadence | Phase | Code today |
+|---|---|---|---|---|
+| Outbox drain | — (`SKIP LOCKED`) | 5 s | P1 #7 | **Built.** `main.ts` `outbox.drain` |
+| Media processing | — (event) | on `media.uploaded` | P4 #30 | Not built |
+| Vendor document expiry | `vendor-document-expiry` | Daily 02:00 GST | **P5 #33a** | Not built (column exists) |
+| Draft purge | `request-draft-purge` | Hourly | **P6 #42a** | Not built (column exists) |
+| Match-set recompute | — (event) | on `vendor.eligibility.changed` | **P7 #43a** | Not built |
+| Offer expiry sweep | `offer-expiry-sweep` | 1 min | P8 #51 | Not built |
+| Offer expiry warning | `offer-expiry-warning` | 5 min | **P8 #51a** | Not built (column exists) |
+| Rating reconcile | `rating-reconcile` | 5 min | P10 #60 | Not built |
+| Notification retry | `notification-retry` | 1 min | **P10 #62a** | Not built |
+| Request expiry sweep | `request-expiry-sweep` | 1 min | P10 #63 | Not built |
+| Request expiry warning | `request-expiry-warning` | 5 min | P10 #63 | Not built |
+| Retention purge | `retention-purge` | Daily 03:00 GST | **P10 #63a** | Not built |
+| Announcement dispatch | `announcement-dispatch` | 1 min | **P11 #72a** | Not built |
+| Gold rate poll | `gold-rate-poll` | 15 min | P12 #74 | Not built |
+| Gold rate stale alert | `gold-rate-stale-alert` | 15 min | **P12 #74a** | Not built |
 
 Every lease-based job takes its named `job_lock` row through P1 #8 (`NFR-009`). **`outbox-drain`
 is deliberately not lease-based** — `FOR UPDATE SKIP LOCKED` lets every `worker` instance drain
-concurrently. None of the fifteen may fire in an `APP_ROLE=api` process.
+concurrently. None of the fifteen may fire in a `KH_ROLE=api` process.
 
-Async-Contract §4 carries **21 events**, seven of them new against Architecture §11.2:
-`request.matched`, `request.edited`, `request.cancelled`, `request.draft.purge_warning`,
-`offer.expiry.warning`, `announcement.scheduled`, `vendor.document.expiring`. Producers land
-with their phase; the `notifications:dispatch` consumer at P10 #62 must handle all 21 — the
-bodies come later, from `Notification-Catalogue.md` (sequence doc #4).
+Async-Contract §4 carries **21 events**. Event **names** are listed in `outbox.events.ts`. No domain consumer is registered except the drain itself. The `notifications:dispatch` consumer at P10 #62 must handle all 21 — the bodies come later, from `Notification-Catalogue.md` (sequence doc #4).
 
 ---
 
 ## Task list (T01–T44)
 
-Working backlog. Tick in this file as work lands. P0 is immediate. IDs are stable and never
-reused — v0.2 appends T33–T44 rather than renumbering.
+Working backlog. Tick in this file as work lands. IDs are stable and never reused.
 
 ### P0 Scaffold
 
@@ -401,19 +380,19 @@ reused — v0.2 appends T33–T44 rather than renumbering.
 | T07 | Audit helper (same transaction) | done |
 | T08 | Idempotency middleware | done |
 | T09 | Rate-limit buckets | done |
-| T10 | JWT ViewerContext + refresh rotation | done |
+| T10 | JWT ViewerContext + refresh rotation | done (Google token path is extra; see P2) |
 | T11 | Module-boundary lint | done |
 
 ### P2–P5 Identity → Vendor
 
 | ID | Task | Status |
 |---|---|---|
-| T12 | OTP + register Customer/Vendor | pending |
-| T13 | Password + Admin 2FA | partial (password login done; 2FA deferred — checkpoint-1) |
-| T14 | OAuth bind (publish gate) | pending |
-| T15 | Sessions / me / settings / shell guard | partial (checkpoint-1: me + vendor shell guard). Sessions list/delete, settings, password change/reset, mobile change, deactivate, deletion, devices: [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) G2-I03–I11 |
-| T16 | Taxonomy GET + seed | done (checkpoint-1: public + admin CRUD + seed) |
-| T17 | Media port + local-disk adapter + complete/process | done (checkpoint-1: KYC path — signed upload, complete, unattached delete; EXIF/scan worker remains P4) |
+| T12 | OTP + register Customer/Vendor | **partial** — Vendor OTP + Vendor register done. Customer OTP purpose not in the HTTP body. Customer register missing. |
+| T13 | Password + Admin 2FA | **partial** — password login done (Vendor and Admin). 2FA not built. |
+| T14 | OAuth bind (publish gate) | pending — `POST /v1/auth/oauth/bind` missing. Google token is currently treated as login. |
+| T15 | Sessions / me / settings / shell guard | **partial** — `GET/PATCH /v1/me` (Vendor/Admin) + vendor shell guard done. No Customer `me`, sessions list/delete, settings, password change/reset, mobile change, deactivate, deletion, devices. |
+| T16 | Taxonomy GET + seed | **partial** — public + admin CRUD + seed done. `GET /v1/platform-config` missing (P3 gate). |
+| T17 | Media port + local-disk adapter + complete/process | **partial** — KYC upload-intent/complete/delete done. Image-clean worker not built. |
 | T18 | Vendor profile, KYC, categories/regions | done (checkpoint-1: profile, documents, categories/regions, shell guard, dashboard zeros) |
 | T19 | Subscriptions read + Admin grant | pending |
 
@@ -435,31 +414,27 @@ reused — v0.2 appends T33–T44 rather than renumbering.
 | T26 | Reviews + aggregation | pending |
 | T27 | Abuse reports | pending |
 | T28 | Notifications + expiry workers | pending |
-| T29 | Admin lists/actions/exports/settings | pending |
+| T29 | Admin lists/actions/exports/settings | pending (taxonomy CUD already done under T16) |
 | T30 | Gold-rate ingest/override + display flag | pending |
 | T31 | Generated OpenAPI + CI diff | pending |
-| T32 | Release-gate suites (masking, state machines, contract) | pending |
+| T32 | Release-gate suites (masking, state machines, contract) | pending (masking unit tests exist; not a full release gate) |
 
 ### Toolchain and coverage — added in v0.2
-
-T33–T36 are **P0**. They are prerequisites for gates the plan already claimed, not new scope.
 
 | ID | Task | Phase | Status |
 |---|---|---|---|
 | T33 | Test runner + `npm test`; `start:worker` sets `KH_ROLE=worker` | P0 | done (`KH_ROLE`; `APP_ROLE` alias) |
 | T34 | ESLint + Prettier + `eslint-plugin-boundaries` + `npm run lint` | P0 | done |
 | T35 | CI workflow (build · lint · test); choose the Nest/Zod → OpenAPI generator | P0 → feeds T31 | CI done (`.github/workflows/backend.yml`); generator still T31 |
-| T36 | Fold the accepted `SAM-GAP` columns **and** the five Async-Contract §10 deltas + four partial indexes into `schema.prisma`, `prisma/sql/partial-indexes.sql` and `Physical-Data-Model.md` — **before** T01 freezes the init migration | P0 | Columns are in init; still **`[PROPOSED]` / blocked on Technical Lead** — do not revert |
+| T36 | Fold SAM-GAP columns and Async-Contract §10 deltas into schema | P0 | **Columns are in the schema.** Jobs that use them are still pending. Do not revert the init migration. Sign-off on the original `[PROPOSED]` labels is still open paperwork. |
 | T37 | Match-set recompute on `vendor.eligibility.changed` (`FR-SYS-002.3`) | P7 | pending |
 | T38 | Notification retry job (`FR-SYS-008.3`) | P10 | pending |
 | T39 | Retention purge job, daily 03:00 GST (`NFR-021`, `FR-SYS-009.6`) | P10 | pending |
 | T40 | Gold-rate stale alert (`FR-SYS-010.5`) | P12 | pending |
-| T41 | Offer expiry warning job (`FR-VEN-013` AC4) | P8 | blocked on T36 |
-| T42 | Draft purge job — warn 27 d, delete 30 d (`FR-CUS-015` AC4) | P6 | blocked on T36 |
-| T43 | Announcement dispatch job (`FR-ADM-029`) | P11 | blocked on T36 |
-| T44 | Vendor document expiry job (`FR-VEN-002` AC4) | P5 | blocked on T36 |
-
-Also housekeeping, not worth an ID: delete the stray root `package-lock.json`.
+| T41 | Offer expiry warning job (`FR-VEN-013` AC4) | P8 | pending (column exists) |
+| T42 | Draft purge job — warn 27 d, delete 30 d (`FR-CUS-015` AC4) | P6 | pending (column exists) |
+| T43 | Announcement dispatch job (`FR-ADM-029`) | P11 | pending |
+| T44 | Vendor document expiry job (`FR-VEN-002` AC4) | P5 | pending (column exists) |
 
 ---
 
@@ -489,12 +464,13 @@ Also housekeeping, not worth an ID: delete the stray root `package-lock.json`.
 
 ## Risk
 
-`AD-BE-04` / `AD-BE-05` remain `[PROPOSED]`. This plan assumes Nest + Fastify + Prisma as already scaffolded. If Technical Lead rejects them, P0–P1 are the only sunk cost; the physical model and inventory survive.
+Nest + Fastify + Prisma is what the repo runs. `AD-BE-04` / `AD-BE-05` are still tagged `[PROPOSED]` in architecture; changing stack now would throw away P0–P5, not only P0–P1.
 
-Two additions in v0.2:
+Open, not guessed:
 
-- **T36 is on the critical path and is blocked.** Ten proposed schema changes are now pending across two documents — five `SAM-GAP` resolutions (one widens an enum) and five Async-Contract §10 deltas, four of which gate a job outright. Freezing the init migration (T01) first means follow-up migrations against a schema no one has run yet: survivable, but avoidable by deciding now. `AD-ASYNC-*` are all `[PROPOSED]` and the whole Async-Contract is Draft until Technical Lead sign-off, so T36 and that sign-off are the same conversation.
-- **`SAM-GAP-7` can stall P5.** It is not a missing endpoint, it is two authoritative documents disagreeing about who may call `PUT /v1/me/vendor/categories`. Implementing either reading silently produces a Vendor onboarding funnel that either cannot complete or leaks a route to a shell account.
+- **Google Sign-In vs `BR-001`.** Code uses Google as login and creates a Vendor. The original rule says Google is not a login. See [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) G2-D01.
+- **T36 paperwork.** Columns are in the database. Original `[PROPOSED]` labels were never signed off in writing.
+- **SAM-GAP-7.** Code allows a verified-but-not-active Vendor to set categories. The API list still says active-only. The API list has not been edited in this version.
 
 ---
 
@@ -506,3 +482,4 @@ Two additions in v0.2:
 | 0.2 | 1 Sep 2026 | Reconciled with `Screen-API-Map.md` (13 `SAM-GAP`s assigned to phases; `SAM-GAP-7` flagged as a P5 blocker) and with `Async-Contract.md` (now the authority for events and jobs, superseding Architecture §11.3). Gave a phase to the **eight** scheduled jobs that had none — vendor-document expiry, draft purge, match-set recompute, offer expiry warning, notification retry, retention purge, announcement dispatch, gold-rate stale alert — and added a 15-row job-coverage table. Folded both documents' schema deltas into a single pre-migration decision, T36. Pulled the missing toolchain (test runner, lint, CI, OpenAPI generator) forward into P0 as T33–T35. Appended T33–T44. Corrected the "Already done" table against the real `backend/` tree. |
 | 0.3 | 1 Sep 2026 | P0/P1 review-gap fixes (`docs/Backend-Gap-Fix-Plan.md` F01–F17). T33–T35 toolchain closed except OpenAPI generator (T31). T36 columns remain in init as `[PROPOSED]`. |
 | 0.4 | 6 Sep 2026 | Pointer to [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) (`G2-*`) as the post-CP1 executable split of pending T-rows plus Firebase AuthGuard defects. T15 corrected from "done" to **partial** (me + shell guard only). |
+| 0.5 | 6 Sep 2026 | Rewrote status against the code. Replaced the 1 Sep "empty repo" snapshot. P0 and P1 marked done. P2–P5 marked partly built with leftovers. P6–P12 marked not built. T12/T16/T17 corrected to partial. T36: columns exist; jobs still pending. SAM-GAP-7 and SAM-GAP-4 recorded as present in code/schema. Did not change SRS, architecture, or the API list. |

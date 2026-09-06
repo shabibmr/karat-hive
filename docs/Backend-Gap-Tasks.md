@@ -7,7 +7,7 @@
 | **Status** | Working backlog — derived from the 6 Sep 2026 code-review snapshot |
 | **Date** | 6 September 2026 |
 | **Source snapshot** | [`backend_code_review_and_gap_report.md`](backend_code_review_and_gap_report.md) |
-| **Plan of record (phases)** | [`Backend-Implementation-Plan.md`](Backend-Implementation-Plan.md) (P0–P12, T01–T44) |
+| **Plan of record (phases)** | [`Backend-Implementation-Plan.md`](Backend-Implementation-Plan.md) v0.5 (P0–P12, T01–T44). Status in that file was checked against the code on 6 September 2026. |
 | **Does not override** | SRS v1.3 · API-Route-Inventory · Architecture-Backend · Async-Contract · Physical-Data-Model |
 | **Branch** | `docs/backend-gap-tasks` |
 | **Prefix** | `G2-*` — stable, never reused. Each row maps to an existing `Tnn` where one exists. |
