@@ -4,12 +4,12 @@
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | Backend implementation plan and task list |
-| **Version** | 0.3 |
+| **Version** | 0.4 |
 | **Status** | Draft — working backlog. Does not override the SRS or architecture. |
-| **Date** | 1 September 2026 |
+| **Date** | 6 September 2026 |
 | **Source of truth** | [`Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`Architecture-Backend.md`](Architecture-Backend.md) · [`API-Route-Inventory.md`](API-Route-Inventory.md) · [`Physical-Data-Model.md`](Physical-Data-Model.md) · [`Async-Contract.md`](Async-Contract.md) (`AD-ASYNC-nn` — outbox payloads and the 15 scheduled jobs; feeds P2/P7/P10/P12, T05/T21/T23/T28) |
 | **Coverage inputs** | [`Screen-API-Map.md`](Screen-API-Map.md) (`SAM-GAP-nn`) · [`Spec-Document-Sequence.md`](Spec-Document-Sequence.md) |
-| **Tasks** | [§ Task list](#task-list-t01t44) · P0/P1 review fixes: [`Backend-Gap-Fix-Plan.md`](Backend-Gap-Fix-Plan.md) (F01–F17, D01–D04) |
+| **Tasks** | [§ Task list](#task-list-t01t44) · P0/P1 review fixes: [`Backend-Gap-Fix-Plan.md`](Backend-Gap-Fix-Plan.md) (F01–F17, D01–D04) · Post-CP1 executable split: [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) (`G2-*`) |
 
 Build the **Node.js monolith** (`C-11`) so every route in the API inventory is implemented against PostgreSQL (`C-12`). Flutter clients are out of scope. OpenAPI is generated from this code (`NFR-030`, `AD-BE-14`).
 
@@ -411,7 +411,7 @@ reused — v0.2 appends T33–T44 rather than renumbering.
 | T12 | OTP + register Customer/Vendor | pending |
 | T13 | Password + Admin 2FA | partial (password login done; 2FA deferred — checkpoint-1) |
 | T14 | OAuth bind (publish gate) | pending |
-| T15 | Sessions / me / settings / shell guard | done (checkpoint-1: me + admin guard) |
+| T15 | Sessions / me / settings / shell guard | partial (checkpoint-1: me + vendor shell guard). Sessions list/delete, settings, password change/reset, mobile change, deactivate, deletion, devices: [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) G2-I03–I11 |
 | T16 | Taxonomy GET + seed | done (checkpoint-1: public + admin CRUD + seed) |
 | T17 | Media port + local-disk adapter + complete/process | done (checkpoint-1: KYC path — signed upload, complete, unattached delete; EXIF/scan worker remains P4) |
 | T18 | Vendor profile, KYC, categories/regions | done (checkpoint-1: profile, documents, categories/regions, shell guard, dashboard zeros) |
@@ -505,3 +505,4 @@ Two additions in v0.2:
 | 0.1 | 1 Sep 2026 | Initial backend implementation plan. No Docker. P0–P12, T01–T32. |
 | 0.2 | 1 Sep 2026 | Reconciled with `Screen-API-Map.md` (13 `SAM-GAP`s assigned to phases; `SAM-GAP-7` flagged as a P5 blocker) and with `Async-Contract.md` (now the authority for events and jobs, superseding Architecture §11.3). Gave a phase to the **eight** scheduled jobs that had none — vendor-document expiry, draft purge, match-set recompute, offer expiry warning, notification retry, retention purge, announcement dispatch, gold-rate stale alert — and added a 15-row job-coverage table. Folded both documents' schema deltas into a single pre-migration decision, T36. Pulled the missing toolchain (test runner, lint, CI, OpenAPI generator) forward into P0 as T33–T35. Appended T33–T44. Corrected the "Already done" table against the real `backend/` tree. |
 | 0.3 | 1 Sep 2026 | P0/P1 review-gap fixes (`docs/Backend-Gap-Fix-Plan.md` F01–F17). T33–T35 toolchain closed except OpenAPI generator (T31). T36 columns remain in init as `[PROPOSED]`. |
+| 0.4 | 6 Sep 2026 | Pointer to [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) (`G2-*`) as the post-CP1 executable split of pending T-rows plus Firebase AuthGuard defects. T15 corrected from "done" to **partial** (me + shell guard only). |
