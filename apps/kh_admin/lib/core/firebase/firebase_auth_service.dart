@@ -22,7 +22,11 @@ class FirebaseAuthService {
 
   Future<void> _ensureGoogleSignInInitialized() async {
     if (!_googleSignInInitialized) {
-      await _googleSignIn.initialize();
+      await _googleSignIn.initialize(
+        clientId: kIsWeb
+            ? '132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com'
+            : null,
+      );
       _googleSignInInitialized = true;
     }
   }
