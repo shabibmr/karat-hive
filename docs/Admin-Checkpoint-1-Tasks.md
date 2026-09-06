@@ -288,7 +288,7 @@ flowchart TD
     5. Update `CLAUDE.md`.
   - **Acceptance Criteria**: Documentation reflects current checkpoint implementation.
 
-- [ ] **ADM-E2E-001: End-to-End Click-Through & Verification**
+- [ ] **ADM-E2E-001: End-to-End Click-Through & Verification** (Google Sign-In; blocked on `feat/firebase-setup` merge into `feat/cp1-closeout`. Password login is not a gate.)
   - **Priority**: P0 | **Estimate**: 1.5h | **Target File**: Local environment
   - **Description**: Verify complete workflow:
     1. Start backend with seed data

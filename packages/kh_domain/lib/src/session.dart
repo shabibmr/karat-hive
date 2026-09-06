@@ -9,6 +9,9 @@ class VendorMe {
     required this.legalBusinessName,
     required this.categoryCount,
     required this.regionCount,
+    this.categoryIds = const [],
+    this.regionIds = const [],
+    this.awayMode = false,
     this.awaitingApprovalReason,
     this.verificationMessage,
   });
@@ -20,6 +23,9 @@ class VendorMe {
   final String legalBusinessName;
   final int categoryCount;
   final int regionCount;
+  final List<String> categoryIds;
+  final List<String> regionIds;
+  final bool awayMode;
   final AwaitingApprovalReason? awaitingApprovalReason;
   final String? verificationMessage;
 
@@ -31,6 +37,13 @@ class VendorMe {
         legalBusinessName: j['legalBusinessName'] as String? ?? '',
         categoryCount: j['categoryCount'] as int? ?? 0,
         regionCount: j['regionCount'] as int? ?? 0,
+        categoryIds: ((j['categoryIds'] as List?) ?? const [])
+            .map((e) => e.toString())
+            .toList(growable: false),
+        regionIds: ((j['regionIds'] as List?) ?? const [])
+            .map((e) => e.toString())
+            .toList(growable: false),
+        awayMode: j['awayMode'] as bool? ?? false,
         awaitingApprovalReason:
             AwaitingApprovalReason.parse(j['awaitingApprovalReason'] as String?),
         verificationMessage: j['verificationMessage'] as String?,

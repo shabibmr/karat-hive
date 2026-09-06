@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
+import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../../../app/guards.dart';
 import '../../../app/session/session_controller.dart';
@@ -44,10 +45,18 @@ class KycUploadScreen extends ConsumerWidget {
         children: [
           const Text('Upload your trade licence and Emirates ID for verification.'),
           const SizedBox(height: 16),
+          DocumentChecklist(
+            present: {
+              for (final type in mandatoryVendorDocuments)
+                if (files[type]?.done ?? false) type,
+            },
+          ),
+          const SizedBox(height: 16),
           for (final type in mandatoryVendorDocuments)
             DocumentUploadTile(
               label: type.label,
               state: _tileState(files[type]),
+              progress: files[type]?.progress ?? 0,
               errorText: files[type]?.failure?.message,
               onPick: () => pick(type),
             ),

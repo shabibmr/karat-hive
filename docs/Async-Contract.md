@@ -480,6 +480,39 @@ data: {
 
 **Notes.** `APPROVED` also causes the producer to emit `review.published`. This event drives the rating math for all three decisions; the notification path is only on `review.published`.
 
+### 4.16a `vendor.registered` **[PROPOSED]**
+
+**Producer** `identity` — in the `POST /v1/auth/register/vendor` transaction.
+**Aggregate** `vendor_profile` / `vendorProfileId`
+
+```
+data: {
+  vendorProfileId: UUID
+  vendorUserId:    UUID
+  registeredAt:    DateTime
+}
+```
+
+| Consumer | Action |
+|---|---|
+| none this slice | Audit trail only. Notifications land with a later consumer. |
+
+### 4.16b `vendor.documents.submitted` **[PROPOSED]**
+
+**Producer** `vendor-onboarding` — when the mandatory KYC set (`TRADE_LICENCE` + `EMIRATES_ID`) is complete.
+**Aggregate** `vendor_profile` / `vendorProfileId`
+
+```
+data: {
+  vendorProfileId: UUID
+  vendorUserId:    UUID
+}
+```
+
+| Consumer | Action |
+|---|---|
+| none this slice | Audit trail only. Admin verification queue consumes this later. |
+
 ### 4.17 `vendor.verification.decided`
 
 **Producer** `vendor-onboarding` — in the Admin verification-decision transaction (inventory §21.3; `FR-ADM-015`).

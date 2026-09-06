@@ -52,6 +52,31 @@ class VendorDashboardScreen extends ConsumerWidget {
               value: d.activeConnections,
             ),
             const SizedBox(height: 16),
+            ListTile(
+              title: Text(s.s('dashboard.rating')),
+              subtitle: Text(
+                d.reviewCount == 0
+                    ? s.s('dashboard.noReviews')
+                    : '${d.ratingAverage ?? '—'} (${d.reviewCount})',
+              ),
+            ),
+            ListTile(
+              title: Text(s.s('dashboard.goldRates')),
+              subtitle: Text(
+                d.goldRates == null
+                    ? s.s('dashboard.goldRatesUnavailable')
+                    : d.goldRates.toString(),
+              ),
+            ),
+            ListTile(
+              title: Text(s.s('dashboard.subscriptions')),
+              subtitle: Text(
+                d.subscriptions.isEmpty
+                    ? s.s('dashboard.noSubscriptions')
+                    : '${d.subscriptions.length}',
+              ),
+            ),
+            const SizedBox(height: 16),
             if (d.newRequests + d.pendingOffers + d.activeConnections == 0)
               KhEmptyView(message: s.s('common.empty')),
           ],

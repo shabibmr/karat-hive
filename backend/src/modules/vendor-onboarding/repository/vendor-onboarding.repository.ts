@@ -71,6 +71,22 @@ export class VendorOnboardingRepository {
     return this.prisma.vendorRegion.count({ where: { vendorProfileId } });
   }
 
+  async listCategoryIds(vendorProfileId: string): Promise<string[]> {
+    const rows = await this.prisma.vendorCategory.findMany({
+      where: { vendorProfileId },
+      select: { categoryId: true },
+    });
+    return rows.map((r) => r.categoryId);
+  }
+
+  async listRegionIds(vendorProfileId: string): Promise<string[]> {
+    const rows = await this.prisma.vendorRegion.findMany({
+      where: { vendorProfileId },
+      select: { regionId: true },
+    });
+    return rows.map((r) => r.regionId);
+  }
+
   async replaceCategories(tx: DbTx, vendorProfileId: string, categoryIds: string[]): Promise<void> {
     await tx.vendorCategory.deleteMany({ where: { vendorProfileId } });
     await tx.vendorCategory.createMany({

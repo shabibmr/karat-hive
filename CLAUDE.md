@@ -6,13 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Work here is almost always *authoring or revising documents*. Treat consistency across documents as the primary correctness criterion, the way you would treat a passing test suite elsewhere.
 
-## The only runnable thing
+## Runnable surfaces
 
-`ui-mock/` is a dependency-free HTML/CSS/JS prototype of all 67 screens. Screen partials load via `fetch`, so it **must be served over HTTP** — opening `index.html` from the filesystem shows a blank shell.
+Checkpoint-1 close-out lives in worktree `E:/work/karat_hive_cp1_closeout` on `feat/cp1-closeout`. Firebase/Google Sign-In lives in `E:/work/karat_hive_firebase` on `feat/firebase-setup`. Merge Firebase **into** the close-out branch, test, then merge close-out to `main`.
 
 ```bash
-npx --yes serve ui-mock          # or:  cd ui-mock && python -m http.server 5173
+cd backend && npm run start:dev                          # API :3000
+cd apps/kh_mobile/karat_hive && flutter run --dart-define-from-file=config/dev.json
+cd apps/kh_admin && flutter run -d chrome --dart-define=KH_API_BASE=http://localhost:3000
+npx --yes serve ui-mock                                  # static 67-screen prototype (HTTP only)
 ```
+
+Sign-in is **Google only** (vendor and admin). Do not document or test password/OTP credentials.
+
+`ui-mock/` is a dependency-free HTML/CSS/JS prototype of all 67 screens. Screen partials load via `fetch`, so it **must be served over HTTP** — opening `index.html` from the filesystem shows a blank shell.
 
 Navigation is hash-routed: `#/customer/CUS-S04`, `#/vendor/VEN-S09`, `#/admin/ADM-S07`. Login is a role chooser with no password. Adding a screen means adding the HTML partial under `ui-mock/screens/<role>/` **and** registering it in the `window.KH_NAV` route table in `ui-mock/js/nav.js` — a partial that is not in that table is unreachable.
 

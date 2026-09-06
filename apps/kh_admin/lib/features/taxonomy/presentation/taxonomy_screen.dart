@@ -335,7 +335,24 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                 ),
               ),
               data: (nodes) {
-                // Empty state (SH-FND-12)
+                // Empty state (SH-FND-12). Create-root must still mount the editor.
+                if (nodes.isEmpty && _editorMode == EditorMode.createRoot) {
+                  return NodeEditorPanel(
+                    kind: widget.kind,
+                    mode: EditorMode.createRoot,
+                    isSubmitting: _isSubmitting,
+                    errorMessage: _panelErrorMessage,
+                    onSave: _handleSave,
+                    onCreate: _handleCreate,
+                    onDeactivate: _handleDeactivate,
+                    onCancelCreate: () {
+                      setState(() {
+                        _editorMode = EditorMode.edit;
+                        _panelErrorMessage = null;
+                      });
+                    },
+                  );
+                }
                 if (nodes.isEmpty) {
                   return Center(
                     key: const Key('empty-view'),

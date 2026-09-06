@@ -55,6 +55,16 @@ class CategoriesRegionsScreen extends ConsumerWidget {
             loading: () => const KhLoadingView(),
             error: (_, __) => const KhInlineError(message: 'Could not load regions.'),
           ),
+          const SizedBox(height: 16),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(s.s('onboarding.awayMode')),
+            subtitle: Text(s.s('onboarding.awayModeHint')),
+            value: state.awayMode,
+            onChanged: state.busy ? null : controller.setAwayMode,
+          ),
+          const SizedBox(height: 8),
+          Text(s.s('onboarding.volumePlaceholder')),
           const SizedBox(height: 24),
           KhButton(
             label: s.s('onboarding.save'),

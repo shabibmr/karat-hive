@@ -83,7 +83,16 @@ export class VendorOnboardingService {
       profile,
       viewer.accountState,
     );
-    return presentVendorMe(profile, input, { categoryCount, regionCount });
+    const [categoryIds, regionIds] = await Promise.all([
+      this.repo.listCategoryIds(profile.id),
+      this.repo.listRegionIds(profile.id),
+    ]);
+    return presentVendorMe(profile, input, {
+      categoryCount,
+      regionCount,
+      categoryIds,
+      regionIds,
+    });
   }
 
   async patchProfile(
@@ -174,7 +183,16 @@ export class VendorOnboardingService {
       profile,
       accountState,
     );
-    return presentVendorMe(profile, input, { categoryCount, regionCount });
+    const [categoryIds, regionIds] = await Promise.all([
+      this.repo.listCategoryIds(profile.id),
+      this.repo.listRegionIds(profile.id),
+    ]);
+    return presentVendorMe(profile, input, {
+      categoryCount,
+      regionCount,
+      categoryIds,
+      regionIds,
+    });
   }
 }
 

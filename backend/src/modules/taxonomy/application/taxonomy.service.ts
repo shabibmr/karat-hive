@@ -155,6 +155,7 @@ export class TaxonomyService {
           parentId: input.parentId ?? null,
           displayOrder: input.displayOrder,
           isActive: input.isActive ?? true,
+          ...(kind === 'category' && input.icon !== undefined ? { icon: input.icon } : {}),
         },
         tx,
       );

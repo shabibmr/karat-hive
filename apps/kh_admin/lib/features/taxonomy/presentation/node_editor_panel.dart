@@ -586,23 +586,22 @@ class _NodeEditorPanelState extends State<NodeEditorPanel> {
                 Divider(height: 1, color: colors.borderSubtle),
                 SizedBox(height: spacing.md),
 
-                // Deactivate Action Button
-                // STRICT RULE: "Delete" wording must NEVER be shown (SAM-GAP-9).
-                OutlinedButton.icon(
-                  key: const Key('node-deactivate-button'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: colors.error,
-                    side: BorderSide(color: colors.error.withValues(alpha: 0.6)),
+                if (widget.selectedNode?.isActive == true)
+                  OutlinedButton.icon(
+                    key: const Key('node-deactivate-button'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colors.error,
+                      side: BorderSide(color: colors.error.withValues(alpha: 0.6)),
+                    ),
+                    onPressed: widget.isSubmitting
+                        ? null
+                        : _showDeactivateConfirmation,
+                    icon: const Icon(Icons.pause_circle_outline, size: 16),
+                    label: Text(
+                      l10n?.deactivateButton ?? 'Deactivate',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
-                  onPressed: widget.isSubmitting
-                      ? null
-                      : _showDeactivateConfirmation,
-                  icon: const Icon(Icons.pause_circle_outline, size: 16),
-                  label: Text(
-                    l10n?.deactivateButton ?? 'Deactivate',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
               ],
             ],
           ),

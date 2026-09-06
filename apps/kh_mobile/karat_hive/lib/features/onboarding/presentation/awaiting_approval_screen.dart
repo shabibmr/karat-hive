@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,22 +14,49 @@ import '../controller/vendor_me_controller.dart';
 import '../repository/onboarding_repository.dart';
 
 /// VEN-S03 — the only shell a non-ACTIVE Vendor sees. No marketplace data.
-class AwaitingApprovalScreen extends ConsumerWidget {
+class AwaitingApprovalScreen extends ConsumerStatefulWidget {
   const AwaitingApprovalScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AwaitingApprovalScreen> createState() => _AwaitingApprovalScreenState();
+}
+
+class _AwaitingApprovalScreenState extends ConsumerState<AwaitingApprovalScreen>
+    with WidgetsBindingObserver {
+  Timer? _poll;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _poll = Timer.periodic(const Duration(seconds: 15), (_) => _refresh());
+  }
+
+  @override
+  void dispose() {
+    _poll?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refresh();
+  }
+
+  Future<void> _refresh() async {
+    ref.invalidate(vendorMeProvider);
+    await ref.read(sessionProvider.notifier).refreshUser();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final s = KhStrings.of(context);
     final me = ref.watch(vendorMeProvider);
 
-    Future<void> refresh() async {
-      ref.invalidate(vendorMeProvider);
-      await ref.read(sessionProvider.notifier).refreshUser();
-    }
-
     return KhScaffold(
       title: s.s('onboarding.awaitingTitle'),
-      onRefresh: refresh,
+      onRefresh: _refresh,
       actions: [
         IconButton(
           onPressed: () => ref.read(sessionProvider.notifier).signOut(),
@@ -38,7 +67,7 @@ class AwaitingApprovalScreen extends ConsumerWidget {
         loading: () => const KhLoadingView(),
         error: (_, __) => KhErrorView(
           message: 'Could not load your status.',
-          onRetry: refresh,
+          onRetry: _refresh,
         ),
         data: (vendor) => ListView(
           padding: const EdgeInsets.all(16),
@@ -51,7 +80,7 @@ class AwaitingApprovalScreen extends ConsumerWidget {
               verificationMessage: vendor.verificationMessage,
             ),
             const SizedBox(height: 24),
-            ..._actions(context, s, vendor, ref),
+            ..._actions(context, s, vendor),
           ],
         ),
       ),
@@ -66,7 +95,7 @@ class AwaitingApprovalScreen extends ConsumerWidget {
         _ => s.s('onboarding.pendingAdmin'),
       };
 
-  List<Widget> _actions(BuildContext c, KhStrings s, VendorMe v, WidgetRef ref) {
+  List<Widget> _actions(BuildContext c, KhStrings s, VendorMe v) {
     return switch (v.lifecycle) {
       VendorLifecycle.verified => [
           KhButton(
@@ -85,8 +114,7 @@ class AwaitingApprovalScreen extends ConsumerWidget {
             secondary: true,
             onPressed: () async {
               await ref.read(onboardingRepositoryProvider).resubmit();
-              ref.invalidate(vendorMeProvider);
-              await ref.read(sessionProvider.notifier).refreshUser();
+              await _refresh();
             },
           ),
         ],

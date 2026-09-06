@@ -9,7 +9,13 @@ import { PrismaService } from '../../../platform/db/prisma.service';
 import { withTx } from '../../../platform/db/tx';
 import { enqueueOutbox } from '../../../platform/outbox/outbox.producer';
 import { OBJECT_STORAGE, type ObjectStorage } from '../../../platform/ports/storage.port';
-import { MEDIA_CONSTRAINTS, isByteSizeAllowed, isContentTypeAllowed } from '../domain/media-rules';
+import { AuditWriter } from '../../audit';
+import {
+  MEDIA_CONSTRAINTS,
+  isByteSizeAllowed,
+  isContentTypeAllowed,
+  storagePath,
+} from '../domain/media-rules';
 import { MediaRepository } from '../repository/media.repository';
 import { presentMediaRef, type MediaRef, type UploadIntent } from '../presenter/media.presenter';
 
@@ -32,7 +38,18 @@ export class MediaService {
     @Inject(OBJECT_STORAGE) private readonly storage: ObjectStorage,
     private readonly prisma: PrismaService,
     private readonly repo: MediaRepository,
+    private readonly audit: AuditWriter,
   ) {}
+
+  /** API `key` stays a UUID (`media.key` varchar 64). Object storage uses the scoped path. */
+  objectKeyFor(purpose: MediaPurpose, apiKey: string, viewer: ViewerContext): string {
+    return storagePath({
+      purpose,
+      key: apiKey,
+      vendorProfileId: viewer.vendorProfileId,
+      ownerUserId: viewer.userId,
+    });
+  }
 
   async createIntent(
     viewer: ViewerContext,
@@ -54,25 +71,39 @@ export class MediaService {
 
     const constraint = MEDIA_CONSTRAINTS[dto.purpose];
     const key = randomUUID();
+    const objectKey = this.objectKeyFor(dto.purpose, key, viewer);
     const signed = await this.storage.createSignedUploadUrl({
       bucket: bucketId(constraint.bucket, this.env),
-      key,
+      key: objectKey,
       contentType: dto.contentType,
       maxBytes: constraint.maxBytes,
       ttlSeconds: this.env.SIGNED_UPLOAD_TTL_SECONDS,
     });
 
-    await this.repo.create({
-      key,
-      purpose: dto.purpose,
-      bucket: constraint.bucket,
-      contentType: dto.contentType,
-      byteSize: dto.byteSize,
-      uploadedByUserId: viewer.userId,
+    const row = await withTx(this.prisma, async (tx) => {
+      const created = await this.repo.create(
+        {
+          key,
+          purpose: dto.purpose,
+          bucket: constraint.bucket,
+          contentType: dto.contentType,
+          byteSize: dto.byteSize,
+          uploadedByUserId: viewer.userId,
+        },
+        tx,
+      );
+      await this.audit.append(tx, {
+        actorUserId: viewer.userId,
+        action: 'KYC_UPLOAD_INTENT',
+        entityType: 'media',
+        entityId: created.id,
+        afterValue: { key, purpose: dto.purpose, objectKey },
+      });
+      return created;
     });
 
     return {
-      key,
+      key: row.key,
       uploadUrl: signed.uploadUrl,
       requiredHeaders: signed.requiredHeaders,
       maxBytes: constraint.maxBytes,
@@ -92,13 +123,19 @@ export class MediaService {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.UPLOAD_NOT_COMPLETED);
     }
 
-    const head = await this.storage.headObject(bucketId(media.bucket, this.env), key);
+    const objectKey = this.objectKeyFor(media.purpose, key, viewer);
+    const head = await this.storage.headObject(bucketId(media.bucket, this.env), objectKey);
     if (!head || !head.exists) {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.UPLOAD_NOT_COMPLETED);
     }
     if (head.contentType && head.contentType.split(';')[0] !== media.contentType) {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.UPLOAD_NOT_COMPLETED, [
         { path: 'contentType', code: 'MISMATCH', message: 'Uploaded file type does not match.' },
+      ]);
+    }
+    if (typeof head.size === 'number' && head.size !== media.byteSize) {
+      throw new ApiException(HttpStatus.CONFLICT, ErrorCode.UPLOAD_NOT_COMPLETED, [
+        { path: 'byteSize', code: 'MISMATCH', message: 'Uploaded file size does not match.' },
       ]);
     }
 
@@ -126,6 +163,14 @@ export class MediaService {
     if (!media || media.uploadedByUserId !== viewer.userId) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
+    const attached = await this.repo.countAttachments(media.id);
+    if (attached > 0) {
+      throw new ApiException(HttpStatus.CONFLICT, ErrorCode.CONFLICT, [
+        { path: 'key', code: 'ATTACHED', message: 'Media is attached and cannot be deleted.' },
+      ]);
+    }
+    const objectKey = this.objectKeyFor(media.purpose, key, viewer);
+    await this.storage.deleteObject(bucketId(media.bucket, this.env), objectKey);
     await this.repo.deleteByKey(key);
   }
 

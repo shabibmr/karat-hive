@@ -21,6 +21,9 @@ export type VendorMe = {
   verifiedAt: string | null;
   categoryCount: number;
   regionCount: number;
+  categoryIds: string[];
+  regionIds: string[];
+  awayMode: boolean;
 };
 
 export type VendorDocumentView = {
@@ -34,7 +37,12 @@ export type VendorDocumentView = {
 export function presentVendorMe(
   profile: VendorProfile,
   lifecycleInput: VendorLifecycleInput,
-  counts: { categoryCount: number; regionCount: number },
+  counts: {
+    categoryCount: number;
+    regionCount: number;
+    categoryIds?: string[];
+    regionIds?: string[];
+  },
 ): VendorMe {
   const lifecycle = composeVendorLifecycle(lifecycleInput);
   const reason = awaitingApprovalReason(lifecycleInput);
@@ -54,6 +62,9 @@ export function presentVendorMe(
     verifiedAt: profile.verifiedAt ? profile.verifiedAt.toISOString() : null,
     categoryCount: counts.categoryCount,
     regionCount: counts.regionCount,
+    categoryIds: counts.categoryIds ?? [],
+    regionIds: counts.regionIds ?? [],
+    awayMode: profile.awayMode,
   };
 }
 

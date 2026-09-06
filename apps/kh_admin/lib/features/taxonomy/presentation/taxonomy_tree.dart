@@ -205,8 +205,8 @@ class _TaxonomyTreeState extends State<TaxonomyTree> {
                           SizedBox(width: spacing.xxs),
                           Text(
                             widget.showInactive
-                                ? (l10n?.showInactive ?? 'Show Inactive')
-                                : (l10n?.hideInactive ?? 'Hide Inactive'),
+                                ? (l10n?.hideInactive ?? 'Hide Inactive')
+                                : (l10n?.showInactive ?? 'Show Inactive'),
                             style: typography.caption.copyWith(
                               color: widget.showInactive
                                   ? colors.goldPrimary

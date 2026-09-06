@@ -4,12 +4,14 @@ on:
   push:
     paths:
       - 'apps/kh_mobile/**'
+      - 'apps/kh_admin/**'
       - 'packages/**'
       - 'pubspec.yaml'
       - '.github/workflows/frontend.yml'
   pull_request:
     paths:
       - 'apps/kh_mobile/**'
+      - 'apps/kh_admin/**'
       - 'packages/**'
       - 'pubspec.yaml'
       - '.github/workflows/frontend.yml'
@@ -28,6 +30,26 @@ jobs:
       - run: melos bootstrap
       - run: melos run analyze --no-select
       - run: melos run test --no-select
+      - name: Design-system goldens
+        working-directory: packages/kh_design_system
+        run: flutter test --update-goldens=false
       - name: Debug APK build
         working-directory: apps/kh_mobile/karat_hive
         run: flutter build apk --debug --dart-define-from-file=config/dev.json
+
+  admin:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/kh_admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.7'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter build web --release

@@ -60,16 +60,16 @@ Work still open against the plan of record. Do these in this order.
 |---|---|---|---|
 | ~~CP1-I02~~ | I | Paste `SUPABASE_SERVICE_ROLE_KEY` into `backend/.env` | **Done 6 Sep 2026** — key set, KYC storage round-trip verified |
 | ~~CP1-I03~~ | I | Confirm private Storage bucket `kyc` exists in project `husuemlfcvacrysapwho` | **Done 6 Sep 2026** — bucket confirmed (private, 10 MiB, pdf/jpeg/png) |
-| **CP1-B01a** | B | Add `tooling/golden_runner.dart` | Checkpoint F1; `tooling/` has analysis_options only |
-| **CP1-B01b** | B | `VendorStatusCard` in `kh_ui_domain` | Checklist + picker exist; status card does not |
-| **CP1-B02a** | B | Extract `app/guards.dart` + `unauth` / `awaiting_approval` / `vendor` shells | Redirect lives in `router.dart`; only `splash_screen.dart` exists |
-| **CP1-B02b** | B | `config/staging.json` | Only `dev.json` + `prod.json` |
-| **CP1-B06a** | B | Controller tests for register / KYC / awaiting / categories-regions / dashboard | Only `vendor_login_controller_test.dart` |
-| **CP1-B06b** | B | Widget tests for every `SH-FND-12` / `SH-FND-13` state on the 6 screens | Only login inline-error |
-| **CP1-B06c** | B | LTR + RTL goldens for `kh_design_system` (`AD-FE-13`) | No golden tests, CI does not run them |
-| **CP1-B06d** | B | Frontend CI: path-filter `melos.yaml`/`pubspec.yaml`, run goldens | `.github/workflows/frontend.yml` skips goldens |
-| **CP1-V01** | V | Backend curl walk-through (checkpoint steps 1–10) against local Nest + seeded taxonomy | Must pass before claiming the vertical closed |
-| **CP1-V02** | V | Flutter walk-through: Login → Register → OTP → KYC → curl verify → Categories → Dashboard | `flutter run --dart-define-from-file=config/dev.json` |
+| ~~CP1-B01a~~ | B | Add `tooling/golden_runner.dart` | **Done on feat/cp1-closeout** |
+| ~~CP1-B01b~~ | B | `VendorStatusCard` in `kh_ui_domain` | **Done** (landed earlier on main) |
+| ~~CP1-B02a~~ | B | Extract `app/guards.dart` + shells | **Done** (landed earlier on main) |
+| ~~CP1-B02b~~ | B | `config/staging.json` | **Done on feat/cp1-closeout** |
+| **CP1-B06a** | B | Controller tests for register / login | **Superseded — Google Sign-In (`feat/firebase-setup`)**. KYC controller test added on close-out. |
+| **CP1-B06b** | B | Widget tests for login/register SH-FND-12/13 | **Superseded — Google Sign-In**. Onboarding screens still tested. |
+| ~~CP1-B06c~~ | B | LTR + RTL goldens for `kh_design_system` | **Done on feat/cp1-closeout** |
+| ~~CP1-B06d~~ | B | Frontend CI goldens | **Done on feat/cp1-closeout** (`frontend.yml` goldens job + admin job) |
+| **CP1-V01** | V | Backend walk-through | OTP steps 1–3 **superseded — Google Sign-In**. Remaining: minted-JWT / Google session KYC + dashboard. |
+| **CP1-V02** | V | Flutter walk-through | Register/OTP **superseded**. After `feat/firebase-setup` merge: Google Sign-In → KYC → categories → dashboard. |
 
 Deferred on purpose (do not pull into this checkpoint): ARB/`gen_l10n` (inlined `KhStrings` is the current stand-in), `freezed`/`json_serializable` (hand-written DTOs), listing `kh_admin` in the Dart workspace, standalone `melos.yaml` (Melos 8 config is in root `pubspec.yaml`), real SMS, EXIF/scan worker, OpenAPI generation. (Supabase Data-API/RLS was deferred here → **resolved 6 Sep 2026**, `docs/adr/0009`.)
 

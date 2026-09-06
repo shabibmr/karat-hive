@@ -11,6 +11,7 @@ export type CreateTaxonomyInput = {
   parentId?: string | null;
   displayOrder?: number;
   isActive?: boolean;
+  icon?: string;
 };
 
 export type UpdateTaxonomyInput = {
@@ -19,6 +20,7 @@ export type UpdateTaxonomyInput = {
   parentId?: string | null;
   displayOrder?: number;
   isActive?: boolean;
+  icon?: string;
 };
 
 @Injectable()
@@ -109,6 +111,7 @@ export class TaxonomyRepository {
         parentId: input.parentId ?? null,
         displayOrder: maxOrder,
         isActive: input.isActive ?? true,
+        ...(input.icon !== undefined ? { icon: input.icon } : {}),
       },
     });
   }
@@ -149,6 +152,7 @@ export class TaxonomyRepository {
         ...(input.parentId !== undefined ? { parentId: input.parentId } : {}),
         ...(input.displayOrder !== undefined ? { displayOrder: input.displayOrder } : {}),
         ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+        ...(input.icon !== undefined ? { icon: input.icon } : {}),
       },
     });
   }

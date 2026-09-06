@@ -19,10 +19,16 @@ class OnboardingRepository {
   Future<Result<VendorDashboard>> dashboard() => _api.dashboard();
   Future<Result<VendorMe>> setCategories(List<String> ids) => _api.setCategories(ids);
   Future<Result<VendorMe>> setRegions(List<String> ids) => _api.setRegions(ids);
+  Future<Result<VendorMe>> setAvailability({required bool awayMode}) =>
+      _api.setAvailability(awayMode: awayMode);
   Future<Result<VendorMe>> resubmit() => _api.resubmit();
 
   /// intent → PUT bytes → complete. Returns the media key on success.
-  Future<Result<String>> uploadKycDocument(File file, String contentType) async {
+  Future<Result<String>> uploadKycDocument(
+    File file,
+    String contentType, {
+    void Function(double progress)? onProgress,
+  }) async {
     final length = await file.length();
     final intent = await _api.uploadIntent(
       purpose: 'KYC_DOCUMENT',
@@ -39,15 +45,28 @@ class OnboardingRepository {
             headers: {...i.requiredHeaders, 'content-length': length},
             contentType: contentType,
           ),
+          onSendProgress: length == 0
+              ? null
+              : (sent, total) {
+                  final t = total > 0 ? total : length;
+                  onProgress?.call((sent / t).clamp(0, 1));
+                },
         );
         if ((res.statusCode ?? 0) >= 300) {
           return const Err<String>(ServerFailure(message: 'Upload failed. Try again.'));
         }
+        onProgress?.call(1);
         final done = await _api.completeUpload(i.key);
-        return done.when(
-          ok: (_) => Ok<String>(i.key),
-          err: Err<String>.new,
-        );
+        final fail = done.failureOrNull;
+        if (fail != null) return Err<String>(fail);
+        if (done.valueOrNull != 'READY') {
+          for (var n = 0; n < 15; n++) {
+            await Future<void>.delayed(const Duration(seconds: 1));
+            final again = await _api.completeUpload(i.key);
+            if (again.valueOrNull == 'READY') break;
+          }
+        }
+        return Ok<String>(i.key);
       },
       err: Err<String>.new,
     );

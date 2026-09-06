@@ -156,6 +156,18 @@ void main() {
     expect(find.byKey(const Key('empty-state-cta-button')), findsOneWidget);
   });
 
+  testWidgets('empty-state CTA mounts create-root NodeEditorPanel', (tester) async {
+    fakeRepository.empty = true;
+    await tester.pumpWidget(createTaxonomyWidget());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('empty-state-cta-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('node-name-en-field')), findsOneWidget);
+    expect(find.byKey(const Key('node-save-button')), findsOneWidget);
+  });
+
   testWidgets('TaxonomyScreen renders error view (SH-FND-13) on fetch failure',
       (tester) async {
     fakeRepository.failNext = true;

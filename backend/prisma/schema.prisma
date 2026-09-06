@@ -548,6 +548,7 @@ model Category {
   parentId     String?    @map("parent_id") @db.Uuid
   nameEn       String     @map("name_en") @db.VarChar(100)
   nameAr       String     @map("name_ar") @db.VarChar(100)
+  icon         String?    @db.VarChar(100)
   displayOrder Int        @map("display_order")
   isActive     Boolean    @default(true) @map("is_active")
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)

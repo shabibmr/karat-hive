@@ -8,15 +8,19 @@ import type { DbTx } from '../../../platform/db/tx';
 export class MediaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(input: {
-    key: string;
-    purpose: MediaPurpose;
-    bucket: StorageBucket;
-    contentType: string;
-    byteSize: number;
-    uploadedByUserId: string;
-  }): Promise<Media> {
-    return this.prisma.media.create({
+  create(
+    input: {
+      key: string;
+      purpose: MediaPurpose;
+      bucket: StorageBucket;
+      contentType: string;
+      byteSize: number;
+      uploadedByUserId: string;
+    },
+    tx?: DbTx,
+  ): Promise<Media> {
+    const client = tx ?? this.prisma;
+    return client.media.create({
       data: {
         key: input.key,
         purpose: input.purpose,
@@ -27,6 +31,10 @@ export class MediaRepository {
         uploadedByUserId: input.uploadedByUserId,
       },
     });
+  }
+
+  countAttachments(mediaId: string): Promise<number> {
+    return this.prisma.vendorDocument.count({ where: { mediaId } });
   }
 
   findByKey(key: string): Promise<Media | null> {

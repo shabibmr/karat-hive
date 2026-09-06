@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { Injectable } from '@nestjs/common';
 import type {
@@ -19,7 +19,8 @@ export class LocalDiskStorageAdapter implements ObjectStorage {
   private readonly root = resolve(process.cwd(), '.tmp', 'uploads');
 
   private objectPath(bucket: string, key: string): string {
-    return join(this.root, bucket, key);
+    const segments = key.split('/').filter((s) => s.length > 0);
+    return join(this.root, bucket, ...segments);
   }
 
   async createSignedUploadUrl(input: CreateSignedUploadInput): Promise<SignedUpload> {
@@ -59,6 +60,12 @@ export class LocalDiskStorageAdapter implements ObjectStorage {
     } catch {
       return null;
     }
+  }
+
+  async deleteObject(bucket: string, key: string): Promise<void> {
+    const path = this.objectPath(bucket, key);
+    await rm(path, { force: true });
+    await rm(`${path}.meta.json`, { force: true });
   }
 
   /** Test helper — simulate a client PUT to the signed URL. */

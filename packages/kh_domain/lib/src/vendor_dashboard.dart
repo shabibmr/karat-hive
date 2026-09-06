@@ -5,6 +5,8 @@ class VendorDashboard {
     required this.activeConnections,
     required this.ratingAverage,
     required this.reviewCount,
+    this.goldRates,
+    this.subscriptions = const [],
   });
 
   final int newRequests;
@@ -12,6 +14,8 @@ class VendorDashboard {
   final int activeConnections;
   final double? ratingAverage;
   final int reviewCount;
+  final Object? goldRates;
+  final List<dynamic> subscriptions;
 
   static VendorDashboard fromJson(Map<String, dynamic> j) {
     int c(String k) => (j[k] as Map<String, dynamic>?)?['count'] as int? ?? 0;
@@ -22,6 +26,8 @@ class VendorDashboard {
       activeConnections: c('activeConnections'),
       ratingAverage: (rating['average'] as num?)?.toDouble(),
       reviewCount: rating['reviewCount'] as int? ?? 0,
+      goldRates: j['goldRates'],
+      subscriptions: ((j['subscriptions'] as List?) ?? const []).toList(growable: false),
     );
   }
 }

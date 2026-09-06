@@ -139,6 +139,12 @@ class KhApi {
   Future<Result<VendorMe>> setRegions(List<String> ids) =>
       _vendorMe('PUT', '/v1/me/vendor/regions', body: {'regionIds': ids});
 
+  Future<Result<VendorMe>> setAvailability({bool? awayMode, Object? businessHours}) =>
+      _vendorMe('PATCH', '/v1/me/vendor/availability', body: {
+        if (awayMode != null) 'awayMode': awayMode,
+        if (businessHours != null) 'businessHours': businessHours,
+      });
+
   Future<Result<VendorMe>> resubmit() =>
       _vendorMe('POST', '/v1/me/vendor/resubmit');
 

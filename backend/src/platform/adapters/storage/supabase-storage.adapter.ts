@@ -80,6 +80,16 @@ export class SupabaseStorageAdapter implements ObjectStorage {
       contentType: res.headers.get('content-type'),
     };
   }
+
+  async deleteObject(bucket: string, key: string): Promise<void> {
+    const path = encodePath(key);
+    const res = await fetch(`${this.base()}/object/${bucket}/${path}`, {
+      method: 'DELETE',
+      headers: this.headers(),
+    });
+    if (res.status === 404) return;
+    if (!res.ok) throw new Error(`Supabase delete failed: ${res.status} ${await res.text()}`);
+  }
 }
 
 function encodePath(key: string): string {

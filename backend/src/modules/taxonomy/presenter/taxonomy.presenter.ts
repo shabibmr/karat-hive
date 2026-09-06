@@ -7,6 +7,7 @@ export type CategorySummary = {
   parentId?: string | null;
   isActive: boolean;
   displayOrder: number;
+  icon?: string | null;
 };
 
 export type RegionSummary = {
@@ -25,6 +26,7 @@ export type TaxonomyNode = {
   nameAr: string;
   displayOrder: number;
   isActive: boolean;
+  icon?: string | null;
   children: TaxonomyNode[];
 };
 
@@ -35,6 +37,7 @@ type Rowish = {
   nameAr: string;
   displayOrder: number;
   isActive: boolean;
+  icon?: string | null;
 };
 
 function toTree(rows: Rowish[]): TaxonomyNode[] {
@@ -47,6 +50,7 @@ function toTree(rows: Rowish[]): TaxonomyNode[] {
       nameAr: r.nameAr,
       displayOrder: r.displayOrder,
       isActive: r.isActive,
+      ...(r.icon !== undefined && r.icon !== null ? { icon: r.icon } : {}),
       children: [],
     });
   }
@@ -76,6 +80,7 @@ export function presentCategorySummary(category: Category): CategorySummary {
     parentId: category.parentId,
     isActive: category.isActive,
     displayOrder: category.displayOrder,
+    ...(category.icon ? { icon: category.icon } : {}),
   };
 }
 

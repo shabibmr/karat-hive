@@ -1,6 +1,6 @@
 {
-    "name": "hive_admin",
-    "short_name": "hive_admin",
+    "name": "Karat Hive Admin",
+    "short_name": "Karat Hive Admin",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
