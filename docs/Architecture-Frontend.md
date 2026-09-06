@@ -123,6 +123,8 @@ It is written to be sufficient to lay out the repository, fix the state-manageme
 | `AD-FE-12` | Admin data grid — **build-or-buy decision required before `ADM-S03` starts** | `[BLOCKED]` |
 | `AD-FE-13` | Golden tests in both LTR and RTL for every shared component | `[PROPOSED]` |
 | `AD-FE-14` | Mobile and Admin ship on independent release trains from one repository | `[PROPOSED]` |
+| `AD-FE-15` | **Split KhApi facade into per-resource clients** (`MatchesApi`, `RequestsApi`, `FilterPresetsApi`, …) | `[PROPOSED]` |
+| `AD-FE-16` | **Retain `features/onboarding/` as first-class module**; fold `features/dashboard/` into `request_feed/` | `[PROPOSED]` |
 
 ### 3.1 Rationale for the contested ones
 
@@ -202,11 +204,12 @@ karat-hive-frontend/
 │  │     ├─ main_dev.dart · main_staging.dart · main_prod.dart
 │  │     ├─ app/                    # shells, role gate, router assembly
 │  │     └─ features/
-│  │        ├─ auth/                # CUS-S01, VEN-S01…S04
+│  │        ├─ auth/                # CUS-S01
+│  │        ├─ onboarding/          # VEN-S01…S04 (AD-FE-16)
 │  │        ├─ request_create/      # CUS-S03…S09
 │  │        ├─ request_manage/      # CUS-S02, S10, S17
 │  │        ├─ offers_customer/     # CUS-S11…S14
-│  │        ├─ request_feed/        # VEN-S05…S08
+│  │        ├─ request_feed/        # VEN-S05…S08 (absorbs dashboard, AD-FE-16)
 │  │        ├─ offers_vendor/       # VEN-S09…S11, S14
 │  │        ├─ connections/         # CUS-S15, S16 · VEN-S12, S13
 │  │        ├─ reviews/             # CUS-S18 · VEN-S19, S20
@@ -795,8 +798,8 @@ Every `[PROPOSED]` row in §3. The ones worth real discussion: `AD-FE-03` (state
 | `CUS-S19` | `notifications` | mobile |
 | `CUS-S20`, `S21` | `profile_settings` | mobile |
 | `CUS-S22` | `abuse` | mobile |
-| `VEN-S01`–`S04` | `auth` | mobile |
-| `VEN-S05`–`S08` | `request_feed` | mobile |
+| `VEN-S01`–`S04` | `onboarding` (AD-FE-16) | mobile |
+| `VEN-S05`–`S08` | `request_feed` (absorbs dashboard, AD-FE-16) | mobile |
 | `VEN-S09`–`S11`, `S14` | `offers_vendor` | mobile |
 | `VEN-S12`, `S13` | `connections` | mobile |
 | `VEN-S15`, `S16`, `S18` | `profile_settings` | mobile |

@@ -1625,7 +1625,7 @@ Returned metadata never includes a download URL for the Vendor of the raw KYC ob
 
 `POST /v1/me/vendor/resubmit` after `REJECTED` returns the account to `PENDING_VERIFICATION` (`FR-VEN-002` AC6, §5.4).
 
-### Categories, Regions, availability `[ASSUMED]` (`FR-VEN-025`) — `ACTIVE` to change; required before first activation
+### Categories, Regions, availability `[ASSUMED]` (`FR-VEN-025`) — `VERIFIED` admitted pre-`ACTIVE`; required before first activation
 
 ```
 PUT   /v1/me/vendor/categories     body: { categoryIds: UUID[] }    // ≥ 1
