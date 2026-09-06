@@ -1,6 +1,6 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
-import { errors, jwtVerify, SignJWT } from 'jose';
+import { decodeProtectedHeader, errors, jwtVerify, SignJWT } from 'jose';
 import type { UserType } from '@prisma/client';
 import { ENV, type Env } from '../../../config/env';
 import { PrismaService } from '../../../platform/db/prisma.service';
@@ -169,8 +169,21 @@ export class TokenService {
   private secret(): Uint8Array {
     return new TextEncoder().encode(this.env.JWT_ACCESS_SECRET);
   }
+
+  isFirebaseToken(token: string): boolean {
+    return isFirebaseToken(token);
+  }
 }
 
 export function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
+}
+
+export function isFirebaseToken(token: string): boolean {
+  try {
+    const header = decodeProtectedHeader(token);
+    return header.alg === 'RS256';
+  } catch {
+    return false;
+  }
 }

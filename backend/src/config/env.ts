@@ -24,6 +24,7 @@ const envSchema = z
     JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
     JWT_REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(14),
     INSTANCE_ID: z.string().min(1).optional(),
+    FIREBASE_PROJECT_ID: z.string().default('karat-hive-app'),
 
     // --- OTP (vendor onboarding vertical) ---
     OTP_DEV_MODE: z.enum(['console', 'fixed']).default('console'),
