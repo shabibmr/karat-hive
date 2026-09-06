@@ -33,6 +33,7 @@ export class MediaController {
   }
 
   @Post(':key/complete')
+  @HttpCode(200)
   complete(@Viewer() viewer: ViewerContext, @Param('key') key: string): Promise<MediaRef> {
     return this.media.complete(viewer, key);
   }

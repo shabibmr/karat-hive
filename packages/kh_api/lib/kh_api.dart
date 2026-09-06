@@ -3,193 +3,155 @@ library kh_api;
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+import 'src/clients/auth_client.dart';
+import 'src/clients/dashboard_client.dart';
+import 'src/clients/filter_presets_client.dart';
+import 'src/clients/matches_client.dart';
+import 'src/clients/me_client.dart';
+import 'src/clients/media_client.dart';
+import 'src/clients/platform_config_client.dart';
+import 'src/clients/requests_client.dart';
+import 'src/clients/subscriptions_client.dart';
+import 'src/clients/taxonomy_client.dart';
+import 'src/clients/vendor_client.dart';
 import 'src/dtos.dart';
 
+export 'src/clients/auth_client.dart';
+export 'src/clients/dashboard_client.dart';
+export 'src/clients/filter_presets_client.dart';
+export 'src/clients/matches_client.dart';
+export 'src/clients/me_client.dart';
+export 'src/clients/media_client.dart';
+export 'src/clients/platform_config_client.dart';
+export 'src/clients/requests_client.dart';
+export 'src/clients/subscriptions_client.dart';
+export 'src/clients/taxonomy_client.dart';
+export 'src/clients/vendor_client.dart';
 export 'src/dtos.dart';
 
 /// Typed facade over [KhApiClient]. DTOs are mapped to `kh_domain` types here so
 /// generated shapes never reach controllers/presentation (Architecture-Frontend §9.1).
+///
+/// Specialized clients are exposed as properties (CP2-F09 / CP2-B01) while legacy
+/// direct methods are retained for backward compatibility.
 class KhApi {
-  KhApi(this._client);
+  KhApi(this._client)
+      : auth = AuthClient(_client),
+        meClient = MeClient(_client),
+        taxonomyClient = TaxonomyClient(_client),
+        vendor = VendorClient(_client),
+        mediaClient = MediaClient(_client),
+        dashboardClient = DashboardClient(_client),
+        matches = MatchesClient(_client),
+        requests = RequestsClient(_client),
+        filterPresets = FilterPresetsClient(_client),
+        subscriptions = SubscriptionsClient(_client),
+        platformConfig = PlatformConfigClient(_client);
+
   final KhApiClient _client;
 
   KhApiClient get client => _client;
 
-  // --- auth ---
+  // --- Sub-clients (CP2-F09 / CP2-B01) ---
+  final AuthClient auth;
+  final MeClient meClient;
+  final TaxonomyClient taxonomyClient;
+  final VendorClient vendor;
+  final MediaClient mediaClient;
+  final DashboardClient dashboardClient;
+  final MatchesClient matches;
+  final RequestsClient requests;
+  final FilterPresetsClient filterPresets;
+  final SubscriptionsClient subscriptions;
+  final PlatformConfigClient platformConfig;
+
+  // --- auth backwards-compat ---
   Future<Result<OtpChallenge>> otpRequest({
     required String mobileNumber,
     required String purpose,
-  }) async {
-    final r = await _client.send('POST', '/v1/auth/otp/request', body: {
-      'mobileNumber': mobileNumber,
-      'purpose': purpose,
-    });
-    return r.when(
-      ok: (d) => Ok(OtpChallenge.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
-  }
+  }) =>
+      auth.otpRequest(mobileNumber: mobileNumber, purpose: purpose);
 
   Future<Result<OtpVerifyResult>> otpVerify({
     required String challengeId,
     required String code,
-  }) async {
-    final r = await _client.send('POST', '/v1/auth/otp/verify', body: {
-      'challengeId': challengeId,
-      'code': code,
-    });
-    return r.when(
-      ok: (d) => Ok(OtpVerifyResult.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
-  }
+  }) =>
+      auth.otpVerify(challengeId: challengeId, code: code);
 
-  Future<Result<SessionBundle>> registerVendor(Map<String, dynamic> body) async {
-    final r = await _client.send('POST', '/v1/auth/register/vendor', body: body);
-    return r.when(
-      ok: (d) => Ok(SessionBundle.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
-  }
+  Future<Result<SessionBundle>> registerVendor(Map<String, dynamic> body) =>
+      auth.registerVendor(body);
 
   Future<Result<SessionBundle>> loginPassword({
     required String email,
     required String password,
-  }) async {
-    final r = await _client.send('POST', '/v1/auth/login/password',
-        body: {'email': email, 'password': password});
-    return r.when(
-      ok: (d) => Ok(SessionBundle.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
-  }
+  }) =>
+      auth.loginPassword(email: email, password: password);
 
   static Future<SessionTokens?> refresh(
     KhApiClient client,
     String refreshToken,
-  ) async {
-    final r = await client.send('POST', '/v1/auth/refresh',
-        body: {'refreshToken': refreshToken});
-    return r.when(
-      ok: (d) => SessionBundle.fromJson(d as Map<String, dynamic>).tokens,
-      err: (_) => null,
-    );
-  }
+  ) =>
+      AuthClient.refresh(client, refreshToken);
 
-  Future<void> logout(String? refreshToken) =>
-      _client.send('POST', '/v1/auth/logout', body: {'refreshToken': refreshToken});
+  Future<void> logout(String? refreshToken) => auth.logout(refreshToken);
 
-  // --- me ---
-  Future<Result<MeUser>> me() async {
-    final r = await _client.send('GET', '/v1/me');
-    return r.when(
-      ok: (d) => Ok(MeUser.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
-  }
+  // --- me backwards-compat ---
+  Future<Result<MeUser>> me() => meClient.me();
 
-  // --- taxonomy ---
-  Future<Result<List<TaxonomyNode>>> categories() => _taxonomy('/v1/categories');
-  Future<Result<List<TaxonomyNode>>> regions() => _taxonomy('/v1/regions');
+  // --- taxonomy backwards-compat ---
+  Future<Result<List<TaxonomyNode>>> categories() =>
+      taxonomyClient.categories();
+  Future<Result<List<TaxonomyNode>>> regions() => taxonomyClient.regions();
 
-  Future<Result<List<TaxonomyNode>>> _taxonomy(String path) async {
-    final r = await _client.send('GET', path);
-    return r.when(
-      ok: (d) => Ok(((d as List?) ?? const [])
-          .map((e) => TaxonomyNode.fromJson(e as Map<String, dynamic>))
-          .toList(growable: false)),
-      err: Err.new,
-    );
-  }
+  // --- vendor onboarding backwards-compat ---
+  Future<Result<VendorMe>> vendorMe() => vendor.vendorMe();
 
-  // --- vendor onboarding ---
-  Future<Result<VendorMe>> vendorMe() => _vendorMe('GET', '/v1/me/vendor');
-
-  Future<Result<List<VendorDocument>>> documents() async {
-    final r = await _client.send('GET', '/v1/me/vendor/documents');
-    return r.when(
-      ok: (d) => Ok(((d as List?) ?? const [])
-          .map((e) => VendorDocument.fromJson(e as Map<String, dynamic>))
-          .toList(growable: false)),
-      err: Err.new,
-    );
-  }
+  Future<Result<List<VendorDocument>>> documents() => vendor.documents();
 
   Future<Result<List<VendorDocument>>> attachDocument({
     required String documentType,
     required String mediaKey,
     String? expiryDate,
-  }) async {
-    final r = await _client.send('POST', '/v1/me/vendor/documents', body: {
-      'documentType': documentType,
-      'mediaKey': mediaKey,
-      if (expiryDate != null) 'expiryDate': expiryDate,
-    });
-    return r.when(
-      ok: (d) => Ok(((d as List?) ?? const [])
-          .map((e) => VendorDocument.fromJson(e as Map<String, dynamic>))
-          .toList(growable: false)),
-      err: Err.new,
-    );
-  }
+  }) =>
+      vendor.attachDocument(
+        documentType: documentType,
+        mediaKey: mediaKey,
+        expiryDate: expiryDate,
+      );
 
   Future<Result<VendorMe>> setCategories(List<String> ids) =>
-      _vendorMe('PUT', '/v1/me/vendor/categories', body: {'categoryIds': ids});
+      vendor.setCategories(ids);
 
   Future<Result<VendorMe>> setRegions(List<String> ids) =>
-      _vendorMe('PUT', '/v1/me/vendor/regions', body: {'regionIds': ids});
+      vendor.setRegions(ids);
 
-  Future<Result<VendorMe>> setAvailability({bool? awayMode, Object? businessHours}) =>
-      _vendorMe('PATCH', '/v1/me/vendor/availability', body: {
-        if (awayMode != null) 'awayMode': awayMode,
-        if (businessHours != null) 'businessHours': businessHours,
-      });
+  Future<Result<VendorMe>> setAvailability({
+    bool? awayMode,
+    Object? businessHours,
+  }) =>
+      vendor.setAvailability(
+        awayMode: awayMode,
+        businessHours: businessHours,
+      );
 
-  Future<Result<VendorMe>> resubmit() =>
-      _vendorMe('POST', '/v1/me/vendor/resubmit');
+  Future<Result<VendorMe>> resubmit() => vendor.resubmit();
 
-  Future<Result<VendorMe>> _vendorMe(
-    String method,
-    String path, {
-    Object? body,
-  }) async {
-    final r = await _client.send(method, path, body: body);
-    return r.when(
-      ok: (d) => Ok(VendorMe.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
-  }
+  // --- dashboard backwards-compat ---
+  Future<Result<VendorDashboard>> dashboard() =>
+      dashboardClient.getDashboard();
 
-  Future<Result<VendorDashboard>> dashboard() async {
-    final r = await _client.send('GET', '/v1/me/dashboard');
-    return r.when(
-      ok: (d) => Ok(VendorDashboard.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
-  }
-
-  // --- media ---
+  // --- media backwards-compat ---
   Future<Result<UploadIntent>> uploadIntent({
     required String purpose,
     required String contentType,
     required int byteSize,
-  }) async {
-    final r = await _client.send('POST', '/v1/media/upload-intent', body: {
-      'purpose': purpose,
-      'contentType': contentType,
-      'byteSize': byteSize,
-    });
-    return r.when(
-      ok: (d) => Ok(UploadIntent.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
-  }
+  }) =>
+      mediaClient.uploadIntent(
+        purpose: purpose,
+        contentType: contentType,
+        byteSize: byteSize,
+      );
 
-  Future<Result<String>> completeUpload(String key) async {
-    final r = await _client.send('POST', '/v1/media/$key/complete');
-    return r.when(
-      ok: (d) => Ok((d as Map<String, dynamic>)['state'] as String? ?? 'READY'),
-      err: Err.new,
-    );
-  }
+  Future<Result<String>> completeUpload(String key) =>
+      mediaClient.completeUpload(key);
 }

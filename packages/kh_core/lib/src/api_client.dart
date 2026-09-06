@@ -65,6 +65,7 @@ class KhApiClient {
     Object? body,
     Map<String, dynamic>? query,
     bool revealAuth = true,
+    bool unwrapData = true,
   }) async {
     try {
       final response = await dio.request<dynamic>(
@@ -73,17 +74,17 @@ class KhApiClient {
         queryParameters: query,
         options: Options(method: method, extra: {'kh.revealAuth': revealAuth}),
       );
-      return _mapResponse(response);
+      return _mapResponse(response, unwrapData: unwrapData);
     } on DioException catch (e) {
       return Err(_mapDioError(e));
     }
   }
 
-  Result<dynamic> _mapResponse(Response<dynamic> response) {
+  Result<dynamic> _mapResponse(Response<dynamic> response, {bool unwrapData = true}) {
     final status = response.statusCode ?? 0;
     final data = response.data;
     if (status >= 200 && status < 300) {
-      if (data is Map && data.containsKey('data')) {
+      if (unwrapData && data is Map && data.containsKey('data')) {
         return Ok(data['data']);
       }
       return Ok(data);
