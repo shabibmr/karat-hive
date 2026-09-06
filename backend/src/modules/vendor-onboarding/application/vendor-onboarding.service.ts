@@ -1,12 +1,25 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import type { VendorProfile } from '@prisma/client';
+import {
+  ConnectionState,
+  OfferState,
+  Prisma,
+  RequestState,
+  type VendorProfile,
+} from '@prisma/client';
 import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
 import { PrismaService } from '../../../platform/db/prisma.service';
 import { withTx, type DbTx } from '../../../platform/db/tx';
 import { enqueueOutbox } from '../../../platform/outbox/outbox.producer';
+import { Clock } from '../../../shared/clock';
 import { AuditWriter } from '../../audit';
+import { SubscriptionService } from '../../subscription/application/subscription.service';
+import type { SubscriptionView } from '../../subscription/presenter/subscription.presenter';
+import {
+  presentVendorRequest,
+  type VendorRequestView,
+} from '../../requests/presenter/request-vendor.presenter';
 import { buildLifecycleInput } from './vendor-lifecycle-input';
 import { presentVendorMe, type VendorMe } from '../presenter/vendor-me.presenter';
 import {
@@ -20,6 +33,8 @@ export class VendorOnboardingService {
     private readonly prisma: PrismaService,
     private readonly repo: VendorOnboardingRepository,
     private readonly audit: AuditWriter,
+    private readonly subscriptionService: SubscriptionService,
+    private readonly clock: Clock,
   ) {}
 
   /**
@@ -148,26 +163,118 @@ export class VendorOnboardingService {
     return this.getVendorMe(viewer);
   }
 
-  /** VEN-S05. Zeroed counts — real numbers arrive with the marketplace modules. */
+  /** VEN-S05. Real dashboard aggregates (CP2-A13). */
   async dashboard(viewer: ViewerContext): Promise<{
-    newRequests: { count: number; preview: [] };
+    newRequests: { count: number; preview: VendorRequestView[] };
     pendingOffers: { count: number; expiringWithin24h: number };
     activeConnections: { count: number; noTalkCount: number };
     rating: { average: number | null; reviewCount: number };
     goldRates: null;
-    subscriptions: [];
+    subscriptions: SubscriptionView[];
   }> {
     const profile = await this.requireProfile(viewer);
+    const now = this.clock.now();
+    const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    const unviewedWhere: Prisma.RequestMatchWhereInput = {
+      vendorProfileId: profile.id,
+      isEligible: true,
+      viewedAt: null,
+      request: {
+        state: { in: [RequestState.PUBLISHED, RequestState.OFFERS_RECEIVED] },
+        expiresAt: { gt: now },
+      },
+    };
+
+    const [
+      newRequestsCount,
+      previewMatches,
+      pendingOffersCount,
+      expiringOffersCount,
+      activeConnectionsCount,
+      noTalkCount,
+      subscriptions,
+    ] = await Promise.all([
+      this.prisma.requestMatch.count({ where: unviewedWhere }),
+      this.prisma.requestMatch.findMany({
+        where: unviewedWhere,
+        take: 3,
+        orderBy: { matchedAt: 'desc' },
+        include: {
+          request: {
+            include: {
+              category: true,
+              region: true,
+              media: {
+                include: { media: true },
+                orderBy: { displayOrder: 'asc' },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.offer.count({
+        where: {
+          vendorProfileId: profile.id,
+          state: OfferState.PENDING,
+          expiresAt: { gt: now },
+        },
+      }),
+      this.prisma.offer.count({
+        where: {
+          vendorProfileId: profile.id,
+          state: OfferState.PENDING,
+          expiresAt: { gt: now, lte: in24h },
+        },
+      }),
+      this.prisma.connection.count({
+        where: {
+          vendorProfileId: profile.id,
+          state: ConnectionState.ACTIVE,
+        },
+      }),
+      this.prisma.connection.count({
+        where: {
+          vendorProfileId: profile.id,
+          state: ConnectionState.ACTIVE,
+          contactEvents: { none: {} },
+        },
+      }),
+      this.subscriptionService.getSubscriptions(profile.id),
+    ]);
+
+    const preview = previewMatches.map((m) =>
+      presentVendorRequest(
+        m.request as Parameters<typeof presentVendorRequest>[0],
+        {
+          label: `Customer in ${m.request.region?.nameEn ?? 'UAE'}`,
+          region: m.request.region?.nameEn ?? 'UAE',
+          ratingScore: 5.0,
+          dealCount: 1,
+        },
+        m.viewedAt,
+      ),
+    );
+
     return {
-      newRequests: { count: 0, preview: [] },
-      pendingOffers: { count: 0, expiringWithin24h: 0 },
-      activeConnections: { count: 0, noTalkCount: 0 },
+      newRequests: {
+        count: newRequestsCount,
+        preview,
+      },
+      pendingOffers: {
+        count: pendingOffersCount,
+        expiringWithin24h: expiringOffersCount,
+      },
+      activeConnections: {
+        count: activeConnectionsCount,
+        noTalkCount,
+      },
       rating: {
         average: profile.aggregateRating ? Number(profile.aggregateRating) : null,
         reviewCount: profile.reviewCount,
       },
       goldRates: null,
-      subscriptions: [],
+      subscriptions,
     };
   }
 

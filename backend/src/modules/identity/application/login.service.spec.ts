@@ -54,7 +54,7 @@ describe('LoginService', () => {
     accessExpiresAt: new Date().toISOString(),
     refreshToken: 'refresh-token',
     refreshExpiresAt: new Date().toISOString(),
-    me: {
+    user: {
       userId: 'admin-1',
       userType: 'ADMIN',
       accountState: 'ACTIVE',

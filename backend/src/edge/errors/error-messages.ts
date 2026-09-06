@@ -111,6 +111,38 @@ const MESSAGES: Record<ErrorCode, Record<UiLanguage, string>> = {
     en: 'This taxonomy item is in use and cannot be deleted.',
     ar: 'عنصر التصنيف هذا قيد الاستخدام ولا يمكن حذفه.',
   },
+  SUBSCRIPTION_REQUIRED: {
+    en: 'An active subscription for this request type is required.',
+    ar: 'مطلوب اشتراك نشط لنوع الطلب هذا.',
+  },
+  REQUEST_NOT_PUBLISHABLE: {
+    en: 'This request is missing required fields and cannot be published.',
+    ar: 'هذا الطلب تنقصه بعض الحقول المطلوبة ولا يمكن نشره.',
+  },
+  BULLION_BELOW_MINIMUM: {
+    en: 'Bullion request value must meet the minimum threshold.',
+    ar: 'قيمة طلب السبائك يجب أن تستوفي الحد الأدنى المطلوب.',
+  },
+  GOLD_RATE_UNAVAILABLE: {
+    en: 'Live gold rate is currently unavailable for bullion pricing.',
+    ar: 'سعر الذهب المباشر غير متوفر حالياً لتسعير السبائك.',
+  },
+  CONCURRENT_REQUEST_LIMIT: {
+    en: 'You have reached the maximum number of live requests.',
+    ar: 'لقد وصلت إلى الحد الأقصى من الطلبات النشطة.',
+  },
+  STRUCTURAL_FIELD_IMMUTABLE: {
+    en: 'Structural fields cannot be modified after a request is published.',
+    ar: 'لا يمكن تعديل الحقول الهيكلية بعد نشر الطلب.',
+  },
+  CONTACT_DETAILS_IN_TEXT: {
+    en: 'Contact details (phone numbers or emails) are not allowed in notes.',
+    ar: 'لا يُسمح بإدراج بيانات الاتصال (أرقام الهواتف أو البريد الإلكتروني) في الملاحظات.',
+  },
+  OAUTH_REQUIRED: {
+    en: 'An external account binding is required before publishing.',
+    ar: 'يلزم ربط حساب خارجي قبل النشر.',
+  },
 };
 
 export function resolveLanguage(

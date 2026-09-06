@@ -25,5 +25,14 @@ describe('findIdentityKey', () => {
   it('detects customerProfileId and vendorProfileId as identity keys', () => {
     expect(findIdentityKey({ customerProfileId: 'cust-123' })).toBe('customerProfileId');
     expect(findIdentityKey({ data: { vendorProfileId: 'vend-123' } })).toBe('vendorProfileId');
+    expect(findIdentityKey({ customerId: 'cust-456' })).toBe('customerId');
+    expect(findIdentityKey({ customerName: 'Sara Ali' })).toBe('customerName');
+    expect(findIdentityKey({ customerEmail: 'sara@example.com' })).toBe('customerEmail');
+  });
+
+  it('detects competitor leak keys under findCompetitorLeak and findCompetitorKey', () => {
+    expect(findIdentityKey({ competitorPrice: '100' })).toBe('competitorPrice');
+    expect(findIdentityKey({ winningPrice: '200' })).toBe('winningPrice');
   });
 });
+

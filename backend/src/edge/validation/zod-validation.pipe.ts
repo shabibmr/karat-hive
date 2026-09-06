@@ -22,3 +22,5 @@ export class ZodValidationPipe<S extends ZodTypeAny> implements PipeTransform {
 export function zodBody<S extends ZodTypeAny>(schema: S): ZodValidationPipe<S> {
   return new ZodValidationPipe(schema);
 }
+
+export const zodQuery = zodBody;

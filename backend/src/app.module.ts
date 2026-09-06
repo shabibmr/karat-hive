@@ -12,7 +12,11 @@ import { RateLimitGuard } from './edge/rate-limit/rate-limit.guard';
 import { RateLimitService } from './edge/rate-limit/rate-limit.service';
 import { AuditModule } from './modules/audit';
 import { IdentityModule } from './modules/identity';
+import { MatchingModule } from './modules/matching';
 import { MediaModule } from './modules/media';
+import { RequestsModule } from './modules/requests';
+import { SettingsModule } from './modules/settings';
+import { SubscriptionModule } from './modules/subscription';
 import { TaxonomyModule } from './modules/taxonomy';
 import { VendorOnboardingModule } from './modules/vendor-onboarding';
 import { PrismaModule } from './platform/db/prisma.module';
@@ -30,6 +34,10 @@ import { SharedModule } from './shared/shared.module';
     PlatformModule,
     LifecycleModule,
     AuditModule,
+    SettingsModule,
+    SubscriptionModule,
+    RequestsModule,
+    MatchingModule,
     TaxonomyModule,
     MediaModule,
     VendorOnboardingModule,

@@ -49,6 +49,7 @@ export async function resetDb(prisma: PrismaClient): Promise<void> {
     TRUNCATE TABLE
       audit_log, outbox_event, refresh_token, otp_challenge,
       vendor_document, vendor_category, vendor_region, vendor_type_subscription,
+      request_match, request_media, offer, connection, request,
       media, vendor_profile, customer_profile, admin_profile, "user",
       rate_limit_bucket, idempotency_key
     RESTART IDENTITY CASCADE
@@ -203,3 +204,119 @@ export async function putKycBytes(
   const objectKey = media.objectKeyFor('KYC_DOCUMENT', apiKey, viewer);
   await storage.putForTest(env.SUPABASE_STORAGE_BUCKET_KYC, objectKey, body, contentType);
 }
+
+export async function insertCustomer(
+  prisma: PrismaClient,
+  opts?: {
+    mobileNumber?: string;
+    email?: string;
+    displayName?: string;
+    defaultRegionId?: string;
+  },
+): Promise<{ user: User; customerProfileId: string }> {
+  const suffix = randomUUID().slice(0, 8);
+  const user = await prisma.user.create({
+    data: {
+      mobileNumber: opts?.mobileNumber ?? `+97150${suffix.slice(0, 7)}`,
+      email: opts?.email ?? `customer-${suffix}@karathive.test`,
+      userType: 'CUSTOMER',
+      accountState: 'ACTIVE',
+      preferredLanguage: 'en',
+      termsVersion: '1.0',
+      privacyVersion: '1.0',
+      termsAcceptedAt: new Date(),
+      customerProfile: {
+        create: {
+          displayName: opts?.displayName ?? `Customer ${suffix}`,
+          defaultRegionId: opts?.defaultRegionId ?? null,
+        },
+      },
+    },
+    include: { customerProfile: true },
+  });
+  return { user, customerProfileId: user.customerProfile!.id };
+}
+
+export async function insertVendorSubscription(
+  prisma: PrismaClient,
+  opts: {
+    vendorProfileId: string;
+    requestType?: 'FIND_ORNAMENT' | 'SELL_OLD_GOLD' | 'GOLD_COIN' | 'GOLD_BULLION';
+    state?: 'ACTIVE' | 'GRACE' | 'EXPIRED' | 'CANCELLED';
+    periodStart?: Date;
+    periodEnd?: Date;
+    priceAed?: number;
+  },
+): Promise<{ id: string }> {
+  const sub = await prisma.vendorTypeSubscription.create({
+    data: {
+      vendorProfileId: opts.vendorProfileId,
+      requestType: opts.requestType ?? 'FIND_ORNAMENT',
+      state: opts.state ?? 'ACTIVE',
+      periodStart: opts.periodStart ?? new Date(),
+      periodEnd: opts.periodEnd ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      priceAed: opts.priceAed ?? 500,
+    },
+  });
+  return { id: sub.id };
+}
+
+export async function insertPublishedRequest(
+  prisma: PrismaClient,
+  opts: {
+    customerProfileId: string;
+    categoryId: string;
+    regionId: string;
+    requestType?: 'FIND_ORNAMENT' | 'SELL_OLD_GOLD' | 'GOLD_COIN' | 'GOLD_BULLION';
+    direction?: 'BUY' | 'SELL';
+    notes?: string;
+    budgetMin?: number;
+    budgetMax?: number;
+    purityKarat?: 'K24' | 'K22' | 'K21' | 'K18';
+    weightGrams?: number;
+  },
+): Promise<{ id: string; reference: string }> {
+  const suffix = randomUUID().slice(0, 6).toUpperCase();
+  const reference = `REQ-2026-${suffix}`;
+  const req = await prisma.request.create({
+    data: {
+      reference,
+      customerProfileId: opts.customerProfileId,
+      requestType: opts.requestType ?? 'FIND_ORNAMENT',
+      direction: opts.direction ?? 'BUY',
+      state: 'PUBLISHED',
+      categoryId: opts.categoryId,
+      regionId: opts.regionId,
+      notes: opts.notes ?? 'Test request for matching',
+      budgetMin: opts.budgetMin ?? 3000,
+      budgetMax: opts.budgetMax ?? 5000,
+      purityKarat: opts.purityKarat ?? 'K22',
+      weightGrams: opts.weightGrams ?? 15,
+      publishedAt: new Date(),
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
+    },
+  });
+  return { id: req.id, reference };
+}
+
+export async function insertRequestMatch(
+  prisma: PrismaClient,
+  opts: {
+    requestId: string;
+    vendorProfileId: string;
+    isEligible?: boolean;
+    viewedAt?: Date | null;
+  },
+): Promise<{ id: string }> {
+  const match = await prisma.requestMatch.create({
+    data: {
+      requestId: opts.requestId,
+      vendorProfileId: opts.vendorProfileId,
+      matchedAt: new Date(),
+      isEligible: opts.isEligible ?? true,
+      viewedAt: opts.viewedAt ?? null,
+    },
+  });
+  return { id: match.id };
+}
+

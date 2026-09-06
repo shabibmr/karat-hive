@@ -39,6 +39,7 @@ function startWorkerJobs(app: NestFastifyApplication, instanceId: string): void 
   scheduler.register({
     name: 'outbox.drain',
     intervalMs: 5_000,
+    unleased: true,
     run: async () => {
       await dispatcher.drain(instanceId);
     },
