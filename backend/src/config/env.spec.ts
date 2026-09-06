@@ -37,4 +37,14 @@ describe('loadEnv', () => {
     });
     expect(env.KH_ROLE).toBe('all');
   });
+
+  it('defaults FIREBASE_PROJECT_ID to karat-hive-app', () => {
+    const env = loadEnv({ ...BASE });
+    expect(env.FIREBASE_PROJECT_ID).toBe('karat-hive-app');
+  });
+
+  it('accepts custom FIREBASE_PROJECT_ID', () => {
+    const env = loadEnv({ ...BASE, FIREBASE_PROJECT_ID: 'custom-project-id' });
+    expect(env.FIREBASE_PROJECT_ID).toBe('custom-project-id');
+  });
 });
