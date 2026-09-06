@@ -17,7 +17,7 @@ class TrustSignalBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final hasRating = rating != null && rating!.hasScore;
+    final hasRating = rating != null && rating!.average > 0;
     final hasDeals = dealCount != null && dealCount! > 0;
 
     if (!hasRating && !hasDeals) {
@@ -31,14 +31,14 @@ class TrustSignalBadge extends StatelessWidget {
           Icon(Icons.star_rounded, size: 16, color: tokens.gold),
           const SizedBox(width: 2),
           Text(
-            rating!.scoreString,
+            rating!.average.toStringAsFixed(1),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: tokens.ink,
             ),
           ),
-          if (rating!.count != null && rating!.count! > 0) ...[
+          if (rating!.count > 0) ...[
             const SizedBox(width: 2),
             Text(
               '(${rating!.count})',
@@ -93,7 +93,7 @@ class MaskedPartyLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final pseudonym = party.displayPseudonym;
-    final region = party.regionName;
+    final region = party.region;
 
     return Row(
       mainAxisSize: MainAxisSize.min,

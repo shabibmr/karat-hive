@@ -35,10 +35,10 @@ class SpecificationGrid extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      color: tokens.card,
+      color: tokens.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(tokens.radius.md),
-        side: BorderSide(color: tokens.border),
+        side: BorderSide(color: tokens.ink.withValues(alpha: 0.12)),
       ),
       child: Padding(
         padding: EdgeInsets.all(tokens.space.md),

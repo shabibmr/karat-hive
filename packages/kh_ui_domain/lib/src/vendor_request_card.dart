@@ -29,11 +29,11 @@ class VendorRequestCard extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      color: tokens.card,
+      color: tokens.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(tokens.radius.md),
         side: BorderSide(
-          color: isUnread ? tokens.gold : tokens.border,
+          color: isUnread ? tokens.gold : tokens.ink.withValues(alpha: 0.12),
           width: isUnread ? 1.5 : 1.0,
         ),
       ),
@@ -155,7 +155,6 @@ class VendorRequestCard extends StatelessWidget {
                   if (item.expiresAt != null)
                     ExpiryCountdown(
                       expiresAt: item.expiresAt!,
-                      compact: true,
                     ),
                 ],
               ),
@@ -190,7 +189,7 @@ class _Tag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(tokens.radius.xs),
+        borderRadius: BorderRadius.circular(tokens.radius.sm),
       ),
       child: Text(
         text,
