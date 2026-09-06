@@ -24,7 +24,7 @@ gates 14 other admin screens). Pure CRUD. `Category` and `Region` are identical 
 | Topic | Decision |
 |---|---|
 | First vertical | Taxonomy (ADM-S14 + ADM-S15) |
-| Auth scope | Password-only login now; **TOTP 2FA deferred** to a later slice |
+| Auth scope | Originally password-only (2FA deferred). **Superseded on `main`:** product gate is Google Sign-In; backend accepts Firebase ID tokens in `AuthGuard`. Password routes remain; **TOTP 2FA still deferred** |
 | API client | Hand-write typed Dart repositories in-app; **defer OpenAPI generation** (`AD-FE-06`) |
 | FE structure | Build inside `apps/kh_admin/hive_admin`; **defer Melos monorepo** (`AD-FE-02`); flatten the odd nested folder |
 | Backend host | Local `npm run start:dev` → existing Supabase DB; Flutter Web → `localhost:3000` |

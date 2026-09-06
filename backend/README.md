@@ -14,6 +14,8 @@ Needs Node 20+ and, for `/ready` and later domain work, a local PostgreSQL 16 wi
 
 `JWT_ACCESS_SECRET` is required (min 16 characters). The process refuses to boot with a missing or banned-default secret. Copy `.env.example` and keep the example secret or replace it.
 
+`AuthGuard` accepts either an app-issued HS256 access JWT or a Firebase ID token (RS256, verified against Google JWKS for `FIREBASE_PROJECT_ID`). Flutter clients using Google Sign-In send the Firebase ID token as `Authorization: Bearer`. First-time Firebase users are auto-provisioned as `VENDOR`; Admin must already exist (seed) and match by email.
+
 ```bash
 cp .env.example .env          # then set DATABASE_URL to your local Postgres
 npm install

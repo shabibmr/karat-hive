@@ -732,6 +732,8 @@ Short-lived access JWT (15 minutes) plus a long-lived, rotating, single-use refr
 
 The access token carries user id, role and token version only. It carries **no** entitlement, vendor state, or subscription claim — those change mid-session (an Admin suspends a Vendor; a subscription lapses) and a token that claimed them would keep granting access until expiry. Volatile authorisation facts are read from the database per request, cached only within that request. Suspension therefore takes effect on the very next call, as `FR-ADM-016` and `FR-SYS-002.2` require.
 
+**Built on `main` (product deviation; needs `adr/0010` + SRS revision):** `AuthGuard` also accepts a Firebase ID token as `Authorization: Bearer` (RS256, verified against Google JWKS for `FIREBASE_PROJECT_ID`). That path binds or auto-provisions via `oauthBinding` provider `GOOGLE` and does **not** mint an app access JWT on the wire — the Firebase token *is* the Bearer credential for that request. App-issued HS256 JWTs remain for the inventory password/OTP routes. This does not change §14.3: Customer OAuth as the publish gate (`BR-001`) is still not login.
+
 ### 14.3 The OAuth publish gate
 
 `BR-001` is unusual and worth stating precisely: OAuth is not the login mechanism. A Customer authenticates by OTP and can browse, draft and manage an account without it. The OAuth binding gates exactly one action — **publishing a Request** (`FR-CUS-014`). The gate is enforced in the publish use case, not at the edge, so it cannot be routed around by a different endpoint reaching the same operation.

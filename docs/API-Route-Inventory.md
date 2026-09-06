@@ -82,7 +82,7 @@ Decisions made by this document. Status `Proposed` needs Technical Lead sign-off
 | Scheme | HTTPS only in hosted environments. |
 | Version | Path prefix `/v1`. Breaking change → `/v2` (`NFR-027`). A deprecated version stays live ≥ 6 months. |
 | Content type | `application/json; charset=utf-8` on every request with a body and every response except file downloads (signed URLs, CSV/XLSX exports). |
-| Headers in | `Authorization: Bearer <accessJwt>`, `Accept-Language: en \| ar`, `Idempotency-Key: <uuid>` on mutating calls, `X-Request-Id` optional (server generates if absent). |
+| Headers in | `Authorization: Bearer <accessJwt \| firebaseIdToken>`, `Accept-Language: en \| ar`, `Idempotency-Key: <uuid>` on mutating calls, `X-Request-Id` optional (server generates if absent). |
 | Headers out | `X-Request-Id`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`. Deprecated versions add `Deprecation` and `Sunset`. |
 | Locale | Error `message` and notification copy are localised server-side from `USER.preferred_language`, falling back to `Accept-Language` (`NFR-024`, `NFR-022`). Money and dates are **not** formatted server-side. |
 
@@ -145,6 +145,16 @@ Three authentication paths (SRS §7.5, backend §14):
 | Customer | Mobile + OTP. One-time OAuth binding **gates publish**, not login (`BR-001`, `FR-CUS-001`). | 30 days (`FR-CUS-002`) | 15 minutes |
 | Vendor | Mobile + OTP **or** email + password (`FR-VEN-003`). | 14 days | 15 minutes |
 | Admin | Email + password + mandatory 2FA. No self-registration. | 60 minutes (`FR-ADM-001`) | 15 minutes |
+
+> *[DEVIATION AD-API: Google Sign-In via Firebase ID token — built on `main`]*: Product gates treat
+> Vendor and Admin sign-in as Google-only. Clients may send a Firebase ID token as
+> `Authorization: Bearer` (detected as RS256). `AuthGuard` verifies it against Google JWKS for
+> `FIREBASE_PROJECT_ID`, then binds or auto-provisions via `oauthBinding` provider `GOOGLE`
+> (new users are created as `VENDOR` + `REGISTERED` vendor profile; Admin requires a pre-existing
+> `ADMIN` user matched by email). App-issued HS256 access JWTs and the inventory OTP/password
+> routes remain. There is still **no** `POST /v1/auth/oauth/login`. Customer OAuth as the
+> **publish** gate (`BR-001`) is unchanged and unbuilt. Needs `adr/0010` + SRS revision to
+> supersede the table above — this inventory does not resolve that conflict.
 
 Access JWT claims `[PROPOSED]`: `sub` (user id), `role` (`CUSTOMER` \| `VENDOR` \| `ADMIN`), `ver` (token version). **No** entitlement, vendor state, or subscription claim — those are read from PostgreSQL per request (backend §14.2). Suspension takes effect on the next call (`FR-ADM-016`, `FR-SYS-002`).
 

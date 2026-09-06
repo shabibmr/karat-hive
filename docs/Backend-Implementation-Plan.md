@@ -4,12 +4,13 @@
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | Backend implementation plan and task list |
-| **Version** | 0.3 |
+| **Version** | 0.4 |
 | **Status** | Draft — working backlog. Does not override the SRS or architecture. |
-| **Date** | 1 September 2026 |
+| **Date** | 6 September 2026 |
 | **Source of truth** | [`Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`Architecture-Backend.md`](Architecture-Backend.md) · [`API-Route-Inventory.md`](API-Route-Inventory.md) · [`Physical-Data-Model.md`](Physical-Data-Model.md) · [`Async-Contract.md`](Async-Contract.md) (`AD-ASYNC-nn` — outbox payloads and the 15 scheduled jobs; feeds P2/P7/P10/P12, T05/T21/T23/T28) |
 | **Coverage inputs** | [`Screen-API-Map.md`](Screen-API-Map.md) (`SAM-GAP-nn`) · [`Spec-Document-Sequence.md`](Spec-Document-Sequence.md) |
-| **Tasks** | [§ Task list](#task-list-t01t44) · P0/P1 review fixes: [`Backend-Gap-Fix-Plan.md`](Backend-Gap-Fix-Plan.md) (F01–F17, D01–D04) |
+| **Tasks** | [§ Task list](#task-list-t01t46) · P0/P1 review fixes: [`Backend-Gap-Fix-Plan.md`](Backend-Gap-Fix-Plan.md) (F01–F17, D01–D04) |
+| **Checkpoints** | [`checkpoints/checkpoint-1-vendor-onboarding-vertical.md`](checkpoints/checkpoint-1-vendor-onboarding-vertical.md) · [`Admin-Checkpoint-1-Taxonomy-Plan.md`](Admin-Checkpoint-1-Taxonomy-Plan.md). A checkpoint is a vertical and cuts across phases — see [§ Checkpoints](#checkpoints--the-execution-unit-this-plan-lacks) |
 
 Build the **Node.js monolith** (`C-11`) so every route in the API inventory is implemented against PostgreSQL (`C-12`). Flutter clients are out of scope. OpenAPI is generated from this code (`NFR-030`, `AD-BE-14`).
 
@@ -17,41 +18,102 @@ Build the **Node.js monolith** (`C-11`) so every route in the API inventory is i
 
 ---
 
-## Already done
+## Where the build actually is
 
-Verified against the working tree, 1 Sep 2026.
+Verified against the working tree **6 Sep 2026** (`origin/main` tip `cf5daae`, which carries
+`feat/cp1-closeout` + `feat/firebase-setup`). This section replaces the 1 Sep "Already done"
+table, which described a tree that no longer exists.
 
-| Artefact | Status |
-|---|---|
-| SRS v1.3, ADRs 0001–0008, Architecture-Backend, API inventory, Physical-Data-Model, Screen-API-Map, Async-Contract | Authoritative / companion |
-| `backend/prisma/schema.prisma` + `docs/Physical-Data-Model.md` | Written; `prisma validate` passed |
-| `backend/prisma/sql/` — `extensions.sql`, `partial-indexes.sql` (+ `README.md`) | Written, not yet folded into a named Prisma migration |
-| Nest 11 + Fastify 5 + Prisma 5 + Zod `package.json`, `npm install` | Done (`node_modules` present) |
-| `src/config/env.ts`, `edge/envelope.interceptor.ts`, `edge/errors/{error-codes,http-error.filter}.ts`, `edge/masking/masking.interceptor.ts`, `edge/request-id.ts`, `edge/health/health.controller.ts` | Source written |
-| `src/platform/db/prisma.{module,service}.ts` (lazy connect) | Source written |
-| `src/shared/{money,weight,result}.ts` | Stubs written — `Karat` / `Purity` still missing (P1 #14) |
-| `backend/src/main.ts` / `app.module.ts` | Written, **not yet built or run** |
-| `backend/README.md` (local Postgres, no Docker, `/health` vs `/ready`) | **Written** — P0 #6 / T04 is done bar a re-read after T01 |
-| `prisma/migrations/_diff.sql` | Raw `migrate diff` dump, 1 129 lines; **not** a deployable migration folder |
-| `backend/docker/` (`docker-compose.yml`, `init/01-extensions.sql`) | Present, optional, unused by the no-Docker path |
-| `backend/{openapi,test/{contract,masking,concurrency,performance}}/` | Empty `.gitkeep` folders |
-| The 16 `src/modules/*` domain modules | Empty `application/controller/domain/presenter/repository` folders + `.gitkeep` only |
+### Phase status
 
-### Not present yet — and every phase gate assumes it
-
-The gates below say "tests green", "masking suite fails the build", "CI diff". None of that
-can run today. These are **P0 work**, not P12 work.
-
-| Missing | Consumed by | Task |
+| Phase | State | Evidence in the tree |
 |---|---|---|
-| Test runner (no `jest` / `vitest`, no `test` script in `package.json`) | Every phase gate; T25, T32 | **T33** |
-| ESLint + Prettier + `eslint-plugin-boundaries`; no `lint` script | P1 #13, T11 | **T34** |
-| CI workflow (no `.github/` in the repo at all) | `NFR-030` OpenAPI diff, build-failing masking gate | **T35** |
-| OpenAPI generator wired to Nest/Zod (no `@nestjs/swagger` or zod-to-openapi dependency) | T31 | **T35** |
-| `start:worker` sets no `APP_ROLE`; it is byte-identical to `start:prod` | P1 #8 job locking, `AD-BE-07` | **T33** |
+| **P0** Scaffold | **done** | Four applied migrations + `migration_lock.toml`, `nest build` clean, `/health` + `/ready`, seed orchestrator, CI |
+| **P1** Platform spine | **built, unexercised** | Outbox (producer·claimer·dispatcher·policy), scheduler + `job_lock`, audit writer, idempotency, rate-limit, auth guard + `ViewerContext`, boundary lint. **No domain module calls the outbox** — see D-1 below |
+| **P2** Identity | **partial** | Firebase ID-token verify + auto-provision in `AuthGuard`; legacy `otp/request`, `otp/verify`, `register/vendor`, `login/password`, `refresh`, `logout`; `GET`/`PATCH /v1/me`. No Customer register, no Customer OAuth publish-gate bind (`BR-001`), no Admin 2FA, no sessions/devices/password-reset routes. See the supersede note in P2 |
+| **P3** Taxonomy + settings | **partial** | Public `GET /v1/categories`, `/regions`; full Admin CRUD (8 routes); taxonomy + settings + admin seeds. **`GET /v1/platform-config` (#24) not built** |
+| **P4** Media port | **partial** | `StoragePort` + local-disk and Supabase adapters; `upload-intent`, `:key/complete`, `DELETE :key`. **No processing worker (#30)** — `complete` marks `READY` synchronously |
+| **P5** Vendor onboarding | **partial** | Profile GET/PATCH, documents, resubmit, categories/regions, availability, dashboard, dev-verify, shell guard. **No subscriptions (#35, #36), no document-expiry job (#33a)** |
+| **P6–P12** | **not started** | Eleven of the sixteen `src/modules/*` are still empty five-folder stubs |
 
-Stray artefact: a root `package-lock.json` containing an empty `packages: {}` — an accidental
-root `npm install`. Delete it; the Node tree lives under `backend/` only (backend README, §21).
+### Modules
+
+| Module | Files | Contents |
+|---|---|---|
+| `identity` | 23+ | Auth, OTP, password login, Firebase ID-token verify + `findOrCreateUserForFirebase`, sessions, `/v1/me` |
+| `vendor-onboarding` | 17 | The P5 vertical + `vendor-access.guard.ts` + `vendor-state-machine.ts` |
+| `taxonomy` | 10 | Public reads + Admin CRUD |
+| `media` | 7 | Upload intent / complete / delete |
+| `audit` | 3 | In-transaction append-only writer (P1 #9) |
+| `abuse`, `admin`, `connections`, `gold-rate`, `matching`, `notifications`, `offers`, `requests`, `reviews`, `settings`, `subscription` | **0** | `application/controller/domain/presenter/repository` + `.gitkeep` only |
+
+Five of sixteen populated. The eleven empty ones assert a five-layer shape that no document
+defines — see [`Template-Lock-Review-Plan.md`](Template-Lock-Review-Plan.md).
+
+### Two deviations this reconcile found
+
+**D-1 — nothing produces an outbox event.** `platform/outbox/outbox.events.ts` declares 23 event
+types and `OutboxProducer` exists, but **no module imports it**. `vendor.registered` and
+`vendor.documents.submitted` were appended to the catalogue by check-point 1 and are never
+emitted; no consumer is registered outside `outbox.dispatcher.spec.ts`, so the dispatcher's
+"no consumers for …; marking done" branch is the only path any event could take. P1 #7's gate
+("unit tests for outbox claim and job_lock") passed on the *mechanism*, not on a use of it.
+
+Consequence: the transactional write-plus-outbox pattern that `BR-011`–`BR-013` Acceptance
+atomicity depends on has **no worked example** anywhere in the codebase for P6–P12 to copy.
+Task **T45**.
+
+**D-2 — `outbox.drain` is registered as a leased job.** `src/main.ts:39` registers it in
+`SchedulerService`, which takes a `job_lock` lease per tick. [§ Scheduled-job
+coverage](#scheduled-job-coverage) below says outbox drain is *deliberately not lease-based*, so
+that every `worker` instance can drain concurrently under `FOR UPDATE SKIP LOCKED`. Today a
+second worker would be locked out rather than sharing the queue. Harmless at one worker, which is
+why it needs fixing before the second one exists — it would halve throughput silently, not break
+loudly. Task **T46**.
+
+Neither is a P0 regression. Both are **template** defects, which is why they surface now rather
+than at P12: eleven modules are about to be written against this spine.
+
+### Toolchain — the 1 Sep "not present yet" list is closed except one
+
+| Item | 1 Sep | Now |
+|---|---|---|
+| Test runner | absent | `vitest`; `npm test` and `npm run test:integration` (separate config) — **T33 done** |
+| Lint | absent | `eslint` + `eslint-plugin-boundaries` + `prettier`; `npm run lint`, `npm run format:check` — **T34 done** |
+| CI | no `.github/` at all | `.github/workflows/backend.yml`: `check` (ci·generate·build·lint·test·format) + `integration` (postgres:16 service, `migrate deploy`, `sql/*.sql`, seed, integration suite) — **T35 done** |
+| `start:worker` role | byte-identical to `start:prod` | `cross-env KH_ROLE=worker` (`APP_ROLE` accepted as a one-release alias) |
+| `Karat` / `Purity` | missing | `shared/karat.ts`, `shared/purity.ts` present (P1 #14 closed) |
+| Init migration | raw `_diff.sql` dump | `20260901120000_init` + three forward migrations; `_diff.sql` deleted |
+| Stray root `package-lock.json` | present | deleted |
+| **OpenAPI generator** | absent | **still absent.** Neither `@nestjs/swagger` nor a zod-to-openapi bridge is a dependency; `backend/openapi/` is still `.gitkeep`. **T31 is unchosen and now blocks T32's contract half** |
+
+Of the four release-gate test surfaces `NFR-013` / `NFR-029` require, **one exists**:
+
+| Directory | State |
+|---|---|
+| `test/masking/` | `assert-identity-absent.ts` + two suites ✅ |
+| `test/integration/` | `helpers.ts` + vendor-onboarding, vendor-media, admin-taxonomy ✅ |
+| `test/contract/` · `test/concurrency/` · `test/performance/` | empty `.gitkeep` |
+
+`backend/docker/` is still present, still optional, still unused by the no-Docker path.
+
+---
+
+## Checkpoints — the execution unit this plan lacks
+
+Two checkpoints have run since v0.3. Neither is visible in the P-phases above, because a
+checkpoint is a **vertical** and a phase is a **layer**; both cut across several phases.
+
+| Checkpoint | Document | Phases touched | State |
+|---|---|---|---|
+| **CP1 — Vendor Onboarding & Activation** (V1) | [vertical](checkpoints/checkpoint-1-vendor-onboarding-vertical.md) · [tasks](checkpoints/checkpoint-1-vendor-onboarding-tasks.md) | P2, P3, P4, P5 — **Vendor path only** | Backend + Flutter on `main`; Firebase ID-token path built. Open: live E2E walks **CP1-V01** / **CP1-V02** (Google Sign-In → KYC → dashboard) |
+| **Admin CP1 — Taxonomy Management** | [plan](Admin-Checkpoint-1-Taxonomy-Plan.md) · [tasks](Admin-Checkpoint-1-Tasks.md) | P3, P11 (admin guard, taxonomy CUD, audit) | Docs + git closed. Open: **ADM-E2E-001** click-through (Google Sign-In → taxonomy CRUD → audit) |
+
+**A T-row is not executable as written.** CP1 covered roughly T12, T15, T16 and parts of T17/T18,
+and needed a **324-line task document with ~60 sub-tasks** to do it. That expansion is still owed
+for T20–T32 — the entire marketplace spine. Read each phase gate below as the *acceptance
+criteria for a checkpoint document that does not exist yet*, not as work an implementer can pick
+up directly.
 
 ---
 
@@ -83,7 +145,7 @@ follow-up migration, which is acceptable but noisier.
 
 | Gap | Sev | Backend consequence | Phase / task |
 |---|---|---|---|
-| `SAM-GAP-7` | **H** | Auth scope contradiction: `FR-VEN-025` AC1 needs a `VERIFIED`-but-not-yet-`ACTIVE` Vendor to set Categories/Regions *in order to* become `ACTIVE`, but Route Index marks those `PUT`s `V` (ACTIVE only). The guard must admit a `Vshell`-plus state or first activation is unreachable. | **P5 #34**, T18. Blocks the P5 gate |
+| ~~`SAM-GAP-7`~~ | **H** | ~~Auth scope contradiction~~ — **resolved at CP1.** `vendor-onboarding/controller/vendor-access.guard.ts` admits `VERIFIED` pre-`ACTIVE` for categories / regions / availability, `PENDING_VERIFICATION|VERIFIED|ACTIVE` for profile and documents, `ACTIVE` only for the dashboard. The guard was implemented, not the Route Index's ACTIVE-only literal. **API inventory §20 wording still needs aligning** | ~~P5 #34~~ done (CP1-A05i) |
 | `SAM-GAP-4` | M | `AbuseEntityType` gains `VENDOR` \| `CUSTOMER` — a PostgreSQL enum, cheapest before T01 | **P0 decision → P10 #61**, T27 |
 | `SAM-GAP-1` | M | `offer.viewed_by_customer_at` column + `unreadOfferCount` on the `RequestForCustomer` list row (or `POST /v1/offers/{id}/viewed`, mirroring `/matches/{id}/viewed`) | **P8 #49**, T22 |
 | `SAM-GAP-3` | M | `connectionId?` on `RequestForCustomer` when `state = ACCEPTED`. No new column — `connection.offer_id` is unique, so it is a presenter join | **P9 #56**, T24 |
@@ -162,7 +224,7 @@ Whatever is accepted updates `schema.prisma` **and** `docs/Physical-Data-Model.m
 6. `backend/README.md` — **already written**; re-read it after T01 so the migrate command matches the real migration folder name.
 
 **Toolchain (T33–T35) lands in this phase, not P12.** Every later gate is a lie until it does:
-a test runner + `npm test`, an `APP_ROLE`-aware `start:worker`, ESLint/Prettier with
+a test runner + `npm test`, a role-aware `start:worker`, ESLint/Prettier with
 `eslint-plugin-boundaries` wired to `npm run lint`, and a CI workflow that runs build + lint +
 test. The OpenAPI generator (T31) can wait; the harness that will fail the build cannot.
 
@@ -177,21 +239,53 @@ script" is not). Domain code does not start before this.
 Used by every later module. Implement once.
 
 7. **Outbox** (`platform/outbox`): insert in the same transaction as the domain write; worker claims `FOR UPDATE SKIP LOCKED`; `outbox_consumer` unique `(event_id, consumer)`; backoff then `FAILED`.
-8. **Scheduler + `job_lock`**: lease table, register jobs, no duplicate fire across `APP_ROLE=worker` instances. Short renewed leases so a killed worker expires rather than wedging the job ([Architecture-Backend](Architecture-Backend.md) §11.4). Needs the `APP_ROLE`-aware `start:worker` from T33 — today that script does not set it.
+8. **Scheduler + `job_lock`**: lease table, register jobs, no duplicate fire across `KH_ROLE=worker` instances. Short renewed leases so a killed worker expires rather than wedging the job ([Architecture-Backend](Architecture-Backend.md) §11.4). *Built; `start:worker` now sets `KH_ROLE` (T33). The only registered job is `outbox.drain`, and it should not be leased — D-2 / T46.*
 9. **Audit writer**: append-only helper used inside the domain transaction (`FR-SYS-011`). No update/delete path.
 10. **Idempotency** (`edge/idempotency`): required keys on publish / offer submit / accept / media intent; 24 h replay; 409 on key reuse with different body.
 11. **Rate limit** (`edge/rate-limit`): PostgreSQL token bucket (`AD-BE-10`); stricter on OTP, auth, search.
 12. **Auth guard + ViewerContext** (`edge/auth`): JWT access + refresh rotation + reuse detection. No entitlements in the token (Architecture-Backend §14.2).
-13. **eslint-plugin-boundaries** (or equivalent) so imports cannot skip `modules/*/index.ts`. The 16 module folders exist but none has an `index.ts` yet — the rule has nothing to guard until P2 writes the first one, so land the config in P0 (T34) and the rule here.
+13. **eslint-plugin-boundaries** (or equivalent) so imports cannot skip `modules/*/index.ts`. *Done — `eslint.config.mjs` configures `boundaries/elements`, `element-types` and `entry-point`, and all five populated modules expose an `index.ts`. The rule is now load-bearing rather than aspirational; the eleven empty modules will inherit it.*
 14. Shared value objects already stubbed (`Money`, `Weight`, `Result`) — add `Karat` / `Purity` and clock offset via `meta.serverTime`.
 
 **Gate:** unit tests for outbox claim and job_lock; no HTTP domain routes yet.
+
+*Gate status 6 Sep 2026:* **met on the mechanism, not on a use.** Five phases later no module
+produces an event (D-1 / T45) and the one registered job is leased against this plan's own rule
+(D-2 / T46). Both were invisible to this gate as written — it never asked for a caller.
 
 ---
 
 ## P2 — Identity and sessions
 
 Routes: API inventory §8–§9.
+
+> **Superseded in part — product sign-in is Google only.** `CLAUDE.md` and both check-point task
+> documents record Google Sign-In as the only product gate for Vendor and Admin, and mark the
+> OTP / password *tests* superseded (CP1-B06a, CP1-B06b; walks CP1-V01, CP1-V02, `ADM-E2E-001`
+> remain open). Items 15, 17 and 18 below still describe the OTP + password + OAuth-bind-for-publish
+> design that `Requirements-Spec-v1.3` (`FR-CUS-001`, `FR-CUS-002`, `FR-VEN-001`, `FR-VEN-003`),
+> API inventory §8–§9 and `BR-001` specify. **This plan does not resolve that** — a plan may not
+> override the SRS. It needs `adr/0010` plus an SRS revision.
+>
+> State of play, verified 6 Sep 2026 against `origin/main` (`cf5daae`):
+>
+> - **Built — Firebase ID-token Bearer path.** `AuthGuard` accepts either an HS256 app access JWT
+>   or an RS256 Firebase ID token. `FirebaseTokenService` verifies via Google JWKS
+>   (`issuer`/`audience` = `FIREBASE_PROJECT_ID`, default `karat-hive-app`).
+>   `SessionQuery.findOrCreateUserForFirebase` binds `oauthBinding` (provider `GOOGLE`), matches
+>   an existing user by email/mobile, or auto-provisions a **VENDOR** user + `REGISTERED`
+>   `vendorProfile`. There is **no** dedicated Firebase login route — clients put the ID token in
+>   `Authorization: Bearer`.
+> - **Still present — legacy inventory routes.** `auth.controller.ts` still serves `otp/request`,
+>   `otp/verify`, `register/vendor`, `login/password`, `refresh`, `logout`.
+> - **Not built — Admin auto-provision.** First-time Firebase users are created as `VENDOR` only;
+>   Admin Google Sign-In requires a pre-seeded `ADMIN` user matched by email (or an existing
+>   `oauthBinding`). Admin 2FA remains deferred.
+> - **Not built — Customer OAuth publish gate (`BR-001` / T14).** The Google binding used for
+>   Vendor/Admin sign-in is not the Customer publish-gate bind in inventory §8.
+>
+> **Resolve before P6.** `BR-001` — OAuth as the Customer *publish* gate, explicitly not login —
+> is a precondition of P6 #39, and it may no longer mean anything under a Google-only model.
 
 15. OTP issue/verify (`FR-CUS-001`, `FR-CUS-002`, `FR-VEN-001`, `FR-VEN-003`) — dummy challenge on unknown LOGIN numbers to avoid enumeration.
 16. Customer register; Vendor register → `PENDING_VERIFICATION` + shell.
@@ -234,13 +328,17 @@ Routes: API inventory §8–§9.
 32. Vendor profile GET/PATCH; `BR-004` re-verification on legal name / licence / address. `VendorMe` also carries `verificationMessage?` — the Admin's latest free-text request-for-information, which `VEN-S03` renders and no read model currently exposes (`SAM-GAP-6`).
 33. KYC documents via media; resubmit after reject.
 33a. **Vendor document expiry job** (`vendor-document-expiry`, daily 02:00 GST) — `vendor_document` within 30 days of `expiry_date` with no `reminder_sent_at`; emits `vendor.document.expiring` to Vendor and Admin (`FR-VEN-002` AC4). Needs the `reminder_sent_at` column from T36. Without it a trade licence lapses unnoticed and the Vendor silently loses eligibility.
-34. Categories / Regions / away mode (`FR-VEN-025`). **`SAM-GAP-7` decides the guard here.** `FR-VEN-025` AC1 and the `VEN-S03` flow require a `VERIFIED`-but-not-yet-`ACTIVE` Vendor to set Categories and Regions *in order to* reach `ACTIVE`; the Route Index marks `PUT /v1/me/vendor/categories`, `/regions` and `PATCH /v1/me/vendor/availability` as `V` (ACTIVE only). Implementing the index literally makes first activation unreachable. Resolve before writing the guard — do not pick one reading silently.
+34. ~~Categories / Regions / away mode (`FR-VEN-025`)~~ — **done at CP1.** `SAM-GAP-7` is resolved by `vendor-access.guard.ts`, which admits the `VERIFIED` pre-`ACTIVE` state for `PUT /v1/me/vendor/categories`, `/regions` and `PATCH /v1/me/vendor/availability`. Remaining: align API inventory §20's ACTIVE-only wording to what shipped.
 35. `GET /v1/me/subscriptions` read-only.
 36. Admin grant/patch subscriptions (`AD-API-04`) — can land with P11; stub entitlement check now so matching can proceed.
 37. Dashboard counts (`GET /v1/me/dashboard`) — empty-safe until P7/P8.
 
 **Gate:** Vendor in shell cannot hit `/v1/matches`; `ACTIVE` + subscription required to offer; a
 newly `VERIFIED` Vendor can complete the `VEN-S03` → `ACTIVE` path end to end (`SAM-GAP-7`).
+
+*Gate status 6 Sep 2026:* the third clause is **met** (CP1, verified end-to-end). The subscription
+clause is untestable until #35/#36 exist, and the `/v1/matches` clause until P7. The guard already
+refuses the routes it knows about.
 
 ---
 
@@ -368,7 +466,11 @@ of the fifteen had no phase in v0.1 of this plan.**
 
 Every lease-based job takes its named `job_lock` row through P1 #8 (`NFR-009`). **`outbox-drain`
 is deliberately not lease-based** — `FOR UPDATE SKIP LOCKED` lets every `worker` instance drain
-concurrently. None of the fifteen may fire in an `APP_ROLE=api` process.
+concurrently. None of the fifteen may fire in a `KH_ROLE=api` process.
+
+> **Contradicted by the code today (D-2 / T46).** `src/main.ts:39` registers `outbox.drain`
+> through `SchedulerService`, which leases it. One of the fifteen is built and it is built the one
+> way this paragraph forbids. Fix before a second worker instance exists.
 
 Async-Contract §4 carries **21 events**, seven of them new against Architecture §11.2:
 `request.matched`, `request.edited`, `request.cancelled`, `request.draft.purge_warning`,
@@ -378,10 +480,10 @@ bodies come later, from `Notification-Catalogue.md` (sequence doc #4).
 
 ---
 
-## Task list (T01–T44)
+## Task list (T01–T46)
 
-Working backlog. Tick in this file as work lands. P0 is immediate. IDs are stable and never
-reused — v0.2 appends T33–T44 rather than renumbering.
+Working backlog. Tick in this file as work lands. IDs are stable and never reused — v0.2 appends
+T33–T44 and v0.4 appends T45–T46 rather than renumbering.
 
 ### P0 Scaffold
 
@@ -401,20 +503,20 @@ reused — v0.2 appends T33–T44 rather than renumbering.
 | T07 | Audit helper (same transaction) | done |
 | T08 | Idempotency middleware | done |
 | T09 | Rate-limit buckets | done |
-| T10 | JWT ViewerContext + refresh rotation | done |
+| T10 | JWT ViewerContext + refresh rotation | done — also accepts Firebase ID-token Bearer (JWKS verify + auto-provision) |
 | T11 | Module-boundary lint | done |
 
 ### P2–P5 Identity → Vendor
 
 | ID | Task | Status |
 |---|---|---|
-| T12 | OTP + register Customer/Vendor | pending |
-| T13 | Password + Admin 2FA | partial (password login done; 2FA deferred — checkpoint-1) |
-| T14 | OAuth bind (publish gate) | pending |
-| T15 | Sessions / me / settings / shell guard | done (checkpoint-1: me + admin guard) |
-| T16 | Taxonomy GET + seed | done (checkpoint-1: public + admin CRUD + seed) |
-| T17 | Media port + local-disk adapter + complete/process | pending |
-| T18 | Vendor profile, KYC, categories/regions | pending |
+| T12 | OTP + register Customer/Vendor | partial — Vendor OTP + register done (CP1). Customer register open. **Both halves under the P2 supersede note** |
+| T13 | Password + Admin 2FA | partial — Vendor password login (CP1) and Admin password login (`ADM-BE-002`) done; 2FA deferred |
+| T14 | OAuth bind (publish gate) | pending — Google `oauthBinding` exists for Firebase *sign-in*; Customer **publish-gate** bind (`BR-001`) still unbuilt. See P2 |
+| T15 | Sessions / me / settings / shell guard | partial — `GET`/`PATCH /v1/me` (Vendor + Admin branches), shell guard, `@AdminOnly` done. **Sessions, devices, password set/reset routes not built** |
+| T16 | Taxonomy GET + seed | done — public reads, Admin CRUD (8 routes), taxonomy/settings/admin seeds. **`GET /v1/platform-config` (P3 #24) still open** |
+| T17 | Media port + local-disk adapter + complete/process | partial — port + local-disk + Supabase adapters + `upload-intent`/`complete`/`DELETE`. **No processing worker (P4 #30)**; `complete` marks `READY` synchronously |
+| T18 | Vendor profile, KYC, categories/regions | **done for the Vendor path** (CP1). `SAM-GAP-7` resolved by the shell guard |
 | T19 | Subscriptions read + Admin grant | pending |
 
 ### P6–P9 Marketplace spine
@@ -437,8 +539,8 @@ reused — v0.2 appends T33–T44 rather than renumbering.
 | T28 | Notifications + expiry workers | pending |
 | T29 | Admin lists/actions/exports/settings | pending |
 | T30 | Gold-rate ingest/override + display flag | pending |
-| T31 | Generated OpenAPI + CI diff | pending |
-| T32 | Release-gate suites (masking, state machines, contract) | pending |
+| T31 | Generated OpenAPI + CI diff | pending — **generator still unchosen**; no `@nestjs/swagger`, no zod-to-openapi. Now blocks T32's contract half |
+| T32 | Release-gate suites (masking, state machines, contract) | partial — masking suite exists (`test/masking/`, 3 files). `test/contract/`, `test/concurrency/`, `test/performance/` still empty |
 
 ### Toolchain and coverage — added in v0.2
 
@@ -459,7 +561,17 @@ T33–T36 are **P0**. They are prerequisites for gates the plan already claimed,
 | T43 | Announcement dispatch job (`FR-ADM-029`) | P11 | blocked on T36 |
 | T44 | Vendor document expiry job (`FR-VEN-002` AC4) | P5 | blocked on T36 |
 
-Also housekeeping, not worth an ID: delete the stray root `package-lock.json`.
+### Reconcile findings — added in v0.4
+
+Both come from [§ Two deviations](#two-deviations-this-reconcile-found). They are template
+defects: eleven modules are about to be written against this spine.
+
+| ID | Task | Phase | Status |
+|---|---|---|---|
+| T45 | **First real outbox producer + consumer inside a domain module.** Emit one event in the same transaction as its domain write, register one consumer, and test the pair. Closes D-1 and gives P6–P12 the pattern `BR-011`–`BR-013` needs | P5 (with #33a) or P6 | pending |
+| T46 | **Un-lease `outbox.drain`.** Drain outside `SchedulerService` so concurrent workers share the queue under `FOR UPDATE SKIP LOCKED`, as § Scheduled-job coverage requires. Closes D-2 | P1 | pending |
+
+Housekeeping now closed: the stray root `package-lock.json` has been deleted.
 
 ---
 
@@ -494,7 +606,13 @@ Also housekeeping, not worth an ID: delete the stray root `package-lock.json`.
 Two additions in v0.2:
 
 - **T36 is on the critical path and is blocked.** Ten proposed schema changes are now pending across two documents — five `SAM-GAP` resolutions (one widens an enum) and five Async-Contract §10 deltas, four of which gate a job outright. Freezing the init migration (T01) first means follow-up migrations against a schema no one has run yet: survivable, but avoidable by deciding now. `AD-ASYNC-*` are all `[PROPOSED]` and the whole Async-Contract is Draft until Technical Lead sign-off, so T36 and that sign-off are the same conversation.
-- **`SAM-GAP-7` can stall P5.** It is not a missing endpoint, it is two authoritative documents disagreeing about who may call `PUT /v1/me/vendor/categories`. Implementing either reading silently produces a Vendor onboarding funnel that either cannot complete or leaks a route to a shell account.
+- ~~**`SAM-GAP-7` can stall P5.**~~ **Closed at CP1** by the shell guard. The API inventory §20 wording is the only residue.
+
+Three added in v0.4:
+
+- **The auth model is half-built against an unresolved SRS conflict.** Google-only product sign-in is asserted in `CLAUDE.md` and both check-point task documents, and the backend now accepts Firebase ID tokens in `AuthGuard` (plus VENDOR auto-provision). The SRS and API inventory still specify OTP / password / Admin 2FA and treat OAuth as the Customer *publish* gate (`BR-001`), not login. Legacy OTP/password routes remain. Every day without `adr/0010` + an SRS revision, P2/P6 are built against two contradictory contracts — and `BR-001` is still a P6 precondition. This remains the single largest readiness risk in the plan.
+- **The spine is unexercised (D-1).** P1 is "done" on the strength of unit tests over mechanisms no domain module calls. An outbox, a scheduler and an audit writer that have never carried a real domain write are three untested assumptions wearing a green tick. P9's Acceptance transaction is the first place that matters, and it is eight phases away — T45 pulls the proof forward.
+- **Eleven modules will copy whatever P5 established.** The five-folder shape, the guard style, the presenter convention and the (absent) outbox usage are all about to be replicated eleven times. Locking the template is cheaper now than eleven corrections later — [`Template-Lock-Review-Plan.md`](Template-Lock-Review-Plan.md).
 
 ---
 
@@ -505,3 +623,4 @@ Two additions in v0.2:
 | 0.1 | 1 Sep 2026 | Initial backend implementation plan. No Docker. P0–P12, T01–T32. |
 | 0.2 | 1 Sep 2026 | Reconciled with `Screen-API-Map.md` (13 `SAM-GAP`s assigned to phases; `SAM-GAP-7` flagged as a P5 blocker) and with `Async-Contract.md` (now the authority for events and jobs, superseding Architecture §11.3). Gave a phase to the **eight** scheduled jobs that had none — vendor-document expiry, draft purge, match-set recompute, offer expiry warning, notification retry, retention purge, announcement dispatch, gold-rate stale alert — and added a 15-row job-coverage table. Folded both documents' schema deltas into a single pre-migration decision, T36. Pulled the missing toolchain (test runner, lint, CI, OpenAPI generator) forward into P0 as T33–T35. Appended T33–T44. Corrected the "Already done" table against the real `backend/` tree. |
 | 0.3 | 1 Sep 2026 | P0/P1 review-gap fixes (`docs/Backend-Gap-Fix-Plan.md` F01–F17). T33–T35 toolchain closed except OpenAPI generator (T31). T36 columns remain in init as `[PROPOSED]`. |
+| 0.4 | 6 Sep 2026 | **Reconciled against the working tree.** Replaced the stale "Already done" / "Not present yet" tables with a verified phase-status, module and toolchain survey (5 of 16 modules populated; test runner, lint and CI now present; OpenAPI generator still absent). Added a **Checkpoints** section recording CP1 and Admin CP1 and stating that a T-row is not executable without a checkpoint document. Recorded two deviations found by the reconcile — **D-1** no module produces an outbox event, **D-2** `outbox.drain` is leased against this plan's own rule — as **T45** and **T46**. Marked `SAM-GAP-7` resolved by CP1's shell guard. Flagged the Google-only sign-in supersede in P2 as an open SRS-level conflict needing `adr/0010`, without resolving it. Updated T12–T19, T31, T32 statuses. **Same-day follow-up:** corrected the P2 "state of play" after `feat/firebase-setup` landed on `main` — Firebase ID-token Bearer verification + VENDOR auto-provision are built; SRS/`BR-001` conflict and live E2E walks remain open. |

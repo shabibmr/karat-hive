@@ -118,7 +118,7 @@ list GET that exposes personal data in bulk, and every mutation, is audited.
 
 | Screen | Load / list | Actions | Empty / error |
 |---|---|---|---|
-| **ADM-S01** Login with 2FA | *client* | `POST /v1/auth/login/password` (password-only in Checkpoint-1; 2FA deferred) | `→ ACCOUNT_LOCKED` (3 / 30 min) · `→ UNAUTHENTICATED` |
+| **ADM-S01** Login with 2FA | *client* | Google Sign-In → Firebase ID token as Bearer (built); inventory also has `POST /v1/auth/login/password` (2FA deferred) | `→ ACCOUNT_LOCKED` (password path) · `→ UNAUTHENTICATED` |
 | **ADM-S02** Dashboard | `GET /v1/admin/dashboard?range=` | open queue/metric *client* (pre-filtered) | zero-activity period → zero-valued payload |
 | **ADM-S03** Customer list | `GET /v1/admin/customers` (filters, `q`) | open detail *client* → ADM-S04 | no matches → `data: []` |
 | **ADM-S04** Customer detail | `GET /v1/admin/customers/{id}` (opening audited) | `POST /v1/admin/customers/{id}/notes` · `…/suspend` · `…/reactivate` · `…/erasure` | already suspended `→ CONFLICT` |

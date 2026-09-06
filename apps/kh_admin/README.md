@@ -1,17 +1,9 @@
-# hive_admin
+# Karat Hive Admin Portal
 
-A new Flutter project.
+Flutter Web Admin Portal (`pubspec.yaml` name: `kh_admin`). Checkpoint-1 ships ADM-S01 (login shell) plus ADM-S14/S15 taxonomy (categories and regions).
 
-## Getting Started
+```bash
+flutter run -d chrome --dart-define=KH_API_BASE=http://localhost:3000
+```
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The backend API is the NestJS monolith in `backend/` (`npm run start:dev` on port 3000). Sign-in is Google Sign-In; the client sends a Firebase ID token as `Authorization: Bearer`, which `AuthGuard` verifies. Password credentials are not a Checkpoint-1 gate. Seeded Admin users must match the Google account email (Firebase auto-provision creates `VENDOR` only).

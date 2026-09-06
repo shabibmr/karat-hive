@@ -8,7 +8,7 @@ Work here is almost always *authoring or revising documents*. Treat consistency 
 
 ## Runnable surfaces
 
-Checkpoint-1 close-out lives in worktree `E:/work/karat_hive_cp1_closeout` on `feat/cp1-closeout`. Firebase/Google Sign-In lives in `E:/work/karat_hive_firebase` on `feat/firebase-setup`. Merge Firebase **into** the close-out branch, test, then merge close-out to `main`.
+Checkpoint-1 vendor onboarding and admin taxonomy are on `main`, including Google Sign-In on the Flutter clients **and** Firebase ID-token acceptance in the Nest `AuthGuard`.
 
 ```bash
 cd backend && npm run start:dev                          # API :3000
@@ -17,7 +17,7 @@ cd apps/kh_admin && flutter run -d chrome --dart-define=KH_API_BASE=http://local
 npx --yes serve ui-mock                                  # static 67-screen prototype (HTTP only)
 ```
 
-Sign-in is **Google only** (vendor and admin). Do not document or test password/OTP credentials.
+Sign-in is **Google only** (vendor and admin) for product gates. Clients send a Firebase ID token as `Authorization: Bearer`; the backend verifies it (Google JWKS, `FIREBASE_PROJECT_ID`), finds or creates the user, and still issues its own HS256 access/refresh JWTs on the legacy password/OTP routes. Do not treat password/OTP credentials as a Checkpoint-1 gate.
 
 `ui-mock/` is a dependency-free HTML/CSS/JS prototype of all 67 screens. Screen partials load via `fetch`, so it **must be served over HTTP** — opening `index.html` from the filesystem shows a blank shell.
 
