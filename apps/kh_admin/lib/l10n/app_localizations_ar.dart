@@ -348,17 +348,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get vendorsDetailTitle => 'تفاصيل التاجر';
 
   @override
-  String get vendorsDetailStubBody =>
-      'فحص التاجر الكامل (ADM-S06) مخطط لمرحلة لاحقة.';
-
-  @override
   String vendorsDetailVendorId(String id) {
     return 'معرف التاجر: $id';
   }
-
-  @override
-  String get vendorsDetailComingSoon =>
-      'ستظهر إجراءات الحساب ومراجعة المستندات هنا.';
 
   @override
   String get verificationEyebrow => 'مراجع الامتثال';
@@ -538,4 +530,775 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get toastInfoRequested => 'تم إرسال طلب المعلومات إلى التاجر.';
+
+  @override
+  String get offersListEyebrow => 'تدقيق السوق';
+
+  @override
+  String get offersListHeading => 'العروض';
+
+  @override
+  String get offersListSubtitle => 'مراقبة وفحص عروض التجار على مستوى المنصة';
+
+  @override
+  String get offersFilterState => 'حالة العرض';
+
+  @override
+  String get offersFilterAllStates => 'جميع الحالات';
+
+  @override
+  String get offersFilterRequestType => 'نوع الطلب';
+
+  @override
+  String get offersFilterAllTypes => 'جميع الأنواع';
+
+  @override
+  String get offersFilterSearch => 'بحث';
+
+  @override
+  String get offersFilterSearchHint => 'معرف العرض، اسم التاجر، مرجع الطلب…';
+
+  @override
+  String get offersFilterSearchTooltip => 'البحث في العروض';
+
+  @override
+  String get offersColumnReference => 'مرجع/معرف العرض';
+
+  @override
+  String get offersColumnParentRequest => 'الطلب الأصلي';
+
+  @override
+  String get offersColumnVendor => 'اسم التاجر';
+
+  @override
+  String get offersColumnOfferedPrice => 'السعر المعروض (درهم)';
+
+  @override
+  String get offersColumnState => 'الحالة';
+
+  @override
+  String get offersColumnSubmissionDate => 'تاريخ التقديم';
+
+  @override
+  String get offersColumnExpiryDate => 'تاريخ الانتهاء';
+
+  @override
+  String get offersColumnOutcome => 'النتيجة';
+
+  @override
+  String get offersColumnAction => 'إجراء';
+
+  @override
+  String get offersOutcomeAcceptedByCustomer => 'مقبول من العميل';
+
+  @override
+  String get offersOutcomeRejected => 'مرفوض';
+
+  @override
+  String get offersOutcomeExpired => 'منتهٍ';
+
+  @override
+  String get offersOutcomePending => 'قيد الانتظار';
+
+  @override
+  String get offersActionInspect => 'فحص';
+
+  @override
+  String offersPaginationShowing(int count) {
+    return 'عرض $count عرضاً';
+  }
+
+  @override
+  String offersPaginationShowingOf(int count, int total) {
+    return 'عرض $count من $total عرضاً';
+  }
+
+  @override
+  String get offersPaginationPrevious => 'السابق';
+
+  @override
+  String offersPaginationPage(int page) {
+    return 'صفحة $page';
+  }
+
+  @override
+  String get offersPaginationNext => 'التالي';
+
+  @override
+  String get offersEmptyTitle => 'لم يتم العثور على عروض';
+
+  @override
+  String get offersEmptyBody => 'لا توجد عروض تطابق معايير التصفية الحالية.';
+
+  @override
+  String get offersErrorTitle => 'تعذر تحميل العروض';
+
+  @override
+  String get offersRetry => 'إعادة المحاولة';
+
+  @override
+  String get offersDetailBack => 'العودة إلى العروض';
+
+  @override
+  String offersDetailEyebrow(String reference) {
+    return 'عرض $reference';
+  }
+
+  @override
+  String offersDetailHeaderMeta(String date, int hours) {
+    return 'قُدِّم في $date · الصلاحية $hours ساعة';
+  }
+
+  @override
+  String offersDetailHeaderMetaExpires(String date, int hours, String expiry) {
+    return 'قُدِّم في $date · الصلاحية $hours ساعة (ينتهي في $expiry)';
+  }
+
+  @override
+  String get offersDetailCompetingWonTitle => 'فاز عرض منافس بهذا الطلب';
+
+  @override
+  String offersDetailCompetingWonBody(
+    String reference,
+    String vendorPart,
+    String pricePart,
+  ) {
+    return 'اختار العميل العرض الفائز $reference$vendorPart$pricePart.';
+  }
+
+  @override
+  String offersDetailCompetingWonBy(String vendor) {
+    return ' من $vendor';
+  }
+
+  @override
+  String offersDetailCompetingWonFor(String price) {
+    return ' بمبلغ $price';
+  }
+
+  @override
+  String get offersDetailInspectWinning => 'فحص العرض الفائز';
+
+  @override
+  String get offersDetailVendorProfileTitle => 'ملف التاجر غير المُخفى';
+
+  @override
+  String get offersDetailViewVendor => 'عرض التاجر';
+
+  @override
+  String get offersDetailNoVendor => 'لم تُقدَّم تفاصيل التاجر.';
+
+  @override
+  String get offersDetailLabelLegalName => 'الاسم القانوني للنشاط';
+
+  @override
+  String get offersDetailLabelTradingName => 'الاسم التجاري';
+
+  @override
+  String get offersDetailLabelTradeLicence => 'الرخصة التجارية';
+
+  @override
+  String get offersDetailLabelContactMobile => 'جهة الاتصال والجوال';
+
+  @override
+  String get offersDetailLabelBusinessEmail => 'البريد الإلكتروني للنشاط';
+
+  @override
+  String get offersDetailLabelVendorRating => 'تقييم التاجر';
+
+  @override
+  String offersDetailDealsSuffix(int deals) {
+    return ' ($deals صفقة مكتملة)';
+  }
+
+  @override
+  String get offersDetailParentRequestTitle => 'مرجع الطلب الأصلي';
+
+  @override
+  String get offersDetailOpenRequest => 'فتح الطلب';
+
+  @override
+  String get offersDetailNoParentRequest => 'لا يوجد طلب أصلي مرتبط.';
+
+  @override
+  String get offersDetailLabelRequestReference => 'مرجع الطلب';
+
+  @override
+  String get offersDetailLabelRequestType => 'نوع الطلب';
+
+  @override
+  String get offersDetailLabelCustomerMobile => 'اسم العميل والجوال';
+
+  @override
+  String get offersDetailLabelCategory => 'الفئة';
+
+  @override
+  String get offersDetailLabelRegion => 'المنطقة';
+
+  @override
+  String get offersDetailLabelIndicativeBudget => 'الميزانية الإرشادية';
+
+  @override
+  String get offersDetailLabelRequestNotes => 'ملاحظات الطلب';
+
+  @override
+  String get offersDetailPricingTitle => 'تفصيل التسعير';
+
+  @override
+  String get offersDetailPricingGoldValue => 'قيمة معدن الذهب';
+
+  @override
+  String offersDetailPricingGoldHintRate(String rate) {
+    return 'سعر الذهب الأساسي ($rate/غرام)';
+  }
+
+  @override
+  String get offersDetailPricingGoldHint => 'مكوّن سعر الذهب الأساسي';
+
+  @override
+  String get offersDetailPricingMaking => 'رسوم التصنيع / الصياغة';
+
+  @override
+  String get offersDetailPricingMakingHint => 'رسوم العمالة والحرفية';
+
+  @override
+  String get offersDetailPricingVat => 'ضريبة القيمة المضافة (5%)';
+
+  @override
+  String get offersDetailPricingVatHint => 'الضريبة النظامية في الإمارات';
+
+  @override
+  String get offersDetailPricingTotal => 'إجمالي السعر المعروض';
+
+  @override
+  String get offersDetailTermsTitle => 'الشروط التجارية والملاحظات والمرفقات';
+
+  @override
+  String get offersDetailLabelDelivery => 'مدة التسليم / الجاهزية';
+
+  @override
+  String get offersDetailDeliveryDefault => 'إرسال / استلام فوري';
+
+  @override
+  String get offersDetailLabelWarranty => 'شروط الضمان / إعادة الشراء';
+
+  @override
+  String get offersDetailWarrantyDefault => 'ضمان جواهرجي الإمارات القياسي';
+
+  @override
+  String get offersDetailLabelVendorNote => 'ملاحظة التاجر';
+
+  @override
+  String get offersDetailVendorNoteDefault => 'لم يقدّم التاجر أي ملاحظة نصية.';
+
+  @override
+  String get offersDetailLabelValidityExpiry => 'صلاحية العرض وانتهاؤه';
+
+  @override
+  String offersDetailValidityExpiryValue(int hours, String date) {
+    return '$hours ساعة · الانتهاء: $date';
+  }
+
+  @override
+  String get offersDetailLabelDeclineReason => 'سبب الرفض';
+
+  @override
+  String offersDetailAttachmentsCount(int count) {
+    return 'المرفقات والشهادات ($count)';
+  }
+
+  @override
+  String get offersDetailNoAttachments =>
+      'لم يرفق التاجر أي ملفات وسائط أو شهادات.';
+
+  @override
+  String get offersDetailRevisionsTitle => 'سجل المراجعات (FR-VEN-014)';
+
+  @override
+  String offersDetailRevisionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مراجعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get offersDetailNoRevisions =>
+      'شروط العرض الأولية. لم تُجرَ أي تعديلات قبل القبول.';
+
+  @override
+  String offersDetailRevisionNumber(int number) {
+    return 'مراجعة رقم $number';
+  }
+
+  @override
+  String offersDetailRevisionOffered(String price) {
+    return 'المعروض: $price';
+  }
+
+  @override
+  String offersDetailRevisionMakingSuffix(String making) {
+    return ' (التصنيع: $making)';
+  }
+
+  @override
+  String offersDetailRevisionNote(String note) {
+    return 'ملاحظة: $note';
+  }
+
+  @override
+  String get offersDetailTransitionsTitle => 'الجدول الزمني لتحولات الحالة';
+
+  @override
+  String offersDetailNoTransitions(String state) {
+    return 'العرض في حالة $state. لم يُسجَّل أي تدقيق لتحولات الحالة.';
+  }
+
+  @override
+  String offersDetailTransitionActor(String actor) {
+    return 'بواسطة: $actor';
+  }
+
+  @override
+  String offersDetailTransitionReason(String reason) {
+    return 'السبب: $reason';
+  }
+
+  @override
+  String get offersDetailNotesTitle => 'ملاحظات إدارية داخلية';
+
+  @override
+  String get offersDetailNotesSubtitle =>
+      'ملاحظات فحص المسؤول داخلية لكارات هايف. الشروط التجارية للقراءة فقط.';
+
+  @override
+  String get offersDetailNotesHint => 'أضف ملاحظة داخلية حول هذا العرض…';
+
+  @override
+  String get offersDetailAddNote => 'إضافة ملاحظة';
+
+  @override
+  String get offersDetailNoNotes => 'لم تُضف أي ملاحظات داخلية بعد.';
+
+  @override
+  String get offersDetailErrorTitle => 'تعذر تحميل تفاصيل العرض';
+
+  @override
+  String get requestsListEyebrow => 'تدقيق السوق';
+
+  @override
+  String get requestsListHeading => 'الطلبات';
+
+  @override
+  String get requestsListSubtitle => 'الإشراف على طلبات المنصة وفحصها';
+
+  @override
+  String get requestsFilterType => 'نوع الطلب';
+
+  @override
+  String get requestsFilterAllTypes => 'جميع الأنواع';
+
+  @override
+  String get requestsFilterDirection => 'الاتجاه';
+
+  @override
+  String get requestsFilterAllDirections => 'جميع الاتجاهات';
+
+  @override
+  String get requestsFilterStatus => 'الحالة';
+
+  @override
+  String get requestsFilterAllStates => 'جميع الحالات';
+
+  @override
+  String get requestsFilterSearch => 'بحث';
+
+  @override
+  String get requestsFilterSearchHint => 'المرجع، الملاحظات، العميل…';
+
+  @override
+  String get requestsFilterSearchTooltip => 'بحث';
+
+  @override
+  String get requestsFilterZeroOffers => 'بلا عروض';
+
+  @override
+  String get requestsColumnReference => 'المرجع';
+
+  @override
+  String get requestsColumnType => 'النوع';
+
+  @override
+  String get requestsColumnDirection => 'الاتجاه';
+
+  @override
+  String get requestsColumnCustomer => 'العميل';
+
+  @override
+  String get requestsColumnCategory => 'الفئة';
+
+  @override
+  String get requestsColumnRegion => 'المنطقة';
+
+  @override
+  String get requestsColumnIndicativeValue => 'القيمة الإرشادية';
+
+  @override
+  String get requestsColumnOffers => 'العروض';
+
+  @override
+  String get requestsColumnState => 'الحالة';
+
+  @override
+  String get requestsColumnDate => 'التاريخ';
+
+  @override
+  String get requestsColumnAction => 'إجراء';
+
+  @override
+  String get requestsActionInspect => 'فحص';
+
+  @override
+  String get requestsLoadMore => 'تحميل المزيد';
+
+  @override
+  String get requestsPaginationPrevious => 'السابق';
+
+  @override
+  String requestsPaginationPage(int page) {
+    return 'صفحة $page';
+  }
+
+  @override
+  String get requestsPaginationNext => 'التالي';
+
+  @override
+  String get requestsEmptyBody => 'لا توجد طلبات تطابق عوامل التصفية الحالية.';
+
+  @override
+  String get requestsRetry => 'إعادة المحاولة';
+
+  @override
+  String get requestsDetailBack => 'العودة إلى الطلبات';
+
+  @override
+  String get requestsDetailEyebrow => 'الإشراف على الطلب';
+
+  @override
+  String get requestsDetailNoReference => 'بلا مرجع';
+
+  @override
+  String requestsDetailPublishedAt(String date) {
+    return 'نُشِر $date بتوقيت الخليج';
+  }
+
+  @override
+  String requestsDetailCreatedAt(String date) {
+    return 'أُنشئ $date بتوقيت الخليج';
+  }
+
+  @override
+  String get requestsDetailNoteAdded => 'تمت إضافة الملاحظة بنجاح.';
+
+  @override
+  String requestsDetailNoteAddFailed(String error) {
+    return 'تعذرت إضافة الملاحظة: $error';
+  }
+
+  @override
+  String get requestsDetailRemoveSuccess => 'تمت إزالة الطلب بنجاح.';
+
+  @override
+  String requestsDetailRemoveFailed(String error) {
+    return 'تعذرت إزالة الطلب: $error';
+  }
+
+  @override
+  String get requestsDetailRemovedTitle =>
+      'تمت إزالة الطلب بواسطة إشراف المنصة (FR-ADM-019)';
+
+  @override
+  String requestsDetailRemovedReason(String code, String text) {
+    return 'السبب: $code · $text';
+  }
+
+  @override
+  String get requestsDetailRemovedReasonCodeDefault => 'POLICY_VIOLATION';
+
+  @override
+  String get requestsDetailRemovedReasonTextDefault =>
+      'ينتهك إرشادات التداول على المنصة';
+
+  @override
+  String requestsDetailRemovedPolicyClause(String clause) {
+    return 'بند السياسة المُستشهد به: $clause';
+  }
+
+  @override
+  String get requestsDetailConnectionTitle => 'تم إنشاء اتصال نشط';
+
+  @override
+  String requestsDetailConnectionParties(String vendor, String customer) {
+    return 'التاجر المقبول: $vendor · العميل: $customer';
+  }
+
+  @override
+  String requestsDetailConnectionMeta(String date, String channel) {
+    return 'تم الاتصال في: $date بتوقيت الخليج · القناة: $channel';
+  }
+
+  @override
+  String get requestsDetailConnectionChannelDefault => 'WHATSAPP';
+
+  @override
+  String get requestsDetailWhatsappChannel => 'قناة واتساب';
+
+  @override
+  String get requestsDetailSpecsTitle => 'المتطلبات التجارية والمواصفات';
+
+  @override
+  String get requestsDetailSpecsReadOnly =>
+      'للقراءة فقط للمسؤول (FR-ADM-018 AC3)';
+
+  @override
+  String get requestsDetailLabelReferenceCode => 'رمز المرجع';
+
+  @override
+  String get requestsDetailLabelRequestType => 'نوع الطلب';
+
+  @override
+  String get requestsDetailLabelMarketDirection => 'اتجاه السوق';
+
+  @override
+  String get requestsDetailLabelCategory => 'الفئة';
+
+  @override
+  String get requestsDetailLabelRegion => 'المنطقة';
+
+  @override
+  String get requestsDetailLabelOrnamentType => 'نوع الحلي';
+
+  @override
+  String get requestsDetailLabelPurityKarat => 'النقاء / القيراط';
+
+  @override
+  String get requestsDetailLabelWeight => 'الوزن';
+
+  @override
+  String get requestsDetailLabelCondition => 'الحالة';
+
+  @override
+  String get requestsDetailLabelDenomination => 'الفئة الوزنية';
+
+  @override
+  String get requestsDetailLabelQuantity => 'الكمية';
+
+  @override
+  String get requestsDetailLabelMintRefiner => 'دار السك / المصفاة';
+
+  @override
+  String get requestsDetailLabelIndicativeValue => 'القيمة الإرشادية';
+
+  @override
+  String get requestsDetailLabelCustomerBudget => 'ميزانية العميل';
+
+  @override
+  String requestsDetailWeightApproximate(String weight) {
+    return '$weight غرام (تقريبي)';
+  }
+
+  @override
+  String requestsDetailWeightExact(String weight) {
+    return '$weight غرام (دقيق)';
+  }
+
+  @override
+  String requestsDetailQuantityUnits(int quantity) {
+    return '$quantity وحدة';
+  }
+
+  @override
+  String requestsDetailBudgetValue(String min, String max) {
+    return '$min – $max درهم';
+  }
+
+  @override
+  String requestsDetailBudgetValueFlexible(String min, String max) {
+    return '$min – $max درهم (مرن)';
+  }
+
+  @override
+  String get requestsDetailCustomerNotes => 'ملاحظات العميل:';
+
+  @override
+  String get requestsDetailCustomerProfileTitle => 'ملف العميل غير المُخفى';
+
+  @override
+  String requestsDetailCustomerId(String id) {
+    return 'معرف العميل: $id';
+  }
+
+  @override
+  String get requestsDetailLabelMobilePhone => 'رقم الجوال';
+
+  @override
+  String get requestsDetailLabelEmailAddress => 'البريد الإلكتروني';
+
+  @override
+  String get requestsDetailLabelMemberSince => 'عضو منذ';
+
+  @override
+  String requestsDetailMediaTitle(int count) {
+    return 'الوسائط المرفوعة ($count)';
+  }
+
+  @override
+  String get requestsDetailNoMedia => 'لم تُرفع أي وسائط لهذا الطلب.';
+
+  @override
+  String requestsDetailImageNumber(int number) {
+    return 'صورة رقم $number';
+  }
+
+  @override
+  String requestsDetailOffersTitle(int count) {
+    return 'العروض المستلمة ($count)';
+  }
+
+  @override
+  String get requestsDetailNoOffers => 'لم تُقدَّم أي عروض بعد.';
+
+  @override
+  String get requestsDetailOffersColumnVendor => 'التاجر';
+
+  @override
+  String get requestsDetailOffersColumnPrice => 'السعر المعروض';
+
+  @override
+  String get requestsDetailOffersColumnStatus => 'الحالة';
+
+  @override
+  String get requestsDetailOffersColumnSubmitted => 'تاريخ التقديم';
+
+  @override
+  String get requestsDetailOffersColumnTurnaround => 'مدة الإنجاز';
+
+  @override
+  String requestsDetailOfferDays(int days) {
+    return '$days يوماً';
+  }
+
+  @override
+  String requestsDetailMatchedTitle(int count) {
+    return 'التجار المطابقون ($count)';
+  }
+
+  @override
+  String get requestsDetailNoMatched => 'لا يوجد تجار مطابقون لهذا الطلب.';
+
+  @override
+  String requestsDetailMatchedAt(String date) {
+    return 'تمت المطابقة: $date';
+  }
+
+  @override
+  String get requestsDetailViewed => 'تمت المشاهدة';
+
+  @override
+  String get requestsDetailNotViewed => 'لم تتم المشاهدة';
+
+  @override
+  String get requestsDetailTimelineTitle => 'سجل تحولات الحالة';
+
+  @override
+  String get requestsDetailNoTransitions => 'لا توجد تحولات مسجّلة.';
+
+  @override
+  String requestsDetailTimelineBy(String actor) {
+    return 'بواسطة $actor';
+  }
+
+  @override
+  String get requestsDetailModerationTitle => 'إشراف المنصة';
+
+  @override
+  String get requestsDetailModerationBody =>
+      'يمكن للمسؤولين إزالة الطلبات التي تنتهك سياسات التداول على المنصة قسراً (FR-ADM-019).';
+
+  @override
+  String get requestsDetailAlreadyRemoved => 'تمت إزالة الطلب بالفعل';
+
+  @override
+  String get requestsDetailRemoveRequest => 'إزالة الطلب';
+
+  @override
+  String requestsDetailNotesTitle(int count) {
+    return 'ملاحظات المسؤول الداخلية ($count)';
+  }
+
+  @override
+  String get requestsDetailNoNotes => 'لا توجد ملاحظات داخلية مسجّلة.';
+
+  @override
+  String get requestsDetailAddNoteLabel => 'إضافة ملاحظة داخلية';
+
+  @override
+  String get requestsDetailAddNoteHint => 'سجّل ملاحظات التدقيق أو الامتثال…';
+
+  @override
+  String get requestsDetailAddNote => 'إضافة ملاحظة';
+
+  @override
+  String get requestsDetailRemoveDialogTitle => 'إزالة الطلب';
+
+  @override
+  String requestsDetailRemoveDialogBody(String reference) {
+    return 'إزالة \"$reference\" تضبط الحالة على REMOVED، وتسحب جميع العروض المعلقة، وتُخطر الطرفين.';
+  }
+
+  @override
+  String get requestsDetailRemoveReasonCode => 'رمز السبب';
+
+  @override
+  String get requestsDetailRemoveReasonPolicyViolation => 'انتهاك السياسة';
+
+  @override
+  String get requestsDetailRemoveReasonProhibitedItem => 'عنصر محظور / ممنوع';
+
+  @override
+  String get requestsDetailRemoveReasonFraudulent => 'إعلان احتيالي أو مضلل';
+
+  @override
+  String get requestsDetailRemoveReasonCustomerRequested =>
+      'طلب العميل الإلغاء';
+
+  @override
+  String get requestsDetailRemoveReasonOther => 'سبب إداري آخر';
+
+  @override
+  String get requestsDetailRemovePolicyClauseLabel =>
+      'بند السياسة (المُستشهد به للعميل)';
+
+  @override
+  String get requestsDetailRemovePolicyClauseHint => 'مثال: شروط الخدمة §4.2';
+
+  @override
+  String get requestsDetailRemoveJustificationLabel =>
+      'التبرير التفصيلي والملاحظات';
+
+  @override
+  String get requestsDetailRemoveJustificationHint =>
+      'اذكر السبب لسجل التدقيق…';
+
+  @override
+  String get requestsDetailRemoveJustificationRequired =>
+      'التبرير التفصيلي مطلوب.';
+
+  @override
+  String get requestsDetailConfirmRemoval => 'تأكيد الإزالة';
+
+  @override
+  String get requestsDetailErrorRetry => 'إعادة المحاولة';
 }

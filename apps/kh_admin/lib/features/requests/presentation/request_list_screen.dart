@@ -9,6 +9,7 @@ import '../../../core/design/theme/kh_theme.dart';
 import '../../../core/design/widgets/kh_data_table.dart';
 import '../../../core/design/widgets/kh_screen_header.dart';
 import '../../../core/design/widgets/kh_status_chip.dart';
+import '../../../l10n/app_localizations.dart';
 import '../controller/request_list_controller.dart';
 import '../model/request_enums.dart';
 import '../model/request_list_filters.dart';
@@ -61,6 +62,7 @@ class _RequestListScreenState extends ConsumerState<RequestListScreen> {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
     final listState = ref.watch(requestListControllerProvider);
     final controller = ref.read(requestListControllerProvider.notifier);
 
@@ -76,10 +78,11 @@ class _RequestListScreenState extends ConsumerState<RequestListScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const KhScreenHeader(
-              eyebrow: 'MARKETPLACE AUDIT',
-              heading: 'Requests',
-              supportingText: 'Platform requests oversight and inspection',
+            KhScreenHeader(
+              eyebrow: l10n?.requestsListEyebrow ?? 'Marketplace Audit',
+              heading: l10n?.requestsListHeading ?? 'Requests',
+              supportingText: l10n?.requestsListSubtitle ??
+                  'Platform requests oversight and inspection',
             ),
             SizedBox(height: kh.spacing.lg),
             _RequestFilterBar(
@@ -114,9 +117,10 @@ class _RequestListScreenState extends ConsumerState<RequestListScreen> {
                 onRetry: controller.refresh,
               )
             else if (listState.items.isEmpty)
-              const _RequestEmptyView(
-                key: Key('request-list-empty'),
-                message: 'No requests match the current filters.',
+              _RequestEmptyView(
+                key: const Key('request-list-empty'),
+                message: l10n?.requestsEmptyBody ??
+                    'No requests match the current filters.',
               )
             else ...[
               _RequestTable(items: listState.items),
@@ -168,6 +172,7 @@ class _RequestFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Wrap(
       spacing: kh.spacing.sm,
@@ -180,14 +185,14 @@ class _RequestFilterBar extends StatelessWidget {
             key: const Key('request-filter-type'),
             initialValue: filters.requestType,
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Request Type',
+            decoration: InputDecoration(
+              labelText: l10n?.requestsFilterType ?? 'Request Type',
               isDense: true,
             ),
             items: [
-              const DropdownMenuItem<RequestType?>(
+              DropdownMenuItem<RequestType?>(
                 value: null,
-                child: Text('All Types'),
+                child: Text(l10n?.requestsFilterAllTypes ?? 'All Types'),
               ),
               for (final type in RequestType.values)
                 DropdownMenuItem<RequestType?>(
@@ -204,14 +209,14 @@ class _RequestFilterBar extends StatelessWidget {
             key: const Key('request-filter-direction'),
             initialValue: filters.direction,
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Direction',
+            decoration: InputDecoration(
+              labelText: l10n?.requestsFilterDirection ?? 'Direction',
               isDense: true,
             ),
             items: [
-              const DropdownMenuItem<Direction?>(
+              DropdownMenuItem<Direction?>(
                 value: null,
-                child: Text('All Directions'),
+                child: Text(l10n?.requestsFilterAllDirections ?? 'All Directions'),
               ),
               for (final dir in Direction.values)
                 DropdownMenuItem<Direction?>(
@@ -228,14 +233,14 @@ class _RequestFilterBar extends StatelessWidget {
             key: const Key('request-filter-state'),
             initialValue: filters.state,
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Status',
+            decoration: InputDecoration(
+              labelText: l10n?.requestsFilterStatus ?? 'Status',
               isDense: true,
             ),
             items: [
-              const DropdownMenuItem<RequestState?>(
+              DropdownMenuItem<RequestState?>(
                 value: null,
-                child: Text('All States'),
+                child: Text(l10n?.requestsFilterAllStates ?? 'All States'),
               ),
               for (final state in RequestState.values)
                 DropdownMenuItem<RequestState?>(
@@ -252,13 +257,14 @@ class _RequestFilterBar extends StatelessWidget {
             key: const Key('request-filter-search'),
             controller: searchController,
             decoration: InputDecoration(
-              labelText: 'Search',
-              hintText: 'Reference, notes, customer…',
+              labelText: l10n?.requestsFilterSearch ?? 'Search',
+              hintText:
+                  l10n?.requestsFilterSearchHint ?? 'Reference, notes, customer…',
               isDense: true,
               suffixIcon: IconButton(
                 key: const Key('request-search-button'),
                 icon: const Icon(Icons.search, size: 20.0),
-                tooltip: 'Search',
+                tooltip: l10n?.requestsFilterSearchTooltip ?? 'Search',
                 onPressed: onSearchSubmitted,
               ),
             ),
@@ -269,7 +275,7 @@ class _RequestFilterBar extends StatelessWidget {
         ),
         FilterChip(
           key: const Key('request-filter-zero-offers'),
-          label: const Text('Zero Offers'),
+          label: Text(l10n?.requestsFilterZeroOffers ?? 'Zero Offers'),
           selected: filters.zeroOffersOnly,
           onSelected: onZeroOffersToggled,
           showCheckmark: true,
@@ -291,24 +297,26 @@ class _RequestTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
     final currencyFormat = NumberFormat('#,##0', 'en_US');
     final dateFormat = DateFormat('dd MMM yyyy');
 
     return KhDataTable(
       key: const Key('request-list-table'),
       minWidth: 1200.0,
-      columns: const [
-        KhTableColumn('Reference', flex: 3),
-        KhTableColumn('Type', flex: 2),
-        KhTableColumn('Direction', flex: 1),
-        KhTableColumn('Customer', flex: 3),
-        KhTableColumn('Category', flex: 2),
-        KhTableColumn('Region', flex: 2),
-        KhTableColumn('Indicative Value', flex: 2),
-        KhTableColumn('Offers', flex: 1),
-        KhTableColumn('State', flex: 2),
-        KhTableColumn('Date', flex: 2),
-        KhTableColumn('Action', flex: 2),
+      columns: [
+        KhTableColumn(l10n?.requestsColumnReference ?? 'Reference', flex: 3),
+        KhTableColumn(l10n?.requestsColumnType ?? 'Type', flex: 2),
+        KhTableColumn(l10n?.requestsColumnDirection ?? 'Direction', flex: 1),
+        KhTableColumn(l10n?.requestsColumnCustomer ?? 'Customer', flex: 3),
+        KhTableColumn(l10n?.requestsColumnCategory ?? 'Category', flex: 2),
+        KhTableColumn(l10n?.requestsColumnRegion ?? 'Region', flex: 2),
+        KhTableColumn(
+            l10n?.requestsColumnIndicativeValue ?? 'Indicative Value', flex: 2),
+        KhTableColumn(l10n?.requestsColumnOffers ?? 'Offers', flex: 1),
+        KhTableColumn(l10n?.requestsColumnState ?? 'State', flex: 2),
+        KhTableColumn(l10n?.requestsColumnDate ?? 'Date', flex: 2),
+        KhTableColumn(l10n?.requestsColumnAction ?? 'Action', flex: 2),
       ],
       rows: [
         for (final item in items)
@@ -452,7 +460,7 @@ class _RequestTable extends StatelessWidget {
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
-                  'Inspect',
+                  l10n?.requestsActionInspect ?? 'Inspect',
                   style: kh.typography.caption.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 11.0,
@@ -497,6 +505,7 @@ class _RequestPaginationControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -511,7 +520,7 @@ class _RequestPaginationControls extends StatelessWidget {
                     height: 16.0,
                     child: CircularProgressIndicator(strokeWidth: 2.0),
                   )
-                : const Text('Load more'),
+                : Text(l10n?.requestsLoadMore ?? 'Load more'),
           )
         else
           const SizedBox.shrink(),
@@ -520,11 +529,12 @@ class _RequestPaginationControls extends StatelessWidget {
             OutlinedButton(
               key: const Key('request-page-prev'),
               onPressed: listState.canGoPrevious ? controller.previousPage : null,
-              child: const Text('Previous'),
+              child: Text(l10n?.requestsPaginationPrevious ?? 'Previous'),
             ),
             SizedBox(width: kh.spacing.sm),
             Text(
-              'Page ${listState.page}',
+              l10n?.requestsPaginationPage(listState.page) ??
+                  'Page ${listState.page}',
               style: kh.typography.bodySmall.copyWith(
                 color: kh.colors.textSecondary,
                 fontSize: 12.0,
@@ -534,7 +544,7 @@ class _RequestPaginationControls extends StatelessWidget {
             OutlinedButton(
               key: const Key('request-page-next'),
               onPressed: listState.canGoNext ? controller.nextPage : null,
-              child: const Text('Next'),
+              child: Text(l10n?.requestsPaginationNext ?? 'Next'),
             ),
           ],
         ),
@@ -591,6 +601,7 @@ class _RequestErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Center(
       child: Padding(
@@ -612,7 +623,7 @@ class _RequestErrorView extends StatelessWidget {
             OutlinedButton(
               key: const Key('request-retry-button'),
               onPressed: onRetry,
-              child: const Text('Retry'),
+              child: Text(l10n?.requestsRetry ?? 'Retry'),
             ),
           ],
         ),

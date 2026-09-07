@@ -8,6 +8,7 @@ import '../../../core/design/widgets/kh_data_table.dart';
 import '../../../core/design/widgets/kh_screen_header.dart';
 import '../../../core/design/widgets/kh_section_label.dart';
 import '../../../core/design/widgets/kh_status_chip.dart';
+import '../../../l10n/app_localizations.dart';
 import '../controller/request_detail_controller.dart';
 import '../model/request_detail.dart';
 import '../model/request_enums.dart';
@@ -163,11 +164,12 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildBackButton(BuildContext context, dynamic kh) {
+    final l10n = AppLocalizations.of(context);
     return TextButton.icon(
       key: const Key('request-detail-back-button'),
       onPressed: () => context.go('/requests'),
       icon: const Icon(Icons.arrow_back, size: 18.0),
-      label: const Text('Back to Requests'),
+      label: Text(l10n?.requestsDetailBack ?? 'Back to Requests'),
       style: TextButton.styleFrom(
         foregroundColor: kh.colors.goldPrimary,
         padding: EdgeInsets.symmetric(
@@ -179,6 +181,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildHeader(dynamic kh, RequestDetail detail) {
+    final l10n = AppLocalizations.of(context);
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
     final heading = detail.ornamentType != null && detail.ornamentType!.isNotEmpty
         ? '${detail.purityKarat != null ? "${detail.purityKarat} " : ""}${detail.ornamentType}'
@@ -204,7 +207,8 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                       border: Border.all(color: kh.colors.borderSubtle),
                     ),
                     child: Text(
-                      detail.reference ?? 'NO REFERENCE',
+                      detail.reference ??
+                          (l10n?.requestsDetailNoReference ?? 'NO REFERENCE'),
                       style: kh.typography.caption.copyWith(
                         color: kh.colors.goldPrimary,
                         fontWeight: FontWeight.w700,
@@ -222,12 +226,16 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
               ),
               SizedBox(height: kh.spacing.xs),
               KhScreenHeader(
-                eyebrow: 'REQUEST OVERSIGHT',
+                eyebrow: l10n?.requestsDetailEyebrow ?? 'REQUEST OVERSIGHT',
                 heading: heading,
                 supportingText: detail.publishedAt != null
-                    ? 'Published ${dateFormat.format(detail.publishedAt!)} GST'
+                    ? (l10n?.requestsDetailPublishedAt(
+                            dateFormat.format(detail.publishedAt!)) ??
+                        'Published ${dateFormat.format(detail.publishedAt!)} GST')
                     : (detail.createdAt != null
-                        ? 'Created ${dateFormat.format(detail.createdAt!)} GST'
+                        ? (l10n?.requestsDetailCreatedAt(
+                                dateFormat.format(detail.createdAt!)) ??
+                            'Created ${dateFormat.format(detail.createdAt!)} GST')
                         : ''),
               ),
             ],
@@ -270,6 +278,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildRemovedNoticeBanner(dynamic kh, RequestDetail detail) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       key: const Key('request-removed-banner'),
       padding: EdgeInsets.all(kh.spacing.md),
@@ -288,7 +297,8 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'REQUEST REMOVED BY PLATFORM MODERATION (FR-ADM-019)',
+                  l10n?.requestsDetailRemovedTitle ??
+                      'REQUEST REMOVED BY PLATFORM MODERATION (FR-ADM-019)',
                   style: kh.typography.title.copyWith(
                     color: kh.colors.error,
                     fontWeight: FontWeight.w700,
@@ -297,7 +307,13 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                 ),
                 SizedBox(height: kh.spacing.xxs),
                 Text(
-                  'Reason: ${detail.removalReasonCode ?? "POLICY_VIOLATION"} · ${detail.removalReasonText ?? "Violates platform trading guidelines"}',
+                  l10n?.requestsDetailRemovedReason(
+                        detail.removalReasonCode ??
+                            l10n.requestsDetailRemovedReasonCodeDefault,
+                        detail.removalReasonText ??
+                            l10n.requestsDetailRemovedReasonTextDefault,
+                      ) ??
+                      'Reason: ${detail.removalReasonCode ?? "POLICY_VIOLATION"} · ${detail.removalReasonText ?? "Violates platform trading guidelines"}',
                   style: kh.typography.bodySmall.copyWith(
                     color: kh.colors.textPrimary,
                     fontSize: 12.0,
@@ -307,7 +323,9 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                     detail.removalPolicyClause!.isNotEmpty) ...[
                   SizedBox(height: kh.spacing.xxs),
                   Text(
-                    'Policy clause cited: ${detail.removalPolicyClause}',
+                    l10n?.requestsDetailRemovedPolicyClause(
+                            detail.removalPolicyClause!) ??
+                        'Policy clause cited: ${detail.removalPolicyClause}',
                     style: kh.typography.caption.copyWith(
                       color: kh.colors.textMuted,
                       fontSize: 11.0,
@@ -323,6 +341,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildConnectionBanner(dynamic kh, RequestConnectionSummary connection) {
+    final l10n = AppLocalizations.of(context);
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
 
     return Container(
@@ -344,7 +363,8 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                 Row(
                   children: [
                     Text(
-                      'ACTIVE CONNECTION ESTABLISHED',
+                      l10n?.requestsDetailConnectionTitle ??
+                          'ACTIVE CONNECTION ESTABLISHED',
                       style: kh.typography.title.copyWith(
                         color: kh.colors.success,
                         fontWeight: FontWeight.w700,
@@ -361,7 +381,11 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                 ),
                 SizedBox(height: kh.spacing.xxs),
                 Text(
-                  'Accepted Vendor: ${connection.vendorName} · Customer: ${connection.customerName}',
+                  l10n?.requestsDetailConnectionParties(
+                        connection.vendorName,
+                        connection.customerName,
+                      ) ??
+                      'Accepted Vendor: ${connection.vendorName} · Customer: ${connection.customerName}',
                   style: kh.typography.bodySmall.copyWith(
                     color: kh.colors.textPrimary,
                     fontWeight: FontWeight.w600,
@@ -369,7 +393,12 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                   ),
                 ),
                 Text(
-                  'Connected at: ${dateFormat.format(connection.connectedAt)} GST · Channel: ${connection.channel ?? "WHATSAPP"}',
+                  l10n?.requestsDetailConnectionMeta(
+                        dateFormat.format(connection.connectedAt),
+                        connection.channel ??
+                            l10n.requestsDetailConnectionChannelDefault,
+                      ) ??
+                      'Connected at: ${dateFormat.format(connection.connectedAt)} GST · Channel: ${connection.channel ?? "WHATSAPP"}',
                   style: kh.typography.caption.copyWith(
                     color: kh.colors.textSecondary,
                     fontSize: 11.0,
@@ -381,7 +410,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
           if (connection.whatsappUrl != null && connection.whatsappUrl!.isNotEmpty)
             OutlinedButton.icon(
               icon: const Icon(Icons.chat, size: 16.0),
-              label: const Text('WhatsApp Channel'),
+              label: Text(l10n?.requestsDetailWhatsappChannel ?? 'WhatsApp Channel'),
               onPressed: () {},
             ),
         ],
@@ -390,6 +419,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildSpecificationsCard(dynamic kh, RequestDetail detail) {
+    final l10n = AppLocalizations.of(context);
     final currencyFormat = NumberFormat('#,##0', 'en_US');
 
     return Container(
@@ -405,7 +435,8 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const KhSectionLabel('Commercial Requirements & Specifications'),
+              KhSectionLabel(l10n?.requestsDetailSpecsTitle ??
+                  'Commercial Requirements & Specifications'),
               Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: kh.spacing.sm,
@@ -416,7 +447,8 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                   borderRadius: kh.shapes.roundedSm,
                 ),
                 child: Text(
-                  'READ-ONLY FOR ADMIN (FR-ADM-018 AC3)',
+                  l10n?.requestsDetailSpecsReadOnly ??
+                      'READ-ONLY FOR ADMIN (FR-ADM-018 AC3)',
                   style: kh.typography.caption.copyWith(
                     color: kh.colors.textMuted,
                     fontSize: 10.0,
@@ -427,46 +459,88 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
             ],
           ),
           SizedBox(height: kh.spacing.md),
-          _buildDetailRow(kh, 'Reference Code', detail.reference ?? '—'),
-          _buildDetailRow(kh, 'Request Type', detail.requestType.label),
-          _buildDetailRow(kh, 'Market Direction', '${detail.direction.label} (${detail.direction.name.toUpperCase()})'),
-          _buildDetailRow(kh, 'Category', detail.categoryName),
-          _buildDetailRow(kh, 'Region', detail.regionName),
+          _buildDetailRow(
+              kh,
+              l10n?.requestsDetailLabelReferenceCode ?? 'Reference Code',
+              detail.reference ?? '—'),
+          _buildDetailRow(
+              kh,
+              l10n?.requestsDetailLabelRequestType ?? 'Request Type',
+              detail.requestType.label),
+          _buildDetailRow(
+              kh,
+              l10n?.requestsDetailLabelMarketDirection ?? 'Market Direction',
+              '${detail.direction.label} (${detail.direction.name.toUpperCase()})'),
+          _buildDetailRow(kh,
+              l10n?.requestsDetailLabelCategory ?? 'Category', detail.categoryName),
+          _buildDetailRow(kh, l10n?.requestsDetailLabelRegion ?? 'Region',
+              detail.regionName),
           if (detail.ornamentType != null && detail.ornamentType!.isNotEmpty)
-            _buildDetailRow(kh, 'Ornament Type', detail.ornamentType!),
+            _buildDetailRow(
+                kh,
+                l10n?.requestsDetailLabelOrnamentType ?? 'Ornament Type',
+                detail.ornamentType!),
           if (detail.purityKarat != null && detail.purityKarat!.isNotEmpty)
-            _buildDetailRow(kh, 'Purity / Karat', detail.purityKarat!),
+            _buildDetailRow(
+                kh,
+                l10n?.requestsDetailLabelPurityKarat ?? 'Purity / Karat',
+                detail.purityKarat!),
           if (detail.weightGrams != null)
             _buildDetailRow(
               kh,
-              'Weight',
-              '${detail.weightGrams!.toStringAsFixed(2)}g ${detail.weightIsApproximate ? "(Approximate)" : "(Exact)"}',
+              l10n?.requestsDetailLabelWeight ?? 'Weight',
+              detail.weightIsApproximate
+                  ? (l10n?.requestsDetailWeightApproximate(
+                          detail.weightGrams!.toStringAsFixed(2)) ??
+                      '${detail.weightGrams!.toStringAsFixed(2)}g (Approximate)')
+                  : (l10n?.requestsDetailWeightExact(
+                          detail.weightGrams!.toStringAsFixed(2)) ??
+                      '${detail.weightGrams!.toStringAsFixed(2)}g (Exact)'),
             ),
           if (detail.condition != null && detail.condition!.isNotEmpty)
-            _buildDetailRow(kh, 'Condition', detail.condition!),
+            _buildDetailRow(kh,
+                l10n?.requestsDetailLabelCondition ?? 'Condition', detail.condition!),
           if (detail.denominationGrams != null)
-            _buildDetailRow(kh, 'Denomination', '${detail.denominationGrams!.toStringAsFixed(2)}g'),
+            _buildDetailRow(
+                kh,
+                l10n?.requestsDetailLabelDenomination ?? 'Denomination',
+                '${detail.denominationGrams!.toStringAsFixed(2)}g'),
           if (detail.quantity != null)
-            _buildDetailRow(kh, 'Quantity', '${detail.quantity} units'),
+            _buildDetailRow(
+                kh,
+                l10n?.requestsDetailLabelQuantity ?? 'Quantity',
+                l10n?.requestsDetailQuantityUnits(detail.quantity!) ??
+                    '${detail.quantity} units'),
           if (detail.mintOrRefiner != null && detail.mintOrRefiner!.isNotEmpty)
-            _buildDetailRow(kh, 'Mint / Refiner', detail.mintOrRefiner!),
+            _buildDetailRow(
+                kh,
+                l10n?.requestsDetailLabelMintRefiner ?? 'Mint / Refiner',
+                detail.mintOrRefiner!),
           if (detail.indicativeValue != null)
             _buildDetailRow(
               kh,
-              'Indicative Value',
+              l10n?.requestsDetailLabelIndicativeValue ?? 'Indicative Value',
               'AED ${currencyFormat.format(detail.indicativeValue)}',
               highlightGold: true,
             ),
           if (detail.budgetMin != null || detail.budgetMax != null)
             _buildDetailRow(
               kh,
-              'Customer Budget',
-              'AED ${currencyFormat.format(detail.budgetMin ?? 0)} – ${currencyFormat.format(detail.budgetMax ?? 0)} ${detail.budgetIsFlexible ? "(Flexible)" : ""}',
+              l10n?.requestsDetailLabelCustomerBudget ?? 'Customer Budget',
+              detail.budgetIsFlexible
+                  ? (l10n?.requestsDetailBudgetValueFlexible(
+                          currencyFormat.format(detail.budgetMin ?? 0),
+                          currencyFormat.format(detail.budgetMax ?? 0)) ??
+                      'AED ${currencyFormat.format(detail.budgetMin ?? 0)} – ${currencyFormat.format(detail.budgetMax ?? 0)} (Flexible)')
+                  : (l10n?.requestsDetailBudgetValue(
+                          currencyFormat.format(detail.budgetMin ?? 0),
+                          currencyFormat.format(detail.budgetMax ?? 0)) ??
+                      'AED ${currencyFormat.format(detail.budgetMin ?? 0)} – ${currencyFormat.format(detail.budgetMax ?? 0)}'),
             ),
           if (detail.notes != null && detail.notes!.isNotEmpty) ...[
             SizedBox(height: kh.spacing.sm),
             Text(
-              'Customer Notes:',
+              l10n?.requestsDetailCustomerNotes ?? 'Customer Notes:',
               style: kh.typography.caption.copyWith(color: kh.colors.textMuted, fontSize: 11.0),
             ),
             SizedBox(height: kh.spacing.xxs),
@@ -493,6 +567,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildCustomerCard(dynamic kh, RequestDetail detail) {
+    final l10n = AppLocalizations.of(context);
     final cust = detail.customer;
     final dateFormat = DateFormat('dd MMM yyyy');
 
@@ -510,7 +585,8 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const KhSectionLabel('Unmasked Customer Profile'),
+              KhSectionLabel(l10n?.requestsDetailCustomerProfileTitle ??
+                  'Unmasked Customer Profile'),
               KhStatusChip(
                 label: cust.accountState,
                 tone: cust.accountState == 'ACTIVE'
@@ -542,7 +618,8 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                       ),
                     ),
                     Text(
-                      'Customer ID: ${cust.id}',
+                      l10n?.requestsDetailCustomerId(cust.id) ??
+                          'Customer ID: ${cust.id}',
                       style: kh.typography.caption.copyWith(
                         color: kh.colors.textMuted,
                         fontSize: 10.0,
@@ -554,16 +631,22 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
             ],
           ),
           SizedBox(height: kh.spacing.md),
-          _buildDetailRow(kh, 'Mobile Phone', cust.mobileNumber ?? '—'),
-          _buildDetailRow(kh, 'Email Address', cust.email ?? '—'),
+          _buildDetailRow(kh, l10n?.requestsDetailLabelMobilePhone ?? 'Mobile Phone',
+              cust.mobileNumber ?? '—'),
+          _buildDetailRow(kh, l10n?.requestsDetailLabelEmailAddress ?? 'Email Address',
+              cust.email ?? '—'),
           if (cust.createdAt != null)
-            _buildDetailRow(kh, 'Member Since', dateFormat.format(cust.createdAt!)),
+            _buildDetailRow(
+                kh,
+                l10n?.requestsDetailLabelMemberSince ?? 'Member Since',
+                dateFormat.format(cust.createdAt!)),
         ],
       ),
     );
   }
 
   Widget _buildMediaGalleryCard(dynamic kh, RequestDetail detail) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       key: const Key('request-media-gallery'),
       padding: EdgeInsets.all(kh.spacing.lg),
@@ -575,13 +658,16 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          KhSectionLabel('Uploaded Media (${detail.media.length})'),
+          KhSectionLabel(
+              l10n?.requestsDetailMediaTitle(detail.media.length) ??
+                  'Uploaded Media (${detail.media.length})'),
           SizedBox(height: kh.spacing.md),
           if (detail.media.isEmpty)
             Padding(
               padding: EdgeInsets.symmetric(vertical: kh.spacing.md),
               child: Text(
-                'No media uploaded for this request.',
+                l10n?.requestsDetailNoMedia ??
+                    'No media uploaded for this request.',
                 style: kh.typography.bodySmall.copyWith(
                   color: kh.colors.textMuted,
                   fontSize: 13.0,
@@ -620,7 +706,10 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                         ),
                         SizedBox(height: kh.spacing.xxs),
                         Text(
-                          item.fileName ?? 'Image #${item.displayOrder + 1}',
+                          item.fileName ??
+                              (l10n?.requestsDetailImageNumber(
+                                      item.displayOrder + 1) ??
+                                  'Image #${item.displayOrder + 1}'),
                           style: kh.typography.caption.copyWith(
                             color: kh.colors.textPrimary,
                             fontWeight: FontWeight.w600,
@@ -648,6 +737,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildOffersCard(dynamic kh, RequestDetail detail) {
+    final l10n = AppLocalizations.of(context);
     final currencyFormat = NumberFormat('#,##0', 'en_US');
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
 
@@ -662,13 +752,15 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          KhSectionLabel('Received Offers (${detail.offers.length})'),
+          KhSectionLabel(
+              l10n?.requestsDetailOffersTitle(detail.offers.length) ??
+                  'Received Offers (${detail.offers.length})'),
           SizedBox(height: kh.spacing.md),
           if (detail.offers.isEmpty)
             Padding(
               padding: EdgeInsets.symmetric(vertical: kh.spacing.md),
               child: Text(
-                'No offers submitted yet.',
+                l10n?.requestsDetailNoOffers ?? 'No offers submitted yet.',
                 style: kh.typography.bodySmall.copyWith(
                   color: kh.colors.textMuted,
                   fontSize: 13.0,
@@ -679,12 +771,20 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
             KhDataTable(
               key: const Key('request-offers-table'),
               minWidth: 700.0,
-              columns: const [
-                KhTableColumn('Vendor', flex: 3),
-                KhTableColumn('Offered Price', flex: 2),
-                KhTableColumn('Status', flex: 2),
-                KhTableColumn('Submitted', flex: 2),
-                KhTableColumn('Turnaround', flex: 2),
+              columns: [
+                KhTableColumn(
+                    l10n?.requestsDetailOffersColumnVendor ?? 'Vendor', flex: 3),
+                KhTableColumn(
+                    l10n?.requestsDetailOffersColumnPrice ?? 'Offered Price',
+                    flex: 2),
+                KhTableColumn(
+                    l10n?.requestsDetailOffersColumnStatus ?? 'Status', flex: 2),
+                KhTableColumn(
+                    l10n?.requestsDetailOffersColumnSubmitted ?? 'Submitted',
+                    flex: 2),
+                KhTableColumn(
+                    l10n?.requestsDetailOffersColumnTurnaround ?? 'Turnaround',
+                    flex: 2),
               ],
               rows: [
                 for (final offer in detail.offers)
@@ -720,7 +820,9 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                       ),
                       Text(
                         offer.estimatedDays != null
-                            ? '${offer.estimatedDays} days'
+                            ? (l10n?.requestsDetailOfferDays(
+                                    offer.estimatedDays!) ??
+                                '${offer.estimatedDays} days')
                             : (offer.notes ?? '—'),
                         style: kh.typography.caption.copyWith(
                           color: kh.colors.textSecondary,
@@ -737,6 +839,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildMatchedVendorsCard(dynamic kh, RequestDetail detail) {
+    final l10n = AppLocalizations.of(context);
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
 
     return Container(
@@ -750,13 +853,16 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          KhSectionLabel('Matched Vendors (${detail.matchedVendors.length})'),
+          KhSectionLabel(
+              l10n?.requestsDetailMatchedTitle(detail.matchedVendors.length) ??
+                  'Matched Vendors (${detail.matchedVendors.length})'),
           SizedBox(height: kh.spacing.md),
           if (detail.matchedVendors.isEmpty)
             Padding(
               padding: EdgeInsets.symmetric(vertical: kh.spacing.md),
               child: Text(
-                'No vendors matched to this request.',
+                l10n?.requestsDetailNoMatched ??
+                    'No vendors matched to this request.',
                 style: kh.typography.bodySmall.copyWith(
                   color: kh.colors.textMuted,
                   fontSize: 13.0,
@@ -798,7 +904,9 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                               ),
                             ),
                           Text(
-                            'Matched: ${dateFormat.format(mv.matchedAt)}',
+                            l10n?.requestsDetailMatchedAt(
+                                    dateFormat.format(mv.matchedAt)) ??
+                                'Matched: ${dateFormat.format(mv.matchedAt)}',
                             style: kh.typography.caption.copyWith(
                               color: kh.colors.textSecondary,
                               fontSize: 10.0,
@@ -821,7 +929,9 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                           ),
                         SizedBox(height: kh.spacing.xxs),
                         KhStatusChip(
-                          label: mv.viewedAt != null ? 'VIEWED' : 'NOT VIEWED',
+                          label: mv.viewedAt != null
+                              ? (l10n?.requestsDetailViewed ?? 'VIEWED')
+                              : (l10n?.requestsDetailNotViewed ?? 'NOT VIEWED'),
                           tone: mv.viewedAt != null
                               ? KhStatusTone.success
                               : KhStatusTone.neutral,
@@ -839,6 +949,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildTimelineCard(dynamic kh, RequestDetail detail) {
+    final l10n = AppLocalizations.of(context);
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
 
     return Container(
@@ -852,13 +963,14 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const KhSectionLabel('State Transition History'),
+          KhSectionLabel(
+              l10n?.requestsDetailTimelineTitle ?? 'State Transition History'),
           SizedBox(height: kh.spacing.md),
           if (detail.timeline.isEmpty)
             Padding(
               padding: EdgeInsets.symmetric(vertical: kh.spacing.md),
               child: Text(
-                'No recorded transitions.',
+                l10n?.requestsDetailNoTransitions ?? 'No recorded transitions.',
                 style: kh.typography.bodySmall.copyWith(
                   color: kh.colors.textMuted,
                   fontSize: 13.0,
@@ -891,7 +1003,8 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                     if (ev.actor != null) ...[
                       SizedBox(width: kh.spacing.sm),
                       Text(
-                        'by ${ev.actor}',
+                        l10n?.requestsDetailTimelineBy(ev.actor!) ??
+                            'by ${ev.actor}',
                         style: kh.typography.caption.copyWith(
                           color: kh.colors.textMuted,
                           fontSize: 11.0,
@@ -922,6 +1035,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildAdminActionsCard(BuildContext context, dynamic kh, RequestDetail detail) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: EdgeInsets.all(kh.spacing.lg),
       decoration: BoxDecoration(
@@ -932,10 +1046,12 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const KhSectionLabel('Platform Moderation'),
+          KhSectionLabel(
+              l10n?.requestsDetailModerationTitle ?? 'Platform Moderation'),
           SizedBox(height: kh.spacing.md),
           Text(
-            'Administrators can forcibly remove requests that violate platform trading policies (FR-ADM-019).',
+            l10n?.requestsDetailModerationBody ??
+                'Administrators can forcibly remove requests that violate platform trading policies (FR-ADM-019).',
             style: kh.typography.bodySmall.copyWith(
               color: kh.colors.textSecondary,
               fontSize: 12.0,
@@ -946,7 +1062,8 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
             ElevatedButton.icon(
               onPressed: null,
               icon: const Icon(Icons.block, size: 18.0),
-              label: const Text('Request Already Removed'),
+              label: Text(
+                  l10n?.requestsDetailAlreadyRemoved ?? 'Request Already Removed'),
             )
           else
             ElevatedButton.icon(
@@ -960,7 +1077,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                 ),
               ),
               icon: const Icon(Icons.delete_forever, size: 18.0),
-              label: const Text('Remove Request'),
+              label: Text(l10n?.requestsDetailRemoveRequest ?? 'Remove Request'),
               onPressed: () => _showRemoveDialog(context, kh, detail),
             ),
         ],
@@ -969,6 +1086,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildInternalNotesCard(dynamic kh, RequestDetail detail) {
+    final l10n = AppLocalizations.of(context);
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
 
     return Container(
@@ -981,7 +1099,9 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          KhSectionLabel('Admin Internal Notes (${detail.internalNotes.length})'),
+          KhSectionLabel(
+              l10n?.requestsDetailNotesTitle(detail.internalNotes.length) ??
+                  'Admin Internal Notes (${detail.internalNotes.length})'),
           SizedBox(height: kh.spacing.md),
           if (detail.internalNotes.isNotEmpty)
             ListView.separated(
@@ -1033,7 +1153,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
             Padding(
               padding: EdgeInsets.only(bottom: kh.spacing.md),
               child: Text(
-                'No internal notes recorded.',
+                l10n?.requestsDetailNoNotes ?? 'No internal notes recorded.',
                 style: kh.typography.bodySmall.copyWith(
                   color: kh.colors.textMuted,
                   fontSize: 12.0,
@@ -1045,9 +1165,10 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
             key: const Key('add-note-field'),
             controller: _noteController,
             maxLines: 2,
-            decoration: const InputDecoration(
-              labelText: 'Add Internal Note',
-              hintText: 'Record audit or compliance notes…',
+            decoration: InputDecoration(
+              labelText: l10n?.requestsDetailAddNoteLabel ?? 'Add Internal Note',
+              hintText: l10n?.requestsDetailAddNoteHint ??
+                  'Record audit or compliance notes…',
               isDense: true,
             ),
           ),
@@ -1063,7 +1184,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                       height: 14.0,
                       child: CircularProgressIndicator(strokeWidth: 2.0),
                     )
-                  : const Text('Add Note'),
+                  : Text(l10n?.requestsDetailAddNote ?? 'Add Note'),
             ),
           ),
         ],
@@ -1072,6 +1193,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Future<void> _handleAddNote(dynamic kh) async {
+    final l10n = AppLocalizations.of(context);
     final text = _noteController.text.trim();
     if (text.isEmpty) return;
 
@@ -1083,12 +1205,15 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
       _noteController.clear();
       setState(() {
         _actionSuccess = true;
-        _actionFeedback = 'Note added successfully.';
+        _actionFeedback =
+            l10n?.requestsDetailNoteAdded ?? 'Note added successfully.';
       });
     } on Object catch (e) {
       setState(() {
         _actionSuccess = false;
-        _actionFeedback = 'Failed to add note: $e';
+        _actionFeedback =
+            l10n?.requestsDetailNoteAddFailed(e.toString()) ??
+                'Failed to add note: $e';
       });
     } finally {
       if (mounted) setState(() => _isSubmittingNote = false);
@@ -1100,6 +1225,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     dynamic kh,
     RequestDetail detail,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final formKey = GlobalKey<FormState>();
     var selectedReasonCode = 'POLICY_VIOLATION';
     final policyClauseController = TextEditingController(text: 'Terms of Service §4.2');
@@ -1108,7 +1234,10 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: Text('Remove Request', style: kh.typography.title),
+        title: Text(
+          l10n?.requestsDetailRemoveDialogTitle ?? 'Remove Request',
+          style: kh.typography.title,
+        ),
         content: SizedBox(
           width: 480.0,
           child: Form(
@@ -1118,7 +1247,10 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Removing "${detail.reference ?? detail.id}" sets status to REMOVED, withdraws all pending offers, and notifies both parties.',
+                  l10n?.requestsDetailRemoveDialogBody(
+                        detail.reference ?? detail.id,
+                      ) ??
+                      'Removing "${detail.reference ?? detail.id}" sets status to REMOVED, withdraws all pending offers, and notifies both parties.',
                   style: kh.typography.bodySmall.copyWith(
                     color: kh.colors.textSecondary,
                     fontSize: 12.0,
@@ -1129,30 +1261,39 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                   key: const Key('remove-reason-code-field'),
                   initialValue: selectedReasonCode,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Reason Code',
+                  decoration: InputDecoration(
+                    labelText:
+                        l10n?.requestsDetailRemoveReasonCode ?? 'Reason Code',
                     isDense: true,
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: 'POLICY_VIOLATION',
-                      child: Text('Policy violation'),
+                      child: Text(
+                          l10n?.requestsDetailRemoveReasonPolicyViolation ??
+                              'Policy violation'),
                     ),
                     DropdownMenuItem(
                       value: 'PROHIBITED_ITEM',
-                      child: Text('Prohibited item / Contraband'),
+                      child: Text(
+                          l10n?.requestsDetailRemoveReasonProhibitedItem ??
+                              'Prohibited item / Contraband'),
                     ),
                     DropdownMenuItem(
                       value: 'FRAUDULENT_LISTING',
-                      child: Text('Fraudulent or misleading listing'),
+                      child: Text(l10n?.requestsDetailRemoveReasonFraudulent ??
+                          'Fraudulent or misleading listing'),
                     ),
                     DropdownMenuItem(
                       value: 'CUSTOMER_REQUESTED',
-                      child: Text('Customer requested cancellation'),
+                      child: Text(
+                          l10n?.requestsDetailRemoveReasonCustomerRequested ??
+                              'Customer requested cancellation'),
                     ),
                     DropdownMenuItem(
                       value: 'OTHER',
-                      child: Text('Other administrative reason'),
+                      child: Text(l10n?.requestsDetailRemoveReasonOther ??
+                          'Other administrative reason'),
                     ),
                   ],
                   onChanged: (val) {
@@ -1163,9 +1304,11 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                 TextFormField(
                   key: const Key('remove-policy-clause-field'),
                   controller: policyClauseController,
-                  decoration: const InputDecoration(
-                    labelText: 'Policy Clause (cited to customer)',
-                    hintText: 'e.g. Terms of Service §4.2',
+                  decoration: InputDecoration(
+                    labelText: l10n?.requestsDetailRemovePolicyClauseLabel ??
+                        'Policy Clause (cited to customer)',
+                    hintText: l10n?.requestsDetailRemovePolicyClauseHint ??
+                        'e.g. Terms of Service §4.2',
                     isDense: true,
                   ),
                 ),
@@ -1174,13 +1317,17 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                   key: const Key('remove-reason-text-field'),
                   controller: reasonController,
                   maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Detailed Justification & Notes',
-                    hintText: 'State reason for audit log…',
+                  decoration: InputDecoration(
+                    labelText: l10n?.requestsDetailRemoveJustificationLabel ??
+                        'Detailed Justification & Notes',
+                    hintText: l10n?.requestsDetailRemoveJustificationHint ??
+                        'State reason for audit log…',
                     isDense: true,
                   ),
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Detailed justification is required.' : null,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? (l10n?.requestsDetailRemoveJustificationRequired ??
+                          'Detailed justification is required.')
+                      : null,
                 ),
               ],
             ),
@@ -1189,7 +1336,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n?.cancel ?? 'Cancel'),
           ),
           ElevatedButton(
             key: const Key('confirm-remove-button'),
@@ -1202,7 +1349,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                 Navigator.of(dialogCtx).pop(true);
               }
             },
-            child: const Text('Confirm Removal'),
+            child: Text(l10n?.requestsDetailConfirmRemoval ?? 'Confirm Removal'),
           ),
         ],
       ),
@@ -1219,12 +1366,14 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
             );
         setState(() {
           _actionSuccess = true;
-          _actionFeedback = 'Request successfully removed.';
+          _actionFeedback = l10n?.requestsDetailRemoveSuccess ??
+              'Request successfully removed.';
         });
       } on Object catch (e) {
         setState(() {
           _actionSuccess = false;
-          _actionFeedback = 'Failed to remove request: $e';
+          _actionFeedback = l10n?.requestsDetailRemoveFailed(e.toString()) ??
+              'Failed to remove request: $e';
         });
       }
     }
@@ -1271,6 +1420,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     String message,
     VoidCallback onRetry,
   ) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: EdgeInsets.all(kh.spacing.xxl),
@@ -1291,7 +1441,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
             OutlinedButton(
               key: const Key('request-detail-retry-button'),
               onPressed: onRetry,
-              child: const Text('Retry'),
+              child: Text(l10n?.requestsDetailErrorRetry ?? 'Retry'),
             ),
           ],
         ),

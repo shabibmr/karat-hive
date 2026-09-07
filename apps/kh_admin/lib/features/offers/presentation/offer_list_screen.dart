@@ -8,6 +8,7 @@ import '../../../core/design/theme/kh_theme.dart';
 import '../../../core/design/widgets/kh_data_table.dart';
 import '../../../core/design/widgets/kh_screen_header.dart';
 import '../../../core/design/widgets/kh_status_chip.dart';
+import '../../../l10n/app_localizations.dart';
 import '../controller/offer_list_controller.dart';
 import '../model/offer_enums.dart';
 import '../model/offer_list_filters.dart';
@@ -60,6 +61,7 @@ class _OfferListScreenState extends ConsumerState<OfferListScreen> {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
     final listState = ref.watch(offerListControllerProvider);
     final controller = ref.read(offerListControllerProvider.notifier);
 
@@ -75,10 +77,10 @@ class _OfferListScreenState extends ConsumerState<OfferListScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const KhScreenHeader(
-              eyebrow: 'Marketplace Audit',
-              heading: 'Offers',
-              supportingText:
+            KhScreenHeader(
+              eyebrow: l10n?.offersListEyebrow ?? 'Marketplace Audit',
+              heading: l10n?.offersListHeading ?? 'Offers',
+              supportingText: l10n?.offersListSubtitle ??
                   'Platform-wide vendor offer monitoring and inspection',
             ),
             SizedBox(height: kh.spacing.lg),
@@ -111,9 +113,10 @@ class _OfferListScreenState extends ConsumerState<OfferListScreen> {
                 onRetry: controller.refresh,
               )
             else if (listState.items.isEmpty)
-              const _OfferEmptyView(
-                key: Key('offer-empty-view'),
-                message: 'No offers match the current filter criteria.',
+              _OfferEmptyView(
+                key: const Key('offer-empty-view'),
+                message: l10n?.offersEmptyBody ??
+                    'No offers match the current filter criteria.',
               )
             else ...[
               _OfferTable(
@@ -163,6 +166,7 @@ class _OfferFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Wrap(
       spacing: kh.spacing.sm,
@@ -175,14 +179,14 @@ class _OfferFilterBar extends StatelessWidget {
             key: const Key('offer-filter-state'),
             initialValue: filters.state,
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Offer state',
+            decoration: InputDecoration(
+              labelText: l10n?.offersFilterState ?? 'Offer state',
               isDense: true,
             ),
             items: [
-              const DropdownMenuItem<OfferState?>(
+              DropdownMenuItem<OfferState?>(
                 value: null,
-                child: Text('All States'),
+                child: Text(l10n?.offersFilterAllStates ?? 'All States'),
               ),
               for (final state in OfferState.values)
                 DropdownMenuItem(
@@ -199,14 +203,14 @@ class _OfferFilterBar extends StatelessWidget {
             key: const Key('offer-filter-request-type'),
             initialValue: filters.requestType,
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Request type',
+            decoration: InputDecoration(
+              labelText: l10n?.offersFilterRequestType ?? 'Request type',
               isDense: true,
             ),
             items: [
-              const DropdownMenuItem<RequestType?>(
+              DropdownMenuItem<RequestType?>(
                 value: null,
-                child: Text('All Types'),
+                child: Text(l10n?.offersFilterAllTypes ?? 'All Types'),
               ),
               for (final type in RequestType.values)
                 DropdownMenuItem(
@@ -223,13 +227,14 @@ class _OfferFilterBar extends StatelessWidget {
             key: const Key('offer-filter-search'),
             controller: searchController,
             decoration: InputDecoration(
-              labelText: 'Search',
-              hintText: 'Offer ID, vendor name, request ref…',
+              labelText: l10n?.offersFilterSearch ?? 'Search',
+              hintText: l10n?.offersFilterSearchHint ??
+                  'Offer ID, vendor name, request ref…',
               isDense: true,
               suffixIcon: IconButton(
                 key: const Key('offer-search-button'),
                 icon: const Icon(Icons.search, size: 20.0),
-                tooltip: 'Search offers',
+                tooltip: l10n?.offersFilterSearchTooltip ?? 'Search offers',
                 onPressed: onSearchSubmitted,
               ),
             ),
@@ -272,20 +277,21 @@ class _OfferTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return KhDataTable(
       key: const Key('offer-list-table'),
       minWidth: 1120.0,
-      columns: const [
-        KhTableColumn('Offer Reference/ID', flex: 2),
-        KhTableColumn('Parent Request', flex: 2),
-        KhTableColumn('Vendor Name', flex: 3),
-        KhTableColumn('Offered Price (AED)', flex: 2),
-        KhTableColumn('State', flex: 2),
-        KhTableColumn('Submission Date', flex: 2),
-        KhTableColumn('Expiry Date', flex: 2),
-        KhTableColumn('Outcome', flex: 2),
-        KhTableColumn('Action', flex: 1),
+      columns: [
+        KhTableColumn(l10n?.offersColumnReference ?? 'Offer Reference/ID', flex: 2),
+        KhTableColumn(l10n?.offersColumnParentRequest ?? 'Parent Request', flex: 2),
+        KhTableColumn(l10n?.offersColumnVendor ?? 'Vendor Name', flex: 3),
+        KhTableColumn(l10n?.offersColumnOfferedPrice ?? 'Offered Price (AED)', flex: 2),
+        KhTableColumn(l10n?.offersColumnState ?? 'State', flex: 2),
+        KhTableColumn(l10n?.offersColumnSubmissionDate ?? 'Submission Date', flex: 2),
+        KhTableColumn(l10n?.offersColumnExpiryDate ?? 'Expiry Date', flex: 2),
+        KhTableColumn(l10n?.offersColumnOutcome ?? 'Outcome', flex: 2),
+        KhTableColumn(l10n?.offersColumnAction ?? 'Action', flex: 1),
       ],
       rows: [
         for (final item in items)
@@ -360,12 +366,13 @@ class _OfferTable extends StatelessWidget {
               Text(
                 item.outcome ??
                     (item.state == OfferState.accepted
-                        ? 'Accepted by Customer'
+                        ? (l10n?.offersOutcomeAcceptedByCustomer ??
+                            'Accepted by Customer')
                         : (item.state == OfferState.rejected
-                            ? 'Rejected'
+                            ? (l10n?.offersOutcomeRejected ?? 'Rejected')
                             : (item.state == OfferState.expired
-                                ? 'Expired'
-                                : 'Pending'))),
+                                ? (l10n?.offersOutcomeExpired ?? 'Expired')
+                                : (l10n?.offersOutcomePending ?? 'Pending')))),
                 style: kh.typography.bodySmall.copyWith(
                   color: item.state == OfferState.accepted
                       ? kh.colors.success
@@ -385,7 +392,10 @@ class _OfferTable extends StatelessWidget {
                   minimumSize: const Size(60.0, 30.0),
                 ),
                 onPressed: () => context.go('/offers/${item.id}'),
-                child: const Text('Inspect', style: TextStyle(fontSize: 12.0)),
+                child: Text(
+                  l10n?.offersActionInspect ?? 'Inspect',
+                  style: const TextStyle(fontSize: 12.0),
+                ),
               ),
             ],
           ),
@@ -406,12 +416,18 @@ class _OfferPaginationControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Showing ${listState.items.length} offers${listState.totalCount != null ? ' of ${listState.totalCount}' : ''}',
+          listState.totalCount != null
+              ? (l10n?.offersPaginationShowingOf(
+                      listState.items.length, listState.totalCount!) ??
+                  'Showing ${listState.items.length} offers of ${listState.totalCount}')
+              : (l10n?.offersPaginationShowing(listState.items.length) ??
+                  'Showing ${listState.items.length} offers'),
           style: kh.typography.caption.copyWith(
             color: kh.colors.textMuted,
             fontSize: 11.0,
@@ -422,7 +438,10 @@ class _OfferPaginationControls extends StatelessWidget {
             OutlinedButton.icon(
               key: const Key('offer-page-prev'),
               icon: const Icon(Icons.chevron_left, size: 18.0),
-              label: const Text('Previous', style: TextStyle(fontSize: 12.0)),
+              label: Text(
+                l10n?.offersPaginationPrevious ?? 'Previous',
+                style: const TextStyle(fontSize: 12.0),
+              ),
               onPressed:
                   listState.canGoPrevious ? controller.previousPage : null,
             ),
@@ -438,7 +457,8 @@ class _OfferPaginationControls extends StatelessWidget {
                 border: Border.all(color: kh.colors.borderSubtle),
               ),
               child: Text(
-                'Page ${listState.page}',
+                l10n?.offersPaginationPage(listState.page) ??
+                    'Page ${listState.page}',
                 style: kh.typography.bodySmall.copyWith(
                   fontWeight: FontWeight.w600,
                   fontSize: 12.0,
@@ -449,7 +469,10 @@ class _OfferPaginationControls extends StatelessWidget {
             OutlinedButton.icon(
               key: const Key('offer-page-next'),
               icon: const Icon(Icons.chevron_right, size: 18.0),
-              label: const Text('Next', style: TextStyle(fontSize: 12.0)),
+              label: Text(
+                l10n?.offersPaginationNext ?? 'Next',
+                style: const TextStyle(fontSize: 12.0),
+              ),
               onPressed: listState.canGoNext ? controller.nextPage : null,
             ),
           ],
@@ -470,6 +493,7 @@ class _OfferEmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       width: double.infinity,
@@ -489,7 +513,7 @@ class _OfferEmptyView extends StatelessWidget {
           ),
           SizedBox(height: kh.spacing.md),
           Text(
-            'No offers found',
+            l10n?.offersEmptyTitle ?? 'No offers found',
             style: kh.typography.title.copyWith(
               color: kh.colors.textPrimary,
               fontSize: 16.0,
@@ -523,6 +547,7 @@ class _OfferErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       width: double.infinity,
@@ -542,7 +567,7 @@ class _OfferErrorView extends StatelessWidget {
           ),
           SizedBox(height: kh.spacing.md),
           Text(
-            'Failed to load offers',
+            l10n?.offersErrorTitle ?? 'Failed to load offers',
             style: kh.typography.title.copyWith(
               color: kh.colors.error,
               fontSize: 16.0,
@@ -562,7 +587,10 @@ class _OfferErrorView extends StatelessWidget {
             key: const Key('offer-retry-button'),
             onPressed: onRetry,
             icon: const Icon(Icons.refresh, size: 18.0),
-            label: const Text('Retry', style: TextStyle(fontSize: 13.0)),
+            label: Text(
+              l10n?.offersRetry ?? 'Retry',
+              style: const TextStyle(fontSize: 13.0),
+            ),
           ),
         ],
       ),
