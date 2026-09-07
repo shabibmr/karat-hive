@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'kh_app_bar.dart';
+import 'kh_pull_to_refresh.dart';
+
 class KhScaffold extends StatelessWidget {
   const KhScaffold({
     super.key,
@@ -7,21 +10,27 @@ class KhScaffold extends StatelessWidget {
     required this.body,
     this.actions,
     this.onRefresh,
+    this.lastUpdated,
   });
 
   final String title;
   final Widget body;
   final List<Widget>? actions;
   final Future<void> Function()? onRefresh;
+  final String? lastUpdated;
 
   @override
   Widget build(BuildContext context) {
     final content = SafeArea(child: body);
     return Scaffold(
-      appBar: AppBar(title: Text(title), actions: actions),
+      appBar: KhAppBar(title: title, actions: actions),
       body: onRefresh == null
           ? content
-          : RefreshIndicator(onRefresh: onRefresh!, child: content),
+          : KhPullToRefresh(
+              onRefresh: onRefresh!,
+              lastUpdated: lastUpdated,
+              child: content,
+            ),
     );
   }
 }
