@@ -1,9 +1,12 @@
 export { IdentityModule } from './identity.module';
-export { TokenService, hashToken } from './application/token.service';
+export { TokenService, hashToken, isFirebaseToken } from './application/token.service';
 export type { AccessClaims, IssuedTokens } from './application/token.service';
+export { FirebaseTokenService, FIREBASE_JWKS_URL } from './application/firebase-token.service';
+export type { FirebaseClaims } from './application/firebase-token.service';
 export { SessionQuery } from './application/session.query';
 export type { UserForViewer } from './application/session.query';
 export { IdentityAuthError } from './domain/identity-auth-error';
 export type { IdentityAuthCode } from './domain/identity-auth-error';
 export { ScryptPasswordHasher, PASSWORD_HASHER } from './application/password-hasher';
 export type { PasswordHasher } from './application/password-hasher';
+export { OAuthAccountService } from './application/oauth-account.service';

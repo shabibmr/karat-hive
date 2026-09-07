@@ -15,6 +15,8 @@ This is **not** OpenAPI and **not** Nest. Identity masking is a presenter concer
 
 **T36 status.** The SAM-GAP and Async-Contract §10 columns (`offer.viewed_by_customer_at`, `vendor_profile.verification_message`, `AbuseEntityType` + `VENDOR`/`CUSTOMER`, `expiry_warned_at`, `draft_purge_warned_at`, `vendor_document.reminder_sent_at`, and the matching partial indexes) are already in `prisma/migrations/20260901120000_init`. They remain **`[PROPOSED]`** until Technical Lead sign-off. They are not reverted; a follow-up migration would be noisier than leaving them in the unused init.
 
+**Checkpoint-1 follow-up.** `category.icon VARCHAR(100)` is in `prisma/migrations/20260906120000_category_icon`. Optional; omitted from JSON when null. Regions have no icon.
+
 ---
 
 ## 1. Conventions

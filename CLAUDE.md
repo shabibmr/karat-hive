@@ -2,34 +2,22 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**The repository for Karat Hive**, a request-driven gold marketplace for the UAE.
+**The repository for Karat Hive**, a request-driven gold marketplace for the UAE. Application code includes the Node.js monolith backend (`backend/`, NestJS 11 + Fastify + Prisma + Vitest) and the Flutter Web Admin Portal (`apps/kh_admin/`, Flutter 3.12+). Specification documents and the static HTML prototype (`ui-mock/`) remain companion references.
 
-| Surface | Path | Stack |
-|---|---|---|
-| Backend monolith | `backend/` | NestJS 11 + Fastify + Prisma + Vitest |
-| Mobile app — Customer *or* Vendor by account role | `apps/kh_mobile/karat_hive/` | Flutter, Dart SDK `>=3.9.0 <4.0.0` |
-| Admin Portal | `apps/kh_admin/` | Flutter Web, same SDK constraint |
-| Shared Dart packages | `packages/` | `kh_core`, `kh_domain`, `kh_api`, `kh_design_system`, `kh_l10n`, `kh_ui_domain` |
-
-Melos 8 manages the Dart workspace and its config lives in the root `pubspec.yaml` — there is **no** standalone `melos.yaml`. `apps/kh_admin` is deliberately excluded from that workspace and built standalone. CI is `.github/workflows/backend.yml` and `frontend.yml`. Specification documents and the static HTML prototype (`ui-mock/`) remain companion references.
-
-Much of the work here is still *authoring or revising documents*, and for that, consistency across documents is the correctness criterion — treat it the way you would treat a passing test suite. But there is now substantial code behind the specs, and the two have drifted in places. When a document and the code disagree, **say so** rather than silently trusting either; several documents carry stale status tables while the code has moved on.
+Work here is almost always *authoring or revising documents*. Treat consistency across documents as the primary correctness criterion, the way you would treat a passing test suite elsewhere.
 
 ## Runnable surfaces
 
-Checkpoint-1 vendor onboarding and admin taxonomy are on `main`, including Google Sign-In on the Flutter clients **and** Firebase ID-token acceptance in the Nest `AuthGuard`.
+Checkpoint-1 vendor onboarding and admin taxonomy are on `main`. Google Sign-In is on the Flutter clients; the backend still issues its own JWTs (Firebase ID-token acceptance is a later slice).
 
 ```bash
 cd backend && npm run start:dev                          # API :3000
 cd apps/kh_mobile/karat_hive && flutter run --dart-define-from-file=config/dev.json
 cd apps/kh_admin && flutter run -d chrome --dart-define=KH_API_BASE=http://localhost:3000
 npx --yes serve ui-mock                                  # static 67-screen prototype (HTTP only)
-
-melos bootstrap && melos run analyze && melos run test   # Dart workspace (excludes kh_admin)
-cd backend && npm run build && npm test                  # backend gate
 ```
 
-Sign-in is **Google only** (vendor and admin) for product gates. Clients send a Firebase ID token as `Authorization: Bearer`; the backend verifies it (Google JWKS, `FIREBASE_PROJECT_ID`), finds or creates the user, and still issues its own HS256 access/refresh JWTs on the legacy password/OTP routes. Do not treat password/OTP credentials as a Checkpoint-1 gate.
+Do not treat password/OTP credentials as a Checkpoint-1 gate.
 
 `ui-mock/` is a dependency-free HTML/CSS/JS prototype of all 67 screens. Screen partials load via `fetch`, so it **must be served over HTTP** — opening `index.html` from the filesystem shows a blank shell.
 
@@ -48,14 +36,12 @@ Read in this order when you need to understand a decision. Later documents may n
 | `docs/Architecture-Backend.md`, `docs/Architecture-Frontend.md` | How it gets built. Derived from the SRS; cite it, never restate it |
 | `docs/API-Route-Inventory.md` | Pre-code HTTP catalogue (`[PROPOSED]`). Paths, schemas, errors. Superseded by generated OpenAPI (`NFR-030`) once code exists |
 | `docs/Physical-Data-Model.md` | Pre-code PostgreSQL schema (`[PROPOSED]`). Encoded in `backend/prisma/schema.prisma`. Assumes `AD-BE-05` |
-| `docs/Backend-Implementation-Plan.md` | Backend build order P0–P12 and task list T01–T46. Does not override the SRS |
-| `docs/Backend-Gap-Fix-Plan.md` | P0/P1 review-gap fixes (F01–F17). ⚠️ Its status tables all still say `pending`; **all seventeen are landed in code.** Trust the code |
+| `docs/Backend-Implementation-Plan.md` | Backend build order P0–P12 and task list T01–T44. Does not override the SRS |
+| `docs/Backend-Gap-Fix-Plan.md` | P0/P1 review-gap fixes (F01–F17). Does not override the SRS |
 | `docs/Spec-Document-Sequence.md` | Remaining specs after the API inventory — ordered, no duplicates of the catalogue |
 | `docs/Screen-API-Map.md` | Screen → endpoint coverage check (`[PROPOSED]`). Every screen's load / actions / empty-error state mapped to a route or `error.code`; gap register (`SAM-GAP-nn`) |
+| `docs/checkpoints/checkpoint-customer-mode-tasks.md` | Customer-mode Flutter tick list (`CM-*`). Does not override the SRS |
 | `docs/Async-Contract.md` | Pre-code outbox contract (`[PROPOSED]`). Event payloads, consumers, scheduled jobs, notification dispatch. Expands Architecture-Backend §11; decision prefix `AD-ASYNC-nn` |
-| `docs/checkpoints/checkpoint-1-vendor-onboarding-vertical.md` + `-tasks.md` | **Shipped.** Plan of record + task register for the first Vendor vertical (`VEN-S01`–`S05`, `S16`) |
-| `docs/Vendor-App-Completion-Plan.md` + `Vendor-App-Completion-Tasks.md` | Plan of record + task register for the remaining 16 Vendor screens, check-points CP-2…CP-6. Slices `Backend-Implementation-Plan.md`, does not renumber it |
-| `docs/Admin-Checkpoint-1-Taxonomy-Plan.md` + `Admin-Checkpoint-1-Tasks.md` | Plan of record + task register for the Admin taxonomy vertical |
 | `ui-screens/` | Field-level inventory of the 67 screens, plus `component-widgets.md` (shared `SH-*` widget catalogue) and `Karat_Hive_UI_Design_Context.md` (visual system) |
 | `ui-mock/` | Interactive realisation of `ui-screens/` |
 | `docs/old/` | Superseded versions. Read-only history |
@@ -78,19 +64,8 @@ These appear in every document and are the connective tissue between them. Ident
 | `AD-API-nn` | HTTP catalogue decision | `docs/API-Route-Inventory.md` |
 | `AD-ASYNC-nn` | Async / outbox contract decision | `docs/Async-Contract.md` |
 | `SAM-GAP-nn` | Screen-vs-API coverage gap | `docs/Screen-API-Map.md` |
-| `P0`–`P12` / `T01`–`T46` | Backend build phase / backend task | `docs/Backend-Implementation-Plan.md` |
-| `F01`–`F17` / `D01`–`D04` | Review-gap fix / doc-hygiene item | `docs/Backend-Gap-Fix-Plan.md` |
-| `D-1`, `D-2` | Recorded backend deviations (no outbox consumers; leased drain) | `docs/Backend-Implementation-Plan.md`, closed by `T45` / `T46` |
-| `CP1-*` … `CP6-*` | Vendor check-point task, by track — `A` backend, `B` Flutter, `F` foundations, `I` infra, `V` verification | the checkpoint task registers |
-| `ADM-BE-nnn` / `ADM-FE-nnn` | Admin check-point task | `docs/Admin-Checkpoint-1-Tasks.md` |
-| `CU-nn` / `VE-nn` / `AD-nn` | **Individual** (screen-specific, non-shared) widget — Customer / Vendor / Admin | `ui-screens/component-widgets.md` §2 |
 
 **Never cite an ID without verifying it exists and means what you think.** IDs are close together numerically and easy to transpose — `FR-CUS-006` is a Request type, `FR-CUS-007` is image upload.
-
-Two collisions to watch specifically:
-
-- **`AD-nn` is an Admin widget; `AD-BE-nn` / `AD-FE-nn` / `AD-API-nn` / `AD-ASYNC-nn` are architecture decisions.** `AD-05` (verification queue UI) and `AD-BE-05` (Prisma + raw SQL) are unrelated. Never shorten a decision ID.
-- **`T01`–`T46` (backend tasks) vs `CP2-A01`-style check-point tasks** address the same work at different granularity. A check-point task register *slices* a `T`-ID; it never renumbers or supersedes it. Tick a `T`-ID only for the role path actually delivered.
 
 ### Status tags
 
@@ -129,8 +104,6 @@ Do not silently resolve these by inference; they are recorded as open on purpose
 
 | Item | Blocks |
 |---|---|
-| **Offer validity option set** — `FR-VEN-013` says 12/24/48 h; the SRS §6 entity dictionary says 24/48/72/168 (`AD-API-07`, inventory §23) | `VEN-S09`/`VEN-S10`, i.e. the whole Offer vertical. Clients must read `platform-config.offerValidityHours` and never hard-code the set |
-| **`T36` schema deltas** — `SAM-GAP` + `Async-Contract` §10 columns and four partial indexes, still `[PROPOSED]` pending Technical Lead sign-off | `T41` offer-expiry warning, `T44` document expiry, and the initial migration being frozen |
 | **Yahoo Finance redistribution terms** | Displaying reference gold rates to end users |
 | **Admin data grid — build or buy** (`AD-FE-12`) | 14 Admin list screens |
 | **Object-storage data residency** (`NFR-020`) — Cloudflare R2 has no UAE-region guarantee | Production storage of KYC personal data; swappable behind the S3 adapter, so non-blocking |

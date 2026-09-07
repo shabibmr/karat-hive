@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../platform/db/prisma.module';
-import { SharedModule } from '../../shared/shared.module';
-import { RequestsService } from './application/requests.service';
-import { DevRequestsController } from './controller/dev-requests.controller';
-import { RequestsController } from './controller/requests.controller';
-import { RequestsRepository } from './repository/requests.repository';
+import { AuditModule } from '../audit';
+import { MediaModule } from '../media';
+import { TaxonomyModule } from '../taxonomy';
+import { RequestService } from './application/request.service';
+import { RequestController } from './controller/request.controller';
+import { RequestRepository } from './repository/request.repository';
 
 @Module({
-  imports: [PrismaModule, SharedModule],
-  controllers: [RequestsController, DevRequestsController],
-  providers: [RequestsRepository, RequestsService],
-  exports: [RequestsService, RequestsRepository],
+  imports: [AuditModule, MediaModule, TaxonomyModule],
+  controllers: [RequestController],
+  providers: [RequestRepository, RequestService],
+  exports: [RequestRepository, RequestService],
 })
 export class RequestsModule {}

@@ -1,94 +1,145 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Prisma, RequestType, SubscriptionState, type VendorTypeSubscription } from '@prisma/client';
-import { Clock } from '../../../shared/clock';
+import type { VendorProfile, VendorTypeSubscription } from '@prisma/client';
+import type { PrismaService } from '../../../platform/db/prisma.service';
+import type { AuditWriter } from '../../audit';
 import { SubscriptionService } from './subscription.service';
-import type { SubscriptionRepository } from '../repository/subscription.repository';
+import { SubscriptionRepository } from '../repository/subscription.repository';
 
 describe('SubscriptionService', () => {
-  const fakeRepo = {
-    listByVendor: vi.fn(),
-    findActiveByVendorAndType: vi.fn(),
-    upsert: vi.fn(),
+  const mockRepo = {
+    findVendorProfileByUserId: vi.fn(),
+    findVendorProfileById: vi.fn(),
+    listSubscriptionsForVendor: vi.fn(),
+    findActiveOrGraceByVendorAndType: vi.fn(),
+    createSubscription: vi.fn(),
+    updateSubscription: vi.fn(),
+    getVendorPerformance: vi.fn(),
   } as unknown as SubscriptionRepository;
 
-  const clock = new Clock();
-  const service = new SubscriptionService(fakeRepo, clock);
+  const mockPrisma = {
+    $transaction: vi.fn().mockImplementation((cb) => cb(mockPrisma)),
+    outboxEvent: {
+      create: vi.fn().mockResolvedValue({ id: 'outbox-1' }),
+    },
+  } as unknown as PrismaService;
 
-  it('returns four type entitlements with default NONE state when vendor has no rows', async () => {
-    vi.mocked(fakeRepo.listByVendor).mockResolvedValue([]);
+  const mockAudit = {
+    append: vi.fn().mockResolvedValue(undefined),
+  } as unknown as AuditWriter;
 
-    const result = await service.getSubscriptions('vendor-1');
+  const service = new SubscriptionService(mockRepo, mockPrisma, mockAudit);
 
-    expect(result).toHaveLength(4);
-    const types = result.map((r) => r.requestType);
-    expect(types).toContain(RequestType.FIND_ORNAMENT);
-    expect(types).toContain(RequestType.SELL_OLD_GOLD);
-    expect(types).toContain(RequestType.GOLD_COIN);
-    expect(types).toContain(RequestType.GOLD_BULLION);
-
-    for (const sub of result) {
-      expect(sub.state).toBe('NONE');
-      expect(sub.periodStart).toBeNull();
-      expect(sub.periodEnd).toBeNull();
-      expect(sub.priceAed).toBeNull();
-    }
+  it('rejects non-vendor for getMySubscriptions', async () => {
+    await expect(
+      service.getMySubscriptions({
+        userId: 'cust-1',
+        role: 'CUSTOMER',
+        accountState: 'ACTIVE',
+      }),
+    ).rejects.toMatchObject({
+      errorCode: 'FORBIDDEN',
+      status: 403,
+    });
   });
 
-  it('correctly maps ACTIVE subscription when within period', async () => {
-    const now = new Date();
-    const periodStart = new Date(now.getTime() - 24 * 3600 * 1000);
-    const periodEnd = new Date(now.getTime() + 30 * 24 * 3600 * 1000);
+  it('returns empty array when vendor has no subscriptions', async () => {
+    vi.mocked(mockRepo.findVendorProfileByUserId).mockResolvedValueOnce({
+      id: 'vendor-prof-1',
+    } as unknown as VendorProfile);
+    vi.mocked(mockRepo.listSubscriptionsForVendor).mockResolvedValueOnce([]);
 
-    const activeRow: VendorTypeSubscription = {
+    const result = await service.getMySubscriptions({
+      userId: 'user-1',
+      role: 'VENDOR',
+      accountState: 'ACTIVE',
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it('grants subscription by admin and emits outbox + audit', async () => {
+    vi.mocked(mockRepo.findVendorProfileById).mockResolvedValueOnce({
+      id: 'vendor-prof-1',
+    } as unknown as VendorProfile);
+    vi.mocked(mockRepo.createSubscription).mockResolvedValueOnce({
       id: 'sub-1',
-      vendorProfileId: 'vendor-1',
-      requestType: RequestType.FIND_ORNAMENT,
-      state: SubscriptionState.ACTIVE,
-      periodStart,
-      periodEnd,
-      priceAed: new Prisma.Decimal('150.00'),
+      vendorProfileId: 'vendor-prof-1',
+      requestType: 'FIND_ORNAMENT',
+      state: 'ACTIVE',
+      periodStart: new Date('2026-01-01T00:00:00Z'),
+      periodEnd: new Date('2026-02-01T00:00:00Z'),
+      priceAed: 500,
+      paymentReference: 'INV-123',
       graceEndsAt: null,
-      paymentReference: 'PAY-123',
-      createdAt: now,
-      updatedAt: now,
-    };
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as unknown as VendorTypeSubscription);
 
-    vi.mocked(fakeRepo.listByVendor).mockResolvedValue([activeRow]);
+    const result = await service.grantSubscriptionByAdmin(
+      'vendor-prof-1',
+      {
+        requestType: 'FIND_ORNAMENT',
+        periodStart: new Date('2026-01-01T00:00:00Z'),
+        periodEnd: new Date('2026-02-01T00:00:00Z'),
+        priceAed: '500.00',
+        paymentReference: 'INV-123',
+      },
+      'admin-1',
+    );
 
-    const result = await service.getSubscriptions('vendor-1');
-    const ornament = result.find((r) => r.requestType === RequestType.FIND_ORNAMENT);
-
-    expect(ornament).toBeDefined();
-    expect(ornament?.state).toBe('ACTIVE');
-    expect(ornament?.priceAed).toBe('150.00');
-    expect(ornament?.paymentReference).toBe('PAY-123');
+    expect(result.id).toBe('sub-1');
+    expect(result.state).toBe('ACTIVE');
+    expect(mockPrisma.outboxEvent.create).toHaveBeenCalled();
+    expect(mockAudit.append).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: 'VENDOR_SUBSCRIPTION_GRANTED',
+      }),
+    );
   });
 
-  it('evaluates GRACE state when past periodEnd but within grace period', async () => {
-    const now = new Date();
-    const periodStart = new Date(now.getTime() - 40 * 24 * 3600 * 1000);
-    const periodEnd = new Date(now.getTime() - 2 * 24 * 3600 * 1000);
-    const graceEndsAt = new Date(now.getTime() + 5 * 24 * 3600 * 1000);
+  it('patches subscription by admin and emits outbox + audit', async () => {
+    vi.mocked(mockRepo.findActiveOrGraceByVendorAndType).mockResolvedValueOnce({
+      id: 'sub-1',
+      vendorProfileId: 'vendor-prof-1',
+      requestType: 'FIND_ORNAMENT',
+      state: 'ACTIVE',
+      periodStart: new Date('2026-01-01T00:00:00Z'),
+      periodEnd: new Date('2026-02-01T00:00:00Z'),
+      priceAed: 500,
+      graceEndsAt: null,
+    } as unknown as VendorTypeSubscription);
 
-    const graceRow: VendorTypeSubscription = {
-      id: 'sub-2',
-      vendorProfileId: 'vendor-1',
-      requestType: RequestType.GOLD_COIN,
-      state: SubscriptionState.ACTIVE,
-      periodStart,
-      periodEnd,
-      priceAed: new Prisma.Decimal('200.00'),
-      graceEndsAt,
-      paymentReference: 'PAY-GRACE',
-      createdAt: now,
-      updatedAt: now,
-    };
+    vi.mocked(mockRepo.updateSubscription).mockResolvedValueOnce({
+      id: 'sub-1',
+      vendorProfileId: 'vendor-prof-1',
+      requestType: 'FIND_ORNAMENT',
+      state: 'CANCELLED',
+      periodStart: new Date('2026-01-01T00:00:00Z'),
+      periodEnd: new Date('2026-02-01T00:00:00Z'),
+      priceAed: 500,
+      graceEndsAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as unknown as VendorTypeSubscription);
 
-    vi.mocked(fakeRepo.listByVendor).mockResolvedValue([graceRow]);
+    const result = await service.patchSubscriptionByAdmin(
+      'vendor-prof-1',
+      'FIND_ORNAMENT',
+      {
+        state: 'CANCELLED',
+        reasonText: 'Vendor requested cancellation',
+      },
+      'admin-1',
+    );
 
-    const result = await service.getSubscriptions('vendor-1');
-    const coin = result.find((r) => r.requestType === RequestType.GOLD_COIN);
-
-    expect(coin?.state).toBe('GRACE');
+    expect(result.state).toBe('CANCELLED');
+    expect(mockPrisma.outboxEvent.create).toHaveBeenCalled();
+    expect(mockAudit.append).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: 'VENDOR_SUBSCRIPTION_PATCHED',
+      }),
+    );
   });
 });

@@ -6,4 +6,4 @@ Flutter Web Admin Portal (`pubspec.yaml` name: `kh_admin`). Checkpoint-1 ships A
 flutter run -d chrome --dart-define=KH_API_BASE=http://localhost:3000
 ```
 
-The backend API is the NestJS monolith in `backend/` (`npm run start:dev` on port 3000). Sign-in is Google Sign-In; the client sends a Firebase ID token as `Authorization: Bearer`, which `AuthGuard` verifies. Password credentials are not a Checkpoint-1 gate. Seeded Admin users must match the Google account email (Firebase auto-provision creates `VENDOR` only).
+The backend API is the NestJS monolith in `backend/` (`npm run start:dev` on port 3000). Sign-in is Google Sign-In; password credentials are not a Checkpoint-1 gate.

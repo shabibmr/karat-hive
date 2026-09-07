@@ -5,7 +5,7 @@ import { AdminOnly } from '../../../edge/auth/admin-only.decorator';
 import { Viewer } from '../../../edge/auth/viewer.decorator';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
 import { clientInfoOf } from '../../../edge/client-ip';
-import { ZodValidationPipe, zodBody } from '../../../edge/validation/zod-validation.pipe';
+import { zodBody } from '../../../edge/validation/zod-validation.pipe';
 import { TaxonomyService } from '../application/taxonomy.service';
 import type { CategorySummary, RegionSummary, TaxonomyNode } from '../presenter/taxonomy.presenter';
 
@@ -51,13 +51,6 @@ const updateRegionSchema = z
     message: 'At least one field must be provided for update.',
   });
 
-/**
- * Path ids are validated before they reach Prisma: an unparsable uuid otherwise
- * surfaces as a Prisma P2023 and is rendered as 500 INTERNAL rather than a
- * clean 422 VALIDATION_FAILED.
- */
-const taxonomyIdParam = new ZodValidationPipe(z.string().uuid());
-
 @Controller('v1/admin')
 @AdminOnly()
 export class AdminTaxonomyController {
@@ -81,7 +74,7 @@ export class AdminTaxonomyController {
 
   @Patch('categories/:id')
   updateCategory(
-    @Param('id', taxonomyIdParam) id: string,
+    @Param('id') id: string,
     @Viewer() viewer: ViewerContext,
     @Req() request: FastifyRequest,
     @Body(zodBody(updateCategorySchema)) body: z.infer<typeof updateCategorySchema>,
@@ -92,7 +85,7 @@ export class AdminTaxonomyController {
   @Post('categories/:id/deactivate')
   @HttpCode(200)
   deactivateCategory(
-    @Param('id', taxonomyIdParam) id: string,
+    @Param('id') id: string,
     @Viewer() viewer: ViewerContext,
     @Req() request: FastifyRequest,
   ): Promise<CategorySummary> {
@@ -117,7 +110,7 @@ export class AdminTaxonomyController {
 
   @Patch('regions/:id')
   updateRegion(
-    @Param('id', taxonomyIdParam) id: string,
+    @Param('id') id: string,
     @Viewer() viewer: ViewerContext,
     @Req() request: FastifyRequest,
     @Body(zodBody(updateRegionSchema)) body: z.infer<typeof updateRegionSchema>,
@@ -128,7 +121,7 @@ export class AdminTaxonomyController {
   @Post('regions/:id/deactivate')
   @HttpCode(200)
   deactivateRegion(
-    @Param('id', taxonomyIdParam) id: string,
+    @Param('id') id: string,
     @Viewer() viewer: ViewerContext,
     @Req() request: FastifyRequest,
   ): Promise<RegionSummary> {

@@ -5,7 +5,6 @@ export type ScheduledJob = {
   name: string;
   intervalMs: number;
   leaseMs?: number;
-  unleased?: boolean;
   run: () => Promise<void>;
 };
 
@@ -45,19 +44,6 @@ export class SchedulerService implements OnModuleDestroy {
   private async runOnce(job: ScheduledJob, owner: string): Promise<void> {
     if (this.inFlight.has(job.name)) return;
     this.inFlight.add(job.name);
-
-    if (job.unleased) {
-      try {
-        await job.run();
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
-        this.logger.error(`Job ${job.name} failed: ${message}`);
-      } finally {
-        this.inFlight.delete(job.name);
-      }
-      return;
-    }
-
     const leaseMs = job.leaseMs ?? Math.max(job.intervalMs * 2, 15_000);
     const acquired = await this.locks.tryAcquire(job.name, owner, leaseMs);
     if (!acquired) {

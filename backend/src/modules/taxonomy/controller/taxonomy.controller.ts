@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { Public } from '../../../edge/auth/public.decorator';
+import { PlatformConfig, PlatformConfigQuery } from '../application/platform-config.query';
 import { TaxonomyQuery } from '../application/taxonomy.query';
 import type { TaxonomyNode } from '../presenter/taxonomy.presenter';
 
@@ -9,7 +10,10 @@ import type { TaxonomyNode } from '../presenter/taxonomy.presenter';
  */
 @Controller('v1')
 export class TaxonomyController {
-  constructor(private readonly taxonomy: TaxonomyQuery) {}
+  constructor(
+    private readonly taxonomy: TaxonomyQuery,
+    private readonly platformConfig: PlatformConfigQuery,
+  ) {}
 
   @Public()
   @Get('categories')
@@ -21,5 +25,11 @@ export class TaxonomyController {
   @Get('regions')
   regions(): Promise<TaxonomyNode[]> {
     return this.taxonomy.regions();
+  }
+
+  @Public()
+  @Get('platform-config')
+  getPlatformConfig(): Promise<PlatformConfig> {
+    return this.platformConfig.getPlatformConfig();
   }
 }

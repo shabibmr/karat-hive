@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/api/api_client.dart' show khApiBase;
 import '../../../core/api/api_exception.dart';
 import '../../../core/design/theme/kh_theme.dart';
 import '../../../core/design/widgets/kh_status_chip.dart';
@@ -47,6 +48,19 @@ class _VerificationDetailPaneState
     };
   }
 
+  /// origin/main's document-url endpoint returns a RELATIVE path
+  /// (`/v1/media/<key>`), not a signed absolute URL. Prefix the API base so the
+  /// browser can resolve it. NOTE: `/v1/media/<key>` is an authenticated route
+  /// and opening it in a new tab cannot attach the bearer token — a signed /
+  /// public media URL from the backend is still needed for this to actually
+  /// render. Until then this at least points at the right origin.
+  String _resolveDocumentUrl(String url) {
+    if (url.startsWith('/')) {
+      return '${khApiBase.replaceAll(RegExp(r'/+$'), '')}$url';
+    }
+    return url;
+  }
+
   Future<void> _viewDocument(VendorDocumentDetail doc) async {
     if (widget.vendorId == null) return;
     setState(() {
@@ -62,12 +76,13 @@ class _VerificationDetailPaneState
       );
 
       if (mounted) {
+        final resolvedUrl = _resolveDocumentUrl(res.url);
         setState(() {
           _loadingDocId = null;
           _openedDocId = doc.id;
-          _openedDocUrl = res.url;
+          _openedDocUrl = resolvedUrl;
         });
-        openUrlInNewTab(res.url);
+        openUrlInNewTab(resolvedUrl);
       }
     } catch (e) {
       if (mounted) {

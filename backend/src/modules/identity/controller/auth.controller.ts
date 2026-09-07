@@ -1,13 +1,17 @@
-import { Body, Controller, HttpCode, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Req } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { Public } from '../../../edge/auth/public.decorator';
+import { Viewer } from '../../../edge/auth/viewer.decorator';
+import type { ViewerContext } from '../../../edge/auth/viewer-context';
+import { ApiException } from '../../../edge/errors/api-exception';
+import { ErrorCode } from '../../../edge/errors/error-codes';
 import { RevealsIdentity } from '../../../edge/masking/reveals-identity.decorator';
 import { zodBody } from '../../../edge/validation/zod-validation.pipe';
-import { LoginService } from '../application/login.service';
+import { OAuthAccountService } from '../application/oauth-account.service';
 import { OtpService } from '../application/otp.service';
 import { RegistrationService } from '../application/registration.service';
-import { SessionService } from '../application/session.service';
+import { SessionService, type SessionFamilyView } from '../application/session.service';
 import { clientInfoOf } from './client-info';
 import type { SessionBundle } from '../presenter/session.presenter';
 
@@ -15,7 +19,8 @@ const otpRequestSchema = z.object({
   mobileNumber: z
     .string()
     .regex(/^\+[1-9]\d{6,14}$/, 'Enter a valid mobile number in E.164 format.'),
-  purpose: z.enum(['REGISTER_VENDOR', 'LOGIN', 'CHANGE_MOBILE']),
+  // LOGIN removed (adr/0010 / G2-A15). OTP proves a number only.
+  purpose: z.enum(['REGISTER_CUSTOMER', 'REGISTER_VENDOR', 'CHANGE_MOBILE']),
 });
 
 const otpVerifySchema = z.object({
@@ -23,26 +28,41 @@ const otpVerifySchema = z.object({
   code: z.string().regex(/^\d{4,8}$/),
 });
 
-const registerVendorSchema = z.object({
-  challengeId: z.string().uuid(),
-  legalBusinessName: z.string().min(1).max(200),
-  tradingName: z.string().min(1).max(200),
-  tradeLicenceNumber: z.string().min(1).max(50),
-  licenceExpiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  businessAddress: z.string().min(1).max(500),
-  contactPersonName: z.string().min(1).max(100),
-  businessEmail: z.string().email().max(255),
-  regionId: z.string().uuid(),
-  categoryIds: z.array(z.string().uuid()).min(1),
-  servedRegionIds: z.array(z.string().uuid()).min(1),
-  termsVersion: z.string().min(1).max(32),
-  privacyVersion: z.string().min(1).max(32),
-});
+const registerCustomerSchema = z
+  .object({
+    challengeId: z.string().uuid().optional(),
+    firebaseToken: z.string().min(1).optional(),
+    displayName: z.string().min(1).max(100),
+    email: z.string().email().max(255).optional(),
+    preferredLanguage: z.enum(['en', 'ar']).optional(),
+    defaultRegionId: z.string().uuid().optional(),
+    termsVersion: z.string().min(1).max(32),
+    privacyVersion: z.string().min(1).max(32),
+  })
+  .refine((v) => v.challengeId !== undefined || v.firebaseToken !== undefined, {
+    message: 'Either challengeId or firebaseToken is required.',
+  });
 
-const loginPasswordSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1).max(200),
-});
+const registerVendorSchema = z
+  .object({
+    challengeId: z.string().uuid().optional(),
+    firebaseToken: z.string().min(1).optional(),
+    legalBusinessName: z.string().min(1).max(200),
+    tradingName: z.string().min(1).max(200),
+    tradeLicenceNumber: z.string().min(1).max(50),
+    licenceExpiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    businessAddress: z.string().min(1).max(500),
+    contactPersonName: z.string().min(1).max(100),
+    businessEmail: z.string().email().max(255),
+    regionId: z.string().uuid(),
+    categoryIds: z.array(z.string().uuid()).min(1),
+    servedRegionIds: z.array(z.string().uuid()).min(1),
+    termsVersion: z.string().min(1).max(32),
+    privacyVersion: z.string().min(1).max(32),
+  })
+  .refine((v) => v.challengeId !== undefined || v.firebaseToken !== undefined, {
+    message: 'Either challengeId or firebaseToken is required.',
+  });
 
 const refreshSchema = z.object({ refreshToken: z.string().min(1) });
 const logoutSchema = z.object({
@@ -50,14 +70,48 @@ const logoutSchema = z.object({
   allDevices: z.boolean().optional(),
 });
 
+const firebaseSessionSchema = z
+  .object({
+    idToken: z.string().min(1).optional(),
+    token: z.string().min(1).optional(),
+    firebaseToken: z.string().min(1).optional(),
+  })
+  .refine((v) => Boolean(v.idToken || v.token || v.firebaseToken), {
+    message: 'idToken, token, or firebaseToken is required.',
+  });
+
 @Controller('v1/auth')
 export class AuthController {
   constructor(
     private readonly otp: OtpService,
     private readonly registration: RegistrationService,
-    private readonly login: LoginService,
     private readonly session: SessionService,
+    private readonly oauthAccount: OAuthAccountService,
   ) {}
+
+  @Public()
+  @RevealsIdentity()
+  @Post('firebase/session')
+  @HttpCode(200)
+  createFirebaseSession(
+    @Req() request: FastifyRequest,
+    @Body(zodBody(firebaseSessionSchema)) body: z.infer<typeof firebaseSessionSchema>,
+  ): Promise<SessionBundle> {
+    const token = (body.idToken || body.token || body.firebaseToken)!;
+    return this.oauthAccount.createSessionFromFirebase(token, clientInfoOf(request));
+  }
+
+  @Public()
+  @RevealsIdentity()
+  @Post('google/session')
+  @HttpCode(200)
+  createGoogleSession(
+    @Req() request: FastifyRequest,
+    @Body(zodBody(firebaseSessionSchema)) body: z.infer<typeof firebaseSessionSchema>,
+  ): Promise<SessionBundle> {
+    const token = (body.idToken || body.token || body.firebaseToken)!;
+    return this.oauthAccount.createSessionFromFirebase(token, clientInfoOf(request));
+  }
 
   @Public()
   @Post('otp/request')
@@ -78,14 +132,21 @@ export class AuthController {
   @Post('otp/verify')
   @HttpCode(200)
   async otpVerify(
-    @Req() request: FastifyRequest,
     @Body(zodBody(otpVerifySchema)) body: z.infer<typeof otpVerifySchema>,
-  ): Promise<SessionBundle | { challengeId: string; mobileVerified: true }> {
+  ): Promise<{ challengeId: string; mobileVerified: true }> {
     const challenge = await this.otp.verifyChallenge(body.challengeId, body.code);
-    if (challenge.purpose === 'LOGIN') {
-      return this.login.loginWithVerifiedOtp(challenge, clientInfoOf(request));
-    }
     return { challengeId: challenge.id, mobileVerified: true };
+  }
+
+  @Public()
+  @RevealsIdentity()
+  @Post('register/customer')
+  @HttpCode(201)
+  registerCustomer(
+    @Req() request: FastifyRequest,
+    @Body(zodBody(registerCustomerSchema)) body: z.infer<typeof registerCustomerSchema>,
+  ): Promise<SessionBundle> {
+    return this.registration.registerCustomer(body, clientInfoOf(request));
   }
 
   @Public()
@@ -100,14 +161,10 @@ export class AuthController {
   }
 
   @Public()
-  @RevealsIdentity()
-  @Post('login/password')
-  @HttpCode(200)
-  loginPassword(
-    @Req() request: FastifyRequest,
-    @Body(zodBody(loginPasswordSchema)) body: z.infer<typeof loginPasswordSchema>,
-  ): Promise<SessionBundle> {
-    return this.login.loginWithPassword(body.email, body.password, clientInfoOf(request));
+  @Post('register/admin')
+  @HttpCode(404)
+  registerAdmin(): never {
+    throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.ADMIN_SELF_REGISTRATION_FORBIDDEN);
   }
 
   @Public()
@@ -126,5 +183,23 @@ export class AuthController {
   @HttpCode(204)
   async logout(@Body(zodBody(logoutSchema)) body: z.infer<typeof logoutSchema>): Promise<void> {
     await this.session.logout(body.refreshToken, body.allDevices ?? false);
+  }
+
+  @Get('sessions')
+  @RevealsIdentity()
+  listSessions(@Viewer() viewer: ViewerContext): Promise<SessionFamilyView[]> {
+    return this.session.listSessions(viewer.userId);
+  }
+
+  @Delete('sessions/:id')
+  @HttpCode(204)
+  async revokeSession(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') familyId: string,
+  ): Promise<void> {
+    if (!z.string().uuid().safeParse(familyId).success) {
+      throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+    }
+    await this.session.revokeSession(viewer.userId, familyId);
   }
 }

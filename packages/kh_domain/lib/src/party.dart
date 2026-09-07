@@ -1,17 +1,12 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+/// Masked vs revealed parties — distinct types so pre-acceptance UI cannot
+/// read identity (AD-FE-07, BR-006, NFR-013).
+library;
 
-part 'party.freezed.dart';
-part 'party.g.dart';
-
-/// User/Party role enumeration matching AD-FE-07 and backend conventions.
 enum UserRole {
   customer,
   vendor,
   unknown;
 
-  /// Parses a string wire value (e.g. 'CUSTOMER', 'VENDOR') into a [UserRole].
-  ///
-  /// Falls back to [UserRole.unknown] on unrecognised or null inputs (NFR-027).
   static UserRole parse(String? value) {
     if (value == null) return UserRole.unknown;
     return switch (value.toUpperCase().trim()) {
@@ -21,16 +16,133 @@ enum UserRole {
     };
   }
 
-  /// The uppercase wire representation sent to and from the API.
   String get wireName => switch (this) {
         UserRole.customer => 'CUSTOMER',
         UserRole.vendor => 'VENDOR',
         UserRole.unknown => 'UNKNOWN',
       };
+
+  String get wire => wireName;
 }
 
-/// Alias for [UserRole] matching architecture docs.
 typedef PartyRole = UserRole;
+
+enum AccountState {
+  active,
+  suspended,
+  deactivated,
+  unknown;
+
+  static AccountState parse(String? raw) => switch (raw) {
+        'ACTIVE' => active,
+        'SUSPENDED' => suspended,
+        'DEACTIVATED' => deactivated,
+        _ => unknown,
+      };
+
+  String get wire => switch (this) {
+        active => 'ACTIVE',
+        suspended => 'SUSPENDED',
+        deactivated => 'DEACTIVATED',
+        unknown => 'UNKNOWN',
+      };
+}
+
+class RegionSummary {
+  const RegionSummary({
+    required this.id,
+    required this.nameEn,
+    required this.nameAr,
+    this.parentId,
+    this.isActive = true,
+    this.displayOrder = 0,
+  });
+
+  const RegionSummary.named(String name)
+      : id = name,
+        nameEn = name,
+        nameAr = name,
+        parentId = null,
+        isActive = true,
+        displayOrder = 0;
+
+  final String id;
+  final String nameEn;
+  final String nameAr;
+  final String? parentId;
+  final bool isActive;
+  final int displayOrder;
+
+  String name(String locale) => locale == 'ar' ? nameAr : nameEn;
+
+  bool get isNotEmpty => id.isNotEmpty || nameEn.isNotEmpty;
+
+  static RegionSummary fromJson(Map<String, dynamic> j) => RegionSummary(
+        id: j['id'] as String? ?? '',
+        nameEn: j['nameEn'] as String? ?? '',
+        nameAr: j['nameAr'] as String? ?? '',
+        parentId: j['parentId'] as String?,
+        isActive: j['isActive'] as bool? ?? true,
+        displayOrder: j['displayOrder'] as int? ?? 0,
+      );
+
+  static RegionSummary? tryParse(Object? raw) {
+    if (raw is RegionSummary) return raw;
+    if (raw is String) return RegionSummary.named(raw);
+    if (raw is Map<String, dynamic>) return RegionSummary.fromJson(raw);
+    if (raw is Map) {
+      return RegionSummary.fromJson(Map<String, dynamic>.from(raw));
+    }
+    return null;
+  }
+
+  @override
+  String toString() => nameEn;
+}
+
+class CategorySummary {
+  const CategorySummary({
+    required this.id,
+    required this.nameEn,
+    required this.nameAr,
+    this.parentId,
+    this.isActive = true,
+    this.displayOrder = 0,
+    this.icon,
+  });
+
+  final String id;
+  final String nameEn;
+  final String nameAr;
+  final String? parentId;
+  final bool isActive;
+  final int displayOrder;
+  final String? icon;
+
+  String name(String locale) => locale == 'ar' ? nameAr : nameEn;
+
+  static CategorySummary fromJson(Map<String, dynamic> j) => CategorySummary(
+        id: j['id'] as String? ?? '',
+        nameEn: j['nameEn'] as String? ?? '',
+        nameAr: j['nameAr'] as String? ?? '',
+        parentId: j['parentId'] as String?,
+        isActive: j['isActive'] as bool? ?? true,
+        displayOrder: j['displayOrder'] as int? ?? 0,
+        icon: j['icon'] as String?,
+      );
+
+  static CategorySummary? tryParse(Object? raw) {
+    if (raw is CategorySummary) return raw;
+    if (raw is Map<String, dynamic>) return CategorySummary.fromJson(raw);
+    if (raw is Map) {
+      return CategorySummary.fromJson(Map<String, dynamic>.from(raw));
+    }
+    return null;
+  }
+
+  @override
+  String toString() => nameEn;
+}
 
 /// Rating summary model carrying average score and review counts (SH-ID-03).
 class RatingSummary {
@@ -51,6 +163,9 @@ class RatingSummary {
   final Map<String, int> distribution;
   final bool limitedHistory;
 
+  String get averageString => average.toStringAsFixed(1);
+  double get averageScore => average;
+
   static RatingSummary? fromJson(dynamic json) {
     if (json == null) return null;
     if (json is RatingSummary) return json;
@@ -61,20 +176,21 @@ class RatingSummary {
       final parsed = double.tryParse(json);
       return parsed != null ? RatingSummary.score(parsed, 1) : null;
     }
-    if (json is Map<String, dynamic>) {
-      final avgRaw = json['average'];
+    if (json is Map) {
+      final j = Map<String, dynamic>.from(json);
+      final avgRaw = j['average'];
       final avg = avgRaw is num
           ? avgRaw.toDouble()
           : double.tryParse(avgRaw?.toString() ?? '') ?? 0.0;
-      final count = (json['count'] as num?)?.toInt() ?? 0;
-      final distRaw = json['distribution'] as Map?;
+      final count = (j['count'] as num?)?.toInt() ?? 0;
+      final distRaw = j['distribution'] as Map?;
       final dist = <String, int>{};
       if (distRaw != null) {
         for (final entry in distRaw.entries) {
           dist[entry.key.toString()] = (entry.value as num?)?.toInt() ?? 0;
         }
       }
-      final limited = json['limitedHistory'] as bool? ?? (count < 3);
+      final limited = j['limitedHistory'] as bool? ?? (count < 3);
       return RatingSummary(
         average: avg,
         count: count,
@@ -84,6 +200,8 @@ class RatingSummary {
     }
     return null;
   }
+
+  static RatingSummary? tryParse(Object? raw) => fromJson(raw);
 
   Map<String, dynamic> toJson() => {
         'average': average.toStringAsFixed(1),
@@ -109,22 +227,62 @@ class RatingSummary {
       'RatingSummary(average: $average, count: $count, limitedHistory: $limitedHistory)';
 }
 
-class _UserRoleConverter implements JsonConverter<UserRole, String?> {
-  const _UserRoleConverter();
+/// Normalised E.164; `waMeDigits` is digits-only for `wa.me` (Architecture-Frontend §10.3).
+class PhoneNumber {
+  const PhoneNumber(this.e164);
+
+  final String e164;
+
+  String get waMeDigits => e164.replaceAll(RegExp(r'\D'), '');
+
+  static PhoneNumber parse(String raw) {
+    var digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.startsWith('00')) {
+      digits = digits.substring(2);
+    }
+    return PhoneNumber('+$digits');
+  }
 
   @override
-  UserRole fromJson(String? json) => UserRole.parse(json);
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is PhoneNumber) return e164 == other.e164;
+    if (other is String) return e164 == other || waMeDigits == other;
+    return false;
+  }
 
   @override
-  String toJson(UserRole object) => object.wireName;
+  int get hashCode => e164.hashCode;
+
+  @override
+  String toString() => e164;
 }
 
-RatingSummary? _ratingSummaryFromJson(Object? json) =>
-    RatingSummary.fromJson(json);
+class BusinessDetails {
+  const BusinessDetails({
+    required this.tradingName,
+    required this.legalBusinessName,
+    this.contactPersonName,
+    this.businessEmail,
+    this.businessAddress,
+    this.tradeLicenceNumber,
+  });
+
+  final String tradingName;
+  final String legalBusinessName;
+  final String? contactPersonName;
+  final String? businessEmail;
+  final String? businessAddress;
+  final String? tradeLicenceNumber;
+
+  @override
+  String toString() => tradingName.isNotEmpty ? tradingName : legalBusinessName;
+}
 
 String? _parseRegion(dynamic raw) {
   if (raw == null) return null;
   if (raw is String) return raw;
+  if (raw is RegionSummary) return raw.nameEn;
   if (raw is Map<String, dynamic>) {
     return raw['nameEn'] as String? ??
         raw['name'] as String? ??
@@ -158,22 +316,30 @@ String? _parseAddress(dynamic raw) {
   return raw.toString();
 }
 
-String? _parseBusiness(dynamic raw) {
+BusinessDetails? _parseBusiness(dynamic raw) {
   if (raw == null) return null;
-  if (raw is String) return raw;
-  if (raw is Map<String, dynamic>) {
-    return raw['legalBusinessName'] as String? ??
-        raw['tradingName'] as String? ??
-        raw['companyName'] as String?;
+  if (raw is BusinessDetails) return raw;
+  if (raw is String) {
+    return BusinessDetails(tradingName: raw, legalBusinessName: raw);
   }
-  return raw.toString();
+  if (raw is Map<String, dynamic>) {
+    return BusinessDetails(
+      tradingName: raw['tradingName'] as String? ?? '',
+      legalBusinessName: raw['legalBusinessName'] as String? ?? '',
+      contactPersonName: raw['contactPersonName'] as String?,
+      businessEmail: raw['businessEmail'] as String?,
+      businessAddress: raw['businessAddress'] as String?,
+      tradeLicenceNumber: raw['tradeLicenceNumber'] as String?,
+    );
+  }
+  return null;
 }
 
 Map<String, dynamic> _normalizeMaskedPartyJson(Map<String, dynamic> json) {
   return {
     'role': (json['role'] ?? json['userType'] ?? json['partyRole'])?.toString(),
     'region': _parseRegion(json['region']),
-    'pseudonym': json['pseudonym'],
+    'pseudonym': json['label'] ?? json['pseudonym'],
     'rating': json['rating'],
     'dealCount': _parseDealCount(json),
   };
@@ -200,14 +366,9 @@ Map<String, dynamic> _normalizeRevealedPartyJson(Map<String, dynamic> json) {
 }
 
 /// Abstract representation of a counterparty in Karat Hive.
-///
-/// Under AD-FE-07 ("masking as a type"), pre-acceptance screens hold a
-/// [MaskedParty] which has NO identity fields (name, mobile, address).
-/// Identity fields exist ONLY on [RevealedParty].
-///
-/// Because this is a `sealed class`, exhaustive pattern matching is
-/// compiler-enforced.
 sealed class Party {
+  const Party();
+
   UserRole get role;
   RatingSummary? get rating;
   int get dealCount;
@@ -224,13 +385,6 @@ sealed class Party {
   /// Whether this party is masked (pre-Acceptance).
   bool get isMasked;
 
-  /// Deserializes a party payload from JSON into either a [MaskedParty]
-  /// or a [RevealedParty].
-  ///
-  /// If the payload contains valid identity fields ([name]/[displayName] and [mobile]),
-  /// and is not explicitly flagged as masked, a [RevealedParty] is constructed.
-  /// Otherwise, a [MaskedParty] is constructed. Pre-acceptance payloads can NEVER
-  /// produce a [RevealedParty].
   factory Party.fromJson(Map<String, dynamic> json) {
     final name =
         (json['name'] as String? ?? json['displayName'] as String?)?.trim();
@@ -257,30 +411,28 @@ sealed class Party {
     }
   }
 
-  /// Serializes the party to a JSON map.
   Map<String, dynamic> toJson();
 }
 
 /// A counterparty whose identity is hidden before Acceptance (AD-FE-07).
-///
-/// Pre-acceptance screens (VEN-S06 feed, offer creation, etc.) can ONLY
-/// construct and consume [MaskedParty].
-/// It structurally lacks [name], [mobile], and [address] so the UI cannot
-/// reference them even by accident.
-@Freezed(toJson: false)
-abstract class MaskedParty with _$MaskedParty implements Party {
-  const MaskedParty._();
+class MaskedParty extends Party {
+  const MaskedParty({
+    required this.role,
+    this.region,
+    this.pseudonym,
+    this.rating,
+    this.dealCount = 0,
+  });
 
-  const factory MaskedParty({
-    @_UserRoleConverter() required UserRole role,
-    String? region,
-    String? pseudonym,
-    @JsonKey(fromJson: _ratingSummaryFromJson) RatingSummary? rating,
-    @Default(0) int dealCount,
-  }) = _MaskedParty;
+  @override
+  final UserRole role;
+  final String? region;
+  final String? pseudonym;
+  @override
+  final RatingSummary? rating;
+  @override
+  final int dealCount;
 
-  /// Returns the explicit pseudonym, or generates a safe masked label
-  /// from the role and region (e.g. "Vendor in Deira").
   String get displayPseudonym {
     if (pseudonym != null && pseudonym!.trim().isNotEmpty) {
       return pseudonym!;
@@ -307,8 +459,38 @@ abstract class MaskedParty with _$MaskedParty implements Party {
   @override
   bool get isMasked => true;
 
-  factory MaskedParty.fromJson(Map<String, dynamic> json) =>
-      _$MaskedPartyFromJson(_normalizeMaskedPartyJson(json));
+  MaskedParty copyWith({
+    UserRole? role,
+    String? region,
+    String? pseudonym,
+    RatingSummary? rating,
+    int? dealCount,
+  }) {
+    return MaskedParty(
+      role: role ?? this.role,
+      region: region ?? this.region,
+      pseudonym: pseudonym ?? this.pseudonym,
+      rating: rating ?? this.rating,
+      dealCount: dealCount ?? this.dealCount,
+    );
+  }
+
+  factory MaskedParty.fromJson(
+    Map<String, dynamic> json, {
+    UserRole role = UserRole.unknown,
+  }) {
+    final normalized = _normalizeMaskedPartyJson(json);
+    final finalRole = normalized['role'] != null
+        ? UserRole.parse(normalized['role'] as String?)
+        : role;
+    return MaskedParty(
+      role: finalRole,
+      region: normalized['region'] as String?,
+      pseudonym: normalized['pseudonym'] as String?,
+      rating: RatingSummary.fromJson(normalized['rating']),
+      dealCount: (normalized['dealCount'] as num?)?.toInt() ?? 0,
+    );
+  }
 
   @override
   Map<String, dynamic> toJson() => {
@@ -319,32 +501,93 @@ abstract class MaskedParty with _$MaskedParty implements Party {
         'dealCount': dealCount,
         'isMasked': true,
       };
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MaskedParty &&
+          runtimeType == other.runtimeType &&
+          role == other.role &&
+          region == other.region &&
+          pseudonym == other.pseudonym &&
+          rating == other.rating &&
+          dealCount == other.dealCount;
+
+  @override
+  int get hashCode => Object.hash(role, region, pseudonym, rating, dealCount);
 }
 
 /// A counterparty whose identity has been revealed post-Acceptance (AD-FE-07).
-///
-/// Only constructible from a Connection payload that included verified
-/// identity fields ([name], [mobile]). Pre-acceptance screens MUST NOT
-/// be able to produce or hold a [RevealedParty].
-@Freezed(toJson: false, fromJson: false)
-abstract class RevealedParty with _$RevealedParty implements Party {
-  const RevealedParty._();
+class RevealedParty extends Party {
+  const RevealedParty._({
+    required this.displayName,
+    required this.mobile,
+    this.role = UserRole.unknown,
+    this.address,
+    this.business,
+    this.rating,
+    this.region,
+    this.completedConnections = 0,
+    this.dealCount = 0,
+    this.photoUrl,
+  });
 
-  const factory RevealedParty({
-    required String name,
-    required String mobile,
-    @_UserRoleConverter() required UserRole role,
+  factory RevealedParty({
+    String? displayName,
+    String? name,
+    required dynamic mobile,
+    UserRole role = UserRole.unknown,
     String? address,
-    String? business,
-    @JsonKey(fromJson: _ratingSummaryFromJson) RatingSummary? rating,
-    @Default(0) int dealCount,
-  }) = _RevealedParty;
+    dynamic business,
+    RatingSummary? rating,
+    RegionSummary? region,
+    int? completedConnections,
+    int dealCount = 0,
+    String? photoUrl,
+  }) {
+    final finalName = displayName ?? name ?? '';
+    final PhoneNumber finalMobile = mobile is PhoneNumber
+        ? mobile
+        : PhoneNumber.parse(mobile?.toString() ?? '');
+    final BusinessDetails? finalBusiness = business is BusinessDetails
+        ? business
+        : (business != null && business.toString().isNotEmpty
+            ? BusinessDetails(
+                tradingName: business.toString(),
+                legalBusinessName: business.toString(),
+              )
+            : null);
+    final count = dealCount != 0 ? dealCount : (completedConnections ?? 0);
+    return RevealedParty._(
+      displayName: finalName,
+      mobile: finalMobile,
+      role: role,
+      address: address,
+      business: finalBusiness,
+      rating: rating,
+      region: region,
+      completedConnections: count,
+      dealCount: count,
+      photoUrl: photoUrl,
+    );
+  }
 
-  /// Alias for [name] matching frontend architecture conventions.
-  String get displayName => name;
-
+  final String displayName;
+  final PhoneNumber mobile;
   @override
-  int get completedConnections => dealCount;
+  final UserRole role;
+  final String? address;
+  final BusinessDetails? business;
+  @override
+  final RatingSummary? rating;
+  final RegionSummary? region;
+  @override
+  final int completedConnections;
+  @override
+  final int dealCount;
+  final String? photoUrl;
+
+  String get name => displayName;
 
   @override
   double? get ratingScore => rating?.average;
@@ -355,10 +598,32 @@ abstract class RevealedParty with _$RevealedParty implements Party {
   @override
   bool get isMasked => false;
 
-  /// Constructs a [RevealedParty] from a JSON map.
-  ///
-  /// Throws [FormatException] if identity fields ([name] or [mobile]) are missing
-  /// or empty, guaranteeing that a masked payload cannot produce a [RevealedParty].
+  RevealedParty copyWith({
+    String? displayName,
+    PhoneNumber? mobile,
+    UserRole? role,
+    String? address,
+    BusinessDetails? business,
+    RatingSummary? rating,
+    RegionSummary? region,
+    int? completedConnections,
+    int? dealCount,
+    String? photoUrl,
+  }) {
+    return RevealedParty(
+      displayName: displayName ?? this.displayName,
+      mobile: mobile ?? this.mobile,
+      role: role ?? this.role,
+      address: address ?? this.address,
+      business: business ?? this.business,
+      rating: rating ?? this.rating,
+      region: region ?? this.region,
+      completedConnections: completedConnections ?? this.completedConnections,
+      dealCount: dealCount ?? this.dealCount,
+      photoUrl: photoUrl ?? this.photoUrl,
+    );
+  }
+
   factory RevealedParty.fromJson(Map<String, dynamic> json) {
     final normalized = _normalizeRevealedPartyJson(json);
     final name = normalized['name'] as String?;
@@ -375,26 +640,84 @@ abstract class RevealedParty with _$RevealedParty implements Party {
       );
     }
 
+    final count = (normalized['dealCount'] as num?)?.toInt() ?? 0;
     return RevealedParty(
-      name: name,
-      mobile: mobile,
+      displayName: name,
+      mobile: PhoneNumber.parse(mobile),
       role: UserRole.parse(normalized['role'] as String?),
       address: normalized['address'] as String?,
-      business: normalized['business'] as String?,
+      business: _parseBusiness(normalized['business']),
       rating: RatingSummary.fromJson(normalized['rating']),
-      dealCount: (normalized['dealCount'] as num?)?.toInt() ?? 0,
+      completedConnections: count,
+      dealCount: count,
+    );
+  }
+
+  static RevealedParty fromVendorJson(Map<String, dynamic> j) {
+    final mobileRaw = (j['mobileNumber'] ?? j['phone'] ?? '') as String;
+    final count = (j['connectionCount'] as num?)?.toInt() ?? 0;
+    return RevealedParty(
+      displayName: j['tradingName'] as String? ?? j['displayName'] as String? ?? '',
+      mobile: PhoneNumber.parse(mobileRaw),
+      role: UserRole.vendor,
+      address: j['businessAddress'] as String?,
+      business: BusinessDetails(
+        tradingName: j['tradingName'] as String? ?? '',
+        legalBusinessName: j['legalBusinessName'] as String? ?? '',
+        contactPersonName: j['contactPersonName'] as String?,
+        businessEmail: j['businessEmail'] as String?,
+        businessAddress: j['businessAddress'] as String?,
+        tradeLicenceNumber: j['tradeLicenceNumber'] as String?,
+      ),
+      rating: RatingSummary.tryParse(j['rating']),
+      region: RegionSummary.tryParse(j['region']),
+      completedConnections: count,
+      dealCount: count,
+      photoUrl: j['logoUrl'] as String?,
+    );
+  }
+
+  static RevealedParty fromCustomerJson(Map<String, dynamic> j) {
+    final mobileRaw = (j['mobileNumber'] ?? j['phone'] ?? '') as String;
+    final count = (j['connectionCount'] as num?)?.toInt() ?? 0;
+    return RevealedParty(
+      displayName: j['displayName'] as String? ?? '',
+      mobile: PhoneNumber.parse(mobileRaw),
+      role: UserRole.customer,
+      address: j['address'] as String?,
+      rating: RatingSummary.tryParse(j['rating']),
+      region: RegionSummary.tryParse(j['region']),
+      completedConnections: count,
+      dealCount: count,
+      photoUrl: j['photoUrl'] as String?,
     );
   }
 
   @override
   Map<String, dynamic> toJson() => {
         'name': name,
-        'mobile': mobile,
+        'mobile': mobile.e164,
         'role': role.wireName,
         if (address != null) 'address': address,
-        if (business != null) 'business': business,
+        if (business != null) 'business': business!.tradingName,
         if (rating != null) 'rating': rating!.toJson(),
         'dealCount': dealCount,
         'isRevealed': true,
       };
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RevealedParty &&
+          runtimeType == other.runtimeType &&
+          displayName == other.displayName &&
+          mobile == other.mobile &&
+          role == other.role &&
+          address == other.address &&
+          business?.tradingName == other.business?.tradingName &&
+          rating == other.rating &&
+          dealCount == other.dealCount;
+
+  @override
+  int get hashCode => Object.hash(displayName, mobile, role, address, rating, dealCount);
 }

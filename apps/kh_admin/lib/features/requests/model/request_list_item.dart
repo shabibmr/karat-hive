@@ -47,12 +47,19 @@ class RequestListItem with _$RequestListItem {
     String? custPhone = json['customerPhone']?.toString();
 
     if (customerObj is Map<String, dynamic>) {
-      custName = customerObj['fullName']?.toString() ??
+      // origin/main admin list sends the raw `customerProfile` row: the name is
+      // `displayName` and the phone is nested at `customerProfile.user.mobileNumber`.
+      custName = customerObj['displayName']?.toString() ??
+          customerObj['fullName']?.toString() ??
           customerObj['name']?.toString() ??
           customerObj['contactPersonName']?.toString() ??
           custName;
       custId ??= customerObj['id']?.toString();
-      custPhone ??= customerObj['mobileNumber']?.toString() ??
+      final customerUser = customerObj['user'];
+      custPhone ??= (customerUser is Map<String, dynamic>
+              ? customerUser['mobileNumber']?.toString()
+              : null) ??
+          customerObj['mobileNumber']?.toString() ??
           customerObj['phone']?.toString();
     } else if (customerObj is String && customerObj.isNotEmpty) {
       custName = customerObj;

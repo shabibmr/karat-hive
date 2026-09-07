@@ -5,6 +5,9 @@ import 'package:kh_domain/kh_domain.dart';
 part 'dtos.freezed.dart';
 part 'dtos.g.dart';
 
+/// Auth/session/upload wire maps. Config, rates, and settings live in
+/// `kh_domain` (`PlatformConfig`, `GoldRateSnapshot`, `UserSettings`).
+
 // --- converters for non-freezed nested types ---------------------------------
 
 SessionTokens _sessionTokensFromJson(Map<String, dynamic> json) =>

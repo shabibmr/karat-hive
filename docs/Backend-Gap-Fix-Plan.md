@@ -257,52 +257,52 @@ Status starts `pending`. IDs are stable and not reused.
 
 | ID | Task | Review refs | Status |
 |---|---|---|---|
-| F01 | `KH_ROLE` + fail-fast `JWT_ACCESS_SECRET` (no default) | Std env.ts; Spec Arch §6/§18 | done |
-| F02 | `start:worker` sets `KH_ROLE=worker` via `cross-env` | Std package.json; Spec T33 | done |
-| F03 | Worker uses Fastify listen (health), not `ApplicationContext` | Std/Spec Arch §6 | done |
-| F04 | Production fail-fast DB+migrations; dev lazy connect | Std prisma.service; P0 /health | done |
-| F05 | SIGTERM: `/ready` 503, stop claims, drain 30 s | Spec Arch §6 shutdown | done |
+| F01 | `KH_ROLE` + fail-fast `JWT_ACCESS_SECRET` (no default) | Std env.ts; Spec Arch §6/§18 | pending |
+| F02 | `start:worker` sets `KH_ROLE=worker` via `cross-env` | Std package.json; Spec T33 | pending |
+| F03 | Worker uses Fastify listen (health), not `ApplicationContext` | Std/Spec Arch §6 | pending |
+| F04 | Production fail-fast DB+migrations; dev lazy connect | Std prisma.service; P0 /health | pending |
+| F05 | SIGTERM: `/ready` 503, stop claims, drain 30 s | Spec Arch §6 shutdown | pending |
 
 ### G2 Async
 
 | ID | Task | Review refs | Status |
 |---|---|---|---|
-| F06 | `markConsumed` after successful handler only | Spec Arch §11.1 | done |
-| F07 | Attempts on failure; backoff 1/5/25 m then FAILED; claim SQL matches §11.1 | Spec backoff | done |
-| F08 | `OutboxEventType` union from §11.2 | Std Primitive Obsession | done |
-| F11 | Job lock: no same-owner overlap; heartbeat renew; in-process skip | Spec Arch §11.4 | done |
+| F06 | `markConsumed` after successful handler only | Spec Arch §11.1 | pending |
+| F07 | Attempts on failure; backoff 1/5/25 m then FAILED; claim SQL matches §11.1 | Spec backoff | pending |
+| F08 | `OutboxEventType` union from §11.2 | Std Primitive Obsession | pending |
+| F11 | Job lock: no same-owner overlap; heartbeat renew; in-process skip | Spec Arch §11.4 | pending |
 
 ### G3 Edge
 
 | ID | Task | Review refs | Status |
 |---|---|---|---|
-| F09 | Rate limit single UPSERT/RETURNING; unknown scope deny | Std/Spec AD-BE-10 | done |
-| F10 | Idempotency insert-before-handler; required keys = P1 #10 only | Spec Arch §13.3 | done |
-| F12 | Masking recursive identity-key scan + `@RevealsIdentity` | Std §9.2; Spec stub | done |
-| F14 | `ErrorCode` only; en/ar catalogue from Accept-Language | Std §13.2 NFR-024 | done |
-| F15 | Shared `client-ip` helper | Std Duplicated Code | done |
+| F09 | Rate limit single UPSERT/RETURNING; unknown scope deny | Std/Spec AD-BE-10 | pending |
+| F10 | Idempotency insert-before-handler; required keys = P1 #10 only | Spec Arch §13.3 | pending |
+| F12 | Masking recursive identity-key scan + `@RevealsIdentity` | Std §9.2; Spec stub | pending |
+| F14 | `ErrorCode` only; en/ar catalogue from Accept-Language | Std §13.2 NFR-024 | pending |
+| F15 | Shared `client-ip` helper | Std Duplicated Code | pending |
 
 ### G4 Module boundary
 
 | ID | Task | Review refs | Status |
 |---|---|---|---|
-| F13 | `modules/identity` public API owns user/refresh; move `TokenService` | Std §7.3; Feature Envy | done |
+| F13 | `modules/identity` public API owns user/refresh; move `TokenService` | Std §7.3; Feature Envy | pending |
 
 ### G5 Toolchain
 
 | ID | Task | Review refs | Status |
 |---|---|---|---|
-| F16 | Prettier + `format` / `format:check` | Spec T34 | done |
-| F17 | `.github/workflows/backend.yml` build · lint · test · format | Spec T35 | done |
+| F16 | Prettier + `format` / `format:check` | Spec T34 | pending |
+| F17 | `.github/workflows/backend.yml` build · lint · test · format | Spec T35 | pending |
 
 ### G6 Docs
 
 | ID | Task | Status |
 |---|---|---|
-| D01 | Align Architecture §12.2 weight with SRS `numeric(10,2)` | done |
-| D02 | Record T36-in-init as `[PROPOSED]`, do not revert | done |
-| D03 | README `KH_ROLE` / worker health / secrets | done |
-| D04 | Tick T33–T35 in Backend-Implementation-Plan; add `docs/Backend-Gap-Fix-Plan.md` | done |
+| D01 | Align Architecture §12.2 weight with SRS `numeric(10,2)` | pending |
+| D02 | Record T36-in-init as `[PROPOSED]`, do not revert | pending |
+| D03 | README `KH_ROLE` / worker health / secrets | pending |
+| D04 | Tick T33–T35 in Backend-Implementation-Plan; add `docs/Backend-Gap-Fix-Plan.md` | pending |
 
 ---
 

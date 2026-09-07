@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../platform/db/prisma.module';
-import { SharedModule } from '../../shared/shared.module';
+import { AuditModule } from '../audit';
+import { SubscriptionRepository } from './repository/subscription.repository';
 import { SubscriptionService } from './application/subscription.service';
 import { SubscriptionController } from './controller/subscription.controller';
-import { SubscriptionRepository } from './repository/subscription.repository';
+import { AdminSubscriptionController } from './controller/admin-subscription.controller';
 
 @Module({
-  imports: [PrismaModule, SharedModule],
-  controllers: [SubscriptionController],
+  imports: [AuditModule],
+  controllers: [SubscriptionController, AdminSubscriptionController],
   providers: [SubscriptionRepository, SubscriptionService],
   exports: [SubscriptionService, SubscriptionRepository],
 })

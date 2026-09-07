@@ -5,6 +5,24 @@ export type AdminMe = {
   displayName: string;
 };
 
+export type CustomerMe = {
+  displayName: string;
+  photoUrl?: string | null;
+  defaultRegion?: {
+    id: string;
+    nameEn: string;
+    nameAr: string;
+  } | null;
+  rating?: {
+    average: number;
+    count: number;
+  } | null;
+  reviewCount: number;
+  connectionCount: number;
+  liveRequestCount?: number;
+  canCreateRequest?: boolean;
+};
+
 export type Me = {
   id?: string;
   userId: string;
@@ -13,11 +31,28 @@ export type Me = {
   mobileNumber: string;
   email: string | null;
   preferredLanguage: User['preferredLanguage'];
+  oauthBound?: boolean;
+  customer?: CustomerMe;
   vendor?: VendorMe;
   admin?: AdminMe;
 };
 
-export function presentMe(user: User, vendor?: VendorMe | null, admin?: AdminMe | null): Me {
+export type DeletionRequestView = {
+  id: string;
+  state: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+  createdAt: string;
+  challengeId?: string;
+  expiresAt?: string;
+  retryAfterSeconds?: number;
+};
+
+export function presentMe(
+  user: User,
+  vendor?: VendorMe | null,
+  admin?: AdminMe | null,
+  customer?: CustomerMe | null,
+  oauthBound?: boolean,
+): Me {
   return {
     id: user.id,
     userId: user.id,
@@ -26,6 +61,8 @@ export function presentMe(user: User, vendor?: VendorMe | null, admin?: AdminMe 
     mobileNumber: user.mobileNumber,
     email: user.email,
     preferredLanguage: user.preferredLanguage,
+    ...(oauthBound !== undefined ? { oauthBound } : {}),
+    ...(customer ? { customer } : {}),
     ...(vendor ? { vendor } : {}),
     ...(admin ? { admin } : {}),
   };

@@ -149,8 +149,7 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
                     Center(
                       child: OutlinedButton(
                         onPressed: () {
-                          ref.read(requestFiltersProvider.notifier).state =
-                              const RequestFiltersState();
+                          ref.read(requestFiltersProvider.notifier).reset();
                         },
                         child: Text(l10n?.resetFilters ?? 'Reset Filters'),
                       ),

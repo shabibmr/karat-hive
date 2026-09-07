@@ -84,4 +84,34 @@ export class SessionService {
     }
     await this.tokens.revokePresented(presented);
   }
+
+  /** Active refresh-token families for the caller (G2-I04). */
+  async listSessions(userId: string): Promise<SessionFamilyView[]> {
+    const now = this.clock.now();
+    const rows = await this.tokens.listActiveFamilies(userId, now);
+    return rows.map((r) => ({
+      id: r.familyId,
+      deviceLabel: r.userAgent,
+      lastIp: r.ip,
+      lastUsedAt: r.createdAt.toISOString(),
+      createdAt: r.familyCreatedAt.toISOString(),
+    }));
+  }
+
+  /** Revoke one refresh family owned by the caller (G2-I04). */
+  async revokeSession(userId: string, familyId: string): Promise<void> {
+    const owned = await this.tokens.familyOwnedBy(userId, familyId);
+    if (!owned) {
+      throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+    }
+    await this.tokens.revokeFamily(familyId, this.clock.now());
+  }
 }
+
+export type SessionFamilyView = {
+  id: string;
+  deviceLabel: string | null;
+  lastIp: string | null;
+  lastUsedAt: string;
+  createdAt: string;
+};

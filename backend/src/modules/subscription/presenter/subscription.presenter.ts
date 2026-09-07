@@ -1,49 +1,25 @@
-import type { RequestType, VendorTypeSubscription } from '@prisma/client';
-import {
-  computeSubscriptionState,
-  type SubscriptionEntitlementState,
-} from '../domain/subscription.types';
+import type { VendorTypeSubscription } from '@prisma/client';
 
-export type SubscriptionView = {
-  requestType: RequestType;
-  state: SubscriptionEntitlementState;
-  periodStart: string | null;
-  periodEnd: string | null;
-  priceAed: string | null;
-  graceEndsAt: string | null;
-  renewalDate: string | null;
-  paymentReference: string | null;
-};
+export interface SubscriptionView {
+  id: string;
+  requestType: string;
+  state: string;
+  periodStart: string;
+  periodEnd: string;
+  priceAed: string;
+  graceEndsAt?: string;
+  paymentReference?: string;
+}
 
-export function presentSubscription(
-  requestType: RequestType,
-  sub: VendorTypeSubscription | null,
-  now: Date,
-): SubscriptionView {
-  const state = computeSubscriptionState(sub, now);
-
-  if (!sub) {
-    return {
-      requestType,
-      state: 'NONE',
-      periodStart: null,
-      periodEnd: null,
-      priceAed: null,
-      graceEndsAt: null,
-      renewalDate: null,
-      paymentReference: null,
-    };
-  }
-
-  const periodEndIso = sub.periodEnd.toISOString();
+export function presentSubscription(sub: VendorTypeSubscription): SubscriptionView {
   return {
+    id: sub.id,
     requestType: sub.requestType,
-    state,
+    state: sub.state,
     periodStart: sub.periodStart.toISOString(),
-    periodEnd: periodEndIso,
-    priceAed: sub.priceAed.toFixed(2),
-    graceEndsAt: sub.graceEndsAt ? sub.graceEndsAt.toISOString() : null,
-    renewalDate: periodEndIso,
-    paymentReference: sub.paymentReference ?? null,
+    periodEnd: sub.periodEnd.toISOString(),
+    priceAed: Number(sub.priceAed).toFixed(2),
+    ...(sub.graceEndsAt ? { graceEndsAt: sub.graceEndsAt.toISOString() } : {}),
+    ...(sub.paymentReference ? { paymentReference: sub.paymentReference } : {}),
   };
 }

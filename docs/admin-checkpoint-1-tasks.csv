@@ -30,5 +30,5 @@ ADM-FE-015|P1 - High|Phase 6: Frontend Features|Localization|ARB Localization Sc
 ADM-FE-016|P1 - High|Phase 7: Frontend QA|Testing|Frontend Unit & Widget Tests|apps/kh_admin/test/|2h|Completed|taxonomy_controller_test and login_screen_test passing
 ADM-FE-017|P0 - Critical|Phase 7: Frontend QA|Testing|Flutter Analyze & Test Suite Pass|apps/kh_admin/|0.5h|Completed|flutter analyze and flutter test pass cleanly
 ADM-DOC-001|P1 - High|Phase 8: Release|Documentation|Spec Docs & Deviation Notes Reconciliation|docs/|1h|Completed|SAM-GAP-9 resolved; taxonomy [BUILT]; T16-T18 vendor/KYC path marked done
-ADM-E2E-001|P0 - Critical|Phase 8: Release|Verification|End-to-End Click-Through & Verification|Local environment|1.5h|Open|Firebase ID-token path is on main; run Google Sign-In → taxonomy CRUD → audit. Password login is not a gate
+ADM-E2E-001|P0 - Critical|Phase 8: Release|Verification|End-to-End Click-Through & Verification|Local environment|1.5h|Deferred-auth|Skipped until Google Sign-In produces a backend session; password login is not a gate
 ADM-GIT-001|P1 - High|Phase 8: Release|Version Control|Staged Commits & Draft PR Creation|Git repository|0.5h|Completed|Landed on main via feat/cp1-closeout (4ad4908)

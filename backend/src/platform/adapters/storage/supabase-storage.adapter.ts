@@ -81,6 +81,29 @@ export class SupabaseStorageAdapter implements ObjectStorage {
     };
   }
 
+  async getObject(bucket: string, key: string): Promise<Buffer | null> {
+    const path = encodePath(key);
+    const auth = this.authHeaders();
+    const res = await fetch(`${this.base()}/object/${bucket}/${path}`, { headers: auth });
+    if (res.status === 404 || res.status === 400) return null;
+    if (!res.ok) throw new Error(`Supabase get failed: ${res.status} ${await res.text()}`);
+    return Buffer.from(await res.arrayBuffer());
+  }
+
+  async putObject(bucket: string, key: string, body: Buffer, contentType: string): Promise<void> {
+    const path = encodePath(key);
+    const res = await fetch(`${this.base()}/object/${bucket}/${path}`, {
+      method: 'POST',
+      headers: {
+        ...this.authHeaders(),
+        'Content-Type': contentType,
+        'x-upsert': 'true',
+      },
+      body: new Uint8Array(body),
+    });
+    if (!res.ok) throw new Error(`Supabase put failed: ${res.status} ${await res.text()}`);
+  }
+
   async deleteObject(bucket: string, key: string): Promise<void> {
     const path = encodePath(key);
     const res = await fetch(`${this.base()}/object/${bucket}/${path}`, {
@@ -89,6 +112,11 @@ export class SupabaseStorageAdapter implements ObjectStorage {
     });
     if (res.status === 404) return;
     if (!res.ok) throw new Error(`Supabase delete failed: ${res.status} ${await res.text()}`);
+  }
+
+  private authHeaders(): Record<string, string> {
+    const key = this.env.SUPABASE_SERVICE_ROLE_KEY as string;
+    return { Authorization: `Bearer ${key}`, apikey: key };
   }
 }
 

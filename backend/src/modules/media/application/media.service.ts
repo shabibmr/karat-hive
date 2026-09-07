@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { Media, MediaPurpose, StorageBucket } from '@prisma/client';
+import type { Media, MediaPurpose } from '@prisma/client';
 import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
@@ -14,22 +14,11 @@ import {
   MEDIA_CONSTRAINTS,
   isByteSizeAllowed,
   isContentTypeAllowed,
+  physicalBucketName,
   storagePath,
 } from '../domain/media-rules';
 import { MediaRepository } from '../repository/media.repository';
 import { presentMediaRef, type MediaRef, type UploadIntent } from '../presenter/media.presenter';
-
-/** Which real storage bucket each StorageBucket enum value maps to. */
-function bucketId(bucket: StorageBucket, env: Env): string {
-  switch (bucket) {
-    case 'KYC':
-      return env.SUPABASE_STORAGE_BUCKET_KYC;
-    case 'REQUEST_MEDIA':
-      return 'request-media';
-    case 'EXPORT':
-      return 'export';
-  }
-}
 
 @Injectable()
 export class MediaService {
@@ -73,7 +62,7 @@ export class MediaService {
     const key = randomUUID();
     const objectKey = this.objectKeyFor(dto.purpose, key, viewer);
     const signed = await this.storage.createSignedUploadUrl({
-      bucket: bucketId(constraint.bucket, this.env),
+      bucket: physicalBucketName(constraint.bucket, this.env.SUPABASE_STORAGE_BUCKET_KYC),
       key: objectKey,
       contentType: dto.contentType,
       maxBytes: constraint.maxBytes,
@@ -124,7 +113,8 @@ export class MediaService {
     }
 
     const objectKey = this.objectKeyFor(media.purpose, key, viewer);
-    const head = await this.storage.headObject(bucketId(media.bucket, this.env), objectKey);
+    const bucket = physicalBucketName(media.bucket, this.env.SUPABASE_STORAGE_BUCKET_KYC);
+    const head = await this.storage.headObject(bucket, objectKey);
     if (!head || !head.exists) {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.UPLOAD_NOT_COMPLETED);
     }
@@ -139,19 +129,28 @@ export class MediaService {
       ]);
     }
 
-    // Dev shortcut (P4/T17 pending): no async EXIF/malware worker yet — KYC documents
-    // move straight to READY on a verified upload.
-    const devReady = this.env.NODE_ENV !== 'production';
+    // Non-prod KYC may skip the worker so vendor-onboarding can attach immediately.
+    // Request images always stay PENDING_PROCESSING until media:process (G2-P02).
+    const devKycReady = this.env.NODE_ENV !== 'production' && media.purpose === 'KYC_DOCUMENT';
     const updated = await withTx(this.prisma, async (tx) => {
-      const row = await this.repo.markState(tx, key, devReady ? 'READY' : 'PENDING_PROCESSING', {
-        malwareScanState: devReady ? 'CLEAN' : 'PENDING',
-        exifStripped: devReady,
+      const row = await this.repo.markState(tx, key, devKycReady ? 'READY' : 'PENDING_PROCESSING', {
+        malwareScanState: devKycReady ? 'CLEAN' : 'PENDING',
+        exifStripped: devKycReady,
       });
       await enqueueOutbox(tx, {
         eventType: 'media.uploaded',
         aggregateType: 'media',
         aggregateId: row.id,
-        payload: { key: row.key, purpose: row.purpose, bucket: row.bucket },
+        payload: {
+          mediaId: row.id,
+          key: row.key,
+          objectKey,
+          purpose: row.purpose,
+          bucket: row.bucket,
+          uploadedByUserId: row.uploadedByUserId,
+          contentType: row.contentType,
+          byteSize: row.byteSize,
+        },
       });
       return row;
     });
@@ -170,7 +169,10 @@ export class MediaService {
       ]);
     }
     const objectKey = this.objectKeyFor(media.purpose, key, viewer);
-    await this.storage.deleteObject(bucketId(media.bucket, this.env), objectKey);
+    await this.storage.deleteObject(
+      physicalBucketName(media.bucket, this.env.SUPABASE_STORAGE_BUCKET_KYC),
+      objectKey,
+    );
     await this.repo.deleteByKey(key);
   }
 

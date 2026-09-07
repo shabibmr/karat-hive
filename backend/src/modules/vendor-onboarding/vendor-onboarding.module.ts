@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuditModule } from '../audit';
 import { MediaModule } from '../media';
-import { SubscriptionModule } from '../subscription/subscription.module';
 import { TaxonomyModule } from '../taxonomy';
 import { VendorDocumentsService } from './application/vendor-documents.service';
 import { VendorOnboardingService } from './application/vendor-onboarding.service';
@@ -16,7 +15,7 @@ import { VendorTaxonomyController } from './controller/vendor-taxonomy.controlle
 import { VendorOnboardingRepository } from './repository/vendor-onboarding.repository';
 
 @Module({
-  imports: [AuditModule, MediaModule, TaxonomyModule, SubscriptionModule],
+  imports: [AuditModule, MediaModule, TaxonomyModule],
   controllers: [
     VendorProfileController,
     VendorDocumentsController,
@@ -33,6 +32,6 @@ import { VendorOnboardingRepository } from './repository/vendor-onboarding.repos
     VendorAccessGuard,
     DevVerifyGuard,
   ],
-  exports: [VendorOnboardingService, VendorAccessGuard, VendorVerificationService],
+  exports: [VendorOnboardingService, VendorDocumentsService, VendorAccessGuard],
 })
 export class VendorOnboardingModule {}

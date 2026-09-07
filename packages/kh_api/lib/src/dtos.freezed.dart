@@ -318,7 +318,7 @@ $Res call({
 });
 
 
-$MeUserCopyWith<$Res> get user;
+
 
 }
 /// @nodoc
@@ -338,16 +338,7 @@ as SessionTokens,user: null == user ? _self.user : user // ignore: cast_nullable
 as MeUser,
   ));
 }
-/// Create a copy of SessionBundle
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$MeUserCopyWith<$Res> get user {
-  
-  return $MeUserCopyWith<$Res>(_self.user, (value) {
-    return _then(_self.copyWith(user: value));
-  });
-}
+
 }
 
 
@@ -528,7 +519,7 @@ $Res call({
 });
 
 
-@override $MeUserCopyWith<$Res> get user;
+
 
 }
 /// @nodoc
@@ -549,16 +540,7 @@ as MeUser,
   ));
 }
 
-/// Create a copy of SessionBundle
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$MeUserCopyWith<$Res> get user {
-  
-  return $MeUserCopyWith<$Res>(_self.user, (value) {
-    return _then(_self.copyWith(user: value));
-  });
-}
+
 }
 
 

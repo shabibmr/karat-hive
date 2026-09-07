@@ -52,8 +52,6 @@ export class OtpService {
       userId: existingUser?.id ?? null,
     });
 
-    // LOGIN against an unknown number still returns a challenge (anti-enumeration);
-    // it simply has no user and verification will fail.
     await this.sender.send({ mobileNumber, code, purpose });
 
     return { challengeId: challenge.id, expiresAt, retryAfterSeconds: 60 };

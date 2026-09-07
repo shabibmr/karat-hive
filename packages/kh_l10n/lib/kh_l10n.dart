@@ -1,53 +1,16 @@
 library kh_l10n;
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:intl/intl.dart';
 
 import 'l10n/app_localizations.dart';
+import 'src/formatters.dart';
+import 'src/strings.dart';
 
 export 'l10n/app_localizations.dart';
-
-/// Locale / delegate helper for Karat Hive surfaces.
-///
-/// User-facing copy lives in ARB → [AppLocalizations] (CP2-F05).
-class KhStrings {
-  KhStrings(this.locale);
-  final Locale locale;
-
-  static const supportedLocales = [Locale('en'), Locale('ar')];
-  static const delegates = <LocalizationsDelegate<dynamic>>[
-    AppLocalizations.delegate,
-    _KhStringsDelegate(),
-    GlobalMaterialLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-  ];
-
-  static KhStrings of(BuildContext context) =>
-      Localizations.of<KhStrings>(context, KhStrings) ?? KhStrings(const Locale('en'));
-
-  bool get isRtl => locale.languageCode == 'ar';
-}
-
-class _KhStringsDelegate extends LocalizationsDelegate<KhStrings> {
-  const _KhStringsDelegate();
-
-  @override
-  bool isSupported(Locale locale) => ['en', 'ar'].contains(locale.languageCode);
-
-  @override
-  Future<KhStrings> load(Locale locale) async => KhStrings(locale);
-
-  @override
-  bool shouldReload(_KhStringsDelegate old) => false;
-}
+export 'src/formatters.dart';
+export 'src/strings.dart';
 
 /// Western → Arabic-Indic digit mapping (Architecture-Frontend §14).
-///
-/// `intl` `ar_AE` / generic `ar` ship `ZERO_DIGIT=0`; only locales like `ar_EG`
-/// emit Eastern Arabic numerals. Product preference is Arabic-Indic for every
-/// Arabic formatter output, so we force the mapping after NumberFormat / ICU.
 String forceArabicIndicDigits(String input) {
   const western = '0123456789';
   const arabicIndic = '٠١٢٣٤٥٦٧٨٩';
@@ -67,22 +30,7 @@ bool isArabicLocale(String locale) =>
 String localizeDigits(String input, String locale) =>
     isArabicLocale(locale) ? forceArabicIndicDigits(input) : input;
 
-/// AED money formatting lives in exactly one place (Architecture-Frontend §8.4).
-class MoneyFormatter {
-  static String aed(num amount, {String locale = 'en'}) {
-    final isAr = isArabicLocale(locale);
-    final formatted = NumberFormat.currency(
-      locale: isAr ? 'ar_AE' : 'en_AE',
-      symbol: 'AED ',
-    ).format(amount);
-    return localizeDigits(formatted, locale);
-  }
-}
-
 /// Label bundle for [RelativeTimeFormatter] (SH-DOM-08).
-///
-/// Widgets resolve copy from [AppLocalizations]; pure-Dart callers keep the
-/// English defaults so kh_ui_domain stays free of a hard Flutter l10n coupling.
 class RelativeTimeLabels {
   const RelativeTimeLabels({
     required this.justNow,
@@ -114,29 +62,6 @@ class RelativeTimeLabels {
       hoursAgo: l10n.relativeTimeHoursAgo,
       daysAgo: l10n.relativeTimeDaysAgo,
     );
-  }
-}
-
-class RelativeTimeFormatter {
-  static String since(
-    DateTime past, {
-    DateTime? now,
-    String locale = 'en',
-    RelativeTimeLabels? labels,
-  }) {
-    final resolved = labels ?? RelativeTimeLabels.english;
-    final d = (now ?? DateTime.now().toUtc()).difference(past);
-    final String text;
-    if (d.inMinutes < 1) {
-      text = resolved.justNow;
-    } else if (d.inHours < 1) {
-      text = resolved.minutesAgo(d.inMinutes);
-    } else if (d.inDays < 1) {
-      text = resolved.hoursAgo(d.inHours);
-    } else {
-      text = resolved.daysAgo(d.inDays);
-    }
-    return localizeDigits(text, locale);
   }
 }
 
@@ -201,7 +126,6 @@ class ExpiryCountdownFormatter {
       return localizeDigits(expired, locale);
     }
 
-    // Round up milliseconds to avoid displaying 59m 59s when 1h was scheduled.
     final totalSeconds = (remaining.inMilliseconds / 1000).ceil();
     if (totalSeconds <= 0) {
       return localizeDigits(expired, locale);

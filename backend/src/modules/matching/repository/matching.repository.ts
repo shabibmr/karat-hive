@@ -1,217 +1,52 @@
 import { Injectable } from '@nestjs/common';
-import {
-  OfferState,
-  Prisma,
-  RequestMatch,
-  RequestState,
-  SubscriptionState,
-  UserAccountState,
-  VendorVerificationState,
-} from '@prisma/client';
+import type { Prisma, RequestType } from '@prisma/client';
 import { PrismaService } from '../../../platform/db/prisma.service';
-import type { DbTx } from '../../../platform/db/tx';
-import type { MatchFilters } from '../domain/matching.types';
+import type { MatchesFilterDto } from '../domain/matching-engine';
 
 @Injectable()
 export class MatchingRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Finds all vendors eligible for a given request per BR-002:
-   * - VERIFIED vendorProfile
-   * - ACTIVE user
-   * - Category matches request.categoryId
-   * - Region matches request.regionId
-   * - Active or grace subscription for request.requestType
-   */
-  async findEligibleVendorProfileIds(
+  async fanOutMatches(
     requestId: string,
-    now: Date,
-    tx?: DbTx,
-  ): Promise<string[]> {
-    const client = tx ?? this.prisma;
-
-    const request = await client.request.findUnique({
-      where: { id: requestId },
-      select: {
-        id: true,
-        categoryId: true,
-        regionId: true,
-        requestType: true,
-        state: true,
-      },
-    });
-
-    if (!request || request.state !== RequestState.PUBLISHED) {
-      return [];
-    }
-
-    const eligibleVendors = await client.vendorProfile.findMany({
+    requestType: RequestType,
+    categoryId: string,
+    regionId: string,
+    now: Date = new Date(),
+  ): Promise<number> {
+    const eligibleVendors = await this.prisma.vendorProfile.findMany({
       where: {
-        verificationState: VendorVerificationState.VERIFIED,
-        user: {
-          accountState: UserAccountState.ACTIVE,
-        },
-        categories: {
-          some: { categoryId: request.categoryId },
-        },
-        regions: {
-          some: { regionId: request.regionId },
-        },
+        verificationState: 'VERIFIED',
+        user: { accountState: 'ACTIVE', deletedAt: null },
+        categories: { some: { categoryId } },
+        regions: { some: { regionId } },
         subscriptions: {
           some: {
-            requestType: request.requestType,
-            state: { in: [SubscriptionState.ACTIVE, SubscriptionState.GRACE] },
-            periodStart: { lte: now },
-            OR: [
-              { periodEnd: { gte: now } },
-              { graceEndsAt: { gte: now } },
-            ],
+            requestType,
+            state: { in: ['ACTIVE', 'GRACE'] },
           },
         },
       },
       select: { id: true },
     });
 
-    return eligibleVendors.map((v) => v.id);
-  }
+    if (eligibleVendors.length === 0) return 0;
 
-  async createMatch(
-    requestId: string,
-    vendorProfileId: string,
-    matchedAt: Date,
-    tx?: DbTx,
-  ): Promise<RequestMatch | null> {
-    const client = tx ?? this.prisma;
-    try {
-      return await client.requestMatch.create({
-        data: {
-          requestId,
-          vendorProfileId,
-          matchedAt,
-          isEligible: true,
-        },
-      });
-    } catch (error: unknown) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        // Already matched
-        return null;
-      }
-      throw error;
-    }
-  }
-
-  async markViewed(
-    vendorProfileId: string,
-    requestId: string,
-    viewedAt: Date,
-    tx?: DbTx,
-  ): Promise<boolean> {
-    const client = tx ?? this.prisma;
-    const result = await client.requestMatch.updateMany({
-      where: {
-        vendorProfileId,
+    const res = await this.prisma.requestMatch.createMany({
+      data: eligibleVendors.map((v) => ({
         requestId,
-        viewedAt: null,
-      },
-      data: { viewedAt },
-    });
-    return result.count > 0;
-  }
-
-  async listMatches(
-    vendorProfileId: string,
-    filters: MatchFilters,
-    now: Date,
-    tx?: DbTx,
-  ) {
-    const client = tx ?? this.prisma;
-    const limit = Math.min(Math.max(filters.limit ?? 20, 1), 50);
-
-    const nonTerminalOfferStates: OfferState[] = [
-      OfferState.PENDING,
-      OfferState.ACCEPTED,
-    ];
-
-    const where: Prisma.RequestMatchWhereInput = {
-      vendorProfileId,
-      isEligible: true,
-      request: {
-        state: { in: [RequestState.PUBLISHED, RequestState.OFFERS_RECEIVED] },
-        expiresAt: { gt: now },
-        ...(filters.requestType && { requestType: filters.requestType }),
-        ...(filters.direction && { direction: filters.direction }),
-        ...(filters.categoryId && { categoryId: filters.categoryId }),
-        ...(filters.regionId && { regionId: filters.regionId }),
-        ...(filters.purityKarat && { purityKarat: filters.purityKarat }),
-        ...(filters.weightMin !== undefined && { weightGrams: { gte: filters.weightMin } }),
-        ...(filters.weightMax !== undefined && { weightGrams: { lte: filters.weightMax } }),
-        ...(filters.budgetMin !== undefined && { budgetMin: { gte: filters.budgetMin } }),
-        ...(filters.budgetMax !== undefined && { budgetMax: { lte: filters.budgetMax } }),
-        ...(filters.publishedWithinHours && {
-          publishedAt: { gte: new Date(now.getTime() - filters.publishedWithinHours * 60 * 60 * 1000) },
-        }),
-        // Default feed hides Requests this Vendor already responded to.
-        ...(!filters.includeResponded && {
-          offers: {
-            none: {
-              vendorProfileId,
-              state: { in: nonTerminalOfferStates },
-            },
-          },
-        }),
-      },
-    };
-
-    if (filters.cursor) {
-      where.id = { lt: filters.cursor };
-    }
-
-    const matches = await client.requestMatch.findMany({
-      where,
-      take: limit + 1,
-      orderBy: { matchedAt: 'desc' },
-      include: {
-        request: {
-          include: {
-            category: true,
-            region: true,
-            offers: {
-              where: {
-                vendorProfileId,
-                state: { in: nonTerminalOfferStates },
-              },
-              select: { id: true },
-              take: 1,
-            },
-          },
-        },
-      },
+        vendorProfileId: v.id,
+        matchedAt: now,
+        isEligible: true,
+      })),
+      skipDuplicates: true,
     });
 
-    const hasMore = matches.length > limit;
-    const items = hasMore ? matches.slice(0, limit) : matches;
-    const lastItem = items[items.length - 1];
-    const nextCursor = hasMore && lastItem ? lastItem.id : null;
-
-    return {
-      items,
-      nextCursor,
-    };
+    return res.count;
   }
 
-  /**
-   * Recomputes a vendor's match set upon vendor.eligibility.changed (T37, CP2-A12).
-   * Lapsed subscriptions or lost categories/regions remove future eligibility without deleting offer history.
-   */
-  async recomputeVendorEligibility(
-    vendorProfileId: string,
-    now: Date,
-    tx?: DbTx,
-  ): Promise<{ addedRequestIds: string[]; removedCount: number }> {
-    const client = tx ?? this.prisma;
-
-    const vendor = await client.vendorProfile.findUnique({
+  async recomputeForVendor(vendorProfileId: string, now: Date = new Date()): Promise<number> {
+    const vendor = await this.prisma.vendorProfile.findUnique({
       where: { id: vendorProfileId },
       include: {
         user: true,
@@ -219,97 +54,227 @@ export class MatchingRepository {
         regions: true,
         subscriptions: {
           where: {
-            state: { in: [SubscriptionState.ACTIVE, SubscriptionState.GRACE] },
-            periodStart: { lte: now },
-            OR: [{ periodEnd: { gte: now } }, { graceEndsAt: { gte: now } }],
+            state: { in: ['ACTIVE', 'GRACE'] },
           },
         },
       },
     });
 
-    const isEligible =
-      vendor &&
-      vendor.verificationState === VendorVerificationState.VERIFIED &&
-      vendor.user.accountState === UserAccountState.ACTIVE;
+    if (!vendor || vendor.verificationState !== 'VERIFIED' || vendor.user.accountState !== 'ACTIVE') {
+      return 0;
+    }
 
-    const categoryIds = isEligible ? vendor.categories.map((c) => c.categoryId) : [];
-    const regionIds = isEligible ? vendor.regions.map((r) => r.regionId) : [];
-    const subscribedTypes = isEligible ? vendor.subscriptions.map((s) => s.requestType) : [];
+    const categoryIds = vendor.categories.map((c) => c.categoryId);
+    const regionIds = vendor.regions.map((r) => r.regionId);
+    const subTypes = vendor.subscriptions.map((s) => s.requestType);
 
-    const canMatch =
-      isEligible &&
-      categoryIds.length > 0 &&
-      regionIds.length > 0 &&
-      subscribedTypes.length > 0;
+    if (categoryIds.length === 0 || regionIds.length === 0 || subTypes.length === 0) {
+      return 0;
+    }
 
-    const eligibleRequests = canMatch
-      ? await client.request.findMany({
-          where: {
-            state: { in: [RequestState.PUBLISHED, RequestState.OFFERS_RECEIVED] },
-            expiresAt: { gt: now },
-            categoryId: { in: categoryIds },
-            regionId: { in: regionIds },
-            requestType: { in: subscribedTypes },
-          },
-          select: { id: true },
-        })
-      : [];
+    const eligibleRequests = await this.prisma.request.findMany({
+      where: {
+        state: 'PUBLISHED',
+        expiresAt: { gt: now },
+        categoryId: { in: categoryIds },
+        regionId: { in: regionIds },
+        requestType: { in: subTypes },
+      },
+      select: { id: true },
+    });
 
-    const eligibleRequestIds = new Set(eligibleRequests.map((r) => r.id));
+    if (eligibleRequests.length === 0) return 0;
 
-    const currentOpenMatches = await client.requestMatch.findMany({
+    const res = await this.prisma.requestMatch.createMany({
+      data: eligibleRequests.map((r) => ({
+        requestId: r.id,
+        vendorProfileId,
+        matchedAt: now,
+        isEligible: true,
+      })),
+      skipDuplicates: true,
+    });
+
+    return res.count;
+  }
+
+  async markMatchViewed(
+    vendorProfileId: string,
+    requestId: string,
+    now: Date = new Date(),
+  ): Promise<void> {
+    await this.prisma.requestMatch.updateMany({
       where: {
         vendorProfileId,
+        requestId,
+        viewedAt: null,
+      },
+      data: {
+        viewedAt: now,
+      },
+    });
+  }
+
+  async listMatchesForVendor(
+    vendorProfileId: string,
+    filter: MatchesFilterDto,
+    now: Date = new Date(),
+  ) {
+    const limit = filter.limit ? Math.min(Math.max(filter.limit, 1), 50) : 20;
+
+    const where: Prisma.RequestMatchWhereInput = {
+      vendorProfileId,
+      isEligible: true,
+      request: {
+        state: 'PUBLISHED',
+        expiresAt: { gt: now },
+        ...(filter.requestType ? { requestType: filter.requestType } : {}),
+        ...(filter.direction ? { direction: filter.direction } : {}),
+        ...(filter.categoryId ? { categoryId: filter.categoryId } : {}),
+        ...(filter.regionId ? { regionId: filter.regionId } : {}),
+        ...(filter.purityKarat ? { purityKarat: filter.purityKarat } : {}),
+        ...(filter.weightMin || filter.weightMax
+          ? {
+              weightGrams: {
+                ...(filter.weightMin ? { gte: filter.weightMin } : {}),
+                ...(filter.weightMax ? { lte: filter.weightMax } : {}),
+              },
+            }
+          : {}),
+        ...(filter.budgetMin || filter.budgetMax
+          ? {
+              budgetMax: {
+                ...(filter.budgetMin ? { gte: filter.budgetMin } : {}),
+                ...(filter.budgetMax ? { lte: filter.budgetMax } : {}),
+              },
+            }
+          : {}),
+        ...(filter.publishedWithinHours
+          ? {
+              publishedAt: {
+                gte: new Date(now.getTime() - filter.publishedWithinHours * 60 * 60 * 1000),
+              },
+            }
+          : {}),
+        ...(filter.q
+          ? {
+              OR: [
+                { reference: { contains: filter.q, mode: 'insensitive' } },
+                { notes: { contains: filter.q, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+        ...(filter.includeResponded !== true
+          ? {
+              offers: {
+                none: {
+                  vendorProfileId,
+                },
+              },
+            }
+          : {}),
+      },
+    };
+
+    let orderBy: Prisma.RequestMatchOrderByWithRelationInput = { matchedAt: 'desc' };
+    if (filter.sort === 'EXPIRING') {
+      orderBy = { request: { expiresAt: 'asc' } };
+    } else if (filter.sort === 'FEWEST_OFFERS') {
+      orderBy = { request: { offerCount: 'asc' } };
+    } else if (filter.sort === 'HIGHEST_VALUE') {
+      orderBy = { request: { budgetMax: 'desc' } };
+    }
+
+    const matches = await this.prisma.requestMatch.findMany({
+      where,
+      take: limit + 1,
+      ...(filter.cursor
+        ? {
+            cursor: { id: filter.cursor },
+            skip: 1,
+          }
+        : {}),
+      orderBy,
+      include: {
         request: {
-          state: { in: [RequestState.PUBLISHED, RequestState.OFFERS_RECEIVED] },
-          expiresAt: { gt: now },
+          include: {
+            category: true,
+            region: true,
+            media: { include: { media: true } },
+            offers: {
+              where: { vendorProfileId },
+            },
+            customerProfile: {
+              select: {
+                connectionCount: true,
+                aggregateRating: true,
+                reviewCount: true,
+              },
+            },
+          },
         },
       },
-      select: { id: true, requestId: true, isEligible: true },
     });
 
-    const existingMatchMap = new Map(currentOpenMatches.map((m) => [m.requestId, m]));
-
-    const toDisableIds = currentOpenMatches
-      .filter((m) => m.isEligible && !eligibleRequestIds.has(m.requestId))
-      .map((m) => m.id);
-
-    if (toDisableIds.length > 0) {
-      await client.requestMatch.updateMany({
-        where: { id: { in: toDisableIds } },
-        data: { isEligible: false },
-      });
-    }
-
-    const toEnableIds = currentOpenMatches
-      .filter((m) => !m.isEligible && eligibleRequestIds.has(m.requestId))
-      .map((m) => m.id);
-
-    if (toEnableIds.length > 0) {
-      await client.requestMatch.updateMany({
-        where: { id: { in: toEnableIds } },
-        data: { isEligible: true },
-      });
-    }
-
-    const addedRequestIds: string[] = [];
-    for (const req of eligibleRequests) {
-      if (!existingMatchMap.has(req.id)) {
-        await client.requestMatch.create({
-          data: {
-            requestId: req.id,
-            vendorProfileId,
-            matchedAt: now,
-            isEligible: true,
-          },
-        });
-        addedRequestIds.push(req.id);
+    let nextCursor: string | undefined = undefined;
+    let items = matches;
+    if (matches.length > limit) {
+      const next = matches[limit];
+      if (next) {
+        nextCursor = next.id;
       }
+      items = matches.slice(0, limit);
     }
 
-    return {
-      addedRequestIds,
-      removedCount: toDisableIds.length,
-    };
+    return { items, nextCursor };
+  }
+
+  // Filter Presets CRUD (FR-VEN-009, VEN-S07)
+  async listFilterPresets(vendorProfileId: string) {
+    return this.prisma.filterPreset.findMany({
+      where: { vendorProfileId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findFilterPreset(vendorProfileId: string, id: string) {
+    return this.prisma.filterPreset.findFirst({
+      where: { id, vendorProfileId },
+    });
+  }
+
+  async createFilterPreset(
+    vendorProfileId: string,
+    name: string,
+    filters: Prisma.InputJsonValue,
+  ) {
+    return this.prisma.filterPreset.create({
+      data: {
+        vendorProfileId,
+        name,
+        filters,
+      },
+    });
+  }
+
+  async updateFilterPreset(
+    vendorProfileId: string,
+    id: string,
+    name?: string,
+    filters?: Prisma.InputJsonValue,
+  ) {
+    return this.prisma.filterPreset.update({
+      where: { id },
+      data: {
+        ...(name !== undefined ? { name } : {}),
+        ...(filters !== undefined ? { filters } : {}),
+      },
+    });
+  }
+
+  async deleteFilterPreset(vendorProfileId: string, id: string) {
+    return this.prisma.filterPreset.deleteMany({
+      where: { id, vendorProfileId },
+    });
   }
 }

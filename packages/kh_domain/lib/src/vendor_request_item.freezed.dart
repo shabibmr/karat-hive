@@ -52,7 +52,7 @@ $Res call({
 });
 
 
-$MaskedPartyCopyWith<$Res> get customer;
+
 
 }
 /// @nodoc
@@ -93,16 +93,7 @@ as MaskedParty,media: null == media ? _self.media : media // ignore: cast_nullab
 as List<RequestMediaRef>,
   ));
 }
-/// Create a copy of VendorRequestItem
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$MaskedPartyCopyWith<$Res> get customer {
-  
-  return $MaskedPartyCopyWith<$Res>(_self.customer, (value) {
-    return _then(_self.copyWith(customer: value));
-  });
-}
+
 }
 
 
@@ -310,7 +301,7 @@ $Res call({
 });
 
 
-@override $MaskedPartyCopyWith<$Res> get customer;
+
 
 }
 /// @nodoc
@@ -352,16 +343,7 @@ as List<RequestMediaRef>,
   ));
 }
 
-/// Create a copy of VendorRequestItem
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$MaskedPartyCopyWith<$Res> get customer {
-  
-  return $MaskedPartyCopyWith<$Res>(_self.customer, (value) {
-    return _then(_self.copyWith(customer: value));
-  });
-}
+
 }
 
 // dart format on

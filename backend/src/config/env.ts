@@ -24,6 +24,7 @@ const envSchema = z
     JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
     JWT_REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(14),
     INSTANCE_ID: z.string().min(1).optional(),
+    FIREBASE_PROJECT_ID: z.string().default('karat-hive-app'),
 
     // --- OTP (vendor onboarding vertical) ---
     OTP_DEV_MODE: z.enum(['console', 'fixed']).default('console'),
@@ -44,6 +45,13 @@ const envSchema = z
     SUPABASE_SERVICE_ROLE_KEY: optionalString,
     SUPABASE_STORAGE_BUCKET_KYC: z.string().min(1).default('kyc'),
     SIGNED_UPLOAD_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+
+    // --- push (G2-N03). Optional; adapters stub when unset. ---
+    FCM_SERVER_KEY: optionalString,
+    APNS_KEY_ID: optionalString,
+    APNS_TEAM_ID: optionalString,
+    APNS_BUNDLE_ID: optionalString,
+    APNS_KEY_P8: optionalString,
 
     // --- dev-only vendor verification shortcut ---
     DEV_VERIFY_ENABLED: z

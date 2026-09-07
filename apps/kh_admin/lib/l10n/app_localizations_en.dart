@@ -346,17 +346,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vendorsDetailTitle => 'Vendor Detail';
 
   @override
-  String get vendorsDetailStubBody =>
-      'Full vendor inspection (ADM-S06) is scheduled for a later milestone.';
-
-  @override
   String vendorsDetailVendorId(String id) {
     return 'Vendor ID: $id';
   }
-
-  @override
-  String get vendorsDetailComingSoon =>
-      'Account actions and document review will appear here.';
 
   @override
   String get verificationEyebrow => 'Compliance Reviewer';
@@ -537,4 +529,784 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get toastInfoRequested => 'Information request sent to vendor.';
+
+  @override
+  String get offersListEyebrow => 'Marketplace Audit';
+
+  @override
+  String get offersListHeading => 'Offers';
+
+  @override
+  String get offersListSubtitle =>
+      'Platform-wide vendor offer monitoring and inspection';
+
+  @override
+  String get offersFilterState => 'Offer state';
+
+  @override
+  String get offersFilterAllStates => 'All States';
+
+  @override
+  String get offersFilterRequestType => 'Request type';
+
+  @override
+  String get offersFilterAllTypes => 'All Types';
+
+  @override
+  String get offersFilterSearch => 'Search';
+
+  @override
+  String get offersFilterSearchHint => 'Offer ID, vendor name, request ref…';
+
+  @override
+  String get offersFilterSearchTooltip => 'Search offers';
+
+  @override
+  String get offersColumnReference => 'Offer Reference/ID';
+
+  @override
+  String get offersColumnParentRequest => 'Parent Request';
+
+  @override
+  String get offersColumnVendor => 'Vendor Name';
+
+  @override
+  String get offersColumnOfferedPrice => 'Offered Price (AED)';
+
+  @override
+  String get offersColumnState => 'State';
+
+  @override
+  String get offersColumnSubmissionDate => 'Submission Date';
+
+  @override
+  String get offersColumnExpiryDate => 'Expiry Date';
+
+  @override
+  String get offersColumnOutcome => 'Outcome';
+
+  @override
+  String get offersColumnAction => 'Action';
+
+  @override
+  String get offersOutcomeAcceptedByCustomer => 'Accepted by Customer';
+
+  @override
+  String get offersOutcomeRejected => 'Rejected';
+
+  @override
+  String get offersOutcomeExpired => 'Expired';
+
+  @override
+  String get offersOutcomePending => 'Pending';
+
+  @override
+  String get offersActionInspect => 'Inspect';
+
+  @override
+  String offersPaginationShowing(int count) {
+    return 'Showing $count offers';
+  }
+
+  @override
+  String offersPaginationShowingOf(int count, int total) {
+    return 'Showing $count offers of $total';
+  }
+
+  @override
+  String get offersPaginationPrevious => 'Previous';
+
+  @override
+  String offersPaginationPage(int page) {
+    return 'Page $page';
+  }
+
+  @override
+  String get offersPaginationNext => 'Next';
+
+  @override
+  String get offersEmptyTitle => 'No offers found';
+
+  @override
+  String get offersEmptyBody => 'No offers match the current filter criteria.';
+
+  @override
+  String get offersErrorTitle => 'Failed to load offers';
+
+  @override
+  String get offersRetry => 'Retry';
+
+  @override
+  String get offersDetailBack => 'Back to Offers';
+
+  @override
+  String offersDetailEyebrow(String reference) {
+    return 'OFFER $reference';
+  }
+
+  @override
+  String offersDetailHeaderMeta(String date, int hours) {
+    return 'Submitted on $date · Validity ${hours}h';
+  }
+
+  @override
+  String offersDetailHeaderMetaExpires(String date, int hours, String expiry) {
+    return 'Submitted on $date · Validity ${hours}h (Expires $expiry)';
+  }
+
+  @override
+  String get offersDetailCompetingWonTitle =>
+      'COMPETING OFFER WON THIS REQUEST';
+
+  @override
+  String offersDetailCompetingWonBody(
+    String reference,
+    String vendorPart,
+    String pricePart,
+  ) {
+    return 'Customer selected winning offer $reference$vendorPart$pricePart.';
+  }
+
+  @override
+  String offersDetailCompetingWonBy(String vendor) {
+    return ' by $vendor';
+  }
+
+  @override
+  String offersDetailCompetingWonFor(String price) {
+    return ' for $price';
+  }
+
+  @override
+  String get offersDetailInspectWinning => 'Inspect Winning Offer';
+
+  @override
+  String get offersDetailVendorProfileTitle => 'Unmasked Vendor Profile';
+
+  @override
+  String get offersDetailViewVendor => 'View Vendor';
+
+  @override
+  String get offersDetailNoVendor => 'No vendor details provided.';
+
+  @override
+  String get offersDetailLabelLegalName => 'Legal Business Name';
+
+  @override
+  String get offersDetailLabelTradingName => 'Trading Name';
+
+  @override
+  String get offersDetailLabelTradeLicence => 'Trade Licence';
+
+  @override
+  String get offersDetailLabelContactMobile => 'Contact Person & Mobile';
+
+  @override
+  String get offersDetailLabelBusinessEmail => 'Business Email';
+
+  @override
+  String get offersDetailLabelVendorRating => 'Vendor Rating';
+
+  @override
+  String offersDetailDealsSuffix(int deals) {
+    return ' ($deals deals completed)';
+  }
+
+  @override
+  String get offersDetailParentRequestTitle => 'Parent Request Reference';
+
+  @override
+  String get offersDetailOpenRequest => 'Open Request';
+
+  @override
+  String get offersDetailNoParentRequest => 'No parent request linked.';
+
+  @override
+  String get offersDetailLabelRequestReference => 'Request Reference';
+
+  @override
+  String get offersDetailLabelRequestType => 'Request Type';
+
+  @override
+  String get offersDetailLabelCustomerMobile => 'Customer Name & Mobile';
+
+  @override
+  String get offersDetailLabelCategory => 'Category';
+
+  @override
+  String get offersDetailLabelRegion => 'Region';
+
+  @override
+  String get offersDetailLabelIndicativeBudget => 'Indicative Budget';
+
+  @override
+  String get offersDetailLabelRequestNotes => 'Request Notes';
+
+  @override
+  String get offersDetailPricingTitle => 'Pricing Breakdown';
+
+  @override
+  String get offersDetailPricingGoldValue => 'Gold Metal Value';
+
+  @override
+  String offersDetailPricingGoldHintRate(String rate) {
+    return 'Base gold price ($rate/g)';
+  }
+
+  @override
+  String get offersDetailPricingGoldHint => 'Base gold price component';
+
+  @override
+  String get offersDetailPricingMaking => 'Making / Crafting Charges';
+
+  @override
+  String get offersDetailPricingMakingHint => 'Labour and artistry charges';
+
+  @override
+  String get offersDetailPricingVat => 'Value Added Tax (VAT 5%)';
+
+  @override
+  String get offersDetailPricingVatHint => 'UAE statutory tax';
+
+  @override
+  String get offersDetailPricingTotal => 'Total Offered Price';
+
+  @override
+  String get offersDetailTermsTitle => 'Commercial Terms, Notes & Attachments';
+
+  @override
+  String get offersDetailLabelDelivery => 'Delivery / Readiness Timeframe';
+
+  @override
+  String get offersDetailDeliveryDefault => 'Immediate dispatch / collection';
+
+  @override
+  String get offersDetailLabelWarranty => 'Warranty / Buy-Back Terms';
+
+  @override
+  String get offersDetailWarrantyDefault => 'Standard UAE jeweller guarantee';
+
+  @override
+  String get offersDetailLabelVendorNote => 'Vendor Note';
+
+  @override
+  String get offersDetailVendorNoteDefault =>
+      'No free-text note provided by vendor.';
+
+  @override
+  String get offersDetailLabelValidityExpiry => 'Offer Validity & Expiry';
+
+  @override
+  String offersDetailValidityExpiryValue(int hours, String date) {
+    return '$hours hours · Expiry: $date';
+  }
+
+  @override
+  String get offersDetailLabelDeclineReason => 'Decline Reason';
+
+  @override
+  String offersDetailAttachmentsCount(int count) {
+    return 'Attachments & Certificates ($count)';
+  }
+
+  @override
+  String get offersDetailNoAttachments =>
+      'No media files or certificates attached by vendor.';
+
+  @override
+  String get offersDetailRevisionsTitle => 'Revisions History (FR-VEN-014)';
+
+  @override
+  String offersDetailRevisionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count revisions',
+      one: '1 revision',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get offersDetailNoRevisions =>
+      'Initial offer terms. No modifications were made pre-acceptance.';
+
+  @override
+  String offersDetailRevisionNumber(int number) {
+    return 'Rev #$number';
+  }
+
+  @override
+  String offersDetailRevisionOffered(String price) {
+    return 'Offered: $price';
+  }
+
+  @override
+  String offersDetailRevisionMakingSuffix(String making) {
+    return ' (Making: $making)';
+  }
+
+  @override
+  String offersDetailRevisionNote(String note) {
+    return 'Note: $note';
+  }
+
+  @override
+  String get offersDetailTransitionsTitle => 'State Transitions Timeline';
+
+  @override
+  String offersDetailNoTransitions(String state) {
+    return 'Offer is in $state state. No state transition audit recorded.';
+  }
+
+  @override
+  String offersDetailTransitionActor(String actor) {
+    return 'By: $actor';
+  }
+
+  @override
+  String offersDetailTransitionReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String get offersDetailNotesTitle => 'Internal Administrative Notes';
+
+  @override
+  String get offersDetailNotesSubtitle =>
+      'Admin inspection notes are internal to Karat Hive. Commercial terms are read-only.';
+
+  @override
+  String get offersDetailNotesHint => 'Add an internal note about this offer…';
+
+  @override
+  String get offersDetailAddNote => 'Add Note';
+
+  @override
+  String get offersDetailNoNotes => 'No internal notes added yet.';
+
+  @override
+  String get offersDetailErrorTitle => 'Failed to load offer details';
+
+  @override
+  String get requestsListEyebrow => 'Marketplace Audit';
+
+  @override
+  String get requestsListHeading => 'Requests';
+
+  @override
+  String get requestsListSubtitle =>
+      'Platform requests oversight and inspection';
+
+  @override
+  String get requestsFilterType => 'Request Type';
+
+  @override
+  String get requestsFilterAllTypes => 'All Types';
+
+  @override
+  String get requestsFilterDirection => 'Direction';
+
+  @override
+  String get requestsFilterAllDirections => 'All Directions';
+
+  @override
+  String get requestsFilterStatus => 'Status';
+
+  @override
+  String get requestsFilterAllStates => 'All States';
+
+  @override
+  String get requestsFilterSearch => 'Search';
+
+  @override
+  String get requestsFilterSearchHint => 'Reference, notes, customer…';
+
+  @override
+  String get requestsFilterSearchTooltip => 'Search';
+
+  @override
+  String get requestsFilterZeroOffers => 'Zero Offers';
+
+  @override
+  String get requestsColumnReference => 'Reference';
+
+  @override
+  String get requestsColumnType => 'Type';
+
+  @override
+  String get requestsColumnDirection => 'Direction';
+
+  @override
+  String get requestsColumnCustomer => 'Customer';
+
+  @override
+  String get requestsColumnCategory => 'Category';
+
+  @override
+  String get requestsColumnRegion => 'Region';
+
+  @override
+  String get requestsColumnIndicativeValue => 'Indicative Value';
+
+  @override
+  String get requestsColumnOffers => 'Offers';
+
+  @override
+  String get requestsColumnState => 'State';
+
+  @override
+  String get requestsColumnDate => 'Date';
+
+  @override
+  String get requestsColumnAction => 'Action';
+
+  @override
+  String get requestsActionInspect => 'Inspect';
+
+  @override
+  String get requestsLoadMore => 'Load more';
+
+  @override
+  String get requestsPaginationPrevious => 'Previous';
+
+  @override
+  String requestsPaginationPage(int page) {
+    return 'Page $page';
+  }
+
+  @override
+  String get requestsPaginationNext => 'Next';
+
+  @override
+  String get requestsEmptyBody => 'No requests match the current filters.';
+
+  @override
+  String get requestsRetry => 'Retry';
+
+  @override
+  String get requestsDetailBack => 'Back to Requests';
+
+  @override
+  String get requestsDetailEyebrow => 'Request Oversight';
+
+  @override
+  String get requestsDetailNoReference => 'NO REFERENCE';
+
+  @override
+  String requestsDetailPublishedAt(String date) {
+    return 'Published $date GST';
+  }
+
+  @override
+  String requestsDetailCreatedAt(String date) {
+    return 'Created $date GST';
+  }
+
+  @override
+  String get requestsDetailNoteAdded => 'Note added successfully.';
+
+  @override
+  String requestsDetailNoteAddFailed(String error) {
+    return 'Failed to add note: $error';
+  }
+
+  @override
+  String get requestsDetailRemoveSuccess => 'Request successfully removed.';
+
+  @override
+  String requestsDetailRemoveFailed(String error) {
+    return 'Failed to remove request: $error';
+  }
+
+  @override
+  String get requestsDetailRemovedTitle =>
+      'REQUEST REMOVED BY PLATFORM MODERATION (FR-ADM-019)';
+
+  @override
+  String requestsDetailRemovedReason(String code, String text) {
+    return 'Reason: $code · $text';
+  }
+
+  @override
+  String get requestsDetailRemovedReasonCodeDefault => 'POLICY_VIOLATION';
+
+  @override
+  String get requestsDetailRemovedReasonTextDefault =>
+      'Violates platform trading guidelines';
+
+  @override
+  String requestsDetailRemovedPolicyClause(String clause) {
+    return 'Policy clause cited: $clause';
+  }
+
+  @override
+  String get requestsDetailConnectionTitle => 'ACTIVE CONNECTION ESTABLISHED';
+
+  @override
+  String requestsDetailConnectionParties(String vendor, String customer) {
+    return 'Accepted Vendor: $vendor · Customer: $customer';
+  }
+
+  @override
+  String requestsDetailConnectionMeta(String date, String channel) {
+    return 'Connected at: $date GST · Channel: $channel';
+  }
+
+  @override
+  String get requestsDetailConnectionChannelDefault => 'WHATSAPP';
+
+  @override
+  String get requestsDetailWhatsappChannel => 'WhatsApp Channel';
+
+  @override
+  String get requestsDetailSpecsTitle =>
+      'Commercial Requirements & Specifications';
+
+  @override
+  String get requestsDetailSpecsReadOnly =>
+      'READ-ONLY FOR ADMIN (FR-ADM-018 AC3)';
+
+  @override
+  String get requestsDetailLabelReferenceCode => 'Reference Code';
+
+  @override
+  String get requestsDetailLabelRequestType => 'Request Type';
+
+  @override
+  String get requestsDetailLabelMarketDirection => 'Market Direction';
+
+  @override
+  String get requestsDetailLabelCategory => 'Category';
+
+  @override
+  String get requestsDetailLabelRegion => 'Region';
+
+  @override
+  String get requestsDetailLabelOrnamentType => 'Ornament Type';
+
+  @override
+  String get requestsDetailLabelPurityKarat => 'Purity / Karat';
+
+  @override
+  String get requestsDetailLabelWeight => 'Weight';
+
+  @override
+  String get requestsDetailLabelCondition => 'Condition';
+
+  @override
+  String get requestsDetailLabelDenomination => 'Denomination';
+
+  @override
+  String get requestsDetailLabelQuantity => 'Quantity';
+
+  @override
+  String get requestsDetailLabelMintRefiner => 'Mint / Refiner';
+
+  @override
+  String get requestsDetailLabelIndicativeValue => 'Indicative Value';
+
+  @override
+  String get requestsDetailLabelCustomerBudget => 'Customer Budget';
+
+  @override
+  String requestsDetailWeightApproximate(String weight) {
+    return '${weight}g (Approximate)';
+  }
+
+  @override
+  String requestsDetailWeightExact(String weight) {
+    return '${weight}g (Exact)';
+  }
+
+  @override
+  String requestsDetailQuantityUnits(int quantity) {
+    return '$quantity units';
+  }
+
+  @override
+  String requestsDetailBudgetValue(String min, String max) {
+    return 'AED $min – $max';
+  }
+
+  @override
+  String requestsDetailBudgetValueFlexible(String min, String max) {
+    return 'AED $min – $max (Flexible)';
+  }
+
+  @override
+  String get requestsDetailCustomerNotes => 'Customer Notes:';
+
+  @override
+  String get requestsDetailCustomerProfileTitle => 'Unmasked Customer Profile';
+
+  @override
+  String requestsDetailCustomerId(String id) {
+    return 'Customer ID: $id';
+  }
+
+  @override
+  String get requestsDetailLabelMobilePhone => 'Mobile Phone';
+
+  @override
+  String get requestsDetailLabelEmailAddress => 'Email Address';
+
+  @override
+  String get requestsDetailLabelMemberSince => 'Member Since';
+
+  @override
+  String requestsDetailMediaTitle(int count) {
+    return 'Uploaded Media ($count)';
+  }
+
+  @override
+  String get requestsDetailNoMedia => 'No media uploaded for this request.';
+
+  @override
+  String requestsDetailImageNumber(int number) {
+    return 'Image #$number';
+  }
+
+  @override
+  String requestsDetailOffersTitle(int count) {
+    return 'Received Offers ($count)';
+  }
+
+  @override
+  String get requestsDetailNoOffers => 'No offers submitted yet.';
+
+  @override
+  String get requestsDetailOffersColumnVendor => 'Vendor';
+
+  @override
+  String get requestsDetailOffersColumnPrice => 'Offered Price';
+
+  @override
+  String get requestsDetailOffersColumnStatus => 'Status';
+
+  @override
+  String get requestsDetailOffersColumnSubmitted => 'Submitted';
+
+  @override
+  String get requestsDetailOffersColumnTurnaround => 'Turnaround';
+
+  @override
+  String requestsDetailOfferDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String requestsDetailMatchedTitle(int count) {
+    return 'Matched Vendors ($count)';
+  }
+
+  @override
+  String get requestsDetailNoMatched => 'No vendors matched to this request.';
+
+  @override
+  String requestsDetailMatchedAt(String date) {
+    return 'Matched: $date';
+  }
+
+  @override
+  String get requestsDetailViewed => 'VIEWED';
+
+  @override
+  String get requestsDetailNotViewed => 'NOT VIEWED';
+
+  @override
+  String get requestsDetailTimelineTitle => 'State Transition History';
+
+  @override
+  String get requestsDetailNoTransitions => 'No recorded transitions.';
+
+  @override
+  String requestsDetailTimelineBy(String actor) {
+    return 'by $actor';
+  }
+
+  @override
+  String get requestsDetailModerationTitle => 'Platform Moderation';
+
+  @override
+  String get requestsDetailModerationBody =>
+      'Administrators can forcibly remove requests that violate platform trading policies (FR-ADM-019).';
+
+  @override
+  String get requestsDetailAlreadyRemoved => 'Request Already Removed';
+
+  @override
+  String get requestsDetailRemoveRequest => 'Remove Request';
+
+  @override
+  String requestsDetailNotesTitle(int count) {
+    return 'Admin Internal Notes ($count)';
+  }
+
+  @override
+  String get requestsDetailNoNotes => 'No internal notes recorded.';
+
+  @override
+  String get requestsDetailAddNoteLabel => 'Add Internal Note';
+
+  @override
+  String get requestsDetailAddNoteHint => 'Record audit or compliance notes…';
+
+  @override
+  String get requestsDetailAddNote => 'Add Note';
+
+  @override
+  String get requestsDetailRemoveDialogTitle => 'Remove Request';
+
+  @override
+  String requestsDetailRemoveDialogBody(String reference) {
+    return 'Removing \"$reference\" sets status to REMOVED, withdraws all pending offers, and notifies both parties.';
+  }
+
+  @override
+  String get requestsDetailRemoveReasonCode => 'Reason Code';
+
+  @override
+  String get requestsDetailRemoveReasonPolicyViolation => 'Policy violation';
+
+  @override
+  String get requestsDetailRemoveReasonProhibitedItem =>
+      'Prohibited item / Contraband';
+
+  @override
+  String get requestsDetailRemoveReasonFraudulent =>
+      'Fraudulent or misleading listing';
+
+  @override
+  String get requestsDetailRemoveReasonCustomerRequested =>
+      'Customer requested cancellation';
+
+  @override
+  String get requestsDetailRemoveReasonOther => 'Other administrative reason';
+
+  @override
+  String get requestsDetailRemovePolicyClauseLabel =>
+      'Policy Clause (cited to customer)';
+
+  @override
+  String get requestsDetailRemovePolicyClauseHint =>
+      'e.g. Terms of Service §4.2';
+
+  @override
+  String get requestsDetailRemoveJustificationLabel =>
+      'Detailed Justification & Notes';
+
+  @override
+  String get requestsDetailRemoveJustificationHint =>
+      'State reason for audit log…';
+
+  @override
+  String get requestsDetailRemoveJustificationRequired =>
+      'Detailed justification is required.';
+
+  @override
+  String get requestsDetailConfirmRemoval => 'Confirm Removal';
+
+  @override
+  String get requestsDetailErrorRetry => 'Retry';
 }

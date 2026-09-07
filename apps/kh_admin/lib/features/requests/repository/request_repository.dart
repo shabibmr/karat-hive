@@ -24,16 +24,11 @@ class RequestRepository {
       'limit': limit.toString(),
       if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
       if (filters.query.trim().isNotEmpty) 'q': filters.query.trim(),
-      if (filters.requestType != null) 'requestType': filters.requestType!.apiValue,
-      if (filters.direction != null) 'direction': filters.direction!.apiValue,
       if (filters.state != null) 'state': filters.state!.apiValue,
-      if (filters.categoryId != null && filters.categoryId!.isNotEmpty)
-        'categoryId': filters.categoryId,
-      if (filters.regionId != null && filters.regionId!.isNotEmpty)
-        'regionId': filters.regionId,
-      if (filters.zeroOffersOnly) 'zeroOffers': 'true',
-      if (filters.minValue != null) 'valueMin': filters.minValue.toString(),
-      if (filters.maxValue != null) 'valueMax': filters.maxValue.toString(),
+      // backend: unsupported, client-side. origin/main `GET /v1/admin/requests`
+      // accepts only q/state/limit/cursor. requestType, direction, categoryId,
+      // regionId, zeroOffers, valueMin, valueMax are ignored server-side, so we
+      // do not send them and instead filter the loaded page below where cheap.
     };
 
     final response = await _apiClient.getCollection(
@@ -41,14 +36,47 @@ class RequestRepository {
       queryParameters: queryParameters,
     );
 
-    final items = response.items
+    var items = response.items
         .whereType<Map<String, dynamic>>()
         .map(RequestListItem.fromApiResponse)
         .toList(growable: false);
 
+    // backend: unsupported, client-side — narrow the loaded page for filters the
+    // API cannot honour. Fields needed for these are already on RequestListItem.
+    if (filters.requestType != null ||
+        filters.direction != null ||
+        filters.zeroOffersOnly ||
+        filters.minValue != null ||
+        filters.maxValue != null) {
+      items = items.where((item) {
+        if (filters.requestType != null &&
+            item.requestType != filters.requestType) {
+          return false;
+        }
+        if (filters.direction != null && item.direction != filters.direction) {
+          return false;
+        }
+        if (filters.zeroOffersOnly && item.offerCount != 0) {
+          return false;
+        }
+        final value = item.indicativeValue ?? item.budgetMax;
+        if (filters.minValue != null &&
+            (value == null || value < filters.minValue!)) {
+          return false;
+        }
+        if (filters.maxValue != null &&
+            (value == null || value > filters.maxValue!)) {
+          return false;
+        }
+        return true;
+      }).toList(growable: false);
+    }
+
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = meta?['hasMore'] as bool?;
+    // No totalCount/total in the admin envelope; hasMore is derived purely from
+    // the presence of a next cursor.
+    final hasMore = nextCursor != null && nextCursor.isNotEmpty;
     final totalCount = (meta?['totalCount'] ?? meta?['total']) as int?;
 
     return RequestListPage(
@@ -63,7 +91,32 @@ class RequestRepository {
   Future<RequestDetail> fetchRequestDetail(String requestId) async {
     final response = await _apiClient.get('/v1/admin/requests/$requestId');
     final map = Map<String, dynamic>.from(response as Map<String, dynamic>);
-    return RequestDetail.fromApiResponse(map);
+    var detail = RequestDetail.fromApiResponse(map);
+
+    // Internal admin notes live on a separate endpoint on origin/main
+    // (`GET /v1/admin/requests/:id/notes`) and are merged into the detail here.
+    // A failure fetching notes must not break the detail view.
+    try {
+      final notesResponse =
+          await _apiClient.get('/v1/admin/requests/$requestId/notes');
+      final rawNotes = notesResponse is List
+          ? notesResponse
+          : (notesResponse is Map<String, dynamic>
+              ? notesResponse['data']
+              : null);
+      if (rawNotes is List) {
+        detail = detail.copyWith(
+          internalNotes: rawNotes
+              .whereType<Map<String, dynamic>>()
+              .map(RequestInternalNoteItem.fromApiResponse)
+              .toList(growable: false),
+        );
+      }
+    } on Object {
+      // Notes are supplementary context; ignore and keep the parsed detail.
+    }
+
+    return detail;
   }
 
   /// Admin moderation action: forcibly remove a request violating policy (FR-ADM-019).

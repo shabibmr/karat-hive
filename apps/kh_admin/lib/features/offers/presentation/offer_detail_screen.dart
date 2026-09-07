@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/design/theme/kh_theme.dart';
 import '../../../core/design/widgets/kh_screen_header.dart';
 import '../../../core/design/widgets/kh_status_chip.dart';
+import '../../../l10n/app_localizations.dart';
 import '../controller/offer_detail_controller.dart';
 import '../model/offer_detail.dart';
 import '../model/offer_enums.dart';
@@ -71,6 +72,7 @@ class _OfferDetailScreenState extends ConsumerState<OfferDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
     final asyncDetail =
         ref.watch(offerDetailControllerProvider(widget.offerId));
 
@@ -109,9 +111,9 @@ class _OfferDetailScreenState extends ConsumerState<OfferDetailScreen> {
                       }
                     },
                     icon: const Icon(Icons.arrow_back, size: 16.0),
-                    label: const Text(
-                      'Back to Offers',
-                      style: TextStyle(fontSize: 12.0),
+                    label: Text(
+                      l10n?.offersDetailBack ?? 'Back to Offers',
+                      style: const TextStyle(fontSize: 12.0),
                     ),
                   ),
                 ],
@@ -121,11 +123,23 @@ class _OfferDetailScreenState extends ConsumerState<OfferDetailScreen> {
               // Screen Header
               KhScreenHeader(
                 eyebrow: detail.reference != null && detail.reference!.isNotEmpty
-                    ? 'OFFER ${detail.reference}'
-                    : 'OFFER ${detail.id}',
+                    ? (l10n?.offersDetailEyebrow(detail.reference!) ??
+                        'OFFER ${detail.reference}')
+                    : (l10n?.offersDetailEyebrow(detail.id) ??
+                        'OFFER ${detail.id}'),
                 heading: _formatPrice(detail.offeredPrice),
-                supportingText:
-                    'Submitted on ${_formatDate(detail.submittedAt)} · Validity ${detail.validityHours ?? 24}h${detail.expiresAt != null ? ' (Expires ${_formatDate(detail.expiresAt)})' : ''}',
+                supportingText: detail.expiresAt != null
+                    ? (l10n?.offersDetailHeaderMetaExpires(
+                          _formatDate(detail.submittedAt),
+                          detail.validityHours ?? 24,
+                          _formatDate(detail.expiresAt),
+                        ) ??
+                        'Submitted on ${_formatDate(detail.submittedAt)} · Validity ${detail.validityHours ?? 24}h (Expires ${_formatDate(detail.expiresAt)})')
+                    : (l10n?.offersDetailHeaderMeta(
+                          _formatDate(detail.submittedAt),
+                          detail.validityHours ?? 24,
+                        ) ??
+                        'Submitted on ${_formatDate(detail.submittedAt)} · Validity ${detail.validityHours ?? 24}h'),
                 trailing: KhStatusChip(
                   label: detail.state.displayName.toUpperCase(),
                   tone: detail.state.statusTone,
@@ -244,6 +258,16 @@ class _WinningOfferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
+    final vendorPart = detail.winningVendorName != null
+        ? (l10n?.offersDetailCompetingWonBy(detail.winningVendorName!) ??
+            ' by ${detail.winningVendorName}')
+        : '';
+    final pricePart = detail.winningOfferPrice != null
+        ? (l10n?.offersDetailCompetingWonFor(
+                formatPrice(detail.winningOfferPrice!)) ??
+            ' for ${formatPrice(detail.winningOfferPrice!)}')
+        : '';
 
     return Container(
       padding: EdgeInsets.all(kh.spacing.lg),
@@ -276,7 +300,8 @@ class _WinningOfferCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'COMPETING OFFER WON THIS REQUEST',
+                  l10n?.offersDetailCompetingWonTitle ??
+                      'COMPETING OFFER WON THIS REQUEST',
                   style: kh.typography.caption.copyWith(
                     color: kh.colors.goldPrimary,
                     fontWeight: FontWeight.w700,
@@ -286,9 +311,14 @@ class _WinningOfferCard extends StatelessWidget {
                 ),
                 SizedBox(height: kh.spacing.xxs),
                 Text(
-                  'Customer selected winning offer ${detail.winningOfferReference ?? detail.winningOfferId ?? ''}'
-                  '${detail.winningVendorName != null ? ' by ${detail.winningVendorName}' : ''}'
-                  '${detail.winningOfferPrice != null ? ' for ${formatPrice(detail.winningOfferPrice!)}' : ''}.',
+                  l10n?.offersDetailCompetingWonBody(
+                        detail.winningOfferReference ??
+                            detail.winningOfferId ??
+                            '',
+                        vendorPart,
+                        pricePart,
+                      ) ??
+                      'Customer selected winning offer ${detail.winningOfferReference ?? detail.winningOfferId ?? ''}$vendorPart$pricePart.',
                   style: kh.typography.bodySmall.copyWith(
                     color: kh.colors.textPrimary,
                     fontSize: 13.0,
@@ -302,9 +332,9 @@ class _WinningOfferCard extends StatelessWidget {
             ElevatedButton(
               key: const Key('inspect-winning-offer-button'),
               onPressed: () => context.go('/offers/${detail.winningOfferId}'),
-              child: const Text(
-                'Inspect Winning Offer',
-                style: TextStyle(fontSize: 12.0),
+              child: Text(
+                l10n?.offersDetailInspectWinning ?? 'Inspect Winning Offer',
+                style: const TextStyle(fontSize: 12.0),
               ),
             ),
           ],
@@ -324,6 +354,7 @@ class _VendorProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -339,7 +370,8 @@ class _VendorProfileCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Unmasked Vendor Profile',
+                l10n?.offersDetailVendorProfileTitle ??
+                    'Unmasked Vendor Profile',
                 style: kh.typography.title.copyWith(
                   color: kh.colors.textPrimary,
                   fontSize: 16.0,
@@ -356,15 +388,17 @@ class _VendorProfileCard extends StatelessWidget {
                     minimumSize: const Size(60.0, 30.0),
                   ),
                   onPressed: () => context.go('/vendors/${vendor!.id}'),
-                  child: const Text('View Vendor',
-                      style: TextStyle(fontSize: 12.0)),
+                  child: Text(
+                    l10n?.offersDetailViewVendor ?? 'View Vendor',
+                    style: const TextStyle(fontSize: 12.0),
+                  ),
                 ),
             ],
           ),
           SizedBox(height: kh.spacing.md),
           if (vendor == null)
             Text(
-              'No vendor details provided.',
+              l10n?.offersDetailNoVendor ?? 'No vendor details provided.',
               style: kh.typography.bodySmall.copyWith(
                 color: kh.colors.textMuted,
                 fontSize: 13.0,
@@ -372,7 +406,7 @@ class _VendorProfileCard extends StatelessWidget {
             )
           else ...[
             _DetailRow(
-              label: 'Legal Business Name',
+              label: l10n?.offersDetailLabelLegalName ?? 'Legal Business Name',
               value: vendor!.legalBusinessName,
               isStrong: true,
             ),
@@ -380,17 +414,18 @@ class _VendorProfileCard extends StatelessWidget {
                 vendor!.tradingName!.isNotEmpty &&
                 vendor!.tradingName != vendor!.legalBusinessName)
               _DetailRow(
-                label: 'Trading Name',
+                label: l10n?.offersDetailLabelTradingName ?? 'Trading Name',
                 value: vendor!.tradingName!,
               ),
             if (vendor!.tradeLicenceNumber != null)
               _DetailRow(
-                label: 'Trade Licence',
+                label: l10n?.offersDetailLabelTradeLicence ?? 'Trade Licence',
                 value: vendor!.tradeLicenceNumber!,
               ),
             if (vendor!.contactPersonName != null || vendor!.mobileNumber != null)
               _DetailRow(
-                label: 'Contact Person & Mobile',
+                label: l10n?.offersDetailLabelContactMobile ??
+                    'Contact Person & Mobile',
                 value: [
                   if (vendor!.contactPersonName != null)
                     vendor!.contactPersonName!,
@@ -399,13 +434,14 @@ class _VendorProfileCard extends StatelessWidget {
               ),
             if (vendor!.email != null)
               _DetailRow(
-                label: 'Business Email',
+                label: l10n?.offersDetailLabelBusinessEmail ?? 'Business Email',
                 value: vendor!.email!,
               ),
             if (vendor!.rating != null)
               _DetailRow(
-                label: 'Vendor Rating',
-                value: '★ ${vendor!.rating!.toStringAsFixed(1)}${vendor!.completedDeals != null ? ' (${vendor!.completedDeals} deals completed)' : ''}',
+                label: l10n?.offersDetailLabelVendorRating ?? 'Vendor Rating',
+                value:
+                    '★ ${vendor!.rating!.toStringAsFixed(1)}${vendor!.completedDeals != null ? (l10n?.offersDetailDealsSuffix(vendor!.completedDeals!) ?? ' (${vendor!.completedDeals} deals completed)') : ''}',
               ),
           ],
         ],
@@ -426,6 +462,7 @@ class _ParentRequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -441,7 +478,8 @@ class _ParentRequestCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Parent Request Reference',
+                l10n?.offersDetailParentRequestTitle ??
+                    'Parent Request Reference',
                 style: kh.typography.title.copyWith(
                   color: kh.colors.textPrimary,
                   fontSize: 16.0,
@@ -459,15 +497,17 @@ class _ParentRequestCard extends StatelessWidget {
                   ),
                   onPressed: () => context.go('/requests/${request!.id}'),
                   icon: const Icon(Icons.open_in_new, size: 14.0),
-                  label: const Text('Open Request',
-                      style: TextStyle(fontSize: 12.0)),
+                  label: Text(
+                    l10n?.offersDetailOpenRequest ?? 'Open Request',
+                    style: const TextStyle(fontSize: 12.0),
+                  ),
                 ),
             ],
           ),
           SizedBox(height: kh.spacing.md),
           if (request == null)
             Text(
-              'No parent request linked.',
+              l10n?.offersDetailNoParentRequest ?? 'No parent request linked.',
               style: kh.typography.bodySmall.copyWith(
                 color: kh.colors.textMuted,
                 fontSize: 13.0,
@@ -475,18 +515,20 @@ class _ParentRequestCard extends StatelessWidget {
             )
           else ...[
             _DetailRow(
-              label: 'Request Reference',
+              label: l10n?.offersDetailLabelRequestReference ??
+                  'Request Reference',
               value: request!.reference ?? request!.id,
               isStrong: true,
             ),
             if (request!.requestType != null)
               _DetailRow(
-                label: 'Request Type',
+                label: l10n?.offersDetailLabelRequestType ?? 'Request Type',
                 value: request!.requestType!.displayName,
               ),
             if (request!.customerName != null || request!.customerMobile != null)
               _DetailRow(
-                label: 'Customer Name & Mobile',
+                label: l10n?.offersDetailLabelCustomerMobile ??
+                    'Customer Name & Mobile',
                 value: [
                   if (request!.customerName != null) request!.customerName!,
                   if (request!.customerMobile != null) request!.customerMobile!,
@@ -494,22 +536,23 @@ class _ParentRequestCard extends StatelessWidget {
               ),
             if (request!.categoryName != null)
               _DetailRow(
-                label: 'Category',
+                label: l10n?.offersDetailLabelCategory ?? 'Category',
                 value: request!.categoryName!,
               ),
             if (request!.regionName != null)
               _DetailRow(
-                label: 'Region',
+                label: l10n?.offersDetailLabelRegion ?? 'Region',
                 value: request!.regionName!,
               ),
             if (request!.indicativeValue != null)
               _DetailRow(
-                label: 'Indicative Budget',
+                label: l10n?.offersDetailLabelIndicativeBudget ??
+                    'Indicative Budget',
                 value: formatPrice(request!.indicativeValue!),
               ),
             if (request!.notes != null && request!.notes!.isNotEmpty)
               _DetailRow(
-                label: 'Request Notes',
+                label: l10n?.offersDetailLabelRequestNotes ?? 'Request Notes',
                 value: request!.notes!,
               ),
           ],
@@ -532,6 +575,7 @@ class _PricingBreakdownCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     final goldPrice = detail.calculatedGoldPrice;
     final makingCharge = detail.makingCharges;
@@ -550,7 +594,7 @@ class _PricingBreakdownCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Pricing Breakdown',
+            l10n?.offersDetailPricingTitle ?? 'Pricing Breakdown',
             style: kh.typography.title.copyWith(
               color: kh.colors.textPrimary,
               fontSize: 16.0,
@@ -567,23 +611,30 @@ class _PricingBreakdownCard extends StatelessWidget {
             child: Column(
               children: [
                 _PricingRow(
-                  label: 'Gold Metal Value',
+                  label:
+                      l10n?.offersDetailPricingGoldValue ?? 'Gold Metal Value',
                   value: formatPrice(goldPrice),
                   hint: ratePerGram != null
-                      ? 'Base gold price (${formatPrice(ratePerGram)}/g)'
-                      : 'Base gold price component',
+                      ? (l10n?.offersDetailPricingGoldHintRate(
+                              formatPrice(ratePerGram)) ??
+                          'Base gold price (${formatPrice(ratePerGram)}/g)')
+                      : (l10n?.offersDetailPricingGoldHint ??
+                          'Base gold price component'),
                 ),
                 const Divider(),
                 _PricingRow(
-                  label: 'Making / Crafting Charges',
+                  label: l10n?.offersDetailPricingMaking ??
+                      'Making / Crafting Charges',
                   value: makingCharge != null ? formatPrice(makingCharge) : '—',
-                  hint: 'Labour and artistry charges',
+                  hint: l10n?.offersDetailPricingMakingHint ??
+                      'Labour and artistry charges',
                 ),
                 const Divider(),
                 _PricingRow(
-                  label: 'Value Added Tax (VAT 5%)',
+                  label: l10n?.offersDetailPricingVat ??
+                      'Value Added Tax (VAT 5%)',
                   value: formatPrice(vat),
-                  hint: 'UAE statutory tax',
+                  hint: l10n?.offersDetailPricingVatHint ?? 'UAE statutory tax',
                 ),
                 const Divider(thickness: 1.5),
                 SizedBox(height: kh.spacing.xs),
@@ -591,7 +642,7 @@ class _PricingBreakdownCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Total Offered Price',
+                      l10n?.offersDetailPricingTotal ?? 'Total Offered Price',
                       style: kh.typography.title.copyWith(
                         color: kh.colors.textPrimary,
                         fontWeight: FontWeight.w700,
@@ -684,6 +735,7 @@ class _CommercialTermsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -696,7 +748,8 @@ class _CommercialTermsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Commercial Terms, Notes & Attachments',
+            l10n?.offersDetailTermsTitle ??
+                'Commercial Terms, Notes & Attachments',
             style: kh.typography.title.copyWith(
               color: kh.colors.textPrimary,
               fontSize: 16.0,
@@ -704,31 +757,44 @@ class _CommercialTermsCard extends StatelessWidget {
           ),
           SizedBox(height: kh.spacing.md),
           _DetailRow(
-            label: 'Delivery / Readiness Timeframe',
-            value: detail.deliveryTimeframe ?? 'Immediate dispatch / collection',
+            label: l10n?.offersDetailLabelDelivery ??
+                'Delivery / Readiness Timeframe',
+            value: detail.deliveryTimeframe ??
+                (l10n?.offersDetailDeliveryDefault ??
+                    'Immediate dispatch / collection'),
           ),
           _DetailRow(
-            label: 'Warranty / Buy-Back Terms',
-            value: detail.warrantyTerms ?? 'Standard UAE jeweller guarantee',
+            label:
+                l10n?.offersDetailLabelWarranty ?? 'Warranty / Buy-Back Terms',
+            value: detail.warrantyTerms ??
+                (l10n?.offersDetailWarrantyDefault ??
+                    'Standard UAE jeweller guarantee'),
           ),
           _DetailRow(
-            label: 'Vendor Note',
-            value: detail.vendorNote ?? 'No free-text note provided by vendor.',
+            label: l10n?.offersDetailLabelVendorNote ?? 'Vendor Note',
+            value: detail.vendorNote ??
+                (l10n?.offersDetailVendorNoteDefault ??
+                    'No free-text note provided by vendor.'),
           ),
           _DetailRow(
-            label: 'Offer Validity & Expiry',
-            value:
+            label: l10n?.offersDetailLabelValidityExpiry ??
+                'Offer Validity & Expiry',
+            value: l10n?.offersDetailValidityExpiryValue(
+                  detail.validityHours ?? 24,
+                  formatDate(detail.expiresAt),
+                ) ??
                 '${detail.validityHours ?? 24} hours · Expiry: ${formatDate(detail.expiresAt)}',
           ),
           if (detail.declineReason != null && detail.declineReason!.isNotEmpty)
             _DetailRow(
-              label: 'Decline Reason',
+              label: l10n?.offersDetailLabelDeclineReason ?? 'Decline Reason',
               value: detail.declineReason!,
               valueColor: kh.colors.error,
             ),
           SizedBox(height: kh.spacing.sm),
           Text(
-            'Attachments & Certificates (${detail.attachments.length})',
+            l10n?.offersDetailAttachmentsCount(detail.attachments.length) ??
+                'Attachments & Certificates (${detail.attachments.length})',
             style: kh.typography.caption.copyWith(
               color: kh.colors.goldPrimary,
               fontWeight: FontWeight.w700,
@@ -739,7 +805,8 @@ class _CommercialTermsCard extends StatelessWidget {
           SizedBox(height: kh.spacing.xs),
           if (detail.attachments.isEmpty)
             Text(
-              'No media files or certificates attached by vendor.',
+              l10n?.offersDetailNoAttachments ??
+                  'No media files or certificates attached by vendor.',
               style: kh.typography.bodySmall.copyWith(
                 color: kh.colors.textMuted,
                 fontSize: 13.0,
@@ -817,6 +884,7 @@ class _RevisionsTimelineCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -832,14 +900,16 @@ class _RevisionsTimelineCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Revisions History (FR-VEN-014)',
+                l10n?.offersDetailRevisionsTitle ??
+                    'Revisions History (FR-VEN-014)',
                 style: kh.typography.title.copyWith(
                   color: kh.colors.textPrimary,
                   fontSize: 16.0,
                 ),
               ),
               Text(
-                '${revisions.length} revision${revisions.length == 1 ? '' : 's'}',
+                l10n?.offersDetailRevisionCount(revisions.length) ??
+                    '${revisions.length} revision${revisions.length == 1 ? '' : 's'}',
                 style: kh.typography.caption.copyWith(
                   color: kh.colors.goldPrimary,
                   fontSize: 11.0,
@@ -850,7 +920,8 @@ class _RevisionsTimelineCard extends StatelessWidget {
           SizedBox(height: kh.spacing.sm),
           if (revisions.isEmpty)
             Text(
-              'Initial offer terms. No modifications were made pre-acceptance.',
+              l10n?.offersDetailNoRevisions ??
+                  'Initial offer terms. No modifications were made pre-acceptance.',
               style: kh.typography.bodySmall.copyWith(
                 color: kh.colors.textMuted,
                 fontSize: 13.0,
@@ -881,7 +952,9 @@ class _RevisionsTimelineCard extends StatelessWidget {
                             borderRadius: kh.shapes.roundedSm,
                           ),
                           child: Text(
-                            'Rev #${rev.revisionNumber}',
+                            l10n?.offersDetailRevisionNumber(
+                                    rev.revisionNumber) ??
+                                'Rev #${rev.revisionNumber}',
                             style: kh.typography.caption.copyWith(
                               color: kh.colors.goldPrimary,
                               fontWeight: FontWeight.w700,
@@ -895,7 +968,7 @@ class _RevisionsTimelineCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Offered: ${formatPrice(rev.offeredPrice)}${rev.makingCharges != null ? ' (Making: ${formatPrice(rev.makingCharges!)})' : ''}',
+                                '${l10n?.offersDetailRevisionOffered(formatPrice(rev.offeredPrice)) ?? 'Offered: ${formatPrice(rev.offeredPrice)}'}${rev.makingCharges != null ? (l10n?.offersDetailRevisionMakingSuffix(formatPrice(rev.makingCharges!)) ?? ' (Making: ${formatPrice(rev.makingCharges!)})') : ''}',
                                 style: kh.typography.bodySmall.copyWith(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 13.0,
@@ -911,7 +984,9 @@ class _RevisionsTimelineCard extends StatelessWidget {
                                 ),
                               if (rev.vendorNote != null && rev.vendorNote!.isNotEmpty)
                                 Text(
-                                  'Note: ${rev.vendorNote}',
+                                  l10n?.offersDetailRevisionNote(
+                                          rev.vendorNote!) ??
+                                      'Note: ${rev.vendorNote}',
                                   style: kh.typography.caption.copyWith(
                                     color: kh.colors.textMuted,
                                     fontSize: 11.0,
@@ -953,6 +1028,7 @@ class _StateTransitionsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -965,7 +1041,7 @@ class _StateTransitionsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'State Transitions Timeline',
+            l10n?.offersDetailTransitionsTitle ?? 'State Transitions Timeline',
             style: kh.typography.title.copyWith(
               color: kh.colors.textPrimary,
               fontSize: 16.0,
@@ -974,7 +1050,9 @@ class _StateTransitionsCard extends StatelessWidget {
           SizedBox(height: kh.spacing.md),
           if (transitions.isEmpty)
             Text(
-              'Offer is in ${currentState.displayName.toUpperCase()} state. No state transition audit recorded.',
+              l10n?.offersDetailNoTransitions(
+                      currentState.displayName.toUpperCase()) ??
+                  'Offer is in ${currentState.displayName.toUpperCase()} state. No state transition audit recorded.',
               style: kh.typography.bodySmall.copyWith(
                 color: kh.colors.textMuted,
                 fontSize: 13.0,
@@ -1009,8 +1087,14 @@ class _StateTransitionsCard extends StatelessWidget {
                               if (item.actor != null || item.reason != null)
                                 Text(
                                   [
-                                    if (item.actor != null) 'By: ${item.actor}',
-                                    if (item.reason != null) 'Reason: ${item.reason}',
+                                    if (item.actor != null)
+                                      l10n?.offersDetailTransitionActor(
+                                              item.actor!) ??
+                                          'By: ${item.actor}',
+                                    if (item.reason != null)
+                                      l10n?.offersDetailTransitionReason(
+                                              item.reason!) ??
+                                          'Reason: ${item.reason}',
                                   ].join(' · '),
                                   style: kh.typography.caption.copyWith(
                                     color: kh.colors.textMuted,
@@ -1056,6 +1140,7 @@ class _InternalNotesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -1068,7 +1153,7 @@ class _InternalNotesCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Internal Administrative Notes',
+            l10n?.offersDetailNotesTitle ?? 'Internal Administrative Notes',
             style: kh.typography.title.copyWith(
               color: kh.colors.textPrimary,
               fontSize: 16.0,
@@ -1076,7 +1161,8 @@ class _InternalNotesCard extends StatelessWidget {
           ),
           SizedBox(height: kh.spacing.xxs),
           Text(
-            'Admin inspection notes are internal to Karat Hive. Commercial terms are read-only.',
+            l10n?.offersDetailNotesSubtitle ??
+                'Admin inspection notes are internal to Karat Hive. Commercial terms are read-only.',
             style: kh.typography.caption.copyWith(
               color: kh.colors.textMuted,
               fontSize: 11.0,
@@ -1091,8 +1177,9 @@ class _InternalNotesCard extends StatelessWidget {
                   key: const Key('offer-internal-note-input'),
                   controller: controller,
                   maxLines: 2,
-                  decoration: const InputDecoration(
-                    hintText: 'Add an internal note about this offer…',
+                  decoration: InputDecoration(
+                    hintText: l10n?.offersDetailNotesHint ??
+                        'Add an internal note about this offer…',
                     isDense: true,
                   ),
                 ),
@@ -1108,14 +1195,17 @@ class _InternalNotesCard extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2.0),
                       )
                     : const Icon(Icons.add_comment_outlined, size: 16.0),
-                label: const Text('Add Note', style: TextStyle(fontSize: 12.0)),
+                label: Text(
+                  l10n?.offersDetailAddNote ?? 'Add Note',
+                  style: const TextStyle(fontSize: 12.0),
+                ),
               ),
             ],
           ),
           SizedBox(height: kh.spacing.lg),
           if (notes.isEmpty)
             Text(
-              'No internal notes added yet.',
+              l10n?.offersDetailNoNotes ?? 'No internal notes added yet.',
               style: kh.typography.bodySmall.copyWith(
                 color: kh.colors.textMuted,
                 fontSize: 13.0,
@@ -1250,6 +1340,7 @@ class _DetailErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       width: double.infinity,
@@ -1265,7 +1356,7 @@ class _DetailErrorState extends StatelessWidget {
           Icon(Icons.error_outline, size: 48.0, color: kh.colors.error),
           SizedBox(height: kh.spacing.md),
           Text(
-            'Failed to load offer details',
+            l10n?.offersDetailErrorTitle ?? 'Failed to load offer details',
             style: kh.typography.title.copyWith(
               color: kh.colors.error,
               fontSize: 16.0,
@@ -1285,7 +1376,10 @@ class _DetailErrorState extends StatelessWidget {
             key: const Key('offer-detail-retry-button'),
             onPressed: onRetry,
             icon: const Icon(Icons.refresh, size: 18.0),
-            label: const Text('Retry', style: TextStyle(fontSize: 13.0)),
+            label: Text(
+              l10n?.offersRetry ?? 'Retry',
+              style: const TextStyle(fontSize: 13.0),
+            ),
           ),
         ],
       ),

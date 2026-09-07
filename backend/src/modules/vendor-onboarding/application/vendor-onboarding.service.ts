@@ -1,31 +1,55 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import {
-  ConnectionState,
-  OfferState,
-  Prisma,
-  RequestState,
-  type VendorProfile,
-} from '@prisma/client';
+import { randomUUID } from 'node:crypto';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import type { Prisma, RequestType, VendorProfile } from '@prisma/client';
 import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
+import { LocalDiskStorageAdapter } from '../../../platform/adapters/storage/local-disk-storage.adapter';
 import { PrismaService } from '../../../platform/db/prisma.service';
 import { withTx, type DbTx } from '../../../platform/db/tx';
 import { enqueueOutbox } from '../../../platform/outbox/outbox.producer';
+import { OBJECT_STORAGE, type ObjectStorage } from '../../../platform/ports/storage.port';
 import { Clock } from '../../../shared/clock';
 import { AuditWriter } from '../../audit';
-import { SubscriptionService } from '../../subscription/application/subscription.service';
-import type { SubscriptionView } from '../../subscription/presenter/subscription.presenter';
 import {
-  presentVendorRequest,
-  type VendorRequestView,
-} from '../../requests/presenter/request-vendor.presenter';
-import { buildLifecycleInput } from './vendor-lifecycle-input';
+  presentRequestForVendor,
+  type RequestForVendor,
+} from '../../requests/presenter/request.presenter';
+import {
+  presentSubscription,
+  type SubscriptionView,
+} from '../../subscription/presenter/subscription.presenter';
+import {
+  buildVendorPerformanceCsv,
+  type VendorPerformanceCsvRow,
+} from '../domain/vendor-performance-csv';
 import { presentVendorMe, type VendorMe } from '../presenter/vendor-me.presenter';
 import {
   VendorOnboardingRepository,
   type CreateVendorProfileInput,
 } from '../repository/vendor-onboarding.repository';
+import { buildLifecycleInput } from './vendor-lifecycle-input';
+
+const EXPORT_BUCKET = 'export';
+const EXPORT_DOWNLOAD_TTL_SECONDS = 900;
+const MS_PER_HOUR = 60 * 60 * 1000;
+
+export type PerformanceExportFilters = {
+  from?: Date;
+  to?: Date;
+  requestType?: RequestType;
+  categoryId?: string;
+  regionId?: string;
+};
+
+export type VendorDashboard = {
+  newRequests: { count: number; preview: RequestForVendor[] };
+  pendingOffers: { count: number; expiringWithin24h: number };
+  activeConnections: { count: number; noTalkCount: number };
+  rating: { average: number | null; reviewCount: number };
+  goldRates: null;
+  subscriptions: SubscriptionView[];
+};
 
 @Injectable()
 export class VendorOnboardingService {
@@ -33,8 +57,8 @@ export class VendorOnboardingService {
     private readonly prisma: PrismaService,
     private readonly repo: VendorOnboardingRepository,
     private readonly audit: AuditWriter,
-    private readonly subscriptionService: SubscriptionService,
     private readonly clock: Clock,
+    @Inject(OBJECT_STORAGE) private readonly storage: ObjectStorage,
   ) {}
 
   /**
@@ -163,119 +187,223 @@ export class VendorOnboardingService {
     return this.getVendorMe(viewer);
   }
 
-  /** VEN-S05. Real dashboard aggregates (CP2-A13). */
-  async dashboard(viewer: ViewerContext): Promise<{
-    newRequests: { count: number; preview: VendorRequestView[] };
-    pendingOffers: { count: number; expiringWithin24h: number };
-    activeConnections: { count: number; noTalkCount: number };
-    rating: { average: number | null; reviewCount: number };
-    goldRates: null;
-    subscriptions: SubscriptionView[];
-  }> {
+  /**
+   * VEN-S05 / FR-VEN-004–007. Real counts for new matches, pending offers, active
+   * connections, plus subscription summary. Gold rates stay null until G2-GR02.
+   */
+  async dashboard(viewer: ViewerContext): Promise<VendorDashboard> {
     const profile = await this.requireProfile(viewer);
     const now = this.clock.now();
-    const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const within24h = new Date(now.getTime() + 24 * MS_PER_HOUR);
 
-    const unviewedWhere: Prisma.RequestMatchWhereInput = {
+    const newMatchWhere: Prisma.RequestMatchWhereInput = {
       vendorProfileId: profile.id,
       isEligible: true,
       viewedAt: null,
       request: {
-        state: { in: [RequestState.PUBLISHED, RequestState.OFFERS_RECEIVED] },
+        state: { in: ['PUBLISHED', 'OFFERS_RECEIVED'] },
         expiresAt: { gt: now },
+        offers: { none: { vendorProfileId: profile.id } },
       },
     };
 
     const [
-      newRequestsCount,
+      newCount,
       previewMatches,
-      pendingOffersCount,
-      expiringOffersCount,
-      activeConnectionsCount,
+      pendingCount,
+      expiringWithin24h,
+      activeConnectionCount,
       noTalkCount,
       subscriptions,
     ] = await Promise.all([
-      this.prisma.requestMatch.count({ where: unviewedWhere }),
+      this.prisma.requestMatch.count({ where: newMatchWhere }),
       this.prisma.requestMatch.findMany({
-        where: unviewedWhere,
-        take: 3,
+        where: newMatchWhere,
         orderBy: { matchedAt: 'desc' },
+        take: 3,
         include: {
           request: {
             include: {
               category: true,
               region: true,
-              media: {
-                include: { media: true },
-                orderBy: { displayOrder: 'asc' },
+              media: { include: { media: true } },
+              customerProfile: {
+                select: {
+                  connectionCount: true,
+                  aggregateRating: true,
+                  reviewCount: true,
+                },
               },
             },
           },
         },
       }),
       this.prisma.offer.count({
-        where: {
-          vendorProfileId: profile.id,
-          state: OfferState.PENDING,
-          expiresAt: { gt: now },
-        },
+        where: { vendorProfileId: profile.id, state: 'PENDING' },
       }),
       this.prisma.offer.count({
         where: {
           vendorProfileId: profile.id,
-          state: OfferState.PENDING,
-          expiresAt: { gt: now, lte: in24h },
+          state: 'PENDING',
+          expiresAt: { gt: now, lte: within24h },
         },
+      }),
+      this.prisma.connection.count({
+        where: { vendorProfileId: profile.id, state: 'ACTIVE' },
       }),
       this.prisma.connection.count({
         where: {
           vendorProfileId: profile.id,
-          state: ConnectionState.ACTIVE,
-        },
-      }),
-      this.prisma.connection.count({
-        where: {
-          vendorProfileId: profile.id,
-          state: ConnectionState.ACTIVE,
+          state: 'ACTIVE',
           contactEvents: { none: {} },
         },
       }),
-      this.subscriptionService.getSubscriptions(profile.id),
+      this.prisma.vendorTypeSubscription.findMany({
+        where: { vendorProfileId: profile.id },
+        orderBy: { createdAt: 'desc' },
+      }),
     ]);
 
-    const preview = previewMatches.map((m) =>
-      presentVendorRequest(
-        m.request as Parameters<typeof presentVendorRequest>[0],
-        {
-          label: `Customer in ${m.request.region?.nameEn ?? 'UAE'}`,
-          region: m.request.region?.nameEn ?? 'UAE',
-          ratingScore: 5.0,
-          dealCount: 1,
-        },
-        m.viewedAt,
-      ),
-    );
+    const preview: RequestForVendor[] = previewMatches.map((m) => {
+      const cust = m.request.customerProfile;
+      return presentRequestForVendor(m.request, {
+        customerConnectionCount: cust?.connectionCount ?? 0,
+        customerRating: cust?.aggregateRating
+          ? {
+              average: cust.aggregateRating.toString(),
+              count: cust.reviewCount,
+              distribution: {},
+              limitedHistory: cust.reviewCount < 3,
+            }
+          : undefined,
+        viewedAt: m.viewedAt,
+      });
+    });
 
     return {
-      newRequests: {
-        count: newRequestsCount,
-        preview,
-      },
-      pendingOffers: {
-        count: pendingOffersCount,
-        expiringWithin24h: expiringOffersCount,
-      },
-      activeConnections: {
-        count: activeConnectionsCount,
-        noTalkCount,
-      },
+      newRequests: { count: newCount, preview },
+      pendingOffers: { count: pendingCount, expiringWithin24h },
+      activeConnections: { count: activeConnectionCount, noTalkCount },
       rating: {
         average: profile.aggregateRating ? Number(profile.aggregateRating) : null,
         reviewCount: profile.reviewCount,
       },
       goldRates: null,
-      subscriptions,
+      subscriptions: subscriptions.map(presentSubscription),
     };
+  }
+
+  /**
+   * FR-VEN-023 AC3. Signed CSV of this Vendor's own Offer history only (BR-008).
+   * Watermark + shared export-job pipeline deferred to G2-ADM07 — writes the CSV
+   * directly to the EXPORT bucket and returns a short-lived signed download URL.
+   */
+  async exportPerformance(
+    viewer: ViewerContext,
+    filters: PerformanceExportFilters = {},
+  ): Promise<{ downloadUrl: string; expiresAt: string }> {
+    const profile = await this.requireProfile(viewer);
+    const rows = await this.loadPerformanceCsvRows(profile.id, filters);
+    const csv = buildVendorPerformanceCsv(rows);
+    const body = Buffer.from(csv, 'utf8');
+    const key = `vendor/${profile.id}/performance/${randomUUID()}.csv`;
+
+    await putExportObject(this.storage, EXPORT_BUCKET, key, body, 'text/csv');
+
+    const signed = await this.storage.createSignedDownloadUrl(
+      EXPORT_BUCKET,
+      key,
+      EXPORT_DOWNLOAD_TTL_SECONDS,
+    );
+
+    await this.audit.append(this.prisma, {
+      actorUserId: viewer.userId,
+      action: 'VENDOR_PERFORMANCE_EXPORT',
+      entityType: 'vendor_profile',
+      entityId: profile.id,
+      afterValue: {
+        objectKey: key,
+        rowCount: rows.length,
+        filters: {
+          from: filters.from?.toISOString() ?? null,
+          to: filters.to?.toISOString() ?? null,
+          requestType: filters.requestType ?? null,
+          categoryId: filters.categoryId ?? null,
+          regionId: filters.regionId ?? null,
+        },
+      },
+    });
+
+    return {
+      downloadUrl: signed.url,
+      expiresAt: signed.expiresAt.toISOString(),
+    };
+  }
+
+  private async loadPerformanceCsvRows(
+    vendorProfileId: string,
+    filters: PerformanceExportFilters,
+  ): Promise<VendorPerformanceCsvRow[]> {
+    const where: Prisma.OfferWhereInput = {
+      vendorProfileId,
+      ...(filters.from || filters.to
+        ? {
+            createdAt: {
+              ...(filters.from ? { gte: filters.from } : {}),
+              ...(filters.to ? { lte: filters.to } : {}),
+            },
+          }
+        : {}),
+      ...(filters.requestType || filters.categoryId || filters.regionId
+        ? {
+            request: {
+              ...(filters.requestType ? { requestType: filters.requestType } : {}),
+              ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
+              ...(filters.regionId ? { regionId: filters.regionId } : {}),
+            },
+          }
+        : {}),
+    };
+
+    const offers = await this.prisma.offer.findMany({
+      where,
+      orderBy: { submittedAt: 'desc' },
+      include: {
+        request: {
+          select: {
+            reference: true,
+            requestType: true,
+            publishedAt: true,
+            category: { select: { nameEn: true } },
+            region: { select: { nameEn: true } },
+          },
+        },
+      },
+    });
+
+    return offers.map((o) => {
+      let responseMinutes = '';
+      if (o.request.publishedAt) {
+        const diffMs = o.submittedAt.getTime() - o.request.publishedAt.getTime();
+        if (diffMs >= 0) {
+          responseMinutes = String(Math.round(diffMs / (60 * 1000)));
+        }
+      }
+      return {
+        offerId: o.id,
+        requestReference: o.request.reference ?? '',
+        requestType: o.request.requestType,
+        categoryNameEn: o.request.category.nameEn,
+        regionNameEn: o.request.region.nameEn,
+        state: o.state,
+        offeredPriceAed: Number(o.offeredPrice).toFixed(2),
+        submittedAt: o.submittedAt.toISOString(),
+        expiresAt: o.expiresAt.toISOString(),
+        decidedAt: o.decidedAt?.toISOString() ?? '',
+        declineReason: o.declineReason ?? '',
+        responseMinutes,
+      };
+    });
   }
 
   /** module-public: VendorMe sub-object for GET /v1/me, given the owning user id. */
@@ -302,6 +430,36 @@ export class VendorOnboardingService {
     });
   }
 }
+
+/** ObjectStorage has no putObject yet — local adapter exposes putForTest; else signed PUT. */
+async function putExportObject(
+  storage: ObjectStorage,
+  bucket: string,
+  key: string,
+  body: Buffer,
+  contentType: string,
+): Promise<void> {
+  if (storage instanceof LocalDiskStorageAdapter) {
+    await storage.putForTest(bucket, key, body, contentType);
+    return;
+  }
+  const signed = await storage.createSignedUploadUrl({
+    bucket,
+    key,
+    contentType,
+    maxBytes: body.length,
+    ttlSeconds: 60,
+  });
+  const res = await fetch(signed.uploadUrl, {
+    method: 'PUT',
+    headers: signed.requiredHeaders,
+    body: new Uint8Array(body),
+  });
+  if (!res.ok) {
+    throw new Error(`Export upload failed: ${res.status} ${await res.text()}`);
+  }
+}
+
 
 function unique(ids: string[]): string[] {
   return [...new Set(ids)];

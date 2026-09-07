@@ -14,7 +14,6 @@ export type ApplyDecisionInput = {
   decision: VerificationDecision;
   rationale?: string;
   message?: string;
-  verifiedByAdminId?: string | null;
 };
 
 @Injectable()
@@ -48,7 +47,6 @@ export class VendorVerificationService {
         const row = await this.repo.update(tx, vendorProfileId, {
           verificationState: 'VERIFIED',
           verifiedAt: now,
-          verifiedByAdminId: input.verifiedByAdminId ?? profile.verifiedByAdminId,
           verificationMessage: null,
           verificationNotes: input.rationale ?? profile.verificationNotes,
           ...(activate ? { activatedAt: now } : {}),

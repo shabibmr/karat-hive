@@ -1,23 +1,36 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
+import { z } from 'zod';
 import { Viewer } from '../../../edge/auth/viewer.decorator';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
-import { RevealsIdentity } from '../../../edge/masking/reveals-identity.decorator';
-import {
-  VendorAccessGuard,
-  VendorStageRequired,
-} from '../../vendor-onboarding/controller/vendor-access.guard';
+import { zodQuery } from '../../../edge/validation/zod-validation.pipe';
 import { SubscriptionService } from '../application/subscription.service';
-import type { SubscriptionView } from '../presenter/subscription.presenter';
 
-@Controller('v1/me/subscriptions')
-@UseGuards(VendorAccessGuard)
-@VendorStageRequired('SHELL')
-@RevealsIdentity()
+const performanceQuerySchema = z.object({
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional(),
+  requestType: z
+    .enum(['FIND_ORNAMENT', 'SELL_OLD_GOLD', 'GOLD_COIN', 'GOLD_BULLION'])
+    .optional(),
+  categoryId: z.string().uuid().optional(),
+  regionId: z.string().uuid().optional(),
+});
+
+@Controller('v1/me')
 export class SubscriptionController {
-  constructor(private readonly subscriptionService: SubscriptionService) {}
+  constructor(private readonly service: SubscriptionService) {}
 
-  @Get()
-  async getSubscriptions(@Viewer() viewer: ViewerContext): Promise<SubscriptionView[]> {
-    return this.subscriptionService.getSubscriptions(viewer.vendorProfileId!);
+  @Get('subscriptions')
+  async getMySubscriptions(@Viewer() viewer: ViewerContext) {
+    const data = await this.service.getMySubscriptions(viewer);
+    return { data };
+  }
+
+  @Get('vendor/performance')
+  async getVendorPerformance(
+    @Viewer() viewer: ViewerContext,
+    @Query(zodQuery(performanceQuerySchema)) query: z.infer<typeof performanceQuerySchema>,
+  ) {
+    const data = await this.service.getVendorPerformance(viewer, query);
+    return { data };
   }
 }

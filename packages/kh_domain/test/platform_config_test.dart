@@ -41,9 +41,9 @@ void main() {
       expect(cfg.bullionMinimumAed, '7500');
       expect(cfg.offerValidityHours, [12, 48]);
       expect(cfg.supportContactUrl, 'https://example.com/help');
-      expect(cfg.subscriptionContactUrl, 'https://karathive.ae/subscriptions');
-      expect(cfg.termsUrl, 'https://karathive.ae/terms');
-      expect(cfg.privacyUrl, 'https://karathive.ae/privacy');
+      expect(cfg.subscriptionContactUrl, isNull);
+      expect(cfg.termsUrl, isNull);
+      expect(cfg.privacyUrl, isNull);
     });
 
     test('applies defaults for empty payload', () {
@@ -81,13 +81,17 @@ void main() {
         'defaultOfferValidityHours': 24,
         'bullionMinimumAed': '1000',
         'maxConcurrentLiveRequests': 2,
+        'maxRequestImages': 5,
+        'maxOfferImages': 3,
+        'maxImageBytes': 0,
+        'acceptedImageTypes': ['image/jpeg', 'image/png', 'image/webp'],
+        'karatList': ['22'],
         'maxOfferRevisions': 1,
         'requestExpiryWarningHours': 4,
-        'karatList': ['22'],
-        'supportContactUrl': 'https://a/support',
-        'subscriptionContactUrl': 'https://a/subs',
         'termsUrl': 'https://a/terms',
         'privacyUrl': 'https://a/privacy',
+        'supportContactUrl': 'https://a/support',
+        'subscriptionContactUrl': 'https://a/subs',
       });
     });
 

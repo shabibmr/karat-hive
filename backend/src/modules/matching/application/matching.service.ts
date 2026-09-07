@@ -1,101 +1,145 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../platform/db/prisma.service';
-import { withTx } from '../../../platform/db/tx';
-import { enqueueOutbox } from '../../../platform/outbox/outbox.producer';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import type { Prisma, RequestType } from '@prisma/client';
+import { ApiException } from '../../../edge/errors/api-exception';
+import { ErrorCode } from '../../../edge/errors/error-codes';
+import type { ViewerContext } from '../../../edge/auth/viewer-context';
 import { Clock } from '../../../shared/clock';
-import type { MatchFilters } from '../domain/matching.types';
 import {
-  MatchesListView,
-  presentMatch,
-} from '../presenter/matching.presenter';
+  presentRequestForVendor,
+  type RequestForVendor,
+} from '../../requests';
+import type { MatchesFilterDto } from '../domain/matching-engine';
 import { MatchingRepository } from '../repository/matching.repository';
 
 @Injectable()
 export class MatchingService {
-  private readonly logger = new Logger(MatchingService.name);
-
   constructor(
-    private readonly repository: MatchingRepository,
-    private readonly prisma: PrismaService,
+    private readonly repo: MatchingRepository,
     private readonly clock: Clock,
   ) {}
 
-  /**
-   * Fan-out consumer for request.published (T21, AD-ASYNC-02).
-   * Emits one request.matched per matched vendor.
-   */
-  async fanOutRequest(requestId: string): Promise<number> {
-    const now = this.clock.now();
-    const vendorProfileIds = await this.repository.findEligibleVendorProfileIds(requestId, now);
-    this.logger.log(`Fan-out request=${requestId} eligibleVendors=${vendorProfileIds.length}`);
-
-    let count = 0;
-    for (const vendorProfileId of vendorProfileIds) {
-      await withTx(this.prisma, async (tx) => {
-        const match = await this.repository.createMatch(requestId, vendorProfileId, now, tx);
-        if (match) {
-          count++;
-          // Emits one request.matched per matched vendor (AD-ASYNC-02)
-          await enqueueOutbox(tx, {
-            eventType: 'request.matched',
-            aggregateType: 'request_match',
-            aggregateId: match.id,
-            payload: {
-              matchId: match.id,
-              requestId,
-              vendorProfileId,
-              matchedAt: now.toISOString(),
-            },
-          });
-        }
-      });
+  private assertActiveVendor(viewer: ViewerContext): string {
+    if (viewer.role !== 'VENDOR' || !viewer.vendorProfileId) {
+      throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.VENDOR_NOT_ACTIVE);
     }
-
-    return count;
+    if (viewer.accountState === 'SUSPENDED') {
+      throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ACCOUNT_SUSPENDED);
+    }
+    if (viewer.accountState === 'DEACTIVATED') {
+      throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ACCOUNT_DEACTIVATED);
+    }
+    return viewer.vendorProfileId;
   }
 
-  async listMatches(vendorProfileId: string, filters: MatchFilters): Promise<MatchesListView> {
-    const now = this.clock.now();
-    const result = await this.repository.listMatches(vendorProfileId, filters, now);
+  async fanOutForRequest(
+    requestId: string,
+    requestType: RequestType,
+    categoryId: string,
+    regionId: string,
+  ): Promise<number> {
+    return this.repo.fanOutMatches(requestId, requestType, categoryId, regionId, this.clock.now());
+  }
+
+  async recomputeForVendor(vendorProfileId: string): Promise<number> {
+    return this.repo.recomputeForVendor(vendorProfileId, this.clock.now());
+  }
+
+  async listMatches(
+    viewer: ViewerContext,
+    filter: MatchesFilterDto,
+  ): Promise<{ data: RequestForVendor[]; meta: { nextCursor?: string } }> {
+    const vendorProfileId = this.assertActiveVendor(viewer);
+
+    let effectiveFilter = { ...filter };
+    if (filter.presetId) {
+      const preset = await this.repo.findFilterPreset(vendorProfileId, filter.presetId);
+      if (preset && typeof preset.filters === 'object' && preset.filters !== null) {
+        effectiveFilter = {
+          ...(preset.filters as MatchesFilterDto),
+          ...filter,
+        };
+      }
+    }
+
+    const { items, nextCursor } = await this.repo.listMatchesForVendor(
+      vendorProfileId,
+      effectiveFilter,
+      this.clock.now(),
+    );
+
+    const presented = items.map((m) => {
+      const r = m.request;
+      const myOfferPrisma = r.offers && r.offers.length > 0 ? r.offers[0] : undefined;
+      const myOffer = myOfferPrisma
+        ? {
+            id: myOfferPrisma.id,
+            state: myOfferPrisma.state,
+            offeredPrice: myOfferPrisma.offeredPrice.toString(),
+            submittedAt: myOfferPrisma.submittedAt.toISOString(),
+            expiresAt: myOfferPrisma.expiresAt.toISOString(),
+          }
+        : undefined;
+
+      const custProfile = r.customerProfile;
+      const customerRating = custProfile?.aggregateRating
+        ? {
+            average: custProfile.aggregateRating.toString(),
+            count: custProfile.reviewCount,
+            distribution: {},
+            limitedHistory: custProfile.reviewCount < 3,
+          }
+        : undefined;
+
+      return presentRequestForVendor(r, {
+        customerConnectionCount: custProfile?.connectionCount ?? 0,
+        customerRating,
+        viewedAt: m.viewedAt,
+        myOffer,
+      });
+    });
 
     return {
-      data: result.items.map((m) => presentMatch(m as Parameters<typeof presentMatch>[0])),
-      meta: {
-        nextCursor: result.nextCursor,
-      },
+      data: presented,
+      meta: { nextCursor },
     };
   }
 
-  async markViewed(vendorProfileId: string, requestId: string): Promise<boolean> {
-    const now = this.clock.now();
-    return this.repository.markViewed(vendorProfileId, requestId, now);
+  async markViewed(viewer: ViewerContext, requestId: string): Promise<void> {
+    const vendorProfileId = this.assertActiveVendor(viewer);
+    await this.repo.markMatchViewed(vendorProfileId, requestId, this.clock.now());
   }
 
-  /**
-   * Recomputes vendor eligibility upon vendor.eligibility.changed (T37, CP2-A12).
-   */
-  async recomputeVendorEligibility(
-    vendorProfileId: string,
-  ): Promise<{ addedRequestIds: string[]; removedCount: number }> {
-    const now = this.clock.now();
-    return withTx(this.prisma, async (tx) => {
-      const result = await this.repository.recomputeVendorEligibility(vendorProfileId, now, tx);
-      for (const requestId of result.addedRequestIds) {
-        await enqueueOutbox(tx, {
-          eventType: 'request.matched',
-          aggregateType: 'request_match',
-          aggregateId: `${requestId}_${vendorProfileId}`,
-          payload: {
-            requestId,
-            vendorProfileId,
-            matchedAt: now.toISOString(),
-          },
-        });
-      }
-      this.logger.log(
-        `Eligibility recompute vendor=${vendorProfileId} added=${result.addedRequestIds.length} removed=${result.removedCount}`,
-      );
-      return result;
-    });
+  // Filter Presets (FR-VEN-009, VEN-S07)
+  async listPresets(viewer: ViewerContext) {
+    const vendorProfileId = this.assertActiveVendor(viewer);
+    return this.repo.listFilterPresets(vendorProfileId);
+  }
+
+  async createPreset(viewer: ViewerContext, name: string, filters: Prisma.InputJsonValue) {
+    const vendorProfileId = this.assertActiveVendor(viewer);
+    return this.repo.createFilterPreset(vendorProfileId, name, filters);
+  }
+
+  async updatePreset(
+    viewer: ViewerContext,
+    id: string,
+    name?: string,
+    filters?: Prisma.InputJsonValue,
+  ) {
+    const vendorProfileId = this.assertActiveVendor(viewer);
+    const existing = await this.repo.findFilterPreset(vendorProfileId, id);
+    if (!existing) {
+      throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+    }
+    return this.repo.updateFilterPreset(vendorProfileId, id, name, filters);
+  }
+
+  async deletePreset(viewer: ViewerContext, id: string): Promise<void> {
+    const vendorProfileId = this.assertActiveVendor(viewer);
+    const existing = await this.repo.findFilterPreset(vendorProfileId, id);
+    if (!existing) {
+      throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+    }
+    await this.repo.deleteFilterPreset(vendorProfileId, id);
   }
 }

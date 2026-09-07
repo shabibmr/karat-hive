@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { PlatformConfigController } from './controller/platform-config.controller';
-import { PlatformConfigService } from './application/platform-config.service';
 import { SettingsRepository } from './repository/settings.repository';
+import { SettingsService } from './application/settings.service';
+import { SettingsController } from './controller/settings.controller';
 
 @Module({
-  controllers: [PlatformConfigController],
-  providers: [SettingsRepository, PlatformConfigService],
-  exports: [SettingsRepository, PlatformConfigService],
+  controllers: [SettingsController],
+  providers: [SettingsRepository, SettingsService],
+  exports: [SettingsService, SettingsRepository],
 })
 export class SettingsModule {}

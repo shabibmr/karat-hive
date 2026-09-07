@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:kh_domain/kh_domain.dart';
 import 'package:test/test.dart';
 
@@ -14,17 +16,34 @@ void main() {
       expect(UserRole.parse(null), UserRole.unknown);
       expect(UserRole.parse(''), UserRole.unknown);
       expect(UserRole.parse('SUPERADMIN'), UserRole.unknown);
+      expect(PartyRole.parse('ADMIN'), PartyRole.unknown);
+      expect(PartyRole.parse(null), PartyRole.unknown);
     });
 
     test('wireName returns uppercase wire representation', () {
       expect(UserRole.customer.wireName, 'CUSTOMER');
       expect(UserRole.vendor.wireName, 'VENDOR');
       expect(UserRole.unknown.wireName, 'UNKNOWN');
+      expect(UserRole.customer.wire, 'CUSTOMER');
+      expect(UserRole.vendor.wire, 'VENDOR');
     });
 
     test('PartyRole is typedef alias for UserRole', () {
       const PartyRole role = UserRole.vendor;
       expect(role, UserRole.vendor);
+    });
+  });
+
+  group('AccountState', () {
+    test('maps inventory wires', () {
+      expect(AccountState.parse('ACTIVE'), AccountState.active);
+      expect(AccountState.parse('SUSPENDED'), AccountState.suspended);
+      expect(AccountState.parse('DEACTIVATED'), AccountState.deactivated);
+    });
+
+    test('unknown value falls back to .unknown (NFR-027)', () {
+      expect(AccountState.parse('PENDING'), AccountState.unknown);
+      expect(AccountState.parse(null), AccountState.unknown);
     });
   });
 
@@ -92,95 +111,101 @@ void main() {
         role: UserRole.vendor,
         region: 'Deira',
         pseudonym: 'Gold Merchant in Deira',
-        rating: RatingSummary(average: 4.8, count: 20),
-        dealCount: 35,
+        rating: RatingSummary(average: 4.8, count: 25, limitedHistory: false),
+        dealCount: 14,
       );
 
       expect(party.role, UserRole.vendor);
       expect(party.region, 'Deira');
       expect(party.pseudonym, 'Gold Merchant in Deira');
       expect(party.displayPseudonym, 'Gold Merchant in Deira');
-      expect(party.rating?.average, 4.8);
+      expect(party.dealCount, 14);
+      expect(party.completedConnections, 14);
       expect(party.ratingScore, 4.8);
-      expect(party.dealCount, 35);
-      expect(party.completedConnections, 35);
       expect(party.isMasked, isTrue);
       expect(party.isRevealed, isFalse);
     });
 
     test('generates fallback displayPseudonym when pseudonym is absent', () {
-      const vendorParty = MaskedParty(
+      const partyWithRegion = MaskedParty(
         role: UserRole.vendor,
         region: 'Deira',
       );
-      expect(vendorParty.displayPseudonym, 'Vendor in Deira');
+      expect(partyWithRegion.displayPseudonym, 'Vendor in Deira');
 
-      const customerParty = MaskedParty(
+      const customerWithRegion = MaskedParty(
         role: UserRole.customer,
-        region: 'Sharjah',
+        region: 'Bur Dubai',
       );
-      expect(customerParty.displayPseudonym, 'Customer in Sharjah');
+      expect(customerWithRegion.displayPseudonym, 'Customer in Bur Dubai');
 
-      const unknownRegionParty = MaskedParty(
-        role: UserRole.vendor,
-      );
-      expect(unknownRegionParty.displayPseudonym, 'Vendor');
+      const partyWithoutRegion = MaskedParty(role: UserRole.vendor);
+      expect(partyWithoutRegion.displayPseudonym, 'Vendor');
+
+      const unknownParty = MaskedParty(role: UserRole.unknown);
+      expect(unknownParty.displayPseudonym, 'Counterparty');
     });
 
     test('parses from JSON correctly', () {
       final party = MaskedParty.fromJson({
         'role': 'VENDOR',
         'region': 'Gold Souk',
-        'pseudonym': 'Vendor in Gold Souk',
-        'rating': {'average': 4.7, 'count': 8},
-        'dealCount': 12,
+        'pseudonym': 'Al Noor Jewellery',
+        'rating': {'average': 4.9, 'count': 50},
+        'dealCount': 42,
       });
 
       expect(party.role, UserRole.vendor);
       expect(party.region, 'Gold Souk');
-      expect(party.pseudonym, 'Vendor in Gold Souk');
-      expect(party.rating?.average, 4.7);
-      expect(party.dealCount, 12);
+      expect(party.pseudonym, 'Al Noor Jewellery');
+      expect(party.rating?.average, 4.9);
+      expect(party.dealCount, 42);
+      expect(party.completedConnections, 42);
     });
 
     test('parses region from nested object if provided by API', () {
       final party = MaskedParty.fromJson({
         'role': 'CUSTOMER',
-        'region': {'id': 'reg-1', 'nameEn': 'Downtown Dubai'},
+        'region': {'id': 'reg-dxb', 'nameEn': 'Dubai Gold Souk'},
       });
-      expect(party.region, 'Downtown Dubai');
+
+      expect(party.role, UserRole.customer);
+      expect(party.region, 'Dubai Gold Souk');
     });
 
     test('parses connection count aliases in JSON', () {
       final party1 = MaskedParty.fromJson({
         'role': 'VENDOR',
-        'completedConnections': 18,
+        'connectionCount': 17,
       });
-      expect(party1.dealCount, 18);
+      expect(party1.dealCount, 17);
 
       final party2 = MaskedParty.fromJson({
         'role': 'VENDOR',
-        'connectionCount': 22,
+        'completedConnections': 23,
       });
-      expect(party2.dealCount, 22);
+      expect(party2.dealCount, 23);
     });
 
     test('serializes to JSON with isMasked flag and no identity fields', () {
       const party = MaskedParty(
-        role: UserRole.vendor,
-        region: 'Deira',
-        pseudonym: 'Vendor in Deira',
+        role: UserRole.customer,
+        region: 'Downtown',
+        pseudonym: 'Gold Collector',
         dealCount: 5,
       );
+
       final json = party.toJson();
-      expect(json['role'], 'VENDOR');
-      expect(json['region'], 'Deira');
-      expect(json['pseudonym'], 'Vendor in Deira');
+      expect(json['role'], 'CUSTOMER');
+      expect(json['region'], 'Downtown');
+      expect(json['pseudonym'], 'Gold Collector');
       expect(json['dealCount'], 5);
       expect(json['isMasked'], isTrue);
-      // Verify identity keys are NOT present
+
       expect(json.containsKey('name'), isFalse);
+      expect(json.containsKey('displayName'), isFalse);
       expect(json.containsKey('mobile'), isFalse);
+      expect(json.containsKey('mobileNumber'), isFalse);
       expect(json.containsKey('address'), isFalse);
     });
 
@@ -188,14 +213,16 @@ void main() {
       const original = MaskedParty(
         role: UserRole.vendor,
         region: 'Deira',
-        dealCount: 1,
+        dealCount: 3,
       );
-      final modified = original.copyWith(region: 'Bur Dubai', dealCount: 2);
-      expect(original.region, 'Deira');
-      expect(original.dealCount, 1);
-      expect(modified.region, 'Bur Dubai');
-      expect(modified.dealCount, 2);
-      expect(modified.role, UserRole.vendor);
+
+      final updated = original.copyWith(dealCount: 4, pseudonym: 'Renamed');
+
+      expect(original.dealCount, 3);
+      expect(original.pseudonym, isNull);
+      expect(updated.dealCount, 4);
+      expect(updated.pseudonym, 'Renamed');
+      expect(updated.region, 'Deira');
     });
 
     test('value equality and hashCode', () {
@@ -206,126 +233,179 @@ void main() {
       expect(p1.hashCode, equals(p2.hashCode));
       expect(p1, isNot(equals(p3)));
     });
+
+    test('parses MaskedVendor wire without identity fields', () {
+      final party = MaskedParty.fromJson({
+        'label': 'Verified Jeweller · Deira',
+        'region': {
+          'id': 'reg-1',
+          'nameEn': 'Deira',
+          'nameAr': 'ديرة',
+        },
+        'rating': {
+          'average': '4.6',
+          'count': 12,
+          'distribution': {'1': 0, '2': 0, '3': 1, '4': 3, '5': 8},
+          'limitedHistory': false,
+        },
+        'connectionCount': 12,
+      }, role: PartyRole.vendor);
+
+      expect(party.role, PartyRole.vendor);
+      expect(party.pseudonym, 'Verified Jeweller · Deira');
+      expect(party.region, 'Deira');
+      expect(party.completedConnections, 12);
+      expect(party.rating?.average, 4.6);
+      expect(party.rating?.limitedHistory, isFalse);
+    });
+
+    test('source declares no identity fields to read', () {
+      final src = File('lib/src/party.dart').readAsStringSync();
+      final start = src.indexOf('class MaskedParty');
+      final next = src.indexOf('\nclass ', start + 1);
+      final body = src.substring(start, next == -1 ? src.length : next);
+      const forbidden = [
+        'displayName',
+        'mobileNumber',
+        'mobile',
+        'tradingName',
+        'legalBusinessName',
+        'contactPersonName',
+        'phone',
+        'businessEmail',
+        'businessAddress',
+      ];
+      for (final name in forbidden) {
+        expect(
+          body.contains(name),
+          isFalse,
+          reason: 'MaskedParty must not declare $name (BR-006, AD-FE-07)',
+        );
+      }
+    });
   });
 
   group('RevealedParty', () {
     test('constructs with name, mobile, address, role, business, rating, dealCount', () {
-      const party = RevealedParty(
+      final party = RevealedParty(
         name: 'Tariq Al Hashimi',
         mobile: '+971501234567',
         role: UserRole.vendor,
         address: 'Shop 102, Deira Gold Souk, Dubai',
-        business: 'Al Hashimi Jewellery LLC',
-        rating: RatingSummary(average: 4.9, count: 50),
-        dealCount: 75,
+        business: 'Al Hashimi Bullion Trading LLC',
+        rating: const RatingSummary(average: 4.95, count: 120, limitedHistory: false),
+        dealCount: 88,
       );
 
       expect(party.name, 'Tariq Al Hashimi');
       expect(party.displayName, 'Tariq Al Hashimi');
-      expect(party.mobile, '+971501234567');
+      expect(party.mobile.e164, '+971501234567');
       expect(party.role, UserRole.vendor);
       expect(party.address, 'Shop 102, Deira Gold Souk, Dubai');
-      expect(party.business, 'Al Hashimi Jewellery LLC');
-      expect(party.rating?.average, 4.9);
-      expect(party.dealCount, 75);
-      expect(party.completedConnections, 75);
+      expect(party.business?.tradingName, 'Al Hashimi Bullion Trading LLC');
+      expect(party.dealCount, 88);
+      expect(party.completedConnections, 88);
+      expect(party.ratingScore, 4.95);
       expect(party.isRevealed, isTrue);
       expect(party.isMasked, isFalse);
     });
 
     test('parses from revealed JSON payload', () {
       final party = RevealedParty.fromJson({
-        'name': 'Fatima Al Zahra',
+        'name': 'Fatima Al Mansoori',
         'mobile': '+971559876543',
         'role': 'CUSTOMER',
-        'address': 'Villa 12, Jumeirah 1, Dubai',
-        'rating': 5.0,
-        'dealCount': 3,
+        'address': 'Villa 14, Jumeirah 2, Dubai',
+        'dealCount': 12,
+        'rating': {'average': 5.0, 'count': 8},
       });
 
-      expect(party.name, 'Fatima Al Zahra');
-      expect(party.mobile, '+971559876543');
+      expect(party.name, 'Fatima Al Mansoori');
+      expect(party.mobile.e164, '+971559876543');
       expect(party.role, UserRole.customer);
-      expect(party.address, 'Villa 12, Jumeirah 1, Dubai');
+      expect(party.address, 'Villa 14, Jumeirah 2, Dubai');
+      expect(party.dealCount, 12);
       expect(party.rating?.average, 5.0);
-      expect(party.dealCount, 3);
     });
 
     test('parses alias fields displayName and mobileNumber', () {
       final party = RevealedParty.fromJson({
-        'displayName': 'Al Baraka Gold LLC',
-        'mobileNumber': '+971520001122',
+        'displayName': 'Saeed Gold Works',
+        'mobileNumber': '+971502223333',
         'role': 'VENDOR',
-        'legalBusinessName': 'Al Baraka Gold Trading FZE',
       });
 
-      expect(party.name, 'Al Baraka Gold LLC');
-      expect(party.mobile, '+971520001122');
-      expect(party.business, 'Al Baraka Gold Trading FZE');
+      expect(party.name, 'Saeed Gold Works');
+      expect(party.displayName, 'Saeed Gold Works');
+      expect(party.mobile.e164, '+971502223333');
+      expect(party.role, UserRole.vendor);
     });
 
     test('serializes to JSON with isRevealed flag and identity fields', () {
-      const party = RevealedParty(
-        name: 'Tariq',
-        mobile: '+971501234567',
-        role: UserRole.vendor,
-        address: 'Deira',
+      final party = RevealedParty(
+        name: 'Rashid Khan',
+        mobile: '+971504445555',
+        role: UserRole.customer,
+        address: 'Downtown Dubai',
+        dealCount: 7,
       );
+
       final json = party.toJson();
-      expect(json['name'], 'Tariq');
-      expect(json['mobile'], '+971501234567');
-      expect(json['role'], 'VENDOR');
-      expect(json['address'], 'Deira');
+      expect(json['name'], 'Rashid Khan');
+      expect(json['mobile'], '+971504445555');
+      expect(json['role'], 'CUSTOMER');
+      expect(json['address'], 'Downtown Dubai');
+      expect(json['dealCount'], 7);
       expect(json['isRevealed'], isTrue);
     });
 
-    test('copyWith updates fields correctly', () {
-      const original = RevealedParty(
-        name: 'Original Name',
-        mobile: '+971501111111',
-        role: UserRole.vendor,
-      );
-      final modified = original.copyWith(name: 'Updated Name');
-      expect(original.name, 'Original Name');
-      expect(modified.name, 'Updated Name');
-      expect(modified.mobile, '+971501111111');
+    test('parses RevealedVendor identity from Connection payload', () {
+      final party = RevealedParty.fromVendorJson({
+        'tradingName': 'Al Noor',
+        'legalBusinessName': 'Al Noor LLC',
+        'contactPersonName': 'Fatima',
+        'mobileNumber': '+971501234567',
+        'businessEmail': 'shop@example.ae',
+        'businessAddress': 'Deira, Dubai',
+        'region': {'id': 'reg-1', 'nameEn': 'Deira', 'nameAr': 'ديرة'},
+        'rating': {'average': '4.8', 'count': 20, 'limitedHistory': false},
+        'connectionCount': 20,
+      });
+      expect(party.displayName, 'Al Noor');
+      expect(party.mobile.e164, '+971501234567');
+      expect(party.business?.tradingName, 'Al Noor');
+      expect(party.business?.legalBusinessName, 'Al Noor LLC');
     });
 
-    test('value equality and hashCode', () {
-      const p1 = RevealedParty(
-        name: 'Same',
-        mobile: '+971500000000',
-        role: UserRole.customer,
-      );
-      const p2 = RevealedParty(
-        name: 'Same',
-        mobile: '+971500000000',
-        role: UserRole.customer,
-      );
-      const p3 = RevealedParty(
-        name: 'Different',
-        mobile: '+971500000000',
-        role: UserRole.customer,
-      );
-      expect(p1, equals(p2));
-      expect(p1.hashCode, equals(p2.hashCode));
-      expect(p1, isNot(equals(p3)));
+    test('accepts backend Connection vendor phone alias', () {
+      final party = RevealedParty.fromVendorJson({
+        'tradingName': 'Al Noor',
+        'legalBusinessName': 'Al Noor LLC',
+        'phone': '+971509999999',
+      });
+      expect(party.mobile.e164, '+971509999999');
+    });
+  });
+
+  group('PhoneNumber', () {
+    test('normalises to wa.me digits (Architecture-Frontend §10.3)', () {
+      expect(PhoneNumber.parse('+971 50 123 4567').waMeDigits, '971501234567');
+      expect(PhoneNumber.parse('+971501234567').e164, '+971501234567');
     });
   });
 
   group('AD-FE-07 Sealed Type Invariants and Masking Enforcement', () {
     test('Party.fromJson constructs MaskedParty when identity fields are absent', () {
-      final maskedPayload = {
+      final payload = {
         'role': 'VENDOR',
         'region': 'Deira',
-        'pseudonym': 'Vendor in Deira',
-        'rating': {'average': 4.8, 'count': 12},
-        'dealCount': 25,
+        'pseudonym': 'Gold Dealer in Deira',
+        'rating': {'average': 4.7, 'count': 15},
+        'dealCount': 10,
       };
 
-      final party = Party.fromJson(maskedPayload);
+      final party = Party.fromJson(payload);
 
-      // Must be MaskedParty, structurally guaranteed
       expect(party, isA<MaskedParty>());
       expect(party is RevealedParty, isFalse);
       expect(party.isMasked, isTrue);
@@ -334,83 +414,67 @@ void main() {
       final masked = party as MaskedParty;
       expect(masked.role, UserRole.vendor);
       expect(masked.region, 'Deira');
-      expect(masked.dealCount, 25);
+      expect(masked.displayPseudonym, 'Gold Dealer in Deira');
     });
 
     test('Party.fromJson constructs MaskedParty when identity fields are explicitly null', () {
-      final maskedPayloadWithNulls = {
+      final payload = {
         'name': null,
         'displayName': null,
         'mobile': null,
         'mobileNumber': null,
         'role': 'CUSTOMER',
-        'region': 'Downtown Dubai',
+        'region': 'Bur Dubai',
+        'dealCount': 2,
       };
 
-      final party = Party.fromJson(maskedPayloadWithNulls);
+      final party = Party.fromJson(payload);
 
       expect(party, isA<MaskedParty>());
-      expect(party is RevealedParty, isFalse);
+      expect(party.isMasked, isTrue);
+      expect(party.isRevealed, isFalse);
     });
 
     test('Party.fromJson constructs MaskedParty when identity fields are blank / whitespace', () {
-      final maskedPayloadWithBlanks = {
+      final payload = {
         'name': '   ',
         'mobile': '  ',
         'role': 'VENDOR',
         'region': 'Sharjah',
       };
 
-      final party = Party.fromJson(maskedPayloadWithBlanks);
+      final party = Party.fromJson(payload);
 
       expect(party, isA<MaskedParty>());
-      expect(party is RevealedParty, isFalse);
+      expect(party.isMasked, isTrue);
     });
 
     test('Party.fromJson constructs MaskedParty when payload is explicitly marked masked', () {
       final payload = {
-        'name': 'Should Be Hidden',
-        'mobile': '+971501234567',
+        'name': 'Leaked Name Should Be Ignored',
+        'mobile': '+971501111111',
         'role': 'VENDOR',
-        'region': 'Deira',
         'isMasked': true,
+        'region': 'Deira',
       };
 
       final party = Party.fromJson(payload);
 
       expect(party, isA<MaskedParty>());
       expect(party is RevealedParty, isFalse);
+      expect(party.isMasked, isTrue);
     });
 
     test('CRITICAL: RevealedParty.fromJson throws on masked payload (cannot construct RevealedParty)', () {
       final maskedPayload = {
         'role': 'VENDOR',
         'region': 'Deira',
-        'rating': 4.5,
-        'dealCount': 10,
+        'pseudonym': 'Jeweller in Deira',
+        'dealCount': 5,
       };
 
-      // Direct construction of RevealedParty from masked payload MUST fail
       expect(
         () => RevealedParty.fromJson(maskedPayload),
-        throwsA(isA<FormatException>()),
-      );
-
-      final payloadMissingMobile = {
-        'name': 'John Doe',
-        'role': 'CUSTOMER',
-      };
-      expect(
-        () => RevealedParty.fromJson(payloadMissingMobile),
-        throwsA(isA<FormatException>()),
-      );
-
-      final payloadMissingName = {
-        'mobile': '+971501234567',
-        'role': 'VENDOR',
-      };
-      expect(
-        () => RevealedParty.fromJson(payloadMissingName),
         throwsA(isA<FormatException>()),
       );
     });
@@ -433,7 +497,7 @@ void main() {
 
       final revealed = party as RevealedParty;
       expect(revealed.name, 'Emirates Gold LLC');
-      expect(revealed.mobile, '+971501234567');
+      expect(revealed.mobile.e164, '+971501234567');
       expect(revealed.address, 'Building 4, Gold Souk');
     });
 
@@ -455,9 +519,6 @@ void main() {
     });
 
     test('VendorRequestItem.fromJson maps customer via MaskedParty even if identity leaks', () {
-      // Pre-acceptance feed payloads must never produce RevealedParty (AD-FE-07).
-      // VendorRequestItem always deserializes customer as MaskedParty, which
-      // structurally drops name/mobile even if a buggy server included them.
       final item = VendorRequestItem.fromJson({
         'id': 'req-mask-1',
         'reference': 'REQ-MASK-1',

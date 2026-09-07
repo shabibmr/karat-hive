@@ -13,7 +13,7 @@
 
 The checkpoint is the frozen contract for this vertical. This file is the work list: IDs, order, files, acceptance. Do not invent routes, fields, or states that are not in the checkpoint.
 
-**Current tree (6 Sep 2026):** Track A backend vertical is on `main`. Track B onboarding/dashboard/goldens/CI landed via `feat/cp1-closeout`. Firebase ID-token verify + VENDOR auto-provision landed on `main` (`AuthGuard` / `FirebaseTokenService`). Remaining open work is the live E2E walks (**CP1-V01**, **CP1-V02**). Use [§ Remaining to close](#remaining-to-close) as the live punch list; the [full register](#full-task-register) is the whole vertical.
+**Current tree (6 Sep 2026):** Track A backend vertical is on `main`. Track B onboarding/dashboard/goldens/CI landed on `feat/cp1-closeout` and merged. Login/auth (Google Sign-In backend session, CP1-V01/V02 walks) is **out of this close-out**. Use [§ Remaining to close](#remaining-to-close) as the live punch list; the [full register](#full-task-register) is the whole vertical.
 
 ---
 
@@ -64,12 +64,12 @@ Work still open against the plan of record. Do these in this order.
 | ~~CP1-B01b~~ | B | `VendorStatusCard` in `kh_ui_domain` | **Done** (landed earlier on main) |
 | ~~CP1-B02a~~ | B | Extract `app/guards.dart` + shells | **Done** (landed earlier on main) |
 | ~~CP1-B02b~~ | B | `config/staging.json` | **Done on feat/cp1-closeout** |
-| ~~CP1-B06a~~ | B | Controller tests for register / login | **Superseded — Google Sign-In.** KYC + categories/regions controller tests added on close-out. |
-| ~~CP1-B06b~~ | B | Widget tests for login/register SH-FND-12/13 | **Superseded — Google Sign-In.** Awaiting + dashboard SH-FND-12/13 added on close-out. |
+| ~~CP1-B06a~~ | B | Controller tests for register / login | **Superseded — login/auth skipped.** KYC + categories/regions controller tests added on close-out. |
+| ~~CP1-B06b~~ | B | Widget tests for login/register SH-FND-12/13 | **Superseded — login/auth skipped.** Awaiting + dashboard SH-FND-12/13 added on close-out. |
 | ~~CP1-B06c~~ | B | LTR + RTL goldens for `kh_design_system` | **Done on feat/cp1-closeout** |
 | ~~CP1-B06d~~ | B | Frontend CI goldens | **Done on feat/cp1-closeout** (`frontend.yml` goldens job + admin job) |
-| **CP1-V01** | V | Backend walk-through | **Open.** OTP steps 1–3 superseded. Firebase ID-token path is on `main`. Remaining: live Google/Firebase session → KYC + dashboard (minted-JWT cases already in `vendor-media.spec.ts`). |
-| **CP1-V02** | V | Flutter walk-through | **Open.** Widget tests cover awaiting / KYC / categories / dashboard with a fake session. Remaining: Google Sign-In → KYC → categories → dashboard against a running API. |
+| **CP1-V01** | V | Backend walk-through | **Deferred — login/auth skipped.** OTP steps 1–3 superseded. KYC + dashboard HTTP cases exist in `vendor-media.spec.ts` (minted JWT). Live curl walk waits on a real session. |
+| **CP1-V02** | V | Flutter walk-through | **Deferred — login/auth skipped.** Widget tests cover awaiting / KYC / categories / dashboard with a fake session. |
 
 Deferred on purpose (do not pull into this checkpoint): ARB/`gen_l10n` (inlined `KhStrings` is the current stand-in), `freezed`/`json_serializable` (hand-written DTOs), listing `kh_admin` in the Dart workspace, standalone `melos.yaml` (Melos 8 config is in root `pubspec.yaml`), real SMS, EXIF/scan worker, OpenAPI generation. (Supabase Data-API/RLS was deferred here → **resolved 6 Sep 2026**, `docs/adr/0009`.)
 
@@ -244,8 +244,8 @@ Depends on A5 + B2.
 
 | ID | Task | Acceptance | Status |
 |---|---|---|---|
-| CP1-B06a | Controller tests | loading / empty / error / data per screen. | done for KYC + categories/regions. Login/register tests **superseded — Google Sign-In**. |
-| CP1-B06b | Widget tests | Every `SH-FND-12` / `SH-FND-13` state on the 6 screens. | done for awaiting + dashboard. Login/register **superseded — Google Sign-In**. |
+| CP1-B06a | Controller tests | loading / empty / error / data per screen. | done for KYC + categories/regions. Login/register tests **skipped** (auth out of this close-out). |
+| CP1-B06b | Widget tests | Every `SH-FND-12` / `SH-FND-13` state on the 6 screens. | done for awaiting + dashboard. Login/register **skipped** (auth out of this close-out). |
 | CP1-B06c | Goldens | LTR + RTL for every `kh_design_system` widget (`AD-FE-13`). | done |
 | CP1-B06d | `.github/workflows/frontend.yml` | Pinned Flutter → bootstrap → `melos run analyze` → `melos run test` → goldens → optional `flutter build apk --debug`. Path filter `apps/**`, `packages/**`, workspace file. | done |
 

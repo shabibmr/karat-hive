@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/session_controller.dart';
 import '../auth/token_storage.dart';
-import '../firebase/firebase_auth_service.dart';
 import 'api_exception.dart';
 
 /// Default base URL read from `--dart-define=KH_API_BASE`, defaulting to `http://localhost:3000`.
@@ -137,13 +136,23 @@ class ApiClient {
     }
 
     if (body is Map<String, dynamic>) {
-      final data = body['data'];
-      final meta = body['meta'];
+      var data = body['data'];
+      var meta = body['meta'] is Map<String, dynamic>
+          ? Map<String, dynamic>.from(body['meta'] as Map<String, dynamic>)
+          : <String, dynamic>{};
+
+      // The admin list routes double-wrap: `{ data: { data: [...], nextCursor },
+      // meta: { nextCursor: null } }`. Unwrap one more level and lift the real
+      // cursor out. Customer-facing routes already use `{ data: [...], meta }`.
+      if (data is Map<String, dynamic>) {
+        if (data['nextCursor'] != null && meta['nextCursor'] == null) {
+          meta['nextCursor'] = data['nextCursor'];
+        }
+        data = data['data'];
+      }
+
       final items = data is List ? data : const <dynamic>[];
-      return (
-        items: items,
-        meta: meta is Map<String, dynamic> ? meta : null,
-      );
+      return (items: items, meta: meta.isEmpty ? null : meta);
     }
 
     return (items: const <dynamic>[], meta: null);
@@ -259,21 +268,13 @@ class ApiClient {
 /// Provider for [ApiClient] wired with session tokens and silent 401 refresh handler.
 final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
-  final authService = ref.watch(firebaseAuthServiceProvider);
   return ApiClient(
+    // G2-A14: domain calls use the Karat Hive access token only.
     tokenGetter: () async {
-      final fbToken = await authService.getIdToken();
-      if (fbToken != null && fbToken.isNotEmpty) {
-        return fbToken;
-      }
       final session = ref.read(sessionControllerProvider);
       return session.tokens?.accessToken ?? await tokenStorage.getAccessToken();
     },
     onUnauthorized: () async {
-      final refreshed = await authService.getIdToken(forceRefresh: true);
-      if (refreshed != null && refreshed.isNotEmpty) {
-        return true;
-      }
       return ref.read(sessionControllerProvider.notifier).silentRefresh();
     },
   );

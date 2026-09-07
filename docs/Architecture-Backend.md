@@ -6,10 +6,10 @@
 | **Document** | Software Architecture Document — **Backend** |
 | **Version** | 1.0 |
 | **Status** | Draft — for Technical Lead review. Contains `[PROPOSED]` decisions requiring sign-off. |
-| **Date** | 10 August 2026 |
+| **Date** | 10 August 2026 (password hashing and login pointer updated 6 September 2026) |
 | **Companion** | [`docs/Architecture-Frontend.md`](Architecture-Frontend.md) — client architecture |
 | **Governs** | Node.js monolith, PostgreSQL, object storage, background workers, all server-side integrations |
-| **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`docs/adr/0001`–`0008`](adr/) · [`CONTEXT.md`](../CONTEXT.md) |
+| **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`docs/adr/0001`–`0010`](adr/) · [`CONTEXT.md`](../CONTEXT.md) |
 
 ---
 
@@ -154,6 +154,7 @@ Decisions made by this document. Status `Proposed` means it needs Technical Lead
 | `AD-BE-13` | Anonymise-in-place for erasure of transactional records; hard-delete for object storage | `[PROPOSED]` |
 | `AD-BE-14` | OpenAPI generated from code, published as the client contract, and diffed in CI | `[PROPOSED]` |
 | `AD-BE-15` | Managed PostgreSQL on Supabase (`docs/adr/0009`); the monolith connects directly as `postgres` and the bundled PostgREST **Data API is locked down** — RLS deny-all on every `public` table, `anon`/`authenticated` grants revoked. No Supabase Auth, Realtime or Edge Functions | `[PROPOSED]` |
+| `AD-BE-16` | Leftover stored passwords (until Google-only login fully replaces them) are hashed with **scrypt** via `node:crypto` (`N=16384`, `r=8`, `p=1` in the current adapter). No Argon2 dependency. Login itself is Google (`adr/0010`). | Matches code |
 
 ### 3.1 Rationale for the contested ones
 
@@ -716,13 +717,15 @@ Until that generated document exists, the pre-code catalogue is [`docs/API-Route
 
 ## 14. Identity, Authentication and Authorisation
 
+**Login (6 September 2026).** Customer, Vendor, and Admin all sign in with Google only — [`docs/adr/0010`](adr/0010-google-signin-only-login.md). Do not implement new OTP, password, or platform 2FA **login**. Admin still cannot self-register. The table’s “old SRS text” is leftover. This section will be rewritten in a later pass; the API list is also still the old model.
+
 ### 14.1 Three authentication paths
 
 | Actor | Mechanism | Requirements |
 |---|---|---|
-| **Customer** | Mobile number + OTP; **one-time OAuth binding** (Google / Apple) required before any Request may be published | `FR-CUS-001`, `FR-CUS-002`, `BR-001`, A-08 |
-| **Vendor** | Email + password (Argon2id) | `FR-VEN-001`, `FR-VEN-003`, `NFR-012` |
-| **Admin** | Email + password + **mandatory 2FA**; provisioned internally, self-registration structurally impossible | `FR-ADM-001`, `FR-ADM-002`, `NFR-012` |
+| **Customer** | **Now:** Google Sign-In (`adr/0010`). Old SRS text: mobile OTP plus a one-time OAuth bind before publish | `FR-CUS-001`, `FR-CUS-002`, `BR-001`, A-08 — login part superseded by `adr/0010` |
+| **Vendor** | **Now:** Google Sign-In (`adr/0010`). Old SRS text: email + password. Stored passwords (if any leftover rows) use **scrypt** (`AD-BE-16`) | `FR-VEN-001`, `FR-VEN-003`, `NFR-012` — login part superseded by `adr/0010` |
+| **Admin** | **Now:** Google Sign-In (`adr/0010`). Provisioned internally; self-registration structurally impossible. A Google user is never auto-created as Admin. Old SRS text: email + password + 2FA. | `FR-ADM-001`, `FR-ADM-002` — login part superseded by `adr/0010` |
 
 Self-registration as an Admin is not merely unexposed — there is no code path that creates an `ADMIN_PROFILE` from an unauthenticated request. That is the difference between a missing endpoint and an enforced rule.
 
@@ -731,8 +734,6 @@ Self-registration as an Admin is not merely unexposed — there is no code path 
 Short-lived access JWT (15 minutes) plus a long-lived, rotating, single-use refresh token stored hashed. Refresh reuse detection: presenting a rotated token invalidates the whole family and forces re-authentication, which is what turns a stolen refresh token from an indefinite session into a detectable event.
 
 The access token carries user id, role and token version only. It carries **no** entitlement, vendor state, or subscription claim — those change mid-session (an Admin suspends a Vendor; a subscription lapses) and a token that claimed them would keep granting access until expiry. Volatile authorisation facts are read from the database per request, cached only within that request. Suspension therefore takes effect on the very next call, as `FR-ADM-016` and `FR-SYS-002.2` require.
-
-**Built on `main` (product deviation; needs `adr/0010` + SRS revision):** `AuthGuard` also accepts a Firebase ID token as `Authorization: Bearer` (RS256, verified against Google JWKS for `FIREBASE_PROJECT_ID`). That path binds or auto-provisions via `oauthBinding` provider `GOOGLE` and does **not** mint an app access JWT on the wire — the Firebase token *is* the Bearer credential for that request. App-issued HS256 JWTs remain for the inventory password/OTP routes. This does not change §14.3: Customer OAuth as the publish gate (`BR-001`) is still not login.
 
 ### 14.3 The OAuth publish gate
 
@@ -863,7 +864,7 @@ All storage and all API timestamps are UTC (`BR-021`). GST (UTC+4) is a display 
 
 | Requirement | Implementation |
 |---|---|
-| `NFR-012` | Argon2id password hashing; ≥ 12 characters with mixed classes for Vendor and Admin; breached-password list checked at set time; TOTP 2FA mandatory for every Admin |
+| `NFR-012` | Login is Google for Customer, Vendor, and Admin (`adr/0010`). Platform password + TOTP 2FA are not used. Any leftover stored password is hashed with **scrypt** (`AD-BE-16`) until those rows are gone |
 | `NFR-013` | §9 — four-layer masking with a release-gate test suite |
 | `NFR-014` | Random object keys; 15-minute signed URLs; no public bucket listing; EXIF stripped |
 | `NFR-015` | KYC and personal identifiers encrypted at rest; KYC readable only by authenticated Admins; every access audited individually |

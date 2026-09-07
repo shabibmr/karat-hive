@@ -1,116 +1,180 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
+import 'party.dart';
 import 'vendor_lifecycle.dart';
 
-part 'session.freezed.dart';
-part 'session.g.dart';
+class CustomerMe {
+  const CustomerMe({
+    required this.displayName,
+    required this.reviewCount,
+    required this.connectionCount,
+    this.photoUrl,
+    this.defaultRegion,
+    this.rating,
+    this.liveRequestCount,
+    this.canCreateRequest,
+  });
 
-class _VendorLifecycleConverter
-    implements JsonConverter<VendorLifecycle, String?> {
-  const _VendorLifecycleConverter();
+  final String displayName;
+  final String? photoUrl;
+  final RegionSummary? defaultRegion;
+  final RatingSummary? rating;
+  final int reviewCount;
+  final int connectionCount;
+  final int? liveRequestCount;
+  final bool? canCreateRequest;
 
-  @override
-  VendorLifecycle fromJson(String? json) => VendorLifecycle.parse(json);
+  static CustomerMe fromJson(Map<String, dynamic> j) => CustomerMe(
+        displayName: j['displayName'] as String? ?? '',
+        photoUrl: j['photoUrl'] as String?,
+        defaultRegion: RegionSummary.tryParse(j['defaultRegion']),
+        rating: RatingSummary.tryParse(j['rating']),
+        reviewCount: (j['reviewCount'] as num?)?.toInt() ?? 0,
+        connectionCount: (j['connectionCount'] as num?)?.toInt() ?? 0,
+        liveRequestCount: (j['liveRequestCount'] as num?)?.toInt(),
+        canCreateRequest: j['canCreateRequest'] as bool?,
+      );
 
-  @override
-  String toJson(VendorLifecycle object) => switch (object) {
-        VendorLifecycle.registered => 'REGISTERED',
-        VendorLifecycle.pendingVerification => 'PENDING_VERIFICATION',
-        VendorLifecycle.verified => 'VERIFIED',
-        VendorLifecycle.active => 'ACTIVE',
-        VendorLifecycle.suspended => 'SUSPENDED',
-        VendorLifecycle.rejected => 'REJECTED',
-        VendorLifecycle.deactivated => 'DEACTIVATED',
-        VendorLifecycle.unknown => 'UNKNOWN',
+  Map<String, dynamic> toJson() => {
+        'displayName': displayName,
+        if (photoUrl != null) 'photoUrl': photoUrl,
+        if (defaultRegion != null) 'defaultRegion': defaultRegion!.id,
+        if (rating != null) 'rating': rating!.toJson(),
+        'reviewCount': reviewCount,
+        'connectionCount': connectionCount,
+        if (liveRequestCount != null) 'liveRequestCount': liveRequestCount,
+        if (canCreateRequest != null) 'canCreateRequest': canCreateRequest,
       };
 }
 
-class _AwaitingApprovalReasonConverter
-    implements JsonConverter<AwaitingApprovalReason?, String?> {
-  const _AwaitingApprovalReasonConverter();
+class VendorMe {
+  const VendorMe({
+    required this.vendorProfileId,
+    required this.lifecycle,
+    required this.awaitingApproval,
+    required this.tradingName,
+    required this.legalBusinessName,
+    required this.categoryCount,
+    required this.regionCount,
+    this.categoryIds = const [],
+    this.regionIds = const [],
+    this.awayMode = false,
+    this.awaitingApprovalReason,
+    this.verificationMessage,
+  });
 
-  @override
-  AwaitingApprovalReason? fromJson(String? json) =>
-      AwaitingApprovalReason.parse(json);
+  final String vendorProfileId;
+  final VendorLifecycle lifecycle;
+  final bool awaitingApproval;
+  final String tradingName;
+  final String legalBusinessName;
+  final int categoryCount;
+  final int regionCount;
+  final List<String> categoryIds;
+  final List<String> regionIds;
+  final bool awayMode;
+  final AwaitingApprovalReason? awaitingApprovalReason;
+  final String? verificationMessage;
 
-  @override
-  String? toJson(AwaitingApprovalReason? object) => switch (object) {
-        null => null,
-        AwaitingApprovalReason.pendingDocuments => 'PENDING_DOCUMENTS',
-        AwaitingApprovalReason.pendingAdmin => 'PENDING_ADMIN',
-        AwaitingApprovalReason.categoriesRequired => 'CATEGORIES_REQUIRED',
-        AwaitingApprovalReason.rejected => 'REJECTED',
-        AwaitingApprovalReason.unknown => 'UNKNOWN',
+  static VendorMe fromJson(Map<String, dynamic> j) {
+    List<String> strs(Object? raw) => (raw as List? ?? const [])
+        .map((e) => e.toString())
+        .toList(growable: false);
+
+    return VendorMe(
+      vendorProfileId: (j['vendorProfileId'] ?? j['id'] ?? '') as String,
+      lifecycle: VendorLifecycle.parse(j['lifecycle'] as String?),
+      awaitingApproval: j['awaitingApproval'] as bool? ?? true,
+      tradingName: j['tradingName'] as String? ?? '',
+      legalBusinessName: j['legalBusinessName'] as String? ?? '',
+      categoryCount: (j['categoryCount'] as num?)?.toInt() ?? 0,
+      regionCount: (j['regionCount'] as num?)?.toInt() ?? 0,
+      categoryIds: strs(j['categoryIds']),
+      regionIds: strs(j['regionIds']),
+      awayMode: j['awayMode'] as bool? ?? false,
+      awaitingApprovalReason:
+          AwaitingApprovalReason.parse(j['awaitingApprovalReason'] as String?),
+      verificationMessage: j['verificationMessage'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'vendorProfileId': vendorProfileId,
+        'lifecycle': lifecycle.name.toUpperCase(),
+        'awaitingApproval': awaitingApproval,
+        'tradingName': tradingName,
+        'legalBusinessName': legalBusinessName,
+        'categoryCount': categoryCount,
+        'regionCount': regionCount,
+        'categoryIds': categoryIds,
+        'regionIds': regionIds,
+        'awayMode': awayMode,
+        if (awaitingApprovalReason != null)
+          'awaitingApprovalReason': awaitingApprovalReason!.name.toUpperCase(),
+        if (verificationMessage != null)
+          'verificationMessage': verificationMessage,
       };
 }
 
-Map<String, dynamic> _normalizeVendorMeJson(Map<String, dynamic> json) {
-  return {
-    ...json,
-    'awaitingApproval': json['awaitingApproval'] as bool? ?? true,
-    'tradingName': json['tradingName'] as String? ?? '',
-    'legalBusinessName': json['legalBusinessName'] as String? ?? '',
-    'categoryCount': json['categoryCount'] as int? ?? 0,
-    'regionCount': json['regionCount'] as int? ?? 0,
-    'categoryIds': ((json['categoryIds'] as List?) ?? const [])
-        .map((e) => e.toString())
-        .toList(growable: false),
-    'regionIds': ((json['regionIds'] as List?) ?? const [])
-        .map((e) => e.toString())
-        .toList(growable: false),
-    'awayMode': json['awayMode'] as bool? ?? false,
-    // Preserve legacy parse(null) → unknown behaviour via the converter.
-    'awaitingApprovalReason': json['awaitingApprovalReason']?.toString(),
-  };
-}
+class MeUser {
+  const MeUser({
+    required this.userId,
+    required this.userType,
+    required this.mobileNumber,
+    required this.preferredLanguage,
+    this.email,
+    this.vendor,
+    this.customer,
+    this.oauthBound = false,
+    this.liveRequestCount,
+    this.canCreateRequest,
+    this.accountState = AccountState.unknown,
+  });
 
-Map<String, dynamic> _normalizeMeUserJson(Map<String, dynamic> json) {
-  final vendor = json['vendor'];
-  return {
-    ...json,
-    'mobileNumber': json['mobileNumber'] as String? ?? '',
-    'preferredLanguage': json['preferredLanguage'] as String? ?? 'en',
-    'vendor': vendor is Map
-        ? Map<String, dynamic>.from(vendor)
-        : null,
-  };
-}
+  final String userId;
+  final String userType;
+  final String mobileNumber;
+  final String preferredLanguage;
+  final String? email;
+  final VendorMe? vendor;
+  final CustomerMe? customer;
+  final bool oauthBound;
+  final int? liveRequestCount;
+  final bool? canCreateRequest;
+  final AccountState accountState;
 
-/// Vendor slice of `/me` (CP2-F06 freezed pattern).
-@freezed
-abstract class VendorMe with _$VendorMe {
-  const factory VendorMe({
-    required String vendorProfileId,
-    @_VendorLifecycleConverter() required VendorLifecycle lifecycle,
-    required bool awaitingApproval,
-    required String tradingName,
-    required String legalBusinessName,
-    required int categoryCount,
-    required int regionCount,
-    @Default(<String>[]) List<String> categoryIds,
-    @Default(<String>[]) List<String> regionIds,
-    @Default(false) bool awayMode,
-    @_AwaitingApprovalReasonConverter()
-    AwaitingApprovalReason? awaitingApprovalReason,
-    String? verificationMessage,
-  }) = _VendorMe;
+  static MeUser fromJson(Map<String, dynamic> j) {
+    final customer = j['customer'] == null
+        ? null
+        : CustomerMe.fromJson(Map<String, dynamic>.from(j['customer'] as Map));
+    return MeUser(
+      userId: (j['userId'] ?? j['id'] ?? '') as String,
+      userType: j['userType'] as String? ?? '',
+      mobileNumber: j['mobileNumber'] as String? ?? '',
+      preferredLanguage: j['preferredLanguage'] as String? ?? 'en',
+      email: j['email'] as String?,
+      vendor: j['vendor'] == null
+          ? null
+          : VendorMe.fromJson(Map<String, dynamic>.from(j['vendor'] as Map)),
+      customer: customer,
+      oauthBound: j['oauthBound'] as bool? ?? false,
+      liveRequestCount: customer?.liveRequestCount ??
+          (j['liveRequestCount'] as num?)?.toInt(),
+      canCreateRequest: customer?.canCreateRequest ??
+          j['canCreateRequest'] as bool?,
+      accountState: AccountState.parse(j['accountState'] as String?),
+    );
+  }
 
-  factory VendorMe.fromJson(Map<String, dynamic> json) =>
-      _$VendorMeFromJson(_normalizeVendorMeJson(json));
-}
-
-/// Authenticated user payload from `/me` (CP2-F06 freezed pattern).
-@freezed
-abstract class MeUser with _$MeUser {
-  const factory MeUser({
-    required String userId,
-    required String userType,
-    required String mobileNumber,
-    required String preferredLanguage,
-    String? email,
-    VendorMe? vendor,
-  }) = _MeUser;
-
-  factory MeUser.fromJson(Map<String, dynamic> json) =>
-      _$MeUserFromJson(_normalizeMeUserJson(json));
+  Map<String, dynamic> toJson() => {
+        'userId': userId,
+        'userType': userType,
+        'mobileNumber': mobileNumber,
+        'preferredLanguage': preferredLanguage,
+        if (email != null) 'email': email,
+        if (vendor != null) 'vendor': vendor!.toJson(),
+        if (customer != null) 'customer': customer!.toJson(),
+        'oauthBound': oauthBound,
+        if (liveRequestCount != null) 'liveRequestCount': liveRequestCount,
+        if (canCreateRequest != null) 'canCreateRequest': canCreateRequest,
+        'accountState': accountState.wire,
+      };
 }

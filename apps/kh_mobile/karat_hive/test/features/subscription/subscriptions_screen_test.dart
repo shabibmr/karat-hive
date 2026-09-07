@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:karat_hive/features/subscription/controller/subscription_controller.dart';
 import 'package:karat_hive/features/subscription/presentation/subscriptions_screen.dart';
 import 'package:karat_hive/features/subscription/repository/subscription_repository.dart';
 import 'package:kh_core/kh_core.dart';

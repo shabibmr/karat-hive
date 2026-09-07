@@ -133,7 +133,6 @@
   },
   "vendorsDetailEyebrow": "Vendor Profile",
   "vendorsDetailTitle": "Vendor Detail",
-  "vendorsDetailStubBody": "Full vendor inspection (ADM-S06) is scheduled for a later milestone.",
   "vendorsDetailVendorId": "Vendor ID: {id}",
   "@vendorsDetailVendorId": {
     "placeholders": {
@@ -142,8 +141,6 @@
       }
     }
   },
-  "vendorsDetailComingSoon": "Account actions and document review will appear here.",
-
   "verificationEyebrow": "Compliance Reviewer",
   "verificationHeading": "KYC Verification Queue ({count} Pending)",
   "@verificationHeading": {
@@ -226,5 +223,364 @@
   "confirmRequestInfo": "Send Request",
   "toastVendorApproved": "Vendor approved successfully.",
   "toastVendorRejected": "Vendor application rejected.",
-  "toastInfoRequested": "Information request sent to vendor."
+  "toastInfoRequested": "Information request sent to vendor.",
+
+  "offersListEyebrow": "Marketplace Audit",
+  "offersListHeading": "Offers",
+  "offersListSubtitle": "Platform-wide vendor offer monitoring and inspection",
+  "offersFilterState": "Offer state",
+  "offersFilterAllStates": "All States",
+  "offersFilterRequestType": "Request type",
+  "offersFilterAllTypes": "All Types",
+  "offersFilterSearch": "Search",
+  "offersFilterSearchHint": "Offer ID, vendor name, request ref…",
+  "offersFilterSearchTooltip": "Search offers",
+  "offersColumnReference": "Offer Reference/ID",
+  "offersColumnParentRequest": "Parent Request",
+  "offersColumnVendor": "Vendor Name",
+  "offersColumnOfferedPrice": "Offered Price (AED)",
+  "offersColumnState": "State",
+  "offersColumnSubmissionDate": "Submission Date",
+  "offersColumnExpiryDate": "Expiry Date",
+  "offersColumnOutcome": "Outcome",
+  "offersColumnAction": "Action",
+  "offersOutcomeAcceptedByCustomer": "Accepted by Customer",
+  "offersOutcomeRejected": "Rejected",
+  "offersOutcomeExpired": "Expired",
+  "offersOutcomePending": "Pending",
+  "offersActionInspect": "Inspect",
+  "offersPaginationShowing": "Showing {count} offers",
+  "@offersPaginationShowing": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "offersPaginationShowingOf": "Showing {count} offers of {total}",
+  "@offersPaginationShowingOf": {
+    "placeholders": { "count": { "type": "int" }, "total": { "type": "int" } }
+  },
+  "offersPaginationPrevious": "Previous",
+  "offersPaginationPage": "Page {page}",
+  "@offersPaginationPage": {
+    "placeholders": { "page": { "type": "int" } }
+  },
+  "offersPaginationNext": "Next",
+  "offersEmptyTitle": "No offers found",
+  "offersEmptyBody": "No offers match the current filter criteria.",
+  "offersErrorTitle": "Failed to load offers",
+  "offersRetry": "Retry",
+
+  "offersDetailBack": "Back to Offers",
+  "offersDetailEyebrow": "OFFER {reference}",
+  "@offersDetailEyebrow": {
+    "placeholders": { "reference": { "type": "String" } }
+  },
+  "offersDetailHeaderMeta": "Submitted on {date} · Validity {hours}h",
+  "@offersDetailHeaderMeta": {
+    "placeholders": { "date": { "type": "String" }, "hours": { "type": "int" } }
+  },
+  "offersDetailHeaderMetaExpires": "Submitted on {date} · Validity {hours}h (Expires {expiry})",
+  "@offersDetailHeaderMetaExpires": {
+    "placeholders": { "date": { "type": "String" }, "hours": { "type": "int" }, "expiry": { "type": "String" } }
+  },
+  "offersDetailCompetingWonTitle": "COMPETING OFFER WON THIS REQUEST",
+  "offersDetailCompetingWonBody": "Customer selected winning offer {reference}{vendorPart}{pricePart}.",
+  "@offersDetailCompetingWonBody": {
+    "placeholders": { "reference": { "type": "String" }, "vendorPart": { "type": "String" }, "pricePart": { "type": "String" } }
+  },
+  "offersDetailCompetingWonBy": " by {vendor}",
+  "@offersDetailCompetingWonBy": {
+    "placeholders": { "vendor": { "type": "String" } }
+  },
+  "offersDetailCompetingWonFor": " for {price}",
+  "@offersDetailCompetingWonFor": {
+    "placeholders": { "price": { "type": "String" } }
+  },
+  "offersDetailInspectWinning": "Inspect Winning Offer",
+  "offersDetailVendorProfileTitle": "Unmasked Vendor Profile",
+  "offersDetailViewVendor": "View Vendor",
+  "offersDetailNoVendor": "No vendor details provided.",
+  "offersDetailLabelLegalName": "Legal Business Name",
+  "offersDetailLabelTradingName": "Trading Name",
+  "offersDetailLabelTradeLicence": "Trade Licence",
+  "offersDetailLabelContactMobile": "Contact Person & Mobile",
+  "offersDetailLabelBusinessEmail": "Business Email",
+  "offersDetailLabelVendorRating": "Vendor Rating",
+  "offersDetailDealsSuffix": " ({deals} deals completed)",
+  "@offersDetailDealsSuffix": {
+    "placeholders": { "deals": { "type": "int" } }
+  },
+  "offersDetailParentRequestTitle": "Parent Request Reference",
+  "offersDetailOpenRequest": "Open Request",
+  "offersDetailNoParentRequest": "No parent request linked.",
+  "offersDetailLabelRequestReference": "Request Reference",
+  "offersDetailLabelRequestType": "Request Type",
+  "offersDetailLabelCustomerMobile": "Customer Name & Mobile",
+  "offersDetailLabelCategory": "Category",
+  "offersDetailLabelRegion": "Region",
+  "offersDetailLabelIndicativeBudget": "Indicative Budget",
+  "offersDetailLabelRequestNotes": "Request Notes",
+  "offersDetailPricingTitle": "Pricing Breakdown",
+  "offersDetailPricingGoldValue": "Gold Metal Value",
+  "offersDetailPricingGoldHintRate": "Base gold price ({rate}/g)",
+  "@offersDetailPricingGoldHintRate": {
+    "placeholders": { "rate": { "type": "String" } }
+  },
+  "offersDetailPricingGoldHint": "Base gold price component",
+  "offersDetailPricingMaking": "Making / Crafting Charges",
+  "offersDetailPricingMakingHint": "Labour and artistry charges",
+  "offersDetailPricingVat": "Value Added Tax (VAT 5%)",
+  "offersDetailPricingVatHint": "UAE statutory tax",
+  "offersDetailPricingTotal": "Total Offered Price",
+  "offersDetailTermsTitle": "Commercial Terms, Notes & Attachments",
+  "offersDetailLabelDelivery": "Delivery / Readiness Timeframe",
+  "offersDetailDeliveryDefault": "Immediate dispatch / collection",
+  "offersDetailLabelWarranty": "Warranty / Buy-Back Terms",
+  "offersDetailWarrantyDefault": "Standard UAE jeweller guarantee",
+  "offersDetailLabelVendorNote": "Vendor Note",
+  "offersDetailVendorNoteDefault": "No free-text note provided by vendor.",
+  "offersDetailLabelValidityExpiry": "Offer Validity & Expiry",
+  "offersDetailValidityExpiryValue": "{hours} hours · Expiry: {date}",
+  "@offersDetailValidityExpiryValue": {
+    "placeholders": { "hours": { "type": "int" }, "date": { "type": "String" } }
+  },
+  "offersDetailLabelDeclineReason": "Decline Reason",
+  "offersDetailAttachmentsCount": "Attachments & Certificates ({count})",
+  "@offersDetailAttachmentsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "offersDetailNoAttachments": "No media files or certificates attached by vendor.",
+  "offersDetailRevisionsTitle": "Revisions History (FR-VEN-014)",
+  "offersDetailRevisionCount": "{count, plural, =1{1 revision} other{{count} revisions}}",
+  "@offersDetailRevisionCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "offersDetailNoRevisions": "Initial offer terms. No modifications were made pre-acceptance.",
+  "offersDetailRevisionNumber": "Rev #{number}",
+  "@offersDetailRevisionNumber": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "offersDetailRevisionOffered": "Offered: {price}",
+  "@offersDetailRevisionOffered": {
+    "placeholders": { "price": { "type": "String" } }
+  },
+  "offersDetailRevisionMakingSuffix": " (Making: {making})",
+  "@offersDetailRevisionMakingSuffix": {
+    "placeholders": { "making": { "type": "String" } }
+  },
+  "offersDetailRevisionNote": "Note: {note}",
+  "@offersDetailRevisionNote": {
+    "placeholders": { "note": { "type": "String" } }
+  },
+  "offersDetailTransitionsTitle": "State Transitions Timeline",
+  "offersDetailNoTransitions": "Offer is in {state} state. No state transition audit recorded.",
+  "@offersDetailNoTransitions": {
+    "placeholders": { "state": { "type": "String" } }
+  },
+  "offersDetailTransitionActor": "By: {actor}",
+  "@offersDetailTransitionActor": {
+    "placeholders": { "actor": { "type": "String" } }
+  },
+  "offersDetailTransitionReason": "Reason: {reason}",
+  "@offersDetailTransitionReason": {
+    "placeholders": { "reason": { "type": "String" } }
+  },
+  "offersDetailNotesTitle": "Internal Administrative Notes",
+  "offersDetailNotesSubtitle": "Admin inspection notes are internal to Karat Hive. Commercial terms are read-only.",
+  "offersDetailNotesHint": "Add an internal note about this offer…",
+  "offersDetailAddNote": "Add Note",
+  "offersDetailNoNotes": "No internal notes added yet.",
+  "offersDetailErrorTitle": "Failed to load offer details",
+
+  "requestsListEyebrow": "Marketplace Audit",
+  "requestsListHeading": "Requests",
+  "requestsListSubtitle": "Platform requests oversight and inspection",
+  "requestsFilterType": "Request Type",
+  "requestsFilterAllTypes": "All Types",
+  "requestsFilterDirection": "Direction",
+  "requestsFilterAllDirections": "All Directions",
+  "requestsFilterStatus": "Status",
+  "requestsFilterAllStates": "All States",
+  "requestsFilterSearch": "Search",
+  "requestsFilterSearchHint": "Reference, notes, customer…",
+  "requestsFilterSearchTooltip": "Search",
+  "requestsFilterZeroOffers": "Zero Offers",
+  "requestsColumnReference": "Reference",
+  "requestsColumnType": "Type",
+  "requestsColumnDirection": "Direction",
+  "requestsColumnCustomer": "Customer",
+  "requestsColumnCategory": "Category",
+  "requestsColumnRegion": "Region",
+  "requestsColumnIndicativeValue": "Indicative Value",
+  "requestsColumnOffers": "Offers",
+  "requestsColumnState": "State",
+  "requestsColumnDate": "Date",
+  "requestsColumnAction": "Action",
+  "requestsActionInspect": "Inspect",
+  "requestsLoadMore": "Load more",
+  "requestsPaginationPrevious": "Previous",
+  "requestsPaginationPage": "Page {page}",
+  "@requestsPaginationPage": {
+    "placeholders": { "page": { "type": "int" } }
+  },
+  "requestsPaginationNext": "Next",
+  "requestsEmptyBody": "No requests match the current filters.",
+  "requestsRetry": "Retry",
+
+  "requestsDetailBack": "Back to Requests",
+  "requestsDetailEyebrow": "Request Oversight",
+  "requestsDetailNoReference": "NO REFERENCE",
+  "requestsDetailPublishedAt": "Published {date} GST",
+  "@requestsDetailPublishedAt": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "requestsDetailCreatedAt": "Created {date} GST",
+  "@requestsDetailCreatedAt": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "requestsDetailNoteAdded": "Note added successfully.",
+  "requestsDetailNoteAddFailed": "Failed to add note: {error}",
+  "@requestsDetailNoteAddFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "requestsDetailRemoveSuccess": "Request successfully removed.",
+  "requestsDetailRemoveFailed": "Failed to remove request: {error}",
+  "@requestsDetailRemoveFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "requestsDetailRemovedTitle": "REQUEST REMOVED BY PLATFORM MODERATION (FR-ADM-019)",
+  "requestsDetailRemovedReason": "Reason: {code} · {text}",
+  "@requestsDetailRemovedReason": {
+    "placeholders": { "code": { "type": "String" }, "text": { "type": "String" } }
+  },
+  "requestsDetailRemovedReasonCodeDefault": "POLICY_VIOLATION",
+  "requestsDetailRemovedReasonTextDefault": "Violates platform trading guidelines",
+  "requestsDetailRemovedPolicyClause": "Policy clause cited: {clause}",
+  "@requestsDetailRemovedPolicyClause": {
+    "placeholders": { "clause": { "type": "String" } }
+  },
+  "requestsDetailConnectionTitle": "ACTIVE CONNECTION ESTABLISHED",
+  "requestsDetailConnectionParties": "Accepted Vendor: {vendor} · Customer: {customer}",
+  "@requestsDetailConnectionParties": {
+    "placeholders": { "vendor": { "type": "String" }, "customer": { "type": "String" } }
+  },
+  "requestsDetailConnectionMeta": "Connected at: {date} GST · Channel: {channel}",
+  "@requestsDetailConnectionMeta": {
+    "placeholders": { "date": { "type": "String" }, "channel": { "type": "String" } }
+  },
+  "requestsDetailConnectionChannelDefault": "WHATSAPP",
+  "requestsDetailWhatsappChannel": "WhatsApp Channel",
+  "requestsDetailSpecsTitle": "Commercial Requirements & Specifications",
+  "requestsDetailSpecsReadOnly": "READ-ONLY FOR ADMIN (FR-ADM-018 AC3)",
+  "requestsDetailLabelReferenceCode": "Reference Code",
+  "requestsDetailLabelRequestType": "Request Type",
+  "requestsDetailLabelMarketDirection": "Market Direction",
+  "requestsDetailLabelCategory": "Category",
+  "requestsDetailLabelRegion": "Region",
+  "requestsDetailLabelOrnamentType": "Ornament Type",
+  "requestsDetailLabelPurityKarat": "Purity / Karat",
+  "requestsDetailLabelWeight": "Weight",
+  "requestsDetailLabelCondition": "Condition",
+  "requestsDetailLabelDenomination": "Denomination",
+  "requestsDetailLabelQuantity": "Quantity",
+  "requestsDetailLabelMintRefiner": "Mint / Refiner",
+  "requestsDetailLabelIndicativeValue": "Indicative Value",
+  "requestsDetailLabelCustomerBudget": "Customer Budget",
+  "requestsDetailWeightApproximate": "{weight}g (Approximate)",
+  "@requestsDetailWeightApproximate": {
+    "placeholders": { "weight": { "type": "String" } }
+  },
+  "requestsDetailWeightExact": "{weight}g (Exact)",
+  "@requestsDetailWeightExact": {
+    "placeholders": { "weight": { "type": "String" } }
+  },
+  "requestsDetailQuantityUnits": "{quantity} units",
+  "@requestsDetailQuantityUnits": {
+    "placeholders": { "quantity": { "type": "int" } }
+  },
+  "requestsDetailBudgetValue": "AED {min} – {max}",
+  "@requestsDetailBudgetValue": {
+    "placeholders": { "min": { "type": "String" }, "max": { "type": "String" } }
+  },
+  "requestsDetailBudgetValueFlexible": "AED {min} – {max} (Flexible)",
+  "@requestsDetailBudgetValueFlexible": {
+    "placeholders": { "min": { "type": "String" }, "max": { "type": "String" } }
+  },
+  "requestsDetailCustomerNotes": "Customer Notes:",
+  "requestsDetailCustomerProfileTitle": "Unmasked Customer Profile",
+  "requestsDetailCustomerId": "Customer ID: {id}",
+  "@requestsDetailCustomerId": {
+    "placeholders": { "id": { "type": "String" } }
+  },
+  "requestsDetailLabelMobilePhone": "Mobile Phone",
+  "requestsDetailLabelEmailAddress": "Email Address",
+  "requestsDetailLabelMemberSince": "Member Since",
+  "requestsDetailMediaTitle": "Uploaded Media ({count})",
+  "@requestsDetailMediaTitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "requestsDetailNoMedia": "No media uploaded for this request.",
+  "requestsDetailImageNumber": "Image #{number}",
+  "@requestsDetailImageNumber": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "requestsDetailOffersTitle": "Received Offers ({count})",
+  "@requestsDetailOffersTitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "requestsDetailNoOffers": "No offers submitted yet.",
+  "requestsDetailOffersColumnVendor": "Vendor",
+  "requestsDetailOffersColumnPrice": "Offered Price",
+  "requestsDetailOffersColumnStatus": "Status",
+  "requestsDetailOffersColumnSubmitted": "Submitted",
+  "requestsDetailOffersColumnTurnaround": "Turnaround",
+  "requestsDetailOfferDays": "{days} days",
+  "@requestsDetailOfferDays": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+  "requestsDetailMatchedTitle": "Matched Vendors ({count})",
+  "@requestsDetailMatchedTitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "requestsDetailNoMatched": "No vendors matched to this request.",
+  "requestsDetailMatchedAt": "Matched: {date}",
+  "@requestsDetailMatchedAt": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "requestsDetailViewed": "VIEWED",
+  "requestsDetailNotViewed": "NOT VIEWED",
+  "requestsDetailTimelineTitle": "State Transition History",
+  "requestsDetailNoTransitions": "No recorded transitions.",
+  "requestsDetailTimelineBy": "by {actor}",
+  "@requestsDetailTimelineBy": {
+    "placeholders": { "actor": { "type": "String" } }
+  },
+  "requestsDetailModerationTitle": "Platform Moderation",
+  "requestsDetailModerationBody": "Administrators can forcibly remove requests that violate platform trading policies (FR-ADM-019).",
+  "requestsDetailAlreadyRemoved": "Request Already Removed",
+  "requestsDetailRemoveRequest": "Remove Request",
+  "requestsDetailNotesTitle": "Admin Internal Notes ({count})",
+  "@requestsDetailNotesTitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "requestsDetailNoNotes": "No internal notes recorded.",
+  "requestsDetailAddNoteLabel": "Add Internal Note",
+  "requestsDetailAddNoteHint": "Record audit or compliance notes…",
+  "requestsDetailAddNote": "Add Note",
+  "requestsDetailRemoveDialogTitle": "Remove Request",
+  "requestsDetailRemoveDialogBody": "Removing \"{reference}\" sets status to REMOVED, withdraws all pending offers, and notifies both parties.",
+  "@requestsDetailRemoveDialogBody": {
+    "placeholders": { "reference": { "type": "String" } }
+  },
+  "requestsDetailRemoveReasonCode": "Reason Code",
+  "requestsDetailRemoveReasonPolicyViolation": "Policy violation",
+  "requestsDetailRemoveReasonProhibitedItem": "Prohibited item / Contraband",
+  "requestsDetailRemoveReasonFraudulent": "Fraudulent or misleading listing",
+  "requestsDetailRemoveReasonCustomerRequested": "Customer requested cancellation",
+  "requestsDetailRemoveReasonOther": "Other administrative reason",
+  "requestsDetailRemovePolicyClauseLabel": "Policy Clause (cited to customer)",
+  "requestsDetailRemovePolicyClauseHint": "e.g. Terms of Service §4.2",
+  "requestsDetailRemoveJustificationLabel": "Detailed Justification & Notes",
+  "requestsDetailRemoveJustificationHint": "State reason for audit log…",
+  "requestsDetailRemoveJustificationRequired": "Detailed justification is required.",
+  "requestsDetailConfirmRemoval": "Confirm Removal",
+  "requestsDetailErrorRetry": "Retry"
 }

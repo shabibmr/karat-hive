@@ -232,7 +232,7 @@ class _SubscriptionCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    l10n?.aedPerMonth('${item!.priceAed}') ??
+                    l10n?.aedPerMonth(item!.priceAed) ??
                         'AED ${item!.priceAed} / month',
                     style: const TextStyle(
                       fontSize: 13,

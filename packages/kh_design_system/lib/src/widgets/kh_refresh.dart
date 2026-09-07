@@ -66,5 +66,3 @@ class KhRefresh extends StatelessWidget {
   }
 }
 
-/// Alias for [KhRefresh] matching component catalogue naming.
-typedef KhPullToRefresh = KhRefresh;

@@ -81,11 +81,50 @@ class KhApi {
   Future<Result<SessionBundle>> registerVendor(Map<String, dynamic> body) =>
       auth.registerVendor(body);
 
+  /// `POST /v1/auth/register/customer` — SessionBundle 201 (`FR-CUS-001`).
+  Future<Result<SessionBundle>> registerCustomer({
+    String? challengeId,
+    String? firebaseToken,
+    required String displayName,
+    String? email,
+    required String preferredLanguage,
+    String? defaultRegionId,
+    required String termsVersion,
+    required String privacyVersion,
+  }) async {
+    final r = await _client.send('POST', '/v1/auth/register/customer', body: {
+      if (challengeId != null) 'challengeId': challengeId,
+      if (firebaseToken != null) 'firebaseToken': firebaseToken,
+      'displayName': displayName,
+      if (email != null) 'email': email,
+      'preferredLanguage': preferredLanguage,
+      if (defaultRegionId != null) 'defaultRegionId': defaultRegionId,
+      'termsVersion': termsVersion,
+      'privacyVersion': privacyVersion,
+    });
+    return r.when(
+      ok: (d) => Ok(SessionBundle.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
   Future<Result<SessionBundle>> loginPassword({
     required String email,
     required String password,
   }) =>
       auth.loginPassword(email: email, password: password);
+
+  /// Exchanges a Google / Firebase ID token for a Karat Hive [SessionBundle]
+  /// (`AD-API-13`, G2-A14). Does not create a User; unbound → 401.
+  Future<Result<SessionBundle>> googleSession({required String idToken}) async {
+    final r = await _client.send('POST', '/v1/auth/google/session', body: {
+      'idToken': idToken,
+    });
+    return r.when(
+      ok: (d) => Ok(SessionBundle.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
 
   static Future<SessionTokens?> refresh(
     KhApiClient client,
@@ -97,6 +136,68 @@ class KhApi {
 
   // --- me backwards-compat ---
   Future<Result<MeUser>> me() => meClient.me();
+
+  /// Customer fields: `displayName`, `email`, `preferredLanguage`,
+  /// `defaultRegionId`, `photoMediaKey` (inventory §9). Vendor may send
+  /// `preferredLanguage` on this same route.
+  Future<Result<MeUser>> patchMe({
+    String? displayName,
+    String? email,
+    String? preferredLanguage,
+    String? defaultRegionId,
+    String? photoMediaKey,
+  }) async {
+    final r = await _client.send('PATCH', '/v1/me', body: {
+      if (displayName != null) 'displayName': displayName,
+      if (email != null) 'email': email,
+      if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
+      if (defaultRegionId != null) 'defaultRegionId': defaultRegionId,
+      if (photoMediaKey != null) 'photoMediaKey': photoMediaKey,
+    });
+    return r.when(
+      ok: (d) => Ok(MeUser.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<GoldRateSnapshot>> goldRates() async {
+    final r = await _client.send('GET', '/v1/gold-rates');
+    return r.when(
+      ok: (d) => Ok(GoldRateSnapshot.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<UserSettings>> settings() async {
+    final r = await _client.send('GET', '/v1/me/settings');
+    return r.when(
+      ok: (d) => Ok(UserSettings.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<UserSettings>> patchSettings({
+    String? preferredLanguage,
+    String? defaultRegionId,
+    QuietHours? quietHours,
+    String? defaultFilterPresetId,
+    Map<String, NotificationChannelPref>? notifications,
+  }) async {
+    final r = await _client.send('PATCH', '/v1/me/settings', body: {
+      if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
+      if (defaultRegionId != null) 'defaultRegionId': defaultRegionId,
+      if (quietHours != null) 'quietHours': quietHours.toJson(),
+      if (defaultFilterPresetId != null)
+        'defaultFilterPresetId': defaultFilterPresetId,
+      if (notifications != null)
+        'notifications':
+            notifications.map((k, v) => MapEntry(k, v.toJson())),
+    });
+    return r.when(
+      ok: (d) => Ok(UserSettings.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
 
   // --- taxonomy backwards-compat ---
   Future<Result<List<TaxonomyNode>>> categories() =>

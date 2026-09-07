@@ -288,11 +288,11 @@ flowchart TD
     5. Update `CLAUDE.md`.
   - **Acceptance Criteria**: Documentation reflects current checkpoint implementation. **Done 6 Sep 2026** — SAM-GAP-9 resolved in screen files + Screen-API-Map; §21.6 `[BUILT]`; T16–T18 marked done for the vendor/taxonomy path; Admin lives at `apps/kh_admin`.
 
-- [ ] **ADM-E2E-001: End-to-End Click-Through & Verification** — **open.** Firebase ID-token acceptance is on `main`; this is the live Google Sign-In → taxonomy walk. Password login is not a gate.
+- [ ] **ADM-E2E-001: End-to-End Click-Through & Verification** — **deferred (login/auth skipped).** Google Sign-In backend session is out of this close-out. Password login is not a gate.
   - **Priority**: P0 | **Estimate**: 1.5h | **Target File**: Local environment
-  - **Description**: Verify complete workflow:
-    1. Start backend with seed data (seeded Admin email must match the Google account)
-    2. Sign in to Admin Flutter Web with Google Sign-In (Firebase ID token as Bearer)
+  - **Description**: Verify complete workflow after auth lands:
+    1. Start backend with seed data
+    2. Sign in to Admin Flutter Web
     3. Create, edit, and deactivate categories and regions
     4. Verify URL query state preservation on browser refresh
     5. Confirm mutation audit rows written to PostgreSQL `audit_log`.

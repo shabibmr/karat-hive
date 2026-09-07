@@ -1500,6 +1500,8 @@ mixin _$RequestConnectionSummary {
   String get customerName => throw _privateConstructorUsedError;
   String get state => throw _privateConstructorUsedError;
   DateTime get connectedAt => throw _privateConstructorUsedError;
+  DateTime? get identityRevealedAt => throw _privateConstructorUsedError;
+  DateTime? get closedAt => throw _privateConstructorUsedError;
   String? get whatsappUrl => throw _privateConstructorUsedError;
   String? get channel => throw _privateConstructorUsedError;
 
@@ -1528,6 +1530,8 @@ abstract class $RequestConnectionSummaryCopyWith<$Res> {
     String customerName,
     String state,
     DateTime connectedAt,
+    DateTime? identityRevealedAt,
+    DateTime? closedAt,
     String? whatsappUrl,
     String? channel,
   });
@@ -1558,6 +1562,8 @@ class _$RequestConnectionSummaryCopyWithImpl<
     Object? customerName = null,
     Object? state = null,
     Object? connectedAt = null,
+    Object? identityRevealedAt = freezed,
+    Object? closedAt = freezed,
     Object? whatsappUrl = freezed,
     Object? channel = freezed,
   }) {
@@ -1591,6 +1597,14 @@ class _$RequestConnectionSummaryCopyWithImpl<
                 ? _value.connectedAt
                 : connectedAt // ignore: cast_nullable_to_non_nullable
                       as DateTime,
+            identityRevealedAt: freezed == identityRevealedAt
+                ? _value.identityRevealedAt
+                : identityRevealedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            closedAt: freezed == closedAt
+                ? _value.closedAt
+                : closedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
             whatsappUrl: freezed == whatsappUrl
                 ? _value.whatsappUrl
                 : whatsappUrl // ignore: cast_nullable_to_non_nullable
@@ -1622,6 +1636,8 @@ abstract class _$$RequestConnectionSummaryImplCopyWith<$Res>
     String customerName,
     String state,
     DateTime connectedAt,
+    DateTime? identityRevealedAt,
+    DateTime? closedAt,
     String? whatsappUrl,
     String? channel,
   });
@@ -1652,6 +1668,8 @@ class __$$RequestConnectionSummaryImplCopyWithImpl<$Res>
     Object? customerName = null,
     Object? state = null,
     Object? connectedAt = null,
+    Object? identityRevealedAt = freezed,
+    Object? closedAt = freezed,
     Object? whatsappUrl = freezed,
     Object? channel = freezed,
   }) {
@@ -1685,6 +1703,14 @@ class __$$RequestConnectionSummaryImplCopyWithImpl<$Res>
             ? _value.connectedAt
             : connectedAt // ignore: cast_nullable_to_non_nullable
                   as DateTime,
+        identityRevealedAt: freezed == identityRevealedAt
+            ? _value.identityRevealedAt
+            : identityRevealedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        closedAt: freezed == closedAt
+            ? _value.closedAt
+            : closedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
         whatsappUrl: freezed == whatsappUrl
             ? _value.whatsappUrl
             : whatsappUrl // ignore: cast_nullable_to_non_nullable
@@ -1709,6 +1735,8 @@ class _$RequestConnectionSummaryImpl implements _RequestConnectionSummary {
     required this.customerName,
     this.state = 'ACTIVE',
     required this.connectedAt,
+    this.identityRevealedAt,
+    this.closedAt,
     this.whatsappUrl,
     this.channel,
   });
@@ -1732,13 +1760,17 @@ class _$RequestConnectionSummaryImpl implements _RequestConnectionSummary {
   @override
   final DateTime connectedAt;
   @override
+  final DateTime? identityRevealedAt;
+  @override
+  final DateTime? closedAt;
+  @override
   final String? whatsappUrl;
   @override
   final String? channel;
 
   @override
   String toString() {
-    return 'RequestConnectionSummary(id: $id, vendorId: $vendorId, vendorName: $vendorName, customerId: $customerId, customerName: $customerName, state: $state, connectedAt: $connectedAt, whatsappUrl: $whatsappUrl, channel: $channel)';
+    return 'RequestConnectionSummary(id: $id, vendorId: $vendorId, vendorName: $vendorName, customerId: $customerId, customerName: $customerName, state: $state, connectedAt: $connectedAt, identityRevealedAt: $identityRevealedAt, closedAt: $closedAt, whatsappUrl: $whatsappUrl, channel: $channel)';
   }
 
   @override
@@ -1758,6 +1790,10 @@ class _$RequestConnectionSummaryImpl implements _RequestConnectionSummary {
             (identical(other.state, state) || other.state == state) &&
             (identical(other.connectedAt, connectedAt) ||
                 other.connectedAt == connectedAt) &&
+            (identical(other.identityRevealedAt, identityRevealedAt) ||
+                other.identityRevealedAt == identityRevealedAt) &&
+            (identical(other.closedAt, closedAt) ||
+                other.closedAt == closedAt) &&
             (identical(other.whatsappUrl, whatsappUrl) ||
                 other.whatsappUrl == whatsappUrl) &&
             (identical(other.channel, channel) || other.channel == channel));
@@ -1774,6 +1810,8 @@ class _$RequestConnectionSummaryImpl implements _RequestConnectionSummary {
     customerName,
     state,
     connectedAt,
+    identityRevealedAt,
+    closedAt,
     whatsappUrl,
     channel,
   );
@@ -1804,6 +1842,8 @@ abstract class _RequestConnectionSummary implements RequestConnectionSummary {
     required final String customerName,
     final String state,
     required final DateTime connectedAt,
+    final DateTime? identityRevealedAt,
+    final DateTime? closedAt,
     final String? whatsappUrl,
     final String? channel,
   }) = _$RequestConnectionSummaryImpl;
@@ -1825,6 +1865,10 @@ abstract class _RequestConnectionSummary implements RequestConnectionSummary {
   String get state;
   @override
   DateTime get connectedAt;
+  @override
+  DateTime? get identityRevealedAt;
+  @override
+  DateTime? get closedAt;
   @override
   String? get whatsappUrl;
   @override

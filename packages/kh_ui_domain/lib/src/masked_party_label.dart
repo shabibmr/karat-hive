@@ -20,7 +20,10 @@ class TrustSignalBadge extends StatelessWidget {
     final tokens = context.tokens;
     final locale = Localizations.localeOf(context).languageCode;
     final l10n = AppLocalizations.of(context);
-    final hasRating = rating != null && rating!.average > 0;
+    final avgScore = rating != null
+        ? (double.tryParse(rating!.average.toString()) ?? 0.0)
+        : 0.0;
+    final hasRating = rating != null && avgScore > 0;
     final hasDeals = dealCount != null && dealCount! > 0;
 
     if (!hasRating && !hasDeals) {
@@ -36,7 +39,7 @@ class TrustSignalBadge extends StatelessWidget {
         : null;
 
     final ratingAverage = hasRating
-        ? localizeDigits(rating!.average.toStringAsFixed(1), locale)
+        ? localizeDigits(avgScore.toStringAsFixed(1), locale)
         : null;
     final ratingCount = hasRating && rating!.count > 0
         ? localizeDigits('(${rating!.count})', locale)

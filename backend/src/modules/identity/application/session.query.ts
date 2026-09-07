@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { UserAccountState, UserType, VendorVerificationState } from '@prisma/client';
 import { PrismaService } from '../../../platform/db/prisma.service';
+import type { FirebaseClaims } from './firebase-token.service';
+import { hashToken } from './token.service';
 
 export type UserForViewer = {
   id: string;
@@ -40,4 +42,41 @@ export class SessionQuery {
       adminProfileId: user.adminProfile?.id ?? null,
     };
   }
+
+  async findUserByFirebaseClaims(claims: FirebaseClaims): Promise<UserForViewer | null> {
+    const subjectHash = hashToken(claims.uid);
+
+    // 1. Check existing OauthBinding
+    const existingBinding = await this.prisma.oauthBinding.findUnique({
+      where: { subjectHash },
+    });
+    if (existingBinding) {
+      return this.findUserForViewer(existingBinding.userId);
+    }
+
+    // 2. If not bound, match existing User by verified email
+    if (claims.email && claims.emailVerified === true) {
+      const email = claims.email.trim();
+      const matchedUser = await this.prisma.user.findUnique({
+        where: { email },
+      });
+      if (matchedUser) {
+        return this.findUserForViewer(matchedUser.id);
+      }
+    }
+
+    // 3. Match by verified E.164 phone
+    const phoneRegex = /^\+[1-9]\d{6,14}$/;
+    if (claims.phoneNumber && phoneRegex.test(claims.phoneNumber)) {
+      const matchedUser = await this.prisma.user.findUnique({
+        where: { mobileNumber: claims.phoneNumber },
+      });
+      if (matchedUser) {
+        return this.findUserForViewer(matchedUser.id);
+      }
+    }
+
+    return null;
+  }
 }
+
