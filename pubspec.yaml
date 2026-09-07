@@ -22,8 +22,8 @@ dev_dependencies:
 melos:
   scripts:
     analyze:
-      exec: flutter analyze
-      description: Static analysis across every workspace package.
+      exec: dart analyze
+      description: Static analysis including hardcoded_strings_lint (use dart analyze, not flutter analyze).
     gen:
       exec:
         command: dart run build_runner build

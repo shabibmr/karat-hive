@@ -43,7 +43,10 @@ class KycUploadScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Upload your trade licence and Emirates ID for verification.'),
+          Text(
+            l10n?.onboardingKycUploadHint ??
+                'Upload your trade licence and Emirates ID for verification.',
+          ),
           const SizedBox(height: 16),
           DocumentChecklist(
             present: {
@@ -59,10 +62,13 @@ class KycUploadScreen extends ConsumerWidget {
               progress: files[type]?.progress ?? 0,
               errorText: files[type]?.failure?.message,
               onPick: () => pick(type),
+              addLabel: l10n?.uploadActionAdd ?? 'Add',
+              replaceLabel: l10n?.uploadActionReplace ?? 'Replace',
+              retryLabel: l10n?.uploadActionRetry ?? 'Retry',
             ),
           const SizedBox(height: 24),
           KhButton(
-            label: 'Done',
+            label: l10n?.commonDone ?? 'Done',
             onPressed: controller.allMandatoryDone
                 ? () async {
                     ref.invalidate(vendorMeProvider);

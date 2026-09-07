@@ -11,6 +11,9 @@ class DocumentUploadTile extends StatelessWidget {
     required this.onPick,
     this.progress = 0,
     this.errorText,
+    this.addLabel = 'Add',
+    this.replaceLabel = 'Replace',
+    this.retryLabel = 'Retry',
   });
 
   final String label;
@@ -18,11 +21,14 @@ class DocumentUploadTile extends StatelessWidget {
   final VoidCallback onPick;
   final double progress;
   final String? errorText;
+  final String addLabel;
+  final String replaceLabel;
+  final String retryLabel;
 
   @override
   Widget build(BuildContext context) {
     final (icon, trailing) = switch (state) {
-      UploadTileState.empty => (Icons.upload_file, const Text('Add')),
+      UploadTileState.empty => (Icons.upload_file, Text(addLabel)),
       UploadTileState.uploading => (
           Icons.hourglass_top,
           SizedBox(
@@ -34,8 +40,8 @@ class DocumentUploadTile extends StatelessWidget {
             ),
           ),
         ),
-      UploadTileState.uploaded => (Icons.check_circle, const Text('Replace')),
-      UploadTileState.failed => (Icons.error_outline, const Text('Retry')),
+      UploadTileState.uploaded => (Icons.check_circle, Text(replaceLabel)),
+      UploadTileState.failed => (Icons.error_outline, Text(retryLabel)),
     };
     return Card(
       child: ListTile(

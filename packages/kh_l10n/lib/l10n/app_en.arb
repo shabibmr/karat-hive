@@ -579,6 +579,83 @@
   "@authPasswordTab": {
     "description": "VEN-S01 password tab label"
   },
+  "authSignInFailed": "Sign in failed.",
+  "@authSignInFailed": {
+    "description": "VEN-S01 generic sign-in error"
+  },
+  "authContinue": "Continue",
+  "@authContinue": {
+    "description": "VEN-S04 registration continue CTA"
+  },
+  "authBackToSignIn": "Back to sign in",
+  "@authBackToSignIn": {
+    "description": "VEN-S04 link back to login"
+  },
+  "authOtpSentMobile": "We sent a code to your mobile number.",
+  "@authOtpSentMobile": {
+    "description": "VEN-S04 OTP step instruction"
+  },
+  "authVerifyAndCreateAccount": "Verify & create account",
+  "@authVerifyAndCreateAccount": {
+    "description": "VEN-S04 OTP verify CTA"
+  },
+  "authRegistrationFailed": "Registration failed.",
+  "@authRegistrationFailed": {
+    "description": "VEN-S04 registration error fallback"
+  },
+  "authLegalBusinessName": "Legal business name",
+  "@authLegalBusinessName": {
+    "description": "VEN-S04 legal business name field"
+  },
+  "authTradingName": "Trading name",
+  "@authTradingName": {
+    "description": "VEN-S04 trading name field"
+  },
+  "authTradeLicenceNumber": "Trade licence number",
+  "@authTradeLicenceNumber": {
+    "description": "VEN-S04 trade licence number field"
+  },
+  "authLicenceExpiry": "Licence expiry (YYYY-MM-DD)",
+  "@authLicenceExpiry": {
+    "description": "VEN-S04 licence expiry field"
+  },
+  "authBusinessAddress": "Business address",
+  "@authBusinessAddress": {
+    "description": "VEN-S04 business address field"
+  },
+  "authContactPerson": "Contact person",
+  "@authContactPerson": {
+    "description": "VEN-S04 contact person field"
+  },
+  "authHomeRegion": "Home region",
+  "@authHomeRegion": {
+    "description": "VEN-S04 home region picker heading"
+  },
+  "authCategoriesYouServe": "Categories you serve",
+  "@authCategoriesYouServe": {
+    "description": "VEN-S04 served categories heading"
+  },
+  "authRegionsYouServe": "Regions you serve",
+  "@authRegionsYouServe": {
+    "description": "VEN-S04 served regions heading"
+  },
+  "authSignInWithGoogle": "Sign in with Google",
+  "@authSignInWithGoogle": {
+    "description": "VEN-S01 Google Sign-In button label"
+  },
+  "authSigningInWithGoogle": "Signing in...",
+  "@authSigningInWithGoogle": {
+    "description": "VEN-S01 Google Sign-In busy label"
+  },
+  "authGoogleSignInFailed": "Google Sign-In failed: {error}",
+  "@authGoogleSignInFailed": {
+    "description": "VEN-S01 Google Sign-In error snackbar",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingAwaitingTitle": "Verification in progress",
   "@onboardingAwaitingTitle": {
     "description": "VEN-S03 awaiting-approval app bar title"
@@ -626,6 +703,42 @@
   "onboardingVolumePlaceholder": "Matched-request volume will appear once matching is live.",
   "@onboardingVolumePlaceholder": {
     "description": "VEN-S16 placeholder until matching volume is available"
+  },
+  "onboardingKycUploadHint": "Upload your trade licence and Emirates ID for verification.",
+  "@onboardingKycUploadHint": {
+    "description": "VEN-S02 KYC upload intro copy"
+  },
+  "onboardingCategoriesHeading": "Categories",
+  "@onboardingCategoriesHeading": {
+    "description": "VEN-S16 categories section heading"
+  },
+  "onboardingRegionsHeading": "Regions",
+  "@onboardingRegionsHeading": {
+    "description": "VEN-S16 regions section heading"
+  },
+  "onboardingCouldNotSave": "Could not save.",
+  "@onboardingCouldNotSave": {
+    "description": "VEN-S16 save failure fallback"
+  },
+  "commonDone": "Done",
+  "@commonDone": {
+    "description": "Generic done / finish CTA"
+  },
+  "uploadActionAdd": "Add",
+  "@uploadActionAdd": {
+    "description": "SH-MED-04 empty-state action"
+  },
+  "uploadActionReplace": "Replace",
+  "@uploadActionReplace": {
+    "description": "SH-MED-04 uploaded-state action"
+  },
+  "uploadActionRetry": "Retry",
+  "@uploadActionRetry": {
+    "description": "SH-MED-04 failed-state action"
+  },
+  "budgetRangeSeparator": " - ",
+  "@budgetRangeSeparator": {
+    "description": "SH-REQ-01 separator between min and max MoneyDisplay"
   },
   "dashboardGoldRatesUnavailable": "Reference rates unavailable",
   "@dashboardGoldRatesUnavailable": {

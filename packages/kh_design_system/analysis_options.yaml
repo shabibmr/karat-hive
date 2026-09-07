@@ -1,0 +1,2 @@
+# Plugins are workspace-root only (CP2-F05).
+include: ../../tooling/analysis_options.yaml

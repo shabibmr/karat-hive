@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
+import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../../../app/guards.dart';
@@ -15,67 +16,83 @@ class VendorRegisterScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final form = ref.watch(vendorRegisterControllerProvider);
     final controller = ref.read(vendorRegisterControllerProvider.notifier);
     final categories = ref.watch(categoriesProvider);
     final regions = ref.watch(regionsProvider);
 
     return KhScaffold(
-      title: 'Create a vendor account',
+      title: l10n?.authRegister ?? 'Create a vendor account',
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (form.failure != null) ...[
-            KhInlineError(message: form.failure!.message ?? 'Registration failed.'),
+            KhInlineError(
+              message: form.failure!.message ??
+                  (l10n?.authRegistrationFailed ?? 'Registration failed.'),
+            ),
             const SizedBox(height: 12),
           ],
           if (form.step == RegisterStep.otp)
-            _OtpStep(busy: form.busy, onVerify: controller.verifyOtp, onResend: controller.sendOtp)
+            _OtpStep(
+              busy: form.busy,
+              onVerify: controller.verifyOtp,
+              onResend: controller.sendOtp,
+            )
           else ...[
             KhTextField(
-              label: 'Mobile number',
+              label: l10n?.authMobile ?? 'Mobile number',
               initialValue: form.mobileNumber,
               keyboardType: TextInputType.phone,
-              onChanged: (v) => controller.patch((s) => s.copyWith(mobileNumber: v)),
+              onChanged: (v) =>
+                  controller.patch((s) => s.copyWith(mobileNumber: v)),
             ),
             KhTextField(
-              label: 'Legal business name',
+              label: l10n?.authLegalBusinessName ?? 'Legal business name',
               initialValue: form.legalBusinessName,
-              onChanged: (v) => controller.patch((s) => s.copyWith(legalBusinessName: v)),
+              onChanged: (v) =>
+                  controller.patch((s) => s.copyWith(legalBusinessName: v)),
             ),
             KhTextField(
-              label: 'Trading name',
+              label: l10n?.authTradingName ?? 'Trading name',
               initialValue: form.tradingName,
-              onChanged: (v) => controller.patch((s) => s.copyWith(tradingName: v)),
+              onChanged: (v) =>
+                  controller.patch((s) => s.copyWith(tradingName: v)),
             ),
             KhTextField(
-              label: 'Trade licence number',
+              label: l10n?.authTradeLicenceNumber ?? 'Trade licence number',
               initialValue: form.tradeLicenceNumber,
-              onChanged: (v) => controller.patch((s) => s.copyWith(tradeLicenceNumber: v)),
+              onChanged: (v) =>
+                  controller.patch((s) => s.copyWith(tradeLicenceNumber: v)),
             ),
             KhTextField(
-              label: 'Licence expiry (YYYY-MM-DD)',
+              label: l10n?.authLicenceExpiry ?? 'Licence expiry (YYYY-MM-DD)',
               initialValue: form.licenceExpiryDate,
-              onChanged: (v) => controller.patch((s) => s.copyWith(licenceExpiryDate: v)),
+              onChanged: (v) =>
+                  controller.patch((s) => s.copyWith(licenceExpiryDate: v)),
             ),
             KhTextField(
-              label: 'Business address',
+              label: l10n?.authBusinessAddress ?? 'Business address',
               initialValue: form.businessAddress,
-              onChanged: (v) => controller.patch((s) => s.copyWith(businessAddress: v)),
+              onChanged: (v) =>
+                  controller.patch((s) => s.copyWith(businessAddress: v)),
             ),
             KhTextField(
-              label: 'Contact person',
+              label: l10n?.authContactPerson ?? 'Contact person',
               initialValue: form.contactPersonName,
-              onChanged: (v) => controller.patch((s) => s.copyWith(contactPersonName: v)),
+              onChanged: (v) =>
+                  controller.patch((s) => s.copyWith(contactPersonName: v)),
             ),
             KhTextField(
-              label: 'Business email',
+              label: l10n?.authEmail ?? 'Business email',
               initialValue: form.businessEmail,
               keyboardType: TextInputType.emailAddress,
-              onChanged: (v) => controller.patch((s) => s.copyWith(businessEmail: v)),
+              onChanged: (v) =>
+                  controller.patch((s) => s.copyWith(businessEmail: v)),
             ),
             const SizedBox(height: 8),
-            const Text('Home region'),
+            Text(l10n?.authHomeRegion ?? 'Home region'),
             regions.when(
               data: (nodes) => Wrap(
                 spacing: 8,
@@ -90,10 +107,12 @@ class VendorRegisterScreen extends ConsumerWidget {
                 ],
               ),
               loading: () => const KhLoadingView(),
-              error: (_, __) => const KhInlineError(message: 'Could not load regions.'),
+              error: (_, __) => KhInlineError(
+                message: l10n?.couldNotLoadRegions ?? 'Could not load regions.',
+              ),
             ),
             const SizedBox(height: 12),
-            const Text('Categories you serve'),
+            Text(l10n?.authCategoriesYouServe ?? 'Categories you serve'),
             categories.when(
               data: (nodes) => CategoryRegionPicker(
                 nodes: nodes,
@@ -104,31 +123,37 @@ class VendorRegisterScreen extends ConsumerWidget {
                 ),
               ),
               loading: () => const KhLoadingView(),
-              error: (_, __) => const KhInlineError(message: 'Could not load categories.'),
+              error: (_, __) => KhInlineError(
+                message:
+                    l10n?.couldNotLoadCategories ?? 'Could not load categories.',
+              ),
             ),
             const SizedBox(height: 12),
-            const Text('Regions you serve'),
+            Text(l10n?.authRegionsYouServe ?? 'Regions you serve'),
             regions.when(
               data: (nodes) => CategoryRegionPicker(
                 nodes: nodes,
                 selected: form.servedRegionIds.toSet(),
                 locale: 'en',
                 onToggle: (id) => controller.patch(
-                  (s) => s.copyWith(servedRegionIds: _toggle(s.servedRegionIds, id)),
+                  (s) =>
+                      s.copyWith(servedRegionIds: _toggle(s.servedRegionIds, id)),
                 ),
               ),
               loading: () => const KhLoadingView(),
-              error: (_, __) => const KhInlineError(message: 'Could not load regions.'),
+              error: (_, __) => KhInlineError(
+                message: l10n?.couldNotLoadRegions ?? 'Could not load regions.',
+              ),
             ),
             const SizedBox(height: 16),
             KhButton(
-              label: 'Continue',
+              label: l10n?.authContinue ?? 'Continue',
               busy: form.busy,
               onPressed: form.detailsComplete ? controller.sendOtp : null,
             ),
             TextButton(
               onPressed: () => context.go(AppGuards.login),
-              child: const Text('Back to sign in'),
+              child: Text(l10n?.authBackToSignIn ?? 'Back to sign in'),
             ),
           ],
         ],
@@ -154,7 +179,11 @@ class VendorRegisterScreen extends ConsumerWidget {
 }
 
 class _OtpStep extends StatefulWidget {
-  const _OtpStep({required this.busy, required this.onVerify, required this.onResend});
+  const _OtpStep({
+    required this.busy,
+    required this.onVerify,
+    required this.onResend,
+  });
   final bool busy;
   final Future<void> Function(String code) onVerify;
   final Future<void> Function() onResend;
@@ -167,17 +196,20 @@ class _OtpStepState extends State<_OtpStep> {
   String _code = '';
 
   @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          const Text('We sent a code to your mobile number.'),
-          const SizedBox(height: 12),
-          OtpField(onChanged: (v) => _code = v, onResend: widget.onResend),
-          const SizedBox(height: 12),
-          KhButton(
-            label: 'Verify & create account',
-            busy: widget.busy,
-            onPressed: () => widget.onVerify(_code),
-          ),
-        ],
-      );
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      children: [
+        Text(l10n?.authOtpSentMobile ?? 'We sent a code to your mobile number.'),
+        const SizedBox(height: 12),
+        OtpField(onChanged: (v) => _code = v, onResend: widget.onResend),
+        const SizedBox(height: 12),
+        KhButton(
+          label: l10n?.authVerifyAndCreateAccount ?? 'Verify & create account',
+          busy: widget.busy,
+          onPressed: () => widget.onVerify(_code),
+        ),
+      ],
+    );
+  }
 }

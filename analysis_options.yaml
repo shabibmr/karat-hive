@@ -1,0 +1,16 @@
+# Workspace-root analysis options. Analyzer plugins may only be declared here
+# (not in nested package analysis_options) for a Dart pub workspace (CP2-F05).
+include: tooling/analysis_options.yaml
+
+plugins:
+  hardcoded_strings_lint:
+    version: ^2.1.0
+    options:
+      message: "Hard-coded user-facing string. Use AppLocalizations / kh_l10n (NFR-022, Architecture-Frontend §14)."
+      correction_message: "Move the copy into packages/kh_l10n ARB (en+ar) and reference AppLocalizations."
+    diagnostics:
+      avoid_hardcoded_strings_in_widgets: true
+
+analyzer:
+  errors:
+    unsupported_option: ignore

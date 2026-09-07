@@ -46,7 +46,10 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             if (failure != null) ...[
-              KhInlineError(message: failure.message ?? 'Sign in failed.'),
+              KhInlineError(
+                message:
+                    failure.message ?? (l10n?.authSignInFailed ?? 'Sign in failed.'),
+              ),
               const SizedBox(height: 12),
             ],
             TabBar(
@@ -201,7 +204,12 @@ class _PasswordTabState extends ConsumerState<_PasswordTab> {
                     } catch (e) {
                       if (mounted) {
                         messenger.showSnackBar(
-                          SnackBar(content: Text('Google Sign-In failed: $e')),
+                          SnackBar(
+                            content: Text(
+                              l10n?.authGoogleSignInFailed('$e') ??
+                                  'Google Sign-In failed: $e',
+                            ),
+                          ),
                         );
                       }
                     } finally {
@@ -217,7 +225,11 @@ class _PasswordTabState extends ConsumerState<_PasswordTab> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.account_circle_outlined, size: 20),
-            label: Text(_googleSigningIn ? 'Signing in...' : 'Sign in with Google'),
+            label: Text(
+              _googleSigningIn
+                  ? (l10n?.authSigningInWithGoogle ?? 'Signing in...')
+                  : (l10n?.authSignInWithGoogle ?? 'Sign in with Google'),
+            ),
           ),
         ],
       ),

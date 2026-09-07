@@ -1,4 +1,5 @@
 # Shared strict analysis config. Packages include this via `include:`.
+# Analyzer plugins live in the workspace-root analysis_options.yaml only.
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
@@ -7,6 +8,7 @@ analyzer:
     strict-raw-types: true
   errors:
     todo: ignore
+    unsupported_option: ignore
 
 linter:
   rules:

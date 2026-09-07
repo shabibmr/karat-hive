@@ -437,6 +437,62 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authPasswordTab => 'البريد وكلمة المرور';
 
   @override
+  String get authSignInFailed => 'فشل تسجيل الدخول.';
+
+  @override
+  String get authContinue => 'متابعة';
+
+  @override
+  String get authBackToSignIn => 'العودة لتسجيل الدخول';
+
+  @override
+  String get authOtpSentMobile => 'أرسلنا رمزاً إلى رقم جوالك.';
+
+  @override
+  String get authVerifyAndCreateAccount => 'تحقق وأنشئ الحساب';
+
+  @override
+  String get authRegistrationFailed => 'فشل التسجيل.';
+
+  @override
+  String get authLegalBusinessName => 'الاسم القانوني للنشاط';
+
+  @override
+  String get authTradingName => 'الاسم التجاري';
+
+  @override
+  String get authTradeLicenceNumber => 'رقم الرخصة التجارية';
+
+  @override
+  String get authLicenceExpiry => 'انتهاء الرخصة (YYYY-MM-DD)';
+
+  @override
+  String get authBusinessAddress => 'عنوان النشاط';
+
+  @override
+  String get authContactPerson => 'شخص الاتصال';
+
+  @override
+  String get authHomeRegion => 'المنطقة الرئيسية';
+
+  @override
+  String get authCategoriesYouServe => 'الفئات التي تخدمها';
+
+  @override
+  String get authRegionsYouServe => 'المناطق التي تخدمها';
+
+  @override
+  String get authSignInWithGoogle => 'تسجيل الدخول عبر Google';
+
+  @override
+  String get authSigningInWithGoogle => 'جارٍ تسجيل الدخول...';
+
+  @override
+  String authGoogleSignInFailed(String error) {
+    return 'فشل تسجيل الدخول عبر Google: $error';
+  }
+
+  @override
   String get onboardingAwaitingTitle => 'جارٍ التحقق';
 
   @override
@@ -474,6 +530,34 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get onboardingVolumePlaceholder =>
       'يظهر حجم الطلبات المطابقة بعد تفعيل المطابقة.';
+
+  @override
+  String get onboardingKycUploadHint =>
+      'ارفع رخصتك التجارية وبطاقة الهوية الإماراتية للتحقق.';
+
+  @override
+  String get onboardingCategoriesHeading => 'الفئات';
+
+  @override
+  String get onboardingRegionsHeading => 'المناطق';
+
+  @override
+  String get onboardingCouldNotSave => 'تعذّر الحفظ.';
+
+  @override
+  String get commonDone => 'تم';
+
+  @override
+  String get uploadActionAdd => 'إضافة';
+
+  @override
+  String get uploadActionReplace => 'استبدال';
+
+  @override
+  String get uploadActionRetry => 'إعادة المحاولة';
+
+  @override
+  String get budgetRangeSeparator => ' - ';
 
   @override
   String get dashboardGoldRatesUnavailable => 'الأسعار المرجعية غير متاحة';

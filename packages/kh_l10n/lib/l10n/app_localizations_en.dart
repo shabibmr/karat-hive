@@ -431,6 +431,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPasswordTab => 'Email & password';
 
   @override
+  String get authSignInFailed => 'Sign in failed.';
+
+  @override
+  String get authContinue => 'Continue';
+
+  @override
+  String get authBackToSignIn => 'Back to sign in';
+
+  @override
+  String get authOtpSentMobile => 'We sent a code to your mobile number.';
+
+  @override
+  String get authVerifyAndCreateAccount => 'Verify & create account';
+
+  @override
+  String get authRegistrationFailed => 'Registration failed.';
+
+  @override
+  String get authLegalBusinessName => 'Legal business name';
+
+  @override
+  String get authTradingName => 'Trading name';
+
+  @override
+  String get authTradeLicenceNumber => 'Trade licence number';
+
+  @override
+  String get authLicenceExpiry => 'Licence expiry (YYYY-MM-DD)';
+
+  @override
+  String get authBusinessAddress => 'Business address';
+
+  @override
+  String get authContactPerson => 'Contact person';
+
+  @override
+  String get authHomeRegion => 'Home region';
+
+  @override
+  String get authCategoriesYouServe => 'Categories you serve';
+
+  @override
+  String get authRegionsYouServe => 'Regions you serve';
+
+  @override
+  String get authSignInWithGoogle => 'Sign in with Google';
+
+  @override
+  String get authSigningInWithGoogle => 'Signing in...';
+
+  @override
+  String authGoogleSignInFailed(String error) {
+    return 'Google Sign-In failed: $error';
+  }
+
+  @override
   String get onboardingAwaitingTitle => 'Verification in progress';
 
   @override
@@ -469,6 +525,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingVolumePlaceholder =>
       'Matched-request volume will appear once matching is live.';
+
+  @override
+  String get onboardingKycUploadHint =>
+      'Upload your trade licence and Emirates ID for verification.';
+
+  @override
+  String get onboardingCategoriesHeading => 'Categories';
+
+  @override
+  String get onboardingRegionsHeading => 'Regions';
+
+  @override
+  String get onboardingCouldNotSave => 'Could not save.';
+
+  @override
+  String get commonDone => 'Done';
+
+  @override
+  String get uploadActionAdd => 'Add';
+
+  @override
+  String get uploadActionReplace => 'Replace';
+
+  @override
+  String get uploadActionRetry => 'Retry';
+
+  @override
+  String get budgetRangeSeparator => ' - ';
 
   @override
   String get dashboardGoldRatesUnavailable => 'Reference rates unavailable';

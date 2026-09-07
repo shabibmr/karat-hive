@@ -196,7 +196,7 @@ class _BudgetLabel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           MoneyDisplay(amount: item.budgetMin!),
-          const Text(' - '),
+          Text(l10n?.budgetRangeSeparator ?? ' - '),
           MoneyDisplay(amount: item.budgetMax!),
         ],
       );

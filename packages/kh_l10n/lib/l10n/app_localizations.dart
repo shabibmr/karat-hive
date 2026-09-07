@@ -830,6 +830,114 @@ abstract class AppLocalizations {
   /// **'Email & password'**
   String get authPasswordTab;
 
+  /// VEN-S01 generic sign-in error
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in failed.'**
+  String get authSignInFailed;
+
+  /// VEN-S04 registration continue CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get authContinue;
+
+  /// VEN-S04 link back to login
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get authBackToSignIn;
+
+  /// VEN-S04 OTP step instruction
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a code to your mobile number.'**
+  String get authOtpSentMobile;
+
+  /// VEN-S04 OTP verify CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Verify & create account'**
+  String get authVerifyAndCreateAccount;
+
+  /// VEN-S04 registration error fallback
+  ///
+  /// In en, this message translates to:
+  /// **'Registration failed.'**
+  String get authRegistrationFailed;
+
+  /// VEN-S04 legal business name field
+  ///
+  /// In en, this message translates to:
+  /// **'Legal business name'**
+  String get authLegalBusinessName;
+
+  /// VEN-S04 trading name field
+  ///
+  /// In en, this message translates to:
+  /// **'Trading name'**
+  String get authTradingName;
+
+  /// VEN-S04 trade licence number field
+  ///
+  /// In en, this message translates to:
+  /// **'Trade licence number'**
+  String get authTradeLicenceNumber;
+
+  /// VEN-S04 licence expiry field
+  ///
+  /// In en, this message translates to:
+  /// **'Licence expiry (YYYY-MM-DD)'**
+  String get authLicenceExpiry;
+
+  /// VEN-S04 business address field
+  ///
+  /// In en, this message translates to:
+  /// **'Business address'**
+  String get authBusinessAddress;
+
+  /// VEN-S04 contact person field
+  ///
+  /// In en, this message translates to:
+  /// **'Contact person'**
+  String get authContactPerson;
+
+  /// VEN-S04 home region picker heading
+  ///
+  /// In en, this message translates to:
+  /// **'Home region'**
+  String get authHomeRegion;
+
+  /// VEN-S04 served categories heading
+  ///
+  /// In en, this message translates to:
+  /// **'Categories you serve'**
+  String get authCategoriesYouServe;
+
+  /// VEN-S04 served regions heading
+  ///
+  /// In en, this message translates to:
+  /// **'Regions you serve'**
+  String get authRegionsYouServe;
+
+  /// VEN-S01 Google Sign-In button label
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get authSignInWithGoogle;
+
+  /// VEN-S01 Google Sign-In busy label
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in...'**
+  String get authSigningInWithGoogle;
+
+  /// VEN-S01 Google Sign-In error snackbar
+  ///
+  /// In en, this message translates to:
+  /// **'Google Sign-In failed: {error}'**
+  String authGoogleSignInFailed(String error);
+
   /// VEN-S03 awaiting-approval app bar title
   ///
   /// In en, this message translates to:
@@ -901,6 +1009,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Matched-request volume will appear once matching is live.'**
   String get onboardingVolumePlaceholder;
+
+  /// VEN-S02 KYC upload intro copy
+  ///
+  /// In en, this message translates to:
+  /// **'Upload your trade licence and Emirates ID for verification.'**
+  String get onboardingKycUploadHint;
+
+  /// VEN-S16 categories section heading
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get onboardingCategoriesHeading;
+
+  /// VEN-S16 regions section heading
+  ///
+  /// In en, this message translates to:
+  /// **'Regions'**
+  String get onboardingRegionsHeading;
+
+  /// VEN-S16 save failure fallback
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save.'**
+  String get onboardingCouldNotSave;
+
+  /// Generic done / finish CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get commonDone;
+
+  /// SH-MED-04 empty-state action
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get uploadActionAdd;
+
+  /// SH-MED-04 uploaded-state action
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get uploadActionReplace;
+
+  /// SH-MED-04 failed-state action
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get uploadActionRetry;
+
+  /// SH-REQ-01 separator between min and max MoneyDisplay
+  ///
+  /// In en, this message translates to:
+  /// **' - '**
+  String get budgetRangeSeparator;
 
   /// VEN-S05 gold rates empty/error subtitle
   ///

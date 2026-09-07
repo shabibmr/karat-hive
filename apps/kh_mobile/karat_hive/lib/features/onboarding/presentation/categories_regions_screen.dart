@@ -28,10 +28,13 @@ class CategoriesRegionsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           if (state.failure != null) ...[
-            KhInlineError(message: state.failure!.message ?? 'Could not save.'),
+            KhInlineError(
+              message: state.failure!.message ??
+                  (l10n?.onboardingCouldNotSave ?? 'Could not save.'),
+            ),
             const SizedBox(height: 12),
           ],
-          const Text('Categories'),
+          Text(l10n?.onboardingCategoriesHeading ?? 'Categories'),
           const SizedBox(height: 8),
           categories.when(
             data: (nodes) => CategoryRegionPicker(
@@ -41,10 +44,13 @@ class CategoriesRegionsScreen extends ConsumerWidget {
               onToggle: controller.toggleCategory,
             ),
             loading: () => const KhLoadingView(),
-            error: (_, __) => const KhInlineError(message: 'Could not load categories.'),
+            error: (_, __) => KhInlineError(
+              message:
+                  l10n?.couldNotLoadCategories ?? 'Could not load categories.',
+            ),
           ),
           const SizedBox(height: 16),
-          const Text('Regions'),
+          Text(l10n?.onboardingRegionsHeading ?? 'Regions'),
           const SizedBox(height: 8),
           regions.when(
             data: (nodes) => CategoryRegionPicker(
@@ -54,7 +60,9 @@ class CategoriesRegionsScreen extends ConsumerWidget {
               onToggle: controller.toggleRegion,
             ),
             loading: () => const KhLoadingView(),
-            error: (_, __) => const KhInlineError(message: 'Could not load regions.'),
+            error: (_, __) => KhInlineError(
+              message: l10n?.couldNotLoadRegions ?? 'Could not load regions.',
+            ),
           ),
           const SizedBox(height: 16),
           SwitchListTile(
