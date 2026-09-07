@@ -30,7 +30,7 @@ class CustomerRegisterScreen extends ConsumerWidget {
             SizedBox(height: tokens.space.md),
           ],
           if (form.step == CustomerRegisterStep.otp)
-            _OtpStep(
+            _CustomerOtpStep(
               busy: form.busy,
               onVerify: controller.verifyOtp,
               onResend: controller.sendOtp,

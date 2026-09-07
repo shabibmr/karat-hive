@@ -98,6 +98,7 @@ class OfferForCustomer {
     required this.revisionCount,
     this.decidedAt,
     this.viewedByCustomerAt,
+    this.viewedByCustomerAtPresent = false,
   });
 
   final String id;
@@ -110,6 +111,9 @@ class OfferForCustomer {
   final DateTime? decidedAt;
   final int revisionCount;
   final DateTime? viewedByCustomerAt;
+
+  /// Wire included `viewedByCustomerAt` (SAM-GAP-1). Absent → UI hides unread.
+  final bool viewedByCustomerAtPresent;
 
   static OfferForCustomer fromJson(Map<String, dynamic> j) {
     final mediaRaw = j['media'] as List?;
@@ -127,6 +131,7 @@ class OfferForCustomer {
       decidedAt: _dt(j['decidedAt']),
       revisionCount: (j['revisionCount'] as num?)?.toInt() ?? 0,
       viewedByCustomerAt: _dt(j['viewedByCustomerAt']),
+      viewedByCustomerAtPresent: j.containsKey('viewedByCustomerAt'),
     );
   }
 }
