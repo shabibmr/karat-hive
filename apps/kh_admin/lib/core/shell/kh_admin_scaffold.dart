@@ -106,12 +106,14 @@ const List<AdminNavItem> kAdminNavItems = [
     title: 'Announcements',
     icon: Icons.campaign_outlined,
     route: '/announcements',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S19',
     title: 'Platform Settings',
     icon: Icons.tune_outlined,
     route: '/settings',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S20',
@@ -138,6 +140,7 @@ const List<AdminNavItem> kAdminNavItems = [
     title: 'Admin Users',
     icon: Icons.manage_accounts_outlined,
     route: '/admin-users',
+    isLive: true,
   ),
 ];
 

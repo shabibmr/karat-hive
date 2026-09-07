@@ -39,12 +39,12 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 - [x] **ADM-C-41** ADM-S13 connection-detail — `GET /v1/admin/connections/:id`; close action (reason, notifies both). Route `/connections/:id`.
 - [x] **ADM-C-42** ADM-S21 abuse-report queue — `GET /v1/admin/abuse-reports(/:id)`; resolve / dismiss with rationale; reporter never disclosed. Route `/abuse`.
 - [x] **ADM-C-43** ADM-S16 review-moderation — `GET /v1/admin/reviews`; approve / reject / redact (rationale on reject/redact). Route `/moderation`.
-- [ ] **ADM-C-44** ADM-S23 admin-user-management — `GET/POST /v1/admin/admins`, suspend / revoke; **no Role selector** (`SAM-GAP-13`, `AD-API-03`). Route `/admin-users`.
+- [x] **ADM-C-44** ADM-S23 admin-user-management — `GET/POST /v1/admin/admins`, suspend / revoke; **no Role selector** (`SAM-GAP-13`, `AD-API-03`). Route `/admin-users`.
 
 ## Group C — config screens
 
-- [ ] **ADM-C-50** ADM-S19 platform-settings — `GET /v1/admin/settings`, `PATCH /v1/admin/settings/:key`; typed rows + range validation; flag the offer-validity field pending the live decision; coarse Super-Admin confirm.
-- [ ] **ADM-C-51** ADM-S18 announcement-composer — `GET/POST /v1/admin/announcements`, cancel; bilingual form, audience/channel selects, schedule, delivery list. `SAM-GAP-10` (no pre-send count).
+- [x] **ADM-C-50** ADM-S19 platform-settings — `GET /v1/admin/settings`, `PATCH /v1/admin/settings/:key`; typed rows + range validation; flag the offer-validity field pending the live decision; coarse Super-Admin confirm.
+- [x] **ADM-C-51** ADM-S18 announcement-composer — `GET/POST /v1/admin/announcements`, cancel; bilingual form, audience/channel selects, schedule, delivery list. `SAM-GAP-10` (no pre-send count).
 
 ## Group D — heaviest (reports & analytics)
 

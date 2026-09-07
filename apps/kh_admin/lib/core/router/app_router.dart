@@ -9,12 +9,15 @@ import '../../features/taxonomy/presentation/taxonomy_screen.dart';
 import '../../features/verification/presentation/verification_screen.dart';
 import 'verification_query_params.dart';
 import '../../features/abuse/presentation/abuse_screen.dart';
+import '../../features/admin_users/presentation/admin_users_screen.dart';
+import '../../features/announcements/presentation/announcements_screen.dart';
 import '../../features/audit/presentation/audit_screen.dart';
 import '../../features/connections/presentation/connection_detail_screen.dart';
 import '../../features/connections/presentation/connection_list_screen.dart';
 import '../../features/customers/presentation/customer_detail_screen.dart';
 import '../../features/customers/presentation/customer_list_screen.dart';
 import '../../features/moderation/presentation/moderation_screen.dart';
+import '../../features/settings/presentation/platform_settings_screen.dart';
 import '../../features/offers/presentation/offer_detail_screen.dart';
 import '../../features/offers/presentation/offer_list_screen.dart';
 import '../../features/requests/presentation/request_detail_screen.dart';
@@ -181,6 +184,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/moderation',
             builder: (context, state) => const ModerationScreen(),
           ),
+          GoRoute(
+            path: '/admin-users',
+            builder: (context, state) => const AdminUsersScreen(),
+          ),
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const PlatformSettingsScreen(),
+          ),
+          GoRoute(
+            path: '/announcements',
+            builder: (context, state) => const AnnouncementsScreen(),
+          ),
           // Placeholder routes for navigation completeness
           ...kAdminNavItems
               .where((item) =>
@@ -195,7 +210,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   item.route != '/connections' &&
                   item.route != '/audit' &&
                   item.route != '/abuse' &&
-                  item.route != '/moderation')
+                  item.route != '/moderation' &&
+                  item.route != '/admin-users' &&
+                  item.route != '/settings' &&
+                  item.route != '/announcements')
               .map(
                 (item) => GoRoute(
                   path: item.route,
