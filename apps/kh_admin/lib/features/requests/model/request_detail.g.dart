@@ -168,6 +168,12 @@ _$RequestConnectionSummaryImpl _$$RequestConnectionSummaryImplFromJson(
   customerName: json['customerName'] as String,
   state: json['state'] as String? ?? 'ACTIVE',
   connectedAt: DateTime.parse(json['connectedAt'] as String),
+  identityRevealedAt: json['identityRevealedAt'] == null
+      ? null
+      : DateTime.parse(json['identityRevealedAt'] as String),
+  closedAt: json['closedAt'] == null
+      ? null
+      : DateTime.parse(json['closedAt'] as String),
   whatsappUrl: json['whatsappUrl'] as String?,
   channel: json['channel'] as String?,
 );
@@ -182,6 +188,8 @@ Map<String, dynamic> _$$RequestConnectionSummaryImplToJson(
   'customerName': instance.customerName,
   'state': instance.state,
   'connectedAt': instance.connectedAt.toIso8601String(),
+  'identityRevealedAt': instance.identityRevealedAt?.toIso8601String(),
+  'closedAt': instance.closedAt?.toIso8601String(),
   'whatsappUrl': instance.whatsappUrl,
   'channel': instance.channel,
 };

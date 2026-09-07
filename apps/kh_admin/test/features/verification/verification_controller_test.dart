@@ -42,7 +42,7 @@ class _MockVerificationRepository extends VerificationRepository {
         id: 'doc-1',
         documentType: 'TRADE_LICENCE',
         uploadedAt: DateTime.utc(2026, 1, 1),
-        fileName: 'Trade_Licence_Dubai.pdf',
+        // origin/main `Media` carries no filename — fileName stays null.
         mimeType: 'application/pdf',
         sizeBytes: 2400000,
       ),
@@ -150,7 +150,9 @@ void main() {
 
     expect(detail.legalBusinessName, 'Al Noor Jewellery LLC');
     expect(detail.documents, isNotEmpty);
-    expect(detail.documents.first.fileName, 'Trade_Licence_Dubai.pdf');
+    expect(detail.documents.first.documentType, 'TRADE_LICENCE');
+    expect(detail.documents.first.mimeType, 'application/pdf');
+    expect(detail.documents.first.fileName, isNull);
   });
 
   test('VerificationQueueController request-info keeps vendor in queue', () async {

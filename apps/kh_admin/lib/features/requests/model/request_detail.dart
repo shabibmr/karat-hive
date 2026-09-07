@@ -25,7 +25,10 @@ class CustomerProfileSummary with _$CustomerProfileSummary {
         ? json['user'] as Map<String, dynamic>
         : null;
 
-    final fullName = json['fullName']?.toString() ??
+    // origin/main sends the raw `customerProfile` row: the unmasked name is
+    // `displayName`, contact fields are nested under `user`.
+    final fullName = json['displayName']?.toString() ??
+        json['fullName']?.toString() ??
         json['name']?.toString() ??
         json['contactPersonName']?.toString() ??
         user?['fullName']?.toString() ??
@@ -72,22 +75,40 @@ class RequestMediaItem with _$RequestMediaItem {
       _$RequestMediaItemFromJson(json);
 
   factory RequestMediaItem.fromApiResponse(Map<String, dynamic> json) {
+    // origin/main returns `RequestMedia` rows shaped as
+    // `{ requestId, mediaId, displayOrder, media: { id, key, contentType,
+    //    byteSize, thumbnailKey } }` — the nested `media` object carries only a
+    // storage `key`, never a ready URL, so we build `/v1/media/<key>`.
     final media = json['media'] is Map<String, dynamic>
         ? json['media'] as Map<String, dynamic>
         : json;
 
+    String? mediaUrlFor(dynamic key) {
+      final k = key?.toString();
+      if (k == null || k.isEmpty) return null;
+      return '/v1/media/$k';
+    }
+
+    int? parseInt(dynamic value) {
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     return RequestMediaItem(
       id: media['id']?.toString() ?? json['mediaId']?.toString() ?? '',
       url: media['url']?.toString() ??
+          mediaUrlFor(media['key']) ??
           media['storageKey']?.toString() ??
           media['originalUrl']?.toString() ??
           '',
-      thumbnailUrl: media['thumbnailUrl']?.toString(),
+      thumbnailUrl: media['thumbnailUrl']?.toString() ??
+          mediaUrlFor(media['thumbnailKey']),
       fileName: media['fileName']?.toString() ??
           media['originalFileName']?.toString(),
       mimeType: media['mimeType']?.toString() ??
           media['contentType']?.toString(),
-      sizeBytes: (media['sizeBytes'] ?? media['byteSize']) as int?,
+      sizeBytes: parseInt(media['sizeBytes'] ?? media['byteSize']),
       displayOrder: (json['displayOrder'] as num?)?.toInt() ?? 0,
     );
   }
@@ -268,6 +289,8 @@ class RequestConnectionSummary with _$RequestConnectionSummary {
     required String customerName,
     @Default('ACTIVE') String state,
     required DateTime connectedAt,
+    DateTime? identityRevealedAt,
+    DateTime? closedAt,
     String? whatsappUrl,
     String? channel,
   }) = _RequestConnectionSummary;
@@ -276,6 +299,13 @@ class RequestConnectionSummary with _$RequestConnectionSummary {
       _$RequestConnectionSummaryFromJson(json);
 
   factory RequestConnectionSummary.fromApiResponse(Map<String, dynamic> json) {
+    // origin/main includes `connections` on the request detail but only as
+    // shallow rows: `{ id, offerId, requestId, customerProfileId,
+    //   vendorProfileId, state, identityRevealedAt, closedAt, closedBy,
+    //   createdAt, updatedAt }` — there is no nested vendor/customer, so the
+    // party names fall back to placeholder strings.
+    // TODO(backend): add nested vendorProfile/customerProfile includes so the
+    // connection banner can show real party names.
     final vendor = json['vendor'] ?? json['vendorProfile'];
     final customer = json['customer'] ?? json['customerProfile'];
 
@@ -289,7 +319,8 @@ class RequestConnectionSummary with _$RequestConnectionSummary {
 
     String cName = json['customerName']?.toString() ?? '';
     if (customer is Map<String, dynamic>) {
-      cName = customer['fullName']?.toString() ??
+      cName = customer['displayName']?.toString() ??
+          customer['fullName']?.toString() ??
           customer['name']?.toString() ??
           cName;
     }
@@ -304,6 +335,12 @@ class RequestConnectionSummary with _$RequestConnectionSummary {
       return DateTime.now();
     }
 
+    DateTime? parseNullableDt(dynamic val) {
+      if (val is DateTime) return val;
+      if (val is String) return DateTime.tryParse(val);
+      return null;
+    }
+
     return RequestConnectionSummary(
       id: json['id']?.toString() ?? '',
       vendorId: json['vendorId']?.toString() ??
@@ -316,6 +353,8 @@ class RequestConnectionSummary with _$RequestConnectionSummary {
       customerName: cName,
       state: json['state']?.toString() ?? 'ACTIVE',
       connectedAt: parseDt(json['connectedAt'] ?? json['createdAt']),
+      identityRevealedAt: parseNullableDt(json['identityRevealedAt']),
+      closedAt: parseNullableDt(json['closedAt']),
       whatsappUrl: json['whatsappUrl']?.toString() ?? json['chatLink']?.toString(),
       channel: json['channel']?.toString() ?? 'WHATSAPP',
     );
@@ -345,11 +384,19 @@ class RequestInternalNoteItem with _$RequestInternalNoteItem {
       return DateTime.now();
     }
 
+    // origin/main `GET /v1/admin/requests/:id/notes` rows are AdminNote records:
+    // `{ id, entityType, entityId, text, authorAdminId, createdAt,
+    //    author: { displayName } }`.
+    final authorObj = json['author'];
+    final authorName = json['authorName']?.toString() ??
+        (authorObj is Map<String, dynamic>
+            ? authorObj['displayName']?.toString()
+            : (authorObj is String ? authorObj : null)) ??
+        'Platform Admin';
+
     return RequestInternalNoteItem(
       id: json['id']?.toString() ?? '',
-      authorName: json['authorName']?.toString() ??
-          json['author']?.toString() ??
-          'Platform Admin',
+      authorName: authorName,
       text: json['text']?.toString() ?? json['note']?.toString() ?? '',
       createdAt: parseDt(json['createdAt'] ?? json['timestamp']),
     );
@@ -509,6 +556,25 @@ class RequestDetail with _$RequestDetail {
       return null;
     }
 
+    // origin/main stores a single `cancellationReason` string shaped as
+    // "[CODE] free text" (see AdminRepository.removeRequest). There is no
+    // separate policy-clause column, so parse code/text out and leave
+    // removalPolicyClause null unless an explicit field is present.
+    String? removalCode = json['removalReasonCode']?.toString();
+    String? removalText = json['removalReasonText']?.toString();
+    final cancellation = json['cancellationReason']?.toString();
+    if ((removalCode == null || removalText == null) &&
+        cancellation != null &&
+        cancellation.isNotEmpty) {
+      final match = RegExp(r'^\[(.+?)\]\s*(.*)$').firstMatch(cancellation);
+      if (match != null) {
+        removalCode ??= match.group(1);
+        removalText ??= match.group(2);
+      } else {
+        removalText ??= cancellation;
+      }
+    }
+
     final reqType = RequestType.fromApi(json['requestType']?.toString()) ??
         RequestType.findOrnament;
     final dir = Direction.fromApi(json['direction']?.toString()) ??
@@ -542,15 +608,20 @@ class RequestDetail with _$RequestDetail {
       expiresAt: parseDt(json['expiresAt']),
       createdAt: parseDt(json['createdAt']),
       updatedAt: parseDt(json['updatedAt']),
-      cancellationReason: json['cancellationReason']?.toString(),
-      removalReasonCode: json['removalReasonCode']?.toString(),
-      removalReasonText: json['removalReasonText']?.toString(),
+      cancellationReason: cancellation,
+      removalReasonCode: removalCode,
+      removalReasonText: removalText,
       removalPolicyClause: json['removalPolicyClause']?.toString(),
       media: parseMedia(json['media'] ?? json['requestMedia']),
+      // TODO(backend): origin/main does not include matched vendors or a state
+      // timeline on the request detail. These stay empty until the backend adds
+      // `matchedVendors` and transition history includes.
       matchedVendors: parseVendors(json['matchedVendors'] ?? json['matches']),
       offers: parseOffers(json['offers']),
       timeline: parseTimeline(json['timeline'] ?? json['transitions'] ?? json['history']),
       connection: parseConnection(json['connection'] ?? json['connections']),
+      // Internal notes come from a separate endpoint and are merged in
+      // RequestRepository.fetchRequestDetail; this only catches an inline field.
       internalNotes: parseNotes(json['internalNotes'] ?? json['adminNotes']),
     );
   }

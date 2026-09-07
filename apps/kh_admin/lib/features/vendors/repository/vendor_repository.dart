@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
@@ -36,18 +37,52 @@ class VendorRepository {
 
     final items = response.items
         .whereType<Map<String, dynamic>>()
-        .map(VendorListItem.fromJson)
+        .map((raw) => VendorListItem.fromJson(normalizeListItem(raw)))
         .toList(growable: false);
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = meta?['hasMore'] as bool?;
 
+    // origin/main's admin list route never sends `hasMore`/`totalCount` — the
+    // only pagination signal is the presence of a cursor for the next page.
     return VendorListPage(
       items: items,
       nextCursor: nextCursor,
-      hasMore: hasMore,
+      hasMore: nextCursor != null && nextCursor.isNotEmpty,
     );
+  }
+
+  /// Reshapes an origin/main raw `VendorProfile` row from `GET /v1/admin/vendors`
+  /// into the flat shape [VendorListItem.fromJson] expects. Main has no DTO
+  /// layer, so `accountState` arrives nested under `user`, `aggregateRating` is a
+  /// `Decimal` serialised as a JSON string, and the offer/rating rollups use
+  /// different field names. `region` and `oldestWaitingHours` are not included on
+  /// the list route.
+  @visibleForTesting
+  static Map<String, dynamic> normalizeListItem(Map<String, dynamic> raw) {
+    final normalized = Map<String, dynamic>.from(raw);
+
+    final user = raw['user'];
+    final accountState = user is Map<String, dynamic>
+        ? user['accountState']?.toString()
+        : raw['accountState']?.toString();
+    normalized['accountState'] = accountState ?? 'ACTIVE';
+
+    final rating = raw['aggregateRating'] ?? raw['rating'];
+    normalized['rating'] =
+        rating == null ? null : double.tryParse(rating.toString());
+
+    final submitted = (raw['offersSubmittedCount'] as num?)?.toInt();
+    final accepted = (raw['offersAcceptedCount'] as num?)?.toInt();
+    normalized['offerCount'] = submitted;
+    normalized['acceptanceRate'] = (submitted != null && submitted > 0)
+        ? (accepted ?? 0) / submitted
+        : null;
+
+    normalized['region'] = raw['region'];
+    normalized.remove('oldestWaitingHours');
+
+    return normalized;
   }
 
   Future<VendorDetail> fetchVendorDetail(String vendorId) async {

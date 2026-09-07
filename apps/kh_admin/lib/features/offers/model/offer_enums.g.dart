@@ -14,3 +14,10 @@ const _$OfferStateEnumMap = {
   OfferState.withdrawn: 'WITHDRAWN',
   OfferState.withdrawnBySystem: 'WITHDRAWN_BY_SYSTEM',
 };
+
+const _$RequestTypeEnumMap = {
+  RequestType.findOrnament: 'FIND_ORNAMENT',
+  RequestType.sellOldGold: 'SELL_OLD_GOLD',
+  RequestType.goldCoin: 'GOLD_COIN',
+  RequestType.goldBullion: 'GOLD_BULLION',
+};

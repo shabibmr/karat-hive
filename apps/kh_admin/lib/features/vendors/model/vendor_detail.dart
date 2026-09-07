@@ -95,6 +95,15 @@ class VendorDetail {
           .map((item) {
             if (item is String) return item;
             if (item is Map<String, dynamic>) {
+              // origin/main sends raw join rows:
+              // `{ categoryId, category: { nameEn, nameAr } }` /
+              // `{ regionId, region: { nameEn, nameAr } }`.
+              final nested = item['category'] ?? item['region'];
+              if (nested is Map<String, dynamic>) {
+                return nested['nameEn']?.toString() ??
+                    nested['nameAr']?.toString() ??
+                    '';
+              }
               return item['nameEn']?.toString() ?? item['name']?.toString() ?? '';
             }
             return '';
@@ -119,9 +128,9 @@ class VendorDetail {
           mimeType: media?['mimeType']?.toString() ??
               media?['contentType']?.toString() ??
               doc['mimeType']?.toString(),
-          sizeBytes: media?['sizeBytes'] as int? ??
-              media?['byteSize'] as int? ??
-              doc['sizeBytes'] as int?,
+          sizeBytes: (media?['sizeBytes'] as num?)?.toInt() ??
+              (media?['byteSize'] as num?)?.toInt() ??
+              (doc['sizeBytes'] as num?)?.toInt(),
           expiryDate:
               doc['expiryDate'] != null ? parseDate(doc['expiryDate']) : null,
           verified: doc['verified'] == true,
@@ -158,8 +167,11 @@ class VendorDetail {
       regions: parseStringList(json['regions']),
       documents: parseDocs(json['documents']),
       oldestWaitingHours: (json['oldestWaitingHours'] as num?)?.toDouble(),
-      submittedAt:
-          json['submittedAt'] != null ? parseDate(json['submittedAt']) : null,
+      // origin/main's detail route sends neither `submittedAt` nor
+      // `oldestWaitingHours`; fall back to `createdAt` for the registration date.
+      submittedAt: json['submittedAt'] != null
+          ? parseDate(json['submittedAt'])
+          : (json['createdAt'] != null ? parseDate(json['createdAt']) : null),
     );
   }
 }

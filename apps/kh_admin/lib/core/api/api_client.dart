@@ -136,13 +136,23 @@ class ApiClient {
     }
 
     if (body is Map<String, dynamic>) {
-      final data = body['data'];
-      final meta = body['meta'];
+      var data = body['data'];
+      var meta = body['meta'] is Map<String, dynamic>
+          ? Map<String, dynamic>.from(body['meta'] as Map<String, dynamic>)
+          : <String, dynamic>{};
+
+      // The admin list routes double-wrap: `{ data: { data: [...], nextCursor },
+      // meta: { nextCursor: null } }`. Unwrap one more level and lift the real
+      // cursor out. Customer-facing routes already use `{ data: [...], meta }`.
+      if (data is Map<String, dynamic>) {
+        if (data['nextCursor'] != null && meta['nextCursor'] == null) {
+          meta['nextCursor'] = data['nextCursor'];
+        }
+        data = data['data'];
+      }
+
       final items = data is List ? data : const <dynamic>[];
-      return (
-        items: items,
-        meta: meta is Map<String, dynamic> ? meta : null,
-      );
+      return (items: items, meta: meta.isEmpty ? null : meta);
     }
 
     return (items: const <dynamic>[], meta: null);
