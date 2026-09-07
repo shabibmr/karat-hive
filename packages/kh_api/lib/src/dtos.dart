@@ -1,6 +1,9 @@
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+/// Auth/session/upload wire maps. Config, rates, and settings live in
+/// `kh_domain` (`PlatformConfig`, `GoldRateSnapshot`, `UserSettings`).
+
 class OtpChallenge {
   const OtpChallenge({required this.challengeId, required this.expiresAt});
   final String challengeId;

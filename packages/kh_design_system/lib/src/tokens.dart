@@ -10,6 +10,8 @@ class KhTokens extends ThemeExtension<KhTokens> {
     required this.surface,
     required this.danger,
     required this.success,
+    required this.warning,
+    required this.info,
     required this.radius,
     required this.space,
   });
@@ -19,6 +21,8 @@ class KhTokens extends ThemeExtension<KhTokens> {
   final Color surface;
   final Color danger;
   final Color success;
+  final Color warning;
+  final Color info;
   final KhRadius radius;
   final KhSpace space;
 
@@ -28,6 +32,8 @@ class KhTokens extends ThemeExtension<KhTokens> {
     surface: Color(0xFFFDFBF7),
     danger: Color(0xFFB3261E),
     success: Color(0xFF2E7D32),
+    warning: Color(0xFFD9A441),
+    info: Color(0xFF6D9BCB),
     radius: KhRadius(),
     space: KhSpace(),
   );
@@ -39,6 +45,8 @@ class KhTokens extends ThemeExtension<KhTokens> {
     Color? surface,
     Color? danger,
     Color? success,
+    Color? warning,
+    Color? info,
     KhRadius? radius,
     KhSpace? space,
   }) =>
@@ -48,6 +56,8 @@ class KhTokens extends ThemeExtension<KhTokens> {
         surface: surface ?? this.surface,
         danger: danger ?? this.danger,
         success: success ?? this.success,
+        warning: warning ?? this.warning,
+        info: info ?? this.info,
         radius: radius ?? this.radius,
         space: space ?? this.space,
       );

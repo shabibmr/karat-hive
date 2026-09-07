@@ -40,6 +40,7 @@ Read in this order when you need to understand a decision. Later documents may n
 | `docs/Backend-Gap-Fix-Plan.md` | P0/P1 review-gap fixes (F01–F17). Does not override the SRS |
 | `docs/Spec-Document-Sequence.md` | Remaining specs after the API inventory — ordered, no duplicates of the catalogue |
 | `docs/Screen-API-Map.md` | Screen → endpoint coverage check (`[PROPOSED]`). Every screen's load / actions / empty-error state mapped to a route or `error.code`; gap register (`SAM-GAP-nn`) |
+| `docs/checkpoints/checkpoint-customer-mode-tasks.md` | Customer-mode Flutter tick list (`CM-*`). Does not override the SRS |
 | `docs/Async-Contract.md` | Pre-code outbox contract (`[PROPOSED]`). Event payloads, consumers, scheduled jobs, notification dispatch. Expands Architecture-Backend §11; decision prefix `AD-ASYNC-nn` |
 | `ui-screens/` | Field-level inventory of the 67 screens, plus `component-widgets.md` (shared `SH-*` widget catalogue) and `Karat_Hive_UI_Design_Context.md` (visual system) |
 | `ui-mock/` | Interactive realisation of `ui-screens/` |

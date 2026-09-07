@@ -1,4 +1,38 @@
+import 'party.dart';
 import 'vendor_lifecycle.dart';
+
+class CustomerMe {
+  const CustomerMe({
+    required this.displayName,
+    required this.reviewCount,
+    required this.connectionCount,
+    this.photoUrl,
+    this.defaultRegion,
+    this.rating,
+    this.liveRequestCount,
+    this.canCreateRequest,
+  });
+
+  final String displayName;
+  final String? photoUrl;
+  final RegionSummary? defaultRegion;
+  final RatingSummary? rating;
+  final int reviewCount;
+  final int connectionCount;
+  final int? liveRequestCount;
+  final bool? canCreateRequest;
+
+  static CustomerMe fromJson(Map<String, dynamic> j) => CustomerMe(
+        displayName: j['displayName'] as String? ?? '',
+        photoUrl: j['photoUrl'] as String?,
+        defaultRegion: RegionSummary.tryParse(j['defaultRegion']),
+        rating: RatingSummary.tryParse(j['rating']),
+        reviewCount: (j['reviewCount'] as num?)?.toInt() ?? 0,
+        connectionCount: (j['connectionCount'] as num?)?.toInt() ?? 0,
+        liveRequestCount: (j['liveRequestCount'] as num?)?.toInt(),
+        canCreateRequest: j['canCreateRequest'] as bool?,
+      );
+}
 
 class VendorMe {
   const VendorMe({
@@ -58,6 +92,11 @@ class MeUser {
     required this.preferredLanguage,
     this.email,
     this.vendor,
+    this.customer,
+    this.oauthBound = false,
+    this.liveRequestCount,
+    this.canCreateRequest,
+    this.accountState = AccountState.unknown,
   });
 
   final String userId;
@@ -66,15 +105,32 @@ class MeUser {
   final String preferredLanguage;
   final String? email;
   final VendorMe? vendor;
+  final CustomerMe? customer;
+  final bool oauthBound;
+  final int? liveRequestCount;
+  final bool? canCreateRequest;
+  final AccountState accountState;
 
-  static MeUser fromJson(Map<String, dynamic> j) => MeUser(
-        userId: j['userId'] as String,
-        userType: j['userType'] as String,
-        mobileNumber: j['mobileNumber'] as String? ?? '',
-        preferredLanguage: j['preferredLanguage'] as String? ?? 'en',
-        email: j['email'] as String?,
-        vendor: j['vendor'] == null
-            ? null
-            : VendorMe.fromJson(j['vendor'] as Map<String, dynamic>),
-      );
+  static MeUser fromJson(Map<String, dynamic> j) {
+    final customer = j['customer'] == null
+        ? null
+        : CustomerMe.fromJson(Map<String, dynamic>.from(j['customer'] as Map));
+    return MeUser(
+      userId: (j['userId'] ?? j['id']) as String,
+      userType: j['userType'] as String,
+      mobileNumber: j['mobileNumber'] as String? ?? '',
+      preferredLanguage: j['preferredLanguage'] as String? ?? 'en',
+      email: j['email'] as String?,
+      vendor: j['vendor'] == null
+          ? null
+          : VendorMe.fromJson(Map<String, dynamic>.from(j['vendor'] as Map)),
+      customer: customer,
+      oauthBound: j['oauthBound'] as bool? ?? false,
+      liveRequestCount: customer?.liveRequestCount ??
+          (j['liveRequestCount'] as num?)?.toInt(),
+      canCreateRequest: customer?.canCreateRequest ??
+          j['canCreateRequest'] as bool?,
+      accountState: AccountState.parse(j['accountState'] as String?),
+    );
+  }
 }
