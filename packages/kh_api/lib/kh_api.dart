@@ -158,28 +158,28 @@ class KhApi {
     );
   }
 
-  Future<Result<GoldRate>> goldRates() async {
+  Future<Result<GoldRateSnapshot>> goldRates() async {
     final r = await _client.send('GET', '/v1/gold-rates');
     return r.when(
-      ok: (d) => Ok(GoldRate.fromJson(d as Map<String, dynamic>)),
+      ok: (d) => Ok(GoldRateSnapshot.fromJson(d as Map<String, dynamic>)),
       err: Err.new,
     );
   }
 
-  Future<Result<Settings>> settings() async {
+  Future<Result<UserSettings>> settings() async {
     final r = await _client.send('GET', '/v1/me/settings');
     return r.when(
-      ok: (d) => Ok(Settings.fromJson(d as Map<String, dynamic>)),
+      ok: (d) => Ok(UserSettings.fromJson(d as Map<String, dynamic>)),
       err: Err.new,
     );
   }
 
-  Future<Result<Settings>> patchSettings({
+  Future<Result<UserSettings>> patchSettings({
     String? preferredLanguage,
     String? defaultRegionId,
     QuietHours? quietHours,
     String? defaultFilterPresetId,
-    Map<String, NotificationPref>? notifications,
+    Map<String, NotificationChannelPref>? notifications,
   }) async {
     final r = await _client.send('PATCH', '/v1/me/settings', body: {
       if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
@@ -192,7 +192,7 @@ class KhApi {
             notifications.map((k, v) => MapEntry(k, v.toJson())),
     });
     return r.when(
-      ok: (d) => Ok(Settings.fromJson(d as Map<String, dynamic>)),
+      ok: (d) => Ok(UserSettings.fromJson(d as Map<String, dynamic>)),
       err: Err.new,
     );
   }

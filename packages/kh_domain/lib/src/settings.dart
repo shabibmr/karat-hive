@@ -14,6 +14,12 @@ class QuietHours {
         end: j['end'] as String? ?? '',
         timezone: j['timezone'] as String? ?? 'Asia/Dubai',
       );
+
+  Map<String, dynamic> toJson() => {
+        'start': start,
+        'end': end,
+        'timezone': timezone,
+      };
 }
 
 class NotificationChannelPref {
@@ -33,6 +39,12 @@ class NotificationChannelPref {
         push: j['push'] as bool? ?? false,
         email: j['email'] as bool? ?? false,
       );
+
+  Map<String, dynamic> toJson() => {
+        'inApp': inApp,
+        'push': push,
+        'email': email,
+      };
 }
 
 class UserSettings {

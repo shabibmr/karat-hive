@@ -248,11 +248,11 @@ void main() {
 
       expect(lastRequest!.method, 'GET');
       expect(lastRequest!.path, '/v1/gold-rates');
-      expect(result, isA<Ok<GoldRate>>());
-      final rates = (result as Ok<GoldRate>).value;
+      expect(result, isA<Ok<GoldRateSnapshot>>());
+      final rates = (result as Ok<GoldRateSnapshot>).value;
       expect(rates.available, isTrue);
       expect(rates.stale, isFalse);
-      expect(rates.rates.single.karat, '24K');
+      expect(rates.rates.single.karat, Karat.k24);
       expect(rates.rates.single.ratePerGramAed, '380.50');
     });
 
@@ -263,7 +263,7 @@ void main() {
       });
 
       final result = await api.goldRates();
-      final rates = (result as Ok<GoldRate>).value;
+      final rates = (result as Ok<GoldRateSnapshot>).value;
       expect(rates.available, isFalse);
       expect(rates.stale, isFalse);
       expect(rates.rates, isEmpty);
@@ -272,7 +272,7 @@ void main() {
   });
 
   group('GET/PATCH /v1/me/settings', () {
-    test('GET /v1/me/settings maps Settings', () async {
+    test('GET /v1/me/settings maps UserSettings', () async {
       payload = envelope({
         'preferredLanguage': 'ar',
         'defaultRegionId': 'reg-1',
@@ -290,15 +290,15 @@ void main() {
 
       expect(lastRequest!.method, 'GET');
       expect(lastRequest!.path, '/v1/me/settings');
-      expect(result, isA<Ok<Settings>>());
-      final s = (result as Ok<Settings>).value;
+      expect(result, isA<Ok<UserSettings>>());
+      final s = (result as Ok<UserSettings>).value;
       expect(s.preferredLanguage, 'ar');
       expect(s.defaultRegionId, 'reg-1');
       expect(s.quietHours!.start, '22:00');
       expect(s.notifications['OFFERS']!.inApp, isTrue);
     });
 
-    test('PATCH /v1/me/settings sends body and maps Settings', () async {
+    test('PATCH /v1/me/settings sends body and maps UserSettings', () async {
       payload = envelope({
         'preferredLanguage': 'en',
         'notifications': {
@@ -311,7 +311,7 @@ void main() {
         defaultRegionId: 'reg-9',
         quietHours: const QuietHours(start: '21:00', end: '06:00'),
         notifications: {
-          'OFFERS': const NotificationPref(inApp: false, push: false, email: false),
+          'OFFERS': const NotificationChannelPref(inApp: false, push: false, email: false),
         },
       );
 
@@ -329,7 +329,7 @@ void main() {
           'OFFERS': {'inApp': false, 'push': false, 'email': false},
         },
       });
-      expect(result, isA<Ok<Settings>>());
+      expect(result, isA<Ok<UserSettings>>());
     });
 
     test('settings errors stay Failure', () async {
@@ -339,8 +339,8 @@ void main() {
       };
 
       final result = await api.patchSettings(preferredLanguage: 'en');
-      expect(result, isA<Err<Settings>>());
-      expect((result as Err<Settings>).failure, isA<ForbiddenFailure>());
+      expect(result, isA<Err<UserSettings>>());
+      expect((result as Err<UserSettings>).failure, isA<ForbiddenFailure>());
     });
   });
 
