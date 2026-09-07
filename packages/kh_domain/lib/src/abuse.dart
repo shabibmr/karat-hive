@@ -1,10 +1,11 @@
-/// Inventory `AbuseEntityType` — REQUEST | OFFER | CONNECTION | REVIEW.
-/// `VENDOR` is not a v1 marketplace entity (`SAM-GAP-4`); unknown until the API adds it.
+/// Inventory `AbuseEntityType` plus live `VENDOR` / `CUSTOMER` (`SAM-GAP-4` built).
 enum AbuseEntityType {
   request,
   offer,
   connection,
   review,
+  vendor,
+  customer,
   unknown;
 
   static AbuseEntityType parse(String? raw) => switch (raw) {
@@ -12,6 +13,8 @@ enum AbuseEntityType {
         'OFFER' => offer,
         'CONNECTION' => connection,
         'REVIEW' => review,
+        'VENDOR' => vendor,
+        'CUSTOMER' => customer,
         _ => unknown,
       };
 
@@ -20,6 +23,8 @@ enum AbuseEntityType {
         offer => 'OFFER',
         connection => 'CONNECTION',
         review => 'REVIEW',
+        vendor => 'VENDOR',
+        customer => 'CUSTOMER',
         unknown => 'UNKNOWN',
       };
 }

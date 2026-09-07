@@ -130,3 +130,52 @@ class OfferForCustomer {
     );
   }
 }
+
+/// Pre-accept Vendor rating sheet (`FR-CUS-031`). No business identity.
+class ReviewExcerpt {
+  const ReviewExcerpt({
+    required this.abbreviatedName,
+    required this.rating,
+    this.comment,
+  });
+
+  final String abbreviatedName;
+  final int rating;
+  final String? comment;
+
+  static ReviewExcerpt fromJson(Map<String, dynamic> j) => ReviewExcerpt(
+        abbreviatedName: (j['abbreviatedName'] ??
+                j['authorDisplayName'] ??
+                j['reviewer'] ??
+                '') as String,
+        rating: (j['rating'] as num?)?.toInt() ?? 0,
+        comment: j['comment'] as String?,
+      );
+}
+
+class VendorRatingDetail {
+  const VendorRatingDetail({
+    required this.summary,
+    this.excerpts = const [],
+  });
+
+  final RatingSummary summary;
+  final List<ReviewExcerpt> excerpts;
+
+  bool get limitedHistory => summary.limitedHistory;
+
+  static VendorRatingDetail fromJson(Map<String, dynamic> j) {
+    final excerptsRaw = j['excerpts'] ?? j['reviews'] ?? j['recentReviews'];
+    final excerpts = <ReviewExcerpt>[];
+    if (excerptsRaw is List) {
+      for (final e in excerptsRaw.take(10)) {
+        excerpts.add(ReviewExcerpt.fromJson(_map(e)));
+      }
+    }
+    final summaryJson = j['summary'] ?? j['rating'] ?? j;
+    return VendorRatingDetail(
+      summary: RatingSummary.fromJson(summaryJson) ?? const RatingSummary.score(0),
+      excerpts: excerpts,
+    );
+  }
+}

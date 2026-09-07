@@ -11,6 +11,7 @@ class CustomerMe {
     this.rating,
     this.liveRequestCount,
     this.canCreateRequest,
+    this.lifetimeRequestCount,
   });
 
   final String displayName;
@@ -21,6 +22,7 @@ class CustomerMe {
   final int connectionCount;
   final int? liveRequestCount;
   final bool? canCreateRequest;
+  final int? lifetimeRequestCount;
 
   static CustomerMe fromJson(Map<String, dynamic> j) => CustomerMe(
         displayName: j['displayName'] as String? ?? '',
@@ -31,6 +33,7 @@ class CustomerMe {
         connectionCount: (j['connectionCount'] as num?)?.toInt() ?? 0,
         liveRequestCount: (j['liveRequestCount'] as num?)?.toInt(),
         canCreateRequest: j['canCreateRequest'] as bool?,
+        lifetimeRequestCount: (j['lifetimeRequestCount'] as num?)?.toInt(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -42,6 +45,8 @@ class CustomerMe {
         'connectionCount': connectionCount,
         if (liveRequestCount != null) 'liveRequestCount': liveRequestCount,
         if (canCreateRequest != null) 'canCreateRequest': canCreateRequest,
+        if (lifetimeRequestCount != null)
+          'lifetimeRequestCount': lifetimeRequestCount,
       };
 }
 
@@ -127,6 +132,7 @@ class MeUser {
     this.liveRequestCount,
     this.canCreateRequest,
     this.accountState = AccountState.unknown,
+    this.createdAt,
   });
 
   final String userId;
@@ -140,6 +146,7 @@ class MeUser {
   final int? liveRequestCount;
   final bool? canCreateRequest;
   final AccountState accountState;
+  final DateTime? createdAt;
 
   static MeUser fromJson(Map<String, dynamic> j) {
     final customer = j['customer'] == null
@@ -161,6 +168,9 @@ class MeUser {
       canCreateRequest: customer?.canCreateRequest ??
           j['canCreateRequest'] as bool?,
       accountState: AccountState.parse(j['accountState'] as String?),
+      createdAt: j['createdAt'] is String
+          ? DateTime.tryParse(j['createdAt'] as String)
+          : null,
     );
   }
 
