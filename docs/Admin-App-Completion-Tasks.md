@@ -18,9 +18,9 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 ## Slice 1 — Land the adapted verticals (ADM-S05–S11)
 
 - [ ] **ADM-C-10** Seed a local backend, dev auto-login, click through Vendors / Verification / Requests / Offers list+detail; fix live-data breakage; capture screenshots.
-- [ ] **ADM-C-11** `offers` + `requests` l10n — extract hardcoded English to `app_en.arb` / `app_ar.arb`, wire `AppLocalizations`.
+- [x] **ADM-C-11** `offers` + `requests` l10n — ~220 keys EN/AR, wired via `AppLocalizations`. Commit `6100943`.
 - [ ] **ADM-C-12** URL query-param state for `vendors` / `requests` / `offers` list filters (mirror `verification_query_params.dart`).
-- [ ] **ADM-C-13** Remove orphaned ARB keys (`vendorsDetailStubBody`, `vendorsDetailComingSoon`, …).
+- [x] **ADM-C-13** Removed orphaned ARB keys (`vendorsDetailStubBody`, `vendorsDetailComingSoon`). Commit `6100943`.
 - [ ] **ADM-C-14** Commit per vertical; open draft PR with GIF.
 
 ## Slice 2 — Dashboard (ADM-S02)
