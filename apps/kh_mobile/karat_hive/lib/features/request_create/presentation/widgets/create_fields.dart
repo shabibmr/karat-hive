@@ -150,42 +150,46 @@ class WeightPurityFields extends StatelessWidget {
     required this.state,
     required this.controller,
     this.weightRequired = false,
+    this.showWeight = true,
   });
 
   final RequestCreateState state;
   final RequestCreateController controller;
   final bool weightRequired;
+  final bool showWeight;
 
   @override
   Widget build(BuildContext context) {
     final karats = state.config?.karatList ?? const ['24', '22', '21', '18'];
     return Column(
       children: [
-        KhNumericField(
-          label: createCopy(context, 'create.weight', 'Weight'),
-          unit: 'g',
-          min: 0.10,
-          max: 5000,
-          decimalPlaces: 2,
-          initialValue: state.weightGrams,
-          errorText: state.fieldError('weightGrams'),
-          rangeErrorText: createCopy(
-            context,
-            'create.weightRange',
-            'Weight must be between 0.10 g and 5000.00 g',
+        if (showWeight) ...[
+          KhNumericField(
+            label: createCopy(context, 'create.weight', 'Weight'),
+            unit: 'g',
+            min: 0.10,
+            max: 5000,
+            decimalPlaces: 2,
+            initialValue: state.weightGrams,
+            errorText: state.fieldError('weightGrams'),
+            rangeErrorText: createCopy(
+              context,
+              'create.weightRange',
+              'Weight must be between 0.10 g and 5000.00 g',
+            ),
+            onChanged: (v) => controller.setWeightGrams(
+              v?.toStringAsFixed(2),
+            ),
           ),
-          onChanged: (v) => controller.setWeightGrams(
-            v?.toStringAsFixed(2),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              createCopy(context, 'create.weightApprox', 'Weight is approximate'),
+            ),
+            value: state.weightIsApproximate,
+            onChanged: controller.setWeightApproximate,
           ),
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(
-            createCopy(context, 'create.weightApprox', 'Weight is approximate'),
-          ),
-          value: state.weightIsApproximate,
-          onChanged: controller.setWeightApproximate,
-        ),
+        ],
         KhSelectField<Karat>(
           label: createCopy(context, 'create.purity', 'Purity'),
           value: state.purityKarat,

@@ -1,12 +1,13 @@
 import 'package:go_router/go_router.dart';
 
-import '../../app/guards.dart';
-import '../reviews/presentation/stubs.dart';
-import 'presentation/stubs.dart';
+import 'presentation/connection_detail_screen.dart';
+import 'presentation/connections_list_screen.dart';
+import '../reviews/presentation/leave_review_screen.dart';
 
-final connectionsRoutes = [
+/// Customer Connections tab (CUS-S16 / CUS-S15 / CUS-S18). Agent 1 mounts this.
+final customerConnectionRoutes = [
   GoRoute(
-    path: AppGuards.customerConnections,
+    path: '/customer/connections',
     builder: (_, __) => const ConnectionsListScreen(),
     routes: [
       GoRoute(

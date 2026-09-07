@@ -38,6 +38,7 @@ class ConnectionsListScreen extends ConsumerWidget {
               onRefresh: () =>
                   ref.read(connectionsListProvider.notifier).reload(),
               child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   SizedBox(height: tokens.space.xl * 4),
                   KhEmptyView(message: s.s('connections.empty')),

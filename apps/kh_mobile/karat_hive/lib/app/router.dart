@@ -53,11 +53,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         branches: [
           StatefulShellBranch(
             routes: [
-              customerHomeRoute(routes: [
-                ...requestCreateRoutes,
-                ...offersCustomerRoutes,
-                ...abuseRoutes,
-              ]),
+              customerHomeRoute(),
+              ...requestCreateRoutes,
+              ...offersCustomerRoutes,
+              ...abuseRoutes,
             ],
           ),
           StatefulShellBranch(

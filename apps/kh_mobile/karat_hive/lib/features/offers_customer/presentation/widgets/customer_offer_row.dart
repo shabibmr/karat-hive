@@ -23,7 +23,8 @@ class CustomerOfferRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final theme = Theme.of(context);
-    final unread = offer.viewedByCustomerAt == null &&
+    final unread = offer.viewedByCustomerAtPresent &&
+        offer.viewedByCustomerAt == null &&
         offer.state == OfferState.pending;
     final price = num.tryParse(offer.terms.offeredPrice) ?? 0;
 
