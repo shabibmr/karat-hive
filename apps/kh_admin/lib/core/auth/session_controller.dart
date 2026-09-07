@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../firebase/firebase_auth_service.dart';
-import 'auth_models.dart';
 import 'auth_repository.dart';
 import 'session_state.dart';
 import 'token_storage.dart';
