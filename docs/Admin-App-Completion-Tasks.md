@@ -1,0 +1,63 @@
+# Admin App Completion — Task Register
+
+> **Source of truth**: [`Admin-App-Completion-Plan.md`](Admin-App-Completion-Plan.md)
+> **Branch**: `feat/admin-portal-on-main` (off `origin/main`)
+> **Prefix**: `ADM-C-nn` (Admin completion). Slices `Backend-Implementation-Plan.md` `T`-IDs; does not renumber them.
+
+Legend: `[x]` done · `[~]` in progress · `[ ]` not started
+
+---
+
+## Slice 0 — Reconcile with `main` (done)
+
+- [x] **ADM-C-01** New branch `feat/admin-portal-on-main` off `origin/main`; admin Flutter app replanted; branch's parallel backend dropped.
+- [x] **ADM-C-02** 3-way reconcile the 4 `main`-owned files onto the `G2-A14` Google-session auth flow.
+- [x] **ADM-C-03** Adapt vendors / verification / offers / requests repos to `main`'s raw admin responses (`getCollection` double-wrap, Decimal strings, nested keys, notes merge, client-side filters). Repo/parsing tests added. `flutter analyze` clean, `flutter test` 141 pass.
+- [x] **ADM-C-04** `Admin-App-Completion-Plan.md` + this register.
+
+## Slice 1 — Land the adapted verticals (ADM-S05–S11)
+
+- [ ] **ADM-C-10** Seed a local backend, dev auto-login, click through Vendors / Verification / Requests / Offers list+detail; fix live-data breakage; capture screenshots.
+- [ ] **ADM-C-11** `offers` + `requests` l10n — extract hardcoded English to `app_en.arb` / `app_ar.arb`, wire `AppLocalizations`.
+- [ ] **ADM-C-12** URL query-param state for `vendors` / `requests` / `offers` list filters (mirror `verification_query_params.dart`).
+- [ ] **ADM-C-13** Remove orphaned ARB keys (`vendorsDetailStubBody`, `vendorsDetailComingSoon`, …).
+- [ ] **ADM-C-14** Commit per vertical; open draft PR with GIF.
+
+## Slice 2 — Dashboard (ADM-S02)
+
+- [ ] **ADM-C-20** Replace `dashboard_screen.dart` sample data with `GET /v1/admin/dashboard`; keep responsive layout; loading / error / empty states.
+
+## Group A — list/detail pattern, backend ready
+
+- [ ] **ADM-C-30** ADM-S22 audit-log — model + repo (`GET /v1/admin/audit-log`, filters `actorUserId,action,entityType,entityId,from,to,ip`), `KhDataTable` list, client-side row detail (`SAM-GAP-12`), self-view audit note, l10n, tests. Route `/audit`.
+- [ ] **ADM-C-31** ADM-S03 customer-list — clone vendor-list; `GET /v1/admin/customers`; PII list-access audit note. Route `/customers`.
+- [ ] **ADM-C-32** ADM-S04 customer-detail — clone vendor-detail; `GET /v1/admin/customers/:id`; suspend / reactivate / erasure dialogs (mandatory reason). Route `/customers/:id`.
+
+## Group B — queue / moderation, backend ready
+
+- [ ] **ADM-C-40** ADM-S12 connection-list — `GET /v1/admin/connections`; derived "no contact 48h" column. Route `/connections`.
+- [ ] **ADM-C-41** ADM-S13 connection-detail — `GET /v1/admin/connections/:id`; close action (reason, notifies both). Route `/connections/:id`.
+- [ ] **ADM-C-42** ADM-S21 abuse-report queue — `GET /v1/admin/abuse-reports(/:id)`; resolve / dismiss with rationale; reporter never disclosed. Route `/abuse`.
+- [ ] **ADM-C-43** ADM-S16 review-moderation — `GET /v1/admin/reviews`; approve / reject / redact (rationale on reject/redact). Route `/moderation`.
+- [ ] **ADM-C-44** ADM-S23 admin-user-management — `GET/POST /v1/admin/admins`, suspend / revoke; **no Role selector** (`SAM-GAP-13`, `AD-API-03`). Route `/admin-users`.
+
+## Group C — config screens
+
+- [ ] **ADM-C-50** ADM-S19 platform-settings — `GET /v1/admin/settings`, `PATCH /v1/admin/settings/:key`; typed rows + range validation; flag the offer-validity field pending the live decision; coarse Super-Admin confirm.
+- [ ] **ADM-C-51** ADM-S18 announcement-composer — `GET/POST /v1/admin/announcements`, cancel; bilingual form, audience/channel selects, schedule, delivery list. `SAM-GAP-10` (no pre-send count).
+
+## Group D — heaviest
+
+- [ ] **ADM-C-60** Backend: add `/v1/admin/gold-rates`, `/history`, `POST /override` on the `gold-rate` module (blocks ADM-S20). `G2-*`.
+- [ ] **ADM-C-61** ADM-S20 gold-rate config — feed status, purity table, history, override form (reason + expiry). Operator side not blocked by Yahoo terms (`AD-API-09`).
+- [ ] **ADM-C-62** Introduce a charting library into `kh_admin` (evaluate; none present).
+- [ ] **ADM-C-63** ADM-S17 reports & analytics — `GET /v1/admin/reports/:name` (7 types), `POST /v1/admin/exports` + poll `GET /v1/admin/exports/:id`; charts + results table + export flow.
+
+## Backend follow-ups (raise as `G2-*`)
+
+- [ ] **ADM-C-70** Admin list routes double-wrap the envelope — fix `admin.controller.ts` to return `{ data: items, meta: { nextCursor } }` like the customer controllers; then simplify `ApiClient.getCollection`.
+- [ ] **ADM-C-71** `listRequests` / `listOffers` — add the filter params the screens need (`requestType`, `direction`, `categoryId`, `regionId`, price/value ranges, `zeroOffers`).
+- [ ] **ADM-C-72** Request detail — include `matchedVendors`, a state timeline, and deep `connections` (nested vendor/customer).
+- [ ] **ADM-C-73** Offer detail — expose state transitions; give `OfferRevision` real columns or a typed projection.
+- [ ] **ADM-C-74** Signed / public media URL for admin document view (current `/v1/media/<key>` needs a bearer a new tab can't send).
+- [ ] **ADM-C-75** `admin_note` create response — return `author:{displayName}` to match the list shape.
