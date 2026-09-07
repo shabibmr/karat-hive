@@ -52,6 +52,33 @@ class KhApi {
     );
   }
 
+  /// `POST /v1/auth/register/customer` — SessionBundle 201 (`FR-CUS-001`).
+  Future<Result<SessionBundle>> registerCustomer({
+    String? challengeId,
+    String? firebaseToken,
+    required String displayName,
+    String? email,
+    required String preferredLanguage,
+    String? defaultRegionId,
+    required String termsVersion,
+    required String privacyVersion,
+  }) async {
+    final r = await _client.send('POST', '/v1/auth/register/customer', body: {
+      if (challengeId != null) 'challengeId': challengeId,
+      if (firebaseToken != null) 'firebaseToken': firebaseToken,
+      'displayName': displayName,
+      if (email != null) 'email': email,
+      'preferredLanguage': preferredLanguage,
+      if (defaultRegionId != null) 'defaultRegionId': defaultRegionId,
+      'termsVersion': termsVersion,
+      'privacyVersion': privacyVersion,
+    });
+    return r.when(
+      ok: (d) => Ok(SessionBundle.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
   Future<Result<SessionBundle>> loginPassword({
     required String email,
     required String password,
@@ -96,6 +123,76 @@ class KhApi {
     final r = await _client.send('GET', '/v1/me');
     return r.when(
       ok: (d) => Ok(MeUser.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  /// Customer fields: `displayName`, `email`, `preferredLanguage`,
+  /// `defaultRegionId`, `photoMediaKey` (inventory §9). Vendor may send
+  /// `preferredLanguage` on this same route.
+  Future<Result<MeUser>> patchMe({
+    String? displayName,
+    String? email,
+    String? preferredLanguage,
+    String? defaultRegionId,
+    String? photoMediaKey,
+  }) async {
+    final r = await _client.send('PATCH', '/v1/me', body: {
+      if (displayName != null) 'displayName': displayName,
+      if (email != null) 'email': email,
+      if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
+      if (defaultRegionId != null) 'defaultRegionId': defaultRegionId,
+      if (photoMediaKey != null) 'photoMediaKey': photoMediaKey,
+    });
+    return r.when(
+      ok: (d) => Ok(MeUser.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<PlatformConfig>> platformConfig() async {
+    final r = await _client.send('GET', '/v1/platform-config');
+    return r.when(
+      ok: (d) => Ok(PlatformConfig.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<GoldRate>> goldRates() async {
+    final r = await _client.send('GET', '/v1/gold-rates');
+    return r.when(
+      ok: (d) => Ok(GoldRate.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<Settings>> settings() async {
+    final r = await _client.send('GET', '/v1/me/settings');
+    return r.when(
+      ok: (d) => Ok(Settings.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<Settings>> patchSettings({
+    String? preferredLanguage,
+    String? defaultRegionId,
+    QuietHours? quietHours,
+    String? defaultFilterPresetId,
+    Map<String, NotificationPref>? notifications,
+  }) async {
+    final r = await _client.send('PATCH', '/v1/me/settings', body: {
+      if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
+      if (defaultRegionId != null) 'defaultRegionId': defaultRegionId,
+      if (quietHours != null) 'quietHours': quietHours.toJson(),
+      if (defaultFilterPresetId != null)
+        'defaultFilterPresetId': defaultFilterPresetId,
+      if (notifications != null)
+        'notifications':
+            notifications.map((k, v) => MapEntry(k, v.toJson())),
+    });
+    return r.when(
+      ok: (d) => Ok(Settings.fromJson(d as Map<String, dynamic>)),
       err: Err.new,
     );
   }
