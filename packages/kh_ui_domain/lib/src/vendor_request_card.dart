@@ -4,6 +4,8 @@ import 'package:kh_domain/kh_domain.dart';
 
 import 'expiry_countdown.dart';
 import 'masked_party_label.dart';
+import 'money_display.dart';
+import 'relative_time_label.dart';
 
 /// SH-REQ-01 — Request summary card (Vendor variant).
 ///
@@ -45,7 +47,6 @@ class VendorRequestCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- Header: Title + Category/Region tags + Unread dot ---
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -69,9 +70,22 @@ class VendorRequestCard extends StatelessWidget {
                             if (item.categoryName != null)
                               _Tag(text: item.categoryName!, color: tokens.ink),
                             if (item.regionName != null)
-                              _Tag(text: item.regionName!, color: tokens.ink.withValues(alpha: 0.7)),
+                              _Tag(
+                                text: item.regionName!,
+                                color: tokens.ink.withValues(alpha: 0.7),
+                              ),
                             if (item.purityKarat != null)
-                              _Tag(text: '${item.purityKarat}K', color: tokens.gold),
+                              _Tag(
+                                text: '${item.purityKarat}K',
+                                color: tokens.gold,
+                              ),
+                            if (item.hasResponded)
+                              const KhStatusChip(
+                                key: Key('responded-marker'),
+                                label: 'Responded',
+                                tone: KhStatusTone.accent,
+                                compact: true,
+                              ),
                           ],
                         ),
                       ],
@@ -92,11 +106,14 @@ class VendorRequestCard extends StatelessWidget {
               ),
               SizedBox(height: tokens.space.sm),
 
-              // --- Spec summary: Weight + Budget ---
               Row(
                 children: [
                   if (item.weightGrams != null) ...[
-                    Icon(Icons.scale_outlined, size: 14, color: tokens.ink.withValues(alpha: 0.6)),
+                    Icon(
+                      Icons.scale_outlined,
+                      size: 14,
+                      color: tokens.ink.withValues(alpha: 0.6),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '${item.weightGrams}g',
@@ -109,29 +126,27 @@ class VendorRequestCard extends StatelessWidget {
                     const SizedBox(width: 12),
                   ],
                   if (item.budgetMin != null || item.budgetMax != null) ...[
-                    Icon(Icons.payments_outlined, size: 14, color: tokens.ink.withValues(alpha: 0.6)),
-                    const SizedBox(width: 4),
-                    Text(
-                      _formatBudget(item),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: tokens.ink,
-                      ),
+                    Icon(
+                      Icons.payments_outlined,
+                      size: 14,
+                      color: tokens.ink.withValues(alpha: 0.6),
                     ),
+                    const SizedBox(width: 4),
+                    _BudgetLabel(item: item),
                   ],
+                  const Spacer(),
+                  if (item.publishedAt != null)
+                    RelativeTimeLabel(at: item.publishedAt!),
                 ],
               ),
               SizedBox(height: tokens.space.sm),
 
-              // --- Customer Masked Summary (BR-006) ---
               MaskedPartyLabel(party: item.customer, compact: true),
               SizedBox(height: tokens.space.sm),
 
               const Divider(height: 1),
               SizedBox(height: tokens.space.xs),
 
-              // --- Footer: Offer count + ExpiryCountdown ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -153,9 +168,7 @@ class VendorRequestCard extends StatelessWidget {
                     ],
                   ),
                   if (item.expiresAt != null)
-                    ExpiryCountdown(
-                      expiresAt: item.expiresAt!,
-                    ),
+                    ExpiryCountdown(expiresAt: item.expiresAt!),
                 ],
               ),
             ],
@@ -164,16 +177,43 @@ class VendorRequestCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  String _formatBudget(VendorRequestItem item) {
+class _BudgetLabel extends StatelessWidget {
+  const _BudgetLabel({required this.item});
+  final VendorRequestItem item;
+
+  @override
+  Widget build(BuildContext context) {
     if (item.budgetMin != null && item.budgetMax != null) {
-      return 'AED ${item.budgetMin!.toInt()} - ${item.budgetMax!.toInt()}';
-    } else if (item.budgetMin != null) {
-      return 'From AED ${item.budgetMin!.toInt()}';
-    } else if (item.budgetMax != null) {
-      return 'Up to AED ${item.budgetMax!.toInt()}';
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          MoneyDisplay(amount: item.budgetMin!),
+          const Text(' - '),
+          MoneyDisplay(amount: item.budgetMax!),
+        ],
+      );
     }
-    return 'Open Budget';
+    if (item.budgetMin != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('From '),
+          MoneyDisplay(amount: item.budgetMin!),
+        ],
+      );
+    }
+    if (item.budgetMax != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Up to '),
+          MoneyDisplay(amount: item.budgetMax!),
+        ],
+      );
+    }
+    return const Text('Open Budget');
   }
 }
 

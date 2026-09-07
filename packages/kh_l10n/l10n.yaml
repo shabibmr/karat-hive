@@ -1,0 +1,10 @@
+# CP2-F05: package-local gen_l10n. Run from this package:
+#   flutter gen-l10n
+# Generated Dart is committed under lib/l10n/ (no synthetic package:flutter_gen).
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: true
+preferred-supported-locales:
+  - en

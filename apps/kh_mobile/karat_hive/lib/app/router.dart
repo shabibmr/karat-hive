@@ -8,12 +8,10 @@ import 'shells/awaiting_approval_shell.dart';
 import 'shells/splash_screen.dart';
 import 'shells/unauth_shell.dart';
 import 'shells/vendor_shell.dart';
-import '../features/auth/presentation/vendor_login_screen.dart';
-import '../features/auth/presentation/vendor_register_screen.dart';
-import '../features/dashboard/presentation/vendor_dashboard_screen.dart';
-import '../features/onboarding/presentation/awaiting_approval_screen.dart';
-import '../features/onboarding/presentation/categories_regions_screen.dart';
-import '../features/onboarding/presentation/kyc_upload_screen.dart';
+import '../features/auth/routes.dart';
+import '../features/onboarding/routes.dart';
+import '../features/request_feed/routes.dart';
+import '../features/subscription/routes.dart';
 
 class _SessionListenable extends ChangeNotifier {
   _SessionListenable(Ref ref) {
@@ -35,40 +33,59 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       ShellRoute(
         builder: (context, state, child) => UnauthShell(child: child),
-        routes: [
-          GoRoute(
-            path: AppGuards.login,
-            builder: (_, __) => const VendorLoginScreen(),
-          ),
-          GoRoute(
-            path: AppGuards.register,
-            builder: (_, __) => const VendorRegisterScreen(),
-          ),
-        ],
+        routes: authRoutes,
       ),
       ShellRoute(
         builder: (context, state, child) => AwaitingApprovalShell(child: child),
-        routes: [
-          GoRoute(
-            path: AppGuards.awaiting,
-            builder: (_, __) => const AwaitingApprovalScreen(),
-          ),
-          GoRoute(
-            path: AppGuards.kyc,
-            builder: (_, __) => const KycUploadScreen(),
-          ),
-          GoRoute(
-            path: AppGuards.categories,
-            builder: (_, __) => const CategoriesRegionsScreen(),
-          ),
-        ],
+        routes: onboardingRoutes,
       ),
-      ShellRoute(
-        builder: (context, state, child) => VendorShell(child: child),
-        routes: [
-          GoRoute(
-            path: AppGuards.home,
-            builder: (_, __) => const VendorDashboardScreen(),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            VendorShell(navigationShell: navigationShell),
+        branches: [
+          // Branch 0 — Home (+ subscriptions deep link)
+          StatefulShellBranch(
+            routes: [
+              vendorHomeRoute(routes: [subscriptionNestedRoute]),
+              ...subscriptionRoutes,
+            ],
+          ),
+          // Branch 1 — Requests feed + detail
+          StatefulShellBranch(
+            routes: requestFeedRoutes,
+          ),
+          // Branch 2 — Offers (CP-3)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/vendor/offers',
+                builder: (_, __) => const VendorComingSoonPage(
+                  message: 'Offers management opens in Check-Point 3.',
+                ),
+              ),
+            ],
+          ),
+          // Branch 3 — Connections (CP-4)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/vendor/connections',
+                builder: (_, __) => const VendorComingSoonPage(
+                  message: 'Customer connections open in Check-Point 4.',
+                ),
+              ),
+            ],
+          ),
+          // Branch 4 — Profile (CP-6)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/vendor/profile',
+                builder: (_, __) => const VendorComingSoonPage(
+                  message: 'Vendor profile & settings open in Check-Point 6.',
+                ),
+              ),
+            ],
           ),
         ],
       ),

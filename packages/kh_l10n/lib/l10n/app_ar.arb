@@ -1,0 +1,19 @@
+{
+  "@@locale": "ar",
+  "filterRequests": "تصفية الطلبات",
+  "resetAll": "إعادة تعيين الكل",
+  "includeAlreadyResponded": "تضمين الطلبات التي تم الرد عليها",
+  "applyFilters": "تطبيق عوامل التصفية",
+  "sortBy": "ترتيب حسب",
+  "requestType": "نوع الطلب",
+  "filterPresets": "إعدادات التصفية المحفوظة",
+  "noSavedPresetsYet": "لا توجد إعدادات محفوظة بعد.",
+  "saveCurrentFiltersAsPreset": "حفظ عوامل التصفية الحالية كإعداد",
+  "subscriptionsTitle": "الاشتراكات والاستحقاقات",
+  "subscriptionsRequirementBanner": "يتطلب كل فئة طلب اشتراك نوع نشطًا لاستلام المطابقات وتقديم العروض (BR-002).",
+  "categoryEntitlements": "استحقاقات الفئات",
+  "manageSubscriptionsContact": "إدارة الاشتراكات / التواصل مع الدعم",
+  "subscriptionChangesHandled": "تُدار تغييرات الاشتراك عبر إدارة حساب كارات هايف.",
+  "noActiveSubscription": "لا يوجد اشتراك نشط. لن تستلم مطابقات لهذه الفئة.",
+  "couldNotOpenUrl": "تعذّر فتح {url}"
+}

@@ -10,12 +10,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.12.0
   kh_core:
     path: ../kh_core
   kh_domain:
     path: ../kh_domain
 
 dev_dependencies:
+  build_runner: ^2.5.4
+  freezed: 3.2.5
+  flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  json_serializable: ^6.11.1

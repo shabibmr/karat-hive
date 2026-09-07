@@ -2,6 +2,8 @@ library kh_ui_domain;
 
 export 'src/expiry_countdown.dart';
 export 'src/masked_party_label.dart';
+export 'src/money_display.dart';
+export 'src/relative_time_label.dart';
 export 'src/specification_grid.dart';
 export 'src/subscription_badge.dart';
 export 'src/vendor_request_card.dart';

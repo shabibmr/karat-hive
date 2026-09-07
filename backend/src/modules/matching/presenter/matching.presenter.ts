@@ -16,10 +16,12 @@ export function presentMatch(
     request: Request & {
       category?: { nameEn?: string; nameAr?: string };
       region?: { nameEn?: string; nameAr?: string };
+      offers?: Array<{ id: string }>;
     };
   },
 ): VendorRequestView {
   const regionName = match.request.region?.nameEn ?? 'UAE';
+  const hasResponded = (match.request.offers?.length ?? 0) > 0;
   return presentVendorRequest(
     match.request as Parameters<typeof presentVendorRequest>[0],
     {
@@ -29,5 +31,6 @@ export function presentMatch(
       dealCount: 1,
     },
     match.viewedAt,
+    hasResponded,
   );
 }

@@ -120,6 +120,35 @@ class ApiClient {
     );
   }
 
+  /// GET for cursor-paginated admin collections, preserving `meta.nextCursor`.
+  Future<({List<dynamic> items, Map<String, dynamic>? meta})> getCollection(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final body = await _send(
+      'GET',
+      path,
+      queryParameters: queryParameters,
+      unwrapData: false,
+    );
+
+    if (body is List) {
+      return (items: body, meta: null);
+    }
+
+    if (body is Map<String, dynamic>) {
+      final data = body['data'];
+      final meta = body['meta'];
+      final items = data is List ? data : const <dynamic>[];
+      return (
+        items: items,
+        meta: meta is Map<String, dynamic> ? meta : null,
+      );
+    }
+
+    return (items: const <dynamic>[], meta: null);
+  }
+
   Future<dynamic> _send(
     String method,
     String path, {
@@ -127,6 +156,7 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
     bool isRetry = false,
+    bool unwrapData = true,
   }) async {
     final headers = Map<String, dynamic>.from(options?.headers ?? {});
 
@@ -188,6 +218,9 @@ class ApiClient {
     // Success range: 200..299
     if (status >= 200 && status < 300) {
       final body = response.data;
+      if (!unwrapData) {
+        return body;
+      }
       if (body is Map<String, dynamic> && body.containsKey('data')) {
         return body['data'];
       }

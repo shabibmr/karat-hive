@@ -11,3 +11,5 @@ export 'src/widgets/state_views.dart';
 export 'src/widgets/end_sentinel.dart';
 export 'src/widgets/kh_refresh.dart';
 export 'src/widgets/kh_image_gallery.dart';
+export 'src/widgets/kh_status_chip.dart';
+export 'src/widgets/kh_section_header.dart';

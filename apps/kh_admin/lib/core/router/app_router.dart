@@ -6,12 +6,21 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/taxonomy/model/taxonomy_kind.dart';
 import '../../features/taxonomy/presentation/taxonomy_screen.dart';
+import '../../features/verification/presentation/verification_screen.dart';
+import 'verification_query_params.dart';
+import '../../features/offers/presentation/offer_detail_screen.dart';
+import '../../features/offers/presentation/offer_list_screen.dart';
+import '../../features/requests/presentation/request_detail_screen.dart';
+import '../../features/requests/presentation/request_list_screen.dart';
+import '../../features/vendors/presentation/vendor_detail_screen.dart';
+import '../../features/vendors/presentation/vendor_list_screen.dart';
 import '../auth/session_controller.dart';
 import '../auth/session_state.dart';
 import '../design/theme/kh_theme.dart';
 import '../shell/kh_admin_scaffold.dart';
 
 export 'taxonomy_query_params.dart';
+export 'verification_query_params.dart';
 
 /// Riverpod change notifier bridge for GoRouter refreshListenable.
 class RouterNotifier extends ChangeNotifier {
@@ -81,12 +90,62 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               kind: TaxonomyKind.region,
             ),
           ),
+          GoRoute(
+            path: '/vendors',
+            builder: (context, state) => const VendorListScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return VendorDetailScreen(vendorId: id);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/verification',
+            builder: (context, state) {
+              final query = VerificationQueryParams.fromState(state);
+              return VerificationScreen(initialSelectedId: query.selectedId);
+            },
+          ),
+          GoRoute(
+            path: '/offers',
+            builder: (context, state) => const OfferListScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return OfferDetailScreen(offerId: id);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/requests',
+            builder: (context, state) => const RequestListScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return RequestDetailScreen(requestId: id);
+                },
+              ),
+            ],
+          ),
           // Placeholder routes for navigation completeness
           ...kAdminNavItems
               .where((item) =>
                   item.route != '/' &&
                   item.route != '/taxonomy/categories' &&
-                  item.route != '/taxonomy/regions')
+                  item.route != '/taxonomy/regions' &&
+                  item.route != '/vendors' &&
+                  item.route != '/verification' &&
+                  item.route != '/offers' &&
+                  item.route != '/requests')
               .map(
                 (item) => GoRoute(
                   path: item.route,

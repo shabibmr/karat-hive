@@ -14,10 +14,15 @@ class KhTableColumn {
 
 /// One row of a [KhDataTable]. [cells] must line up with the table's columns.
 class KhTableRow {
-  const KhTableRow({required this.cells, this.key});
+  const KhTableRow({
+    required this.cells,
+    this.key,
+    this.onTap,
+  });
 
   final List<Widget> cells;
   final Key? key;
+  final VoidCallback? onTap;
 }
 
 /// Bordered, horizontally scrollable table.
@@ -112,7 +117,7 @@ class KhDataTable extends StatelessWidget {
   Widget _bodyRow(BuildContext context, KhTableRow row, {required bool isLast}) {
     final kh = context.kh;
 
-    return Container(
+    final rowWidget = Container(
       key: row.key,
       constraints: BoxConstraints(minHeight: kh.spacing.tableRowHeight),
       padding: EdgeInsets.symmetric(
@@ -137,5 +142,15 @@ class KhDataTable extends StatelessWidget {
         ],
       ),
     );
+
+    if (row.onTap != null) {
+      return InkWell(
+        onTap: row.onTap,
+        hoverColor: kh.colors.goldPrimary.withValues(alpha: 0.05),
+        child: rowWidget,
+      );
+    }
+
+    return rowWidget;
   }
 }

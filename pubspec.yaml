@@ -24,6 +24,18 @@ melos:
     analyze:
       exec: flutter analyze
       description: Static analysis across every workspace package.
+    gen:
+      exec:
+        command: dart run build_runner build
+        concurrency: 1
+      packageFilters:
+        dependsOn: build_runner
+      description: Run freezed / json_serializable codegen in packages that declare build_runner.
+    gen-l10n:
+      exec: flutter gen-l10n
+      packageFilters:
+        scope: kh_l10n
+      description: Regenerate packages/kh_l10n AppLocalizations from ARB (CP2-F05). Must run in-package; --project-dir from workspace root rejects generate:true.
     test:
       exec: flutter test
       packageFilters:

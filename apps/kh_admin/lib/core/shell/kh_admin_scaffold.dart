@@ -43,24 +43,28 @@ const List<AdminNavItem> kAdminNavItems = [
     title: 'Vendors',
     icon: Icons.storefront_outlined,
     route: '/vendors',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S07',
     title: 'Verification Queue',
     icon: Icons.verified_user_outlined,
     route: '/verification',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S08',
     title: 'Requests',
     icon: Icons.assignment_outlined,
     route: '/requests',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S10',
     title: 'Offers',
     icon: Icons.local_offer_outlined,
     route: '/offers',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S12',

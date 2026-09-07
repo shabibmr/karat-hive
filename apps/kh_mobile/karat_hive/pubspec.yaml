@@ -21,6 +21,7 @@ dependencies:
   cloud_firestore: ^6.9.0
   firebase_messaging: ^16.6.0
   firebase_analytics: ^12.5.0
+  url_launcher: ^6.3.1
   kh_core:
     path: ../../../packages/kh_core
   kh_domain:

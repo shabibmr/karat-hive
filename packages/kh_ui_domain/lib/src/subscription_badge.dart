@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 
-/// SH-DOM-08 — Subscription status chip/badge.
+/// Subscription entitlement status badge (ACTIVE / GRACE / EXPIRED / NONE).
+///
+/// Note: SH-DOM-08 is [RelativeTimeLabel]; this badge is subscription-specific.
 class SubscriptionBadge extends StatelessWidget {
   const SubscriptionBadge({
     super.key,

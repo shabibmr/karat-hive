@@ -1,0 +1,72 @@
+{
+  "@@locale": "en",
+  "filterRequests": "Filter Requests",
+  "@filterRequests": {
+    "description": "VEN-S07 filter sheet title"
+  },
+  "resetAll": "Reset All",
+  "@resetAll": {
+    "description": "VEN-S07 clear all draft filters"
+  },
+  "includeAlreadyResponded": "Include already responded requests",
+  "@includeAlreadyResponded": {
+    "description": "VEN-S07 includeResponded toggle label"
+  },
+  "applyFilters": "Apply Filters",
+  "@applyFilters": {
+    "description": "VEN-S07 apply draft filters CTA"
+  },
+  "sortBy": "Sort By",
+  "@sortBy": {
+    "description": "VEN-S07 sort section heading"
+  },
+  "requestType": "Request Type",
+  "@requestType": {
+    "description": "VEN-S07 request-type section heading"
+  },
+  "filterPresets": "Filter Presets",
+  "@filterPresets": {
+    "description": "VEN-S07 saved presets section heading"
+  },
+  "noSavedPresetsYet": "No saved presets yet.",
+  "@noSavedPresetsYet": {
+    "description": "VEN-S07 empty presets copy"
+  },
+  "saveCurrentFiltersAsPreset": "Save current filters as preset",
+  "@saveCurrentFiltersAsPreset": {
+    "description": "VEN-S07 save preset action"
+  },
+  "subscriptionsTitle": "Subscriptions & Entitlements",
+  "@subscriptionsTitle": {
+    "description": "VEN-S22 app bar title"
+  },
+  "subscriptionsRequirementBanner": "Each request category requires an active type subscription to receive matches and submit offers (BR-002).",
+  "@subscriptionsRequirementBanner": {
+    "description": "VEN-S22 BR-002 entitlement banner"
+  },
+  "categoryEntitlements": "Category Entitlements",
+  "@categoryEntitlements": {
+    "description": "VEN-S22 section heading above type cards"
+  },
+  "manageSubscriptionsContact": "Manage Subscriptions / Contact Support",
+  "@manageSubscriptionsContact": {
+    "description": "VEN-S22 deep-link CTA (AD-API-04)"
+  },
+  "subscriptionChangesHandled": "Subscription changes are handled by Karat Hive account management.",
+  "@subscriptionChangesHandled": {
+    "description": "VEN-S22 footnote under contact CTA"
+  },
+  "noActiveSubscription": "No active subscription. You will not receive matches for this category.",
+  "@noActiveSubscription": {
+    "description": "VEN-S22 NONE entitlement state copy"
+  },
+  "couldNotOpenUrl": "Could not open {url}",
+  "@couldNotOpenUrl": {
+    "description": "SnackBar when subscription contact deep link fails",
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  }
+}

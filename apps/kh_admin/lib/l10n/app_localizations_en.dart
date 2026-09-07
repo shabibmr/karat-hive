@@ -248,4 +248,293 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get selectNodeToEdit =>
       'Select a node from the tree to edit or create a child, or create a new root node.';
+
+  @override
+  String get vendorsEyebrow => 'Vendor Management';
+
+  @override
+  String get vendorsTitle => 'Vendor List';
+
+  @override
+  String get vendorsSubtitle =>
+      'Browse and search vendors by verification and account state.';
+
+  @override
+  String get vendorsFilterVerification => 'Verification state';
+
+  @override
+  String get vendorsFilterAccount => 'Account state';
+
+  @override
+  String get vendorsFilterSearch => 'Search';
+
+  @override
+  String get vendorsFilterSearchHint => 'Business name, licence, mobile…';
+
+  @override
+  String get vendorsFilterAll => 'All';
+
+  @override
+  String get vendorsColumnBusiness => 'Business name';
+
+  @override
+  String get vendorsColumnTrading => 'Trading name';
+
+  @override
+  String get vendorsColumnVerification => 'Verification';
+
+  @override
+  String get vendorsColumnAccount => 'Account';
+
+  @override
+  String get vendorsColumnWaiting => 'Waiting';
+
+  @override
+  String get vendorsColumnAction => 'Action';
+
+  @override
+  String get vendorsActionView => 'View';
+
+  @override
+  String get vendorsActionReviewKyc => 'Review KYC';
+
+  @override
+  String get vendorsEmptyTitle => 'No vendors found';
+
+  @override
+  String get vendorsEmptyBody => 'No vendors match the current filters.';
+
+  @override
+  String get vendorsErrorTitle => 'Unable to load vendors';
+
+  @override
+  String get vendorsRetry => 'Try again';
+
+  @override
+  String get vendorsLoadMore => 'Load more';
+
+  @override
+  String get vendorsVerificationRegistered => 'REGISTERED';
+
+  @override
+  String get vendorsVerificationPending => 'PENDING VERIFICATION';
+
+  @override
+  String get vendorsVerificationVerified => 'VERIFIED';
+
+  @override
+  String get vendorsVerificationRejected => 'REJECTED';
+
+  @override
+  String get vendorsAccountActive => 'ACTIVE';
+
+  @override
+  String get vendorsAccountSuspended => 'SUSPENDED';
+
+  @override
+  String get vendorsAccountDeactivated => 'DEACTIVATED';
+
+  @override
+  String vendorsWaitingHours(int hours) {
+    return '${hours}h waiting';
+  }
+
+  @override
+  String get vendorsDetailEyebrow => 'Vendor Profile';
+
+  @override
+  String get vendorsDetailTitle => 'Vendor Detail';
+
+  @override
+  String get vendorsDetailStubBody =>
+      'Full vendor inspection (ADM-S06) is scheduled for a later milestone.';
+
+  @override
+  String vendorsDetailVendorId(String id) {
+    return 'Vendor ID: $id';
+  }
+
+  @override
+  String get vendorsDetailComingSoon =>
+      'Account actions and document review will appear here.';
+
+  @override
+  String get verificationEyebrow => 'Compliance Reviewer';
+
+  @override
+  String verificationHeading(int count) {
+    return 'KYC Verification Queue ($count Pending)';
+  }
+
+  @override
+  String get verificationHeadingLoading => 'KYC Verification Queue';
+
+  @override
+  String get verificationSubtitle =>
+      'Review vendor KYC submissions oldest-first. Every document view and decision is audit-logged.';
+
+  @override
+  String get oldestFirstBadge => 'OLDEST FIRST';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get verificationColumnBusiness => 'Business';
+
+  @override
+  String get verificationColumnLicence => 'Licence';
+
+  @override
+  String get verificationColumnWaiting => 'Waiting';
+
+  @override
+  String get verificationColumnStatus => 'Status';
+
+  @override
+  String get statusPendingVerification => 'PENDING';
+
+  @override
+  String get waitingLessThanHour => '< 1 hour';
+
+  @override
+  String waitingHours(int hours) {
+    return '${hours}h waiting';
+  }
+
+  @override
+  String waitingDays(int days) {
+    return '${days}d waiting';
+  }
+
+  @override
+  String get emptyVerificationTitle => 'Queue is Clear';
+
+  @override
+  String get emptyVerificationBody =>
+      'No vendors are currently awaiting KYC verification.';
+
+  @override
+  String get verificationLoadErrorTitle => 'Failed to load verification queue';
+
+  @override
+  String get tryAgain => 'Try Again';
+
+  @override
+  String get declaredBusinessProfile => 'Declared Business Profile';
+
+  @override
+  String get legalNameLabel => 'Legal Name';
+
+  @override
+  String get tradeLicenceLabel => 'Trade Licence';
+
+  @override
+  String get licenceExpiryLabel => 'Licence Expiry';
+
+  @override
+  String get emirateLabel => 'Emirate / Region';
+
+  @override
+  String get contactPersonLabel => 'Contact Person';
+
+  @override
+  String get businessAddressLabel => 'Registered Address';
+
+  @override
+  String get notDeclared => 'Not declared';
+
+  @override
+  String get adminRationaleLabel => 'Admin Review Rationale / Notes';
+
+  @override
+  String get adminRationaleHint =>
+      'Enter reason for approval, rejection, or information request…';
+
+  @override
+  String get rationaleRequired =>
+      'A rationale or message is required for every decision';
+
+  @override
+  String get documentInspectorTitle => 'Document Inspector';
+
+  @override
+  String get noDocumentsUploaded => 'No documents uploaded.';
+
+  @override
+  String get selectDocumentToView => 'Select a document to load the viewer.';
+
+  @override
+  String get openFullscreenViewer => 'Open Fullscreen Viewer';
+
+  @override
+  String documentSizeLabel(String sizeMb) {
+    return '$sizeMb MB';
+  }
+
+  @override
+  String get documentTypeTradeLicence => 'Trade licence';
+
+  @override
+  String get documentTypeEmiratesId => 'Emirates ID';
+
+  @override
+  String get documentTypeVatCert => 'VAT certificate';
+
+  @override
+  String get documentTypeTradingPermit => 'Trading permit';
+
+  @override
+  String get documentTypeTenancy => 'Tenancy contract';
+
+  @override
+  String get documentTypeOther => 'Other document';
+
+  @override
+  String get approveVendorButton => 'Approve Vendor & Activate Market Access';
+
+  @override
+  String get requestInfoButton => 'Request More Information';
+
+  @override
+  String get rejectVendorButton => 'Reject Application';
+
+  @override
+  String get approveConfirmTitle => 'Approve vendor application?';
+
+  @override
+  String get approveConfirmBody =>
+      'This will mark the vendor as VERIFIED and may advance them to ACTIVE if categories and regions are already declared. The decision is audit-logged.';
+
+  @override
+  String get confirmApprove => 'Approve';
+
+  @override
+  String get rejectConfirmTitle => 'Reject vendor application?';
+
+  @override
+  String get rejectConfirmBody =>
+      'The vendor will be notified with your rationale and may resubmit documents. This decision is audit-logged.';
+
+  @override
+  String get confirmReject => 'Reject';
+
+  @override
+  String get requestInfoConfirmTitle => 'Request more information?';
+
+  @override
+  String get requestInfoConfirmBody =>
+      'The vendor will remain in the verification queue and see your message in their awaiting-approval shell.';
+
+  @override
+  String get confirmRequestInfo => 'Send Request';
+
+  @override
+  String get toastVendorApproved => 'Vendor approved successfully.';
+
+  @override
+  String get toastVendorRejected => 'Vendor application rejected.';
+
+  @override
+  String get toastInfoRequested => 'Information request sent to vendor.';
 }

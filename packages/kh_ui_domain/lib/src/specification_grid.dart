@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 
-/// SH-DOM-03 — Specification Grid for jewelry request details.
+/// Request specification grid for jewelry request details.
 /// Displays key parameters cleanly without clutter.
+///
+/// Note: SH-DOM-03 is [MoneyDisplay]; this grid is a request-detail layout.
 class SpecificationGrid extends StatelessWidget {
   const SpecificationGrid({
     super.key,

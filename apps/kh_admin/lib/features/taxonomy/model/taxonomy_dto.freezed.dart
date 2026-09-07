@@ -181,8 +181,7 @@ class __$$CreateTaxonomyDtoImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable()
 class _$CreateTaxonomyDtoImpl implements _CreateTaxonomyDto {
   const _$CreateTaxonomyDtoImpl({
     this.parentId,
@@ -461,8 +460,7 @@ class __$$UpdateTaxonomyDtoImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable()
 class _$UpdateTaxonomyDtoImpl implements _UpdateTaxonomyDto {
   const _$UpdateTaxonomyDtoImpl({
     this.parentId,

@@ -20,10 +20,10 @@ _$CreateTaxonomyDtoImpl _$$CreateTaxonomyDtoImplFromJson(
 Map<String, dynamic> _$$CreateTaxonomyDtoImplToJson(
   _$CreateTaxonomyDtoImpl instance,
 ) => <String, dynamic>{
-  if (instance.parentId case final value?) 'parentId': value,
+  'parentId': instance.parentId,
   'nameEn': instance.nameEn,
   'nameAr': instance.nameAr,
-  if (instance.icon case final value?) 'icon': value,
+  'icon': instance.icon,
   'displayOrder': instance.displayOrder,
   'isActive': instance.isActive,
 };
@@ -42,10 +42,10 @@ _$UpdateTaxonomyDtoImpl _$$UpdateTaxonomyDtoImplFromJson(
 Map<String, dynamic> _$$UpdateTaxonomyDtoImplToJson(
   _$UpdateTaxonomyDtoImpl instance,
 ) => <String, dynamic>{
-  if (instance.parentId case final value?) 'parentId': value,
-  if (instance.nameEn case final value?) 'nameEn': value,
-  if (instance.nameAr case final value?) 'nameAr': value,
-  if (instance.icon case final value?) 'icon': value,
-  if (instance.displayOrder case final value?) 'displayOrder': value,
-  if (instance.isActive case final value?) 'isActive': value,
+  'parentId': instance.parentId,
+  'nameEn': instance.nameEn,
+  'nameAr': instance.nameAr,
+  'icon': instance.icon,
+  'displayOrder': instance.displayOrder,
+  'isActive': instance.isActive,
 };

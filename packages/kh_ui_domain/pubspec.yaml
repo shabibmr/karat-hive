@@ -16,6 +16,8 @@ dependencies:
     path: ../kh_design_system
   kh_core:
     path: ../kh_core
+  kh_l10n:
+    path: ../kh_l10n
 
 dev_dependencies:
   flutter_test:

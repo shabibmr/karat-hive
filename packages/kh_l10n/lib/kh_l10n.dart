@@ -4,14 +4,21 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 
-/// Minimal string table for the onboarding vertical. A full ARB + gen_l10n setup
-/// replaces this once more surfaces land (Architecture-Frontend §14).
+import 'l10n/app_localizations.dart';
+
+export 'l10n/app_localizations.dart';
+
+/// Legacy inlined string table for CP-1 auth/onboarding/shell copy.
+///
+/// CP2-F05 introduces ARB + `gen_l10n` (`AppLocalizations`) for new surfaces.
+/// Existing `KhStrings.s(...)` call sites stay until a later F05 migration pass.
 class KhStrings {
   KhStrings(this.locale);
   final Locale locale;
 
   static const supportedLocales = [Locale('en'), Locale('ar')];
   static const delegates = <LocalizationsDelegate<dynamic>>[
+    AppLocalizations.delegate,
     _KhStringsDelegate(),
     GlobalMaterialLocalizations.delegate,
     GlobalWidgetsLocalizations.delegate,

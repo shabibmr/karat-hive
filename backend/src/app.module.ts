@@ -18,6 +18,7 @@ import { RequestsModule } from './modules/requests';
 import { SettingsModule } from './modules/settings';
 import { SubscriptionModule } from './modules/subscription';
 import { TaxonomyModule } from './modules/taxonomy';
+import { AdminModule } from './modules/admin';
 import { VendorOnboardingModule } from './modules/vendor-onboarding';
 import { PrismaModule } from './platform/db/prisma.module';
 import { LifecycleModule } from './platform/lifecycle/lifecycle.module';
@@ -39,6 +40,7 @@ import { SharedModule } from './shared/shared.module';
     RequestsModule,
     MatchingModule,
     TaxonomyModule,
+    AdminModule,
     MediaModule,
     VendorOnboardingModule,
     IdentityModule,

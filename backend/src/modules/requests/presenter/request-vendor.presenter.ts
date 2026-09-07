@@ -63,6 +63,8 @@ export type VendorRequestView = {
   offerCount: number; // Aggregate count only (BR-008)
   media?: MediaView[];
   viewedAt?: string | null;
+  /** True when this Vendor already has a non-terminal Offer on the Request. */
+  hasResponded?: boolean;
   customer: MaskedCustomerSummary;
   createdAt: string;
   updatedAt: string;
@@ -76,6 +78,7 @@ export function presentVendorRequest(
   },
   customerSummary?: Partial<MaskedCustomerSummary>,
   viewedAt?: Date | null,
+  hasResponded = false,
 ): VendorRequestView {
   const mediaViews: MediaView[] | undefined = request.media?.map((m) => ({
     id: m.media.id,
@@ -131,6 +134,7 @@ export function presentVendorRequest(
     offerCount: request.offerCount,
     ...(mediaViews && mediaViews.length > 0 && { media: mediaViews }),
     viewedAt: viewedAt ? viewedAt.toISOString() : null,
+    hasResponded,
     customer: {
       label: customerSummary?.label ?? 'Customer',
       region: customerSummary?.region ?? (request.region?.nameEn ?? 'UAE'),

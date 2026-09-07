@@ -1,4 +1,7 @@
 import 'party.dart';
+import 'request_media_ref.dart';
+
+export 'request_media_ref.dart';
 
 /// Represents a vendor-facing request item in the feed or detail screen.
 /// Customer identity is strictly masked per BR-006 / AD-FE-07.
@@ -24,6 +27,7 @@ class VendorRequestItem {
     this.expiresAt,
     this.offerCount = 0,
     this.viewedAt,
+    this.hasResponded = false,
     required this.customer,
     this.media = const [],
   });
@@ -48,6 +52,7 @@ class VendorRequestItem {
   final DateTime? expiresAt;
   final int offerCount;
   final DateTime? viewedAt;
+  final bool hasResponded;
   final MaskedParty customer;
   final List<RequestMediaRef> media;
 
@@ -83,39 +88,13 @@ class VendorRequestItem {
       expiresAt: parseDate(j['expiresAt']),
       offerCount: j['offerCount'] as int? ?? 0,
       viewedAt: parseDate(j['viewedAt']),
+      hasResponded: j['hasResponded'] as bool? ?? false,
       customer: MaskedParty.fromJson(customerJson),
       media: mediaList
           .map((m) => RequestMediaRef.fromJson(m as Map<String, dynamic>))
           .toList(growable: false),
     );
   }
-}
-
-class RequestMediaRef {
-  const RequestMediaRef({
-    required this.id,
-    required this.key,
-    required this.contentType,
-    this.displayOrder = 0,
-    this.thumbnailUrl,
-    this.displayUrl,
-  });
-
-  final String id;
-  final String key;
-  final String contentType;
-  final int displayOrder;
-  final String? thumbnailUrl;
-  final String? displayUrl;
-
-  static RequestMediaRef fromJson(Map<String, dynamic> j) => RequestMediaRef(
-        id: j['id'] as String? ?? '',
-        key: j['key'] as String? ?? '',
-        contentType: j['contentType'] as String? ?? 'image/jpeg',
-        displayOrder: j['displayOrder'] as int? ?? 0,
-        thumbnailUrl: j['thumbnailUrl'] as String?,
-        displayUrl: j['displayUrl'] as String?,
-      );
 }
 
 class FilterPresetItem {

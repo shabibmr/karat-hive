@@ -453,5 +453,39 @@ void main() {
       expect(renderLabel(masked), 'Masked: Vendor in Deira');
       expect(renderLabel(revealed), 'Revealed: Al Noor (+971501234567)');
     });
+
+    test('VendorRequestItem.fromJson maps customer via MaskedParty even if identity leaks', () {
+      // Pre-acceptance feed payloads must never produce RevealedParty (AD-FE-07).
+      // VendorRequestItem always deserializes customer as MaskedParty, which
+      // structurally drops name/mobile even if a buggy server included them.
+      final item = VendorRequestItem.fromJson({
+        'id': 'req-mask-1',
+        'reference': 'REQ-MASK-1',
+        'requestType': 'FIND_ORNAMENT',
+        'direction': 'BUY',
+        'state': 'PUBLISHED',
+        'categoryId': 'cat-ring',
+        'regionId': 'reg-dxb',
+        'customer': {
+          'name': 'Fatima Al Zahra',
+          'mobile': '+971559876543',
+          'address': 'Villa 12, Jumeirah',
+          'role': 'CUSTOMER',
+          'region': 'Dubai',
+          'dealCount': 4,
+        },
+      });
+
+      expect(item.customer, isA<MaskedParty>());
+      expect(item.customer is RevealedParty, isFalse);
+      expect(item.customer.isMasked, isTrue);
+      expect(item.customer.displayPseudonym, 'Customer in Dubai');
+
+      final customerJson = item.customer.toJson();
+      expect(customerJson.containsKey('name'), isFalse);
+      expect(customerJson.containsKey('mobile'), isFalse);
+      expect(customerJson.containsKey('address'), isFalse);
+      expect(customerJson['isMasked'], isTrue);
+    });
   });
 }

@@ -4,7 +4,7 @@
 |---|---|
 | **Product** | Karat Hive |
 | **Document** | Executable task list for the remaining 16 Vendor screens |
-| **Status** | Working backlog — derived from the plan of record |
+| **Status** | Working backlog — CP-2 Track A done; Track F mostly done (F05–F06 open); Track B mostly done with B01/B02/B09 partial |
 | **Date** | 7 September 2026 |
 | **Plan of record** | [`Vendor-App-Completion-Plan.md`](Vendor-App-Completion-Plan.md) |
 | **Does not override** | SRS v1.3 · `API-Route-Inventory.md` · `Architecture-Backend.md` / `-Frontend.md` · `Async-Contract.md` |
@@ -66,10 +66,10 @@ No backend dependency. Start day one, in parallel with Track A.
 | CP2-F04 | `SH-DOM-07` expiry countdown | `packages/kh_ui_domain/lib/src/expiry_countdown.dart` | Derives from `ServerClock` offset, never device time (`AD-FE-11`). Urgency styling under 24 h and under 6 h. Ticks without rebuilding the parent list | done |
 | CP2-F05 | ARB + `gen_l10n` migration | `packages/kh_l10n/lib/l10n/app_en.arb`, `app_ar.arb`, generated delegates | Replaces the inlined `KhStrings` table. ICU plurals, Arabic-Indic numerals in every formatter, localised semantics labels. Lint rejects hard-coded user-facing strings. All CP-1 strings migrated with no regression | open |
 | CP2-F06 | freezed + json_serializable | `packages/kh_domain`, `packages/kh_api` | Activates `AD-FE-05`. Existing hand-written DTOs and hand-rolled `copyWith` converted. `build_runner` wired into `melos run gen` | open |
-| CP2-F07 | Per-feature `routes.dart` | `lib/features/*/routes.dart`, `lib/app/router.dart` | Each feature exports its routes; the app router mounts them (frontend arch §5.1). Guard chain behaviour unchanged — `test/app/guards_test.dart` still passes | open |
-| CP2-F08 | Vendor shell + bottom navigation | `lib/app/shells/vendor_shell.dart`, `packages/kh_design_system/.../shell/` | `SH-SHELL-01/02/03`. Tabs Home · Requests · Offers · Connections · Profile, with later tabs disabled until their check-point lands. Preserves per-tab navigation stack | open |
-| CP2-F09 | Split `KhApi` facade into per-resource clients | `packages/kh_api/lib/src/clients/*.dart` | `AuthApi`, `MeApi`, `VendorApi`, `MediaApi`, `TaxonomyApi`, plus new `MatchesApi`, `RequestsApi`, `FilterPresetsApi`, `SubscriptionsApi`, `PlatformConfigApi`. `KhApi` becomes a thin aggregate so no call site breaks in one commit | open |
-| CP2-F10 | Fold `features/dashboard/` into `request_feed/` | `lib/features/request_feed/` | `VEN-S05` moves under `request_feed/`; `features/dashboard/` deleted. `features/onboarding/` stays and is registered in the architecture doc instead (plan §6.2). Existing dashboard tests moved, not rewritten | open |
+| CP2-F07 | Per-feature `routes.dart` | `lib/features/*/routes.dart`, `lib/app/router.dart` | Each feature exports its routes; the app router mounts them (frontend arch §5.1). Guard chain behaviour unchanged — `test/app/guards_test.dart` still passes | done |
+| CP2-F08 | Vendor shell + bottom navigation | `lib/app/shells/vendor_shell.dart`, `packages/kh_design_system/.../shell/` | `SH-SHELL-01/02/03`. Tabs Home · Requests · Offers · Connections · Profile, with later tabs disabled until their check-point lands. Preserves per-tab navigation stack | done |
+| CP2-F09 | Split `KhApi` facade into per-resource clients | `packages/kh_api/lib/src/clients/*.dart` | `AuthApi`, `MeApi`, `VendorApi`, `MediaApi`, `TaxonomyApi`, plus new `MatchesApi`, `RequestsApi`, `FilterPresetsApi`, `SubscriptionsApi`, `PlatformConfigApi`. `KhApi` becomes a thin aggregate so no call site breaks in one commit | done |
+| CP2-F10 | Fold `features/dashboard/` into `request_feed/` | `lib/features/request_feed/` | `VEN-S05` moves under `request_feed/`; `features/dashboard/` deleted. `features/onboarding/` stays and is registered in the architecture doc instead (plan §6.2). Existing dashboard tests moved, not rewritten | done |
 
 ## CP-2 Track A — Backend
 
@@ -95,15 +95,15 @@ No backend dependency. Start day one, in parallel with Track A.
 
 | ID | Screen / task | Files | Acceptance | Status |
 |---|---|---|---|---|
-| CP2-B01 | API clients | `packages/kh_api/lib/src/clients/` | `MatchesApi`, `RequestsApi`, `FilterPresetsApi`, `SubscriptionsApi`, `PlatformConfigApi` on the CP2-F09 split. DTO → domain via freezed | open |
-| CP2-B02 | `request_feed/` scaffold | `lib/features/request_feed/` | §5.1 shape plus `routes.dart`. Repository returns `Result<T>`; server cache as `FutureProvider`s; controllers are `AutoDisposeNotifier` | open |
-| CP2-B03 | `VEN-S06` available Requests | `.../presentation/request_feed_screen.dart` | Infinite scroll on `PagedListController`; offer count without competitor prices; expiry countdown; responded-marker toggle; pull-to-refresh. Empty state suggests broadening Categories/Regions/subscription | open |
-| CP2-B04 | `VEN-S07` filters and presets | `.../presentation/request_filters_sheet.dart` | `SH-FND-16` bottom sheet with every filter and the four sorts; save/apply/delete presets; one-tap reset offered at zero results | open |
-| CP2-B05 | `VEN-S08` Request detail | `.../presentation/request_detail_screen.dart` | Full-res gallery, type-specific spec, masked Customer label, aggregate rating signal, offers-submitted count. Fires `viewed` on open. Actions disabled when the Request is closed or expired | open |
-| CP2-B06 | `VEN-S05` full dashboard | `.../presentation/vendor_dashboard_screen.dart` | Real counts from `CP2-A13`; three panels deep-link into feed, offers (disabled until CP-3) and connections (disabled until CP-4); entitlement panel links to `VEN-S22`; gold-rate panel hidden while the flag is off | open |
-| CP2-B07 | `VEN-S22` subscriptions | `lib/features/subscription/` | Four entitlements with state, period, renewal. Subscribe/upgrade is a **deep link** to `platform-config.subscriptionContactUrl`, never an in-app mutation (`AD-API-04`). Grace and expired messaging distinct | open |
-| CP2-B08 | New shared widgets | `packages/kh_design_system`, `packages/kh_ui_domain` | `SH-REQ-01` (vendor variant), `SH-ID-01`, `SH-ID-07`, `SH-DOM-03`, `SH-DOM-08`, `SH-MED-03`, `SH-FND-19`, `SH-FND-20`. Domain-aware widgets go in `kh_ui_domain`, never `kh_design_system` (§5.2) | open |
-| CP2-B09 | Tests and goldens | `apps/.../test/`, `packages/*/test/` | Controller tests loading/empty/error/data per screen; widget tests for every `SH-FND-12` and `SH-FND-13` state; LTR + RTL goldens for each new shared widget; a client masking test per `AD-FE-07` | open |
+| CP2-B01 | API clients | `packages/kh_api/lib/src/clients/` | `MatchesApi`, `RequestsApi`, `FilterPresetsApi`, `SubscriptionsApi`, `PlatformConfigApi` on the CP2-F09 split. DTO → domain via freezed | partial |
+| CP2-B02 | `request_feed/` scaffold | `lib/features/request_feed/` | §5.1 shape plus `routes.dart`. Repository returns `Result<T>`; server cache as `FutureProvider`s; controllers are `AutoDisposeNotifier` | partial |
+| CP2-B03 | `VEN-S06` available Requests | `.../presentation/request_feed_screen.dart` | Infinite scroll on `PagedListController`; offer count without competitor prices; expiry countdown; responded-marker toggle; pull-to-refresh. Empty state suggests broadening Categories/Regions/subscription | done |
+| CP2-B04 | `VEN-S07` filters and presets | `.../presentation/request_filters_sheet.dart` | `SH-FND-16` bottom sheet with every filter and the four sorts; save/apply/delete presets; one-tap reset offered at zero results | done |
+| CP2-B05 | `VEN-S08` Request detail | `.../presentation/request_detail_screen.dart` | Full-res gallery, type-specific spec, masked Customer label, aggregate rating signal, offers-submitted count. Fires `viewed` on open. Actions disabled when the Request is closed or expired | done |
+| CP2-B06 | `VEN-S05` full dashboard | `.../presentation/vendor_dashboard_screen.dart` | Real counts from `CP2-A13`; three panels deep-link into feed, offers (disabled until CP-3) and connections (disabled until CP-4); entitlement panel links to `VEN-S22`; gold-rate panel hidden while the flag is off | done |
+| CP2-B07 | `VEN-S22` subscriptions | `lib/features/subscription/` | Four entitlements with state, period, renewal. Subscribe/upgrade is a **deep link** to `platform-config.subscriptionContactUrl`, never an in-app mutation (`AD-API-04`). Grace and expired messaging distinct | done |
+| CP2-B08 | New shared widgets | `packages/kh_design_system`, `packages/kh_ui_domain` | `SH-REQ-01` (vendor variant), `SH-ID-01`, `SH-ID-07`, `SH-DOM-03`, `SH-DOM-08`, `SH-MED-03`, `SH-FND-19`, `SH-FND-20`. Domain-aware widgets go in `kh_ui_domain`, never `kh_design_system` (§5.2) | done |
+| CP2-B09 | Tests and goldens | `apps/.../test/`, `packages/*/test/` | Controller tests loading/empty/error/data per screen; widget tests for every `SH-FND-12` and `SH-FND-13` state; LTR + RTL goldens for each new shared widget; a client masking test per `AD-FE-07` | partial |
 
 ## CP-2 Tracks I and V
 

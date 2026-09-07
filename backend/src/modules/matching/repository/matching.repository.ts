@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  OfferState,
   Prisma,
   RequestMatch,
   RequestState,
@@ -127,6 +128,11 @@ export class MatchingRepository {
     const client = tx ?? this.prisma;
     const limit = Math.min(Math.max(filters.limit ?? 20, 1), 50);
 
+    const nonTerminalOfferStates: OfferState[] = [
+      OfferState.PENDING,
+      OfferState.ACCEPTED,
+    ];
+
     const where: Prisma.RequestMatchWhereInput = {
       vendorProfileId,
       isEligible: true,
@@ -145,6 +151,15 @@ export class MatchingRepository {
         ...(filters.publishedWithinHours && {
           publishedAt: { gte: new Date(now.getTime() - filters.publishedWithinHours * 60 * 60 * 1000) },
         }),
+        // Default feed hides Requests this Vendor already responded to.
+        ...(!filters.includeResponded && {
+          offers: {
+            none: {
+              vendorProfileId,
+              state: { in: nonTerminalOfferStates },
+            },
+          },
+        }),
       },
     };
 
@@ -161,6 +176,14 @@ export class MatchingRepository {
           include: {
             category: true,
             region: true,
+            offers: {
+              where: {
+                vendorProfileId,
+                state: { in: nonTerminalOfferStates },
+              },
+              select: { id: true },
+              take: 1,
+            },
           },
         },
       },
