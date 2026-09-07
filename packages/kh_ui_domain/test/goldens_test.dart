@@ -148,6 +148,39 @@ void main() {
     );
   });
 
+  testWidgets('OfferSummaryCard LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'offer_summary_card',
+      size: const Size(440, 220),
+      builder: () => SizedBox(
+        width: 400,
+        child: OfferSummaryCard(
+          offer: OfferForVendor(
+            id: 'off-1',
+            requestId: 'req-1',
+            state: OfferState.accepted,
+            terms: const OfferTerms(
+              offeredPrice: '5500.00',
+              validityHours: 24,
+            ),
+            submittedAt: DateTime.utc(2026, 9, 1, 11),
+            expiresAt: DateTime.utc(2026, 9, 2, 11),
+            revisionCount: 0,
+            requestSummary: const OfferRequestSummary(
+              id: 'req-1',
+              reference: 'KH-RQ-24A1',
+              requestType: RequestType.findOrnament,
+              direction: Direction.buy,
+              customerLabel: 'Customer · Deira',
+              categoryName: 'Bangles',
+            ),
+          ),
+        ),
+      ),
+    );
+  });
+
   testWidgets('ExpiryCountdown LTR+RTL golden', (tester) async {
     final clock = ServerClock(nowProvider: () => _fixedNow);
     await expectKhGoldens(

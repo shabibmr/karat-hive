@@ -296,17 +296,263 @@ abstract class AppLocalizations {
   /// **'Request Closed'**
   String get requestClosed;
 
-  /// VEN-S08 primary CTA placeholder until CP-3
+  /// Deprecated CP-3 placeholder; prefer makeAnOffer
   ///
   /// In en, this message translates to:
   /// **'Make an Offer (CP-3)'**
   String get makeAnOfferCp3;
 
-  /// VEN-S08 snackbar when Make Offer tapped
+  /// Deprecated CP-3 snackbar
   ///
   /// In en, this message translates to:
   /// **'Bidding opens in Check-Point 3.'**
   String get biddingOpensCp3;
+
+  /// VEN-S08 primary CTA to open VEN-S09
+  ///
+  /// In en, this message translates to:
+  /// **'Make an Offer'**
+  String get makeAnOffer;
+
+  /// VEN-S11 screen title
+  ///
+  /// In en, this message translates to:
+  /// **'My Offers'**
+  String get myOffersTitle;
+
+  /// VEN-S09 screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Offer'**
+  String get submitOfferTitle;
+
+  /// VEN-S10 screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Revise Offer'**
+  String get reviseOfferTitle;
+
+  /// VEN-S09 submit button
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Offer'**
+  String get submitOfferAction;
+
+  /// VEN-S10 revise button
+  ///
+  /// In en, this message translates to:
+  /// **'Save revision'**
+  String get reviseOfferAction;
+
+  /// VEN-S10 withdraw button
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw Offer'**
+  String get withdrawOfferAction;
+
+  /// VEN-S10 withdraw confirm dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw this Offer?'**
+  String get withdrawOfferConfirmTitle;
+
+  /// VEN-S10 withdraw confirm dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'You can submit a new Offer afterwards if the Request is still open.'**
+  String get withdrawOfferConfirmBody;
+
+  /// VEN-S11 PENDING tab
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get offerTabPending;
+
+  /// VEN-S11 ACCEPTED tab
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get offerTabAccepted;
+
+  /// VEN-S11 CLOSED tab
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get offerTabClosed;
+
+  /// No description provided for @offerStatePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get offerStatePending;
+
+  /// No description provided for @offerStateAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get offerStateAccepted;
+
+  /// No description provided for @offerStateRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get offerStateRejected;
+
+  /// No description provided for @offerStateExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get offerStateExpired;
+
+  /// No description provided for @offerStateWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get offerStateWithdrawn;
+
+  /// No description provided for @offerStateUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get offerStateUnknown;
+
+  /// No description provided for @offerFallbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer'**
+  String get offerFallbackTitle;
+
+  /// VEN-S11 CLOSED tab BR-008 safe notice
+  ///
+  /// In en, this message translates to:
+  /// **'This Request was awarded elsewhere.'**
+  String get offerAwardedElsewhere;
+
+  /// VEN-S11 accepted row stub until CP-4
+  ///
+  /// In en, this message translates to:
+  /// **'Connection opens in Check-Point 4.'**
+  String get offerConnectionCp4;
+
+  /// No description provided for @offerSearchByReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by reference'**
+  String get offerSearchByReference;
+
+  /// No description provided for @offerValidityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Validity'**
+  String get offerValidityLabel;
+
+  /// No description provided for @offerValidityHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours'**
+  String offerValidityHours(int hours);
+
+  /// No description provided for @offerAbsoluteExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires at {when}'**
+  String offerAbsoluteExpiry(String when);
+
+  /// No description provided for @offerPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Offered price'**
+  String get offerPriceLabel;
+
+  /// No description provided for @offerMakingChargesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Making charges (optional)'**
+  String get offerMakingChargesLabel;
+
+  /// No description provided for @offerRatePerGramLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate per gram (optional)'**
+  String get offerRatePerGramLabel;
+
+  /// No description provided for @offerDeliveryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery / readiness'**
+  String get offerDeliveryLabel;
+
+  /// No description provided for @offerWarrantyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty / buy-back terms'**
+  String get offerWarrantyLabel;
+
+  /// No description provided for @offerNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (no contact details)'**
+  String get offerNoteLabel;
+
+  /// No description provided for @offerImagesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 3 supporting images (optional).'**
+  String get offerImagesHint;
+
+  /// No description provided for @offerCurrentTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Current terms'**
+  String get offerCurrentTerms;
+
+  /// No description provided for @offerNewTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'New terms'**
+  String get offerNewTerms;
+
+  /// No description provided for @offerRevisionsRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} revision remaining} other{{count} revisions remaining}}'**
+  String offerRevisionsRemaining(int count);
+
+  /// No description provided for @offersEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No offers yet. Submit an Offer from a matched Request.'**
+  String get offersEmptyBody;
+
+  /// No description provided for @couldNotLoadOffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load offers.'**
+  String get couldNotLoadOffers;
+
+  /// No description provided for @couldNotLoadRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load request.'**
+  String get couldNotLoadRequest;
+
+  /// No description provided for @couldNotLoadOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load offer.'**
+  String get couldNotLoadOffer;
+
+  /// No description provided for @commonSubmitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitting…'**
+  String get commonSubmitting;
+
+  /// No description provided for @commonCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get commonCancel;
 
   /// VEN-S05 dashboard load error
   ///

@@ -21,3 +21,4 @@ export 'src/widgets/kh_select_field.dart';
 export 'src/widgets/kh_confirm_dialog.dart';
 export 'src/widgets/kh_badge.dart';
 export 'src/widgets/kh_status_chip.dart';
+export 'src/widgets/kh_segmented_tabs.dart';

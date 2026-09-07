@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
@@ -214,19 +215,10 @@ class RequestDetailScreen extends ConsumerWidget {
                         ? (l10n?.requestExpired ?? 'Request Expired')
                         : isClosed
                             ? (l10n?.requestClosed ?? 'Request Closed')
-                            : (l10n?.makeAnOfferCp3 ?? 'Make an Offer (CP-3)'),
+                            : (l10n?.makeAnOffer ?? 'Make an Offer'),
                     onPressed: actionsDisabled
                         ? null
-                        : () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  l10n?.biddingOpensCp3 ??
-                                      'Bidding opens in Check-Point 3.',
-                                ),
-                              ),
-                            );
-                          },
+                        : () => context.push('/vendor/requests/$requestId/offer'),
                   ),
                 ),
               ),

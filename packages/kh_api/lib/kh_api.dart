@@ -9,6 +9,7 @@ import 'src/clients/filter_presets_client.dart';
 import 'src/clients/matches_client.dart';
 import 'src/clients/me_client.dart';
 import 'src/clients/media_client.dart';
+import 'src/clients/offers_client.dart';
 import 'src/clients/platform_config_client.dart';
 import 'src/clients/requests_client.dart';
 import 'src/clients/subscriptions_client.dart';
@@ -22,6 +23,7 @@ export 'src/clients/filter_presets_client.dart';
 export 'src/clients/matches_client.dart';
 export 'src/clients/me_client.dart';
 export 'src/clients/media_client.dart';
+export 'src/clients/offers_client.dart';
 export 'src/clients/platform_config_client.dart';
 export 'src/clients/requests_client.dart';
 export 'src/clients/subscriptions_client.dart';
@@ -44,6 +46,7 @@ class KhApi {
         dashboardClient = DashboardClient(_client),
         matches = MatchesClient(_client),
         requests = RequestsClient(_client),
+        offers = OffersClient(_client),
         filterPresets = FilterPresetsClient(_client),
         subscriptions = SubscriptionsClient(_client),
         platformConfig = PlatformConfigClient(_client);
@@ -52,7 +55,7 @@ class KhApi {
 
   KhApiClient get client => _client;
 
-  // --- Sub-clients (CP2-F09 / CP2-B01) ---
+  // --- Sub-clients (CP2-F09 / CP2-B01 / CP3-B01) ---
   final AuthClient auth;
   final MeClient meClient;
   final TaxonomyClient taxonomyClient;
@@ -61,6 +64,7 @@ class KhApi {
   final DashboardClient dashboardClient;
   final MatchesClient matches;
   final RequestsClient requests;
+  final OffersClient offers;
   final FilterPresetsClient filterPresets;
   final SubscriptionsClient subscriptions;
   final PlatformConfigClient platformConfig;

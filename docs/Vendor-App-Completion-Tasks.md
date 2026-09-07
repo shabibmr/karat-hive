@@ -4,7 +4,7 @@
 |---|---|
 | **Product** | Karat Hive |
 | **Document** | Executable task list for the remaining 16 Vendor screens |
-| **Status** | Working backlog — CP-2 Track A done; Track F foundations done including F05 (`hardcoded_strings_lint` via workspace-root `plugins:` + `melos run analyze` → `dart analyze`); F06/B01 freezed mapping landed (`RatingSummary` still hand-rolled); remaining partial: I01 (T36 brief drafted, TL approval still required) |
+| **Status** | Working backlog — CP-2 done; CP-3 Bid Flutter landed (`VEN-S09`–`S11`, `OffersClient`); backend A01–A07 verified on disk; A08 integration spec added (needs CI Postgres); B06 goldens partial. Remaining: CP-4 Connections |
 | **Date** | 7 September 2026 |
 | **Plan of record** | [`Vendor-App-Completion-Plan.md`](Vendor-App-Completion-Plan.md) |
 | **Does not override** | SRS v1.3 · `API-Route-Inventory.md` · `Architecture-Backend.md` / `-Frontend.md` · `Async-Contract.md` |
@@ -143,21 +143,21 @@ Screens `VEN-S09`, `VEN-S10`, `VEN-S11`.
 
 | ID | Task | Endpoint / files | Acceptance | Status |
 |---|---|---|---|---|
-| **CP3-I01** | **Resolve the Offer validity option set** | SRS revision or `AD-API-07` ruling | `FR-VEN-013` says 12/24/48 h; the SRS §6 dictionary says 24/48/72/168. One wins and `platform-config.offerValidityHours` serves it. **CP-3 does not start until this closes** | **gate** |
-| CP3-A01 | `T36` schema deltas applied | new migration | Columns and the four partial indexes from `SAM-GAP` + `Async-Contract` §10. Signed off in `CP2-I01`. Partial-unique index enforces `BR-009` | open |
-| CP3-A02 | Offers module + submit | `modules/offers/`, `POST /v1/requests/{id}/offers` (`V`, Idempotency-Key) | `BR-002` gate, `BR-009` one non-terminal Offer per Vendor per Request. Validity clamped to the Request's remaining life and never past its hard expiry. Errors `VENDOR_NOT_ACTIVE`, `SUBSCRIPTION_REQUIRED`, `NOT_IN_MATCH_SET`, `OFFER_NOT_OPEN`, `OFFER_ALREADY_PENDING`, `CONTACT_DETAILS_IN_TEXT`. Emits `offer.submitted`. First Offer flips the Request `PUBLISHED → OFFERS_RECEIVED` **synchronously** (`AD-ASYNC-10`) | open |
-| CP3-A03 | Revise | `POST /v1/offers/{id}/revise` (`V`, Idempotency-Key) | `[ASSUMED]`. Max 3 revisions → `OFFER_REVISION_LIMIT`. Resets validity, still clamped. History retained internally. Emits `offer.revised` | open |
-| CP3-A04 | Withdraw | `POST /v1/offers/{id}/withdraw` (`V`) | `[ASSUMED]`. `PENDING` only, else `OFFER_NOT_PENDING`. Emits `offer.withdrawn` | open |
-| CP3-A05 | Offer reads | `GET /v1/me/offers` (`V`), `GET /v1/offers/{id}` (`CV`) | Tabs `PENDING\|ACCEPTED\|CLOSED`; `CLOSED` spans `REJECTED`, `EXPIRED`, `WITHDRAWN`. Rejected rows may say the Request was awarded elsewhere and must carry **no** winning price or Vendor (`BR-008`) | open |
-| CP3-A06 | Expiry sweep + warning (`T41`) | jobs `offer-expiry-sweep` (1 min), `offer-expiry-warning` (5 min) | Warning at T−6 h guarded by `expiry_warned_at`, emitting `offer.expiry.warning`. Sweep expires and emits `offer.expired`. Both use database `now()` and the snapshotted `expires_at` (`AD-ASYNC-09`) | open |
-| CP3-A07 | `offers:request-state` consumer | `modules/offers/` | On `offer.expired`, walks the Request state back when no non-terminal Offer remains (`AD-ASYNC-10`, reverse direction) | open |
-| CP3-A08 | Tests | `backend/test/integration/vendor-offers.spec.ts` | Every error code; revision-limit boundary; idempotent replay of submit; masking spec extended to Offer presenters | open |
-| CP3-B01 | `offers_vendor/` scaffold + `OffersApi` | `lib/features/offers_vendor/`, `packages/kh_api/.../offers_api.dart` | §5.1 shape plus `routes.dart` | open |
-| CP3-B02 | `VEN-S09` submit Offer | `.../presentation/submit_offer_screen.dart` | `SH-OFF-02` terms form; `SH-OFF-03` validity picker reading `platform-config`, **never hard-coded**; up to 3 supporting images through the CP-1 media pipeline with purpose `OFFER_IMAGE`; computed absolute expiry shown before submit | open |
-| CP3-B03 | `VEN-S10` revise / withdraw | `.../presentation/revise_offer_screen.dart` | Current-terms snapshot; revisions-remaining indicator; withdraw behind `SH-FND-15` confirm; blocked once the Offer leaves `PENDING` | open |
-| CP3-B04 | `VEN-S11` My Offers | `.../presentation/my_offers_screen.dart` | Three tabs with counts matching the dashboard; date-range and type filters; search by Request reference; countdown prioritised under 24 h. Accepted tab links to the Connection (disabled until CP-4) | open |
-| CP3-B05 | Widgets | `packages/kh_ui_domain`, `packages/kh_design_system` | `SH-OFF-01`, `SH-OFF-02`, `SH-OFF-03`, `SH-OFF-04`, `SH-FND-26` tabs, `SH-FND-18` badges, `SH-FND-15` confirm, `SH-MED-01/02/05` | open |
-| CP3-B06 | Tests and goldens | | Controller and widget tests per screen; LTR + RTL goldens for the new widgets | open |
+| ~~CP3-I01~~ | **Resolve the Offer validity option set** | SRS revision or `AD-API-07` ruling | Binding choice: `AD-API-07` / `FR-VEN-013` → **12/24/48** (encoded in DB CHECK, seeds, `PlatformConfig`). SRS §6 dictionary alignment remains a docs chore (`Spec-Document-Sequence.md` §6). Client reads `platform-config.offerValidityHours` only. | **done** |
+| ~~CP3-A01~~ | `T36` schema deltas applied | `partial-indexes.sql` + init/catchup migrations | `validity_hours` CHECK (12,24,48); BR-009 partial unique; `expiry_warned_at` present | **done** |
+| ~~CP3-A02~~ | Offers module + submit | `modules/offers/`, `POST /v1/requests/{id}/offers` (`V`, Idempotency-Key) | Implemented in `offer.service.ts` (gates, clamp, contact scan, sync `PUBLISHED → OFFERS_RECEIVED`) | **done** |
+| ~~CP3-A03~~ | Revise | `POST /v1/offers/{id}/revise` (`V`, Idempotency-Key) | Max 3 revisions → `OFFER_REVISION_LIMIT`; clamped expiry | **done** |
+| ~~CP3-A04~~ | Withdraw | `POST /v1/offers/{id}/withdraw` (`V`) | `PENDING` only; emits `offer.withdrawn`; may revert Request state | **done** |
+| ~~CP3-A05~~ | Offer reads | `GET /v1/me/offers` (`V`), `GET /v1/offers/{id}` (`CV`) | Tabs + `presentOfferForVendor` with `awardedElsewhere` (no winner price — `BR-008`) | **done** |
+| ~~CP3-A06~~ | Expiry sweep + warning (`T41`) | jobs in `main.ts` | `offer-expiry-sweep` (1 min), `offer-expiry-warning` (5 min) call service sweepers | **done** |
+| ~~CP3-A07~~ | `offers:request-state` consumer | `modules/offers/` | Reverse `OFFERS_RECEIVED → PUBLISHED` handled **inline** on withdraw/expire when no PENDING remains (`AD-ASYNC-10`) — no separate named consumer | **done** |
+| CP3-A08 | Tests | `backend/test/integration/vendor-offers.spec.ts` | Suite added (submit, already-pending, revision limit, contact scan, withdraw, awardedElsewhere masking). Needs CI Postgres to run. | **partial** |
+| ~~CP3-B01~~ | `offers_vendor/` scaffold + `OffersApi` | `lib/features/offers_vendor/`, `packages/kh_api/src/clients/offers_client.dart` | Feature module + `KhApi.offers` | **done** |
+| ~~CP3-B02~~ | `VEN-S09` submit Offer | `.../presentation/submit_offer_screen.dart` | Terms form + validity from platform-config + `OFFER_IMAGE` | **done** |
+| ~~CP3-B03~~ | `VEN-S10` revise / withdraw | `.../presentation/revise_offer_screen.dart` | Snapshot, revisions remaining, confirm withdraw | **done** |
+| ~~CP3-B04~~ | `VEN-S11` My Offers | `.../presentation/my_offers_screen.dart` | Three tabs; search by reference; accepted row stub until CP-4 | **done** |
+| ~~CP3-B05~~ | Widgets | `packages/kh_ui_domain`, `packages/kh_design_system` | `SH-OFF-01`–`04`, `SH-FND-26` tabs; reuse confirm/badge/media | **done** |
+| CP3-B06 | Tests and goldens | | Domain + widget tests landed; LTR/RTL goldens for offer card / tabs | **partial** |
 
 **CP3-V01 — Backend.** Submit an Offer on the CP-2 seeded Request → revise three times → confirm the fourth returns `OFFER_REVISION_LIMIT` → submit a second Offer on the same Request and confirm `OFFER_ALREADY_PENDING` → withdraw → submit again → set a short validity and let the sweep expire it, confirming the T−6 h warning fired once → confirm a note containing a phone number is rejected with `CONTACT_DETAILS_IN_TEXT`.
 

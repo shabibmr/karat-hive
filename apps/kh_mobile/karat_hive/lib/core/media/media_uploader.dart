@@ -8,7 +8,8 @@ import 'package:kh_core/kh_core.dart';
 /// Named to avoid colliding with `kh_domain`'s `MediaPurpose`.
 enum MediaUploadPurpose {
   kycDocument('KYC_DOCUMENT'),
-  requestImage('REQUEST_IMAGE');
+  requestImage('REQUEST_IMAGE'),
+  offerImage('OFFER_IMAGE');
 
   const MediaUploadPurpose(this.wire);
   final String wire;

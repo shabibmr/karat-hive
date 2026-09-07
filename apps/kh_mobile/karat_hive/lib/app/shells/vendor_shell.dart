@@ -7,7 +7,7 @@ import 'package:kh_design_system/kh_design_system.dart';
 /// Houses the 5 bottom navigation destinations:
 /// - Home (VEN-S05)
 /// - Requests (VEN-S06)
-/// - Offers (VEN-S09, disabled until CP-3)
+/// - Offers (VEN-S11 / CP-3)
 /// - Connections (VEN-S12, disabled until CP-4)
 /// - Profile (VEN-S14, disabled until CP-6)
 ///
@@ -18,12 +18,11 @@ class VendorShell extends StatelessWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  static const _enabledTabCount = 2;
+  static const _enabledTabCount = 3;
 
   void _onDestinationSelected(BuildContext context, int index) {
     if (index >= _enabledTabCount) {
       final message = switch (index) {
-        2 => 'Offers management opens in Check-Point 3.',
         3 => 'Customer connections open in Check-Point 4.',
         _ => 'Vendor profile & settings open in Check-Point 6.',
       };
@@ -63,11 +62,9 @@ class VendorShell extends StatelessWidget {
             selectedIcon: Icon(Icons.work),
             label: 'Requests',
           ),
-          NavigationDestination(
-            icon: Icon(
-              Icons.local_offer_outlined,
-              color: tokens.ink.withValues(alpha: 0.35),
-            ),
+          const NavigationDestination(
+            icon: Icon(Icons.local_offer_outlined),
+            selectedIcon: Icon(Icons.local_offer),
             label: 'Offers',
           ),
           NavigationDestination(

@@ -36,6 +36,23 @@ void main() {
     );
   });
 
+  testWidgets('KhSegmentedTabs LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'kh_segmented_tabs',
+      size: const Size(400, 80),
+      builder: () => KhSegmentedTabs(
+        selectedId: 'PENDING',
+        onSelected: (_) {},
+        tabs: const [
+          KhSegmentedTab(id: 'PENDING', label: 'Pending', count: 2),
+          KhSegmentedTab(id: 'ACCEPTED', label: 'Accepted'),
+          KhSegmentedTab(id: 'CLOSED', label: 'Closed'),
+        ],
+      ),
+    );
+  });
+
   testWidgets('KhConfirmDialog LTR+RTL golden', (tester) async {
     await expectKhGoldens(
       tester,

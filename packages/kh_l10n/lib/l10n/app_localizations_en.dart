@@ -134,6 +134,143 @@ class AppLocalizationsEn extends AppLocalizations {
   String get biddingOpensCp3 => 'Bidding opens in Check-Point 3.';
 
   @override
+  String get makeAnOffer => 'Make an Offer';
+
+  @override
+  String get myOffersTitle => 'My Offers';
+
+  @override
+  String get submitOfferTitle => 'Submit Offer';
+
+  @override
+  String get reviseOfferTitle => 'Revise Offer';
+
+  @override
+  String get submitOfferAction => 'Submit Offer';
+
+  @override
+  String get reviseOfferAction => 'Save revision';
+
+  @override
+  String get withdrawOfferAction => 'Withdraw Offer';
+
+  @override
+  String get withdrawOfferConfirmTitle => 'Withdraw this Offer?';
+
+  @override
+  String get withdrawOfferConfirmBody =>
+      'You can submit a new Offer afterwards if the Request is still open.';
+
+  @override
+  String get offerTabPending => 'Pending';
+
+  @override
+  String get offerTabAccepted => 'Accepted';
+
+  @override
+  String get offerTabClosed => 'Closed';
+
+  @override
+  String get offerStatePending => 'Pending';
+
+  @override
+  String get offerStateAccepted => 'Accepted';
+
+  @override
+  String get offerStateRejected => 'Rejected';
+
+  @override
+  String get offerStateExpired => 'Expired';
+
+  @override
+  String get offerStateWithdrawn => 'Withdrawn';
+
+  @override
+  String get offerStateUnknown => 'Unknown';
+
+  @override
+  String get offerFallbackTitle => 'Offer';
+
+  @override
+  String get offerAwardedElsewhere => 'This Request was awarded elsewhere.';
+
+  @override
+  String get offerConnectionCp4 => 'Connection opens in Check-Point 4.';
+
+  @override
+  String get offerSearchByReference => 'Search by reference';
+
+  @override
+  String get offerValidityLabel => 'Validity';
+
+  @override
+  String offerValidityHours(int hours) {
+    return '$hours hours';
+  }
+
+  @override
+  String offerAbsoluteExpiry(String when) {
+    return 'Expires at $when';
+  }
+
+  @override
+  String get offerPriceLabel => 'Offered price';
+
+  @override
+  String get offerMakingChargesLabel => 'Making charges (optional)';
+
+  @override
+  String get offerRatePerGramLabel => 'Rate per gram (optional)';
+
+  @override
+  String get offerDeliveryLabel => 'Delivery / readiness';
+
+  @override
+  String get offerWarrantyLabel => 'Warranty / buy-back terms';
+
+  @override
+  String get offerNoteLabel => 'Note (no contact details)';
+
+  @override
+  String get offerImagesHint => 'Up to 3 supporting images (optional).';
+
+  @override
+  String get offerCurrentTerms => 'Current terms';
+
+  @override
+  String get offerNewTerms => 'New terms';
+
+  @override
+  String offerRevisionsRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count revisions remaining',
+      one: '$count revision remaining',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get offersEmptyBody =>
+      'No offers yet. Submit an Offer from a matched Request.';
+
+  @override
+  String get couldNotLoadOffers => 'Could not load offers.';
+
+  @override
+  String get couldNotLoadRequest => 'Could not load request.';
+
+  @override
+  String get couldNotLoadOffer => 'Could not load offer.';
+
+  @override
+  String get commonSubmitting => 'Submitting…';
+
+  @override
+  String get commonCancel => 'Cancel';
+
+  @override
   String get couldNotLoadDashboard => 'Could not load your dashboard.';
 
   @override

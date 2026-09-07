@@ -15,6 +15,7 @@ class KhTextField extends StatelessWidget {
     this.initialValue,
     this.suffixText,
     this.inputFormatters,
+    this.maxLines = 1,
   });
 
   final String label;
@@ -26,6 +27,7 @@ class KhTextField extends StatelessWidget {
   final String? initialValue;
   final String? suffixText;
   final List<TextInputFormatter>? inputFormatters;
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +41,12 @@ class KhTextField extends StatelessWidget {
         keyboardType: keyboardType,
         obscureText: obscure,
         inputFormatters: inputFormatters,
+        maxLines: obscure ? 1 : maxLines,
         decoration: InputDecoration(
           labelText: label,
           errorText: errorText,
           suffixText: suffixText,
+          alignLabelWithHint: maxLines > 1,
         ),
       ),
     );

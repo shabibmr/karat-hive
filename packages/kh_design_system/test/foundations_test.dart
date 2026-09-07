@@ -100,6 +100,32 @@ void main() {
     expect(find.text('18 karat'), findsOneWidget);
   });
 
+  testWidgets('KhSegmentedTabs reports selection (SH-FND-26)', (tester) async {
+    var selected = 'PENDING';
+    await tester.pumpWidget(
+      _wrap(
+        StatefulBuilder(
+          builder: (context, setState) {
+            return KhSegmentedTabs(
+              selectedId: selected,
+              onSelected: (id) => setState(() => selected = id),
+              tabs: const [
+                KhSegmentedTab(id: 'PENDING', label: 'Pending', count: 2),
+                KhSegmentedTab(id: 'ACCEPTED', label: 'Accepted'),
+                KhSegmentedTab(id: 'CLOSED', label: 'Closed'),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('kh-segmented-tab-PENDING')), findsOneWidget);
+    await tester.tap(find.text('Accepted'));
+    await tester.pump();
+    expect(selected, 'ACCEPTED');
+  });
+
   testWidgets('KhConfirmDialog pops true on confirm and uses KhButton (SH-FND-15)',
       (tester) async {
     bool? result;

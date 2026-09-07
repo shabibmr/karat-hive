@@ -35,6 +35,68 @@
   "requestClosed": "الطلب مغلق",
   "makeAnOfferCp3": "قدّم عرضًا (المرحلة 3)",
   "biddingOpensCp3": "يُفتح تقديم العروض في نقطة التحقق 3.",
+  "makeAnOffer": "قدّم عرضًا",
+  "myOffersTitle": "عروضي",
+  "submitOfferTitle": "تقديم عرض",
+  "reviseOfferTitle": "تعديل العرض",
+  "submitOfferAction": "تقديم العرض",
+  "reviseOfferAction": "حفظ التعديل",
+  "withdrawOfferAction": "سحب العرض",
+  "withdrawOfferConfirmTitle": "سحب هذا العرض؟",
+  "withdrawOfferConfirmBody": "يمكنك تقديم عرض جديد لاحقًا إذا بقي الطلب مفتوحًا.",
+  "offerTabPending": "قيد الانتظار",
+  "offerTabAccepted": "مقبول",
+  "offerTabClosed": "مغلق",
+  "offerStatePending": "قيد الانتظار",
+  "offerStateAccepted": "مقبول",
+  "offerStateRejected": "مرفوض",
+  "offerStateExpired": "منتهي",
+  "offerStateWithdrawn": "مسحوب",
+  "offerStateUnknown": "غير معروف",
+  "offerFallbackTitle": "عرض",
+  "offerAwardedElsewhere": "تم ترسية هذا الطلب على جهة أخرى.",
+  "offerConnectionCp4": "يُفتح الاتصال في نقطة التحقق 4.",
+  "offerSearchByReference": "البحث بالمرجع",
+  "offerValidityLabel": "مدة الصلاحية",
+  "offerValidityHours": "{hours} ساعة",
+  "@offerValidityHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "offerAbsoluteExpiry": "ينتهي في {when}",
+  "@offerAbsoluteExpiry": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "offerPriceLabel": "السعر المعروض",
+  "offerMakingChargesLabel": "أجور التصنيع (اختياري)",
+  "offerRatePerGramLabel": "السعر للجرام (اختياري)",
+  "offerDeliveryLabel": "التسليم / الجاهزية",
+  "offerWarrantyLabel": "الضمان / إعادة الشراء",
+  "offerNoteLabel": "ملاحظة (بدون بيانات تواصل)",
+  "offerImagesHint": "حتى 3 صور داعمة (اختياري).",
+  "offerCurrentTerms": "الشروط الحالية",
+  "offerNewTerms": "الشروط الجديدة",
+  "offerRevisionsRemaining": "{count, plural, =0{لا تعديلات متبقية} =1{تعديل واحد متبقٍ} =2{تعديلان متبقيان} few{{count} تعديلات متبقية} many{{count} تعديلًا متبقيًا} other{{count} تعديل متبقٍ}}",
+  "@offerRevisionsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "offersEmptyBody": "لا عروض بعد. قدّم عرضًا من طلب مطابق ليظهر هنا.",
+  "couldNotLoadOffers": "تعذّر تحميل العروض.",
+  "couldNotLoadRequest": "تعذّر تحميل الطلب.",
+  "couldNotLoadOffer": "تعذّر تحميل العرض.",
+  "commonSubmitting": "جارٍ الإرسال…",
+  "commonCancel": "إلغاء",
   "couldNotLoadDashboard": "تعذّر تحميل لوحة التحكم.",
   "matchingRequestsWaiting": "{count} طلب(ات) مطابقة بانتظارك",
   "noNewRequestsRightNow": "لا توجد طلبات جديدة حاليًا",

@@ -137,6 +137,147 @@ class AppLocalizationsAr extends AppLocalizations {
   String get biddingOpensCp3 => 'يُفتح تقديم العروض في نقطة التحقق 3.';
 
   @override
+  String get makeAnOffer => 'قدّم عرضًا';
+
+  @override
+  String get myOffersTitle => 'عروضي';
+
+  @override
+  String get submitOfferTitle => 'تقديم عرض';
+
+  @override
+  String get reviseOfferTitle => 'تعديل العرض';
+
+  @override
+  String get submitOfferAction => 'تقديم العرض';
+
+  @override
+  String get reviseOfferAction => 'حفظ التعديل';
+
+  @override
+  String get withdrawOfferAction => 'سحب العرض';
+
+  @override
+  String get withdrawOfferConfirmTitle => 'سحب هذا العرض؟';
+
+  @override
+  String get withdrawOfferConfirmBody =>
+      'يمكنك تقديم عرض جديد لاحقًا إذا بقي الطلب مفتوحًا.';
+
+  @override
+  String get offerTabPending => 'قيد الانتظار';
+
+  @override
+  String get offerTabAccepted => 'مقبول';
+
+  @override
+  String get offerTabClosed => 'مغلق';
+
+  @override
+  String get offerStatePending => 'قيد الانتظار';
+
+  @override
+  String get offerStateAccepted => 'مقبول';
+
+  @override
+  String get offerStateRejected => 'مرفوض';
+
+  @override
+  String get offerStateExpired => 'منتهي';
+
+  @override
+  String get offerStateWithdrawn => 'مسحوب';
+
+  @override
+  String get offerStateUnknown => 'غير معروف';
+
+  @override
+  String get offerFallbackTitle => 'عرض';
+
+  @override
+  String get offerAwardedElsewhere => 'تم ترسية هذا الطلب على جهة أخرى.';
+
+  @override
+  String get offerConnectionCp4 => 'يُفتح الاتصال في نقطة التحقق 4.';
+
+  @override
+  String get offerSearchByReference => 'البحث بالمرجع';
+
+  @override
+  String get offerValidityLabel => 'مدة الصلاحية';
+
+  @override
+  String offerValidityHours(int hours) {
+    return '$hours ساعة';
+  }
+
+  @override
+  String offerAbsoluteExpiry(String when) {
+    return 'ينتهي في $when';
+  }
+
+  @override
+  String get offerPriceLabel => 'السعر المعروض';
+
+  @override
+  String get offerMakingChargesLabel => 'أجور التصنيع (اختياري)';
+
+  @override
+  String get offerRatePerGramLabel => 'السعر للجرام (اختياري)';
+
+  @override
+  String get offerDeliveryLabel => 'التسليم / الجاهزية';
+
+  @override
+  String get offerWarrantyLabel => 'الضمان / إعادة الشراء';
+
+  @override
+  String get offerNoteLabel => 'ملاحظة (بدون بيانات تواصل)';
+
+  @override
+  String get offerImagesHint => 'حتى 3 صور داعمة (اختياري).';
+
+  @override
+  String get offerCurrentTerms => 'الشروط الحالية';
+
+  @override
+  String get offerNewTerms => 'الشروط الجديدة';
+
+  @override
+  String offerRevisionsRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تعديل متبقٍ',
+      many: '$count تعديلًا متبقيًا',
+      few: '$count تعديلات متبقية',
+      two: 'تعديلان متبقيان',
+      one: 'تعديل واحد متبقٍ',
+      zero: 'لا تعديلات متبقية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get offersEmptyBody =>
+      'لا عروض بعد. قدّم عرضًا من طلب مطابق ليظهر هنا.';
+
+  @override
+  String get couldNotLoadOffers => 'تعذّر تحميل العروض.';
+
+  @override
+  String get couldNotLoadRequest => 'تعذّر تحميل الطلب.';
+
+  @override
+  String get couldNotLoadOffer => 'تعذّر تحميل العرض.';
+
+  @override
+  String get commonSubmitting => 'جارٍ الإرسال…';
+
+  @override
+  String get commonCancel => 'إلغاء';
+
+  @override
   String get couldNotLoadDashboard => 'تعذّر تحميل لوحة التحكم.';
 
   @override

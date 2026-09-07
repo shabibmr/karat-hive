@@ -48,6 +48,9 @@ export async function resetDb(prisma: PrismaClient): Promise<void> {
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE
       audit_log, outbox_event, refresh_token, otp_challenge,
+      offer_revision, offer_media, offer,
+      request_match, request_media, request,
+      filter_preset,
       vendor_document, vendor_category, vendor_region, vendor_type_subscription,
       media, vendor_profile, customer_profile, admin_profile, "user",
       rate_limit_bucket, idempotency_key
@@ -175,6 +178,103 @@ export async function insertVendor(
     // already set activatedAt
   }
   return { user, vendorProfileId };
+}
+
+export async function insertCustomer(
+  prisma: PrismaClient,
+): Promise<{ user: User; customerProfileId: string }> {
+  const suffix = randomUUID().slice(0, 8);
+  const user = await prisma.user.create({
+    data: {
+      mobileNumber: `+97152${suffix.slice(0, 7)}`,
+      email: `customer-${suffix}@karathive.test`,
+      userType: 'CUSTOMER',
+      accountState: 'ACTIVE',
+      preferredLanguage: 'en',
+      termsVersion: '1.0',
+      privacyVersion: '1.0',
+      termsAcceptedAt: new Date(),
+      customerProfile: {
+        create: {
+          displayName: `Customer ${suffix}`,
+        },
+      },
+    },
+    include: { customerProfile: true },
+  });
+  return { user, customerProfileId: user.customerProfile!.id };
+}
+
+export async function insertPublishedRequest(
+  prisma: PrismaClient,
+  opts: {
+    customerProfileId: string;
+    categoryId: string;
+    regionId: string;
+    requestType?: 'FIND_ORNAMENT' | 'SELL_OLD_GOLD' | 'GOLD_COIN' | 'GOLD_BULLION';
+    budgetMin?: number;
+    budgetMax?: number;
+    expiresAt?: Date;
+  },
+): Promise<{ id: string; reference: string | null }> {
+  const now = new Date();
+  const expiresAt =
+    opts.expiresAt ?? new Date(now.getTime() + 48 * 60 * 60 * 1000);
+  const req = await prisma.request.create({
+    data: {
+      customerProfileId: opts.customerProfileId,
+      requestType: opts.requestType ?? 'FIND_ORNAMENT',
+      direction: 'BUY',
+      state: 'PUBLISHED',
+      categoryId: opts.categoryId,
+      regionId: opts.regionId,
+      reference: `KH-RQ-${randomUUID().slice(0, 4).toUpperCase()}`,
+      budgetMin: opts.budgetMin ?? 1000,
+      budgetMax: opts.budgetMax ?? 5000,
+      publishedAt: now,
+      expiresAt,
+    },
+  });
+  return { id: req.id, reference: req.reference };
+}
+
+export async function insertRequestMatch(
+  prisma: PrismaClient,
+  opts: {
+    requestId: string;
+    vendorProfileId: string;
+    isEligible?: boolean;
+  },
+): Promise<void> {
+  await prisma.requestMatch.create({
+    data: {
+      requestId: opts.requestId,
+      vendorProfileId: opts.vendorProfileId,
+      matchedAt: new Date(),
+      isEligible: opts.isEligible ?? true,
+    },
+  });
+}
+
+export async function insertVendorSubscription(
+  prisma: PrismaClient,
+  opts: {
+    vendorProfileId: string;
+    requestType: 'FIND_ORNAMENT' | 'SELL_OLD_GOLD' | 'GOLD_COIN' | 'GOLD_BULLION';
+    state?: 'ACTIVE' | 'GRACE' | 'EXPIRED' | 'CANCELLED';
+  },
+): Promise<void> {
+  const now = new Date();
+  await prisma.vendorTypeSubscription.create({
+    data: {
+      vendorProfileId: opts.vendorProfileId,
+      requestType: opts.requestType,
+      state: opts.state ?? 'ACTIVE',
+      periodStart: now,
+      periodEnd: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+      priceAed: 199,
+    },
+  });
 }
 
 export async function putKycBytes(

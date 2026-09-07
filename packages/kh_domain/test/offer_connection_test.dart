@@ -58,6 +58,58 @@ void main() {
     });
   });
 
+  group('OfferForVendor', () {
+    test('parses own terms, request summary, and awardedElsewhere', () {
+      final offer = OfferForVendor.fromJson({
+        'id': 'off-v1',
+        'requestId': 'req-1',
+        'state': 'PENDING',
+        'terms': {
+          'offeredPrice': '9800.00',
+          'validityHours': 12,
+          'makingCharges': '150.00',
+        },
+        'media': [
+          {'id': 'm1', 'key': 'k1', 'displayOrder': 0},
+        ],
+        'submittedAt': '2026-09-01T11:00:00.000Z',
+        'expiresAt': '2026-09-01T23:00:00.000Z',
+        'revisionCount': 1,
+        'requestSummary': {
+          'id': 'req-1',
+          'reference': 'KH-RQ-24A1',
+          'requestType': 'FIND_ORNAMENT',
+          'direction': 'BUY',
+          'customerLabel': 'Customer · Deira',
+          'category': {'id': 'c1', 'nameEn': 'Bangles'},
+          'region': {'id': 'r1', 'nameEn': 'Deira'},
+          'budgetMax': '10000.00',
+        },
+        'awardedElsewhere': false,
+      });
+      expect(offer.id, 'off-v1');
+      expect(offer.state, OfferState.pending);
+      expect(offer.terms.offeredPrice, '9800.00');
+      expect(offer.terms.media, hasLength(1));
+      expect(offer.revisionsRemaining, 2);
+      expect(offer.canRevise, isTrue);
+      expect(offer.requestSummary?.customerLabel, 'Customer · Deira');
+      expect(offer.requestSummary?.categoryName, 'Bangles');
+      expect(offer.awardedElsewhere, isFalse);
+    });
+
+    test('has no Customer identity fields and no RevealedParty', () {
+      final src = File('lib/src/offer.dart').readAsStringSync();
+      final start = src.indexOf('class OfferForVendor');
+      final next = src.indexOf('\nclass ', start + 1);
+      final body = src.substring(start, next == -1 ? src.length : next);
+      expect(body.contains('RevealedParty'), isFalse);
+      expect(body.contains('mobileNumber'), isFalse);
+      expect(body.contains('tradingName'), isFalse);
+      expect(body.contains('displayName'), isFalse);
+    });
+  });
+
   group('TalkPayload', () {
     test('parses inventory waUrl and backend phone alias', () {
       final talk = TalkPayload.fromJson({

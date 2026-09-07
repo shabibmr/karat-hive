@@ -149,12 +149,117 @@
   },
   "makeAnOfferCp3": "Make an Offer (CP-3)",
   "@makeAnOfferCp3": {
-    "description": "VEN-S08 primary CTA placeholder until CP-3"
+    "description": "Deprecated CP-3 placeholder; prefer makeAnOffer"
   },
   "biddingOpensCp3": "Bidding opens in Check-Point 3.",
   "@biddingOpensCp3": {
-    "description": "VEN-S08 snackbar when Make Offer tapped"
+    "description": "Deprecated CP-3 snackbar"
   },
+  "makeAnOffer": "Make an Offer",
+  "@makeAnOffer": {
+    "description": "VEN-S08 primary CTA to open VEN-S09"
+  },
+  "myOffersTitle": "My Offers",
+  "@myOffersTitle": {
+    "description": "VEN-S11 screen title"
+  },
+  "submitOfferTitle": "Submit Offer",
+  "@submitOfferTitle": {
+    "description": "VEN-S09 screen title"
+  },
+  "reviseOfferTitle": "Revise Offer",
+  "@reviseOfferTitle": {
+    "description": "VEN-S10 screen title"
+  },
+  "submitOfferAction": "Submit Offer",
+  "@submitOfferAction": {
+    "description": "VEN-S09 submit button"
+  },
+  "reviseOfferAction": "Save revision",
+  "@reviseOfferAction": {
+    "description": "VEN-S10 revise button"
+  },
+  "withdrawOfferAction": "Withdraw Offer",
+  "@withdrawOfferAction": {
+    "description": "VEN-S10 withdraw button"
+  },
+  "withdrawOfferConfirmTitle": "Withdraw this Offer?",
+  "@withdrawOfferConfirmTitle": {
+    "description": "VEN-S10 withdraw confirm dialog title"
+  },
+  "withdrawOfferConfirmBody": "You can submit a new Offer afterwards if the Request is still open.",
+  "@withdrawOfferConfirmBody": {
+    "description": "VEN-S10 withdraw confirm dialog body"
+  },
+  "offerTabPending": "Pending",
+  "@offerTabPending": {
+    "description": "VEN-S11 PENDING tab"
+  },
+  "offerTabAccepted": "Accepted",
+  "@offerTabAccepted": {
+    "description": "VEN-S11 ACCEPTED tab"
+  },
+  "offerTabClosed": "Closed",
+  "@offerTabClosed": {
+    "description": "VEN-S11 CLOSED tab"
+  },
+  "offerStatePending": "Pending",
+  "offerStateAccepted": "Accepted",
+  "offerStateRejected": "Rejected",
+  "offerStateExpired": "Expired",
+  "offerStateWithdrawn": "Withdrawn",
+  "offerStateUnknown": "Unknown",
+  "offerFallbackTitle": "Offer",
+  "offerAwardedElsewhere": "This Request was awarded elsewhere.",
+  "@offerAwardedElsewhere": {
+    "description": "VEN-S11 CLOSED tab BR-008 safe notice"
+  },
+  "offerConnectionCp4": "Connection opens in Check-Point 4.",
+  "@offerConnectionCp4": {
+    "description": "VEN-S11 accepted row stub until CP-4"
+  },
+  "offerSearchByReference": "Search by reference",
+  "offerValidityLabel": "Validity",
+  "offerValidityHours": "{hours} hours",
+  "@offerValidityHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "offerAbsoluteExpiry": "Expires at {when}",
+  "@offerAbsoluteExpiry": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "offerPriceLabel": "Offered price",
+  "offerMakingChargesLabel": "Making charges (optional)",
+  "offerRatePerGramLabel": "Rate per gram (optional)",
+  "offerDeliveryLabel": "Delivery / readiness",
+  "offerWarrantyLabel": "Warranty / buy-back terms",
+  "offerNoteLabel": "Note (no contact details)",
+  "offerImagesHint": "Up to 3 supporting images (optional).",
+  "offerCurrentTerms": "Current terms",
+  "offerNewTerms": "New terms",
+  "offerRevisionsRemaining": "{count, plural, =1{{count} revision remaining} other{{count} revisions remaining}}",
+  "@offerRevisionsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "offersEmptyBody": "No offers yet. Submit an Offer from a matched Request.",
+  "couldNotLoadOffers": "Could not load offers.",
+  "couldNotLoadRequest": "Could not load request.",
+  "couldNotLoadOffer": "Could not load offer.",
+  "commonSubmitting": "Submitting…",
+  "commonCancel": "Cancel",
+
   "couldNotLoadDashboard": "Could not load your dashboard.",
   "@couldNotLoadDashboard": {
     "description": "VEN-S05 dashboard load error"

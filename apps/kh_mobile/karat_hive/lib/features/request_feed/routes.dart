@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../../app/guards.dart';
+import '../offers_vendor/routes.dart';
 import 'presentation/request_detail_screen.dart';
 import 'presentation/request_feed_screen.dart';
 import 'presentation/vendor_dashboard_screen.dart';
@@ -23,6 +24,9 @@ final requestFeedRoutes = [
           final id = state.pathParameters['id']!;
           return RequestDetailScreen(requestId: id);
         },
+        routes: [
+          submitOfferRoute(),
+        ],
       ),
     ],
   ),

@@ -81,14 +81,18 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('requests-body'), findsOneWidget);
 
-      // Disabled Offers tab shows snackbar and does not navigate.
+      // Offers tab is live as of CP-3.
       await tester.tap(find.text('Offers'));
+      await tester.pumpAndSettle();
+      expect(find.text('offers-body'), findsOneWidget);
+
+      // Connections remains gated until CP-4.
+      await tester.tap(find.text('Connections'));
       await tester.pump();
       expect(
-        find.text('Offers management opens in Check-Point 3.'),
+        find.text('Customer connections open in Check-Point 4.'),
         findsOneWidget,
       );
-      expect(find.text('requests-body'), findsOneWidget);
     },
   );
 }
