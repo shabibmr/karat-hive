@@ -32,7 +32,7 @@ jobs:
       - run: melos run test --no-select
       - name: Design-system goldens
         working-directory: packages/kh_design_system
-        run: flutter test --update-goldens=false
+        run: flutter test
       - name: Debug APK build
         working-directory: apps/kh_mobile/karat_hive
         run: flutter build apk --debug --dart-define-from-file=config/dev.json
