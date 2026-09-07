@@ -220,6 +220,9 @@ export class OfferRepository {
             region: true,
           },
         },
+        connection: {
+          select: { id: true },
+        },
       },
     });
   }
@@ -373,6 +376,9 @@ export class OfferRepository {
             regions: { include: { region: true } },
           },
         },
+        connection: {
+          select: { id: true },
+        },
       },
     });
 
@@ -446,6 +452,9 @@ export class OfferRepository {
             category: true,
             region: true,
           },
+        },
+        connection: {
+          select: { id: true },
         },
       },
     });

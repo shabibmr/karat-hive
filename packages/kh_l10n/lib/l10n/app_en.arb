@@ -978,5 +978,96 @@
         "type": "int"
       }
     }
+  },
+  "connectionsTitle": "Connections",
+  "@connectionsTitle": {
+    "description": "VEN-S12 screen title"
+  },
+  "connectionsEmptyBody": "No Connections yet. Accepted Offers appear here.",
+  "@connectionsEmptyBody": {
+    "description": "VEN-S12 empty state"
+  },
+  "couldNotLoadConnections": "Could not load Connections.",
+  "@couldNotLoadConnections": {
+    "description": "VEN-S12 list error"
+  },
+  "couldNotLoadConnection": "Could not load this Connection.",
+  "@couldNotLoadConnection": {
+    "description": "VEN-S13 detail error"
+  },
+  "connectionSectionActive": "Active",
+  "@connectionSectionActive": {
+    "description": "VEN-S12 Active section header"
+  },
+  "connectionSectionClosed": "Closed",
+  "@connectionSectionClosed": {
+    "description": "VEN-S12 Closed section header"
+  },
+  "connectionStateActive": "Active",
+  "connectionStateClosed": "Closed",
+  "connectionStateUnknown": "Unknown",
+  "connectionTalk": "Talk",
+  "@connectionTalk": {
+    "description": "SH-CON-02 Talk button"
+  },
+  "connectionCall": "Call",
+  "@connectionCall": {
+    "description": "SH-CON-03 tap-to-call"
+  },
+  "connectionCopyNumber": "Copy number",
+  "@connectionCopyNumber": {
+    "description": "SH-FND-22 phone copy tooltip"
+  },
+  "connectionCopied": "Copied",
+  "@connectionCopied": {
+    "description": "SH-FND-22 success toast"
+  },
+  "connectionClose": "Close Connection",
+  "@connectionClose": {
+    "description": "VEN-S13 close action"
+  },
+  "connectionCloseConfirmTitle": "Close this Connection?",
+  "@connectionCloseConfirmTitle": {
+    "description": "VEN-S13 close confirm title"
+  },
+  "connectionCloseConfirmBody": "Details stay available. Reviews open in Check-Point 5.",
+  "@connectionCloseConfirmBody": {
+    "description": "VEN-S13 close confirm body"
+  },
+  "connectionClosedBanner": "This Connection is closed. Details remain available.",
+  "@connectionClosedBanner": {
+    "description": "VEN-S13 read-only banner"
+  },
+  "connectionReviewsCp5": "Reviews open in Check-Point 5",
+  "@connectionReviewsCp5": {
+    "description": "Post-close review prompt until CP-5"
+  },
+  "connectionWhatsAppMissing": "WhatsApp is not available. Copy the number or call instead.",
+  "@connectionWhatsAppMissing": {
+    "description": "VEN-S13 Talk fallback when waUrl is absent"
+  },
+  "connectionCouldNotOpenTalk": "Could not open WhatsApp.",
+  "@connectionCouldNotOpenTalk": {
+    "description": "SnackBar when wa.me launch fails"
+  },
+  "connectionDetailTitle": "Connection",
+  "@connectionDetailTitle": {
+    "description": "VEN-S13 app bar title"
+  },
+  "connectionIdentityRevealedAt": "Identity revealed",
+  "@connectionIdentityRevealedAt": {
+    "description": "VEN-S13 revealed-at label"
+  },
+  "connectionAcceptedTerms": "Accepted Offer terms",
+  "@connectionAcceptedTerms": {
+    "description": "VEN-S13 terms section"
+  },
+  "connectionLeaveFeedback": "Leave feedback",
+  "@connectionLeaveFeedback": {
+    "description": "VEN-S13 review CTA stub until CP-5"
+  },
+  "connectionReport": "Report",
+  "@connectionReport": {
+    "description": "VEN-S13 report CTA stub until CP-5"
   }
 }

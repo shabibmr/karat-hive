@@ -348,6 +348,95 @@ void main() {
       expect(khApi.filterPresets, isA<FilterPresetsClient>());
       expect(khApi.subscriptions, isA<SubscriptionsClient>());
       expect(khApi.platformConfig, isA<PlatformConfigClient>());
+      expect(khApi.connections, isA<ConnectionsClient>());
+    });
+  });
+
+  group('ConnectionsClient', () {
+    Map<String, dynamic> vendorConnectionJson() => {
+          'id': 'conn-1',
+          'offerId': 'off-1',
+          'requestId': 'req-1',
+          'state': 'ACTIVE',
+          'identityRevealedAt': '2026-09-01T12:00:00.000Z',
+          'customer': {
+            'id': 'cp-1',
+            'displayName': 'Fatima Al Zahra',
+            'phone': '+971501234567',
+            'connectionCount': 2,
+          },
+          'talk': {
+            'available': true,
+            'waUrl': 'https://wa.me/971501234567?text=Hello',
+            'phone': '+971501234567',
+            'callUrl': 'tel:+971501234567',
+          },
+          'request': {
+            'id': 'req-1',
+            'reference': 'KH-RQ-24A1',
+            'requestType': 'FIND_ORNAMENT',
+            'direction': 'BUY',
+          },
+          'offer': {
+            'id': 'off-1',
+            'offeredPrice': '12500.00',
+            'validityHours': 24,
+          },
+        };
+
+    test('listMine parses vendor connections and talk.waUrl', () async {
+      final client = createClient((opts) async {
+        expect(opts.path, '/v1/me/connections');
+        expect(opts.queryParameters['limit'], '20');
+        return jsonBody({
+          'data': [vendorConnectionJson()],
+          'meta': {'nextCursor': 'c2'},
+        });
+      });
+
+      final khApi = KhApi(client);
+      final res = await khApi.connections.listMine();
+      expect(res.isOk, isTrue);
+      final page = res.unwrap();
+      expect(page.items, hasLength(1));
+      expect(page.items.first.customer.displayName, 'Fatima Al Zahra');
+      expect(page.items.first.talk.waUrl, startsWith('https://wa.me/'));
+      expect(page.nextCursor, 'c2');
+    });
+
+    test('get / close / contact-events hit inventory paths', () async {
+      String? lastPath;
+      String? lastMethod;
+      Object? lastBody;
+      final client = createClient((opts) async {
+        lastPath = opts.path;
+        lastMethod = opts.method;
+        lastBody = opts.data;
+        if (opts.path.endsWith('/contact-events')) {
+          return jsonBody({'data': {'success': true}}, status: 201);
+        }
+        return jsonBody({'data': vendorConnectionJson()});
+      });
+
+      final khApi = KhApi(client);
+      final got = await khApi.connections.get('conn-1');
+      expect(got.isOk, isTrue);
+      expect(lastMethod, 'GET');
+      expect(lastPath, '/v1/connections/conn-1');
+
+      final closed = await khApi.connections.close('conn-1');
+      expect(closed.isOk, isTrue);
+      expect(lastMethod, 'POST');
+      expect(lastPath, '/v1/connections/conn-1/close');
+
+      final event = await khApi.connections.recordContactEvent(
+        connectionId: 'conn-1',
+        channel: 'WHATSAPP',
+      );
+      expect(event.isOk, isTrue);
+      expect(lastMethod, 'POST');
+      expect(lastPath, '/v1/connections/conn-1/contact-events');
+      expect(lastBody, {'channel': 'WHATSAPP'});
     });
   });
 }

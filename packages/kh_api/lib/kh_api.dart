@@ -4,6 +4,7 @@ import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
 import 'src/clients/auth_client.dart';
+import 'src/clients/connections_client.dart';
 import 'src/clients/dashboard_client.dart';
 import 'src/clients/filter_presets_client.dart';
 import 'src/clients/matches_client.dart';
@@ -18,6 +19,7 @@ import 'src/clients/vendor_client.dart';
 import 'src/dtos.dart';
 
 export 'src/clients/auth_client.dart';
+export 'src/clients/connections_client.dart';
 export 'src/clients/dashboard_client.dart';
 export 'src/clients/filter_presets_client.dart';
 export 'src/clients/matches_client.dart';
@@ -47,6 +49,7 @@ class KhApi {
         matches = MatchesClient(_client),
         requests = RequestsClient(_client),
         offers = OffersClient(_client),
+        connections = ConnectionsClient(_client),
         filterPresets = FilterPresetsClient(_client),
         subscriptions = SubscriptionsClient(_client),
         platformConfig = PlatformConfigClient(_client);
@@ -65,6 +68,7 @@ class KhApi {
   final MatchesClient matches;
   final RequestsClient requests;
   final OffersClient offers;
+  final ConnectionsClient connections;
   final FilterPresetsClient filterPresets;
   final SubscriptionsClient subscriptions;
   final PlatformConfigClient platformConfig;

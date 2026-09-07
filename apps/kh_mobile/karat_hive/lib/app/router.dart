@@ -9,6 +9,7 @@ import 'shells/splash_screen.dart';
 import 'shells/unauth_shell.dart';
 import 'shells/vendor_shell.dart';
 import '../features/auth/routes.dart';
+import '../features/connections/routes.dart';
 import '../features/offers_vendor/routes.dart';
 import '../features/onboarding/routes.dart';
 import '../features/request_feed/routes.dart';
@@ -61,14 +62,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           // Branch 3 — Connections (CP-4)
           StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/vendor/connections',
-                builder: (_, __) => const VendorComingSoonPage(
-                  message: 'Customer connections open in Check-Point 4.',
-                ),
-              ),
-            ],
+            routes: connectionsTabRoutes,
           ),
           // Branch 4 — Profile (CP-6)
           StatefulShellBranch(

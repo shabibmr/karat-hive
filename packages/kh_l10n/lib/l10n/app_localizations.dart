@@ -1429,6 +1429,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{{count} deal} other{{count} deals}}'**
   String dealCount(int count);
+
+  /// VEN-S12 screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get connectionsTitle;
+
+  /// VEN-S12 empty state
+  ///
+  /// In en, this message translates to:
+  /// **'No Connections yet. Accepted Offers appear here.'**
+  String get connectionsEmptyBody;
+
+  /// VEN-S12 list error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load Connections.'**
+  String get couldNotLoadConnections;
+
+  /// VEN-S13 detail error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this Connection.'**
+  String get couldNotLoadConnection;
+
+  /// VEN-S12 Active section header
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get connectionSectionActive;
+
+  /// VEN-S12 Closed section header
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get connectionSectionClosed;
+
+  /// No description provided for @connectionStateActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get connectionStateActive;
+
+  /// No description provided for @connectionStateClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get connectionStateClosed;
+
+  /// No description provided for @connectionStateUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get connectionStateUnknown;
+
+  /// SH-CON-02 Talk button
+  ///
+  /// In en, this message translates to:
+  /// **'Talk'**
+  String get connectionTalk;
+
+  /// SH-CON-03 tap-to-call
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get connectionCall;
+
+  /// SH-FND-22 phone copy tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Copy number'**
+  String get connectionCopyNumber;
+
+  /// SH-FND-22 success toast
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get connectionCopied;
+
+  /// VEN-S13 close action
+  ///
+  /// In en, this message translates to:
+  /// **'Close Connection'**
+  String get connectionClose;
+
+  /// VEN-S13 close confirm title
+  ///
+  /// In en, this message translates to:
+  /// **'Close this Connection?'**
+  String get connectionCloseConfirmTitle;
+
+  /// VEN-S13 close confirm body
+  ///
+  /// In en, this message translates to:
+  /// **'Details stay available. Reviews open in Check-Point 5.'**
+  String get connectionCloseConfirmBody;
+
+  /// VEN-S13 read-only banner
+  ///
+  /// In en, this message translates to:
+  /// **'This Connection is closed. Details remain available.'**
+  String get connectionClosedBanner;
+
+  /// Post-close review prompt until CP-5
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews open in Check-Point 5'**
+  String get connectionReviewsCp5;
+
+  /// VEN-S13 Talk fallback when waUrl is absent
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp is not available. Copy the number or call instead.'**
+  String get connectionWhatsAppMissing;
+
+  /// SnackBar when wa.me launch fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open WhatsApp.'**
+  String get connectionCouldNotOpenTalk;
+
+  /// VEN-S13 app bar title
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get connectionDetailTitle;
+
+  /// VEN-S13 revealed-at label
+  ///
+  /// In en, this message translates to:
+  /// **'Identity revealed'**
+  String get connectionIdentityRevealedAt;
+
+  /// VEN-S13 terms section
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted Offer terms'**
+  String get connectionAcceptedTerms;
+
+  /// VEN-S13 review CTA stub until CP-5
+  ///
+  /// In en, this message translates to:
+  /// **'Leave feedback'**
+  String get connectionLeaveFeedback;
+
+  /// VEN-S13 report CTA stub until CP-5
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get connectionReport;
 }
 
 class _AppLocalizationsDelegate

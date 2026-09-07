@@ -115,16 +115,14 @@ class VendorDashboardScreen extends ConsumerWidget {
             _ActionStatCard(
               label: l10n?.dashboardActiveConnections ?? 'Active connections',
               value: d.activeConnections,
-              icon: Icons.chat_bubble_outline,
+              icon: Icons.handshake_outlined,
               subtitle: d.activeConnectionsNoTalkCount > 0
                   ? (l10n?.connectionsNoTalkYet(
                           d.activeConnectionsNoTalkCount) ??
                       '${d.activeConnectionsNoTalkCount} with no talk yet')
                   : (l10n?.wonDealsChats ??
                       'Won deals & direct customer chats'),
-              disabled: true,
-              disabledMessage: l10n?.connectionsOpenCp4 ??
-                  'Connections open in Check-Point 4',
+              onTap: () => context.go('/vendor/connections'),
             ),
             SizedBox(height: tokens.space.md),
 

@@ -40,12 +40,27 @@ class TalkPayload {
     required this.mobileNumber,
     required this.available,
     this.prefilledMessage = '',
+    this.callUrl = '',
   });
 
   final String waUrl;
   final String mobileNumber;
   final String prefilledMessage;
   final bool available;
+  final String callUrl;
+
+  /// True when the server supplied a usable `wa.me` URL. Widgets must not
+  /// invent a URL from [mobileNumber] (C-03).
+  bool get canOpenWhatsApp {
+    final url = waUrl.trim().toLowerCase();
+    return available &&
+        (url.startsWith('https://wa.me/') || url.startsWith('http://wa.me/'));
+  }
+
+  bool get canCall {
+    final url = callUrl.trim().toLowerCase();
+    return available && url.startsWith('tel:');
+  }
 
   static TalkPayload fromJson(Map<String, dynamic> j) {
     final mobile = (j['mobileNumber'] ?? j['phone'] ?? '') as String;
@@ -54,6 +69,7 @@ class TalkPayload {
       mobileNumber: mobile,
       prefilledMessage: j['prefilledMessage'] as String? ?? '',
       available: j['available'] as bool? ?? false,
+      callUrl: j['callUrl'] as String? ?? '',
     );
   }
 }
@@ -64,12 +80,16 @@ class ConnectionRequestSnapshot {
     required this.requestType,
     required this.direction,
     this.reference,
+    this.category,
+    this.region,
   });
 
   final String id;
   final String? reference;
   final RequestType requestType;
   final Direction direction;
+  final CategorySummary? category;
+  final RegionSummary? region;
 
   static ConnectionRequestSnapshot fromJson(Map<String, dynamic> j) =>
       ConnectionRequestSnapshot(
@@ -77,6 +97,8 @@ class ConnectionRequestSnapshot {
         reference: j['reference'] as String?,
         requestType: RequestType.parse(j['requestType'] as String?),
         direction: Direction.parse(j['direction'] as String?),
+        category: CategorySummary.tryParse(j['category']),
+        region: RegionSummary.tryParse(j['region']),
       );
 }
 
@@ -164,6 +186,64 @@ class ConnectionForCustomer {
           : ConnectionAcceptedOffer.fromJson(_map(accepted)),
       closedAt: _dt(j['closedAt']),
       closedBy: j['closedBy'] == null ? null : ClosedBy.parse(j['closedBy'] as String?),
+      offerId: j['offerId'] as String?,
+      requestId: j['requestId'] as String?,
+      createdAt: _dt(j['createdAt']),
+    );
+  }
+}
+
+/// Vendor Connection presenter — the only place revealed Customer fields exist
+/// (BR-007). Must never carry a competing Vendor's identity or price (BR-008).
+class ConnectionForVendor {
+  const ConnectionForVendor({
+    required this.id,
+    required this.state,
+    required this.customer,
+    required this.talk,
+    required this.identityRevealedAt,
+    this.request,
+    this.acceptedOffer,
+    this.closedAt,
+    this.closedBy,
+    this.offerId,
+    this.requestId,
+    this.createdAt,
+  });
+
+  final String id;
+  final ConnectionState state;
+  final RevealedParty customer;
+  final TalkPayload talk;
+  final DateTime identityRevealedAt;
+  final ConnectionRequestSnapshot? request;
+  final ConnectionAcceptedOffer? acceptedOffer;
+  final DateTime? closedAt;
+  final ClosedBy? closedBy;
+  final String? offerId;
+  final String? requestId;
+  final DateTime? createdAt;
+
+  DateTime get connectedAt => createdAt ?? identityRevealedAt;
+
+  static ConnectionForVendor fromJson(Map<String, dynamic> j) {
+    final accepted = j['acceptedOffer'] ?? j['offer'];
+    return ConnectionForVendor(
+      id: j['id'] as String,
+      state: ConnectionState.parse(j['state'] as String?),
+      customer: RevealedParty.fromCustomerJson(_map(j['customer'])),
+      talk: TalkPayload.fromJson(_map(j['talk'])),
+      identityRevealedAt:
+          _dt(j['identityRevealedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      request: j['request'] == null
+          ? null
+          : ConnectionRequestSnapshot.fromJson(_map(j['request'])),
+      acceptedOffer: accepted == null
+          ? null
+          : ConnectionAcceptedOffer.fromJson(_map(accepted)),
+      closedAt: _dt(j['closedAt']),
+      closedBy:
+          j['closedBy'] == null ? null : ClosedBy.parse(j['closedBy'] as String?),
       offerId: j['offerId'] as String?,
       requestId: j['requestId'] as String?,
       createdAt: _dt(j['createdAt']),

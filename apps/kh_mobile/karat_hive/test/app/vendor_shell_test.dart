@@ -86,13 +86,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('offers-body'), findsOneWidget);
 
-      // Connections remains gated until CP-4.
+      // Connections tab is live as of CP-4.
       await tester.tap(find.text('Connections'));
-      await tester.pump();
-      expect(
-        find.text('Customer connections open in Check-Point 4.'),
-        findsOneWidget,
-      );
+      await tester.pumpAndSettle();
+      expect(find.text('connections-body'), findsOneWidget);
     },
   );
 }

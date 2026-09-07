@@ -133,16 +133,24 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
                         );
                       }
                       final offer = listState.items[index];
+                      final connectionId = offer.connectionId;
+                      final accepted = offer.state == OfferState.accepted;
                       return OfferSummaryCard(
                         offer: offer,
-                        connectionComingSoonLabel: offer.state ==
-                                OfferState.accepted
+                        connectionComingSoonLabel: accepted &&
+                                (connectionId == null || connectionId.isEmpty)
                             ? (l10n?.offerConnectionCp4 ??
                                 'Connection opens in Check-Point 4.')
                             : null,
                         onTap: offer.state == OfferState.pending
                             ? () => context.push('/vendor/offers/${offer.id}')
-                            : null,
+                            : accepted &&
+                                    connectionId != null &&
+                                    connectionId.isNotEmpty
+                                ? () => context.push(
+                                      '/vendor/connections/$connectionId',
+                                    )
+                                : null,
                       );
                     },
                   ),

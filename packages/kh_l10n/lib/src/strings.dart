@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:kh_l10n/src/formatters.dart';
 
+import '../l10n/app_localizations.dart';
+
 /// Minimal string table for Vendor CP1 plus Customer shells/auth.
 /// A full ARB + gen_l10n setup replaces this once more surfaces land
 /// (Architecture-Frontend §14). Do not start ARB here.
@@ -14,6 +16,7 @@ class KhStrings {
 
   static const supportedLocales = [Locale('en'), Locale('ar')];
   static const delegates = <LocalizationsDelegate<dynamic>>[
+    AppLocalizations.delegate,
     _KhStringsDelegate(),
     GlobalMaterialLocalizations.delegate,
     GlobalWidgetsLocalizations.delegate,

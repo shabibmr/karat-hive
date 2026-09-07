@@ -125,10 +125,24 @@ void main() {
       final backend = TalkPayload.fromJson({
         'waUrl': 'https://wa.me/971509999999?text=x',
         'phone': '+971509999999',
+        'callUrl': 'tel:+971509999999',
         'available': false,
       });
       expect(backend.mobileNumber, '+971509999999');
       expect(backend.available, isFalse);
+      expect(backend.callUrl, 'tel:+971509999999');
+      expect(backend.canOpenWhatsApp, isFalse);
+      expect(backend.canCall, isFalse);
+    });
+
+    test('does not treat a raw phone as a wa.me URL', () {
+      final talk = TalkPayload.fromJson({
+        'waUrl': '',
+        'phone': '+971501234567',
+        'available': true,
+      });
+      expect(talk.canOpenWhatsApp, isFalse);
+      expect(talk.mobileNumber, '+971501234567');
     });
   });
 
@@ -175,6 +189,91 @@ void main() {
       expect(connSrc.contains('RevealedParty'), isTrue);
       final offerSrc = File('lib/src/offer.dart').readAsStringSync();
       expect(offerSrc.contains('RevealedParty'), isFalse);
+    });
+  });
+
+  group('ConnectionForVendor', () {
+    test('parses revealed Customer, talk.waUrl, and accepted terms', () {
+      final conn = ConnectionForVendor.fromJson({
+        'id': 'conn-v1',
+        'offerId': 'off-1',
+        'requestId': 'req-1',
+        'state': 'ACTIVE',
+        'identityRevealedAt': '2026-09-01T12:00:00.000Z',
+        'customer': {
+          'id': 'cp-1',
+          'displayName': 'Fatima Al Zahra',
+          'phone': '+971501234567',
+          'connectionCount': 3,
+          'rating': {'average': '4.8', 'count': 3},
+        },
+        'talk': {
+          'available': true,
+          'waUrl': 'https://wa.me/971501234567?text=Hello',
+          'phone': '+971501234567',
+          'callUrl': 'tel:+971501234567',
+        },
+        'request': {
+          'id': 'req-1',
+          'reference': 'KH-RQ-24A1',
+          'requestType': 'FIND_ORNAMENT',
+          'direction': 'BUY',
+          'category': {'id': 'c1', 'nameEn': 'Bangles', 'nameAr': 'أساور'},
+          'region': {'id': 'r1', 'nameEn': 'Deira', 'nameAr': 'ديرة'},
+        },
+        'offer': {
+          'id': 'off-1',
+          'offeredPrice': '12500.00',
+          'makingCharges': '200.00',
+          'validityHours': 24,
+        },
+      });
+      expect(conn.state, ConnectionState.active);
+      expect(conn.customer, isA<RevealedParty>());
+      expect(conn.customer.displayName, 'Fatima Al Zahra');
+      expect(conn.customer.mobile.e164, '+971501234567');
+      expect(conn.talk.canOpenWhatsApp, isTrue);
+      expect(conn.talk.waUrl, startsWith('https://wa.me/'));
+      expect(conn.request?.reference, 'KH-RQ-24A1');
+      expect(conn.request?.region?.nameEn, 'Deira');
+      expect(conn.acceptedOffer?.terms.offeredPrice, '12500.00');
+    });
+
+    test('has no competing Vendor identity or competitor price fields', () {
+      final src = File('lib/src/connection.dart').readAsStringSync();
+      final start = src.indexOf('class ConnectionForVendor');
+      expect(start, greaterThan(0));
+      final body = src.substring(start);
+      expect(body.contains('competing'), isFalse);
+      expect(body.contains('competitor'), isFalse);
+      expect(body.contains('winningVendor'), isFalse);
+      expect(body.contains('otherOffers'), isFalse);
+      expect(body.contains('vendor:'), isFalse);
+      expect(body.contains('RevealedParty customer'), isTrue);
+    });
+
+    test('masks nothing: identity is scoped to this Connection only', () {
+      final conn = ConnectionForVendor.fromJson({
+        'id': 'conn-closed',
+        'state': 'CLOSED',
+        'identityRevealedAt': '2026-09-01T12:00:00.000Z',
+        'closedAt': '2026-09-03T12:00:00.000Z',
+        'closedBy': 'VENDOR',
+        'customer': {
+          'displayName': 'Fatima Al Zahra',
+          'phone': '+971501234567',
+        },
+        'talk': {
+          'available': false,
+          'waUrl': 'https://wa.me/971501234567?text=x',
+          'phone': '+971501234567',
+          'callUrl': 'tel:+971501234567',
+        },
+      });
+      expect(conn.state, ConnectionState.closed);
+      expect(conn.talk.canOpenWhatsApp, isFalse);
+      expect(conn.customer.displayName, isNotEmpty);
+      expect(conn.closedBy, ClosedBy.vendor);
     });
   });
 }

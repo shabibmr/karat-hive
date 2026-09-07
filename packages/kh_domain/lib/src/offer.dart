@@ -225,6 +225,7 @@ class OfferForVendor {
     this.requestSummary,
     this.declineReason,
     this.awardedElsewhere = false,
+    this.connectionId,
   });
 
   final String id;
@@ -238,6 +239,10 @@ class OfferForVendor {
   final OfferRequestSummary? requestSummary;
   final OfferDeclineReason? declineReason;
   final bool awardedElsewhere;
+
+  /// Present when this Offer produced a Connection. Absent → UI keeps the
+  /// disabled copy rather than inventing a path (CP4-B05).
+  final String? connectionId;
 
   int get revisionsRemaining =>
       (kMaxOfferRevisions - revisionCount).clamp(0, kMaxOfferRevisions);
@@ -269,6 +274,7 @@ class OfferForVendor {
       declineReason:
           declineRaw == null ? null : OfferDeclineReason.parse(declineRaw),
       awardedElsewhere: j['awardedElsewhere'] as bool? ?? false,
+      connectionId: j['connectionId'] as String?,
     );
   }
 }

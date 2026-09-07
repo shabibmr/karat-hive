@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
@@ -177,6 +177,75 @@ void main() {
             ),
           ),
         ),
+      ),
+    );
+  });
+
+  testWidgets('ConnectionSummaryRow LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'connection_summary_row',
+      size: const Size(440, 220),
+      builder: () => SizedBox(
+        width: 400,
+        child: ConnectionSummaryRow(
+          connectionId: 'conn-1',
+          counterpartyName: 'Fatima Al Zahra',
+          state: ConnectionState.active,
+          requestReference: 'KH-RQ-24A1',
+          offeredPrice: '12500.00',
+          onTalk: () {},
+          onTap: () {},
+        ),
+      ),
+    );
+  });
+
+  testWidgets('TalkButton LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'talk_button',
+      size: const Size(400, 80),
+      builder: () => TalkButton(
+        talk: const TalkPayload(
+          waUrl: 'https://wa.me/971501234567?text=Hello',
+          mobileNumber: '+971501234567',
+          available: true,
+          callUrl: 'tel:+971501234567',
+        ),
+        onTalk: () {},
+      ),
+    );
+  });
+
+  testWidgets('RevealedPartyCard LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'revealed_party_card',
+      size: const Size(440, 220),
+      builder: () => SizedBox(
+        width: 400,
+        child: RevealedPartyCard(
+          party: RevealedParty(
+            displayName: 'Fatima Al Zahra',
+            mobile: PhoneNumber.parse('+971501234567'),
+            role: UserRole.customer,
+            dealCount: 3,
+            rating: const RatingSummary.score(4.8, 3),
+          ),
+        ),
+      ),
+    );
+  });
+
+  testWidgets('ConnectionClosedBanner LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'connection_closed_banner',
+      size: const Size(400, 100),
+      builder: () => const SizedBox(
+        width: 360,
+        child: ConnectionClosedBanner(),
       ),
     );
   });

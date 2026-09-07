@@ -787,4 +787,82 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get connectionsTitle => 'الاتصالات';
+
+  @override
+  String get connectionsEmptyBody =>
+      'لا اتصالات بعد. تظهر العروض المقبولة هنا.';
+
+  @override
+  String get couldNotLoadConnections => 'تعذّر تحميل الاتصالات.';
+
+  @override
+  String get couldNotLoadConnection => 'تعذّر تحميل هذا الاتصال.';
+
+  @override
+  String get connectionSectionActive => 'نشط';
+
+  @override
+  String get connectionSectionClosed => 'مغلق';
+
+  @override
+  String get connectionStateActive => 'نشط';
+
+  @override
+  String get connectionStateClosed => 'مغلق';
+
+  @override
+  String get connectionStateUnknown => 'غير معروف';
+
+  @override
+  String get connectionTalk => 'تحدث';
+
+  @override
+  String get connectionCall => 'اتصال';
+
+  @override
+  String get connectionCopyNumber => 'نسخ الرقم';
+
+  @override
+  String get connectionCopied => 'تم النسخ';
+
+  @override
+  String get connectionClose => 'إغلاق الاتصال';
+
+  @override
+  String get connectionCloseConfirmTitle => 'إغلاق هذا الاتصال؟';
+
+  @override
+  String get connectionCloseConfirmBody =>
+      'تبقى التفاصيل متاحة. تُفتح المراجعات في نقطة التحقق 5.';
+
+  @override
+  String get connectionClosedBanner => 'هذا الاتصال مغلق. تبقى التفاصيل متاحة.';
+
+  @override
+  String get connectionReviewsCp5 => 'تُفتح المراجعات في نقطة التحقق 5';
+
+  @override
+  String get connectionWhatsAppMissing =>
+      'واتساب غير متاح. انسخ الرقم أو اتصل بدلاً من ذلك.';
+
+  @override
+  String get connectionCouldNotOpenTalk => 'تعذّر فتح واتساب.';
+
+  @override
+  String get connectionDetailTitle => 'اتصال';
+
+  @override
+  String get connectionIdentityRevealedAt => 'كُشف الهوية في';
+
+  @override
+  String get connectionAcceptedTerms => 'شروط العرض المقبول';
+
+  @override
+  String get connectionLeaveFeedback => 'ترك تقييم';
+
+  @override
+  String get connectionReport => 'إبلاغ';
 }

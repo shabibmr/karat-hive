@@ -4,7 +4,7 @@
 |---|---|
 | **Product** | Karat Hive |
 | **Document** | Executable task list for the remaining 16 Vendor screens |
-| **Status** | Working backlog — CP-2 done; CP-3 Bid Flutter landed (`VEN-S09`–`S11`, `OffersClient`); backend A01–A07 verified on disk; A08 integration spec added (needs CI Postgres); B06 goldens partial. Remaining: CP-4 Connections |
+| **Status** | Working backlog — CP-2/CP-3 done; CP-4 Connections Flutter landed (`VEN-S12`–`S13`). Remaining: CP-5 reputation/notifications, CP-6 profile/settings |
 | **Date** | 7 September 2026 |
 | **Plan of record** | [`Vendor-App-Completion-Plan.md`](Vendor-App-Completion-Plan.md) |
 | **Does not override** | SRS v1.3 · `API-Route-Inventory.md` · `Architecture-Backend.md` / `-Frontend.md` · `Async-Contract.md` |
@@ -180,11 +180,11 @@ Screens `VEN-S12`, `VEN-S13`.
 | CP4-A05 | Close Connection | `POST /v1/connections/{id}/close` (`CV`) | Either party may close. Emits `connection.closed`. Closed detail is read-only and `talk.available:false` | open |
 | CP4-A06 | Concurrency test (`T25`) | `backend/test/integration/acceptance-concurrency.spec.ts` | Two simultaneous accepts on the same Request produce exactly one Connection and one `ACCEPTED` Offer (`BR-011`). Idempotent replay of accept returns the first result | open |
 | CP4-A07 | Masking and reveal spec | `backend/test/masking/` | Before acceptance both parties masked; after acceptance revealed **only** within the Connection. The same pair on a different Request stays masked (`BR-007`). Losing Vendors see no winner information | open |
-| CP4-B01 | `connections/` scaffold + `ConnectionsApi` | `lib/features/connections/` | §5.1 shape plus `routes.dart`. Revealed detail cached for the session only, **never to disk** (§9.5) | open |
-| CP4-B02 | `VEN-S12` Connections list | `.../presentation/connections_screen.dart` | Active before Closed; revealed name, Request reference, agreed price, date. Talk shortcut on Active rows only | open |
-| CP4-B03 | `VEN-S13` Connection detail | `.../presentation/connection_detail_screen.dart` | Revealed name and mobile with copy and tap-to-call; accepted Offer terms in full; Talk opens a pre-filled `wa.me` link and logs a contact event; Close behind a confirm, then prompts the review flow; read-only banner when closed; WhatsApp-absent fallback to Web, copy or call | open |
-| CP4-B04 | Widgets | `packages/kh_ui_domain` | `SH-CON-01`, `SH-CON-02`, `SH-CON-03`, `SH-CON-04`, `SH-ID-02`, `SH-FND-22` | open |
-| CP4-B05 | Wire `VEN-S11` Accepted tab and dashboard | `lib/features/offers_vendor/`, `request_feed/` | Accepted rows deep-link to the Connection; the "No Talk" flag prompts contact; the dashboard Active Connections panel goes live | open |
+| ~~CP4-B01~~ | `connections/` scaffold + `ConnectionsApi` | `lib/features/connections/`, `packages/kh_api/.../connections_client.dart` | Feature module + `KhApi.connections` | **done** |
+| ~~CP4-B02~~ | `VEN-S12` Connections list | `.../presentation/connections_screen.dart` | Active first; revealed name; Talk on Active rows | **done** |
+| ~~CP4-B03~~ | `VEN-S13` Connection detail | `.../presentation/connection_detail_screen.dart` | Revealed identity, Talk (`wa.me` + contact-event), close confirm, CP-5 review snackbar | **done** |
+| ~~CP4-B04~~ | Widgets | `packages/kh_ui_domain` | `SH-CON-01`–`04`, `SH-ID-02`, `SH-FND-22` | **done** |
+| ~~CP4-B05~~ | Wire `VEN-S11` Accepted tab and dashboard | `lib/features/offers_vendor/`, `request_feed/` | Deep-link when `connectionId` present; dashboard Active Connections opens Connections tab | **done** |
 
 **CP4-V01 — Backend.** Two Vendors submit Offers → dev-harness accept one → confirm exactly one Connection exists, the loser's Offer is `REJECTED` with no winner information, and both identities are revealed only inside the Connection → run the concurrency test → log a contact event and confirm only channel and timestamp are stored → close, and confirm a further contact event returns `CONNECTION_CLOSED`.
 

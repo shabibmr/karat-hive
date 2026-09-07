@@ -67,6 +67,7 @@ export type OfferForVendor = {
   expiresAt: string;
   decidedAt?: string;
   revisionCount: number;
+  connectionId?: string;
   terms: OfferTermsDto;
   media: OfferMediaDto[];
   requestSummary?: {
@@ -116,6 +117,7 @@ export type PrismaOfferWithDetails = Offer & {
     category?: Category;
     region?: Region;
   };
+  connection?: { id: string } | null;
 };
 
 export function presentOfferTerms(offer: Offer): OfferTermsDto {
@@ -220,6 +222,7 @@ export function presentOfferForVendor(
     expiresAt: offer.expiresAt.toISOString(),
     decidedAt: offer.decidedAt?.toISOString(),
     revisionCount: offer.revisionCount,
+    connectionId: offer.connection?.id,
     terms: presentOfferTerms(offer),
     media: presentOfferMedia(offer.media),
     requestSummary,

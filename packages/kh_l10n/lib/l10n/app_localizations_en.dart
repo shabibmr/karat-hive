@@ -774,4 +774,83 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get connectionsTitle => 'Connections';
+
+  @override
+  String get connectionsEmptyBody =>
+      'No Connections yet. Accepted Offers appear here.';
+
+  @override
+  String get couldNotLoadConnections => 'Could not load Connections.';
+
+  @override
+  String get couldNotLoadConnection => 'Could not load this Connection.';
+
+  @override
+  String get connectionSectionActive => 'Active';
+
+  @override
+  String get connectionSectionClosed => 'Closed';
+
+  @override
+  String get connectionStateActive => 'Active';
+
+  @override
+  String get connectionStateClosed => 'Closed';
+
+  @override
+  String get connectionStateUnknown => 'Unknown';
+
+  @override
+  String get connectionTalk => 'Talk';
+
+  @override
+  String get connectionCall => 'Call';
+
+  @override
+  String get connectionCopyNumber => 'Copy number';
+
+  @override
+  String get connectionCopied => 'Copied';
+
+  @override
+  String get connectionClose => 'Close Connection';
+
+  @override
+  String get connectionCloseConfirmTitle => 'Close this Connection?';
+
+  @override
+  String get connectionCloseConfirmBody =>
+      'Details stay available. Reviews open in Check-Point 5.';
+
+  @override
+  String get connectionClosedBanner =>
+      'This Connection is closed. Details remain available.';
+
+  @override
+  String get connectionReviewsCp5 => 'Reviews open in Check-Point 5';
+
+  @override
+  String get connectionWhatsAppMissing =>
+      'WhatsApp is not available. Copy the number or call instead.';
+
+  @override
+  String get connectionCouldNotOpenTalk => 'Could not open WhatsApp.';
+
+  @override
+  String get connectionDetailTitle => 'Connection';
+
+  @override
+  String get connectionIdentityRevealedAt => 'Identity revealed';
+
+  @override
+  String get connectionAcceptedTerms => 'Accepted Offer terms';
+
+  @override
+  String get connectionLeaveFeedback => 'Leave feedback';
+
+  @override
+  String get connectionReport => 'Report';
 }

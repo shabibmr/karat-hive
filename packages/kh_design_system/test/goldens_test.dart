@@ -68,6 +68,15 @@ void main() {
     );
   });
 
+  testWidgets('KhCopyControl LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'kh_copy_control',
+      size: const Size(80, 80),
+      builder: () => const KhCopyControl(value: '+971501234567'),
+    );
+  });
+
   testWidgets('KhBadge LTR+RTL golden', (tester) async {
     await expectKhGoldens(
       tester,

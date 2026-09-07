@@ -8,7 +8,7 @@ import 'package:kh_design_system/kh_design_system.dart';
 /// - Home (VEN-S05)
 /// - Requests (VEN-S06)
 /// - Offers (VEN-S11 / CP-3)
-/// - Connections (VEN-S12, disabled until CP-4)
+/// - Connections (VEN-S12 / CP-4)
 /// - Profile (VEN-S14, disabled until CP-6)
 ///
 /// Uses [StatefulNavigationShell] so Home and Requests keep independent
@@ -18,16 +18,14 @@ class VendorShell extends StatelessWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  static const _enabledTabCount = 3;
+  static const _enabledTabCount = 4;
 
   void _onDestinationSelected(BuildContext context, int index) {
     if (index >= _enabledTabCount) {
-      final message = switch (index) {
-        3 => 'Customer connections open in Check-Point 4.',
-        _ => 'Vendor profile & settings open in Check-Point 6.',
-      };
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+        const SnackBar(
+          content: Text('Vendor profile & settings open in Check-Point 6.'),
+        ),
       );
       return;
     }
@@ -67,11 +65,9 @@ class VendorShell extends StatelessWidget {
             selectedIcon: Icon(Icons.local_offer),
             label: 'Offers',
           ),
-          NavigationDestination(
-            icon: Icon(
-              Icons.chat_bubble_outline,
-              color: tokens.ink.withValues(alpha: 0.35),
-            ),
+          const NavigationDestination(
+            icon: Icon(Icons.handshake_outlined),
+            selectedIcon: Icon(Icons.handshake),
             label: 'Connections',
           ),
           NavigationDestination(
