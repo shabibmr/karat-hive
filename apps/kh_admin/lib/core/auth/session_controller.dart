@@ -56,25 +56,34 @@ class SessionController extends StateNotifier<SessionState> {
     await _checkLegacySession();
   }
 
+  /// G2-A14: exchange Google ID token for a KH SessionBundle, then use KH tokens.
   Future<void> _syncFirebaseUser(User fbUser) async {
     try {
-      final me = await _authRepository.getMe();
+      final idToken = await fbUser.getIdToken();
+      if (idToken == null || idToken.isEmpty) {
+        state = state.copyWith(
+          status: SessionStatus.unauthenticated,
+          clearAdmin: true,
+          clearTokens: true,
+        );
+        return;
+      }
+      final bundle = await _authRepository.googleSession(idToken);
+      await _tokenStorage.saveTokens(bundle.tokens);
       state = state.copyWith(
         status: SessionStatus.authenticated,
-        admin: me,
+        tokens: bundle.tokens,
+        admin: bundle.user,
         clearError: true,
       );
     } catch (_) {
-      // Backend /v1/me not available or user not in DB yet; construct admin profile from Firebase identity
+      // Unbound Google identity — Admin must already exist; no auto-provision.
+      await _tokenStorage.clearTokens();
       state = state.copyWith(
-        status: SessionStatus.authenticated,
-        admin: AdminUser(
-          userId: fbUser.uid,
-          userType: 'ADMIN',
-          email: fbUser.email,
-          displayName: fbUser.displayName ?? fbUser.email ?? 'Platform Admin',
-        ),
-        clearError: true,
+        status: SessionStatus.unauthenticated,
+        clearAdmin: true,
+        clearTokens: true,
+        errorMessage: 'Google account is not linked to an Admin user.',
       );
     }
   }

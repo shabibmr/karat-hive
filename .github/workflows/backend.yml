@@ -36,6 +36,8 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run format:check
+      # NFR-030 / G2-GR05 — regenerate OpenAPI from Nest+Zod; fail on drift.
+      - run: npm run openapi:check
 
   integration:
     runs-on: ubuntu-latest

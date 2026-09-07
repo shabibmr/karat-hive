@@ -44,7 +44,7 @@ class SessionController extends Notifier<SessionState> {
       if (fbUser == null) {
         _checkLegacySession();
       } else {
-        refreshUser();
+        _exchangeGoogleSession(fbUser);
       }
     });
     ref.onDispose(() => _authSub?.cancel());
@@ -56,7 +56,7 @@ class SessionController extends Notifier<SessionState> {
   Future<void> _restore() async {
     final fbUser = _authService.currentUser;
     if (fbUser != null) {
-      await refreshUser();
+      await _exchangeGoogleSession(fbUser);
       return;
     }
     await _checkLegacySession();
@@ -71,35 +71,38 @@ class SessionController extends Notifier<SessionState> {
     await refreshUser();
   }
 
+  /// G2-A14: after Google Sign-In, exchange the ID token for a KH SessionBundle,
+  /// then call domain routes with the KH access token only.
+  Future<void> _exchangeGoogleSession(User fbUser) async {
+    try {
+      final idToken = await fbUser.getIdToken();
+      if (idToken == null || idToken.isEmpty) {
+        state = const SignedOut();
+        return;
+      }
+      final result = await _api.googleSession(idToken: idToken);
+      await result.when(
+        ok: (bundle) async {
+          await _storage.save(bundle.tokens);
+          state = SignedIn(bundle.user);
+        },
+        err: (_) async {
+          // Unbound Google identity — no KH account yet. Clear any stale tokens.
+          await _storage.clear();
+          state = const SignedOut();
+        },
+      );
+    } catch (_) {
+      await _storage.clear();
+      state = const SignedOut();
+    }
+  }
+
   Future<void> refreshUser() async {
     final result = await _api.me();
     state = result.when(
       ok: (user) => SignedIn(user),
-      err: (failure) {
-        final fbUser = _authService.currentUser;
-        if (fbUser != null) {
-          // Firebase authenticated; fallback to initial MeUser for onboarding
-          return SignedIn(
-            MeUser(
-              userId: fbUser.uid,
-              userType: 'VENDOR',
-              mobileNumber: fbUser.phoneNumber ?? '',
-              preferredLanguage: 'en',
-              email: fbUser.email,
-              vendor: const VendorMe(
-                vendorProfileId: '',
-                lifecycle: VendorLifecycle.registered,
-                awaitingApproval: true,
-                tradingName: '',
-                legalBusinessName: '',
-                categoryCount: 0,
-                regionCount: 0,
-              ),
-            ),
-          );
-        }
-        return const SignedOut();
-      },
+      err: (_) => const SignedOut(),
     );
   }
 

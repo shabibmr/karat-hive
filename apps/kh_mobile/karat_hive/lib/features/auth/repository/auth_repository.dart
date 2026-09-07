@@ -19,6 +19,9 @@ class AuthRepository {
 
   Future<Result<SessionBundle>> loginPassword(String email, String password) =>
       _api.loginPassword(email: email, password: password);
+
+  Future<Result<SessionBundle>> googleSession(String idToken) =>
+      _api.googleSession(idToken: idToken);
 }
 
 final authRepositoryProvider =

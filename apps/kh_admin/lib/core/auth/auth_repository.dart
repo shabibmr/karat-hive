@@ -21,6 +21,15 @@ class AuthRepository {
     return SessionBundle.fromJson(res as Map<String, dynamic>);
   }
 
+  /// Exchanges a Google / Firebase ID token for a Karat Hive session (`AD-API-13`).
+  Future<SessionBundle> googleSession(String idToken) async {
+    final res = await _apiClient.post(
+      '/v1/auth/google/session',
+      data: {'idToken': idToken},
+    );
+    return SessionBundle.fromJson(res as Map<String, dynamic>);
+  }
+
   /// Rotates refresh token and returns a new session bundle.
   Future<SessionBundle> refresh(String refreshToken) async {
     final res = await _apiClient.post(

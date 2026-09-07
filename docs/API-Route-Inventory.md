@@ -4,9 +4,9 @@
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | HTTP API Route Inventory (pre-code contract) |
-| **Version** | 0.1 |
+| **Version** | 0.2 |
 | **Status** | Draft — `[PROPOSED]`. Technical Lead sign-off required before it becomes binding. |
-| **Date** | 1 September 2026 |
+| **Date** | 7 September 2026 |
 | **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`CONTEXT.md`](../CONTEXT.md) · [`docs/Architecture-Backend.md`](Architecture-Backend.md) §13–§16 |
 | **Superseded by** | Generated OpenAPI (`NFR-030`, `AD-BE-14`) once application code exists. Until then this document is the catalogue the clients may design against. |
 | **Companion** | [`docs/Screen-API-Map.md`](Screen-API-Map.md) — screen-by-screen coverage check of this inventory; open gaps tracked as `SAM-GAP-nn`. |
@@ -70,6 +70,7 @@ Decisions made by this document. Status `Proposed` needs Technical Lead sign-off
 | `AD-API-10` | Password-reset for Vendor (and Admin, via another Admin) is included. The SRS does not specify it; login with email/password (`FR-VEN-003`) is unusable without it. | `[ASSUMED]` |
 | `AD-API-11` | Cursor pagination on every collection: `?limit=&cursor=`, returning `meta.nextCursor`. `limit` default 20, max 50 (Admin lists max 100). | `[PROPOSED]` (style is SRS/`NFR-002`; numbers are not) |
 | `AD-API-12` | Internal Admin notes are a nested resource `POST /v1/admin/{collection}/{id}/notes`. | `[PROPOSED]` |
+| `AD-API-13` | Google Sign-In is the **only** login for Customer, Vendor, and Admin. Clients exchange a verified Google ID token at `POST /v1/auth/google/session` (alias `POST /v1/auth/firebase/session`) for a Karat Hive `SessionBundle`. Domain routes accept **only** the Karat Hive access token. Unbound Google identity → `401 UNAUTHENTICATED` (no auto-provision). Admin still cannot self-register. | Locked (`adr/0010`, 6 Sep 2026) |
 
 ---
 
@@ -138,13 +139,15 @@ Replay within 24 hours of the same key + route + caller + body hash returns the 
 
 ### 3.4 Authentication and authorisation
 
-Three authentication paths (SRS §7.5, backend §14):
+Login is Google Sign-In for every role (`AD-API-13`, [`adr/0010`](adr/0010-google-signin-only-login.md)). The SRS §7.5 OTP/password/2FA wording is superseded for marketplace login until the next SRS rewrite.
 
 | Actor | Mechanism | Session inactivity | Access JWT TTL `[PROPOSED]` |
 |---|---|---|---|
-| Customer | Mobile + OTP. One-time OAuth binding **gates publish**, not login (`BR-001`, `FR-CUS-001`). | 30 days (`FR-CUS-002`) | 15 minutes |
-| Vendor | Mobile + OTP **or** email + password (`FR-VEN-003`). | 14 days | 15 minutes |
-| Admin | Email + password + mandatory 2FA. No self-registration. | 60 minutes (`FR-ADM-001`) | 15 minutes |
+| Customer | Google ID token → `POST /v1/auth/google/session` → Karat Hive `SessionBundle`. New users complete `POST /v1/auth/register/customer` (Google token or OTP phone proof). | 30 days (`FR-CUS-002`) | 15 minutes |
+| Vendor | Same Google session exchange. New shops complete `POST /v1/auth/register/vendor`. | 14 days | 15 minutes |
+| Admin | Same Google session exchange. **No self-registration** — Admin row must already exist (seed or another Admin). | 60 minutes (`FR-ADM-001`) | 15 minutes |
+
+OTP may still prove a mobile number (register / change-mobile). Password login and Admin 2FA routes remain in this catalogue as **leftover** until removed (`Backend-Gap-Tasks` G2-A15).
 
 Access JWT claims `[PROPOSED]`: `sub` (user id), `role` (`CUSTOMER` \| `VENDOR` \| `ADMIN`), `ver` (token version). **No** entitlement, vendor state, or subscription claim — those are read from PostgreSQL per request (backend §14.2). Suspension takes effect on the next call (`FR-ADM-016`, `FR-SYS-002`).
 
@@ -495,7 +498,7 @@ Closed enumeration. Unknown codes must not be invented by clients. `message` is 
 | `VALIDATION_FAILED` | 400 | Body/query failed schema. See `details`. |
 | `IDEMPOTENCY_KEY_REQUIRED` | 400 | Required key missing. |
 | `IDEMPOTENCY_KEY_REUSED` | 409 | Same key, different body. |
-| `UNAUTHENTICATED` | 401 | Missing or invalid access token. |
+| `UNAUTHENTICATED` | 401 | Missing or invalid Karat Hive access token; or Google session exchange with an unbound / unmatched identity (`AD-API-13`). |
 | `TOKEN_EXPIRED` | 401 | Access token past TTL; refresh. |
 | `REFRESH_REUSE_DETECTED` | 401 | Rotated refresh presented; family revoked. |
 | `FORBIDDEN` | 403 | Generic authorisation failure. |
@@ -574,15 +577,17 @@ Mutating routes require `Idempotency-Key`; a `*` marks it mandatory.
 |---|---|---|---|---|
 | GET | `/health` | Pub | — | |
 | GET | `/ready` | Pub | — | |
-| POST | `/v1/auth/otp/request` | Pub | CUS-001, CUS-002, VEN-001, VEN-003 | |
-| POST | `/v1/auth/otp/verify` | Pub | CUS-001, CUS-002, VEN-003 | |
+| POST | `/v1/auth/google/session` | Pub | CUS-001, CUS-002, VEN-003, ADM-001 | `AD-API-13` |
+| POST | `/v1/auth/firebase/session` | Pub | CUS-001, CUS-002, VEN-003, ADM-001 | alias of google/session |
+| POST | `/v1/auth/otp/request` | Pub | CUS-001, CUS-002, VEN-001 | phone proof, not login |
+| POST | `/v1/auth/otp/verify` | Pub | CUS-001, CUS-002, VEN-001 | phone proof, not login |
 | POST | `/v1/auth/register/customer` | Pub | CUS-001 | `[ASSUMED]` |
 | POST | `/v1/auth/register/vendor` | Pub | VEN-001 | `[ASSUMED]` |
-| POST | `/v1/auth/login/password` | Pub | VEN-003, ADM-001 | |
-| POST | `/v1/auth/admin/2fa/setup` | A | ADM-001 | `[PROPOSED]` |
-| POST | `/v1/auth/admin/2fa/confirm` | A | ADM-001 | `[PROPOSED]` |
-| POST | `/v1/auth/admin/2fa/verify` | Pub (challenge) | ADM-001 | |
-| POST | `/v1/auth/oauth/bind` | C | CUS-001, BR-001 | |
+| POST | `/v1/auth/login/password` | Pub | — | leftover; remove G2-A15 |
+| POST | `/v1/auth/admin/2fa/setup` | A | — | leftover; remove G2-A15 |
+| POST | `/v1/auth/admin/2fa/confirm` | A | — | leftover; remove G2-A15 |
+| POST | `/v1/auth/admin/2fa/verify` | Pub (challenge) | — | leftover; remove G2-A15 |
+| POST | `/v1/auth/oauth/bind` | C | CUS-001, BR-001 | not login (`AD-API-13`) |
 | POST | `/v1/auth/refresh` | Pub (refresh cookie/body) | CUS-002, VEN-003, ADM-001 | |
 | POST | `/v1/auth/logout` | C/V/A | CUS-002 | |
 | GET | `/v1/auth/sessions` | C/V/A | VEN-027 | |
@@ -737,6 +742,29 @@ Readiness. No auth. 200 only if PostgreSQL accepts a connection and (in `api` ro
 
 Screens: `CUS-S01`, `VEN-S01`, `VEN-S04`, `ADM-S01`.
 
+### `POST /v1/auth/google/session` · `POST /v1/auth/firebase/session` (`AD-API-13`, `adr/0010`)
+
+Public. `@RevealsIdentity`. Exchanges a verified Google ID token (Firebase Auth) for a Karat Hive `SessionBundle`. Does **not** create a User. Both paths are identical; `firebase/session` is an alias kept for existing clients.
+
+```
+body: { idToken: string }       // also accepts token | firebaseToken
+200 data: SessionBundle
+```
+
+Behaviour:
+
+1. Verify the Google ID token server-side (issuer, audience, signature, expiry).
+2. Look up an existing `oauth_binding` for the subject. If bound and the User is not soft-deleted → issue `SessionBundle`.
+3. Else, if `email` is present **and** `emailVerified === true`, match an existing User by email, upsert the Google binding, audit `OAUTH_BOUND`, issue `SessionBundle`.
+4. Else, if a verified E.164 `phone_number` is present, match by mobile the same way.
+5. Else → `401 UNAUTHENTICATED`. No auto-provision. The client must call the matching register route (Customer or Vendor) with terms/privacy and a real mobile.
+
+Errors: `UNAUTHENTICATED` (missing/invalid/expired token, or unbound identity), `TOKEN_EXPIRED` (Google token past TTL), `ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` are enforced on subsequent domain calls, not on this exchange when the User row is still issued a session — suspended Users receive those codes from `AuthGuard` on `/v1/me` and marketplace routes.
+
+Rate-limited with the auth bucket (per IP / per subject). Domain routes after exchange accept **only** the Karat Hive access token; a Google bearer on `GET /v1/me` is `401 UNAUTHENTICATED`.
+
+There is **no** `POST /v1/auth/oauth/login`. Google session exchange is the login (`AD-API-13`).
+
 ### `POST /v1/auth/otp/request`
 
 Issues an SMS OTP. Rate-limited per number and per IP (`FR-CUS-001` AC2, SRS §7.5).
@@ -777,7 +805,8 @@ Errors: `OTP_INVALID`, `OTP_EXPIRED`.
 
 ```
 body: {
-  challengeId: UUID              // verified OTP
+  challengeId?: UUID             // verified OTP phone proof — xor firebaseToken
+  firebaseToken?: string         // verified Google identity (AD-API-13)
   displayName: string            // 1–100
   email?: string
   preferredLanguage: en | ar
@@ -788,13 +817,14 @@ body: {
 201 data: SessionBundle          // accountState = ACTIVE
 ```
 
-Acceptance of ToS/Privacy is persisted with version + timestamp. Duplicate mobile → `MOBILE_ALREADY_REGISTERED`.
+Exactly one of `challengeId` or `firebaseToken` is required. Acceptance of ToS/Privacy is persisted with version + timestamp. Duplicate mobile → `MOBILE_ALREADY_REGISTERED`. Google completer still requires a real E.164 mobile (OTP or verified Google phone).
 
 ### `POST /v1/auth/register/vendor` `[ASSUMED]` (`FR-VEN-001`)
 
 ```
 body: {
-  challengeId: UUID
+  challengeId?: UUID             // verified OTP phone proof — xor firebaseToken
+  firebaseToken?: string         // verified Google identity (AD-API-13)
   legalBusinessName: string
   tradingName: string
   tradeLicenceNumber: string
@@ -811,7 +841,7 @@ body: {
 201 data: SessionBundle          // vendorLifecycle = PENDING_VERIFICATION
 ```
 
-The session is real; marketplace collections will return `403 VENDOR_NOT_ACTIVE`. KYC documents are uploaded next via the media pipeline.
+The session is real; marketplace collections will return `403 VENDOR_NOT_ACTIVE`. KYC documents are uploaded next via the media pipeline. Role is the route, never inferred from the Google token. **No Admin register via Google.**
 
 ### `POST /v1/auth/login/password`
 
@@ -850,7 +880,7 @@ body: { provider: GOOGLE | APPLE, identityToken: string }
 
 Errors: `OAUTH_TOKEN_INVALID`, `OAUTH_ALREADY_BOUND`. Binding is one-time; subsequent publishes do not re-prompt (`FR-CUS-001` AC6).
 
-There is **no** `POST /v1/auth/oauth/login`. OAuth is not a login mechanism (`BR-001`, backend §14.3).
+There is **no** `POST /v1/auth/oauth/login`. Login is `POST /v1/auth/google/session` (`AD-API-13`). This bind route remains only as a one-time publish-gate helper until the SRS `BR-001` rewrite; new Google-session users already carry a binding from exchange or register.
 
 ### `POST /v1/auth/refresh`
 
@@ -1967,8 +1997,8 @@ Every FR in SRS §4 maps to at least one route or to a worker (no HTTP). `[ASSUM
 
 | FR | Routes / mechanism |
 |---|---|
-| CUS-001 | `POST /v1/auth/otp/*`, `POST /v1/auth/register/customer`, `POST /v1/auth/oauth/bind`; publish gate on `POST /v1/requests/{id}/publish` |
-| CUS-002 | `POST /v1/auth/otp/*`, `POST /v1/auth/refresh`, `POST /v1/auth/logout`, `GET/DELETE /v1/auth/sessions` |
+| CUS-001 | `POST /v1/auth/google/session`, `POST /v1/auth/register/customer`; OTP for phone proof; publish gate on `POST /v1/requests/{id}/publish` |
+| CUS-002 | `POST /v1/auth/google/session`, `POST /v1/auth/refresh`, `POST /v1/auth/logout`, `GET/DELETE /v1/auth/sessions` |
 | CUS-003 | `GET/PATCH /v1/me`, `POST /v1/me/mobile/change` |
 | CUS-004 | `POST /v1/me/deactivate`, `POST /v1/me/deletion-requests`, `POST /v1/admin/customers/{id}/erasure` |
 | CUS-005–013 | `POST/PATCH /v1/requests`, `GET /v1/platform-config`, `GET /v1/gold-rates`, media pipeline |
@@ -1998,7 +2028,7 @@ Every FR in SRS §4 maps to at least one route or to a worker (no HTTP). `[ASSUM
 |---|---|
 | VEN-001 | `POST /v1/auth/register/vendor` |
 | VEN-002 | media `purpose=KYC_DOCUMENT`, `GET/POST /v1/me/vendor/documents`, `POST /v1/me/vendor/resubmit` |
-| VEN-003 | OTP + `POST /v1/auth/login/password`; shell enforced as `403 VENDOR_NOT_ACTIVE` |
+| VEN-003 | `POST /v1/auth/google/session` (`AD-API-13`); shell enforced as `403 VENDOR_NOT_ACTIVE` |
 | VEN-004–007 | `GET /v1/me/dashboard` |
 | VEN-008–009 | `GET /v1/matches`, `/v1/filter-presets*` |
 | VEN-010 | `GET /v1/requests/{id}` (vendor presenter), `POST /v1/matches/{id}/viewed` |
@@ -2023,7 +2053,7 @@ Every FR in SRS §4 maps to at least one route or to a worker (no HTTP). `[ASSUM
 
 | FR | Routes / mechanism |
 |---|---|
-| ADM-001 | `POST /v1/auth/login/password` + `/v1/auth/admin/2fa/*` |
+| ADM-001 | `POST /v1/auth/google/session` (`AD-API-13`). No self-registration. Password + 2FA leftover until G2-A15. |
 | ADM-002 | `/v1/admin/admins*` (coarse, no role column) |
 | ADM-003–009 | `GET /v1/admin/dashboard` |
 | ADM-010–012 | `/v1/admin/customers*` |
@@ -2078,7 +2108,8 @@ These are recorded so implementation does not silently resolve them.
 | `FR-ADM-002` Super / Ops / Analyst | Deferred by `AD-API-03` | Coarse `ADMIN`. Revisit before any permission split; identifiers on Admin routes stay stable. |
 | Offer validity options: `FR-VEN-013` (12/24/48) vs entity dictionary (24/48/72/168) | Spec tension | Inventory follows `FR-VEN-013` (`AD-API-07`). Align SRS §6 on the next revision. |
 | Type Subscription commercial flow | `[PROPOSED]` `AD-API-04` | Admin-grant, Vendor read-only. If in-app payment is later required, add routes under `/v1/me/subscriptions` without reusing these identifiers for a different meaning. |
-| Password reset | `[ASSUMED]` `AD-API-10` | Needed because `FR-VEN-003` allows email/password. |
+| Password reset | `[ASSUMED]` `AD-API-10` | Leftover with password login. Remove with G2-A15 after Google session is the only login. |
+| Password login + Admin 2FA routes | Leftover (`adr/0010`) | Still listed in §6/§8; delete under G2-A15. |
 | Biometric unlock (`FR-CUS-002` AC5) | Client-only | No API. Convenience layer over an existing session. |
 | Dashboard live-update without refresh (`FR-CUS-019` AC4, `NFR-003`) | `[PROPOSED]` | v1 is pull-to-refresh + focus refetch. No WebSocket/SSE (would not need a broker, but is out of v1 scope). |
 | Chart PNG export (`FR-ADM-028` AC1) | `[ASSUMED]` | Export `format=PNG` is specified; rendering is an Admin-worker concern. |
@@ -2091,6 +2122,7 @@ These are recorded so implementation does not silently resolve them.
 | Version | Date | Change |
 |---|---|---|
 | 0.1 | 1 Sep 2026 | Initial inventory against SRS v1.3 and backend architecture §13–§16. Locked: `AD-API-01`–`03`, shared resources, coarse Admin, full `[ASSUMED]` schemas. |
+| 0.2 | 7 Sep 2026 | `AD-API-13`: Google session exchange (`POST /v1/auth/google/session` + firebase alias) is the only login. §3.4, §5.1, §6, §8, §22 updated. Password/2FA marked leftover (G2-A15). G2-D02. |
 
 ## Appendix B — Sign-off
 

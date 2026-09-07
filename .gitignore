@@ -15,3 +15,9 @@ node_modules/
 build/
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Secrets / local env
+.env
+
+# Local agent tool config
+.grok/
