@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
+import 'package:kh_l10n/kh_l10n.dart';
 
 /// SH-ID-07 — Trust signal badge / row.
 /// Displays rating score, count, and completed deal count.
@@ -17,12 +18,29 @@ class TrustSignalBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final locale = Localizations.localeOf(context).languageCode;
+    final l10n = AppLocalizations.of(context);
     final hasRating = rating != null && rating!.average > 0;
     final hasDeals = dealCount != null && dealCount! > 0;
 
     if (!hasRating && !hasDeals) {
       return const SizedBox.shrink();
     }
+
+    final dealsText = hasDeals
+        ? localizeDigits(
+            l10n?.dealCount(dealCount!) ??
+                (dealCount == 1 ? '1 deal' : '$dealCount deals'),
+            locale,
+          )
+        : null;
+
+    final ratingAverage = hasRating
+        ? localizeDigits(rating!.average.toStringAsFixed(1), locale)
+        : null;
+    final ratingCount = hasRating && rating!.count > 0
+        ? localizeDigits('(${rating!.count})', locale)
+        : null;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -31,17 +49,17 @@ class TrustSignalBadge extends StatelessWidget {
           Icon(Icons.star_rounded, size: 16, color: tokens.gold),
           const SizedBox(width: 2),
           Text(
-            rating!.average.toStringAsFixed(1),
+            ratingAverage!,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: tokens.ink,
             ),
           ),
-          if (rating!.count > 0) ...[
+          if (ratingCount != null) ...[
             const SizedBox(width: 2),
             Text(
-              '(${rating!.count})',
+              ratingCount,
               style: TextStyle(
                 fontSize: 11,
                 color: tokens.ink.withValues(alpha: 0.6),
@@ -62,7 +80,7 @@ class TrustSignalBadge extends StatelessWidget {
           Icon(Icons.handshake_outlined, size: 14, color: tokens.ink.withValues(alpha: 0.7)),
           const SizedBox(width: 4),
           Text(
-            '$dealCount deals',
+            dealsText!,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,

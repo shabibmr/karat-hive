@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:karat_hive/app/session/session_controller.dart';
-import 'package:karat_hive/features/request_feed/controller/request_detail_controller.dart';
 import 'package:karat_hive/features/request_feed/controller/request_feed_controller.dart';
 import 'package:karat_hive/features/onboarding/repository/onboarding_repository.dart';
 import 'package:karat_hive/features/request_feed/presentation/request_detail_screen.dart';
@@ -148,6 +147,15 @@ class FakeSessionController extends SessionController {
   SessionState build() => const SignedOut();
 }
 
+class _SeededRequestFiltersController extends RequestFiltersController {
+  _SeededRequestFiltersController(this._seed);
+
+  final RequestFiltersState _seed;
+
+  @override
+  RequestFiltersState build() => _seed;
+}
+
 void main() {
   group('RequestFeedScreen (VEN-S06)', () {
     testWidgets('renders empty state when matching feed is empty', (tester) async {
@@ -249,9 +257,11 @@ void main() {
           overrides: [
             requestFeedRepositoryProvider.overrideWithValue(fakeRepo),
             requestFiltersProvider.overrideWith(
-              (ref) => const RequestFiltersState(
-                requestType: 'BULLION',
-                includeResponded: true,
+              () => _SeededRequestFiltersController(
+                const RequestFiltersState(
+                  requestType: 'BULLION',
+                  includeResponded: true,
+                ),
               ),
             ),
           ],
@@ -369,7 +379,6 @@ void main() {
         ProviderScope(
           overrides: [
             requestFeedRepositoryProvider.overrideWithValue(fakeRepo),
-            requestDetailProvider('req-999').overrideWith((ref) => item),
           ],
           child: const MaterialApp(
             home: RequestDetailScreen(requestId: 'req-999'),
@@ -505,7 +514,6 @@ void main() {
         ProviderScope(
           overrides: [
             requestFeedRepositoryProvider.overrideWithValue(fakeRepo),
-            requestDetailProvider('req-leaky-1').overrideWith((ref) => leakyMaskedItem),
           ],
           child: const MaterialApp(
             home: RequestDetailScreen(requestId: 'req-leaky-1'),
@@ -626,6 +634,7 @@ void main() {
           newRequests: 0,
           pendingOffers: 0,
           activeConnections: 0,
+          ratingAverage: null,
           reviewCount: 0,
           subscriptions: [],
         ),

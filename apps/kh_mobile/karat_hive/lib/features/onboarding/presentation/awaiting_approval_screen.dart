@@ -51,16 +51,17 @@ class _AwaitingApprovalScreenState extends ConsumerState<AwaitingApprovalScreen>
 
   @override
   Widget build(BuildContext context) {
-    final s = KhStrings.of(context);
+    final l10n = AppLocalizations.of(context);
     final me = ref.watch(vendorMeProvider);
 
     return KhScaffold(
-      title: s.s('onboarding.awaitingTitle'),
+      title: l10n?.onboardingAwaitingTitle ?? 'Verification in progress',
       onRefresh: _refresh,
       actions: [
         IconButton(
           onPressed: () => ref.read(sessionProvider.notifier).signOut(),
           icon: const Icon(Icons.logout),
+          tooltip: l10n?.commonLogout ?? 'Log out',
         ),
       ],
       body: me.when(
@@ -75,42 +76,65 @@ class _AwaitingApprovalScreenState extends ConsumerState<AwaitingApprovalScreen>
             VendorStatusCard(
               lifecycle: vendor.lifecycle,
               tradingName: vendor.tradingName,
-              lifecycleLabel: s.s('lifecycle.${vendor.lifecycle.name}'),
-              subtitle: _reasonText(s, vendor),
+              lifecycleLabel: _lifecycleLabel(l10n, vendor.lifecycle),
+              subtitle: _reasonText(l10n, vendor),
               verificationMessage: vendor.verificationMessage,
             ),
             const SizedBox(height: 24),
-            ..._actions(context, s, vendor),
+            ..._actions(context, l10n, vendor),
           ],
         ),
       ),
     );
   }
 
-  String _reasonText(KhStrings s, VendorMe v) => switch (v.awaitingApprovalReason) {
-        AwaitingApprovalReason.pendingDocuments => s.s('onboarding.pendingDocuments'),
-        AwaitingApprovalReason.pendingAdmin => s.s('onboarding.pendingAdmin'),
-        AwaitingApprovalReason.categoriesRequired => s.s('onboarding.categoriesRequired'),
-        AwaitingApprovalReason.rejected => s.s('onboarding.rejected'),
-        _ => s.s('onboarding.pendingAdmin'),
+  String _lifecycleLabel(AppLocalizations? l10n, VendorLifecycle lifecycle) =>
+      switch (lifecycle) {
+        VendorLifecycle.registered => l10n?.lifecycleRegistered ?? 'Registered',
+        VendorLifecycle.pendingVerification =>
+          l10n?.lifecyclePendingVerification ?? 'Under review',
+        VendorLifecycle.verified => l10n?.lifecycleVerified ?? 'Verified',
+        VendorLifecycle.active => l10n?.lifecycleActive ?? 'Active',
+        VendorLifecycle.suspended => l10n?.lifecycleSuspended ?? 'Suspended',
+        VendorLifecycle.rejected => l10n?.lifecycleRejected ?? 'Needs changes',
+        VendorLifecycle.deactivated =>
+          l10n?.lifecycleDeactivated ?? 'Deactivated',
+        VendorLifecycle.unknown => l10n?.lifecycleUnknown ?? 'Unknown',
       };
 
-  List<Widget> _actions(BuildContext c, KhStrings s, VendorMe v) {
+  String _reasonText(AppLocalizations? l10n, VendorMe v) =>
+      switch (v.awaitingApprovalReason) {
+        AwaitingApprovalReason.pendingDocuments =>
+          l10n?.onboardingPendingDocuments ??
+              'Upload your business documents to continue.',
+        AwaitingApprovalReason.pendingAdmin =>
+          l10n?.onboardingPendingAdmin ??
+              'Our team is reviewing your documents.',
+        AwaitingApprovalReason.categoriesRequired =>
+          l10n?.onboardingCategoriesRequired ??
+              'Choose the categories and regions you serve.',
+        AwaitingApprovalReason.rejected =>
+          l10n?.onboardingRejected ?? 'Your application needs changes.',
+        _ => l10n?.onboardingPendingAdmin ??
+            'Our team is reviewing your documents.',
+      };
+
+  List<Widget> _actions(BuildContext c, AppLocalizations? l10n, VendorMe v) {
     return switch (v.lifecycle) {
       VendorLifecycle.verified => [
           KhButton(
-            label: s.s('onboarding.categoriesRegions'),
+            label: l10n?.onboardingCategoriesRegions ?? 'Categories & regions',
             onPressed: () => c.go(AppGuards.categories),
           ),
         ],
       VendorLifecycle.rejected => [
           KhButton(
-            label: s.s('onboarding.uploadKyc'),
+            label: l10n?.onboardingUploadKyc ?? 'Upload documents',
             onPressed: () => c.go(AppGuards.kyc),
           ),
           const SizedBox(height: 8),
           KhButton(
-            label: s.s('onboarding.resubmit'),
+            label: l10n?.onboardingResubmit ?? 'Resubmit for review',
             secondary: true,
             onPressed: () async {
               await ref.read(onboardingRepositoryProvider).resubmit();
@@ -120,7 +144,7 @@ class _AwaitingApprovalScreenState extends ConsumerState<AwaitingApprovalScreen>
         ],
       _ => [
           KhButton(
-            label: s.s('onboarding.uploadKyc'),
+            label: l10n?.onboardingUploadKyc ?? 'Upload documents',
             onPressed: () => c.go(AppGuards.kyc),
           ),
         ],

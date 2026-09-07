@@ -99,40 +99,67 @@ class RequestFiltersState {
   }
 }
 
+class RequestFiltersController extends AutoDisposeNotifier<RequestFiltersState> {
+  @override
+  RequestFiltersState build() => const RequestFiltersState();
+
+  void update(RequestFiltersState next) => state = next;
+
+  void reset() => state = const RequestFiltersState();
+}
+
 final requestFiltersProvider =
-    StateProvider.autoDispose<RequestFiltersState>((ref) => const RequestFiltersState());
+    AutoDisposeNotifierProvider<RequestFiltersController, RequestFiltersState>(
+  RequestFiltersController.new,
+);
 
-final requestFeedControllerProvider =
-    Provider.autoDispose<PagedListController<VendorRequestItem>>((ref) {
-  final repo = ref.watch(requestFeedRepositoryProvider);
-  final filters = ref.watch(requestFiltersProvider);
+/// Owns the feed [PagedListController] and rebuilds it when filters change.
+class RequestFeedController
+    extends AutoDisposeNotifier<PagedListController<VendorRequestItem>> {
+  @override
+  PagedListController<VendorRequestItem> build() {
+    final repo = ref.watch(requestFeedRepositoryProvider);
+    final filters = ref.watch(requestFiltersProvider);
 
-  final controller = PagedListController<VendorRequestItem>(
-    itemKey: (item) => item.id,
-    fetcher: (cursor) async {
-      final res = await repo.getMatches(
-        cursor: cursor,
-        sort: filters.sort,
-        requestType: filters.requestType,
-        categoryId: filters.categoryId,
-        regionId: filters.regionId,
-        purityKarat: filters.purityKarat,
-        minBudget: filters.minBudget,
-        maxBudget: filters.maxBudget,
-        includeResponded: filters.includeResponded,
-        presetId: filters.activePresetId,
-      );
-      return res.when(
-        ok: (page) => page,
-        err: (failure) => throw failure,
-      );
-    },
-  );
+    final controller = PagedListController<VendorRequestItem>(
+      itemKey: (item) => item.id,
+      fetcher: (cursor) async {
+        final res = await repo.getMatches(
+          cursor: cursor,
+          sort: filters.sort,
+          requestType: filters.requestType,
+          categoryId: filters.categoryId,
+          regionId: filters.regionId,
+          purityKarat: filters.purityKarat,
+          minBudget: filters.minBudget,
+          maxBudget: filters.maxBudget,
+          includeResponded: filters.includeResponded,
+          presetId: filters.activePresetId,
+        );
+        return res.when(
+          ok: (page) => page,
+          err: (failure) => throw failure,
+        );
+      },
+    );
 
-  ref.onDispose(controller.dispose);
-  return controller;
-});
+    ref.onDispose(controller.dispose);
+    return controller;
+  }
 
+  Future<void> loadNextPage() => state.loadNextPage();
+
+  Future<void> refresh() => state.refresh();
+
+  Future<void> retry() => state.retry();
+}
+
+final requestFeedControllerProvider = AutoDisposeNotifierProvider<
+    RequestFeedController, PagedListController<VendorRequestItem>>(
+  RequestFeedController.new,
+);
+
+/// Server-cache list of saved filter presets (CP2-B02: cache stays FutureProvider).
 final filterPresetsListProvider =
     FutureProvider.autoDispose<List<FilterPresetItem>>((ref) async {
   final repo = ref.watch(requestFeedRepositoryProvider);

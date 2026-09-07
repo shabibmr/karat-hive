@@ -145,7 +145,7 @@ Future<ProviderContainer> _openSheet(
   );
   // Keep autoDispose filters alive across sheet open/close so Apply sticks.
   final filtersSub = container.listen(requestFiltersProvider, (_, __) {});
-  container.read(requestFiltersProvider.notifier).state = initialFilters;
+  container.read(requestFiltersProvider.notifier).update(initialFilters);
   addTearDown(() {
     filtersSub.close();
     container.dispose();

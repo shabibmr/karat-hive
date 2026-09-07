@@ -31,12 +31,22 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
   late final TextEditingController _minBudgetController;
   late final TextEditingController _maxBudgetController;
 
-  static const _requestTypes = <(String, String)>[
-    ('FIND_ORNAMENT', 'Find Ornament'),
-    ('CUSTOM_DESIGN', 'Custom Design'),
-    ('BULLION', 'Bullion'),
-    ('REPAIR_RESIZE', 'Repair & Resize'),
+  static const _requestTypeCodes = <String>[
+    'FIND_ORNAMENT',
+    'CUSTOM_DESIGN',
+    'BULLION',
+    'REPAIR_RESIZE',
   ];
+
+  String _requestTypeLabel(AppLocalizations? l10n, String code) {
+    return switch (code) {
+      'FIND_ORNAMENT' => l10n?.requestTypeFindOrnament ?? 'Find Ornament',
+      'CUSTOM_DESIGN' => l10n?.requestTypeCustomDesign ?? 'Custom Design',
+      'BULLION' => l10n?.requestTypeBullion ?? 'Bullion',
+      'REPAIR_RESIZE' => l10n?.requestTypeRepairResize ?? 'Repair & Resize',
+      _ => code.replaceAll('_', ' '),
+    };
+  }
 
   @override
   void initState() {
@@ -144,18 +154,54 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
                 Wrap(
                   spacing: 8,
                   children: [
-                    _choiceChip('NEWEST', 'Newest', _draft.sort == 'NEWEST', (sel) {
-                      if (sel) setState(() => _draft = _draft.copyWith(sort: 'NEWEST'));
-                    }),
-                    _choiceChip('EXPIRING', 'Expiring Soon', _draft.sort == 'EXPIRING', (sel) {
-                      if (sel) setState(() => _draft = _draft.copyWith(sort: 'EXPIRING'));
-                    }),
-                    _choiceChip('HIGHEST_VALUE', 'Highest Value', _draft.sort == 'HIGHEST_VALUE', (sel) {
-                      if (sel) setState(() => _draft = _draft.copyWith(sort: 'HIGHEST_VALUE'));
-                    }),
-                    _choiceChip('FEWEST_OFFERS', 'Fewest Offers', _draft.sort == 'FEWEST_OFFERS', (sel) {
-                      if (sel) setState(() => _draft = _draft.copyWith(sort: 'FEWEST_OFFERS'));
-                    }),
+                    _choiceChip(
+                      'NEWEST',
+                      l10n?.sortNewest ?? 'Newest',
+                      _draft.sort == 'NEWEST',
+                      (sel) {
+                        if (sel) {
+                          setState(() => _draft = _draft.copyWith(sort: 'NEWEST'));
+                        }
+                      },
+                    ),
+                    _choiceChip(
+                      'EXPIRING',
+                      l10n?.sortExpiringSoon ?? 'Expiring Soon',
+                      _draft.sort == 'EXPIRING',
+                      (sel) {
+                        if (sel) {
+                          setState(
+                            () => _draft = _draft.copyWith(sort: 'EXPIRING'),
+                          );
+                        }
+                      },
+                    ),
+                    _choiceChip(
+                      'HIGHEST_VALUE',
+                      l10n?.sortHighestValue ?? 'Highest Value',
+                      _draft.sort == 'HIGHEST_VALUE',
+                      (sel) {
+                        if (sel) {
+                          setState(
+                            () =>
+                                _draft = _draft.copyWith(sort: 'HIGHEST_VALUE'),
+                          );
+                        }
+                      },
+                    ),
+                    _choiceChip(
+                      'FEWEST_OFFERS',
+                      l10n?.sortFewestOffers ?? 'Fewest Offers',
+                      _draft.sort == 'FEWEST_OFFERS',
+                      (sel) {
+                        if (sel) {
+                          setState(
+                            () =>
+                                _draft = _draft.copyWith(sort: 'FEWEST_OFFERS'),
+                          );
+                        }
+                      },
+                    ),
                   ],
                 ),
                 SizedBox(height: tokens.space.md),
@@ -166,8 +212,8 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 4,
-                  children: _requestTypes.map((entry) {
-                    final (value, label) = entry;
+                  children: _requestTypeCodes.map((value) {
+                    final label = _requestTypeLabel(l10n, value);
                     final selected = _draft.requestType == value;
                     return _choiceChip(value, label, selected, (sel) {
                       setState(() {
@@ -183,25 +229,28 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
                 SizedBox(height: tokens.space.md),
 
                 // --- Category ---
-                Text('Category', style: theme.textTheme.titleSmall),
+                Text(l10n?.category ?? 'Category', style: theme.textTheme.titleSmall),
                 SizedBox(height: tokens.space.xs),
                 categoriesAsync.when(
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => const Text('Could not load categories'),
+                  error: (_, __) => Text(
+                    l10n?.couldNotLoadCategories ?? 'Could not load categories',
+                  ),
                   data: (nodes) {
                     final leaves = _leaves(nodes).toList(growable: false);
+                    final anyCategory = l10n?.anyCategory ?? 'Any category';
                     return DropdownButtonFormField<String?>(
                       key: ValueKey('filter-category-${_draft.categoryId}'),
                       initialValue: _draft.categoryId,
                       isExpanded: true,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'Any category',
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        hintText: anyCategory,
                       ),
                       items: [
-                        const DropdownMenuItem<String?>(
+                        DropdownMenuItem<String?>(
                           value: null,
-                          child: Text('Any category'),
+                          child: Text(anyCategory),
                         ),
                         ...leaves.map(
                           (n) => DropdownMenuItem<String?>(
@@ -229,25 +278,28 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
                 SizedBox(height: tokens.space.md),
 
                 // --- Region ---
-                Text('Region', style: theme.textTheme.titleSmall),
+                Text(l10n?.region ?? 'Region', style: theme.textTheme.titleSmall),
                 SizedBox(height: tokens.space.xs),
                 regionsAsync.when(
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => const Text('Could not load regions'),
+                  error: (_, __) => Text(
+                    l10n?.couldNotLoadRegions ?? 'Could not load regions',
+                  ),
                   data: (nodes) {
                     final leaves = _leaves(nodes).toList(growable: false);
+                    final anyRegion = l10n?.anyRegion ?? 'Any region';
                     return DropdownButtonFormField<String?>(
                       key: ValueKey('filter-region-${_draft.regionId}'),
                       initialValue: _draft.regionId,
                       isExpanded: true,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'Any region',
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        hintText: anyRegion,
                       ),
                       items: [
-                        const DropdownMenuItem<String?>(
+                        DropdownMenuItem<String?>(
                           value: null,
-                          child: Text('Any region'),
+                          child: Text(anyRegion),
                         ),
                         ...leaves.map(
                           (n) => DropdownMenuItem<String?>(
@@ -275,7 +327,7 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
                 SizedBox(height: tokens.space.md),
 
                 // --- Budget ---
-                Text('Budget (AED)', style: theme.textTheme.titleSmall),
+                Text(l10n?.budgetAed ?? 'Budget (AED)', style: theme.textTheme.titleSmall),
                 SizedBox(height: tokens.space.xs),
                 Row(
                   children: [
@@ -287,9 +339,9 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Min',
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          labelText: l10n?.minLabel ?? 'Min',
                         ),
                         onChanged: (raw) {
                           final parsed = double.tryParse(raw);
@@ -316,9 +368,9 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Max',
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          labelText: l10n?.maxLabel ?? 'Max',
                         ),
                         onChanged: (raw) {
                           final parsed = double.tryParse(raw);
@@ -341,7 +393,7 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
                 SizedBox(height: tokens.space.md),
 
                 // --- Purity Karat ---
-                Text('Purity (Karat)', style: theme.textTheme.titleSmall),
+                Text(l10n?.purityKarat ?? 'Purity (Karat)', style: theme.textTheme.titleSmall),
                 SizedBox(height: tokens.space.xs),
                 Wrap(
                   spacing: 8,
@@ -382,7 +434,9 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
                 SizedBox(height: tokens.space.xs),
                 presetsAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (_, __) => const Text('Could not load presets'),
+                  error: (_, __) => Text(
+                    l10n?.couldNotLoadPresets ?? 'Could not load presets',
+                  ),
                   data: (presets) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -431,7 +485,7 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
           KhButton(
             label: l10n?.applyFilters ?? 'Apply Filters',
             onPressed: () {
-              ref.read(requestFiltersProvider.notifier).state = _draft;
+              ref.read(requestFiltersProvider.notifier).update(_draft);
               Navigator.of(context).pop();
             },
           ),
@@ -486,25 +540,27 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
 
   Future<void> _showSavePresetDialog() async {
     final textController = TextEditingController();
+    final l10n = AppLocalizations.of(context);
     final name = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Save Filter Preset'),
+        title: Text(l10n?.saveFilterPreset ?? 'Save Filter Preset'),
         content: TextField(
           controller: textController,
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Preset name (e.g. Dubai 22K Rings)',
+          decoration: InputDecoration(
+            hintText: l10n?.presetNameHint ??
+                'Preset name (e.g. Dubai 22K Rings)',
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n?.cancel ?? 'Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(textController.text.trim()),
-            child: const Text('Save'),
+            child: Text(l10n?.save ?? 'Save'),
           ),
         ],
       ),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
+import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../controller/request_feed_controller.dart';
@@ -51,11 +52,12 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
     final controller = ref.watch(requestFeedControllerProvider);
     final filters = ref.watch(requestFiltersProvider);
     final tokens = context.tokens;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       key: const Key('request-feed-screen'),
       appBar: AppBar(
-        title: const Text('Available Requests'),
+        title: Text(l10n?.availableRequestsTitle ?? 'Available Requests'),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -101,7 +103,8 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
           if (state.isInitialError) {
             return Center(
               child: KhErrorView(
-                message: 'Failed to load matching requests.',
+                message: l10n?.failedToLoadMatchingRequests ??
+                    'Failed to load matching requests.',
                 onRetry: controller.retry,
               ),
             );
@@ -122,7 +125,7 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
                   ),
                   SizedBox(height: tokens.space.md),
                   Text(
-                    'No Matching Requests',
+                    l10n?.noMatchingRequests ?? 'No Matching Requests',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -131,8 +134,10 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
                   SizedBox(height: tokens.space.sm),
                   Text(
                     filters.hasActiveFilters
-                        ? 'Try resetting your active filters to see more requests.'
-                        : 'Broaden your Categories and Regions, or check that you have an active Type Subscription for the request types you want to see.',
+                        ? (l10n?.emptyFeedResetFiltersHint ??
+                            'Try resetting your active filters to see more requests.')
+                        : (l10n?.emptyFeedBroadenHint ??
+                            'Broaden your Categories and Regions, or check that you have an active Type Subscription for the request types you want to see.'),
                     style: TextStyle(
                       color: tokens.ink.withValues(alpha: 0.7),
                       fontSize: 14,
@@ -147,7 +152,7 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
                           ref.read(requestFiltersProvider.notifier).state =
                               const RequestFiltersState();
                         },
-                        child: const Text('Reset Filters'),
+                        child: Text(l10n?.resetFilters ?? 'Reset Filters'),
                       ),
                     )
                   else
@@ -155,7 +160,7 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
                       child: OutlinedButton.icon(
                         key: const Key('empty-feed-subscriptions-cta'),
                         icon: const Icon(Icons.card_membership_outlined),
-                        label: const Text('View Subscriptions'),
+                        label: Text(l10n?.viewSubscriptions ?? 'View Subscriptions'),
                         // ACTIVE vendors cannot open the awaiting-shell
                         // categories route (AppGuards). Subscriptions explain
                         // empty feeds today; categories/regions land in CP-6.
@@ -182,7 +187,7 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
                     isLoading: state.isLoadingNextPage,
                     error: state.isNextPageError ? state.error : null,
                     onRetry: controller.retry,
-                    endMessage: 'You are all caught up',
+                    endMessage: l10n?.allCaughtUp ?? 'You are all caught up',
                   );
                 }
 

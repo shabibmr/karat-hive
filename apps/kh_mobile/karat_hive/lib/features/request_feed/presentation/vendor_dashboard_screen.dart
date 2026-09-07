@@ -25,25 +25,26 @@ class VendorDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final s = KhStrings.of(context);
+    final l10n = AppLocalizations.of(context);
     final dash = ref.watch(vendorDashboardProvider);
     final session = ref.watch(sessionProvider);
     final vendor = session is SignedIn ? session.user.vendor : null;
     final tokens = context.tokens;
 
     return KhScaffold(
-      title: s.s('dashboard.title'),
+      title: l10n?.dashboardTitle ?? 'Dashboard',
       onRefresh: () async => ref.invalidate(vendorDashboardProvider),
       actions: [
         IconButton(
           onPressed: () => ref.read(sessionProvider.notifier).signOut(),
           icon: const Icon(Icons.logout),
+          tooltip: l10n?.commonLogout ?? 'Log out',
         ),
       ],
       body: dash.when(
         loading: () => const KhLoadingView(),
         error: (_, __) => KhErrorView(
-          message: 'Could not load your dashboard.',
+          message: l10n?.couldNotLoadDashboard ?? 'Could not load your dashboard.',
           onRetry: () => ref.invalidate(vendorDashboardProvider),
         ),
         data: (d) => ListView(
@@ -53,7 +54,7 @@ class VendorDashboardScreen extends ConsumerWidget {
               VendorStatusCard(
                 lifecycle: vendor.lifecycle,
                 tradingName: vendor.tradingName,
-                lifecycleLabel: s.s('lifecycle.${vendor.lifecycle.name}'),
+                lifecycleLabel: _lifecycleLabel(l10n, vendor.lifecycle),
               ),
               SizedBox(height: tokens.space.md),
             ],
@@ -61,20 +62,21 @@ class VendorDashboardScreen extends ConsumerWidget {
             // Panel 1: New Requests (Deep-link to VEN-S06 feed)
             _ActionStatCard(
               key: const Key('dashboard-new-requests'),
-              label: s.s('dashboard.newRequests'),
+              label: l10n?.dashboardNewRequests ?? 'New requests',
               value: d.newRequests,
               icon: Icons.notifications_active_outlined,
               badgeColor: tokens.gold,
               subtitle: d.newRequests > 0
-                  ? '${d.newRequests} matching request(s) waiting'
-                  : 'No new requests right now',
+                  ? (l10n?.matchingRequestsWaiting(d.newRequests) ??
+                      '${d.newRequests} matching request(s) waiting')
+                  : (l10n?.noNewRequestsRightNow ?? 'No new requests right now'),
               onTap: () => context.push('/vendor/requests'),
             ),
             if (d.newRequestPreview.isNotEmpty) ...[
               SizedBox(height: tokens.space.sm),
               KhSectionHeader(
-                title: 'Latest matches',
-                actionLabel: 'See all',
+                title: l10n?.latestMatches ?? 'Latest matches',
+                actionLabel: l10n?.seeAll ?? 'See all',
                 onAction: () => context.push('/vendor/requests'),
               ),
               SizedBox(height: tokens.space.xs),
@@ -94,27 +96,35 @@ class VendorDashboardScreen extends ConsumerWidget {
 
             // Panel 2: Pending Offers (CP-3)
             _ActionStatCard(
-              label: s.s('dashboard.pendingOffers'),
+              label: l10n?.dashboardPendingOffers ?? 'Pending offers',
               value: d.pendingOffers,
               icon: Icons.local_offer_outlined,
               subtitle: d.pendingOffersExpiringWithin24h > 0
-                  ? '${d.pendingOffersExpiringWithin24h} expiring within 24h'
-                  : 'Active bids awaiting customer response',
+                  ? (l10n?.offersExpiringWithin24h(
+                          d.pendingOffersExpiringWithin24h) ??
+                      '${d.pendingOffersExpiringWithin24h} expiring within 24h')
+                  : (l10n?.activeBidsAwaiting ??
+                      'Active bids awaiting customer response'),
               disabled: true,
-              disabledMessage: 'Offer management opens in Check-Point 3',
+              disabledMessage: l10n?.offerManagementCp3 ??
+                  'Offer management opens in Check-Point 3',
             ),
             SizedBox(height: tokens.space.sm),
 
             // Panel 3: Active Connections (CP-4)
             _ActionStatCard(
-              label: s.s('dashboard.activeConnections'),
+              label: l10n?.dashboardActiveConnections ?? 'Active connections',
               value: d.activeConnections,
               icon: Icons.chat_bubble_outline,
               subtitle: d.activeConnectionsNoTalkCount > 0
-                  ? '${d.activeConnectionsNoTalkCount} with no talk yet'
-                  : 'Won deals & direct customer chats',
+                  ? (l10n?.connectionsNoTalkYet(
+                          d.activeConnectionsNoTalkCount) ??
+                      '${d.activeConnectionsNoTalkCount} with no talk yet')
+                  : (l10n?.wonDealsChats ??
+                      'Won deals & direct customer chats'),
               disabled: true,
-              disabledMessage: 'Connections open in Check-Point 4',
+              disabledMessage: l10n?.connectionsOpenCp4 ??
+                  'Connections open in Check-Point 4',
             ),
             SizedBox(height: tokens.space.md),
 
@@ -128,11 +138,20 @@ class VendorDashboardScreen extends ConsumerWidget {
               ),
               child: ListTile(
                 leading: Icon(Icons.card_membership_outlined, color: tokens.gold),
-                title: Text(s.s('dashboard.subscriptions')),
+                title: Text(
+                  l10n?.dashboardSubscriptions ?? 'Type subscriptions',
+                ),
                 subtitle: Text(
                   d.subscriptions.isEmpty
-                      ? s.s('dashboard.noSubscriptions')
-                      : '${d.subscriptions.where((sub) => sub.state == 'ACTIVE' || sub.state == 'GRACE').length} active entitlement(s)',
+                      ? (l10n?.dashboardNoSubscriptions ??
+                          'No type subscriptions yet')
+                      : (l10n?.activeEntitlementsCount(
+                            d.subscriptions
+                                .where((sub) =>
+                                    sub.state == 'ACTIVE' || sub.state == 'GRACE')
+                                .length,
+                          ) ??
+                          '${d.subscriptions.where((sub) => sub.state == 'ACTIVE' || sub.state == 'GRACE').length} active entitlement(s)'),
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/vendor/subscriptions'),
@@ -150,10 +169,10 @@ class VendorDashboardScreen extends ConsumerWidget {
               ),
               child: ListTile(
                 leading: Icon(Icons.star_outline, color: tokens.gold),
-                title: Text(s.s('dashboard.rating')),
+                title: Text(l10n?.dashboardRating ?? 'Rating'),
                 subtitle: Text(
                   d.reviewCount == 0
-                      ? s.s('dashboard.noReviews')
+                      ? (l10n?.dashboardNoReviews ?? 'No reviews yet')
                       : '${d.ratingAverage ?? '—'} (${d.reviewCount})',
                 ),
               ),
@@ -166,7 +185,9 @@ class VendorDashboardScreen extends ConsumerWidget {
                 elevation: 0,
                 color: tokens.surface,
                 child: ListTile(
-                  title: Text(s.s('dashboard.goldRates')),
+                  title: Text(
+                    l10n?.dashboardGoldRates ?? 'Reference gold rates',
+                  ),
                   subtitle: Text(d.goldRates.toString()),
                 ),
               ),
@@ -174,12 +195,26 @@ class VendorDashboardScreen extends ConsumerWidget {
 
             SizedBox(height: tokens.space.md),
             if (d.newRequests + d.pendingOffers + d.activeConnections == 0)
-              KhEmptyView(message: s.s('common.empty')),
+              KhEmptyView(message: l10n?.commonEmpty ?? 'Nothing here yet'),
           ],
         ),
       ),
     );
   }
+
+  String _lifecycleLabel(AppLocalizations? l10n, VendorLifecycle lifecycle) =>
+      switch (lifecycle) {
+        VendorLifecycle.registered => l10n?.lifecycleRegistered ?? 'Registered',
+        VendorLifecycle.pendingVerification =>
+          l10n?.lifecyclePendingVerification ?? 'Under review',
+        VendorLifecycle.verified => l10n?.lifecycleVerified ?? 'Verified',
+        VendorLifecycle.active => l10n?.lifecycleActive ?? 'Active',
+        VendorLifecycle.suspended => l10n?.lifecycleSuspended ?? 'Suspended',
+        VendorLifecycle.rejected => l10n?.lifecycleRejected ?? 'Needs changes',
+        VendorLifecycle.deactivated =>
+          l10n?.lifecycleDeactivated ?? 'Deactivated',
+        VendorLifecycle.unknown => l10n?.lifecycleUnknown ?? 'Unknown',
+      };
 }
 
 class _ActionStatCard extends StatelessWidget {

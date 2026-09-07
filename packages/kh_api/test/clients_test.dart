@@ -117,9 +117,24 @@ void main() {
 
       final req = paged.items.first;
       expect(req.id, 'req-1');
+      expect(req.reference, 'REQ-2026-0001');
+      expect(req.requestType, 'FIND_ORNAMENT');
+      expect(req.direction, 'BUY');
+      expect(req.state, 'PUBLISHED');
+      expect(req.categoryId, 'cat-ring');
       expect(req.categoryName, 'Rings');
+      expect(req.regionId, 'reg-dxb');
+      expect(req.regionName, 'Dubai');
+      expect(req.weightGrams, 12.5);
+      expect(req.purityKarat, '22');
+      expect(req.budgetMin, 3000.0);
+      expect(req.budgetMax, 4500.0);
+      expect(req.notes, 'Bridal ring required');
+      expect(req.offerCount, 2);
       expect(req.customer.isMasked, isTrue);
       expect(req.customer.dealCount, 7);
+      // Domain freezed VendorRequestItem.fromJson (no parallel DTO layer).
+      expect(req.runtimeType.toString(), contains('VendorRequestItem'));
     });
 
     test('markViewed calls POST /v1/matches/:id/viewed', () async {
@@ -223,8 +238,16 @@ void main() {
       final khApi = KhApi(client);
       final listRes = await khApi.filterPresets.list();
       expect(listRes.isOk, isTrue);
-      expect(listRes.unwrap().length, 1);
-      expect(listRes.unwrap().first.name, 'Dubai 22K');
+      final listed = listRes.unwrap();
+      expect(listed.length, 1);
+      expect(listed.first.id, 'pre-1');
+      expect(listed.first.name, 'Dubai 22K');
+      expect(listed.first.filters, {
+        'regionId': 'reg-dxb',
+        'purityKarat': '22',
+      });
+      expect(listed.first.createdAt.toUtc().toIso8601String(),
+          '2026-09-07T01:00:00.000Z');
 
       final createRes = await khApi.filterPresets.create(
         name: 'Gold Bars',
@@ -232,10 +255,13 @@ void main() {
       );
       expect(createRes.isOk, isTrue);
       expect(createRes.unwrap().id, 'pre-2');
+      expect(createRes.unwrap().filters['requestType'], 'BULLION');
 
-      final updateRes = await khApi.filterPresets.update('pre-2', name: 'Gold Bars High Value');
+      final updateRes =
+          await khApi.filterPresets.update('pre-2', name: 'Gold Bars High Value');
       expect(updateRes.isOk, isTrue);
       expect(updateRes.unwrap().name, 'Gold Bars High Value');
+      expect(updateRes.unwrap().filters['minBudget'], 10000);
 
       final deleteRes = await khApi.filterPresets.delete('pre-2');
       expect(deleteRes.isOk, isTrue);
@@ -243,7 +269,7 @@ void main() {
   });
 
   group('SubscriptionsClient & PlatformConfigClient', () {
-    test('getSubscriptions parses 4 subscription items', () async {
+    test('getSubscriptions maps via VendorSubscriptionItem.fromJson', () async {
       final client = createClient((opts) async {
         expect(opts.path, '/v1/me/subscriptions');
         return jsonBody({
@@ -269,11 +295,15 @@ void main() {
       expect(res.isOk, isTrue);
       final subs = res.unwrap();
       expect(subs.length, 2);
+      expect(subs[0].requestType, 'FIND_ORNAMENT');
+      expect(subs[0].priceAed, '499.00');
       expect(subs[0].canOffer, isTrue);
       expect(subs[1].state, 'EXPIRED');
+      expect(subs[1].canOffer, isFalse);
     });
 
-    test('platformConfig fetches system config and URLs', () async {
+    test('platformConfig maps via PlatformConfig.fromJson incl. legal flatten',
+        () async {
       final client = createClient((opts) async {
         expect(opts.path, '/v1/platform-config');
         return jsonBody({
@@ -300,8 +330,24 @@ void main() {
       final cfg = res.unwrap();
       expect(cfg.requestLifetimeHours, 48);
       expect(cfg.offerValidityHours, [12, 24, 48]);
+      expect(cfg.defaultOfferValidityHours, 24);
+      expect(cfg.bullionMinimumAed, '5000');
+      expect(cfg.karatList, ['18', '21', '22', '24']);
       expect(cfg.subscriptionContactUrl, 'https://karathive.ae/subscriptions');
       expect(cfg.termsUrl, 'https://karathive.ae/terms');
+      expect(cfg.privacyUrl, 'https://karathive.ae/privacy');
+    });
+  });
+
+  group('KhApi aggregate', () {
+    test('exposes CP2-B01 clients as properties', () {
+      final client = createClient((_) async => jsonBody({}));
+      final khApi = KhApi(client);
+      expect(khApi.matches, isA<MatchesClient>());
+      expect(khApi.requests, isA<RequestsClient>());
+      expect(khApi.filterPresets, isA<FilterPresetsClient>());
+      expect(khApi.subscriptions, isA<SubscriptionsClient>());
+      expect(khApi.platformConfig, isA<PlatformConfigClient>());
     });
   });
 }

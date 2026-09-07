@@ -68,5 +68,697 @@
         "type": "String"
       }
     }
+  },
+  "availableRequestsTitle": "Available Requests",
+  "@availableRequestsTitle": {
+    "description": "VEN-S06 app bar title"
+  },
+  "failedToLoadMatchingRequests": "Failed to load matching requests.",
+  "@failedToLoadMatchingRequests": {
+    "description": "VEN-S06 initial load error"
+  },
+  "noMatchingRequests": "No Matching Requests",
+  "@noMatchingRequests": {
+    "description": "VEN-S06 empty feed title"
+  },
+  "emptyFeedResetFiltersHint": "Try resetting your active filters to see more requests.",
+  "@emptyFeedResetFiltersHint": {
+    "description": "VEN-S06 empty feed copy when filters active"
+  },
+  "emptyFeedBroadenHint": "Broaden your Categories and Regions, or check that you have an active Type Subscription for the request types you want to see.",
+  "@emptyFeedBroadenHint": {
+    "description": "VEN-S06 empty feed copy when no filters"
+  },
+  "resetFilters": "Reset Filters",
+  "@resetFilters": {
+    "description": "VEN-S06 empty-state reset filters CTA"
+  },
+  "viewSubscriptions": "View Subscriptions",
+  "@viewSubscriptions": {
+    "description": "VEN-S06 empty-state subscriptions CTA"
+  },
+  "allCaughtUp": "You are all caught up",
+  "@allCaughtUp": {
+    "description": "VEN-S06 end-of-list sentinel"
+  },
+  "requestTitleWithId": "Request {requestId}",
+  "@requestTitleWithId": {
+    "description": "VEN-S08 app bar title with request id",
+    "placeholders": {
+      "requestId": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadRequestDetails": "Could not load request details.",
+  "@couldNotLoadRequestDetails": {
+    "description": "VEN-S08 detail load error"
+  },
+  "requestDetailsFallback": "Request Details",
+  "@requestDetailsFallback": {
+    "description": "VEN-S08 title when reference is null"
+  },
+  "customerSummary": "Customer Summary",
+  "@customerSummary": {
+    "description": "VEN-S08 masked customer card heading"
+  },
+  "customerNotes": "Customer Notes",
+  "@customerNotes": {
+    "description": "VEN-S08 notes card heading"
+  },
+  "offersReceived": "{count, plural, =1{{count} offer received} other{{count} offers received}}",
+  "@offersReceived": {
+    "description": "VEN-S08 offer count summary (BR-008)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "competitorPricingHidden": "Competitor pricing and terms are hidden per marketplace rules.",
+  "@competitorPricingHidden": {
+    "description": "VEN-S08 BR-008 subtitle under offer count"
+  },
+  "requestExpired": "Request Expired",
+  "@requestExpired": {
+    "description": "VEN-S08 disabled CTA when request expired"
+  },
+  "requestClosed": "Request Closed",
+  "@requestClosed": {
+    "description": "VEN-S08 disabled CTA when request closed"
+  },
+  "makeAnOfferCp3": "Make an Offer (CP-3)",
+  "@makeAnOfferCp3": {
+    "description": "VEN-S08 primary CTA placeholder until CP-3"
+  },
+  "biddingOpensCp3": "Bidding opens in Check-Point 3.",
+  "@biddingOpensCp3": {
+    "description": "VEN-S08 snackbar when Make Offer tapped"
+  },
+  "couldNotLoadDashboard": "Could not load your dashboard.",
+  "@couldNotLoadDashboard": {
+    "description": "VEN-S05 dashboard load error"
+  },
+  "matchingRequestsWaiting": "{count} matching request(s) waiting",
+  "@matchingRequestsWaiting": {
+    "description": "VEN-S05 new-requests card subtitle when count > 0",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noNewRequestsRightNow": "No new requests right now",
+  "@noNewRequestsRightNow": {
+    "description": "VEN-S05 new-requests card subtitle when empty"
+  },
+  "latestMatches": "Latest matches",
+  "@latestMatches": {
+    "description": "VEN-S05 preview section header"
+  },
+  "seeAll": "See all",
+  "@seeAll": {
+    "description": "VEN-S05 preview section action"
+  },
+  "offersExpiringWithin24h": "{count} expiring within 24h",
+  "@offersExpiringWithin24h": {
+    "description": "VEN-S05 pending-offers urgency subtitle",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeBidsAwaiting": "Active bids awaiting customer response",
+  "@activeBidsAwaiting": {
+    "description": "VEN-S05 pending-offers default subtitle"
+  },
+  "offerManagementCp3": "Offer management opens in Check-Point 3",
+  "@offerManagementCp3": {
+    "description": "VEN-S05 pending-offers disabled snackbar"
+  },
+  "connectionsNoTalkYet": "{count} with no talk yet",
+  "@connectionsNoTalkYet": {
+    "description": "VEN-S05 connections urgency subtitle",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wonDealsChats": "Won deals & direct customer chats",
+  "@wonDealsChats": {
+    "description": "VEN-S05 connections default subtitle"
+  },
+  "connectionsOpenCp4": "Connections open in Check-Point 4",
+  "@connectionsOpenCp4": {
+    "description": "VEN-S05 connections disabled snackbar"
+  },
+  "activeEntitlementsCount": "{count} active entitlement(s)",
+  "@activeEntitlementsCount": {
+    "description": "VEN-S05 subscriptions tile subtitle when entitlements exist",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sortNewest": "Newest",
+  "@sortNewest": {
+    "description": "VEN-S07 sort chip NEWEST"
+  },
+  "sortExpiringSoon": "Expiring Soon",
+  "@sortExpiringSoon": {
+    "description": "VEN-S07 sort chip EXPIRING"
+  },
+  "sortHighestValue": "Highest Value",
+  "@sortHighestValue": {
+    "description": "VEN-S07 sort chip HIGHEST_VALUE"
+  },
+  "sortFewestOffers": "Fewest Offers",
+  "@sortFewestOffers": {
+    "description": "VEN-S07 sort chip FEWEST_OFFERS"
+  },
+  "requestTypeFindOrnament": "Find Ornament",
+  "@requestTypeFindOrnament": {
+    "description": "FIND_ORNAMENT display name"
+  },
+  "requestTypeCustomDesign": "Custom Design",
+  "@requestTypeCustomDesign": {
+    "description": "CUSTOM_DESIGN display name"
+  },
+  "requestTypeBullion": "Bullion",
+  "@requestTypeBullion": {
+    "description": "BULLION short display name (filters)"
+  },
+  "requestTypeBullionInvestment": "Bullion & Investment",
+  "@requestTypeBullionInvestment": {
+    "description": "BULLION long display name (subscriptions)"
+  },
+  "requestTypeRepairResize": "Repair & Resize",
+  "@requestTypeRepairResize": {
+    "description": "REPAIR_RESIZE display name"
+  },
+  "category": "Category",
+  "@category": {
+    "description": "Shared category field label"
+  },
+  "couldNotLoadCategories": "Could not load categories",
+  "@couldNotLoadCategories": {
+    "description": "VEN-S07 categories load error"
+  },
+  "anyCategory": "Any category",
+  "@anyCategory": {
+    "description": "VEN-S07 category dropdown null option"
+  },
+  "region": "Region",
+  "@region": {
+    "description": "Shared region field label"
+  },
+  "couldNotLoadRegions": "Could not load regions",
+  "@couldNotLoadRegions": {
+    "description": "VEN-S07 regions load error"
+  },
+  "anyRegion": "Any region",
+  "@anyRegion": {
+    "description": "VEN-S07 region dropdown null option"
+  },
+  "budgetAed": "Budget (AED)",
+  "@budgetAed": {
+    "description": "VEN-S07 budget section heading"
+  },
+  "minLabel": "Min",
+  "@minLabel": {
+    "description": "VEN-S07 min budget field label"
+  },
+  "maxLabel": "Max",
+  "@maxLabel": {
+    "description": "VEN-S07 max budget field label"
+  },
+  "purityKarat": "Purity (Karat)",
+  "@purityKarat": {
+    "description": "VEN-S07 purity section heading"
+  },
+  "couldNotLoadPresets": "Could not load presets",
+  "@couldNotLoadPresets": {
+    "description": "VEN-S07 presets load error"
+  },
+  "saveFilterPreset": "Save Filter Preset",
+  "@saveFilterPreset": {
+    "description": "VEN-S07 save-preset dialog title"
+  },
+  "presetNameHint": "Preset name (e.g. Dubai 22K Rings)",
+  "@presetNameHint": {
+    "description": "VEN-S07 save-preset dialog hint"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Generic cancel action"
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Generic save action"
+  },
+  "couldNotLoadSubscriptionDetails": "Could not load subscription details.",
+  "@couldNotLoadSubscriptionDetails": {
+    "description": "VEN-S22 subscriptions load error"
+  },
+  "planRate": "Plan Rate:",
+  "@planRate": {
+    "description": "VEN-S22 subscription card plan-rate label"
+  },
+  "aedPerMonth": "AED {price} / month",
+  "@aedPerMonth": {
+    "description": "VEN-S22 monthly plan price",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "nextRenewal": "Next Renewal:",
+  "@nextRenewal": {
+    "description": "VEN-S22 renewal date label"
+  },
+  "gracePeriodActiveUntil": "Grace period active until {date}. Renew now to avoid losing matching eligibility.",
+  "@gracePeriodActiveUntil": {
+    "description": "VEN-S22 GRACE state warning",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionExpiredPaused": "Subscription expired. Matching requests for this category are currently paused.",
+  "@subscriptionExpiredPaused": {
+    "description": "VEN-S22 EXPIRED/LAPSED state copy"
+  },
+  "responded": "Responded",
+  "@responded": {
+    "description": "SH-REQ-01 responded marker on vendor request card"
+  },
+  "offerCountShort": "{count, plural, =1{{count} offer} other{{count} offers}}",
+  "@offerCountShort": {
+    "description": "SH-REQ-01 offer count on vendor request card",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetFrom": "From ",
+  "@budgetFrom": {
+    "description": "SH-REQ-01 budget lower-bound prefix"
+  },
+  "budgetUpTo": "Up to ",
+  "@budgetUpTo": {
+    "description": "SH-REQ-01 budget upper-bound prefix"
+  },
+  "openBudget": "Open Budget",
+  "@openBudget": {
+    "description": "SH-REQ-01 when no budget bounds"
+  },
+  "requestFallback": "Request",
+  "@requestFallback": {
+    "description": "SH-REQ-01 card title when reference and category absent"
+  },
+  "specifications": "Specifications",
+  "@specifications": {
+    "description": "VEN-S08 specification grid heading"
+  },
+  "purity": "Purity",
+  "@purity": {
+    "description": "Specification grid purity label"
+  },
+  "weight": "Weight",
+  "@weight": {
+    "description": "Specification grid weight label"
+  },
+  "budget": "Budget",
+  "@budget": {
+    "description": "Specification grid budget label"
+  },
+  "type": "Type",
+  "@type": {
+    "description": "Specification grid type label"
+  },
+  "direction": "Direction",
+  "@direction": {
+    "description": "Specification grid direction label"
+  },
+  "notes": "Notes",
+  "@notes": {
+    "description": "Specification grid notes label"
+  },
+  "karatGold": "{karat}K Gold",
+  "@karatGold": {
+    "description": "Specification grid purity value",
+    "placeholders": {
+      "karat": {
+        "type": "String"
+      }
+    }
+  },
+  "weightGrams": "{weight} g",
+  "@weightGrams": {
+    "description": "Specification grid exact weight value",
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "weightGramsApprox": "{weight} g (approx)",
+  "@weightGramsApprox": {
+    "description": "Specification grid approximate weight value",
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetRangeAed": "AED {min} - {max}",
+  "@budgetRangeAed": {
+    "description": "Specification grid budget range",
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetRangeAedFlex": "AED {min} - {max} (flex)",
+  "@budgetRangeAedFlex": {
+    "description": "Specification grid flexible budget range",
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetFromAed": "From AED {amount}",
+  "@budgetFromAed": {
+    "description": "Specification grid min-only budget",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetUpToAed": "Up to AED {amount}",
+  "@budgetUpToAed": {
+    "description": "Specification grid max-only budget",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetOpen": "Open",
+  "@budgetOpen": {
+    "description": "Specification grid open budget value"
+  },
+  "dashboardTitle": "Dashboard",
+  "@dashboardTitle": {
+    "description": "VEN-S05 app bar title (KhStrings migration)"
+  },
+  "dashboardRating": "Rating",
+  "@dashboardRating": {
+    "description": "VEN-S05 rating tile title"
+  },
+  "dashboardNoReviews": "No reviews yet",
+  "@dashboardNoReviews": {
+    "description": "VEN-S05 rating empty subtitle"
+  },
+  "dashboardGoldRates": "Reference gold rates",
+  "@dashboardGoldRates": {
+    "description": "VEN-S05 gold rates tile title"
+  },
+  "dashboardSubscriptions": "Type subscriptions",
+  "@dashboardSubscriptions": {
+    "description": "VEN-S05 subscriptions tile title"
+  },
+  "dashboardNoSubscriptions": "No type subscriptions yet",
+  "@dashboardNoSubscriptions": {
+    "description": "VEN-S05 subscriptions empty subtitle"
+  },
+  "dashboardNewRequests": "New requests",
+  "@dashboardNewRequests": {
+    "description": "VEN-S05 new-requests panel label"
+  },
+  "dashboardPendingOffers": "Pending offers",
+  "@dashboardPendingOffers": {
+    "description": "VEN-S05 pending-offers panel label"
+  },
+  "dashboardActiveConnections": "Active connections",
+  "@dashboardActiveConnections": {
+    "description": "VEN-S05 active-connections panel label"
+  },
+  "commonEmpty": "Nothing here yet",
+  "@commonEmpty": {
+    "description": "Generic empty-state message"
+  },
+  "commonRetry": "Try again",
+  "@commonRetry": {
+    "description": "Generic retry action"
+  },
+  "commonLogout": "Log out",
+  "@commonLogout": {
+    "description": "Generic log-out action"
+  },
+  "appTitle": "Karat Hive",
+  "@appTitle": {
+    "description": "Mobile app title"
+  },
+  "authSignIn": "Sign in",
+  "@authSignIn": {
+    "description": "VEN-S01 sign-in title / primary CTA"
+  },
+  "authRegister": "Create a vendor account",
+  "@authRegister": {
+    "description": "VEN-S01 link to vendor registration"
+  },
+  "authMobile": "Mobile number",
+  "@authMobile": {
+    "description": "VEN-S01 mobile field label"
+  },
+  "authEmail": "Business email",
+  "@authEmail": {
+    "description": "VEN-S01 email field label"
+  },
+  "authPassword": "Password",
+  "@authPassword": {
+    "description": "VEN-S01 password field label"
+  },
+  "authSendCode": "Send code",
+  "@authSendCode": {
+    "description": "VEN-S01 OTP request CTA"
+  },
+  "authResendCode": "Resend code",
+  "@authResendCode": {
+    "description": "VEN-S01 OTP resend CTA"
+  },
+  "authEnterCode": "Enter the 6-digit code",
+  "@authEnterCode": {
+    "description": "VEN-S01 OTP entry hint"
+  },
+  "authVerify": "Verify",
+  "@authVerify": {
+    "description": "VEN-S01 OTP verify CTA"
+  },
+  "authOtpTab": "Mobile & code",
+  "@authOtpTab": {
+    "description": "VEN-S01 OTP tab label"
+  },
+  "authPasswordTab": "Email & password",
+  "@authPasswordTab": {
+    "description": "VEN-S01 password tab label"
+  },
+  "onboardingAwaitingTitle": "Verification in progress",
+  "@onboardingAwaitingTitle": {
+    "description": "VEN-S03 awaiting-approval app bar title"
+  },
+  "onboardingPendingDocuments": "Upload your business documents to continue.",
+  "@onboardingPendingDocuments": {
+    "description": "VEN-S03 reason when documents missing"
+  },
+  "onboardingPendingAdmin": "Our team is reviewing your documents.",
+  "@onboardingPendingAdmin": {
+    "description": "VEN-S03 reason while admin reviews"
+  },
+  "onboardingCategoriesRequired": "Choose the categories and regions you serve.",
+  "@onboardingCategoriesRequired": {
+    "description": "VEN-S03 reason when categories not set"
+  },
+  "onboardingRejected": "Your application needs changes.",
+  "@onboardingRejected": {
+    "description": "VEN-S03 reason when verification rejected"
+  },
+  "onboardingUploadKyc": "Upload documents",
+  "@onboardingUploadKyc": {
+    "description": "VEN-S02 / VEN-S03 KYC upload CTA and title"
+  },
+  "onboardingResubmit": "Resubmit for review",
+  "@onboardingResubmit": {
+    "description": "VEN-S03 resubmit CTA after rejection"
+  },
+  "onboardingCategoriesRegions": "Categories & regions",
+  "@onboardingCategoriesRegions": {
+    "description": "VEN-S16 title and navigation CTA"
+  },
+  "onboardingSave": "Save",
+  "@onboardingSave": {
+    "description": "VEN-S16 save preferences CTA"
+  },
+  "onboardingAwayMode": "Away mode",
+  "@onboardingAwayMode": {
+    "description": "VEN-S16 away-mode toggle title"
+  },
+  "onboardingAwayModeHint": "Pause new-request notifications without deactivating.",
+  "@onboardingAwayModeHint": {
+    "description": "VEN-S16 away-mode toggle subtitle"
+  },
+  "onboardingVolumePlaceholder": "Matched-request volume will appear once matching is live.",
+  "@onboardingVolumePlaceholder": {
+    "description": "VEN-S16 placeholder until matching volume is available"
+  },
+  "dashboardGoldRatesUnavailable": "Reference rates unavailable",
+  "@dashboardGoldRatesUnavailable": {
+    "description": "VEN-S05 gold rates empty/error subtitle"
+  },
+  "lifecycleRegistered": "Registered",
+  "@lifecycleRegistered": {
+    "description": "VendorLifecycle.registered display label"
+  },
+  "lifecyclePendingVerification": "Under review",
+  "@lifecyclePendingVerification": {
+    "description": "VendorLifecycle.pendingVerification display label"
+  },
+  "lifecycleVerified": "Verified",
+  "@lifecycleVerified": {
+    "description": "VendorLifecycle.verified display label"
+  },
+  "lifecycleActive": "Active",
+  "@lifecycleActive": {
+    "description": "VendorLifecycle.active display label"
+  },
+  "lifecycleSuspended": "Suspended",
+  "@lifecycleSuspended": {
+    "description": "VendorLifecycle.suspended display label"
+  },
+  "lifecycleRejected": "Needs changes",
+  "@lifecycleRejected": {
+    "description": "VendorLifecycle.rejected display label"
+  },
+  "lifecycleDeactivated": "Deactivated",
+  "@lifecycleDeactivated": {
+    "description": "VendorLifecycle.deactivated display label"
+  },
+  "lifecycleUnknown": "Unknown",
+  "@lifecycleUnknown": {
+    "description": "VendorLifecycle.unknown display label"
+  },
+  "relativeTimeJustNow": "just now",
+  "@relativeTimeJustNow": {
+    "description": "SH-DOM-08 relative time when under one minute"
+  },
+  "relativeTimeMinutesAgo": "{count}m ago",
+  "@relativeTimeMinutesAgo": {
+    "description": "SH-DOM-08 relative time in minutes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeTimeHoursAgo": "{count}h ago",
+  "@relativeTimeHoursAgo": {
+    "description": "SH-DOM-08 relative time in hours",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeTimeDaysAgo": "{count}d ago",
+  "@relativeTimeDaysAgo": {
+    "description": "SH-DOM-08 relative time in days",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expiryExpired": "Expired",
+  "@expiryExpired": {
+    "description": "SH-DOM-07 expired countdown label"
+  },
+  "expiryDaysHoursLeft": "{days}d {hours}h left",
+  "@expiryDaysHoursLeft": {
+    "description": "SH-DOM-07 countdown when days remain",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "expiryHoursMinutesLeft": "{hours}h {minutes}m left",
+  "@expiryHoursMinutesLeft": {
+    "description": "SH-DOM-07 countdown when hours remain",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "expiryMinutesSecondsLeft": "{minutes}m {seconds}s left",
+  "@expiryMinutesSecondsLeft": {
+    "description": "SH-DOM-07 countdown when minutes remain",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "expirySecondsLeft": "{seconds}s left",
+  "@expirySecondsLeft": {
+    "description": "SH-DOM-07 countdown when only seconds remain",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "expiryTimeRemainingSemantics": "Time remaining: {text}",
+  "@expiryTimeRemainingSemantics": {
+    "description": "SH-DOM-07 screen-reader label for countdown",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "dealCount": "{count, plural, =1{{count} deal} other{{count} deals}}",
+  "@dealCount": {
+    "description": "SH-ID-07 completed deal count on trust signal",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

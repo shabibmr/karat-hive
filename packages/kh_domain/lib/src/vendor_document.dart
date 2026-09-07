@@ -1,3 +1,8 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'vendor_document.freezed.dart';
+part 'vendor_document.g.dart';
+
 enum VendorDocumentType {
   tradeLicence,
   emiratesId,
@@ -39,28 +44,49 @@ const mandatoryVendorDocuments = [
   VendorDocumentType.emiratesId,
 ];
 
-class VendorDocument {
-  const VendorDocument({
-    required this.id,
-    required this.documentType,
-    required this.verified,
-    required this.uploadedAt,
-    this.expiryDate,
-  });
+class _VendorDocumentTypeConverter
+    implements JsonConverter<VendorDocumentType, String?> {
+  const _VendorDocumentTypeConverter();
 
-  final String id;
-  final VendorDocumentType documentType;
-  final bool verified;
-  final DateTime uploadedAt;
-  final DateTime? expiryDate;
+  @override
+  VendorDocumentType fromJson(String? json) => VendorDocumentType.parse(json);
 
-  static VendorDocument fromJson(Map<String, dynamic> j) => VendorDocument(
-        id: j['id'] as String,
-        documentType: VendorDocumentType.parse(j['documentType'] as String?),
-        verified: j['verified'] as bool? ?? false,
-        uploadedAt: DateTime.parse(j['uploadedAt'] as String),
-        expiryDate: j['expiryDate'] == null
-            ? null
-            : DateTime.parse('${j['expiryDate']}T00:00:00Z'),
-      );
+  @override
+  String toJson(VendorDocumentType object) => object.wire;
+}
+
+Map<String, dynamic> _normalizeVendorDocumentJson(Map<String, dynamic> json) {
+  final expiry = json['expiryDate'];
+  String? expiryIso;
+  if (expiry != null) {
+    final raw = expiry.toString();
+    expiryIso = raw.contains('T')
+        ? (DateTime.tryParse(raw)?.toIso8601String())
+        : (DateTime.tryParse('${raw}T00:00:00Z')?.toIso8601String());
+  }
+
+  final uploadedAt = DateTime.parse(json['uploadedAt'] as String);
+
+  return {
+    ...json,
+    'documentType': json['documentType']?.toString(),
+    'verified': json['verified'] as bool? ?? false,
+    'uploadedAt': uploadedAt.toIso8601String(),
+    'expiryDate': expiryIso,
+  };
+}
+
+/// Vendor KYC / compliance document metadata (CP2-F06 freezed pattern).
+@freezed
+abstract class VendorDocument with _$VendorDocument {
+  const factory VendorDocument({
+    required String id,
+    @_VendorDocumentTypeConverter() required VendorDocumentType documentType,
+    required bool verified,
+    required DateTime uploadedAt,
+    DateTime? expiryDate,
+  }) = _VendorDocument;
+
+  factory VendorDocument.fromJson(Map<String, dynamic> json) =>
+      _$VendorDocumentFromJson(_normalizeVendorDocumentJson(json));
 }

@@ -1,67 +1,116 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
-class OtpChallenge {
-  const OtpChallenge({required this.challengeId, required this.expiresAt});
-  final String challengeId;
-  final DateTime expiresAt;
+part 'dtos.freezed.dart';
+part 'dtos.g.dart';
 
-  static OtpChallenge fromJson(Map<String, dynamic> j) => OtpChallenge(
-        challengeId: j['challengeId'] as String,
-        expiresAt: DateTime.parse(j['expiresAt'] as String),
-      );
-}
+// --- converters for non-freezed nested types ---------------------------------
 
-class OtpVerifyResult {
-  const OtpVerifyResult({this.mobileVerified = false, this.challengeId, this.session});
-  final bool mobileVerified;
-  final String? challengeId;
-  final SessionBundle? session;
-
-  static OtpVerifyResult fromJson(Map<String, dynamic> j) {
-    if (j['accessToken'] != null) {
-      return OtpVerifyResult(session: SessionBundle.fromJson(j));
-    }
-    return OtpVerifyResult(
-      mobileVerified: j['mobileVerified'] as bool? ?? false,
-      challengeId: j['challengeId'] as String?,
+SessionTokens _sessionTokensFromJson(Map<String, dynamic> json) =>
+    SessionTokens(
+      accessToken: json['accessToken'] as String,
+      refreshToken: json['refreshToken'] as String,
+      accessExpiresAt: DateTime.parse(json['accessExpiresAt'] as String),
+      refreshExpiresAt: DateTime.parse(json['refreshExpiresAt'] as String),
     );
+
+Map<String, dynamic> _sessionTokensToJson(SessionTokens tokens) => {
+      'accessToken': tokens.accessToken,
+      'refreshToken': tokens.refreshToken,
+      'accessExpiresAt': tokens.accessExpiresAt.toIso8601String(),
+      'refreshExpiresAt': tokens.refreshExpiresAt.toIso8601String(),
+    };
+
+MeUser _meUserFromJson(Map<String, dynamic> json) => MeUser.fromJson(json);
+
+Map<String, dynamic> _meUserToJson(MeUser user) => user.toJson();
+
+Map<String, dynamic> _normalizeSessionBundleJson(Map<String, dynamic> json) {
+  final tokensJson = json['tokens'] is Map<String, dynamic>
+      ? Map<String, dynamic>.from(json['tokens'] as Map<String, dynamic>)
+      : <String, dynamic>{
+          'accessToken': json['accessToken'],
+          'refreshToken': json['refreshToken'],
+          'accessExpiresAt': json['accessExpiresAt'],
+          'refreshExpiresAt': json['refreshExpiresAt'],
+        };
+  return {
+    'tokens': tokensJson,
+    'user': json['user'],
+  };
+}
+
+Map<String, dynamic> _normalizeUploadIntentJson(Map<String, dynamic> json) {
+  return {
+    ...json,
+    'requiredHeaders': ((json['requiredHeaders'] as Map?) ?? const {})
+        .map((k, v) => MapEntry(k.toString(), v.toString())),
+    'maxBytes': json['maxBytes'] as int? ?? 0,
+  };
+}
+
+/// LOGIN purpose returns a flat [SessionBundle]; REGISTER returns an ack object.
+Map<String, dynamic> _normalizeOtpVerifyResultJson(Map<String, dynamic> json) {
+  if (json['accessToken'] != null) {
+    return {
+      'mobileVerified': false,
+      'challengeId': null,
+      'session': _normalizeSessionBundleJson(json),
+    };
   }
+  return json;
 }
 
-class SessionBundle {
-  const SessionBundle({required this.tokens, required this.user});
-  final SessionTokens tokens;
-  final MeUser user;
+// --- DTOs --------------------------------------------------------------------
 
-  static SessionBundle fromJson(Map<String, dynamic> j) => SessionBundle(
-        tokens: SessionTokens(
-          accessToken: j['accessToken'] as String,
-          refreshToken: j['refreshToken'] as String,
-          accessExpiresAt: DateTime.parse(j['accessExpiresAt'] as String),
-          refreshExpiresAt: DateTime.parse(j['refreshExpiresAt'] as String),
-        ),
-        user: MeUser.fromJson(j['user'] as Map<String, dynamic>),
-      );
+@freezed
+abstract class OtpChallenge with _$OtpChallenge {
+  const factory OtpChallenge({
+    required String challengeId,
+    required DateTime expiresAt,
+  }) = _OtpChallenge;
+
+  factory OtpChallenge.fromJson(Map<String, dynamic> json) =>
+      _$OtpChallengeFromJson(json);
 }
 
-class UploadIntent {
-  const UploadIntent({
-    required this.key,
-    required this.uploadUrl,
-    required this.requiredHeaders,
-    required this.maxBytes,
-  });
-  final String key;
-  final String uploadUrl;
-  final Map<String, String> requiredHeaders;
-  final int maxBytes;
+@freezed
+abstract class SessionBundle with _$SessionBundle {
+  const factory SessionBundle({
+    @JsonKey(fromJson: _sessionTokensFromJson, toJson: _sessionTokensToJson)
+    required SessionTokens tokens,
+    @JsonKey(fromJson: _meUserFromJson, toJson: _meUserToJson)
+    required MeUser user,
+  }) = _SessionBundle;
 
-  static UploadIntent fromJson(Map<String, dynamic> j) => UploadIntent(
-        key: j['key'] as String,
-        uploadUrl: j['uploadUrl'] as String,
-        requiredHeaders: ((j['requiredHeaders'] as Map?) ?? const {})
-            .map((k, v) => MapEntry(k.toString(), v.toString())),
-        maxBytes: j['maxBytes'] as int? ?? 0,
-      );
+  factory SessionBundle.fromJson(Map<String, dynamic> json) =>
+      _$SessionBundleFromJson(_normalizeSessionBundleJson(json));
+}
+
+/// OTP verify may return either a register-step ack or a full [SessionBundle]
+/// (LOGIN purpose). Session payloads are detected by a top-level `accessToken`.
+@freezed
+abstract class OtpVerifyResult with _$OtpVerifyResult {
+  const factory OtpVerifyResult({
+    @Default(false) bool mobileVerified,
+    String? challengeId,
+    SessionBundle? session,
+  }) = _OtpVerifyResult;
+
+  factory OtpVerifyResult.fromJson(Map<String, dynamic> json) =>
+      _$OtpVerifyResultFromJson(_normalizeOtpVerifyResultJson(json));
+}
+
+@freezed
+abstract class UploadIntent with _$UploadIntent {
+  const factory UploadIntent({
+    required String key,
+    required String uploadUrl,
+    @Default(<String, String>{}) Map<String, String> requiredHeaders,
+    @Default(0) int maxBytes,
+  }) = _UploadIntent;
+
+  factory UploadIntent.fromJson(Map<String, dynamic> json) =>
+      _$UploadIntentFromJson(_normalizeUploadIntentJson(json));
 }

@@ -20,7 +20,7 @@ class KycUploadScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final s = KhStrings.of(context);
+    final l10n = AppLocalizations.of(context);
     final files = ref.watch(kycUploadControllerProvider);
     final controller = ref.read(kycUploadControllerProvider.notifier);
 
@@ -39,7 +39,7 @@ class KycUploadScreen extends ConsumerWidget {
     }
 
     return KhScaffold(
-      title: s.s('onboarding.uploadKyc'),
+      title: l10n?.onboardingUploadKyc ?? 'Upload documents',
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

@@ -5,6 +5,15 @@ import 'package:karat_hive/features/request_feed/repository/request_feed_reposit
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+class _SeededRequestFiltersController extends RequestFiltersController {
+  _SeededRequestFiltersController(this._seed);
+
+  final RequestFiltersState _seed;
+
+  @override
+  RequestFiltersState build() => _seed;
+}
+
 class _RecordingFeedRepository implements RequestFeedRepository {
   String? lastSort;
   String? lastRequestType;
@@ -155,13 +164,15 @@ void main() {
         overrides: [
           requestFeedRepositoryProvider.overrideWithValue(repo),
           requestFiltersProvider.overrideWith(
-            (ref) => const RequestFiltersState(
-              sort: 'EXPIRING',
-              requestType: 'BULLION',
-              includeResponded: true,
-              minBudget: 2000,
-              maxBudget: 9000,
-              activePresetId: 'pre-9',
+            () => _SeededRequestFiltersController(
+              const RequestFiltersState(
+                sort: 'EXPIRING',
+                requestType: 'BULLION',
+                includeResponded: true,
+                minBudget: 2000,
+                maxBudget: 9000,
+                activePresetId: 'pre-9',
+              ),
             ),
           ),
         ],

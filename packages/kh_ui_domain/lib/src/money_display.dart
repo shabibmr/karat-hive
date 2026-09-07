@@ -9,14 +9,16 @@ class MoneyDisplay extends StatelessWidget {
   const MoneyDisplay({
     super.key,
     required this.amount,
-    this.locale = 'en',
+    this.locale,
     this.style,
     this.highlight = false,
     this.delta,
   });
 
   final num amount;
-  final String locale;
+
+  /// When null, uses [Localizations.localeOf].
+  final String? locale;
   final TextStyle? style;
   final bool highlight;
   final num? delta;
@@ -24,7 +26,9 @@ class MoneyDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final formatted = MoneyFormatter.aed(amount, locale: locale);
+    final effectiveLocale =
+        locale ?? Localizations.localeOf(context).languageCode;
+    final formatted = MoneyFormatter.aed(amount, locale: effectiveLocale);
     final baseStyle = style ??
         TextStyle(
           fontSize: 13,
@@ -36,7 +40,7 @@ class MoneyDisplay extends StatelessWidget {
       return Text(formatted, style: baseStyle);
     }
 
-    final deltaText = MoneyFormatter.aed(delta!.abs(), locale: locale);
+    final deltaText = MoneyFormatter.aed(delta!.abs(), locale: effectiveLocale);
     final positive = delta! >= 0;
     return Row(
       mainAxisSize: MainAxisSize.min,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
+import 'package:kh_l10n/kh_l10n.dart';
 
 import 'expiry_countdown.dart';
 import 'masked_party_label.dart';
@@ -25,8 +26,11 @@ class VendorRequestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
-    final title = item.reference ?? item.categoryName ?? 'Request';
+    final title = item.reference ??
+        item.categoryName ??
+        (l10n?.requestFallback ?? 'Request');
     final isUnread = !item.isViewed;
 
     return Card(
@@ -80,9 +84,9 @@ class VendorRequestCard extends StatelessWidget {
                                 color: tokens.gold,
                               ),
                             if (item.hasResponded)
-                              const KhStatusChip(
-                                key: Key('responded-marker'),
-                                label: 'Responded',
+                              KhStatusChip(
+                                key: const Key('responded-marker'),
+                                label: l10n?.responded ?? 'Responded',
                                 tone: KhStatusTone.accent,
                                 compact: true,
                               ),
@@ -159,7 +163,8 @@ class VendorRequestCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${item.offerCount} ${item.offerCount == 1 ? 'offer' : 'offers'}',
+                        l10n?.offerCountShort(item.offerCount) ??
+                            '${item.offerCount} ${item.offerCount == 1 ? 'offer' : 'offers'}',
                         style: TextStyle(
                           fontSize: 12,
                           color: tokens.ink.withValues(alpha: 0.7),
@@ -185,6 +190,7 @@ class _BudgetLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (item.budgetMin != null && item.budgetMax != null) {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -199,7 +205,7 @@ class _BudgetLabel extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('From '),
+          Text(l10n?.budgetFrom ?? 'From '),
           MoneyDisplay(amount: item.budgetMin!),
         ],
       );
@@ -208,12 +214,12 @@ class _BudgetLabel extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Up to '),
+          Text(l10n?.budgetUpTo ?? 'Up to '),
           MoneyDisplay(amount: item.budgetMax!),
         ],
       );
     }
-    return const Text('Open Budget');
+    return Text(l10n?.openBudget ?? 'Open Budget');
   }
 }
 

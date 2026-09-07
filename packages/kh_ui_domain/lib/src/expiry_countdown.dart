@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
+import 'package:kh_l10n/kh_l10n.dart';
 
 /// Scope to ambiently provide a [ServerClock] down the widget tree.
 class ServerClockScope extends InheritedWidget {
@@ -50,7 +51,7 @@ class ExpiryCountdown extends StatefulWidget {
     this.onExpired,
     this.style,
     this.showIcon = true,
-    this.expiredLabel = 'Expired',
+    this.expiredLabel,
     this.customFormatter,
   });
 
@@ -70,8 +71,8 @@ class ExpiryCountdown extends StatefulWidget {
   /// Whether to display the urgency timer icon.
   final bool showIcon;
 
-  /// Text to display when expired.
-  final String expiredLabel;
+  /// Optional override for the expired label; defaults to l10n / English.
+  final String? expiredLabel;
 
   /// Optional custom duration formatter.
   final String Function(Duration remaining)? customFormatter;
@@ -162,41 +163,31 @@ class _ExpiryCountdownState extends State<ExpiryCountdown> {
     });
   }
 
-  String _formatDuration(Duration d) {
+  ExpiryLabels _labels(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return l10n != null
+        ? ExpiryLabels.fromAppLocalizations(l10n)
+        : ExpiryLabels.english;
+  }
+
+  String _formatDuration(Duration d, ExpiryLabels labels, String locale) {
     if (widget.customFormatter != null) {
       return widget.customFormatter!(d);
     }
-    if (d <= Duration.zero) {
-      return widget.expiredLabel;
-    }
-
-    // Round up milliseconds to avoid displaying 59m 59s when 1h was scheduled
-    final totalSeconds = (d.inMilliseconds / 1000).ceil();
-    if (totalSeconds <= 0) {
-      return widget.expiredLabel;
-    }
-
-    final days = totalSeconds ~/ 86400;
-    final hours = (totalSeconds % 86400) ~/ 3600;
-    final minutes = (totalSeconds % 3600) ~/ 60;
-    final seconds = totalSeconds % 60;
-
-    if (days > 0) {
-      return '${days}d ${hours}h left';
-    }
-    if (hours > 0) {
-      return '${hours}h ${minutes}m left';
-    }
-    if (minutes > 0) {
-      return '${minutes}m ${seconds}s left';
-    }
-    return '${seconds}s left';
+    return ExpiryCountdownFormatter.format(
+      d,
+      locale: locale,
+      labels: labels,
+      expiredLabel: widget.expiredLabel,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final text = _formatDuration(_remaining);
+    final locale = Localizations.localeOf(context).languageCode;
+    final labels = _labels(context);
+    final text = _formatDuration(_remaining, labels, locale);
 
     final (Color color, IconData icon) = switch (_urgency) {
       ExpiryUrgency.normal => (tokens.ink.withValues(alpha: 0.75), Icons.access_time),
@@ -209,7 +200,11 @@ class _ExpiryCountdownState extends State<ExpiryCountdown> {
         ?.copyWith(color: color, fontWeight: FontWeight.w600);
 
     return Semantics(
-      label: 'Time remaining: $text',
+      label: ExpiryCountdownFormatter.semanticsLabel(
+        text,
+        locale: locale,
+        labels: labels,
+      ),
       child: ExcludeSemantics(
         child: Row(
           mainAxisSize: MainAxisSize.min,

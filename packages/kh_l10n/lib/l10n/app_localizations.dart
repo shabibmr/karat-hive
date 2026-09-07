@@ -193,6 +193,834 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open {url}'**
   String couldNotOpenUrl(String url);
+
+  /// VEN-S06 app bar title
+  ///
+  /// In en, this message translates to:
+  /// **'Available Requests'**
+  String get availableRequestsTitle;
+
+  /// VEN-S06 initial load error
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load matching requests.'**
+  String get failedToLoadMatchingRequests;
+
+  /// VEN-S06 empty feed title
+  ///
+  /// In en, this message translates to:
+  /// **'No Matching Requests'**
+  String get noMatchingRequests;
+
+  /// VEN-S06 empty feed copy when filters active
+  ///
+  /// In en, this message translates to:
+  /// **'Try resetting your active filters to see more requests.'**
+  String get emptyFeedResetFiltersHint;
+
+  /// VEN-S06 empty feed copy when no filters
+  ///
+  /// In en, this message translates to:
+  /// **'Broaden your Categories and Regions, or check that you have an active Type Subscription for the request types you want to see.'**
+  String get emptyFeedBroadenHint;
+
+  /// VEN-S06 empty-state reset filters CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Filters'**
+  String get resetFilters;
+
+  /// VEN-S06 empty-state subscriptions CTA
+  ///
+  /// In en, this message translates to:
+  /// **'View Subscriptions'**
+  String get viewSubscriptions;
+
+  /// VEN-S06 end-of-list sentinel
+  ///
+  /// In en, this message translates to:
+  /// **'You are all caught up'**
+  String get allCaughtUp;
+
+  /// VEN-S08 app bar title with request id
+  ///
+  /// In en, this message translates to:
+  /// **'Request {requestId}'**
+  String requestTitleWithId(String requestId);
+
+  /// VEN-S08 detail load error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load request details.'**
+  String get couldNotLoadRequestDetails;
+
+  /// VEN-S08 title when reference is null
+  ///
+  /// In en, this message translates to:
+  /// **'Request Details'**
+  String get requestDetailsFallback;
+
+  /// VEN-S08 masked customer card heading
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Summary'**
+  String get customerSummary;
+
+  /// VEN-S08 notes card heading
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Notes'**
+  String get customerNotes;
+
+  /// VEN-S08 offer count summary (BR-008)
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} offer received} other{{count} offers received}}'**
+  String offersReceived(int count);
+
+  /// VEN-S08 BR-008 subtitle under offer count
+  ///
+  /// In en, this message translates to:
+  /// **'Competitor pricing and terms are hidden per marketplace rules.'**
+  String get competitorPricingHidden;
+
+  /// VEN-S08 disabled CTA when request expired
+  ///
+  /// In en, this message translates to:
+  /// **'Request Expired'**
+  String get requestExpired;
+
+  /// VEN-S08 disabled CTA when request closed
+  ///
+  /// In en, this message translates to:
+  /// **'Request Closed'**
+  String get requestClosed;
+
+  /// VEN-S08 primary CTA placeholder until CP-3
+  ///
+  /// In en, this message translates to:
+  /// **'Make an Offer (CP-3)'**
+  String get makeAnOfferCp3;
+
+  /// VEN-S08 snackbar when Make Offer tapped
+  ///
+  /// In en, this message translates to:
+  /// **'Bidding opens in Check-Point 3.'**
+  String get biddingOpensCp3;
+
+  /// VEN-S05 dashboard load error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your dashboard.'**
+  String get couldNotLoadDashboard;
+
+  /// VEN-S05 new-requests card subtitle when count > 0
+  ///
+  /// In en, this message translates to:
+  /// **'{count} matching request(s) waiting'**
+  String matchingRequestsWaiting(int count);
+
+  /// VEN-S05 new-requests card subtitle when empty
+  ///
+  /// In en, this message translates to:
+  /// **'No new requests right now'**
+  String get noNewRequestsRightNow;
+
+  /// VEN-S05 preview section header
+  ///
+  /// In en, this message translates to:
+  /// **'Latest matches'**
+  String get latestMatches;
+
+  /// VEN-S05 preview section action
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get seeAll;
+
+  /// VEN-S05 pending-offers urgency subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'{count} expiring within 24h'**
+  String offersExpiringWithin24h(int count);
+
+  /// VEN-S05 pending-offers default subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Active bids awaiting customer response'**
+  String get activeBidsAwaiting;
+
+  /// VEN-S05 pending-offers disabled snackbar
+  ///
+  /// In en, this message translates to:
+  /// **'Offer management opens in Check-Point 3'**
+  String get offerManagementCp3;
+
+  /// VEN-S05 connections urgency subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'{count} with no talk yet'**
+  String connectionsNoTalkYet(int count);
+
+  /// VEN-S05 connections default subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Won deals & direct customer chats'**
+  String get wonDealsChats;
+
+  /// VEN-S05 connections disabled snackbar
+  ///
+  /// In en, this message translates to:
+  /// **'Connections open in Check-Point 4'**
+  String get connectionsOpenCp4;
+
+  /// VEN-S05 subscriptions tile subtitle when entitlements exist
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active entitlement(s)'**
+  String activeEntitlementsCount(int count);
+
+  /// VEN-S07 sort chip NEWEST
+  ///
+  /// In en, this message translates to:
+  /// **'Newest'**
+  String get sortNewest;
+
+  /// VEN-S07 sort chip EXPIRING
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring Soon'**
+  String get sortExpiringSoon;
+
+  /// VEN-S07 sort chip HIGHEST_VALUE
+  ///
+  /// In en, this message translates to:
+  /// **'Highest Value'**
+  String get sortHighestValue;
+
+  /// VEN-S07 sort chip FEWEST_OFFERS
+  ///
+  /// In en, this message translates to:
+  /// **'Fewest Offers'**
+  String get sortFewestOffers;
+
+  /// FIND_ORNAMENT display name
+  ///
+  /// In en, this message translates to:
+  /// **'Find Ornament'**
+  String get requestTypeFindOrnament;
+
+  /// CUSTOM_DESIGN display name
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Design'**
+  String get requestTypeCustomDesign;
+
+  /// BULLION short display name (filters)
+  ///
+  /// In en, this message translates to:
+  /// **'Bullion'**
+  String get requestTypeBullion;
+
+  /// BULLION long display name (subscriptions)
+  ///
+  /// In en, this message translates to:
+  /// **'Bullion & Investment'**
+  String get requestTypeBullionInvestment;
+
+  /// REPAIR_RESIZE display name
+  ///
+  /// In en, this message translates to:
+  /// **'Repair & Resize'**
+  String get requestTypeRepairResize;
+
+  /// Shared category field label
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get category;
+
+  /// VEN-S07 categories load error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load categories'**
+  String get couldNotLoadCategories;
+
+  /// VEN-S07 category dropdown null option
+  ///
+  /// In en, this message translates to:
+  /// **'Any category'**
+  String get anyCategory;
+
+  /// Shared region field label
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get region;
+
+  /// VEN-S07 regions load error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load regions'**
+  String get couldNotLoadRegions;
+
+  /// VEN-S07 region dropdown null option
+  ///
+  /// In en, this message translates to:
+  /// **'Any region'**
+  String get anyRegion;
+
+  /// VEN-S07 budget section heading
+  ///
+  /// In en, this message translates to:
+  /// **'Budget (AED)'**
+  String get budgetAed;
+
+  /// VEN-S07 min budget field label
+  ///
+  /// In en, this message translates to:
+  /// **'Min'**
+  String get minLabel;
+
+  /// VEN-S07 max budget field label
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get maxLabel;
+
+  /// VEN-S07 purity section heading
+  ///
+  /// In en, this message translates to:
+  /// **'Purity (Karat)'**
+  String get purityKarat;
+
+  /// VEN-S07 presets load error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load presets'**
+  String get couldNotLoadPresets;
+
+  /// VEN-S07 save-preset dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Save Filter Preset'**
+  String get saveFilterPreset;
+
+  /// VEN-S07 save-preset dialog hint
+  ///
+  /// In en, this message translates to:
+  /// **'Preset name (e.g. Dubai 22K Rings)'**
+  String get presetNameHint;
+
+  /// Generic cancel action
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// Generic save action
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// VEN-S22 subscriptions load error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load subscription details.'**
+  String get couldNotLoadSubscriptionDetails;
+
+  /// VEN-S22 subscription card plan-rate label
+  ///
+  /// In en, this message translates to:
+  /// **'Plan Rate:'**
+  String get planRate;
+
+  /// VEN-S22 monthly plan price
+  ///
+  /// In en, this message translates to:
+  /// **'AED {price} / month'**
+  String aedPerMonth(String price);
+
+  /// VEN-S22 renewal date label
+  ///
+  /// In en, this message translates to:
+  /// **'Next Renewal:'**
+  String get nextRenewal;
+
+  /// VEN-S22 GRACE state warning
+  ///
+  /// In en, this message translates to:
+  /// **'Grace period active until {date}. Renew now to avoid losing matching eligibility.'**
+  String gracePeriodActiveUntil(String date);
+
+  /// VEN-S22 EXPIRED/LAPSED state copy
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription expired. Matching requests for this category are currently paused.'**
+  String get subscriptionExpiredPaused;
+
+  /// SH-REQ-01 responded marker on vendor request card
+  ///
+  /// In en, this message translates to:
+  /// **'Responded'**
+  String get responded;
+
+  /// SH-REQ-01 offer count on vendor request card
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} offer} other{{count} offers}}'**
+  String offerCountShort(int count);
+
+  /// SH-REQ-01 budget lower-bound prefix
+  ///
+  /// In en, this message translates to:
+  /// **'From '**
+  String get budgetFrom;
+
+  /// SH-REQ-01 budget upper-bound prefix
+  ///
+  /// In en, this message translates to:
+  /// **'Up to '**
+  String get budgetUpTo;
+
+  /// SH-REQ-01 when no budget bounds
+  ///
+  /// In en, this message translates to:
+  /// **'Open Budget'**
+  String get openBudget;
+
+  /// SH-REQ-01 card title when reference and category absent
+  ///
+  /// In en, this message translates to:
+  /// **'Request'**
+  String get requestFallback;
+
+  /// VEN-S08 specification grid heading
+  ///
+  /// In en, this message translates to:
+  /// **'Specifications'**
+  String get specifications;
+
+  /// Specification grid purity label
+  ///
+  /// In en, this message translates to:
+  /// **'Purity'**
+  String get purity;
+
+  /// Specification grid weight label
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weight;
+
+  /// Specification grid budget label
+  ///
+  /// In en, this message translates to:
+  /// **'Budget'**
+  String get budget;
+
+  /// Specification grid type label
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get type;
+
+  /// Specification grid direction label
+  ///
+  /// In en, this message translates to:
+  /// **'Direction'**
+  String get direction;
+
+  /// Specification grid notes label
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notes;
+
+  /// Specification grid purity value
+  ///
+  /// In en, this message translates to:
+  /// **'{karat}K Gold'**
+  String karatGold(String karat);
+
+  /// Specification grid exact weight value
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} g'**
+  String weightGrams(String weight);
+
+  /// Specification grid approximate weight value
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} g (approx)'**
+  String weightGramsApprox(String weight);
+
+  /// Specification grid budget range
+  ///
+  /// In en, this message translates to:
+  /// **'AED {min} - {max}'**
+  String budgetRangeAed(String min, String max);
+
+  /// Specification grid flexible budget range
+  ///
+  /// In en, this message translates to:
+  /// **'AED {min} - {max} (flex)'**
+  String budgetRangeAedFlex(String min, String max);
+
+  /// Specification grid min-only budget
+  ///
+  /// In en, this message translates to:
+  /// **'From AED {amount}'**
+  String budgetFromAed(String amount);
+
+  /// Specification grid max-only budget
+  ///
+  /// In en, this message translates to:
+  /// **'Up to AED {amount}'**
+  String budgetUpToAed(String amount);
+
+  /// Specification grid open budget value
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get budgetOpen;
+
+  /// VEN-S05 app bar title (KhStrings migration)
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get dashboardTitle;
+
+  /// VEN-S05 rating tile title
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get dashboardRating;
+
+  /// VEN-S05 rating empty subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'No reviews yet'**
+  String get dashboardNoReviews;
+
+  /// VEN-S05 gold rates tile title
+  ///
+  /// In en, this message translates to:
+  /// **'Reference gold rates'**
+  String get dashboardGoldRates;
+
+  /// VEN-S05 subscriptions tile title
+  ///
+  /// In en, this message translates to:
+  /// **'Type subscriptions'**
+  String get dashboardSubscriptions;
+
+  /// VEN-S05 subscriptions empty subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'No type subscriptions yet'**
+  String get dashboardNoSubscriptions;
+
+  /// VEN-S05 new-requests panel label
+  ///
+  /// In en, this message translates to:
+  /// **'New requests'**
+  String get dashboardNewRequests;
+
+  /// VEN-S05 pending-offers panel label
+  ///
+  /// In en, this message translates to:
+  /// **'Pending offers'**
+  String get dashboardPendingOffers;
+
+  /// VEN-S05 active-connections panel label
+  ///
+  /// In en, this message translates to:
+  /// **'Active connections'**
+  String get dashboardActiveConnections;
+
+  /// Generic empty-state message
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get commonEmpty;
+
+  /// Generic retry action
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get commonRetry;
+
+  /// Generic log-out action
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get commonLogout;
+
+  /// Mobile app title
+  ///
+  /// In en, this message translates to:
+  /// **'Karat Hive'**
+  String get appTitle;
+
+  /// VEN-S01 sign-in title / primary CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get authSignIn;
+
+  /// VEN-S01 link to vendor registration
+  ///
+  /// In en, this message translates to:
+  /// **'Create a vendor account'**
+  String get authRegister;
+
+  /// VEN-S01 mobile field label
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile number'**
+  String get authMobile;
+
+  /// VEN-S01 email field label
+  ///
+  /// In en, this message translates to:
+  /// **'Business email'**
+  String get authEmail;
+
+  /// VEN-S01 password field label
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get authPassword;
+
+  /// VEN-S01 OTP request CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get authSendCode;
+
+  /// VEN-S01 OTP resend CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get authResendCode;
+
+  /// VEN-S01 OTP entry hint
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code'**
+  String get authEnterCode;
+
+  /// VEN-S01 OTP verify CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get authVerify;
+
+  /// VEN-S01 OTP tab label
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile & code'**
+  String get authOtpTab;
+
+  /// VEN-S01 password tab label
+  ///
+  /// In en, this message translates to:
+  /// **'Email & password'**
+  String get authPasswordTab;
+
+  /// VEN-S03 awaiting-approval app bar title
+  ///
+  /// In en, this message translates to:
+  /// **'Verification in progress'**
+  String get onboardingAwaitingTitle;
+
+  /// VEN-S03 reason when documents missing
+  ///
+  /// In en, this message translates to:
+  /// **'Upload your business documents to continue.'**
+  String get onboardingPendingDocuments;
+
+  /// VEN-S03 reason while admin reviews
+  ///
+  /// In en, this message translates to:
+  /// **'Our team is reviewing your documents.'**
+  String get onboardingPendingAdmin;
+
+  /// VEN-S03 reason when categories not set
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the categories and regions you serve.'**
+  String get onboardingCategoriesRequired;
+
+  /// VEN-S03 reason when verification rejected
+  ///
+  /// In en, this message translates to:
+  /// **'Your application needs changes.'**
+  String get onboardingRejected;
+
+  /// VEN-S02 / VEN-S03 KYC upload CTA and title
+  ///
+  /// In en, this message translates to:
+  /// **'Upload documents'**
+  String get onboardingUploadKyc;
+
+  /// VEN-S03 resubmit CTA after rejection
+  ///
+  /// In en, this message translates to:
+  /// **'Resubmit for review'**
+  String get onboardingResubmit;
+
+  /// VEN-S16 title and navigation CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Categories & regions'**
+  String get onboardingCategoriesRegions;
+
+  /// VEN-S16 save preferences CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get onboardingSave;
+
+  /// VEN-S16 away-mode toggle title
+  ///
+  /// In en, this message translates to:
+  /// **'Away mode'**
+  String get onboardingAwayMode;
+
+  /// VEN-S16 away-mode toggle subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Pause new-request notifications without deactivating.'**
+  String get onboardingAwayModeHint;
+
+  /// VEN-S16 placeholder until matching volume is available
+  ///
+  /// In en, this message translates to:
+  /// **'Matched-request volume will appear once matching is live.'**
+  String get onboardingVolumePlaceholder;
+
+  /// VEN-S05 gold rates empty/error subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Reference rates unavailable'**
+  String get dashboardGoldRatesUnavailable;
+
+  /// VendorLifecycle.registered display label
+  ///
+  /// In en, this message translates to:
+  /// **'Registered'**
+  String get lifecycleRegistered;
+
+  /// VendorLifecycle.pendingVerification display label
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get lifecyclePendingVerification;
+
+  /// VendorLifecycle.verified display label
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get lifecycleVerified;
+
+  /// VendorLifecycle.active display label
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get lifecycleActive;
+
+  /// VendorLifecycle.suspended display label
+  ///
+  /// In en, this message translates to:
+  /// **'Suspended'**
+  String get lifecycleSuspended;
+
+  /// VendorLifecycle.rejected display label
+  ///
+  /// In en, this message translates to:
+  /// **'Needs changes'**
+  String get lifecycleRejected;
+
+  /// VendorLifecycle.deactivated display label
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivated'**
+  String get lifecycleDeactivated;
+
+  /// VendorLifecycle.unknown display label
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get lifecycleUnknown;
+
+  /// SH-DOM-08 relative time when under one minute
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get relativeTimeJustNow;
+
+  /// SH-DOM-08 relative time in minutes
+  ///
+  /// In en, this message translates to:
+  /// **'{count}m ago'**
+  String relativeTimeMinutesAgo(int count);
+
+  /// SH-DOM-08 relative time in hours
+  ///
+  /// In en, this message translates to:
+  /// **'{count}h ago'**
+  String relativeTimeHoursAgo(int count);
+
+  /// SH-DOM-08 relative time in days
+  ///
+  /// In en, this message translates to:
+  /// **'{count}d ago'**
+  String relativeTimeDaysAgo(int count);
+
+  /// SH-DOM-07 expired countdown label
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get expiryExpired;
+
+  /// SH-DOM-07 countdown when days remain
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h left'**
+  String expiryDaysHoursLeft(int days, int hours);
+
+  /// SH-DOM-07 countdown when hours remain
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m left'**
+  String expiryHoursMinutesLeft(int hours, int minutes);
+
+  /// SH-DOM-07 countdown when minutes remain
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m {seconds}s left'**
+  String expiryMinutesSecondsLeft(int minutes, int seconds);
+
+  /// SH-DOM-07 countdown when only seconds remain
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s left'**
+  String expirySecondsLeft(int seconds);
+
+  /// SH-DOM-07 screen-reader label for countdown
+  ///
+  /// In en, this message translates to:
+  /// **'Time remaining: {text}'**
+  String expiryTimeRemainingSemantics(String text);
+
+  /// SH-ID-07 completed deal count on trust signal
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} deal} other{{count} deals}}'**
+  String dealCount(int count);
 }
 
 class _AppLocalizationsDelegate

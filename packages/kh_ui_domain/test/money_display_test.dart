@@ -7,6 +7,7 @@ void main() {
   testWidgets('MoneyDisplay formats AED amounts', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('en'),
         theme: khTheme(),
         home: const Scaffold(
           body: MoneyDisplay(amount: 1250.5),

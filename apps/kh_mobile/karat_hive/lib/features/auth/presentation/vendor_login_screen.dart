@@ -32,7 +32,7 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final s = KhStrings.of(context);
+    final l10n = AppLocalizations.of(context);
     final state = ref.watch(vendorLoginControllerProvider);
     final controller = ref.read(vendorLoginControllerProvider.notifier);
     final busy = state is LoginBusy;
@@ -41,7 +41,7 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
     return DefaultTabController(
       length: 2,
       child: KhScaffold(
-        title: s.s('auth.signIn'),
+        title: l10n?.authSignIn ?? 'Sign in',
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -49,7 +49,12 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
               KhInlineError(message: failure.message ?? 'Sign in failed.'),
               const SizedBox(height: 12),
             ],
-            const TabBar(tabs: [Tab(text: 'Mobile & code'), Tab(text: 'Email & password')]),
+            TabBar(
+              tabs: [
+                Tab(text: l10n?.authOtpTab ?? 'Mobile & code'),
+                Tab(text: l10n?.authPasswordTab ?? 'Email & password'),
+              ],
+            ),
             SizedBox(
               height: 320,
               child: TabBarView(
@@ -76,7 +81,7 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
             ),
             TextButton(
               onPressed: () => context.go(AppGuards.register),
-              child: Text(s.s('auth.register')),
+              child: Text(l10n?.authRegister ?? 'Create a vendor account'),
             ),
           ],
         ),
@@ -104,18 +109,23 @@ class _OtpTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final sent = state is LoginOtpSent ? state as LoginOtpSent : null;
     return Padding(
       padding: const EdgeInsets.only(top: 16),
       child: Column(
         children: [
           KhTextField(
-            label: 'Mobile number',
+            label: l10n?.authMobile ?? 'Mobile number',
             controller: mobile,
             keyboardType: TextInputType.phone,
           ),
           if (sent == null)
-            KhButton(label: 'Send code', onPressed: onSend, busy: busy)
+            KhButton(
+              label: l10n?.authSendCode ?? 'Send code',
+              onPressed: onSend,
+              busy: busy,
+            )
           else ...[
             OtpField(
               onChanged: (v) => code.text = v,
@@ -123,7 +133,7 @@ class _OtpTab extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             KhButton(
-              label: 'Verify',
+              label: l10n?.authVerify ?? 'Verify',
               onPressed: () => onVerify(sent.challengeId),
               busy: busy,
             ),
@@ -156,18 +166,27 @@ class _PasswordTabState extends ConsumerState<_PasswordTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isBusy = widget.busy || _googleSigningIn;
     return Padding(
       padding: const EdgeInsets.only(top: 16),
       child: Column(
         children: [
           KhTextField(
-            label: 'Business email',
+            label: l10n?.authEmail ?? 'Business email',
             controller: widget.email,
             keyboardType: TextInputType.emailAddress,
           ),
-          KhTextField(label: 'Password', controller: widget.password, obscure: true),
-          KhButton(label: 'Sign in', onPressed: widget.onSubmit, busy: isBusy),
+          KhTextField(
+            label: l10n?.authPassword ?? 'Password',
+            controller: widget.password,
+            obscure: true,
+          ),
+          KhButton(
+            label: l10n?.authSignIn ?? 'Sign in',
+            onPressed: widget.onSubmit,
+            busy: isBusy,
+          ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
             key: const Key('google-signin-button'),

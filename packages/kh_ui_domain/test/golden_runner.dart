@@ -19,6 +19,8 @@ Future<void> expectKhGoldens(
     final child = builder();
     await tester.pumpWidget(
       MaterialApp(
+        // Pin EN so formatters keep Western digits in goldens (CP2-F05).
+        locale: const Locale('en'),
         theme: khTheme(),
         home: Directionality(
           textDirection: direction,

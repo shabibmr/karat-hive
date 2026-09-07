@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
+import 'package:kh_l10n/kh_l10n.dart';
 
 /// Request specification grid for jewelry request details.
 /// Displays key parameters cleanly without clutter.
@@ -18,21 +19,38 @@ class SpecificationGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     final entries = <MapEntry<String, String>>[
-      MapEntry('Category', item.categoryName ?? item.categoryId),
-      MapEntry('Region', item.regionName ?? item.regionId),
+      MapEntry(
+        l10n?.category ?? 'Category',
+        item.categoryName ?? item.categoryId,
+      ),
+      MapEntry(
+        l10n?.region ?? 'Region',
+        item.regionName ?? item.regionId,
+      ),
       if (item.purityKarat != null)
-        MapEntry('Purity', '${item.purityKarat}K Gold'),
+        MapEntry(
+          l10n?.purity ?? 'Purity',
+          l10n?.karatGold(item.purityKarat!) ?? '${item.purityKarat}K Gold',
+        ),
       if (item.weightGrams != null)
         MapEntry(
-          'Weight',
-          '${item.weightGrams} g${item.weightIsApproximate ? ' (approx)' : ''}',
+          l10n?.weight ?? 'Weight',
+          item.weightIsApproximate
+              ? (l10n?.weightGramsApprox('${item.weightGrams}') ??
+                  '${item.weightGrams} g (approx)')
+              : (l10n?.weightGrams('${item.weightGrams}') ??
+                  '${item.weightGrams} g'),
         ),
       if (item.budgetMin != null || item.budgetMax != null)
-        MapEntry('Budget', _formatBudget(item)),
-      MapEntry('Type', item.requestType.replaceAll('_', ' ')),
-      MapEntry('Direction', item.direction),
+        MapEntry(l10n?.budget ?? 'Budget', _formatBudget(item, l10n)),
+      MapEntry(
+        l10n?.type ?? 'Type',
+        item.requestType.replaceAll('_', ' '),
+      ),
+      MapEntry(l10n?.direction ?? 'Direction', item.direction),
     ];
 
     return Card(
@@ -48,7 +66,7 @@ class SpecificationGrid extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Specifications',
+              l10n?.specifications ?? 'Specifications',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -91,7 +109,7 @@ class SpecificationGrid extends StatelessWidget {
               const Divider(height: 1),
               SizedBox(height: tokens.space.sm),
               Text(
-                'Notes',
+                l10n?.notes ?? 'Notes',
                 style: TextStyle(
                   fontSize: 12,
                   color: tokens.ink.withValues(alpha: 0.6),
@@ -112,14 +130,22 @@ class SpecificationGrid extends StatelessWidget {
     );
   }
 
-  String _formatBudget(VendorRequestItem item) {
+  String _formatBudget(VendorRequestItem item, AppLocalizations? l10n) {
     if (item.budgetMin != null && item.budgetMax != null) {
-      return 'AED ${item.budgetMin!.toInt()} - ${item.budgetMax!.toInt()}${item.budgetIsFlexible ? ' (flex)' : ''}';
+      final min = '${item.budgetMin!.toInt()}';
+      final max = '${item.budgetMax!.toInt()}';
+      if (item.budgetIsFlexible) {
+        return l10n?.budgetRangeAedFlex(min, max) ??
+            'AED $min - $max (flex)';
+      }
+      return l10n?.budgetRangeAed(min, max) ?? 'AED $min - $max';
     } else if (item.budgetMin != null) {
-      return 'From AED ${item.budgetMin!.toInt()}';
+      final amount = '${item.budgetMin!.toInt()}';
+      return l10n?.budgetFromAed(amount) ?? 'From AED $amount';
     } else if (item.budgetMax != null) {
-      return 'Up to AED ${item.budgetMax!.toInt()}';
+      final amount = '${item.budgetMax!.toInt()}';
+      return l10n?.budgetUpToAed(amount) ?? 'Up to AED $amount';
     }
-    return 'Open';
+    return l10n?.budgetOpen ?? 'Open';
   }
 }

@@ -40,7 +40,8 @@ class SubscriptionsScreen extends ConsumerWidget {
         loading: () => const Center(child: KhLoadingView()),
         error: (err, _) => Center(
           child: KhErrorView(
-            message: 'Could not load subscription details.',
+            message: l10n?.couldNotLoadSubscriptionDetails ??
+                'Could not load subscription details.',
             onRetry: () {
               ref.invalidate(subscriptionsListProvider);
               ref.invalidate(platformConfigProvider);
@@ -147,6 +148,20 @@ class _SubscriptionCard extends StatelessWidget {
   final String requestType;
   final VendorSubscriptionItem? item;
 
+  String _displayName(AppLocalizations? l10n) {
+    return switch (requestType) {
+      'FIND_ORNAMENT' =>
+        l10n?.requestTypeFindOrnament ?? 'Find Ornament',
+      'CUSTOM_DESIGN' =>
+        l10n?.requestTypeCustomDesign ?? 'Custom Design',
+      'BULLION' =>
+        l10n?.requestTypeBullionInvestment ?? 'Bullion & Investment',
+      'REPAIR_RESIZE' =>
+        l10n?.requestTypeRepairResize ?? 'Repair & Resize',
+      _ => requestType.replaceAll('_', ' '),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
@@ -158,13 +173,7 @@ class _SubscriptionCard extends StatelessWidget {
     final isGrace = state == 'GRACE';
     final isExpired = state == 'EXPIRED' || state == 'LAPSED';
 
-    final displayName = switch (requestType) {
-      'FIND_ORNAMENT' => 'Find Ornament',
-      'CUSTOM_DESIGN' => 'Custom Design',
-      'BULLION' => 'Bullion & Investment',
-      'REPAIR_RESIZE' => 'Repair & Resize',
-      _ => requestType.replaceAll('_', ' '),
-    };
+    final displayName = _displayName(l10n);
 
     final icon = switch (requestType) {
       'FIND_ORNAMENT' => Icons.diamond_outlined,
@@ -216,14 +225,15 @@ class _SubscriptionCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Plan Rate:',
+                    l10n?.planRate ?? 'Plan Rate:',
                     style: TextStyle(
                       fontSize: 13,
                       color: tokens.ink.withValues(alpha: 0.6),
                     ),
                   ),
                   Text(
-                    'AED ${item!.priceAed} / month',
+                    l10n?.aedPerMonth('${item!.priceAed}') ??
+                        'AED ${item!.priceAed} / month',
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -237,7 +247,7 @@ class _SubscriptionCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Next Renewal:',
+                      l10n?.nextRenewal ?? 'Next Renewal:',
                       style: TextStyle(
                         fontSize: 12,
                         color: tokens.ink.withValues(alpha: 0.6),
@@ -259,7 +269,14 @@ class _SubscriptionCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(tokens.radius.sm),
                   ),
                   child: Text(
-                    'Grace period active until ${item!.graceEndsAt!.toLocal().toString().split(' ').first}. Renew now to avoid losing matching eligibility.',
+                    l10n?.gracePeriodActiveUntil(
+                          item!.graceEndsAt!
+                              .toLocal()
+                              .toString()
+                              .split(' ')
+                              .first,
+                        ) ??
+                        'Grace period active until ${item!.graceEndsAt!.toLocal().toString().split(' ').first}. Renew now to avoid losing matching eligibility.',
                     style: TextStyle(
                       fontSize: 12,
                       color: tokens.ink,
@@ -271,7 +288,8 @@ class _SubscriptionCard extends StatelessWidget {
               if (isExpired) ...[
                 SizedBox(height: tokens.space.xs),
                 Text(
-                  'Subscription expired. Matching requests for this category are currently paused.',
+                  l10n?.subscriptionExpiredPaused ??
+                      'Subscription expired. Matching requests for this category are currently paused.',
                   style: TextStyle(
                     fontSize: 12,
                     color: tokens.danger,

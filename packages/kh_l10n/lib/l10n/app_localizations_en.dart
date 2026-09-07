@@ -61,4 +61,496 @@ class AppLocalizationsEn extends AppLocalizations {
   String couldNotOpenUrl(String url) {
     return 'Could not open $url';
   }
+
+  @override
+  String get availableRequestsTitle => 'Available Requests';
+
+  @override
+  String get failedToLoadMatchingRequests =>
+      'Failed to load matching requests.';
+
+  @override
+  String get noMatchingRequests => 'No Matching Requests';
+
+  @override
+  String get emptyFeedResetFiltersHint =>
+      'Try resetting your active filters to see more requests.';
+
+  @override
+  String get emptyFeedBroadenHint =>
+      'Broaden your Categories and Regions, or check that you have an active Type Subscription for the request types you want to see.';
+
+  @override
+  String get resetFilters => 'Reset Filters';
+
+  @override
+  String get viewSubscriptions => 'View Subscriptions';
+
+  @override
+  String get allCaughtUp => 'You are all caught up';
+
+  @override
+  String requestTitleWithId(String requestId) {
+    return 'Request $requestId';
+  }
+
+  @override
+  String get couldNotLoadRequestDetails => 'Could not load request details.';
+
+  @override
+  String get requestDetailsFallback => 'Request Details';
+
+  @override
+  String get customerSummary => 'Customer Summary';
+
+  @override
+  String get customerNotes => 'Customer Notes';
+
+  @override
+  String offersReceived(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count offers received',
+      one: '$count offer received',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get competitorPricingHidden =>
+      'Competitor pricing and terms are hidden per marketplace rules.';
+
+  @override
+  String get requestExpired => 'Request Expired';
+
+  @override
+  String get requestClosed => 'Request Closed';
+
+  @override
+  String get makeAnOfferCp3 => 'Make an Offer (CP-3)';
+
+  @override
+  String get biddingOpensCp3 => 'Bidding opens in Check-Point 3.';
+
+  @override
+  String get couldNotLoadDashboard => 'Could not load your dashboard.';
+
+  @override
+  String matchingRequestsWaiting(int count) {
+    return '$count matching request(s) waiting';
+  }
+
+  @override
+  String get noNewRequestsRightNow => 'No new requests right now';
+
+  @override
+  String get latestMatches => 'Latest matches';
+
+  @override
+  String get seeAll => 'See all';
+
+  @override
+  String offersExpiringWithin24h(int count) {
+    return '$count expiring within 24h';
+  }
+
+  @override
+  String get activeBidsAwaiting => 'Active bids awaiting customer response';
+
+  @override
+  String get offerManagementCp3 => 'Offer management opens in Check-Point 3';
+
+  @override
+  String connectionsNoTalkYet(int count) {
+    return '$count with no talk yet';
+  }
+
+  @override
+  String get wonDealsChats => 'Won deals & direct customer chats';
+
+  @override
+  String get connectionsOpenCp4 => 'Connections open in Check-Point 4';
+
+  @override
+  String activeEntitlementsCount(int count) {
+    return '$count active entitlement(s)';
+  }
+
+  @override
+  String get sortNewest => 'Newest';
+
+  @override
+  String get sortExpiringSoon => 'Expiring Soon';
+
+  @override
+  String get sortHighestValue => 'Highest Value';
+
+  @override
+  String get sortFewestOffers => 'Fewest Offers';
+
+  @override
+  String get requestTypeFindOrnament => 'Find Ornament';
+
+  @override
+  String get requestTypeCustomDesign => 'Custom Design';
+
+  @override
+  String get requestTypeBullion => 'Bullion';
+
+  @override
+  String get requestTypeBullionInvestment => 'Bullion & Investment';
+
+  @override
+  String get requestTypeRepairResize => 'Repair & Resize';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get couldNotLoadCategories => 'Could not load categories';
+
+  @override
+  String get anyCategory => 'Any category';
+
+  @override
+  String get region => 'Region';
+
+  @override
+  String get couldNotLoadRegions => 'Could not load regions';
+
+  @override
+  String get anyRegion => 'Any region';
+
+  @override
+  String get budgetAed => 'Budget (AED)';
+
+  @override
+  String get minLabel => 'Min';
+
+  @override
+  String get maxLabel => 'Max';
+
+  @override
+  String get purityKarat => 'Purity (Karat)';
+
+  @override
+  String get couldNotLoadPresets => 'Could not load presets';
+
+  @override
+  String get saveFilterPreset => 'Save Filter Preset';
+
+  @override
+  String get presetNameHint => 'Preset name (e.g. Dubai 22K Rings)';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get couldNotLoadSubscriptionDetails =>
+      'Could not load subscription details.';
+
+  @override
+  String get planRate => 'Plan Rate:';
+
+  @override
+  String aedPerMonth(String price) {
+    return 'AED $price / month';
+  }
+
+  @override
+  String get nextRenewal => 'Next Renewal:';
+
+  @override
+  String gracePeriodActiveUntil(String date) {
+    return 'Grace period active until $date. Renew now to avoid losing matching eligibility.';
+  }
+
+  @override
+  String get subscriptionExpiredPaused =>
+      'Subscription expired. Matching requests for this category are currently paused.';
+
+  @override
+  String get responded => 'Responded';
+
+  @override
+  String offerCountShort(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count offers',
+      one: '$count offer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get budgetFrom => 'From ';
+
+  @override
+  String get budgetUpTo => 'Up to ';
+
+  @override
+  String get openBudget => 'Open Budget';
+
+  @override
+  String get requestFallback => 'Request';
+
+  @override
+  String get specifications => 'Specifications';
+
+  @override
+  String get purity => 'Purity';
+
+  @override
+  String get weight => 'Weight';
+
+  @override
+  String get budget => 'Budget';
+
+  @override
+  String get type => 'Type';
+
+  @override
+  String get direction => 'Direction';
+
+  @override
+  String get notes => 'Notes';
+
+  @override
+  String karatGold(String karat) {
+    return '${karat}K Gold';
+  }
+
+  @override
+  String weightGrams(String weight) {
+    return '$weight g';
+  }
+
+  @override
+  String weightGramsApprox(String weight) {
+    return '$weight g (approx)';
+  }
+
+  @override
+  String budgetRangeAed(String min, String max) {
+    return 'AED $min - $max';
+  }
+
+  @override
+  String budgetRangeAedFlex(String min, String max) {
+    return 'AED $min - $max (flex)';
+  }
+
+  @override
+  String budgetFromAed(String amount) {
+    return 'From AED $amount';
+  }
+
+  @override
+  String budgetUpToAed(String amount) {
+    return 'Up to AED $amount';
+  }
+
+  @override
+  String get budgetOpen => 'Open';
+
+  @override
+  String get dashboardTitle => 'Dashboard';
+
+  @override
+  String get dashboardRating => 'Rating';
+
+  @override
+  String get dashboardNoReviews => 'No reviews yet';
+
+  @override
+  String get dashboardGoldRates => 'Reference gold rates';
+
+  @override
+  String get dashboardSubscriptions => 'Type subscriptions';
+
+  @override
+  String get dashboardNoSubscriptions => 'No type subscriptions yet';
+
+  @override
+  String get dashboardNewRequests => 'New requests';
+
+  @override
+  String get dashboardPendingOffers => 'Pending offers';
+
+  @override
+  String get dashboardActiveConnections => 'Active connections';
+
+  @override
+  String get commonEmpty => 'Nothing here yet';
+
+  @override
+  String get commonRetry => 'Try again';
+
+  @override
+  String get commonLogout => 'Log out';
+
+  @override
+  String get appTitle => 'Karat Hive';
+
+  @override
+  String get authSignIn => 'Sign in';
+
+  @override
+  String get authRegister => 'Create a vendor account';
+
+  @override
+  String get authMobile => 'Mobile number';
+
+  @override
+  String get authEmail => 'Business email';
+
+  @override
+  String get authPassword => 'Password';
+
+  @override
+  String get authSendCode => 'Send code';
+
+  @override
+  String get authResendCode => 'Resend code';
+
+  @override
+  String get authEnterCode => 'Enter the 6-digit code';
+
+  @override
+  String get authVerify => 'Verify';
+
+  @override
+  String get authOtpTab => 'Mobile & code';
+
+  @override
+  String get authPasswordTab => 'Email & password';
+
+  @override
+  String get onboardingAwaitingTitle => 'Verification in progress';
+
+  @override
+  String get onboardingPendingDocuments =>
+      'Upload your business documents to continue.';
+
+  @override
+  String get onboardingPendingAdmin => 'Our team is reviewing your documents.';
+
+  @override
+  String get onboardingCategoriesRequired =>
+      'Choose the categories and regions you serve.';
+
+  @override
+  String get onboardingRejected => 'Your application needs changes.';
+
+  @override
+  String get onboardingUploadKyc => 'Upload documents';
+
+  @override
+  String get onboardingResubmit => 'Resubmit for review';
+
+  @override
+  String get onboardingCategoriesRegions => 'Categories & regions';
+
+  @override
+  String get onboardingSave => 'Save';
+
+  @override
+  String get onboardingAwayMode => 'Away mode';
+
+  @override
+  String get onboardingAwayModeHint =>
+      'Pause new-request notifications without deactivating.';
+
+  @override
+  String get onboardingVolumePlaceholder =>
+      'Matched-request volume will appear once matching is live.';
+
+  @override
+  String get dashboardGoldRatesUnavailable => 'Reference rates unavailable';
+
+  @override
+  String get lifecycleRegistered => 'Registered';
+
+  @override
+  String get lifecyclePendingVerification => 'Under review';
+
+  @override
+  String get lifecycleVerified => 'Verified';
+
+  @override
+  String get lifecycleActive => 'Active';
+
+  @override
+  String get lifecycleSuspended => 'Suspended';
+
+  @override
+  String get lifecycleRejected => 'Needs changes';
+
+  @override
+  String get lifecycleDeactivated => 'Deactivated';
+
+  @override
+  String get lifecycleUnknown => 'Unknown';
+
+  @override
+  String get relativeTimeJustNow => 'just now';
+
+  @override
+  String relativeTimeMinutesAgo(int count) {
+    return '${count}m ago';
+  }
+
+  @override
+  String relativeTimeHoursAgo(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String relativeTimeDaysAgo(int count) {
+    return '${count}d ago';
+  }
+
+  @override
+  String get expiryExpired => 'Expired';
+
+  @override
+  String expiryDaysHoursLeft(int days, int hours) {
+    return '${days}d ${hours}h left';
+  }
+
+  @override
+  String expiryHoursMinutesLeft(int hours, int minutes) {
+    return '${hours}h ${minutes}m left';
+  }
+
+  @override
+  String expiryMinutesSecondsLeft(int minutes, int seconds) {
+    return '${minutes}m ${seconds}s left';
+  }
+
+  @override
+  String expirySecondsLeft(int seconds) {
+    return '${seconds}s left';
+  }
+
+  @override
+  String expiryTimeRemainingSemantics(String text) {
+    return 'Time remaining: $text';
+  }
+
+  @override
+  String dealCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count deals',
+      one: '$count deal',
+    );
+    return '$_temp0';
+  }
 }

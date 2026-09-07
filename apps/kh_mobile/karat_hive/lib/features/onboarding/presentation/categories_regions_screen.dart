@@ -15,14 +15,15 @@ class CategoriesRegionsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final s = KhStrings.of(context);
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context);
     final state = ref.watch(categoriesRegionsControllerProvider);
     final controller = ref.read(categoriesRegionsControllerProvider.notifier);
     final categories = ref.watch(categoriesProvider);
     final regions = ref.watch(regionsProvider);
 
     return KhScaffold(
-      title: s.s('onboarding.categoriesRegions'),
+      title: l10n?.onboardingCategoriesRegions ?? 'Categories & regions',
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -36,7 +37,7 @@ class CategoriesRegionsScreen extends ConsumerWidget {
             data: (nodes) => CategoryRegionPicker(
               nodes: nodes,
               selected: state.categoryIds,
-              locale: s.isRtl ? 'ar' : 'en',
+              locale: locale.languageCode,
               onToggle: controller.toggleCategory,
             ),
             loading: () => const KhLoadingView(),
@@ -49,7 +50,7 @@ class CategoriesRegionsScreen extends ConsumerWidget {
             data: (nodes) => CategoryRegionPicker(
               nodes: nodes,
               selected: state.regionIds,
-              locale: s.isRtl ? 'ar' : 'en',
+              locale: locale.languageCode,
               onToggle: controller.toggleRegion,
             ),
             loading: () => const KhLoadingView(),
@@ -58,16 +59,22 @@ class CategoriesRegionsScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text(s.s('onboarding.awayMode')),
-            subtitle: Text(s.s('onboarding.awayModeHint')),
+            title: Text(l10n?.onboardingAwayMode ?? 'Away mode'),
+            subtitle: Text(
+              l10n?.onboardingAwayModeHint ??
+                  'Pause new-request notifications without deactivating.',
+            ),
             value: state.awayMode,
             onChanged: state.busy ? null : controller.setAwayMode,
           ),
           const SizedBox(height: 8),
-          Text(s.s('onboarding.volumePlaceholder')),
+          Text(
+            l10n?.onboardingVolumePlaceholder ??
+                'Matched-request volume will appear once matching is live.',
+          ),
           const SizedBox(height: 24),
           KhButton(
-            label: s.s('onboarding.save'),
+            label: l10n?.onboardingSave ?? 'Save',
             busy: state.busy,
             onPressed: state.canSave
                 ? () async {

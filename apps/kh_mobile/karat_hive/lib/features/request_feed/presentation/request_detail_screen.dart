@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_design_system/kh_design_system.dart';
+import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../controller/request_detail_controller.dart';
@@ -19,17 +20,21 @@ class RequestDetailScreen extends ConsumerWidget {
     final detailAsync = ref.watch(requestDetailProvider(requestId));
     final tokens = context.tokens;
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       key: const Key('request-detail-screen'),
       appBar: AppBar(
-        title: Text('Request $requestId'),
+        title: Text(
+          l10n?.requestTitleWithId(requestId) ?? 'Request $requestId',
+        ),
       ),
       body: detailAsync.when(
         loading: () => const Center(child: KhLoadingView()),
         error: (err, _) => Center(
           child: KhErrorView(
-            message: 'Could not load request details.',
+            message: l10n?.couldNotLoadRequestDetails ??
+                'Could not load request details.',
             onRetry: () => ref.invalidate(requestDetailProvider(requestId)),
           ),
         ),
@@ -71,7 +76,9 @@ class RequestDetailScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                item.reference ?? 'Request Details',
+                                item.reference ??
+                                    (l10n?.requestDetailsFallback ??
+                                        'Request Details'),
                                 style: theme.textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -108,7 +115,7 @@ class RequestDetailScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Customer Summary',
+                              l10n?.customerSummary ?? 'Customer Summary',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -143,7 +150,7 @@ class RequestDetailScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Customer Notes',
+                                l10n?.customerNotes ?? 'Customer Notes',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -173,11 +180,13 @@ class RequestDetailScreen extends ConsumerWidget {
                       child: ListTile(
                         leading: Icon(Icons.local_offer, color: tokens.gold),
                         title: Text(
-                          '${item.offerCount} ${item.offerCount == 1 ? 'offer' : 'offers'} received',
+                          l10n?.offersReceived(item.offerCount) ??
+                              '${item.offerCount} ${item.offerCount == 1 ? 'offer' : 'offers'} received',
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
-                        subtitle: const Text(
-                          'Competitor pricing and terms are hidden per marketplace rules.',
+                        subtitle: Text(
+                          l10n?.competitorPricingHidden ??
+                              'Competitor pricing and terms are hidden per marketplace rules.',
                         ),
                       ),
                     ),
@@ -202,16 +211,19 @@ class RequestDetailScreen extends ConsumerWidget {
                 child: SafeArea(
                   child: KhButton(
                     label: isExpired
-                        ? 'Request Expired'
+                        ? (l10n?.requestExpired ?? 'Request Expired')
                         : isClosed
-                            ? 'Request Closed'
-                            : 'Make an Offer (CP-3)',
+                            ? (l10n?.requestClosed ?? 'Request Closed')
+                            : (l10n?.makeAnOfferCp3 ?? 'Make an Offer (CP-3)'),
                     onPressed: actionsDisabled
                         ? null
                         : () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Bidding opens in Check-Point 3.'),
+                              SnackBar(
+                                content: Text(
+                                  l10n?.biddingOpensCp3 ??
+                                      'Bidding opens in Check-Point 3.',
+                                ),
                               ),
                             );
                           },

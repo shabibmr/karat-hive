@@ -5,6 +5,7 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 Widget _host(Widget child) => MaterialApp(
+      locale: const Locale('en'),
       theme: khTheme(),
       home: Scaffold(body: child),
     );
@@ -12,8 +13,9 @@ Widget _host(Widget child) => MaterialApp(
 void main() {
   group('ExpiryCountdown (SH-DOM-07)', () {
     testWidgets('derives countdown from ServerClock offset, not device time', (tester) async {
-      final clock = ServerClock();
-      final deviceNow = DateTime.now().toUtc();
+      // Freeze device time so remaining does not slip under 1h during pump.
+      final deviceNow = DateTime.utc(2026, 9, 7, 12, 0, 0);
+      final clock = ServerClock(nowProvider: () => deviceNow);
       clock.syncFrom(deviceNow.add(const Duration(hours: 2)));
 
       final expiresAt = deviceNow.add(const Duration(hours: 3));
@@ -160,8 +162,8 @@ void main() {
     });
 
     testWidgets('resolves clock from ServerClockScope', (tester) async {
-      final clock = ServerClock();
-      final deviceNow = DateTime.now().toUtc();
+      final deviceNow = DateTime.utc(2026, 9, 7, 12, 0, 0);
+      final clock = ServerClock(nowProvider: () => deviceNow);
       clock.syncFrom(deviceNow.add(const Duration(hours: 10)));
       final expiresAt = deviceNow.add(const Duration(hours: 11));
 
