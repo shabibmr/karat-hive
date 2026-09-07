@@ -5,11 +5,12 @@ import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
 
 /// Wire values for `POST /v1/media/upload-intent` `purpose`.
-enum MediaPurpose {
+/// Named to avoid colliding with `kh_domain`'s `MediaPurpose`.
+enum MediaUploadPurpose {
   kycDocument('KYC_DOCUMENT'),
   requestImage('REQUEST_IMAGE');
 
-  const MediaPurpose(this.wire);
+  const MediaUploadPurpose(this.wire);
   final String wire;
 }
 
@@ -35,7 +36,7 @@ class MediaUploader {
   /// Returns the media key on success.
   Future<Result<String>> upload(
     File file, {
-    required MediaPurpose purpose,
+    required MediaUploadPurpose purpose,
     required String contentType,
     void Function(double progress)? onProgress,
   }) async {

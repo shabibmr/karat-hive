@@ -33,7 +33,7 @@ class OnboardingRepository {
   }) =>
       _media.upload(
         file,
-        purpose: MediaPurpose.kycDocument,
+        purpose: MediaUploadPurpose.kycDocument,
         contentType: contentType,
         onProgress: onProgress,
       );

@@ -73,7 +73,7 @@ void main() {
     var putCalled = false;
     final result = await uploader(putClient: _putDio(onPut: (_) => putCalled = true)).upload(
       file,
-      purpose: MediaPurpose.kycDocument,
+      purpose: MediaUploadPurpose.kycDocument,
       contentType: 'application/pdf',
     );
 
@@ -99,7 +99,7 @@ void main() {
     RequestOptions? put;
     final result = await uploader(putClient: _putDio(onPut: (o) => put = o)).upload(
       file,
-      purpose: MediaPurpose.kycDocument,
+      purpose: MediaUploadPurpose.kycDocument,
       contentType: 'application/pdf',
     );
 
@@ -128,7 +128,7 @@ void main() {
 
     final result = await uploader().upload(
       file,
-      purpose: MediaPurpose.requestImage,
+      purpose: MediaUploadPurpose.requestImage,
       contentType: 'image/jpeg',
     );
 
@@ -147,7 +147,7 @@ void main() {
 
     final result = await uploader(putClient: _putDio(statusCode: 403)).upload(
       file,
-      purpose: MediaPurpose.kycDocument,
+      purpose: MediaUploadPurpose.kycDocument,
       contentType: 'application/pdf',
     );
 
@@ -173,7 +173,7 @@ void main() {
 
     final result = await uploader().upload(
       file,
-      purpose: MediaPurpose.requestImage,
+      purpose: MediaUploadPurpose.requestImage,
       contentType: 'image/jpeg',
     );
 
@@ -194,7 +194,7 @@ void main() {
     final ticks = <double>[];
     await uploader().upload(
       file,
-      purpose: MediaPurpose.kycDocument,
+      purpose: MediaUploadPurpose.kycDocument,
       contentType: 'application/pdf',
       onProgress: ticks.add,
     );
