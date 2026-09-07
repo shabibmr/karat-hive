@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../auth/dev_auth.dart';
 import '../auth/session_controller.dart';
 import '../design/theme/kh_theme.dart';
 
@@ -42,24 +43,28 @@ const List<AdminNavItem> kAdminNavItems = [
     title: 'Vendors',
     icon: Icons.storefront_outlined,
     route: '/vendors',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S07',
     title: 'Verification Queue',
     icon: Icons.verified_user_outlined,
     route: '/verification',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S08',
     title: 'Requests',
     icon: Icons.assignment_outlined,
     route: '/requests',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S10',
     title: 'Offers',
     icon: Icons.local_offer_outlined,
     route: '/offers',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S12',
@@ -131,6 +136,10 @@ const List<AdminNavItem> kAdminNavItems = [
   ),
 ];
 
+/// Below this width the top bar sheds its decorative badges and the profile
+/// name, keeping the drawer, identity and sign-out reachable on a phone.
+const double kCompactTopBarWidth = 600.0;
+
 /// Responsive breakpoint for desktop admin layout (Architecture-Frontend §4).
 const double kDesktopBreakpoint = 1280.0;
 
@@ -151,6 +160,7 @@ class KhAdminScaffold extends ConsumerWidget {
     final isDesktop = screenWidth >= kDesktopBreakpoint;
     final session = ref.watch(sessionControllerProvider);
     final displayName = session.admin?.displayName ?? 'Admin';
+    final isDevAutoLogin = ref.watch(devAuthConfigProvider).autoLogin;
 
     final currentPath = GoRouterState.of(context).uri.path;
 
@@ -168,6 +178,7 @@ class KhAdminScaffold extends ConsumerWidget {
                 children: [
                   _AdminTopBar(
                     displayName: displayName,
+                    showDevBadge: isDevAutoLogin,
                     showHamburger: false,
                     onLogout: () =>
                         ref.read(sessionControllerProvider.notifier).logout(),
@@ -188,6 +199,7 @@ class KhAdminScaffold extends ConsumerWidget {
         preferredSize: Size.fromHeight(context.kh.spacing.topBarHeight),
         child: _AdminTopBar(
           displayName: displayName,
+          showDevBadge: isDevAutoLogin,
           showHamburger: true,
           onLogout: () =>
               ref.read(sessionControllerProvider.notifier).logout(),
@@ -213,11 +225,16 @@ class _AdminTopBar extends StatelessWidget {
     required this.displayName,
     required this.onLogout,
     this.showHamburger = false,
+    this.showDevBadge = false,
   });
 
   final String displayName;
   final VoidCallback onLogout;
   final bool showHamburger;
+
+  /// True when `--dart-define=KH_DEV_AUTOLOGIN=true` bypassed the login screen.
+  /// Surfaced so the flag can never ship unnoticed.
+  final bool showDevBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -225,6 +242,12 @@ class _AdminTopBar extends StatelessWidget {
     final typography = context.kh.typography;
     final spacing = context.kh.spacing;
     final shapes = context.kh.shapes;
+
+    // A phone cannot hold brand + badges + profile name + sign out on one
+    // line, so the decorative pieces drop out first. The bar spans the full
+    // window in drawer mode, and in desktop mode the sidebar only narrows it
+    // at widths that are never compact, so window width is the right measure.
+    final isCompact = MediaQuery.sizeOf(context).width < kCompactTopBarWidth;
 
     return Container(
       height: spacing.topBarHeight,
@@ -246,15 +269,20 @@ class _AdminTopBar extends StatelessWidget {
             SizedBox(width: spacing.sm),
           ],
           // Title / Brand badge
-          Text(
-            'KARAT HIVE',
-            style: typography.title.copyWith(
-              color: colors.goldPrimary,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
-              fontSize: 16,
+          Flexible(
+            child: Text(
+              'KARAT HIVE',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: typography.title.copyWith(
+                color: colors.goldPrimary,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+                fontSize: 16,
+              ),
             ),
           ),
+          if (!isCompact) ...[
           SizedBox(width: spacing.xs),
           Container(
             padding: EdgeInsets.symmetric(
@@ -275,6 +303,30 @@ class _AdminTopBar extends StatelessWidget {
               ),
             ),
           ),
+          ],
+          if (showDevBadge) ...[
+            SizedBox(width: spacing.xs),
+            Container(
+              key: const Key('dev-autologin-badge'),
+              padding: EdgeInsets.symmetric(
+                horizontal: spacing.sm,
+                vertical: spacing.xxs,
+              ),
+              decoration: BoxDecoration(
+                color: colors.error.withValues(alpha: 0.15),
+                borderRadius: shapes.roundedXs,
+                border: Border.all(color: colors.error.withValues(alpha: 0.6)),
+              ),
+              child: Text(
+                isCompact ? 'DEV' : 'DEV AUTO-LOGIN',
+                style: typography.caption.copyWith(
+                  color: colors.error,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ),
+          ],
           const Spacer(),
           // Admin Profile chip
           Container(
@@ -299,18 +351,20 @@ class _AdminTopBar extends StatelessWidget {
                     color: colors.goldPrimary,
                   ),
                 ),
-                SizedBox(width: spacing.sm),
-                Text(
-                  displayName,
-                  style: typography.bodySmall.copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w500,
+                if (!isCompact) ...[
+                  SizedBox(width: spacing.sm),
+                  Text(
+                    displayName,
+                    style: typography.bodySmall.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
-          SizedBox(width: spacing.md),
+          SizedBox(width: isCompact ? spacing.xs : spacing.md),
           // Logout button
           IconButton(
             icon: Icon(

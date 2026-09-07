@@ -1,0 +1,622 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+
+import '../../../core/design/theme/kh_theme.dart';
+import '../../../core/design/widgets/kh_data_table.dart';
+import '../../../core/design/widgets/kh_screen_header.dart';
+import '../../../core/design/widgets/kh_status_chip.dart';
+import '../controller/request_list_controller.dart';
+import '../model/request_enums.dart';
+import '../model/request_list_filters.dart';
+import '../model/request_list_item.dart';
+
+/// ADM-S08 · Request list — browse all requests across the marketplace with unmasked customer names.
+class RequestListScreen extends ConsumerStatefulWidget {
+  const RequestListScreen({super.key});
+
+  @override
+  ConsumerState<RequestListScreen> createState() => _RequestListScreenState();
+}
+
+class _RequestListScreenState extends ConsumerState<RequestListScreen> {
+  late final TextEditingController _searchController;
+  Timer? _debounceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    final query = ref.read(requestListControllerProvider).filters.query;
+    _searchController = TextEditingController(text: query);
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 350), () {
+      if (mounted) {
+        ref.read(requestListControllerProvider.notifier).setSearchQuery(query);
+        ref.read(requestListControllerProvider.notifier).submitSearch();
+      }
+    });
+  }
+
+  void _onSearchSubmitted() {
+    _debounceTimer?.cancel();
+    ref
+        .read(requestListControllerProvider.notifier)
+        .setSearchQuery(_searchController.text.trim());
+    ref.read(requestListControllerProvider.notifier).submitSearch();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final kh = context.kh;
+    final listState = ref.watch(requestListControllerProvider);
+    final controller = ref.read(requestListControllerProvider.notifier);
+
+    if (_searchController.text != listState.filters.query &&
+        !_searchController.selection.isValid) {
+      _searchController.text = listState.filters.query;
+    }
+
+    return Material(
+      color: kh.colors.backgroundSurface,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(kh.spacing.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const KhScreenHeader(
+              eyebrow: 'MARKETPLACE AUDIT',
+              heading: 'Requests',
+              supportingText: 'Platform requests oversight and inspection',
+            ),
+            SizedBox(height: kh.spacing.lg),
+            _RequestFilterBar(
+              key: const Key('request-filter-bar'),
+              filters: listState.filters,
+              searchController: _searchController,
+              onTypeChanged: (type) => controller.applyFilters(
+                listState.filters.copyWith(requestType: type),
+              ),
+              onDirectionChanged: (dir) => controller.applyFilters(
+                listState.filters.copyWith(direction: dir),
+              ),
+              onStateChanged: (state) => controller.applyFilters(
+                listState.filters.copyWith(state: state),
+              ),
+              onZeroOffersToggled: (val) => controller.toggleZeroOffers(val),
+              onSearchSubmitted: _onSearchSubmitted,
+              onSearchChanged: _onSearchChanged,
+            ),
+            SizedBox(height: kh.spacing.lg),
+            if (listState.isLoading)
+              const Center(
+                key: Key('request-list-loading'),
+                child: Padding(
+                  padding: EdgeInsets.all(48.0),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (listState.error != null && listState.items.isEmpty)
+              _RequestErrorView(
+                message: listState.error!,
+                onRetry: controller.refresh,
+              )
+            else if (listState.items.isEmpty)
+              const _RequestEmptyView(
+                key: Key('request-list-empty'),
+                message: 'No requests match the current filters.',
+              )
+            else ...[
+              _RequestTable(items: listState.items),
+              SizedBox(height: kh.spacing.md),
+              _RequestPaginationControls(
+                listState: listState,
+                controller: controller,
+              ),
+            ],
+            if (listState.error != null && listState.items.isNotEmpty) ...[
+              SizedBox(height: kh.spacing.sm),
+              Text(
+                listState.error!,
+                style: kh.typography.bodySmall.copyWith(
+                  color: kh.colors.error,
+                  fontSize: 12.0,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RequestFilterBar extends StatelessWidget {
+  const _RequestFilterBar({
+    super.key,
+    required this.filters,
+    required this.searchController,
+    required this.onTypeChanged,
+    required this.onDirectionChanged,
+    required this.onStateChanged,
+    required this.onZeroOffersToggled,
+    required this.onSearchSubmitted,
+    required this.onSearchChanged,
+  });
+
+  final RequestListFilters filters;
+  final TextEditingController searchController;
+  final ValueChanged<RequestType?> onTypeChanged;
+  final ValueChanged<Direction?> onDirectionChanged;
+  final ValueChanged<RequestState?> onStateChanged;
+  final ValueChanged<bool?> onZeroOffersToggled;
+  final VoidCallback onSearchSubmitted;
+  final ValueChanged<String> onSearchChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final kh = context.kh;
+
+    return Wrap(
+      spacing: kh.spacing.sm,
+      runSpacing: kh.spacing.sm,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        SizedBox(
+          width: 220.0,
+          child: DropdownButtonFormField<RequestType?>(
+            key: const Key('request-filter-type'),
+            initialValue: filters.requestType,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Request Type',
+              isDense: true,
+            ),
+            items: [
+              const DropdownMenuItem<RequestType?>(
+                value: null,
+                child: Text('All Types'),
+              ),
+              for (final type in RequestType.values)
+                DropdownMenuItem<RequestType?>(
+                  value: type,
+                  child: Text(type.label),
+                ),
+            ],
+            onChanged: onTypeChanged,
+          ),
+        ),
+        SizedBox(
+          width: 170.0,
+          child: DropdownButtonFormField<Direction?>(
+            key: const Key('request-filter-direction'),
+            initialValue: filters.direction,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Direction',
+              isDense: true,
+            ),
+            items: [
+              const DropdownMenuItem<Direction?>(
+                value: null,
+                child: Text('All Directions'),
+              ),
+              for (final dir in Direction.values)
+                DropdownMenuItem<Direction?>(
+                  value: dir,
+                  child: Text(dir.label),
+                ),
+            ],
+            onChanged: onDirectionChanged,
+          ),
+        ),
+        SizedBox(
+          width: 200.0,
+          child: DropdownButtonFormField<RequestState?>(
+            key: const Key('request-filter-state'),
+            initialValue: filters.state,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Status',
+              isDense: true,
+            ),
+            items: [
+              const DropdownMenuItem<RequestState?>(
+                value: null,
+                child: Text('All States'),
+              ),
+              for (final state in RequestState.values)
+                DropdownMenuItem<RequestState?>(
+                  value: state,
+                  child: Text(state.label),
+                ),
+            ],
+            onChanged: onStateChanged,
+          ),
+        ),
+        SizedBox(
+          width: 280.0,
+          child: TextField(
+            key: const Key('request-filter-search'),
+            controller: searchController,
+            decoration: InputDecoration(
+              labelText: 'Search',
+              hintText: 'Reference, notes, customer…',
+              isDense: true,
+              suffixIcon: IconButton(
+                key: const Key('request-search-button'),
+                icon: const Icon(Icons.search, size: 20.0),
+                tooltip: 'Search',
+                onPressed: onSearchSubmitted,
+              ),
+            ),
+            onChanged: onSearchChanged,
+            onSubmitted: (_) => onSearchSubmitted(),
+            textInputAction: TextInputAction.search,
+          ),
+        ),
+        FilterChip(
+          key: const Key('request-filter-zero-offers'),
+          label: const Text('Zero Offers'),
+          selected: filters.zeroOffersOnly,
+          onSelected: onZeroOffersToggled,
+          showCheckmark: true,
+          selectedColor: kh.colors.goldPrimary.withValues(alpha: 0.25),
+          checkmarkColor: kh.colors.goldPrimary,
+        ),
+      ],
+    );
+  }
+}
+
+class _RequestTable extends StatelessWidget {
+  const _RequestTable({
+    required this.items,
+  });
+
+  final List<RequestListItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final kh = context.kh;
+    final currencyFormat = NumberFormat('#,##0', 'en_US');
+    final dateFormat = DateFormat('dd MMM yyyy');
+
+    return KhDataTable(
+      key: const Key('request-list-table'),
+      minWidth: 1200.0,
+      columns: const [
+        KhTableColumn('Reference', flex: 3),
+        KhTableColumn('Type', flex: 2),
+        KhTableColumn('Direction', flex: 1),
+        KhTableColumn('Customer', flex: 3),
+        KhTableColumn('Category', flex: 2),
+        KhTableColumn('Region', flex: 2),
+        KhTableColumn('Indicative Value', flex: 2),
+        KhTableColumn('Offers', flex: 1),
+        KhTableColumn('State', flex: 2),
+        KhTableColumn('Date', flex: 2),
+        KhTableColumn('Action', flex: 2),
+      ],
+      rows: [
+        for (final item in items)
+          KhTableRow(
+            key: Key('request-row-${item.id}'),
+            onTap: () => context.go('/requests/${item.id}'),
+            cells: [
+              // Reference
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    item.reference ?? '—',
+                    style: kh.typography.bodySmall.copyWith(
+                      color: kh.colors.goldPrimary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13.0,
+                    ),
+                  ),
+                  if (item.ornamentType != null && item.ornamentType!.isNotEmpty)
+                    Text(
+                      item.ornamentType!,
+                      style: kh.typography.caption.copyWith(
+                        color: kh.colors.textMuted,
+                        fontSize: 11.0,
+                      ),
+                    ),
+                ],
+              ),
+              // Type
+              Text(
+                item.requestType.label,
+                style: kh.typography.bodySmall.copyWith(
+                  color: kh.colors.textPrimary,
+                  fontSize: 13.0,
+                ),
+              ),
+              // Direction
+              Text(
+                item.direction.label,
+                style: kh.typography.bodySmall.copyWith(
+                  color: item.direction == Direction.buy
+                      ? kh.colors.success
+                      : kh.colors.warning,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.0,
+                ),
+              ),
+              // Customer (unmasked)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    item.customerName,
+                    style: kh.typography.bodySmall.copyWith(
+                      color: kh.colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13.0,
+                    ),
+                  ),
+                  if (item.customerPhone != null && item.customerPhone!.isNotEmpty)
+                    Text(
+                      item.customerPhone!,
+                      style: kh.typography.caption.copyWith(
+                        color: kh.colors.textSecondary,
+                        fontSize: 10.0,
+                      ),
+                    ),
+                ],
+              ),
+              // Category
+              Text(
+                item.categoryName,
+                style: kh.typography.bodySmall.copyWith(
+                  color: kh.colors.textSecondary,
+                  fontSize: 12.0,
+                ),
+              ),
+              // Region
+              Text(
+                item.regionName,
+                style: kh.typography.bodySmall.copyWith(
+                  color: kh.colors.textSecondary,
+                  fontSize: 12.0,
+                ),
+              ),
+              // Indicative Value
+              Text(
+                item.indicativeValue != null
+                    ? 'AED ${currencyFormat.format(item.indicativeValue)}'
+                    : (item.budgetMax != null
+                        ? 'AED ${currencyFormat.format(item.budgetMax)}'
+                        : '—'),
+                style: kh.typography.bodySmall.copyWith(
+                  color: kh.colors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.0,
+                ),
+              ),
+              // Offer Count
+              Text(
+                '${item.offerCount}',
+                style: kh.typography.bodySmall.copyWith(
+                  color: item.offerCount > 0
+                      ? kh.colors.goldPrimary
+                      : kh.colors.textMuted,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12.0,
+                ),
+              ),
+              // State
+              KhStatusChip(
+                label: item.state.label,
+                tone: _stateTone(item.state),
+                dense: true,
+              ),
+              // Date
+              Text(
+                item.publishedAt != null
+                    ? dateFormat.format(item.publishedAt!)
+                    : (item.createdAt != null
+                        ? dateFormat.format(item.createdAt!)
+                        : '—'),
+                style: kh.typography.bodySmall.copyWith(
+                  color: kh.colors.textSecondary,
+                  fontSize: 11.0,
+                ),
+              ),
+              // Action
+              OutlinedButton(
+                key: Key('request-action-${item.id}'),
+                onPressed: () => context.go('/requests/${item.id}'),
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: kh.spacing.sm,
+                    vertical: kh.spacing.xxs,
+                  ),
+                  minimumSize: Size(0, kh.spacing.buttonHeight - 8.0),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  'Inspect',
+                  style: kh.typography.caption.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11.0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  KhStatusTone _stateTone(RequestState state) {
+    switch (state) {
+      case RequestState.draft:
+        return KhStatusTone.neutral;
+      case RequestState.published:
+        return KhStatusTone.moderation;
+      case RequestState.offersReceived:
+        return KhStatusTone.pending;
+      case RequestState.accepted:
+        return KhStatusTone.success;
+      case RequestState.closed:
+      case RequestState.expired:
+        return KhStatusTone.neutral;
+      case RequestState.cancelled:
+      case RequestState.removed:
+        return KhStatusTone.error;
+    }
+  }
+}
+
+class _RequestPaginationControls extends StatelessWidget {
+  const _RequestPaginationControls({
+    required this.listState,
+    required this.controller,
+  });
+
+  final RequestListState listState;
+  final RequestListController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final kh = context.kh;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        if (listState.canLoadMore)
+          OutlinedButton(
+            key: const Key('request-load-more-button'),
+            onPressed: listState.isLoadingMore ? null : controller.loadMore,
+            child: listState.isLoadingMore
+                ? const SizedBox(
+                    width: 16.0,
+                    height: 16.0,
+                    child: CircularProgressIndicator(strokeWidth: 2.0),
+                  )
+                : const Text('Load more'),
+          )
+        else
+          const SizedBox.shrink(),
+        Row(
+          children: [
+            OutlinedButton(
+              key: const Key('request-page-prev'),
+              onPressed: listState.canGoPrevious ? controller.previousPage : null,
+              child: const Text('Previous'),
+            ),
+            SizedBox(width: kh.spacing.sm),
+            Text(
+              'Page ${listState.page}',
+              style: kh.typography.bodySmall.copyWith(
+                color: kh.colors.textSecondary,
+                fontSize: 12.0,
+              ),
+            ),
+            SizedBox(width: kh.spacing.sm),
+            OutlinedButton(
+              key: const Key('request-page-next'),
+              onPressed: listState.canGoNext ? controller.nextPage : null,
+              child: const Text('Next'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _RequestEmptyView extends StatelessWidget {
+  const _RequestEmptyView({super.key, required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final kh = context.kh;
+
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(kh.spacing.xxl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.assignment_outlined,
+              size: 48.0,
+              color: kh.colors.textMuted,
+            ),
+            SizedBox(height: kh.spacing.md),
+            Text(
+              message,
+              style: kh.typography.body.copyWith(
+                color: kh.colors.textSecondary,
+                fontSize: 14.0,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RequestErrorView extends StatelessWidget {
+  const _RequestErrorView({
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final kh = context.kh;
+
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(kh.spacing.xxl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 48.0, color: kh.colors.error),
+            SizedBox(height: kh.spacing.md),
+            Text(
+              message,
+              style: kh.typography.body.copyWith(
+                color: kh.colors.error,
+                fontSize: 14.0,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: kh.spacing.md),
+            OutlinedButton(
+              key: const Key('request-retry-button'),
+              onPressed: onRetry,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

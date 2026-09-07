@@ -206,10 +206,76 @@ abstract class AppLocalizations {
   /// **'An unexpected error occurred. Please try again.'**
   String get errorUnknown;
 
+  /// No description provided for @dashboardEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform Overview'**
+  String get dashboardEyebrow;
+
+  /// No description provided for @dashboardHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Control Center'**
+  String get dashboardHeading;
+
+  /// No description provided for @systemOperational.
+  ///
+  /// In en, this message translates to:
+  /// **'SYSTEM OPERATIONAL'**
+  String get systemOperational;
+
+  /// No description provided for @dashboardSampleDataNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Indicative sample figures. The admin dashboard endpoint (GET /v1/admin/dashboard) is not implemented yet — no number below reflects live platform data.'**
+  String get dashboardSampleDataNotice;
+
+  /// No description provided for @quickActionQueues.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Action Queues'**
+  String get quickActionQueues;
+
+  /// No description provided for @queueColumnItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue Item'**
+  String get queueColumnItem;
+
+  /// No description provided for @queueColumnType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get queueColumnType;
+
+  /// No description provided for @queueColumnSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get queueColumnSubmitted;
+
+  /// No description provided for @queueColumnStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get queueColumnStatus;
+
+  /// No description provided for @queueColumnAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get queueColumnAction;
+
+  /// No description provided for @categoriesEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxonomy Config'**
+  String get categoriesEyebrow;
+
   /// No description provided for @categoriesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Category Management'**
+  /// **'Product Categories'**
   String get categoriesTitle;
 
   /// No description provided for @categoriesSubtitle.
@@ -218,10 +284,16 @@ abstract class AppLocalizations {
   /// **'Manage two-level product category taxonomy for requests and vendor specialisations.'**
   String get categoriesSubtitle;
 
+  /// No description provided for @regionsEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Geographic Taxonomy'**
+  String get regionsEyebrow;
+
   /// No description provided for @regionsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Region Management'**
+  /// **'UAE Regions & Souk Zones'**
   String get regionsTitle;
 
   /// No description provided for @regionsSubtitle.
@@ -475,6 +547,540 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select a node from the tree to edit or create a child, or create a new root node.'**
   String get selectNodeToEdit;
+
+  /// No description provided for @vendorsEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor Management'**
+  String get vendorsEyebrow;
+
+  /// No description provided for @vendorsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor List'**
+  String get vendorsTitle;
+
+  /// No description provided for @vendorsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse and search vendors by verification and account state.'**
+  String get vendorsSubtitle;
+
+  /// No description provided for @vendorsFilterVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification state'**
+  String get vendorsFilterVerification;
+
+  /// No description provided for @vendorsFilterAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account state'**
+  String get vendorsFilterAccount;
+
+  /// No description provided for @vendorsFilterSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get vendorsFilterSearch;
+
+  /// No description provided for @vendorsFilterSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Business name, licence, mobile…'**
+  String get vendorsFilterSearchHint;
+
+  /// No description provided for @vendorsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get vendorsFilterAll;
+
+  /// No description provided for @vendorsColumnBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Business name'**
+  String get vendorsColumnBusiness;
+
+  /// No description provided for @vendorsColumnTrading.
+  ///
+  /// In en, this message translates to:
+  /// **'Trading name'**
+  String get vendorsColumnTrading;
+
+  /// No description provided for @vendorsColumnVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification'**
+  String get vendorsColumnVerification;
+
+  /// No description provided for @vendorsColumnAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get vendorsColumnAccount;
+
+  /// No description provided for @vendorsColumnWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get vendorsColumnWaiting;
+
+  /// No description provided for @vendorsColumnAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get vendorsColumnAction;
+
+  /// No description provided for @vendorsActionView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get vendorsActionView;
+
+  /// No description provided for @vendorsActionReviewKyc.
+  ///
+  /// In en, this message translates to:
+  /// **'Review KYC'**
+  String get vendorsActionReviewKyc;
+
+  /// No description provided for @vendorsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No vendors found'**
+  String get vendorsEmptyTitle;
+
+  /// No description provided for @vendorsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No vendors match the current filters.'**
+  String get vendorsEmptyBody;
+
+  /// No description provided for @vendorsErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load vendors'**
+  String get vendorsErrorTitle;
+
+  /// No description provided for @vendorsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get vendorsRetry;
+
+  /// No description provided for @vendorsLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get vendorsLoadMore;
+
+  /// No description provided for @vendorsVerificationRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'REGISTERED'**
+  String get vendorsVerificationRegistered;
+
+  /// No description provided for @vendorsVerificationPending.
+  ///
+  /// In en, this message translates to:
+  /// **'PENDING VERIFICATION'**
+  String get vendorsVerificationPending;
+
+  /// No description provided for @vendorsVerificationVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'VERIFIED'**
+  String get vendorsVerificationVerified;
+
+  /// No description provided for @vendorsVerificationRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'REJECTED'**
+  String get vendorsVerificationRejected;
+
+  /// No description provided for @vendorsAccountActive.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get vendorsAccountActive;
+
+  /// No description provided for @vendorsAccountSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'SUSPENDED'**
+  String get vendorsAccountSuspended;
+
+  /// No description provided for @vendorsAccountDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'DEACTIVATED'**
+  String get vendorsAccountDeactivated;
+
+  /// No description provided for @vendorsWaitingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h waiting'**
+  String vendorsWaitingHours(int hours);
+
+  /// No description provided for @vendorsDetailEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor Profile'**
+  String get vendorsDetailEyebrow;
+
+  /// No description provided for @vendorsDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor Detail'**
+  String get vendorsDetailTitle;
+
+  /// No description provided for @vendorsDetailStubBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Full vendor inspection (ADM-S06) is scheduled for a later milestone.'**
+  String get vendorsDetailStubBody;
+
+  /// No description provided for @vendorsDetailVendorId.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor ID: {id}'**
+  String vendorsDetailVendorId(String id);
+
+  /// No description provided for @vendorsDetailComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Account actions and document review will appear here.'**
+  String get vendorsDetailComingSoon;
+
+  /// No description provided for @verificationEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Compliance Reviewer'**
+  String get verificationEyebrow;
+
+  /// No description provided for @verificationHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'KYC Verification Queue ({count} Pending)'**
+  String verificationHeading(int count);
+
+  /// No description provided for @verificationHeadingLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'KYC Verification Queue'**
+  String get verificationHeadingLoading;
+
+  /// No description provided for @verificationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review vendor KYC submissions oldest-first. Every document view and decision is audit-logged.'**
+  String get verificationSubtitle;
+
+  /// No description provided for @oldestFirstBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'OLDEST FIRST'**
+  String get oldestFirstBadge;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @verificationColumnBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get verificationColumnBusiness;
+
+  /// No description provided for @verificationColumnLicence.
+  ///
+  /// In en, this message translates to:
+  /// **'Licence'**
+  String get verificationColumnLicence;
+
+  /// No description provided for @verificationColumnWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get verificationColumnWaiting;
+
+  /// No description provided for @verificationColumnStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get verificationColumnStatus;
+
+  /// No description provided for @statusPendingVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'PENDING'**
+  String get statusPendingVerification;
+
+  /// No description provided for @waitingLessThanHour.
+  ///
+  /// In en, this message translates to:
+  /// **'< 1 hour'**
+  String get waitingLessThanHour;
+
+  /// No description provided for @waitingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h waiting'**
+  String waitingHours(int hours);
+
+  /// No description provided for @waitingDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d waiting'**
+  String waitingDays(int days);
+
+  /// No description provided for @emptyVerificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue is Clear'**
+  String get emptyVerificationTitle;
+
+  /// No description provided for @emptyVerificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No vendors are currently awaiting KYC verification.'**
+  String get emptyVerificationBody;
+
+  /// No description provided for @verificationLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load verification queue'**
+  String get verificationLoadErrorTitle;
+
+  /// No description provided for @tryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get tryAgain;
+
+  /// No description provided for @declaredBusinessProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Declared Business Profile'**
+  String get declaredBusinessProfile;
+
+  /// No description provided for @legalNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal Name'**
+  String get legalNameLabel;
+
+  /// No description provided for @tradeLicenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Trade Licence'**
+  String get tradeLicenceLabel;
+
+  /// No description provided for @licenceExpiryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Licence Expiry'**
+  String get licenceExpiryLabel;
+
+  /// No description provided for @emirateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Emirate / Region'**
+  String get emirateLabel;
+
+  /// No description provided for @contactPersonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Person'**
+  String get contactPersonLabel;
+
+  /// No description provided for @businessAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered Address'**
+  String get businessAddressLabel;
+
+  /// No description provided for @notDeclared.
+  ///
+  /// In en, this message translates to:
+  /// **'Not declared'**
+  String get notDeclared;
+
+  /// No description provided for @adminRationaleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Review Rationale / Notes'**
+  String get adminRationaleLabel;
+
+  /// No description provided for @adminRationaleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter reason for approval, rejection, or information request…'**
+  String get adminRationaleHint;
+
+  /// No description provided for @rationaleRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A rationale or message is required for every decision'**
+  String get rationaleRequired;
+
+  /// No description provided for @documentInspectorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Inspector'**
+  String get documentInspectorTitle;
+
+  /// No description provided for @noDocumentsUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents uploaded.'**
+  String get noDocumentsUploaded;
+
+  /// No description provided for @selectDocumentToView.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a document to load the viewer.'**
+  String get selectDocumentToView;
+
+  /// No description provided for @openFullscreenViewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Fullscreen Viewer'**
+  String get openFullscreenViewer;
+
+  /// No description provided for @documentSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{sizeMb} MB'**
+  String documentSizeLabel(String sizeMb);
+
+  /// No description provided for @documentTypeTradeLicence.
+  ///
+  /// In en, this message translates to:
+  /// **'Trade licence'**
+  String get documentTypeTradeLicence;
+
+  /// No description provided for @documentTypeEmiratesId.
+  ///
+  /// In en, this message translates to:
+  /// **'Emirates ID'**
+  String get documentTypeEmiratesId;
+
+  /// No description provided for @documentTypeVatCert.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT certificate'**
+  String get documentTypeVatCert;
+
+  /// No description provided for @documentTypeTradingPermit.
+  ///
+  /// In en, this message translates to:
+  /// **'Trading permit'**
+  String get documentTypeTradingPermit;
+
+  /// No description provided for @documentTypeTenancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenancy contract'**
+  String get documentTypeTenancy;
+
+  /// No description provided for @documentTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other document'**
+  String get documentTypeOther;
+
+  /// No description provided for @approveVendorButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Vendor & Activate Market Access'**
+  String get approveVendorButton;
+
+  /// No description provided for @requestInfoButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Request More Information'**
+  String get requestInfoButton;
+
+  /// No description provided for @rejectVendorButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject Application'**
+  String get rejectVendorButton;
+
+  /// No description provided for @approveConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve vendor application?'**
+  String get approveConfirmTitle;
+
+  /// No description provided for @approveConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will mark the vendor as VERIFIED and may advance them to ACTIVE if categories and regions are already declared. The decision is audit-logged.'**
+  String get approveConfirmBody;
+
+  /// No description provided for @confirmApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get confirmApprove;
+
+  /// No description provided for @rejectConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject vendor application?'**
+  String get rejectConfirmTitle;
+
+  /// No description provided for @rejectConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The vendor will be notified with your rationale and may resubmit documents. This decision is audit-logged.'**
+  String get rejectConfirmBody;
+
+  /// No description provided for @confirmReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get confirmReject;
+
+  /// No description provided for @requestInfoConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request more information?'**
+  String get requestInfoConfirmTitle;
+
+  /// No description provided for @requestInfoConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The vendor will remain in the verification queue and see your message in their awaiting-approval shell.'**
+  String get requestInfoConfirmBody;
+
+  /// No description provided for @confirmRequestInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Request'**
+  String get confirmRequestInfo;
+
+  /// No description provided for @toastVendorApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor approved successfully.'**
+  String get toastVendorApproved;
+
+  /// No description provided for @toastVendorRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor application rejected.'**
+  String get toastVendorRejected;
+
+  /// No description provided for @toastInfoRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Information request sent to vendor.'**
+  String get toastInfoRequested;
 }
 
 class _AppLocalizationsDelegate

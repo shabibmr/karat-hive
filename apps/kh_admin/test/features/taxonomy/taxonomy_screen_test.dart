@@ -135,7 +135,9 @@ void main() {
     await tester.pumpWidget(createTaxonomyWidget(initialShowInactive: true));
     await tester.pumpAndSettle();
 
-    expect(find.text('Category Management'), findsOneWidget);
+    // ADM-S14 header: gold eyebrow above the mock's screen heading.
+    expect(find.text('TAXONOMY CONFIG'), findsOneWidget);
+    expect(find.text('Product Categories'), findsOneWidget);
     expect(find.text('Jewellery'), findsOneWidget);
     expect(find.text('Rings'), findsOneWidget);
 

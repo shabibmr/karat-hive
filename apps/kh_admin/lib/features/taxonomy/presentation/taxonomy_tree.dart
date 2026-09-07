@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/theme/kh_theme.dart';
+import '../../../core/design/widgets/kh_status_chip.dart';
 import '../../../core/router/taxonomy_query_params.dart';
 import '../../../l10n/app_localizations.dart';
 import '../model/taxonomy_kind.dart';
@@ -18,7 +19,6 @@ class TaxonomyTree extends StatefulWidget {
     this.selectedId,
     required this.showInactive,
     this.onNodeSelected,
-    this.onCreateRoot,
     this.onToggleShowInactive,
   });
 
@@ -27,7 +27,6 @@ class TaxonomyTree extends StatefulWidget {
   final String? selectedId;
   final bool showInactive;
   final ValueChanged<TaxonomyNode>? onNodeSelected;
-  final VoidCallback? onCreateRoot;
   final VoidCallback? onToggleShowInactive;
 
   @override
@@ -216,33 +215,6 @@ class _TaxonomyTreeState extends State<TaxonomyTree> {
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                ),
-
-                SizedBox(width: spacing.sm),
-
-                // Add Root Node CTA
-                OutlinedButton.icon(
-                  key: const Key('taxonomy-add-root-button'),
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: spacing.sm,
-                      vertical: spacing.xs,
-                    ),
-                    minimumSize: Size(32, spacing.inputHeight - 4),
-                  ),
-                  onPressed: () {
-                    context.updateTaxonomyQuery(clearSelected: true);
-                    widget.onCreateRoot?.call();
-                  },
-                  icon: const Icon(Icons.add, size: 16),
-                  label: Text(
-                    widget.kind == TaxonomyKind.category
-                        ? (l10n?.addRootCategory ?? '+ Add Category')
-                        : (l10n?.addRootRegion ?? '+ Add Region'),
-                    style: typography.caption.copyWith(
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -439,32 +411,12 @@ class _TaxonomyTreeState extends State<TaxonomyTree> {
           // Inactive text badge (per accessibility §40/§56, NEVER color-only)
           if (isInactive) ...[
             SizedBox(width: spacing.xs),
-            Container(
+            KhStatusChip(
               key: Key('inactive-badge-${node.id}'),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: colors.error.withValues(alpha: 0.15),
-                borderRadius: shapes.pill,
-                border: Border.all(
-                  color: colors.error.withValues(alpha: 0.6),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.pause_circle_outline, size: 10, color: colors.error),
-                  const SizedBox(width: 3),
-                  Text(
-                    l10n?.statusInactive ?? 'Inactive',
-                    style: typography.caption.copyWith(
-                      color: colors.error,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+              label: l10n?.statusInactive ?? 'Inactive',
+              tone: KhStatusTone.error,
+              icon: Icons.pause_circle_outline,
+              dense: true,
             ),
           ],
         ],

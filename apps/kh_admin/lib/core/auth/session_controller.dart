@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../firebase/firebase_auth_service.dart';
-import 'auth_models.dart';
 import 'auth_repository.dart';
+import 'dev_auth.dart';
 import 'session_state.dart';
 import 'token_storage.dart';
 
@@ -15,9 +15,11 @@ class SessionController extends StateNotifier<SessionState> {
     required TokenStorage tokenStorage,
     required AuthRepository authRepository,
     FirebaseAuthService? firebaseAuthService,
+    DevAuthConfig devAuth = DevAuthConfig.disabled,
   })  : _tokenStorage = tokenStorage,
         _authRepository = authRepository,
         _firebaseAuthService = firebaseAuthService,
+        _devAuth = devAuth,
         super(const SessionState()) {
     _initAuthListener();
     init();
@@ -26,6 +28,7 @@ class SessionController extends StateNotifier<SessionState> {
   final TokenStorage _tokenStorage;
   final AuthRepository _authRepository;
   final FirebaseAuthService? _firebaseAuthService;
+  final DevAuthConfig _devAuth;
   StreamSubscription<User?>? _firebaseAuthSub;
   Completer<bool>? _refreshCompleter;
 
@@ -92,6 +95,7 @@ class SessionController extends StateNotifier<SessionState> {
     try {
       final tokens = await _tokenStorage.loadTokens();
       if (tokens == null) {
+        if (await _tryDevAutoLogin()) return;
         state = state.copyWith(
           status: SessionStatus.unauthenticated,
           clearAdmin: true,
@@ -122,6 +126,23 @@ class SessionController extends StateNotifier<SessionState> {
       }
     } catch (_) {
       state = state.copyWith(status: SessionStatus.unauthenticated);
+    }
+  }
+
+  /// Development-only shortcut: signs in as the seeded admin so the portal
+  /// lands on the dashboard without the login screen.
+  ///
+  /// This performs a *real* password login, so the session carries genuine
+  /// backend tokens and every `/v1/admin/*` call keeps working. Any failure
+  /// (backend down, admin not seeded) is swallowed so the caller falls through
+  /// to `unauthenticated` and the normal login screen is shown.
+  Future<bool> _tryDevAutoLogin() async {
+    if (!_devAuth.autoLogin) return false;
+    try {
+      await login(_devAuth.email, _devAuth.password);
+      return state.isAuthenticated;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -210,9 +231,11 @@ final StateNotifierProvider<SessionController, SessionState>
   final tokenStorage = ref.watch(tokenStorageProvider);
   final authRepository = ref.watch(authRepositoryProvider);
   final firebaseAuth = ref.watch(firebaseAuthServiceProvider);
+  final devAuth = ref.watch(devAuthConfigProvider);
   return SessionController(
     tokenStorage: tokenStorage,
     authRepository: authRepository,
     firebaseAuthService: firebaseAuth,
+    devAuth: devAuth,
   );
 });

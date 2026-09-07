@@ -22,9 +22,22 @@
   "errorServerUnavailable": "Administrative service unavailable. Please check your connection and try again.",
   "errorUnknown": "An unexpected error occurred. Please try again.",
 
-  "categoriesTitle": "Category Management",
+  "dashboardEyebrow": "Platform Overview",
+  "dashboardHeading": "Admin Control Center",
+  "systemOperational": "SYSTEM OPERATIONAL",
+  "dashboardSampleDataNotice": "Indicative sample figures. The admin dashboard endpoint (GET /v1/admin/dashboard) is not implemented yet — no number below reflects live platform data.",
+  "quickActionQueues": "Quick Action Queues",
+  "queueColumnItem": "Queue Item",
+  "queueColumnType": "Type",
+  "queueColumnSubmitted": "Submitted",
+  "queueColumnStatus": "Status",
+  "queueColumnAction": "Action",
+
+  "categoriesEyebrow": "Taxonomy Config",
+  "categoriesTitle": "Product Categories",
   "categoriesSubtitle": "Manage two-level product category taxonomy for requests and vendor specialisations.",
-  "regionsTitle": "Region Management",
+  "regionsEyebrow": "Geographic Taxonomy",
+  "regionsTitle": "UAE Regions & Souk Zones",
   "regionsSubtitle": "Manage geographic matching taxonomy (emirates and areas) for marketplace routing.",
   "showInactive": "Show Inactive",
   "hideInactive": "Hide Inactive",
@@ -80,5 +93,138 @@
   "toastRegionUpdated": "Region updated successfully.",
   "toastRegionDeactivated": "Region deactivated successfully.",
   "levelLimitReached": "Maximum hierarchy depth reached (2 levels). Cannot add children to this node.",
-  "selectNodeToEdit": "Select a node from the tree to edit or create a child, or create a new root node."
+  "selectNodeToEdit": "Select a node from the tree to edit or create a child, or create a new root node.",
+
+  "vendorsEyebrow": "Vendor Management",
+  "vendorsTitle": "Vendor List",
+  "vendorsSubtitle": "Browse and search vendors by verification and account state.",
+  "vendorsFilterVerification": "Verification state",
+  "vendorsFilterAccount": "Account state",
+  "vendorsFilterSearch": "Search",
+  "vendorsFilterSearchHint": "Business name, licence, mobile…",
+  "vendorsFilterAll": "All",
+  "vendorsColumnBusiness": "Business name",
+  "vendorsColumnTrading": "Trading name",
+  "vendorsColumnVerification": "Verification",
+  "vendorsColumnAccount": "Account",
+  "vendorsColumnWaiting": "Waiting",
+  "vendorsColumnAction": "Action",
+  "vendorsActionView": "View",
+  "vendorsActionReviewKyc": "Review KYC",
+  "vendorsEmptyTitle": "No vendors found",
+  "vendorsEmptyBody": "No vendors match the current filters.",
+  "vendorsErrorTitle": "Unable to load vendors",
+  "vendorsRetry": "Try again",
+  "vendorsLoadMore": "Load more",
+  "vendorsVerificationRegistered": "REGISTERED",
+  "vendorsVerificationPending": "PENDING VERIFICATION",
+  "vendorsVerificationVerified": "VERIFIED",
+  "vendorsVerificationRejected": "REJECTED",
+  "vendorsAccountActive": "ACTIVE",
+  "vendorsAccountSuspended": "SUSPENDED",
+  "vendorsAccountDeactivated": "DEACTIVATED",
+  "vendorsWaitingHours": "{hours}h waiting",
+  "@vendorsWaitingHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "vendorsDetailEyebrow": "Vendor Profile",
+  "vendorsDetailTitle": "Vendor Detail",
+  "vendorsDetailStubBody": "Full vendor inspection (ADM-S06) is scheduled for a later milestone.",
+  "vendorsDetailVendorId": "Vendor ID: {id}",
+  "@vendorsDetailVendorId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "vendorsDetailComingSoon": "Account actions and document review will appear here.",
+
+  "verificationEyebrow": "Compliance Reviewer",
+  "verificationHeading": "KYC Verification Queue ({count} Pending)",
+  "@verificationHeading": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "verificationHeadingLoading": "KYC Verification Queue",
+  "verificationSubtitle": "Review vendor KYC submissions oldest-first. Every document view and decision is audit-logged.",
+  "oldestFirstBadge": "OLDEST FIRST",
+  "refresh": "Refresh",
+  "verificationColumnBusiness": "Business",
+  "verificationColumnLicence": "Licence",
+  "verificationColumnWaiting": "Waiting",
+  "verificationColumnStatus": "Status",
+  "statusPendingVerification": "PENDING",
+  "waitingLessThanHour": "< 1 hour",
+  "waitingHours": "{hours}h waiting",
+  "@waitingHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "waitingDays": "{days}d waiting",
+  "@waitingDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "emptyVerificationTitle": "Queue is Clear",
+  "emptyVerificationBody": "No vendors are currently awaiting KYC verification.",
+  "verificationLoadErrorTitle": "Failed to load verification queue",
+  "tryAgain": "Try Again",
+  "declaredBusinessProfile": "Declared Business Profile",
+  "legalNameLabel": "Legal Name",
+  "tradeLicenceLabel": "Trade Licence",
+  "licenceExpiryLabel": "Licence Expiry",
+  "emirateLabel": "Emirate / Region",
+  "contactPersonLabel": "Contact Person",
+  "businessAddressLabel": "Registered Address",
+  "notDeclared": "Not declared",
+  "adminRationaleLabel": "Admin Review Rationale / Notes",
+  "adminRationaleHint": "Enter reason for approval, rejection, or information request…",
+  "rationaleRequired": "A rationale or message is required for every decision",
+  "documentInspectorTitle": "Document Inspector",
+  "noDocumentsUploaded": "No documents uploaded.",
+  "selectDocumentToView": "Select a document to load the viewer.",
+  "openFullscreenViewer": "Open Fullscreen Viewer",
+  "documentSizeLabel": "{sizeMb} MB",
+  "@documentSizeLabel": {
+    "placeholders": {
+      "sizeMb": {
+        "type": "String"
+      }
+    }
+  },
+  "documentTypeTradeLicence": "Trade licence",
+  "documentTypeEmiratesId": "Emirates ID",
+  "documentTypeVatCert": "VAT certificate",
+  "documentTypeTradingPermit": "Trading permit",
+  "documentTypeTenancy": "Tenancy contract",
+  "documentTypeOther": "Other document",
+  "approveVendorButton": "Approve Vendor & Activate Market Access",
+  "requestInfoButton": "Request More Information",
+  "rejectVendorButton": "Reject Application",
+  "approveConfirmTitle": "Approve vendor application?",
+  "approveConfirmBody": "This will mark the vendor as VERIFIED and may advance them to ACTIVE if categories and regions are already declared. The decision is audit-logged.",
+  "confirmApprove": "Approve",
+  "rejectConfirmTitle": "Reject vendor application?",
+  "rejectConfirmBody": "The vendor will be notified with your rationale and may resubmit documents. This decision is audit-logged.",
+  "confirmReject": "Reject",
+  "requestInfoConfirmTitle": "Request more information?",
+  "requestInfoConfirmBody": "The vendor will remain in the verification queue and see your message in their awaiting-approval shell.",
+  "confirmRequestInfo": "Send Request",
+  "toastVendorApproved": "Vendor approved successfully.",
+  "toastVendorRejected": "Vendor application rejected.",
+  "toastInfoRequested": "Information request sent to vendor."
 }
