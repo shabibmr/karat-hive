@@ -130,7 +130,7 @@ Every screen file uses this template:
 | ADM-S17 | Reports & analytics | [admin/ADM-S17-reports-analytics.md](admin/ADM-S17-reports-analytics.md) |
 | ADM-S18 | Announcement composer | [admin/ADM-S18-announcement-composer.md](admin/ADM-S18-announcement-composer.md) |
 | ADM-S19 | Platform settings | [admin/ADM-S19-platform-settings.md](admin/ADM-S19-platform-settings.md) |
-| ADM-S20 | Gold rate configuration | [admin/ADM-S20-gold-rate-configuration.md](admin/ADM-S20-gold-rate-configuration.md) |
+| ADM-S20 | Gold rate configuration _(deferred)_ | [admin/ADM-S20-gold-rate-configuration.md](admin/ADM-S20-gold-rate-configuration.md) |
 | ADM-S21 | Abuse report queue | [admin/ADM-S21-abuse-report-queue.md](admin/ADM-S21-abuse-report-queue.md) |
 | ADM-S22 | Audit log viewer | [admin/ADM-S22-audit-log.md](admin/ADM-S22-audit-log.md) |
 | ADM-S23 | Admin user management | [admin/ADM-S23-admin-user-management.md](admin/ADM-S23-admin-user-management.md) |

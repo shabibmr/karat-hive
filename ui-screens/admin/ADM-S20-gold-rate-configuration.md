@@ -1,5 +1,7 @@
 # ADM-S20 · Gold rate configuration
 
+> **Status: Deferred.** Not in the current Admin Portal build scope. Blocked on the open Yahoo Finance redistribution-terms decision and pending new backend routes. Retained here as the authoritative screen spec.
+
 | | |
 |---|---|
 | **User** | Platform Admin |

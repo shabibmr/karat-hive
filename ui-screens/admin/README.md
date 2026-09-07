@@ -20,7 +20,7 @@
 | Customers | ADM-S03, ADM-S04 |
 | Vendors | ADM-S05, ADM-S06, ADM-S07 |
 | Marketplace oversight | ADM-S08…S13 |
-| Taxonomy & config | ADM-S14, ADM-S15, ADM-S19, ADM-S20 |
+| Taxonomy & config | ADM-S14, ADM-S15, ADM-S19, ADM-S20 _(deferred)_ |
 | Content & ops | ADM-S16, ADM-S17, ADM-S18 |
 | Compliance | ADM-S21, ADM-S22, ADM-S23 |
 

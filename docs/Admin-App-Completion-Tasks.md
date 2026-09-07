@@ -46,10 +46,9 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 - [ ] **ADM-C-50** ADM-S19 platform-settings — `GET /v1/admin/settings`, `PATCH /v1/admin/settings/:key`; typed rows + range validation; flag the offer-validity field pending the live decision; coarse Super-Admin confirm.
 - [ ] **ADM-C-51** ADM-S18 announcement-composer — `GET/POST /v1/admin/announcements`, cancel; bilingual form, audience/channel selects, schedule, delivery list. `SAM-GAP-10` (no pre-send count).
 
-## Group D — heaviest
+## Group D — heaviest (reports & analytics)
 
-- [ ] **ADM-C-60** Backend: add `/v1/admin/gold-rates`, `/history`, `POST /override` on the `gold-rate` module (blocks ADM-S20). `G2-*`.
-- [ ] **ADM-C-61** ADM-S20 gold-rate config — feed status, purity table, history, override form (reason + expiry). Operator side not blocked by Yahoo terms (`AD-API-09`).
+- ~~ADM-C-60, ADM-C-61~~ — **withdrawn**: gold-rate config (ADM-S20) descoped from this effort (Yahoo Finance redistribution terms open; retained in SRS §7.4 / ui-screens/admin/ADM-S20).
 - [ ] **ADM-C-62** Introduce a charting library into `kh_admin` (evaluate; none present).
 - [ ] **ADM-C-63** ADM-S17 reports & analytics — `GET /v1/admin/reports/:name` (7 types), `POST /v1/admin/exports` + poll `GET /v1/admin/exports/:id`; charts + results table + export flow.
 

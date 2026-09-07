@@ -38,7 +38,7 @@ the global envelope interceptor — there is no admin DTO/presenter layer.
 | Admin backend routes | ~45 `/v1/admin/*` routes live on `main`. Every remaining screen has a route. Known gaps in §5. |
 | Flutter — done | `auth` (login), `taxonomy` (Categories, Regions), `dashboard` (thin, sample data) |
 | Flutter — built, contract-adapted this slice | `vendors` (list + detail), `verification` (queue + detail), `requests` (list + detail), `offers` (list + detail) — repos normalise `main`'s raw responses |
-| Flutter — placeholder route only | `customers`, `connections`, `moderation`, `reports`, `announcements`, `settings`, `gold-rates`, `abuse`, `audit`, `admin-users` |
+| Flutter — placeholder route only | `customers`, `connections`, `moderation`, `reports`, `announcements`, `settings`, `abuse`, `audit`, `admin-users` |
 | Foundation | Design tokens, `ApiClient` (+ `getCollection`), `SessionController`, `GoRouter` + guards, `KhAdminScaffold`, EN/AR l10n, shared widgets (`kh_data_table`, `kh_metric_card`, `kh_status_chip`, `kh_screen_header`) — complete |
 
 **Honest summary: the admin backend is essentially built; the remaining work is
@@ -67,7 +67,7 @@ overwhelmingly Flutter, screen by screen, against routes that already exist.**
 | ADM-S17 Reports & analytics | `/reports` | ✅ (`reports/:name`, `exports`) | placeholder | Group D (needs charts lib) |
 | ADM-S18 Announcement composer | `/announcements` | ✅ (`announcements` + cancel) | placeholder | Group C |
 | ADM-S19 Platform settings | `/settings` | ✅ (`GET settings`, `PATCH settings/:key`) | placeholder | Group C |
-| ADM-S20 Gold-rate config | `/gold-rates` | ⚠️ `gold-rate` module exists; **no `/v1/admin/gold-rates*` routes yet** | placeholder | Group D |
+| ADM-S20 Gold-rate config | `/gold-rates` | — | — | **Deferred** — out of this completion effort (Yahoo Finance redistribution terms open; needs new backend routes). Tracked in SRS §7.4 / ADM-S20. |
 | ADM-S21 Abuse-report queue | `/abuse` | ✅ (`abuse-reports` + resolve/dismiss) | placeholder | Group B |
 | ADM-S22 Audit log | `/audit` | ✅ `GET /v1/admin/audit-log` | placeholder | **Group A — smallest** |
 | ADM-S23 Admin user management | `/admin-users` | ✅ (`admins`, create/suspend/revoke) | placeholder | Group B |
@@ -99,8 +99,7 @@ polish items in §4. Commit per vertical.
 9. ADM-S18 announcement composer — bilingual form + delivery list; `SAM-GAP-10` (no pre-send audience count).
 
 **Group D — heaviest:**
-10. ADM-S20 gold-rate config — **needs `/v1/admin/gold-rates*` routes added first** (feed status, history, override).
-11. ADM-S17 reports & analytics — 7 report types + async export polling; **introduce a charting library** (none in `kh_admin` yet).
+10. ADM-S17 reports & analytics — 7 report types + async export polling; **introduce a charting library** (none in `kh_admin` yet).
 
 ## 4. Polish backlog for the adapted verticals (§2 "verify + polish")
 
@@ -123,7 +122,6 @@ polish items in §4. Commit per vertical.
 | Offer detail omits `stateTransitions`, `attachments`; revisions carry only a `previousTerms` JSON blob | S11 sections | parsed from blob / empty |
 | `admin_note` create response has no `author`; list nests `author:{displayName}` | notes on S09/S11 | repo synthesises author from `authorAdminId` / nested object |
 | `Media` rows carry no filename | doc lists on S06/S07 | `fileName` left null |
-| No `/v1/admin/gold-rates*` routes | S20 | screen blocked until added |
 
 ## 6. Verification
 

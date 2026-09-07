@@ -817,7 +817,7 @@ Every `[PROPOSED]` row in §3. The ones worth real discussion: `AD-FE-03` (state
 | `ADM-S17` | `reports` | admin |
 | `ADM-S18` | `announcements` | admin |
 | `ADM-S19` | `settings` | admin |
-| `ADM-S20` | `gold_rate` | admin |
+| `ADM-S20` | `gold_rate` | admin _(deferred — not in current build)_ |
 | `ADM-S21` | `abuse` | admin |
 | `ADM-S22` | `audit` | admin |
 
