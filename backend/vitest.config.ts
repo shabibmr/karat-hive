@@ -3,7 +3,11 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['src/**/*.spec.ts', 'test/masking/**/*.spec.ts'],
+    include: [
+      'src/**/*.spec.ts',
+      'test/masking/**/*.spec.ts',
+      'test/concurrency/**/*.spec.ts',
+    ],
     exclude: ['**/*.integration.spec.ts'],
     environment: 'node',
   },

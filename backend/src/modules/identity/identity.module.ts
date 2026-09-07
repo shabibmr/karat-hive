@@ -3,8 +3,8 @@ import { AuditModule } from '../audit';
 import { TaxonomyModule } from '../taxonomy';
 import { VendorOnboardingModule } from '../vendor-onboarding';
 import { FirebaseTokenService } from './application/firebase-token.service';
-import { LoginService } from './application/login.service';
 import { MeService } from './application/me.service';
+import { OAuthAccountService } from './application/oauth-account.service';
 import { OtpService } from './application/otp.service';
 import { RegistrationService } from './application/registration.service';
 import { SessionQuery } from './application/session.query';
@@ -25,12 +25,12 @@ import { UserRepository } from './repository/user.repository';
     SessionQuery,
     OtpService,
     RegistrationService,
-    LoginService,
     SessionService,
+    OAuthAccountService,
     MeService,
     OtpRepository,
     UserRepository,
   ],
-  exports: [TokenService, FirebaseTokenService, SessionQuery],
+  exports: [TokenService, FirebaseTokenService, SessionQuery, OAuthAccountService],
 })
 export class IdentityModule {}

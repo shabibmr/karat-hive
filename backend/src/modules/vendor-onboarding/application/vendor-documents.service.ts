@@ -112,4 +112,50 @@ export class VendorDocumentsService {
       });
     });
   }
+
+  async sweepExpiringDocuments(): Promise<number> {
+    const now = this.clock.now();
+    const threshold = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    const expiring = await this.prisma.vendorDocument.findMany({
+      where: {
+        expiryDate: {
+          not: null,
+          lte: threshold,
+        },
+        reminderSentAt: null,
+      },
+      include: {
+        vendorProfile: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    for (const doc of expiring) {
+      await withTx(this.prisma, async (tx) => {
+        await tx.vendorDocument.update({
+          where: { id: doc.id },
+          data: { reminderSentAt: now },
+        });
+
+        await enqueueOutbox(tx, {
+          eventType: 'vendor.document.expiring',
+          aggregateType: 'vendor_document',
+          aggregateId: doc.id,
+          payload: {
+            vendorProfileId: doc.vendorProfileId,
+            vendorUserId: doc.vendorProfile.userId,
+            documentId: doc.id,
+            documentType: doc.documentType,
+            expiryDate: doc.expiryDate?.toISOString(),
+          },
+        });
+      });
+    }
+
+    return expiring.length;
+  }
 }

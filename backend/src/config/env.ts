@@ -46,6 +46,13 @@ const envSchema = z
     SUPABASE_STORAGE_BUCKET_KYC: z.string().min(1).default('kyc'),
     SIGNED_UPLOAD_TTL_SECONDS: z.coerce.number().int().positive().default(900),
 
+    // --- push (G2-N03). Optional; adapters stub when unset. ---
+    FCM_SERVER_KEY: optionalString,
+    APNS_KEY_ID: optionalString,
+    APNS_TEAM_ID: optionalString,
+    APNS_BUNDLE_ID: optionalString,
+    APNS_KEY_P8: optionalString,
+
     // --- dev-only vendor verification shortcut ---
     DEV_VERIFY_ENABLED: z
       .enum(['true', 'false'])

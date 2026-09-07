@@ -111,6 +111,98 @@ const MESSAGES: Record<ErrorCode, Record<UiLanguage, string>> = {
     en: 'This taxonomy item is in use and cannot be deleted.',
     ar: 'عنصر التصنيف هذا قيد الاستخدام ولا يمكن حذفه.',
   },
+  OAUTH_REQUIRED: {
+    en: 'Verify your account before publishing a request.',
+    ar: 'يرجى تأكيد حسابك قبل نشر الطلب.',
+  },
+  REQUEST_NOT_PUBLISHABLE: {
+    en: 'Please complete all required fields before publishing.',
+    ar: 'يرجى إكمال جميع الحقول المطلوبة قبل النشر.',
+  },
+  BULLION_BELOW_MINIMUM: {
+    en: 'Bullion requests must meet the minimum indicative value.',
+    ar: 'يجب أن تستوفي طلبات السبائك الحد الأدنى للقيمة التقديرية.',
+  },
+  GOLD_RATE_UNAVAILABLE: {
+    en: 'Reference gold rate is temporarily unavailable. Please try again shortly.',
+    ar: 'سعر الذهب المرجعي غير متوفر حالياً. يرجى المحاولة بعد قليل.',
+  },
+  CONCURRENT_REQUEST_LIMIT: {
+    en: 'You have reached the maximum number of active requests.',
+    ar: 'لقد وصلت إلى الحد الأقصى للطلبات النشطة.',
+  },
+  STRUCTURAL_FIELD_IMMUTABLE: {
+    en: 'Structural details of a published request cannot be modified.',
+    ar: 'لا يمكن تعديل التفاصيل الهيكلية للطلب بعد النشر.',
+  },
+  REQUEST_NOT_CANCELLABLE: {
+    en: 'This request cannot be cancelled because an offer has already been accepted.',
+    ar: 'لا يمكن إلغاء هذا الطلب لأنه تم قبول عرض بالفعل.',
+  },
+  CONTACT_DETAILS_IN_TEXT: {
+    en: 'Contact details (phone numbers, email addresses, or URLs) are not allowed in notes.',
+    ar: 'لا يُسمح بإدراج تفاصيل الاتصال (أرقام الهواتف أو البريد الإلكتروني أو الروابط) في الملاحظات.',
+  },
+  NOT_IN_MATCH_SET: {
+    en: 'You do not have access to this request.',
+    ar: 'ليس لديك صلاحية الوصول إلى هذا الطلب.',
+  },
+  SUBSCRIPTION_REQUIRED: {
+    en: 'An active type subscription is required to perform this action.',
+    ar: 'مطلوب اشتراك نشط لتنفيذ هذا الإجراء.',
+  },
+  OFFER_NOT_OPEN: {
+    en: 'This request is not currently accepting offers.',
+    ar: 'هذا الطلب لا يقبل العروض حالياً.',
+  },
+  OFFER_ALREADY_PENDING: {
+    en: 'You already have a pending offer on this request. Revise your existing offer instead.',
+    ar: 'لديك بالفعل عرض معلق على هذا الطلب. يرجى تعديل عرضك الحالي بدلاً من ذلك.',
+  },
+  OFFER_REVISION_LIMIT: {
+    en: 'Maximum number of revisions reached for this offer.',
+    ar: 'تم الوصول إلى الحد الأقصى لتعديل هذا العرض.',
+  },
+  OFFER_NOT_PENDING: {
+    en: 'This offer is no longer pending.',
+    ar: 'هذا العرض لم يعد معلقاً.',
+  },
+  OFFER_EXPIRED: {
+    en: 'This offer has expired.',
+    ar: 'انتهت صلاحية هذا العرض.',
+  },
+  OFFER_ALREADY_ACCEPTED: {
+    en: 'An offer has already been accepted for this request.',
+    ar: 'تم قبول عرض آخر بالفعل لهذا الطلب.',
+  },
+  CONNECTION_CLOSED: {
+    en: 'This connection is closed.',
+    ar: 'هذا الاتصال مغلق.',
+  },
+  NOT_A_PARTY: {
+    en: 'You are not a party to this connection.',
+    ar: 'لست طرفاً في هذا الاتصال.',
+  },
+  REVIEW_ALREADY_EXISTS: {
+    en: 'You have already submitted a review for this connection.',
+    ar: 'لقد قمت بالفعل بتقديم تقييم لهذا الاتصال.',
+  },
+  REVIEW_EDIT_WINDOW_CLOSED: {
+    en: 'The edit window for this review has closed.',
+    ar: 'انتهت فترة تعديل هذا التقييم.',
+  },
+  SETTING_OUT_OF_RANGE: {
+    en: 'The setting value is outside the allowed range.',
+    ar: 'قيمة الإعداد خارج النطاق المسموح به.',
+  },
+  EXPORT_IN_PROGRESS: {
+    en: 'An export is already in progress. Please wait for it to complete.',
+    ar: 'عملية التصدير جارية بالفعل. يرجى الانتظار حتى تكتمل.',
+  },
+  ADMIN_SELF_REGISTRATION_FORBIDDEN: {
+    en: 'Admin self-registration is forbidden.',
+    ar: 'التسجيل الذاتي للمشرف غير مسموح به.',
+  },
 };
 
 export function resolveLanguage(

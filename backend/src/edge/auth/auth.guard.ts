@@ -2,7 +2,6 @@ import { CanActivate, ExecutionContext, HttpStatus, Injectable } from '@nestjs/c
 import { Reflector } from '@nestjs/core';
 import { FastifyRequest } from 'fastify';
 import {
-  FirebaseTokenService,
   IdentityAuthError,
   SessionQuery,
   TokenService,
@@ -21,7 +20,6 @@ export class AuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly tokens: TokenService,
     private readonly sessions: SessionQuery,
-    private readonly firebaseTokens?: FirebaseTokenService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -47,19 +45,15 @@ export class AuthGuard implements CanActivate {
       throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
     }
     try {
-      let user: UserForViewer | null = null;
-      if (this.tokens.isFirebaseToken && this.tokens.isFirebaseToken(token)) {
-        if (!this.firebaseTokens) {
-          throw new IdentityAuthError('UNAUTHENTICATED');
-        }
-        const claims = await this.firebaseTokens.verify(token);
-        user = await this.sessions.findOrCreateUserForFirebase(claims);
-      } else {
-        const claims = await this.tokens.verifyAccess(token);
-        user = await this.sessions.findUserForViewer(claims.sub);
-        if (user && (user.tokenVersion !== claims.ver || user.userType !== claims.role)) {
-          throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
-        }
+      // G2-A12: domain routes accept only the Karat Hive access token.
+      // Google / Firebase ID tokens are valid solely on the public session-exchange routes.
+      if (this.tokens.isFirebaseToken(token)) {
+        throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
+      }
+      const claims = await this.tokens.verifyAccess(token);
+      const user: UserForViewer | null = await this.sessions.findUserForViewer(claims.sub);
+      if (user && (user.tokenVersion !== claims.ver || user.userType !== claims.role)) {
+        throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
       }
       if (!user || user.deletedAt !== null) {
         throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);

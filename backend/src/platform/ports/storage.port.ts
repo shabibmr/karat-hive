@@ -29,6 +29,8 @@ export interface ObjectStorage {
   createSignedUploadUrl(input: CreateSignedUploadInput): Promise<SignedUpload>;
   headObject(bucket: string, key: string): Promise<ObjectHead | null>;
   createSignedDownloadUrl(bucket: string, key: string, ttlSeconds: number): Promise<SignedDownload>;
+  getObject(bucket: string, key: string): Promise<Buffer | null>;
+  putObject(bucket: string, key: string, body: Buffer, contentType: string): Promise<void>;
   deleteObject(bucket: string, key: string): Promise<void>;
 }
 

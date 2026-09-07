@@ -32,6 +32,6 @@ import { VendorOnboardingRepository } from './repository/vendor-onboarding.repos
     VendorAccessGuard,
     DevVerifyGuard,
   ],
-  exports: [VendorOnboardingService],
+  exports: [VendorOnboardingService, VendorDocumentsService, VendorAccessGuard],
 })
 export class VendorOnboardingModule {}

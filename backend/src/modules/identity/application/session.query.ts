@@ -43,111 +43,40 @@ export class SessionQuery {
     };
   }
 
-  async findOrCreateUserForFirebase(claims: FirebaseClaims): Promise<UserForViewer> {
+  async findUserByFirebaseClaims(claims: FirebaseClaims): Promise<UserForViewer | null> {
     const subjectHash = hashToken(claims.uid);
-    const now = new Date();
 
-    // a) Check OauthBinding (provider: GOOGLE, subjectHash: hashToken(claims.uid))
+    // 1. Check existing OauthBinding
     const existingBinding = await this.prisma.oauthBinding.findUnique({
       where: { subjectHash },
     });
     if (existingBinding) {
-      const viewer = await this.findUserForViewer(existingBinding.userId);
-      if (viewer) return viewer;
+      return this.findUserForViewer(existingBinding.userId);
     }
 
-    // b) If not bound, match existing User by email or mobileNumber, and insert OauthBinding
-    const email = claims.email?.trim() || null;
-    const phone = claims.phoneNumber?.trim() || null;
-    let matchedUser = null;
-
-    if (email) {
-      matchedUser = await this.prisma.user.findUnique({
+    // 2. If not bound, match existing User by verified email
+    if (claims.email && claims.emailVerified === true) {
+      const email = claims.email.trim();
+      const matchedUser = await this.prisma.user.findUnique({
         where: { email },
       });
-    }
-    if (!matchedUser && phone) {
-      matchedUser = await this.prisma.user.findUnique({
-        where: { mobileNumber: phone },
-      });
-    }
-
-    if (matchedUser) {
-      await this.prisma.oauthBinding.upsert({
-        where: {
-          userId_provider: {
-            userId: matchedUser.id,
-            provider: 'GOOGLE',
-          },
-        },
-        create: {
-          userId: matchedUser.id,
-          provider: 'GOOGLE',
-          subjectHash,
-          boundAt: now,
-        },
-        update: {
-          subjectHash,
-          boundAt: now,
-        },
-      });
-
-      const viewer = await this.findUserForViewer(matchedUser.id);
-      if (!viewer) {
-        throw new Error(`User not found after oauth binding: ${matchedUser.id}`);
+      if (matchedUser) {
+        return this.findUserForViewer(matchedUser.id);
       }
-      return viewer;
     }
 
-    // c) If no existing user, provision User, VendorProfile, and OauthBinding
-    const fallbackMobile = phone ?? `+fb_${claims.uid.slice(0, 15)}`;
-    const uniqueSuffix = claims.uid.slice(0, 30);
-    const displayName = claims.name?.trim() || 'Pending Onboarding';
-
-    const newUser = await this.prisma.$transaction(async (tx) => {
-      const createdUser = await tx.user.create({
-        data: {
-          mobileNumber: fallbackMobile,
-          mobileVerifiedAt: phone ? now : null,
-          email,
-          emailVerifiedAt: claims.emailVerified ? now : null,
-          userType: 'VENDOR',
-          accountState: 'ACTIVE',
-          preferredLanguage: 'en',
-        },
+    // 3. Match by verified E.164 phone
+    const phoneRegex = /^\+[1-9]\d{6,14}$/;
+    if (claims.phoneNumber && phoneRegex.test(claims.phoneNumber)) {
+      const matchedUser = await this.prisma.user.findUnique({
+        where: { mobileNumber: claims.phoneNumber },
       });
-
-      await tx.vendorProfile.create({
-        data: {
-          userId: createdUser.id,
-          legalBusinessName: displayName,
-          tradingName: displayName,
-          tradeLicenceNumber: `PENDING_${uniqueSuffix}`,
-          licenceExpiryDate: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
-          businessAddress: 'Pending Onboarding',
-          contactPersonName: claims.name?.trim() || 'Firebase User',
-          businessEmail: email ?? `${claims.uid}@karathive.local`,
-          verificationState: 'REGISTERED',
-        },
-      });
-
-      await tx.oauthBinding.create({
-        data: {
-          userId: createdUser.id,
-          provider: 'GOOGLE',
-          subjectHash,
-          boundAt: now,
-        },
-      });
-
-      return createdUser;
-    });
-
-    const viewer = await this.findUserForViewer(newUser.id);
-    if (!viewer) {
-      throw new Error(`Failed to find viewer for newly created user: ${newUser.id}`);
+      if (matchedUser) {
+        return this.findUserForViewer(matchedUser.id);
+      }
     }
-    return viewer;
+
+    return null;
   }
 }
 

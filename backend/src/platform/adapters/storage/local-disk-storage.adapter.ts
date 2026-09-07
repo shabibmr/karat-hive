@@ -62,6 +62,21 @@ export class LocalDiskStorageAdapter implements ObjectStorage {
     }
   }
 
+  async getObject(bucket: string, key: string): Promise<Buffer | null> {
+    try {
+      return await readFile(this.objectPath(bucket, key));
+    } catch {
+      return null;
+    }
+  }
+
+  async putObject(bucket: string, key: string, body: Buffer, contentType: string): Promise<void> {
+    const path = this.objectPath(bucket, key);
+    await mkdir(dirname(path), { recursive: true });
+    await writeFile(path, body);
+    await writeFile(`${path}.meta.json`, JSON.stringify({ contentType, size: body.length }));
+  }
+
   async deleteObject(bucket: string, key: string): Promise<void> {
     const path = this.objectPath(bucket, key);
     await rm(path, { force: true });
@@ -70,9 +85,6 @@ export class LocalDiskStorageAdapter implements ObjectStorage {
 
   /** Test helper — simulate a client PUT to the signed URL. */
   async putForTest(bucket: string, key: string, body: Buffer, contentType: string): Promise<void> {
-    const path = this.objectPath(bucket, key);
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, body);
-    await writeFile(`${path}.meta.json`, JSON.stringify({ contentType, size: body.length }));
+    await this.putObject(bucket, key, body, contentType);
   }
 }

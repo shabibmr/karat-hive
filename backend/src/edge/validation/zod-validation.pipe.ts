@@ -5,7 +5,8 @@ import { ErrorCode } from '../errors/error-codes';
 
 /** Validates a request part against a Zod schema; failures become 422 VALIDATION_FAILED. */
 export class ZodValidationPipe<S extends ZodTypeAny> implements PipeTransform {
-  constructor(private readonly schema: S) {}
+  /** Public so OpenAPI generation can read the same Zod schema Nest validates with. */
+  constructor(readonly schema: S) {}
 
   transform(value: unknown): ZodInfer<S> {
     const result = this.schema.safeParse(value);
@@ -20,5 +21,9 @@ export class ZodValidationPipe<S extends ZodTypeAny> implements PipeTransform {
 }
 
 export function zodBody<S extends ZodTypeAny>(schema: S): ZodValidationPipe<S> {
+  return new ZodValidationPipe(schema);
+}
+
+export function zodQuery<S extends ZodTypeAny>(schema: S): ZodValidationPipe<S> {
   return new ZodValidationPipe(schema);
 }

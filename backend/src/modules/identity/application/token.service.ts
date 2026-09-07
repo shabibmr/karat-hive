@@ -1,6 +1,6 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
-import { decodeProtectedHeader, errors, jwtVerify, SignJWT } from 'jose';
+import { decodeJwt, decodeProtectedHeader, errors, jwtVerify, SignJWT } from 'jose';
 import type { UserType } from '@prisma/client';
 import { ENV, type Env } from '../../../config/env';
 import { PrismaService } from '../../../platform/db/prisma.service';
@@ -166,12 +166,70 @@ export class TokenService {
     });
   }
 
+  /** One row per active family: the current (unrotated) refresh tip. */
+  async listActiveFamilies(
+    userId: string,
+    now: Date = this.clock.now(),
+  ): Promise<
+    Array<{
+      familyId: string;
+      ip: string | null;
+      userAgent: string | null;
+      createdAt: Date;
+      familyCreatedAt: Date;
+    }>
+  > {
+    const tips = await this.prisma.refreshToken.findMany({
+      where: {
+        userId,
+        revokedAt: null,
+        rotatedAt: null,
+        reuseDetectedAt: null,
+        expiresAt: { gt: now },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    const seen = new Set<string>();
+    const out: Array<{
+      familyId: string;
+      ip: string | null;
+      userAgent: string | null;
+      createdAt: Date;
+      familyCreatedAt: Date;
+    }> = [];
+    for (const tip of tips) {
+      if (seen.has(tip.familyId)) continue;
+      seen.add(tip.familyId);
+      const oldest = await this.prisma.refreshToken.findFirst({
+        where: { familyId: tip.familyId },
+        orderBy: { createdAt: 'asc' },
+        select: { createdAt: true },
+      });
+      out.push({
+        familyId: tip.familyId,
+        ip: tip.ip,
+        userAgent: tip.userAgent,
+        createdAt: tip.createdAt,
+        familyCreatedAt: oldest?.createdAt ?? tip.createdAt,
+      });
+    }
+    return out;
+  }
+
+  async familyOwnedBy(userId: string, familyId: string): Promise<boolean> {
+    const row = await this.prisma.refreshToken.findFirst({
+      where: { userId, familyId },
+      select: { id: true },
+    });
+    return row !== null;
+  }
+
   private secret(): Uint8Array {
     return new TextEncoder().encode(this.env.JWT_ACCESS_SECRET);
   }
 
   isFirebaseToken(token: string): boolean {
-    return isFirebaseToken(token);
+    return isFirebaseToken(token, this.env.FIREBASE_PROJECT_ID);
   }
 }
 
@@ -179,10 +237,18 @@ export function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
-export function isFirebaseToken(token: string): boolean {
+export function isFirebaseToken(token: string, expectedProjectId?: string): boolean {
   try {
     const header = decodeProtectedHeader(token);
-    return header.alg === 'RS256';
+    if (header.alg !== 'RS256') return false;
+    const claims = decodeJwt(token);
+    if (expectedProjectId) {
+      return claims.iss === `https://securetoken.google.com/${expectedProjectId}`;
+    }
+    return (
+      typeof claims.iss === 'string' &&
+      claims.iss.startsWith('https://securetoken.google.com/')
+    );
   } catch {
     return false;
   }

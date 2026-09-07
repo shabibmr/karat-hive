@@ -8,6 +8,15 @@ cd backend && npm run seed
 
 Orchestrator (`index.ts`) calls, in order: `seedAdmin` → `seedTaxonomy` → `seedPlatformSettings` → `seedVendor` (CP1-A03b). Re-runs are idempotent. Override fixtures via `SEED_ADMIN_*` and `SEED_VENDOR_*` in `.env` (see `.env.example`). Do not commit `.env`.
 
+### Repair auto-provision rows (G2-A07)
+
+One-off cleanup for Users created by the pre-fix AuthGuard auto-provision path (`+fb_` mobiles, synthetic `PENDING_*` licences, missing terms). Dry-run by default; never invents a replacement phone — soft-deletes and bumps `tokenVersion`.
+
+```bash
+cd backend && npm run repair:auto-provision -- --dry-run
+cd backend && npm run repair:auto-provision -- --apply
+```
+
 Minimum contents for a demonstrable migrate (NFR-002 production-scale seed is later):
 
 | Row                                                                                           | Why                                                                                                                                                                                                                                    |

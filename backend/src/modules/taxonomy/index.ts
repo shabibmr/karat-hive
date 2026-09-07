@@ -8,3 +8,4 @@ export type {
   UpdateTaxonomyInput,
 } from './repository/taxonomy.repository';
 export type { TaxonomyNode, CategorySummary, RegionSummary } from './presenter/taxonomy.presenter';
+export { PlatformConfigQuery, type PlatformConfig } from './application/platform-config.query';

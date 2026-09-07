@@ -16,8 +16,26 @@ const SETTINGS: Setting[] = [
   { key: 'legal.terms_url', value: 'https://karathive.ae/legal/terms', dataType: 'url' },
   { key: 'legal.privacy_url', value: 'https://karathive.ae/legal/privacy', dataType: 'url' },
   { key: 'support.contact_url', value: 'https://karathive.ae/support', dataType: 'url' },
+  { key: 'subscription.contact_url', value: 'https://karathive.ae/subscriptions', dataType: 'url' },
+  { key: 'request.max_images', value: 5, dataType: 'number' },
+  { key: 'offer.max_images', value: 3, dataType: 'number' },
+  {
+    key: 'media.image.accepted_types',
+    value: ['image/jpeg', 'image/png', 'image/webp'],
+    dataType: 'string[]',
+  },
   { key: 'legal.current_terms_version', value: '1.0', dataType: 'string' },
   { key: 'legal.current_privacy_version', value: '1.0', dataType: 'string' },
+  // Gold-rate ingest + Admin override (G2-GR01–GR04). End-user display stays
+  // off until G2-D04 (Yahoo redistribution) is signed.
+  { key: 'goldRates.endUserDisplay', value: false, dataType: 'boolean' },
+  { key: 'goldRates.pollIntervalMinutes', value: 15, dataType: 'number' },
+  { key: 'goldRates.stalenessThresholdMinutes', value: 60, dataType: 'number' },
+  {
+    key: 'goldRates.purityFactors',
+    value: { '24K': 1, '22K': 22 / 24, '21K': 21 / 24, '18K': 18 / 24 },
+    dataType: 'json',
+  },
 ];
 
 export async function seedPlatformSettings(prisma: PrismaClient): Promise<void> {

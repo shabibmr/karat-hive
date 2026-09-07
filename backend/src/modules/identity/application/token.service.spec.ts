@@ -9,19 +9,32 @@ describe('TokenService & isFirebaseToken', () => {
   const env = {
     JWT_ACCESS_SECRET: 'super-secret-access-key-test-value-must-be-long',
     JWT_ACCESS_TTL_SECONDS: 900,
+    FIREBASE_PROJECT_ID: 'karat-hive-app',
   } as Env;
   const prisma = {} as PrismaService;
   const clock = new Clock();
   const service = new TokenService(env, prisma, clock);
 
-  it('correctly identifies RS256 token as Firebase token', async () => {
+  it('correctly identifies RS256 token with Firebase issuer as Firebase token (G2-A05)', async () => {
     const { privateKey } = await generateKeyPair('RS256');
     const token = await new SignJWT({ sub: 'user-1' })
       .setProtectedHeader({ alg: 'RS256' })
+      .setIssuer('https://securetoken.google.com/karat-hive-app')
       .sign(privateKey);
 
     expect(isFirebaseToken(token)).toBe(true);
     expect(service.isFirebaseToken(token)).toBe(true);
+  });
+
+  it('rejects RS256 token with foreign issuer as non-Firebase token (G2-A05)', async () => {
+    const { privateKey } = await generateKeyPair('RS256');
+    const token = await new SignJWT({ sub: 'user-1' })
+      .setProtectedHeader({ alg: 'RS256' })
+      .setIssuer('https://auth.example.com')
+      .sign(privateKey);
+
+    expect(isFirebaseToken(token)).toBe(false);
+    expect(service.isFirebaseToken(token)).toBe(false);
   });
 
   it('correctly identifies HS256 token as non-Firebase token', async () => {

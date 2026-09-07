@@ -41,6 +41,10 @@ export class MediaRepository {
     return this.prisma.media.findUnique({ where: { key } });
   }
 
+  findById(id: string): Promise<Media | null> {
+    return this.prisma.media.findUnique({ where: { id } });
+  }
+
   markState(
     tx: DbTx,
     key: string,
@@ -51,6 +55,10 @@ export class MediaRepository {
       where: { key },
       data: { state, ...extra },
     });
+  }
+
+  updateByKey(key: string, data: Prisma.MediaUncheckedUpdateInput): Promise<Media> {
+    return this.prisma.media.update({ where: { key }, data });
   }
 
   async deleteByKey(key: string): Promise<void> {

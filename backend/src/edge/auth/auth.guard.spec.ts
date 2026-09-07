@@ -9,9 +9,6 @@ import { VIEWER_CONTEXT_KEY, type ViewerContext } from './viewer-context';
 import { ApiException } from '../errors/api-exception';
 import { ErrorCode } from '../errors/error-codes';
 import {
-  IdentityAuthError,
-  type FirebaseClaims,
-  type FirebaseTokenService,
   type SessionQuery,
   type TokenService,
   type UserForViewer,
@@ -119,6 +116,7 @@ describe('AuthGuard', () => {
       getAllAndOverride: vi.fn(() => false),
     } as unknown as Reflector;
     const tokens = {
+      isFirebaseToken: vi.fn().mockReturnValue(false),
       verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
     } as unknown as TokenService;
     const sessions = {
@@ -141,6 +139,7 @@ describe('AuthGuard', () => {
       getAllAndOverride: vi.fn(() => false),
     } as unknown as Reflector;
     const tokens = {
+      isFirebaseToken: vi.fn().mockReturnValue(false),
       verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
     } as unknown as TokenService;
     const sessions = {
@@ -164,6 +163,7 @@ describe('AuthGuard', () => {
       }),
     } as unknown as Reflector;
     const tokens = {
+      isFirebaseToken: vi.fn().mockReturnValue(false),
       verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
     } as unknown as TokenService;
     const sessions = {
@@ -187,6 +187,7 @@ describe('AuthGuard', () => {
       }),
     } as unknown as Reflector;
     const tokens = {
+      isFirebaseToken: vi.fn().mockReturnValue(false),
       verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
     } as unknown as TokenService;
     const sessions = {
@@ -210,6 +211,7 @@ describe('AuthGuard', () => {
       }),
     } as unknown as Reflector;
     const tokens = {
+      isFirebaseToken: vi.fn().mockReturnValue(false),
       verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
     } as unknown as TokenService;
     const sessions = {
@@ -232,6 +234,7 @@ describe('AuthGuard', () => {
       }),
     } as unknown as Reflector;
     const tokens = {
+      isFirebaseToken: vi.fn().mockReturnValue(false),
       verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
     } as unknown as TokenService;
     const sessions = {
@@ -251,6 +254,7 @@ describe('AuthGuard', () => {
       getAllAndOverride: vi.fn(() => false),
     } as unknown as Reflector;
     const tokens = {
+      isFirebaseToken: vi.fn().mockReturnValue(false),
       verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
     } as unknown as TokenService;
     const sessions = {
@@ -274,6 +278,7 @@ describe('AuthGuard', () => {
       getAllAndOverride: vi.fn((key) => key === IS_ADMIN_ONLY_KEY),
     } as unknown as Reflector;
     const tokens = {
+      isFirebaseToken: vi.fn().mockReturnValue(false),
       verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
     } as unknown as TokenService;
     const sessions = {
@@ -300,6 +305,7 @@ describe('AuthGuard', () => {
       getAllAndOverride: vi.fn((key) => key === IS_ADMIN_ONLY_KEY),
     } as unknown as Reflector;
     const tokens = {
+      isFirebaseToken: vi.fn().mockReturnValue(false),
       verifyAccess: vi.fn().mockResolvedValue({ sub: 'adm-1', role: 'ADMIN', ver: 1 }),
     } as unknown as TokenService;
     const sessions = {
@@ -317,226 +323,55 @@ describe('AuthGuard', () => {
     expect(request[VIEWER_CONTEXT_KEY]?.role).toBe('ADMIN');
   });
 
-  describe('Firebase ID Token Authentication', () => {
-    const mockClaims: FirebaseClaims = {
-      uid: 'fb-uid-123',
-      email: 'vendor@example.com',
-      emailVerified: true,
-      phoneNumber: '+971501234567',
-      name: 'Dubai Gold Vendor',
-    };
-
-    const mockFirebaseVendorUser: UserForViewer = {
-      id: 'usr-fb-1',
-      userType: 'VENDOR',
-      tokenVersion: 0,
-      accountState: 'ACTIVE',
-      preferredLanguage: 'en',
-      deletedAt: null,
-      vendorProfileId: 'vp-fb-1',
-      vendorVerificationState: 'REGISTERED',
-      vendorActivatedAt: null,
-      customerProfileId: null,
-      adminProfileId: null,
-    };
-
-    it('authenticates valid Firebase token, auto-provisions/resolves user, and attaches viewer context', async () => {
+  describe('G2-A12 — Google bearer rejected on domain routes', () => {
+    it('rejects a Firebase ID token on GET /v1/me with UNAUTHENTICATED', async () => {
       const reflector = {
         getAllAndOverride: vi.fn(() => false),
       } as unknown as Reflector;
       const tokens = {
         isFirebaseToken: vi.fn().mockReturnValue(true),
+        verifyAccess: vi.fn(),
       } as unknown as TokenService;
-      const firebaseTokens = {
-        verify: vi.fn().mockResolvedValue(mockClaims),
-      } as unknown as FirebaseTokenService;
       const sessions = {
-        findOrCreateUserForFirebase: vi.fn().mockResolvedValue(mockFirebaseVendorUser),
+        findUserForViewer: vi.fn(),
       } as unknown as SessionQuery;
 
-      const guard = new AuthGuard(reflector, tokens, sessions, firebaseTokens);
-      const { context, request } = createMockContext({
-        authorization: 'Bearer firebase.rs256.jwt.token',
-      });
-
-      const allowed = await guard.canActivate(context);
-      expect(allowed).toBe(true);
-      expect(tokens.isFirebaseToken).toHaveBeenCalledWith('firebase.rs256.jwt.token');
-      expect(firebaseTokens.verify).toHaveBeenCalledWith('firebase.rs256.jwt.token');
-      expect(sessions.findOrCreateUserForFirebase).toHaveBeenCalledWith(mockClaims);
-      expect(request[VIEWER_CONTEXT_KEY]).toEqual({
-        userId: 'usr-fb-1',
-        role: 'VENDOR',
-        tokenVersion: 0,
-        accountState: 'ACTIVE',
-        preferredLanguage: 'en',
-        vendorProfileId: 'vp-fb-1',
-        vendorVerificationState: 'REGISTERED',
-        vendorActivatedAt: null,
-        customerProfileId: null,
-        adminProfileId: null,
-      });
-    });
-
-    it('rejects expired Firebase token with TOKEN_EXPIRED', async () => {
-      const reflector = {
-        getAllAndOverride: vi.fn(() => false),
-      } as unknown as Reflector;
-      const tokens = {
-        isFirebaseToken: vi.fn().mockReturnValue(true),
-      } as unknown as TokenService;
-      const firebaseTokens = {
-        verify: vi.fn().mockRejectedValue(new IdentityAuthError('TOKEN_EXPIRED')),
-      } as unknown as FirebaseTokenService;
-      const sessions = {} as SessionQuery;
-
-      const guard = new AuthGuard(reflector, tokens, sessions, firebaseTokens);
-      const { context } = createMockContext({
-        authorization: 'Bearer firebase.expired.token',
-      });
-
-      await expect(guard.canActivate(context)).rejects.toMatchObject({
-        status: HttpStatus.UNAUTHORIZED,
-        errorCode: ErrorCode.TOKEN_EXPIRED,
-      });
-    });
-
-    it('rejects invalid Firebase token with UNAUTHENTICATED', async () => {
-      const reflector = {
-        getAllAndOverride: vi.fn(() => false),
-      } as unknown as Reflector;
-      const tokens = {
-        isFirebaseToken: vi.fn().mockReturnValue(true),
-      } as unknown as TokenService;
-      const firebaseTokens = {
-        verify: vi.fn().mockRejectedValue(new IdentityAuthError('UNAUTHENTICATED')),
-      } as unknown as FirebaseTokenService;
-      const sessions = {} as SessionQuery;
-
-      const guard = new AuthGuard(reflector, tokens, sessions, firebaseTokens);
-      const { context } = createMockContext({
-        authorization: 'Bearer firebase.invalid.token',
-      });
-
-      await expect(guard.canActivate(context)).rejects.toMatchObject({
-        status: HttpStatus.UNAUTHORIZED,
-        errorCode: ErrorCode.UNAUTHENTICATED,
-      });
-    });
-
-    it('rejects soft-deleted Firebase user with UNAUTHENTICATED', async () => {
-      const reflector = {
-        getAllAndOverride: vi.fn(() => false),
-      } as unknown as Reflector;
-      const tokens = {
-        isFirebaseToken: vi.fn().mockReturnValue(true),
-      } as unknown as TokenService;
-      const firebaseTokens = {
-        verify: vi.fn().mockResolvedValue(mockClaims),
-      } as unknown as FirebaseTokenService;
-      const sessions = {
-        findOrCreateUserForFirebase: vi.fn().mockResolvedValue({
-          ...mockFirebaseVendorUser,
-          deletedAt: new Date(),
-        }),
-      } as unknown as SessionQuery;
-
-      const guard = new AuthGuard(reflector, tokens, sessions, firebaseTokens);
-      const { context } = createMockContext({
-        authorization: 'Bearer firebase.valid.token',
-      });
-
-      await expect(guard.canActivate(context)).rejects.toMatchObject({
-        status: HttpStatus.UNAUTHORIZED,
-        errorCode: ErrorCode.UNAUTHENTICATED,
-      });
-    });
-
-    it('rejects suspended Firebase user when route does not allow suspended', async () => {
-      const reflector = {
-        getAllAndOverride: vi.fn((key) => {
-          if (key === ALLOW_SUSPENDED_KEY) return false;
-          return false;
-        }),
-      } as unknown as Reflector;
-      const tokens = {
-        isFirebaseToken: vi.fn().mockReturnValue(true),
-      } as unknown as TokenService;
-      const firebaseTokens = {
-        verify: vi.fn().mockResolvedValue(mockClaims),
-      } as unknown as FirebaseTokenService;
-      const sessions = {
-        findOrCreateUserForFirebase: vi.fn().mockResolvedValue({
-          ...mockFirebaseVendorUser,
-          accountState: 'SUSPENDED',
-        }),
-      } as unknown as SessionQuery;
-
-      const guard = new AuthGuard(reflector, tokens, sessions, firebaseTokens);
-      const { context } = createMockContext({
-        authorization: 'Bearer firebase.valid.token',
-      });
-
-      await expect(guard.canActivate(context)).rejects.toMatchObject({
-        status: HttpStatus.FORBIDDEN,
-        errorCode: ErrorCode.ACCOUNT_SUSPENDED,
-      });
-    });
-
-    it('allows suspended Firebase user when route has @AllowSuspended()', async () => {
-      const reflector = {
-        getAllAndOverride: vi.fn((key) => {
-          if (key === ALLOW_SUSPENDED_KEY) return true;
-          return false;
-        }),
-      } as unknown as Reflector;
-      const tokens = {
-        isFirebaseToken: vi.fn().mockReturnValue(true),
-      } as unknown as TokenService;
-      const firebaseTokens = {
-        verify: vi.fn().mockResolvedValue(mockClaims),
-      } as unknown as FirebaseTokenService;
-      const sessions = {
-        findOrCreateUserForFirebase: vi.fn().mockResolvedValue({
-          ...mockFirebaseVendorUser,
-          accountState: 'SUSPENDED',
-        }),
-      } as unknown as SessionQuery;
-
-      const guard = new AuthGuard(reflector, tokens, sessions, firebaseTokens);
-      const { context, request } = createMockContext({
-        authorization: 'Bearer firebase.valid.token',
-      });
-
-      const allowed = await guard.canActivate(context);
-      expect(allowed).toBe(true);
-      expect(request[VIEWER_CONTEXT_KEY]?.accountState).toBe('SUSPENDED');
-    });
-
-    it('rejects Firebase vendor user on /v1/admin/* route with NOT_FOUND', async () => {
-      const reflector = {
-        getAllAndOverride: vi.fn(() => false),
-      } as unknown as Reflector;
-      const tokens = {
-        isFirebaseToken: vi.fn().mockReturnValue(true),
-      } as unknown as TokenService;
-      const firebaseTokens = {
-        verify: vi.fn().mockResolvedValue(mockClaims),
-      } as unknown as FirebaseTokenService;
-      const sessions = {
-        findOrCreateUserForFirebase: vi.fn().mockResolvedValue(mockFirebaseVendorUser),
-      } as unknown as SessionQuery;
-
-      const guard = new AuthGuard(reflector, tokens, sessions, firebaseTokens);
+      const guard = new AuthGuard(reflector, tokens, sessions);
       const { context } = createMockContext(
-        { authorization: 'Bearer firebase.valid.token' },
-        '/v1/admin/users',
+        { authorization: 'Bearer firebase.rs256.jwt.token' },
+        '/v1/me',
       );
 
       await expect(guard.canActivate(context)).rejects.toMatchObject({
-        status: HttpStatus.NOT_FOUND,
-        errorCode: ErrorCode.NOT_FOUND,
+        status: HttpStatus.UNAUTHORIZED,
+        errorCode: ErrorCode.UNAUTHENTICATED,
       });
+      expect(tokens.isFirebaseToken).toHaveBeenCalledWith('firebase.rs256.jwt.token');
+      expect(tokens.verifyAccess).not.toHaveBeenCalled();
+      expect(sessions.findUserForViewer).not.toHaveBeenCalled();
+    });
+
+    it('still verifies a Karat Hive access token', async () => {
+      const reflector = {
+        getAllAndOverride: vi.fn(() => false),
+      } as unknown as Reflector;
+      const tokens = {
+        isFirebaseToken: vi.fn().mockReturnValue(false),
+        verifyAccess: vi.fn().mockResolvedValue({ sub: 'usr-1', role: 'CUSTOMER', ver: 1 }),
+      } as unknown as TokenService;
+      const sessions = {
+        findUserForViewer: vi.fn().mockResolvedValue(mockUser),
+      } as unknown as SessionQuery;
+
+      const guard = new AuthGuard(reflector, tokens, sessions);
+      const { context, request } = createMockContext({
+        authorization: 'Bearer kh-access-token',
+      });
+
+      const allowed = await guard.canActivate(context);
+      expect(allowed).toBe(true);
+      expect(tokens.verifyAccess).toHaveBeenCalledWith('kh-access-token');
+      expect(request[VIEWER_CONTEXT_KEY]?.userId).toBe('usr-1');
     });
   });
 });
