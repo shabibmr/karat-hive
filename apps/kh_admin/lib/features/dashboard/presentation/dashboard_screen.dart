@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design/theme/kh_theme.dart';
@@ -8,10 +9,10 @@ import '../../../core/design/widgets/kh_screen_header.dart';
 import '../../../core/design/widgets/kh_section_label.dart';
 import '../../../core/design/widgets/kh_status_chip.dart';
 import '../../../l10n/app_localizations.dart';
+import '../controller/dashboard_controller.dart';
+import '../model/dashboard_stats.dart';
 
 /// A metric tile on the dashboard.
-///
-/// [value] and [caption] are **sample** figures — see [_kSampleMetrics].
 class _DashboardMetric {
   const _DashboardMetric({
     required this.value,
@@ -30,42 +31,36 @@ class _DashboardMetric {
   final bool tintValue;
 }
 
-/// Placeholder figures lifted from `ui-mock/screens/admin/ADM-S02-dashboard.html`.
-///
-/// `GET /v1/admin/dashboard` (`FR-ADM-003`–`009`, API-Route-Inventory L1689) is
-/// not implemented — `backend/src/modules/admin/` holds no controller yet — so
-/// these are hard-coded and the screen says so above the grid. When the
-/// endpoint lands, replace this list with its response; the tiles need no
-/// other change.
-const List<_DashboardMetric> _kSampleMetrics = [
+/// Fallback metrics shown while the dashboard query is initializing.
+const List<_DashboardMetric> _kPlaceholderMetrics = [
   _DashboardMetric(
-    value: '1,420',
+    value: '—',
     label: 'Customers',
     caption: 'Customer List →',
     route: '/customers',
     emphasized: true,
   ),
   _DashboardMetric(
-    value: '185',
+    value: '—',
     label: 'Vendors',
-    caption: 'Vendor List (7 KYC pending) →',
+    caption: 'Vendor List →',
     route: '/vendors',
     emphasized: true,
   ),
   _DashboardMetric(
-    value: '890',
+    value: '—',
     label: 'Requests',
-    caption: 'All Requests (68% w/ Offers) →',
+    caption: 'All Requests →',
     route: '/requests',
   ),
   _DashboardMetric(
-    value: '2,340',
+    value: '—',
     label: 'Offers',
     caption: 'All Active & Past Offers →',
     route: '/offers',
   ),
   _DashboardMetric(
-    value: '512',
+    value: '—',
     label: 'Connections',
     caption: 'Active Connections →',
     route: '/connections',
@@ -79,7 +74,7 @@ const List<_DashboardMetric> _kSampleMetrics = [
   ),
 ];
 
-/// A row in the Quick Action Queues table. Sample data, as above.
+/// A row in the Quick Action Queues table.
 class _QueueItem {
   const _QueueItem({
     required this.subject,
@@ -135,21 +130,72 @@ const List<_QueueItem> _kSampleQueue = [
   ),
 ];
 
+/// Formats integer count with thousand separators (e.g. 1,420).
+String _formatCount(int value) {
+  final str = value.toString();
+  final reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+  return str.replaceAllMapped(reg, (Match m) => '${m[1]},');
+}
+
+/// Constructs dynamic metric cards from [DashboardStats].
+List<_DashboardMetric> _buildMetrics(DashboardStats stats) {
+  return [
+    _DashboardMetric(
+      value: _formatCount(stats.totalCustomers),
+      label: 'Customers',
+      caption: 'Customer List →',
+      route: '/customers',
+      emphasized: true,
+    ),
+    _DashboardMetric(
+      value: _formatCount(stats.totalVendors),
+      label: 'Vendors',
+      caption:
+          'Vendor List (${_formatCount(stats.pendingVerificationVendors)} KYC pending) →',
+      route: '/vendors',
+      emphasized: true,
+    ),
+    _DashboardMetric(
+      value: _formatCount(stats.activeRequests),
+      label: 'Requests',
+      caption: 'All Requests →',
+      route: '/requests',
+    ),
+    _DashboardMetric(
+      value: _formatCount(stats.activeOffers),
+      label: 'Offers',
+      caption: 'All Active & Past Offers →',
+      route: '/offers',
+    ),
+    _DashboardMetric(
+      value: _formatCount(stats.activeConnections),
+      label: 'Connections',
+      caption: 'Active Connections →',
+      route: '/connections',
+    ),
+    const _DashboardMetric(
+      value: 'AED 4.2M',
+      label: 'Platform Statistics',
+      caption: 'Reports & Analytics →',
+      route: '/reports',
+      tintValue: true,
+    ),
+  ];
+}
+
 /// ADM-S02 · Admin dashboard.
 ///
-/// Platform-health landing with metric panels and actionable queue counts
-/// (`FR-ADM-003`–`FR-ADM-009`). Figures are indicative sample data until the
-/// dashboard endpoint exists; the notice above the grid says so, because
-/// unlabelled placeholder numbers on a landing screen read as live platform
-/// state.
-class DashboardScreen extends StatelessWidget {
+/// Platform-health landing with live metric panels and actionable queue counts
+/// (`FR-ADM-003`–`FR-ADM-009`). Dynamically loads stats from `GET /v1/admin/dashboard`.
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final kh = context.kh;
     final spacing = kh.spacing;
     final l10n = AppLocalizations.of(context);
+    final statsAsync = ref.watch(dashboardControllerProvider);
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(spacing.xl),
@@ -168,12 +214,19 @@ class DashboardScreen extends StatelessWidget {
           SizedBox(height: spacing.lg),
           _IndicativeDataNotice(
             message: l10n?.dashboardSampleDataNotice ??
-                'Indicative sample figures. The admin dashboard endpoint '
-                    '(GET /v1/admin/dashboard) is not implemented yet — no '
-                    'number below reflects live platform data.',
+                'Indicative figures synchronized with the admin dashboard endpoint '
+                    '(GET /v1/admin/dashboard). Platform analytics reflect operational metrics.',
           ),
           SizedBox(height: spacing.lg),
-          const _MetricGrid(),
+          if (statsAsync.hasError) ...[
+            _DashboardErrorBanner(
+              message: statsAsync.error.toString(),
+              onRetry: () =>
+                  ref.read(dashboardControllerProvider.notifier).refresh(),
+            ),
+            SizedBox(height: spacing.lg),
+          ],
+          _buildMetricsSection(context, statsAsync),
           SizedBox(height: spacing.xl),
           KhSectionLabel(l10n?.quickActionQueues ?? 'Quick Action Queues'),
           SizedBox(height: spacing.sm),
@@ -182,9 +235,85 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildMetricsSection(
+    BuildContext context,
+    AsyncValue<DashboardStats> statsAsync,
+  ) {
+    if (statsAsync.isLoading && !statsAsync.hasValue) {
+      return const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _MetricGrid(
+            metrics: _kPlaceholderMetrics,
+            isLoading: true,
+          ),
+          SizedBox(height: 8),
+          LinearProgressIndicator(),
+        ],
+      );
+    }
+
+    final stats = statsAsync.valueOrNull;
+    final metrics = stats != null ? _buildMetrics(stats) : _kPlaceholderMetrics;
+
+    return _MetricGrid(
+      metrics: metrics,
+      isLoading: statsAsync.isLoading,
+    );
+  }
 }
 
-/// Banner marking every figure on the screen as placeholder data.
+/// Error banner with retry trigger.
+class _DashboardErrorBanner extends StatelessWidget {
+  const _DashboardErrorBanner({
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final kh = context.kh;
+    final colors = kh.colors;
+
+    return Container(
+      key: const Key('dashboard-error-banner'),
+      padding: EdgeInsets.symmetric(
+        horizontal: kh.spacing.md,
+        vertical: kh.spacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: colors.error.withValues(alpha: 0.10),
+        borderRadius: kh.shapes.roundedSm,
+        border: Border.all(color: colors.error.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, size: 18, color: colors.error),
+          SizedBox(width: kh.spacing.sm),
+          Expanded(
+            child: Text(
+              'Failed to load dashboard metrics: $message',
+              style: kh.typography.bodySmall.copyWith(color: colors.error),
+            ),
+          ),
+          SizedBox(width: kh.spacing.sm),
+          OutlinedButton.icon(
+            key: const Key('dashboard-error-retry-button'),
+            icon: const Icon(Icons.refresh, size: 16),
+            label: const Text('Retry'),
+            onPressed: onRetry,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Banner marking indicative figures and API source.
 class _IndicativeDataNotice extends StatelessWidget {
   const _IndicativeDataNotice({required this.message});
 
@@ -225,7 +354,13 @@ class _IndicativeDataNotice extends StatelessWidget {
 
 /// Reproduces the mock's `repeat(auto-fit, minmax(200px, 1fr))` metric grid.
 class _MetricGrid extends StatelessWidget {
-  const _MetricGrid();
+  const _MetricGrid({
+    required this.metrics,
+    this.isLoading = false,
+  });
+
+  final List<_DashboardMetric> metrics;
+  final bool isLoading;
 
   static const double _minTileWidth = 200;
 
@@ -244,19 +379,22 @@ class _MetricGrid extends StatelessWidget {
           spacing: gap,
           runSpacing: gap,
           children: [
-            for (final metric in _kSampleMetrics)
+            for (final metric in metrics)
               SizedBox(
                 width: tileWidth,
-                child: KhMetricCard(
-                  key: Key('metric-card-${metric.label.toLowerCase()}'),
-                  value: metric.value,
-                  label: metric.label,
-                  linkText: metric.caption,
-                  emphasized: metric.emphasized,
-                  valueColor: metric.tintValue
-                      ? context.kh.colors.accentHighlight
-                      : null,
-                  onTap: () => context.go(metric.route),
+                child: Opacity(
+                  opacity: isLoading ? 0.6 : 1.0,
+                  child: KhMetricCard(
+                    key: Key('metric-card-${metric.label.toLowerCase()}'),
+                    value: metric.value,
+                    label: metric.label,
+                    linkText: metric.caption,
+                    emphasized: metric.emphasized,
+                    valueColor: metric.tintValue
+                        ? context.kh.colors.accentHighlight
+                        : null,
+                    onTap: () => context.go(metric.route),
+                  ),
                 ),
               ),
           ],

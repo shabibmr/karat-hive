@@ -82,6 +82,7 @@ export class AdminRepository {
             createdAt: true,
           },
         },
+        _count: { select: { requests: true } },
       },
     });
 
@@ -103,6 +104,7 @@ export class AdminRepository {
         requests: {
           take: 10,
           orderBy: { createdAt: 'desc' },
+          include: { _count: { select: { offers: true } } },
         },
       },
     });
@@ -426,6 +428,12 @@ export class AdminRepository {
       include: {
         request: { include: { customerProfile: { include: { user: true } } } },
         offer: { include: { vendorProfile: { include: { user: true } } } },
+        contactEvents: {
+          orderBy: { occurredAt: 'desc' },
+          take: 1,
+          select: { occurredAt: true },
+        },
+        _count: { select: { contactEvents: true } },
       },
     });
 
@@ -525,9 +533,38 @@ export class AdminRepository {
   }
 
   // --- Audit Log ---
-  async listAuditLogs(options: { limit?: number; cursor?: string }) {
+  async listAuditLogs(options: {
+    limit?: number;
+    cursor?: string;
+    actorUserId?: string;
+    action?: string;
+    entityType?: string;
+    entityId?: string;
+    from?: string;
+    to?: string;
+    ip?: string;
+  }) {
     const limit = Math.min(options.limit ?? 50, 100);
+    const occurredAt =
+      options.from || options.to
+        ? {
+            ...(options.from ? { gte: new Date(options.from) } : {}),
+            ...(options.to ? { lte: new Date(options.to) } : {}),
+          }
+        : undefined;
     const items = await this.prisma.auditLog.findMany({
+      where: {
+        ...(options.actorUserId ? { actorUserId: options.actorUserId } : {}),
+        ...(options.action
+          ? { action: { contains: options.action, mode: 'insensitive' } }
+          : {}),
+        ...(options.entityType ? { entityType: options.entityType } : {}),
+        ...(options.entityId ? { entityId: options.entityId } : {}),
+        ...(options.ip
+          ? { ipAddress: { contains: options.ip, mode: 'insensitive' } }
+          : {}),
+        ...(occurredAt ? { occurredAt } : {}),
+      },
       take: limit + 1,
       ...(options.cursor ? { cursor: { id: options.cursor }, skip: 1 } : {}),
       orderBy: { occurredAt: 'desc' },

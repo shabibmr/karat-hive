@@ -63,12 +63,12 @@ overwhelmingly Flutter, screen by screen, against routes that already exist.**
 | ADM-S13 Connection detail | `/connections/:id` | ✅ (+ close) | — | Group B |
 | ADM-S14 Categories | `/taxonomy/categories` | ✅ | ✅ | **Done** (CP-1) |
 | ADM-S15 Regions | `/taxonomy/regions` | ✅ | ✅ | **Done** (CP-1) |
-| ADM-S16 Review moderation | `/moderation` | ✅ (`reviews` + approve/reject/redact) | placeholder | Group B |
+| ADM-S16 Review moderation | `/moderation` | ✅ (`reviews` + approve/reject/redact) | ✅ | **Done** |
 | ADM-S17 Reports & analytics | `/reports` | ✅ (`reports/:name`, `exports`) | placeholder | Group D (needs charts lib) |
 | ADM-S18 Announcement composer | `/announcements` | ✅ (`announcements` + cancel) | placeholder | Group C |
 | ADM-S19 Platform settings | `/settings` | ✅ (`GET settings`, `PATCH settings/:key`) | placeholder | Group C |
 | ADM-S20 Gold-rate config | `/gold-rates` | — | — | **Deferred** — out of this completion effort (Yahoo Finance redistribution terms open; needs new backend routes). Tracked in SRS §7.4 / ADM-S20. |
-| ADM-S21 Abuse-report queue | `/abuse` | ✅ (`abuse-reports` + resolve/dismiss) | placeholder | Group B |
+| ADM-S21 Abuse-report queue | `/abuse` | ✅ (`abuse-reports` + resolve/dismiss) | ✅ | **Done** |
 | ADM-S22 Audit log | `/audit` | ✅ `GET /v1/admin/audit-log` | placeholder | **Group A — smallest** |
 | ADM-S23 Admin user management | `/admin-users` | ✅ (`admins`, create/suspend/revoke) | placeholder | Group B |
 

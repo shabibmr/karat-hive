@@ -9,6 +9,8 @@ import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/auth/session_state.dart';
 import 'package:kh_admin/core/auth/token_storage.dart';
 import 'package:kh_admin/core/design/theme/kh_colors.dart';
+import 'package:kh_admin/features/dashboard/model/dashboard_stats.dart';
+import 'package:kh_admin/features/dashboard/repository/dashboard_repository.dart';
 import 'package:kh_admin/main.dart';
 
 class _FakeTokenStorage extends TokenStorage {
@@ -18,6 +20,20 @@ class _FakeTokenStorage extends TokenStorage {
   Future<void> saveTokens(SessionTokens tokens) async {}
   @override
   Future<void> clearTokens() async {}
+}
+
+class _FakeDashboardRepository implements DashboardRepository {
+  @override
+  Future<DashboardStats> fetchStats() async {
+    return const DashboardStats(
+      totalCustomers: 100,
+      totalVendors: 20,
+      pendingVerificationVendors: 2,
+      activeRequests: 50,
+      activeOffers: 120,
+      activeConnections: 30,
+    );
+  }
 }
 
 /// Stands in for the backend during the dev auto-login test: a real
@@ -51,6 +67,8 @@ void main() {
       ProviderScope(
         overrides: [
           tokenStorageProvider.overrideWithValue(_FakeTokenStorage()),
+          dashboardRepositoryProvider
+              .overrideWithValue(_FakeDashboardRepository()),
         ],
         child: const KhAdminApp(),
       ),
@@ -76,6 +94,8 @@ void main() {
       ProviderScope(
         overrides: [
           tokenStorageProvider.overrideWithValue(_FakeTokenStorage()),
+          dashboardRepositoryProvider
+              .overrideWithValue(_FakeDashboardRepository()),
           sessionControllerProvider.overrideWith(
             (ref) => _AuthenticatedSessionController(),
           ),
@@ -105,6 +125,8 @@ void main() {
       ProviderScope(
         overrides: [
           tokenStorageProvider.overrideWithValue(_FakeTokenStorage()),
+          dashboardRepositoryProvider
+              .overrideWithValue(_FakeDashboardRepository()),
           sessionControllerProvider.overrideWith(
             (ref) => _AuthenticatedSessionController(),
           ),
@@ -150,6 +172,8 @@ void main() {
       ProviderScope(
         overrides: [
           tokenStorageProvider.overrideWithValue(_FakeTokenStorage()),
+          dashboardRepositoryProvider
+              .overrideWithValue(_FakeDashboardRepository()),
           authRepositoryProvider
               .overrideWithValue(_SeededAdminAuthRepository()),
           devAuthConfigProvider.overrideWithValue(

@@ -84,7 +84,11 @@ export class AdminService {
     return user;
   }
 
-  async erasureCustomer(id: string, adminUserId: string) {
+  async erasureCustomer(
+    id: string,
+    dto: { reasonText: string },
+    adminUserId: string,
+  ) {
     const cust = await this.repo.findCustomer(id);
     if (!cust) throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
 
@@ -94,6 +98,7 @@ export class AdminService {
       action: 'CUSTOMER_ERASURE_COMPLETED',
       entityType: 'customer_profile',
       entityId: cust.id,
+      afterValue: { reasonText: dto.reasonText },
     });
     return { completed: true, userId: result.id };
   }
@@ -351,6 +356,23 @@ export class AdminService {
         entityId: id,
         afterValue: { reasonText: dto.reasonText },
       });
+      const request = (conn as { request?: { customerProfile?: { userId?: string } } })
+        .request;
+      const offer = (conn as { offer?: { vendorProfile?: { userId?: string } } }).offer;
+      await enqueueOutbox(tx, {
+        eventType: 'connection.closed',
+        aggregateType: 'connection',
+        aggregateId: id,
+        payload: {
+          connectionId: id,
+          requestId: conn.requestId,
+          customerUserId: request?.customerProfile?.userId,
+          vendorUserId: offer?.vendorProfile?.userId,
+          closedBy: 'ADMIN',
+          closedAt: res.closedAt?.toISOString() ?? new Date().toISOString(),
+          reasonText: dto.reasonText,
+        },
+      });
       return res;
     });
 
@@ -456,7 +478,17 @@ export class AdminService {
   }
 
   // --- Audit Log ---
-  async listAuditLogs(query: { limit?: number; cursor?: string }) {
+  async listAuditLogs(query: {
+    limit?: number;
+    cursor?: string;
+    actorUserId?: string;
+    action?: string;
+    entityType?: string;
+    entityId?: string;
+    from?: string;
+    to?: string;
+    ip?: string;
+  }) {
     return this.repo.listAuditLogs(query);
   }
 

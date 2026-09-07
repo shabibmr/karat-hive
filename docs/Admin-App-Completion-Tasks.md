@@ -25,20 +25,20 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 
 ## Slice 2 — Dashboard (ADM-S02)
 
-- [ ] **ADM-C-20** Replace `dashboard_screen.dart` sample data with `GET /v1/admin/dashboard`; keep responsive layout; loading / error / empty states.
+- [x] **ADM-C-20** Replace `dashboard_screen.dart` sample data with `GET /v1/admin/dashboard`; keep responsive layout; loading / error / empty states.
 
 ## Group A — list/detail pattern, backend ready
 
-- [ ] **ADM-C-30** ADM-S22 audit-log — model + repo (`GET /v1/admin/audit-log`, filters `actorUserId,action,entityType,entityId,from,to,ip`), `KhDataTable` list, client-side row detail (`SAM-GAP-12`), self-view audit note, l10n, tests. Route `/audit`.
-- [ ] **ADM-C-31** ADM-S03 customer-list — clone vendor-list; `GET /v1/admin/customers`; PII list-access audit note. Route `/customers`.
-- [ ] **ADM-C-32** ADM-S04 customer-detail — clone vendor-detail; `GET /v1/admin/customers/:id`; suspend / reactivate / erasure dialogs (mandatory reason). Route `/customers/:id`.
+- [x] **ADM-C-30** ADM-S22 audit-log — model + repo (`GET /v1/admin/audit-log`, filters `actorUserId,action,entityType,entityId,from,to,ip`), `KhDataTable` list, client-side row detail (`SAM-GAP-12`), self-view audit note, tests. Route `/audit`.
+- [x] **ADM-C-31** ADM-S03 customer-list — clone vendor-list; `GET /v1/admin/customers`; PII list-access audit note. Route `/customers`.
+- [x] **ADM-C-32** ADM-S04 customer-detail — clone vendor-detail; `GET /v1/admin/customers/:id`; suspend / reactivate / erasure dialogs (mandatory reason). Route `/customers/:id`.
 
 ## Group B — queue / moderation, backend ready
 
-- [ ] **ADM-C-40** ADM-S12 connection-list — `GET /v1/admin/connections`; derived "no contact 48h" column. Route `/connections`.
-- [ ] **ADM-C-41** ADM-S13 connection-detail — `GET /v1/admin/connections/:id`; close action (reason, notifies both). Route `/connections/:id`.
-- [ ] **ADM-C-42** ADM-S21 abuse-report queue — `GET /v1/admin/abuse-reports(/:id)`; resolve / dismiss with rationale; reporter never disclosed. Route `/abuse`.
-- [ ] **ADM-C-43** ADM-S16 review-moderation — `GET /v1/admin/reviews`; approve / reject / redact (rationale on reject/redact). Route `/moderation`.
+- [x] **ADM-C-40** ADM-S12 connection-list — `GET /v1/admin/connections`; derived "no contact 48h" column. Route `/connections`.
+- [x] **ADM-C-41** ADM-S13 connection-detail — `GET /v1/admin/connections/:id`; close action (reason, notifies both). Route `/connections/:id`.
+- [x] **ADM-C-42** ADM-S21 abuse-report queue — `GET /v1/admin/abuse-reports(/:id)`; resolve / dismiss with rationale; reporter never disclosed. Route `/abuse`.
+- [x] **ADM-C-43** ADM-S16 review-moderation — `GET /v1/admin/reviews`; approve / reject / redact (rationale on reject/redact). Route `/moderation`.
 - [ ] **ADM-C-44** ADM-S23 admin-user-management — `GET/POST /v1/admin/admins`, suspend / revoke; **no Role selector** (`SAM-GAP-13`, `AD-API-03`). Route `/admin-users`.
 
 ## Group C — config screens

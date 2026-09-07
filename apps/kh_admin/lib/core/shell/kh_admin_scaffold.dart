@@ -37,6 +37,7 @@ const List<AdminNavItem> kAdminNavItems = [
     title: 'Customers',
     icon: Icons.people_outline,
     route: '/customers',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S05',
@@ -71,6 +72,7 @@ const List<AdminNavItem> kAdminNavItems = [
     title: 'Connections',
     icon: Icons.link_outlined,
     route: '/connections',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S14',
@@ -91,6 +93,7 @@ const List<AdminNavItem> kAdminNavItems = [
     title: 'Review Moderation',
     icon: Icons.rate_review_outlined,
     route: '/moderation',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S17',
@@ -121,12 +124,14 @@ const List<AdminNavItem> kAdminNavItems = [
     title: 'Abuse Reports',
     icon: Icons.flag_outlined,
     route: '/abuse',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S22',
     title: 'Audit Log',
     icon: Icons.history_outlined,
     route: '/audit',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S23',

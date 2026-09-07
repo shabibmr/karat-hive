@@ -30,6 +30,10 @@ const reactivateCustomerSchema = z.object({
   reasonText: z.string().trim().min(1).max(500),
 });
 
+const erasureCustomerSchema = z.object({
+  reasonText: z.string().trim().min(1).max(500),
+});
+
 const verifyVendorSchema = z.object({
   rationale: z.string().trim().min(1).max(500),
 });
@@ -169,8 +173,9 @@ export class AdminController {
   async erasureCustomer(
     @Viewer() viewer: ViewerContext,
     @Param('id') id: string,
+    @Body(zodBody(erasureCustomerSchema)) body: z.infer<typeof erasureCustomerSchema>,
   ) {
-    const data = await this.service.erasureCustomer(id, viewer.userId);
+    const data = await this.service.erasureCustomer(id, body, viewer.userId);
     return { data };
   }
 
@@ -479,10 +484,24 @@ export class AdminController {
   async listAuditLogs(
     @Query('limit') limit?: string,
     @Query('cursor') cursor?: string,
+    @Query('actorUserId') actorUserId?: string,
+    @Query('action') action?: string,
+    @Query('entityType') entityType?: string,
+    @Query('entityId') entityId?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('ip') ip?: string,
   ) {
     const data = await this.service.listAuditLogs({
       limit: limit ? Number.parseInt(limit, 10) : undefined,
       cursor,
+      actorUserId,
+      action,
+      entityType,
+      entityId,
+      from,
+      to,
+      ip,
     });
     return { data: data.items, nextCursor: data.nextCursor };
   }

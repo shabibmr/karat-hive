@@ -197,6 +197,7 @@ describe('AdminService', () => {
   it('closes a connection and audits action', async () => {
     vi.mocked(mockRepo.findConnection).mockResolvedValueOnce({
       id: 'conn-1',
+      requestId: 'req-1',
     } as unknown as Connection);
     vi.mocked(mockRepo.closeConnection).mockResolvedValueOnce({
       id: 'conn-1',
