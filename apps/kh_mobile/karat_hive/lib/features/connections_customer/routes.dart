@@ -2,7 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import 'presentation/connection_detail_screen.dart';
 import 'presentation/connections_list_screen.dart';
-import '../reviews/presentation/leave_review_screen.dart';
+import '../reviews/presentation/stubs.dart';
 
 /// Customer Connections tab (CUS-S16 / CUS-S15 / CUS-S18).
 final customerConnectionRoutes = [

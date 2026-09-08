@@ -29,7 +29,7 @@ bool isOAuthRequired(Failure failure) => failure.code == kOAuthRequiredCode;
 final publishGateProvider = Provider<PublishGate>((ref) {
   final session = ref.watch(sessionProvider);
   final bound = switch (session) {
-    SignedIn(:final user) => user.oauthBound ?? false,
+    SignedIn(:final user) => user.oauthBound,
     _ => false,
   };
   return PublishGate(oauthBound: bound);

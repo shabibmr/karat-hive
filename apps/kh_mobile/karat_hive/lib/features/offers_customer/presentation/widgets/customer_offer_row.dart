@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
-import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 /// CU-11 / SH-OFF-01 — Offer row with masked Vendor only.

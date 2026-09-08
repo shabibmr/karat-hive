@@ -4,7 +4,6 @@ import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
-import '../controller/request_create_state.dart';
 
 String createCopy(BuildContext context, String key, String fallback) {
   final value = KhStrings.of(context).s(key);

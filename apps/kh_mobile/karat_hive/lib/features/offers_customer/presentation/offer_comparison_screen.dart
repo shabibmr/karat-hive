@@ -8,7 +8,6 @@ import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../controller/offers_list_controller.dart';
 import '../../request_manage/controller/owner_request_detail_controller.dart';
-import '../../request_manage/presentation/customer_copy.dart';
 
 /// CUS-S12 — client composition of 2–4 Offers (CU-13).
 class OfferComparisonScreen extends ConsumerWidget {
@@ -104,7 +103,7 @@ class _CompareColumn extends StatelessWidget {
 
     return Card(
       key: Key('compare-col-${offer.id}'),
-      margin: EdgeInsets.only(end: tokens.space.md),
+      margin: EdgeInsetsDirectional.only(end: tokens.space.md),
       color: isBestPrice ? tokens.gold.withValues(alpha: 0.12) : null,
       child: Padding(
         padding: EdgeInsets.all(tokens.space.md),

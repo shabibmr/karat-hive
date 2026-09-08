@@ -2,15 +2,10 @@ import 'package:go_router/go_router.dart';
 import 'package:kh_domain/kh_domain.dart';
 
 import 'presentation/find_ornament_screen.dart';
-import 'presentation/gold_bullion_screen.dart';
-import 'presentation/gold_coins_screen.dart';
-import 'presentation/image_capture_screen.dart';
 import 'presentation/request_type_screen.dart';
-import 'presentation/review_publish_screen.dart';
-import 'presentation/sell_old_gold_screen.dart';
+import 'presentation/stubs.dart' hide RequestTypeScreen;
 
-/// Paths for Agent 1 to mount under the Customer shell. This file is not
-/// registered in `app/router.dart` from this track.
+/// Paths for Agent 1 to mount under the Customer shell.
 abstract final class RequestCreatePaths {
   static const type = '/customer/requests/create';
   static const ornament = '/customer/requests/create/ornament';
@@ -25,7 +20,7 @@ abstract final class RequestCreatePaths {
         RequestType.sellOldGold => sellGold,
         RequestType.goldCoin => coins,
         RequestType.goldBullion => bullion,
-        RequestType.unknown => type,
+        RequestType.unknown => RequestCreatePaths.type,
       };
 }
 
@@ -52,10 +47,10 @@ final List<GoRoute> requestCreateRoutes = [
   ),
   GoRoute(
     path: RequestCreatePaths.images,
-    builder: (_, __) => const ImageCaptureScreen(),
+    builder: (_, __) => const RequestImageCaptureScreen(),
   ),
   GoRoute(
     path: RequestCreatePaths.review,
-    builder: (_, __) => const ReviewPublishScreen(),
+    builder: (_, __) => const RequestReviewPublishScreen(),
   ),
 ];

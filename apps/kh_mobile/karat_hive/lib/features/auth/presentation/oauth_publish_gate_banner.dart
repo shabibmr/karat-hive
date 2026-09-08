@@ -41,7 +41,7 @@ class OAuthPublishGateBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = KhL10n.of(context);
+    final l10n = KhL10n.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     return Container(
       key: const Key('oauth-publish-gate-banner'),

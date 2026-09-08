@@ -390,10 +390,11 @@ class GoldBullionScreen extends ConsumerWidget {
                 'Indicative valuation (estimate, not an offer)',
               ),
             ),
-            MoneyDisplay(amount: value),
-            Text(
-              createCopy(context, 'create.bullionFloor', 'Minimum') +
-                  ': ${MoneyDisplay(amount: floor)}',
+            Row(
+              children: [
+                Text('${createCopy(context, 'create.bullionFloor', 'Minimum')}: '),
+                MoneyDisplay(amount: floor),
+              ],
             ),
             if (value < floor)
               KhInlineError(
