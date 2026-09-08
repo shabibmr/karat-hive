@@ -40,6 +40,24 @@ class FakeConnectionsRepository implements ConnectionsRepository {
     required String channel,
   }) async =>
       const Ok(null);
+
+  @override
+  Future<Result<PagedResult<ConnectionForCustomer>>> listMineForCustomer({
+    String? state,
+    String? cursor,
+  }) async =>
+      const Ok(PagedResult.empty());
+
+  @override
+  Future<Result<ConnectionForCustomer>> getById(String id) async =>
+      const Err(NotFoundFailure());
+
+  @override
+  Future<Result<ConnectionForCustomer>> closeCustomer(
+    String id, {
+    String? reason,
+  }) async =>
+      const Err(ConflictFailure(code: 'CONNECTION_CLOSED'));
 }
 
 Widget _host({

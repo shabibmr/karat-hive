@@ -1,9 +1,13 @@
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+import '../paged.dart';
+
 class OffersClient {
   const OffersClient(this._client);
   final KhApiClient _client;
+
+  // --- Vendor methods (CP-3) ---
 
   Future<Result<OfferForVendor>> submitOffer({
     required String requestId,
@@ -78,28 +82,88 @@ class OffersClient {
     );
 
     return r.when(
-      ok: (raw) {
-        if (raw is! Map<String, dynamic>) {
-          if (raw is List) {
-            final items = raw
-                .map((e) => OfferForVendor.fromJson(e as Map<String, dynamic>))
-                .toList(growable: false);
-            return Ok(PagedResult(items: items));
-          }
-          return const Ok(PagedResult.empty());
-        }
+      ok: (raw) => Ok(parsePagedEnvelope(raw, OfferForVendor.fromJson)),
+      err: Err.new,
+    );
+  }
 
-        final dataList = (raw['data'] as List?) ?? const [];
-        final meta = (raw['meta'] as Map<String, dynamic>?) ?? const {};
-        final items = dataList
-            .map((e) => OfferForVendor.fromJson(e as Map<String, dynamic>))
-            .toList(growable: false);
-        return Ok(PagedResult(
-          items: items,
-          nextCursor: meta['nextCursor'] as String?,
-          hasMore: meta['hasMore'] as bool?,
-        ));
+  // --- Customer methods (CM-Track O) ---
+
+  Future<Result<PagedResult<OfferForCustomer>>> listForRequest(
+    String requestId, {
+    String? cursor,
+    int limit = 20,
+    String? sort,
+    String? minRating,
+    String? priceMin,
+    String? priceMax,
+    int? excludeExpiringWithinHours,
+  }) async {
+    final query = <String, dynamic>{
+      if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
+      'limit': limit.toString(),
+      if (sort != null) 'sort': sort,
+      if (minRating != null) 'minRating': minRating,
+      if (priceMin != null) 'priceMin': priceMin,
+      if (priceMax != null) 'priceMax': priceMax,
+      if (excludeExpiringWithinHours != null)
+        'excludeExpiringWithinHours': excludeExpiringWithinHours.toString(),
+    };
+    final r = await _client.send(
+      'GET',
+      '/v1/requests/$requestId/offers',
+      query: query,
+      unwrapData: false,
+    );
+    return r.when(
+      ok: (raw) => Ok(parsePagedEnvelope(raw, OfferForCustomer.fromJson)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<OfferForCustomer>> get(String id) async {
+    final r = await _client.send('GET', '/v1/offers/$id');
+    return r.when(
+      ok: (d) => Ok(OfferForCustomer.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<VendorRatingDetail>> vendorRating(String offerId) async {
+    final r = await _client.send('GET', '/v1/offers/$offerId/vendor-rating');
+    return r.when(
+      ok: (d) => Ok(VendorRatingDetail.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<AcceptOfferResult>> accept(String id) async {
+    final r = await _client.send(
+      'POST',
+      '/v1/offers/$id/accept',
+      body: const {'confirmation': 'REVEAL_AND_CONNECT'},
+    );
+    return r.when(
+      ok: (d) => Ok(AcceptOfferResult.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<OfferForCustomer>> decline(
+    String id, {
+    String? reason,
+    String? note,
+  }) async {
+    final r = await _client.send(
+      'POST',
+      '/v1/offers/$id/decline',
+      body: {
+        if (reason != null) 'reason': reason,
+        if (note != null) 'note': note,
       },
+    );
+    return r.when(
+      ok: (d) => Ok(OfferForCustomer.fromJson(d as Map<String, dynamic>)),
       err: Err.new,
     );
   }

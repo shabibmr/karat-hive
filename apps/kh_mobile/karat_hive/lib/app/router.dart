@@ -5,14 +5,21 @@ import 'package:go_router/go_router.dart';
 import 'guards.dart';
 import 'session/session_controller.dart';
 import 'shells/awaiting_approval_shell.dart';
+import 'shells/customer_shell.dart';
 import 'shells/splash_screen.dart';
 import 'shells/unauth_shell.dart';
 import 'shells/vendor_shell.dart';
+import '../features/abuse/routes.dart';
 import '../features/auth/routes.dart';
 import '../features/connections/routes.dart';
+import '../features/notifications/routes.dart';
+import '../features/offers_customer/routes.dart';
 import '../features/offers_vendor/routes.dart';
 import '../features/onboarding/routes.dart';
+import '../features/profile_settings/routes.dart';
+import '../features/request_create/routes.dart';
 import '../features/request_feed/routes.dart';
+import '../features/request_manage/routes.dart';
 import '../features/subscription/routes.dart';
 
 class _SessionListenable extends ChangeNotifier {
@@ -43,28 +50,49 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
+            CustomerShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              customerHomeRoute(),
+              ...requestCreateRoutes,
+              ...offersCustomerRoutes,
+              ...abuseRoutes,
+            ],
+          ),
+          StatefulShellBranch(
+            routes: requestManageRoutes,
+          ),
+          StatefulShellBranch(
+            routes: connectionsRoutes,
+          ),
+          StatefulShellBranch(
+            routes: notificationsRoutes,
+          ),
+          StatefulShellBranch(
+            routes: profileSettingsRoutes,
+          ),
+        ],
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
             VendorShell(navigationShell: navigationShell),
         branches: [
-          // Branch 0 — Home (+ subscriptions deep link)
           StatefulShellBranch(
             routes: [
               vendorHomeRoute(routes: [subscriptionNestedRoute]),
               ...subscriptionRoutes,
             ],
           ),
-          // Branch 1 — Requests feed + detail
           StatefulShellBranch(
             routes: requestFeedRoutes,
           ),
-          // Branch 2 — Offers (CP-3)
           StatefulShellBranch(
             routes: offersVendorTabRoutes,
           ),
-          // Branch 3 — Connections (CP-4)
           StatefulShellBranch(
             routes: connectionsTabRoutes,
           ),
-          // Branch 4 — Profile (CP-6)
           StatefulShellBranch(
             routes: [
               GoRoute(

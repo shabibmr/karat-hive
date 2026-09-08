@@ -3,6 +3,7 @@ library kh_api;
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+import 'src/clients/abuse_client.dart';
 import 'src/clients/auth_client.dart';
 import 'src/clients/connections_client.dart';
 import 'src/clients/dashboard_client.dart';
@@ -10,14 +11,17 @@ import 'src/clients/filter_presets_client.dart';
 import 'src/clients/matches_client.dart';
 import 'src/clients/me_client.dart';
 import 'src/clients/media_client.dart';
+import 'src/clients/notifications_client.dart';
 import 'src/clients/offers_client.dart';
 import 'src/clients/platform_config_client.dart';
 import 'src/clients/requests_client.dart';
+import 'src/clients/reviews_client.dart';
 import 'src/clients/subscriptions_client.dart';
 import 'src/clients/taxonomy_client.dart';
 import 'src/clients/vendor_client.dart';
 import 'src/dtos.dart';
 
+export 'src/clients/abuse_client.dart';
 export 'src/clients/auth_client.dart';
 export 'src/clients/connections_client.dart';
 export 'src/clients/dashboard_client.dart';
@@ -25,9 +29,11 @@ export 'src/clients/filter_presets_client.dart';
 export 'src/clients/matches_client.dart';
 export 'src/clients/me_client.dart';
 export 'src/clients/media_client.dart';
+export 'src/clients/notifications_client.dart';
 export 'src/clients/offers_client.dart';
 export 'src/clients/platform_config_client.dart';
 export 'src/clients/requests_client.dart';
+export 'src/clients/reviews_client.dart';
 export 'src/clients/subscriptions_client.dart';
 export 'src/clients/taxonomy_client.dart';
 export 'src/clients/vendor_client.dart';
@@ -36,7 +42,7 @@ export 'src/dtos.dart';
 /// Typed facade over [KhApiClient]. DTOs are mapped to `kh_domain` types here so
 /// generated shapes never reach controllers/presentation (Architecture-Frontend §9.1).
 ///
-/// Specialized clients are exposed as properties (CP2-F09 / CP2-B01) while legacy
+/// Specialized clients are exposed as properties (CP2-F09 / CP2-B01 / CP3-B01) while legacy
 /// direct methods are retained for backward compatibility.
 class KhApi {
   KhApi(this._client)
@@ -52,7 +58,10 @@ class KhApi {
         connections = ConnectionsClient(_client),
         filterPresets = FilterPresetsClient(_client),
         subscriptions = SubscriptionsClient(_client),
-        platformConfig = PlatformConfigClient(_client);
+        platformConfig = PlatformConfigClient(_client),
+        reviews = ReviewsClient(_client),
+        notifications = NotificationsClient(_client),
+        abuse = AbuseClient(_client);
 
   final KhApiClient _client;
 
@@ -72,6 +81,9 @@ class KhApi {
   final FilterPresetsClient filterPresets;
   final SubscriptionsClient subscriptions;
   final PlatformConfigClient platformConfig;
+  final ReviewsClient reviews;
+  final NotificationsClient notifications;
+  final AbuseClient abuse;
 
   // --- auth backwards-compat ---
   Future<Result<OtpChallenge>> otpRequest({
@@ -263,4 +275,18 @@ class KhApi {
 
   Future<Result<String>> completeUpload(String key) =>
       mediaClient.completeUpload(key);
+
+  Future<Result<MeUser>> changeMobile(String challengeId) =>
+      meClient.changeMobile(challengeId);
+
+  Future<Result<MeUser>> deactivate() => meClient.deactivate();
+
+  Future<Result<AccountDeletionRequest>> createDeletionRequest() =>
+      meClient.createDeletionRequest();
+
+  Future<Result<AccountDeletionRequest>> confirmDeletionRequest(
+    String id, {
+    required String challengeId,
+  }) =>
+      meClient.confirmDeletionRequest(id, challengeId: challengeId);
 }

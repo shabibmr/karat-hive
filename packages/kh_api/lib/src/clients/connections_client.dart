@@ -1,53 +1,39 @@
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+import '../paged.dart';
+
 class ConnectionsClient {
   const ConnectionsClient(this._client);
   final KhApiClient _client;
+
+  // --- Vendor methods (CP-4) ---
 
   Future<Result<PagedResult<ConnectionForVendor>>> listMine({
     String? state,
     String? cursor,
     int limit = 20,
-  }) async {
-    final query = <String, dynamic>{
-      'limit': limit.toString(),
-      if (state != null) 'state': state,
-      if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
-    };
+  }) =>
+      listMineForVendor(state: state, cursor: cursor, limit: limit);
 
+  Future<Result<PagedResult<ConnectionForVendor>>> listMineForVendor({
+    String? state,
+    String? cursor,
+    int limit = 20,
+  }) async {
     final r = await _client.send(
       'GET',
       '/v1/me/connections',
-      query: query,
+      query: {
+        'limit': limit.toString(),
+        if (state != null) 'state': state,
+        if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
+      },
       unwrapData: false,
     );
 
     return r.when(
-      ok: (raw) {
-        if (raw is! Map<String, dynamic>) {
-          if (raw is List) {
-            final items = raw
-                .map(
-                  (e) => ConnectionForVendor.fromJson(e as Map<String, dynamic>),
-                )
-                .toList(growable: false);
-            return Ok(PagedResult(items: items));
-          }
-          return const Ok(PagedResult.empty());
-        }
-
-        final dataList = (raw['data'] as List?) ?? const [];
-        final meta = (raw['meta'] as Map<String, dynamic>?) ?? const {};
-        final items = dataList
-            .map((e) => ConnectionForVendor.fromJson(e as Map<String, dynamic>))
-            .toList(growable: false);
-        return Ok(PagedResult(
-          items: items,
-          nextCursor: meta['nextCursor'] as String?,
-          hasMore: meta['hasMore'] as bool?,
-        ));
-      },
+      ok: (raw) => Ok(parsePagedEnvelope(raw, ConnectionForVendor.fromJson)),
       err: Err.new,
     );
   }
@@ -60,7 +46,7 @@ class ConnectionsClient {
     );
   }
 
-  Future<Result<ConnectionForVendor>> close(
+  Future<Result<ConnectionForVendor>> closeForVendor(
     String connectionId, {
     String? reason,
   }) async {
@@ -77,19 +63,68 @@ class ConnectionsClient {
     );
   }
 
-  /// Channel is `WHATSAPP` or `PHONE`. No conversation content is sent (NFR-017).
-  Future<Result<void>> recordContactEvent({
-    required String connectionId,
-    required String channel,
+  // --- Customer methods (CM-Track C) ---
+
+  Future<Result<PagedResult<ConnectionForCustomer>>> listMineForCustomer({
+    String? state,
+    String? cursor,
+    int limit = 20,
+  }) async {
+    final r = await _client.send(
+      'GET',
+      '/v1/me/connections',
+      query: {
+        if (state != null) 'state': state,
+        if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
+        'limit': limit.toString(),
+      },
+      unwrapData: false,
+    );
+    return r.when(
+      ok: (raw) => Ok(parsePagedEnvelope(raw, ConnectionForCustomer.fromJson)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<ConnectionForCustomer>> getById(String id) async {
+    final r = await _client.send('GET', '/v1/connections/$id');
+    return r.when(
+      ok: (d) => Ok(ConnectionForCustomer.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<ConnectionForCustomer>> close(
+    String id, {
+    String? reason,
   }) async {
     final r = await _client.send(
       'POST',
-      '/v1/connections/$connectionId/contact-events',
-      body: {'channel': channel},
+      '/v1/connections/$id/close',
+      body: {if (reason != null) 'reason': reason},
     );
     return r.when(
-      ok: (_) => const Ok(null),
+      ok: (d) => Ok(ConnectionForCustomer.fromJson(d as Map<String, dynamic>)),
       err: Err.new,
     );
+  }
+
+  // --- Shared methods ---
+
+  Future<Result<void>> recordContactEvent({
+    String? connectionId,
+    String? id,
+    required String channel,
+  }) async {
+    final targetId = connectionId ?? id;
+    if (targetId == null) {
+      return const Err(ValidationFailure(message: 'Missing connectionId for recordContactEvent'));
+    }
+    final r = await _client.send(
+      'POST',
+      '/v1/connections/$targetId/contact-events',
+      body: {'channel': channel},
+    );
+    return r.when(ok: (_) => const Ok(null), err: Err.new);
   }
 }
