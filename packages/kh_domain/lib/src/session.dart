@@ -140,13 +140,17 @@ class MeUser {
   final String mobileNumber;
   final String preferredLanguage;
   final String? email;
+  final bool oauthBound;
   final VendorMe? vendor;
   final CustomerMe? customer;
-  final bool oauthBound;
   final int? liveRequestCount;
   final bool? canCreateRequest;
   final AccountState accountState;
   final DateTime? createdAt;
+
+  /// Account role from `userType`. `null` for an unrecognised discriminator
+  /// (e.g. `ADMIN`, which has no mobile shell).
+  UserRole? get role => UserRole.parse(userType);
 
   static MeUser fromJson(Map<String, dynamic> j) {
     final customer = j['customer'] == null

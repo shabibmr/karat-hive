@@ -519,5 +519,44 @@ describe('RequestService', () => {
       expect(res.items).toHaveLength(1);
       expect(res.items[0]?.connectionId).toBe('conn-1');
     });
+
+    it('carries unreadOfferCount from the repo _count on list rows (SAM-GAP-1 / CBG-01)', async () => {
+      mockRepo.listForCustomer.mockResolvedValueOnce({
+        items: [
+          { ...sampleRequestRow, state: 'OFFERS_RECEIVED', offerCount: 3, _count: { offers: 3 } },
+        ],
+        nextCursor: null,
+      });
+
+      const res = await service.listCustomerRequests(customerViewer, {});
+      expect(res.items[0]?.offerCount).toBe(3);
+      expect(res.items[0]?.unreadOfferCount).toBe(3);
+    });
+  });
+
+  describe('unreadOfferCount on getById', () => {
+    it('carries unreadOfferCount from the repo _count on GET /v1/requests/:id (SAM-GAP-1 / CBG-01)', async () => {
+      mockRepo.findById.mockResolvedValueOnce({
+        ...sampleRequestRow,
+        state: 'OFFERS_RECEIVED',
+        offerCount: 2,
+        _count: { offers: 1 },
+      });
+
+      const res = await service.getById(customerViewer, 'req-1');
+      expect(res).toMatchObject({ offerCount: 2, unreadOfferCount: 1 });
+    });
+
+    it('reports unreadOfferCount 0 when every offer has been viewed', async () => {
+      mockRepo.findById.mockResolvedValueOnce({
+        ...sampleRequestRow,
+        state: 'OFFERS_RECEIVED',
+        offerCount: 2,
+        _count: { offers: 0 },
+      });
+
+      const res = await service.getById(customerViewer, 'req-1');
+      expect(res).toMatchObject({ unreadOfferCount: 0 });
+    });
   });
 });

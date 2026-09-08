@@ -10,6 +10,8 @@ export 'l10n/app_localizations.dart';
 export 'src/formatters.dart';
 export 'src/strings.dart';
 
+typedef KhL10n = AppLocalizations;
+
 /// Western → Arabic-Indic digit mapping (Architecture-Frontend §14).
 String forceArabicIndicDigits(String input) {
   const western = '0123456789';

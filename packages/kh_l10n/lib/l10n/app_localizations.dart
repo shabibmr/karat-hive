@@ -833,7 +833,7 @@ abstract class AppLocalizations {
   /// VEN-S01 generic sign-in error
   ///
   /// In en, this message translates to:
-  /// **'Sign in failed.'**
+  /// **'Could not sign in. Check your connection and try again.'**
   String get authSignInFailed;
 
   /// VEN-S04 registration continue CTA
@@ -1183,6 +1183,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{{count} deal} other{{count} deals}}'**
   String dealCount(int count);
+
+  /// No description provided for @authWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Karat Hive'**
+  String get authWelcomeTitle;
+
+  /// No description provided for @authWelcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request gold your way — buy ornaments, sell old gold, or order coins and bullion. Sign in to get started.'**
+  String get authWelcomeSubtitle;
+
+  /// No description provided for @authContinueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get authContinueWithGoogle;
+
+  /// No description provided for @authSigningIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in…'**
+  String get authSigningIn;
+
+  /// No description provided for @authBiometricUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with biometrics'**
+  String get authBiometricUnlock;
+
+  /// No description provided for @authBiometricUnlockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Face ID or fingerprint on this device instead of signing in again.'**
+  String get authBiometricUnlockHint;
+
+  /// No description provided for @authLockoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t sign in'**
+  String get authLockoutTitle;
+
+  /// No description provided for @authLockoutHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support if you think this is a mistake.'**
+  String get authLockoutHelp;
+
+  /// No description provided for @authCompleteProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish setting up your account'**
+  String get authCompleteProfileTitle;
+
+  /// No description provided for @authCompleteProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One more step. Confirm your name and verify a mobile number so vendors can reach you on WhatsApp.'**
+  String get authCompleteProfileSubtitle;
+
+  /// No description provided for @authDisplayNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get authDisplayNameLabel;
+
+  /// No description provided for @authOtpSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a 6-digit code to {mobile}'**
+  String authOtpSentTo(String mobile);
+
+  /// No description provided for @authAcceptTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'I accept the Terms of Service and the Privacy Policy'**
+  String get authAcceptTerms;
+
+  /// No description provided for @authAcceptTermsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept the Terms of Service and Privacy Policy to continue.'**
+  String get authAcceptTermsRequired;
+
+  /// No description provided for @authViewTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get authViewTerms;
+
+  /// No description provided for @authViewPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get authViewPrivacy;
+
+  /// No description provided for @authChangeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Change number'**
+  String get authChangeNumber;
+
+  /// No description provided for @authCreateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get authCreateAccount;
+
+  /// No description provided for @authVerifyAndContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify and continue'**
+  String get authVerifyAndContinue;
+
+  /// No description provided for @authPublishGateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify with Google to publish'**
+  String get authPublishGateTitle;
+
+  /// No description provided for @authPublishGateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Publishing a request needs a one-time Google verification. Browsing and drafting a request do not.'**
+  String get authPublishGateBody;
+
+  /// No description provided for @authPublishGateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify with Google'**
+  String get authPublishGateAction;
 }
 
 class _AppLocalizationsDelegate

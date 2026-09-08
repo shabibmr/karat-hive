@@ -4,9 +4,9 @@
 |---|---|
 | **Product** | Karat Hive — request-driven gold marketplace (UAE) |
 | **Document** | Screen-to-endpoint coverage map (pre-code completeness check) |
-| **Version** | 0.1 |
+| **Version** | 0.2 |
 | **Status** | Draft — `[PROPOSED]`. Read alongside `docs/API-Route-Inventory.md`. |
-| **Date** | 1 September 2026 |
+| **Date** | 8 September 2026 |
 | **Source of truth** | [`ui-screens/`](../ui-screens/) (67 screen files) · [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) · [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) |
 | **Identifier prefix** | `SAM-GAP-nn` — gaps found by *this* document. Stable, never reused. |
 
@@ -53,7 +53,7 @@ Admin) and is not repeated per row.
 
 | Screen | Load / list | Actions | Empty / error |
 |---|---|---|---|
-| **CUS-S01** Onboarding | *client* (cold start) | `POST /v1/auth/otp/request` · `POST /v1/auth/otp/verify` · `POST /v1/auth/register/customer` · `POST /v1/auth/oauth/bind` · `POST /v1/auth/logout` · biometric *client* | wrong/expired OTP `→ OTP_INVALID` / `OTP_EXPIRED` · `→ OTP_RATE_LIMITED` · duplicate number `→ MOBILE_ALREADY_REGISTERED` · `→ ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` |
+| **CUS-S01** Onboarding | *client* (cold start) | `POST /v1/auth/google/session` (Firebase ID token → KH SessionBundle) · `POST /v1/auth/otp/request` · `POST /v1/auth/otp/verify` (prove real mobile) · `POST /v1/auth/register/customer` (completes a new Google user: terms + mobile) · `POST /v1/auth/logout` · biometric *client* | unbound Google token `→ 401 UNAUTHENTICATED` (backend does **not** auto-provision; `adr/0010`) · wrong/expired OTP `→ OTP_INVALID` / `OTP_EXPIRED` · `→ OTP_RATE_LIMITED` · duplicate number `→ MOBILE_ALREADY_REGISTERED` · `→ ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` |
 | **CUS-S02** Home | `GET /v1/me/requests` (default active states) | quick-create *client* → CUS-S03 · open Request *client* → CUS-S10 · view Offers *client* → CUS-S11 | no Requests → `data: []` (empty state) · unread-offer badge ⚠️ `SAM-GAP-1` |
 | **CUS-S03** Request type selection | `GET /v1/platform-config` (`maxConcurrentLiveRequests`) | continue *client* | concurrent-limit block — client compares `GET /v1/me/requests` count vs config; hard stop is `→ CONCURRENT_REQUEST_LIMIT` at publish ⚠️ `SAM-GAP-2` |
 | **CUS-S04** Create — Find An Ornament | `GET /v1/categories` · `GET /v1/regions` · `GET /v1/gold-rates` · `GET /v1/platform-config` | `POST /v1/requests` (draft) · `PATCH /v1/requests/{id}` · save draft = `PATCH` · continue *client* → CUS-S09 | field errors `→ VALIDATION_FAILED` (`details[]`) · notes phone/email → `meta.warnings` on save · rate unavailable → `gold-rates.available:false` (compose still allowed) |
@@ -61,7 +61,7 @@ Admin) and is not repeated per row.
 | **CUS-S06** Create — Gold Coins | as CUS-S04 | as CUS-S04 | `quantity ≤ 0` `→ VALIDATION_FAILED` |
 | **CUS-S07** Create — Gold Bullion | as CUS-S04 (rate **required**) | as CUS-S04 | below floor `→ BULLION_BELOW_MINIMUM` (returns threshold + computed value) · no rate `→ GOLD_RATE_UNAVAILABLE` · stale rate → `gold-rates.stale:true` |
 | **CUS-S08** Image capture | — | `POST /v1/media/upload-intent` → PUT to storage → `POST /v1/media/{key}/complete` · remove = `DELETE /v1/media/{key}` · reorder = `mediaKeys[]` order on `PATCH /v1/requests/{id}` | failed upload → retry client-side · `→ MEDIA_TYPE_REJECTED` · `→ UPLOAD_NOT_COMPLETED` · post-processing `→ MEDIA_QUARANTINED` |
-| **CUS-S09** Request review & publish | `GET /v1/requests/{id}` | `POST /v1/requests/{id}/publish` · save draft = `PATCH /v1/requests/{id}` · bind = `POST /v1/auth/oauth/bind` | `→ OAUTH_REQUIRED` · `→ MEDIA_NOT_READY` · `→ CONTACT_DETAILS_IN_TEXT` · `→ CONCURRENT_REQUEST_LIMIT` · `→ BULLION_BELOW_MINIMUM` · `→ GOLD_RATE_UNAVAILABLE` · validation summary `→ REQUEST_NOT_PUBLISHABLE` |
+| **CUS-S09** Request review & publish | `GET /v1/requests/{id}` | `POST /v1/requests/{id}/publish` · save draft = `PATCH /v1/requests/{id}` · Google sign-in = `POST /v1/auth/google/session` (no separate bind step — `adr/0010`) | `→ OAUTH_REQUIRED` (publish refused when the Customer has no Google binding — `BR-001`, `FR-CUS-014`) · `→ MEDIA_NOT_READY` · `→ CONTACT_DETAILS_IN_TEXT` · `→ CONCURRENT_REQUEST_LIMIT` · `→ BULLION_BELOW_MINIMUM` · `→ GOLD_RATE_UNAVAILABLE` · validation summary `→ REQUEST_NOT_PUBLISHABLE` |
 | **CUS-S10** Request detail (my Request) | `GET /v1/requests/{id}` (owner presenter, offers nested) | `PATCH /v1/requests/{id}` (save edits) · `POST /v1/requests/{id}/cancel` · view Offers *client* → CUS-S11 · open Connection *client* → CUS-S15 ⚠️ `SAM-GAP-3` | structural edit `→ STRUCTURAL_FIELD_IMMUTABLE` · cancel after accept `→ REQUEST_NOT_CANCELLABLE` · zero Offers → empty state on nested `offers: []` |
 | **CUS-S11** Offers list | `GET /v1/requests/{id}/offers` (sort/filter query) | open Offer *client* → CUS-S13 · compare *client* → CUS-S12 · live update = client poll | no Offers → `data: []` + Request `expiresAt` · unread marker ⚠️ `SAM-GAP-1` |
 | **CUS-S12** Offer comparison | *client* composition over `GET /v1/requests/{id}/offers` | `POST /v1/offers/{id}/accept` · open detail *client* → CUS-S13 | must select 2–4 → *client* guard |
@@ -151,11 +151,11 @@ Severity: **H** blocks a screen · **M** screen degrades or needs a client worka
 
 | ID | Sev | Screens | Gap | Suggested resolution |
 |---|---|---|---|---|
-| `SAM-GAP-1` | M | CUS-S02, CUS-S11 | Screens render an **unread-Offer marker** (per Request on Home, per Offer in the list). No payload carries per-Offer read state — `RequestForCustomer.offerCount` and `OfferForCustomer` have no `unreadCount` / `viewedAt`. | Add `unreadOfferCount` to `RequestForCustomer` list rows and `viewedByCustomerAt` to `OfferForCustomer`; or a lightweight `POST /v1/offers/{id}/viewed` mirroring `POST /v1/matches/{id}/viewed`. |
+| `SAM-GAP-1` | M | CUS-S02, CUS-S11 | **OPEN — tracked as `Customer-App-Backend-Gaps.md` CBG-01.** Screens render an **unread-Offer marker** (per Request on Home, per Offer in the list). `OfferForCustomer.viewedByCustomerAt` and `POST /v1/offers/{id}/viewed` are built; `RequestForCustomer.unreadOfferCount` is still missing. | Add `unreadOfferCount` to `RequestForCustomer` list rows (`GET /v1/me/requests`) and `GET /v1/requests/{id}`, computed as `count(offers where state = PENDING and viewedByCustomerAt is null)`. |
 | `SAM-GAP-2` | L | CUS-S03 | Screen blocks *entry* to the create flow when the live-Request cap is hit, but the only signal is `→ CONCURRENT_REQUEST_LIMIT` at publish. Client must count `GET /v1/me/requests` itself. | Add `liveRequestCount` / `canCreateRequest` to `GET /v1/me` or `GET /v1/platform-config` response `meta`. Low cost, avoids a dead-end flow. |
-| `SAM-GAP-3` | M | CUS-S10 | Screen offers a "Close Connection path" when the Request is `ACCEPTED`, i.e. it must deep-link to the Connection. `RequestForCustomer` exposes `acceptedOfferId?` but **not** `connectionId?` (the Vendor presenter does expose it). | Add `connectionId?` to `RequestForCustomer` when `state = ACCEPTED`. |
-| `SAM-GAP-4` | M | CUS-S13, CUS-S22, VEN-S08, VEN-S21 | `AbuseEntityType = REQUEST \| OFFER \| CONNECTION \| REVIEW`. The report screens let a user report a **Vendor** (CUS-S22) or a **Customer** (VEN-S21) directly, with no Request/Offer/Connection in hand. | Extend `AbuseEntityType` with `VENDOR` and `CUSTOMER`, or require the client to always resolve to an Offer/Request/Connection id and document that constraint on the screens. |
-| `SAM-GAP-5` | L | CUS-S21, VEN-S18 | Settings screens link to Terms of Service, Privacy Policy, and Support contact. No endpoint or config key returns these URLs; `GET /v1/platform-config` does not list them. | Add `legal: { termsUrl, privacyUrl }` and `supportContactUrl` to `GET /v1/platform-config`. (`subscriptionContactUrl` already lives there.) |
+| `SAM-GAP-3` | M | CUS-S10 | **RESOLVED (Checkpoint-1)**: Screen offers a "Close Connection path" when the Request is `ACCEPTED`, i.e. it must deep-link to the Connection. `RequestForCustomer` now carries `connectionId?` when `state = ACCEPTED`, sourced from the unique `Connection.offer_id` join (no denormalised column). | Resolved — `backend/src/modules/requests/repository/request.repository.ts` applies `acceptedOfferConnectionInclude` on `findById` / `findByIdForCustomer` / `listForCustomer`; `connectionIdForAcceptedRequest()` in `request.presenter.ts` derives the field. |
+| `SAM-GAP-4` | M | CUS-S13, CUS-S22, VEN-S08, VEN-S21 | **RESOLVED (Checkpoint-1)**: The report screens let a user report a **Vendor** (CUS-S22) or a **Customer** (VEN-S21) directly, with no Request/Offer/Connection in hand. `AbuseEntityType` now includes `VENDOR` and `CUSTOMER`. | Resolved — `backend/src/modules/abuse/controller/abuse.controller.ts` enum includes `VENDOR` / `CUSTOMER`; `abuse.repository.ts` `resolveReportedUserId` switch handles both. |
+| `SAM-GAP-5` | L | CUS-S21, VEN-S18 | **RESOLVED (Checkpoint-1)**: Settings screens link to Terms of Service, Privacy Policy, and Support contact. `GET /v1/platform-config` now returns these URLs. | Resolved — `backend/src/modules/taxonomy/application/platform-config.query.ts` returns `termsUrl`, `privacyUrl`, `supportContactUrl` (seed keys `legal.terms_url`, `legal.privacy_url`, `support.contact_url`). |
 | `SAM-GAP-6` | M | VEN-S03 | The shell shows the Admin's free-text **"request more information" message**. `POST /v1/admin/vendors/{id}/request-info` stores a `message`, but no Vendor-facing read model surfaces it — `VendorMe` has only `awaitingApprovalReason` (an enum) and `GET /v1/me/vendor` returns `verificationState`, not the message. | Add `verificationMessage?: string` (latest Admin message) to `VendorMe` / `GET /v1/me/vendor`. |
 | `SAM-GAP-7` | H | VEN-S03, VEN-S16 | `FR-VEN-025` AC1 and the VEN-S03 flow require a **VERIFIED-but-not-yet-ACTIVE** Vendor to set Categories and Regions in order to *become* `ACTIVE`. The Route Index marks `PUT /v1/me/vendor/categories` and `/regions` as auth **`V` (ACTIVE only)**, and Route Inventory §20 simultaneously says "required before first activation" — a contradiction. | Change the auth for `PUT /v1/me/vendor/categories`, `PUT /v1/me/vendor/regions` and `PATCH /v1/me/vendor/availability` to allow the `VERIFIED` pre-`ACTIVE` state (a `Vshell`-plus variant), and align §20 wording. |
 | `SAM-GAP-8` | M | VEN-S20 | Screen renders a **6-month rating trend chart**. `GET /v1/me/reviews` returns reviews; `GET /v1/me/vendor/performance` returns outcome counts. Neither returns a rating time series. | Add a `ratingTrend: { period, average, count }[]` block to `GET /v1/me/vendor/performance` (or a `?include=ratingTrend`). |
@@ -179,9 +179,11 @@ Severity: **H** blocks a screen · **M** screen degrades or needs a client worka
 
 - **67 / 67 screens** have a defined load path and a defined endpoint (or explicit
   *client* behaviour) for every `Action` field.
-- **13 gaps** (`SAM-GAP-1` … `13`): **1 High** (`SAM-GAP-7`, a live contradiction),
-  4 Medium, 8 Low. None require a new resource — all are additive fields, an auth-scope
-  correction, one enum extension, or screen-file wording fixes.
+- **13 gaps** (`SAM-GAP-1` … `13`). `SAM-GAP-3`, `4`, `5` are now resolved in the
+  Checkpoint-1 backend and `SAM-GAP-9` in the screen files; `SAM-GAP-1` is tracked as
+  `Customer-App-Backend-Gaps.md` CBG-01. Of the rest, `SAM-GAP-7` (High) is the only
+  live contradiction. None require a new resource — all are additive fields, an
+  auth-scope correction, one enum extension, or screen-file wording fixes.
 - **2 route-index hygiene items** — fixed in `API-Route-Inventory.md` (see above).
 - Every *Empty / error / edge state* row in the 67 screen files maps to either an empty
   collection (`data: []`, never `404`, per §3.2) or a named `error.code` in Route
@@ -197,3 +199,4 @@ against the generated OpenAPI at first implementation (`NFR-030`).
 | Version | Date | Change |
 |---|---|---|
 | 0.1 | 1 Sep 2026 | Initial map of all 67 screens against API Route Inventory v0.1. 13 gaps recorded. |
+| 0.2 | 8 Sep 2026 | `CUS-S01` / `CUS-S09` auth flow reworked to the Google-session path per [`adr/0010`](adr/0010-google-signin-only-login.md): `POST /v1/auth/oauth/bind` removed (no separate bind step), `POST /v1/auth/google/session` + `POST /v1/auth/register/customer` cited, unbound token → `401 UNAUTHENTICATED`. `OAUTH_REQUIRED` on `CUS-S09` publish kept (`BR-001`, `FR-CUS-014`). `SAM-GAP-3` / `4` / `5` marked resolved in the Checkpoint-1 backend; `SAM-GAP-1` flagged open as `Customer-App-Backend-Gaps.md` CBG-01. |

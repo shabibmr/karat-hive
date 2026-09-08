@@ -4,9 +4,9 @@
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | Backend implementation plan and task list |
-| **Version** | 1.1 |
+| **Version** | 1.2 |
 | **Status** | Working backlog. Does not override the SRS. Last checked against the `main` working tree on 7 September 2026. Login (all roles): [`adr/0010`](adr/0010-google-signin-only-login.md). Track A (Google session) closed. Marketplace modules P6–P11 are **uncommitted** on `main` (not a worktree, not on `origin/main`). |
-| **Date** | 7 September 2026 |
+| **Date** | 8 September 2026 |
 | **Source of truth** | [`Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`Architecture-Backend.md`](Architecture-Backend.md) · [`API-Route-Inventory.md`](API-Route-Inventory.md) · [`Physical-Data-Model.md`](Physical-Data-Model.md) · [`Async-Contract.md`](Async-Contract.md) (`AD-ASYNC-nn` — outbox payloads and the 15 scheduled jobs; feeds P2/P7/P10/P12, T05/T21/T23/T28) |
 | **Coverage inputs** | [`Screen-API-Map.md`](Screen-API-Map.md) (`SAM-GAP-nn`) · [`Spec-Document-Sequence.md`](Spec-Document-Sequence.md) |
 | **Day-to-day leftover list** | [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) v0.4 (`G2-*`) — live tick list; splits the open T-rows into smaller tasks |
@@ -98,13 +98,13 @@ T01 has already frozen the init migration. Columns that were still open at that 
 | Gap | Sev | Backend consequence | Phase / task | Code today (7 Sep) |
 |---|---|---|---|---|
 | `SAM-GAP-7` | **H** | A verified Vendor must set Categories/Regions to become `ACTIVE`, but the API list marks those routes as active-only. | **P5 #34**, T18 | **Temporary shortcut in code.** Guard allows `VERIFIED` (not yet active). API list is unchanged (active-only). Replace the shortcut later; do not edit the API list for this. |
-| `SAM-GAP-4` | M | Abuse reports against a Vendor or a Customer with no Request/Offer/Connection in hand | **P10 #61**, T27 | **Built** (uncommitted). Report API accepts `VENDOR` and `CUSTOMER`. |
+| `SAM-GAP-4` | M | Abuse reports against a Vendor or a Customer with no Request/Offer/Connection in hand | **P10 #61**, T27 | **Resolved.** `abuse.controller.ts` enum includes `VENDOR` / `CUSTOMER`; `abuse.repository.ts` `resolveReportedUserId` switch handles both. |
 | `SAM-GAP-1` | M | `offer.viewed_by_customer_at` + unread count on Customer Request list | **P8 #49**, T22 | **Partial.** `viewedByCustomerAt` on the Offer presenter. `unreadOfferCount` not on `RequestForCustomer`. |
-| `SAM-GAP-3` | M | `connectionId?` on a Customer Request when accepted — join, no new column | **P9 #56**, T24 | **Partial.** Field exists on the type; GET does not join it. |
+| `SAM-GAP-3` | M | `connectionId?` on a Customer Request when accepted — join, no new column | **P9 #56**, T24 | **Resolved.** `request.repository.ts` applies `acceptedOfferConnectionInclude` on `findById` / `findByIdForCustomer` / `listForCustomer`; `connectionIdForAcceptedRequest()` derives it. |
 | `SAM-GAP-6` | M | `verificationMessage?` on `VendorMe` | **P5 #32** + **P11 #67**, T18 | **Built.** Column, VendorMe field, and Admin `request-info` route (uncommitted). |
 | `SAM-GAP-8` | M | `ratingTrend[]` on Vendor performance | **P10 #60**, T26 | **Built** on performance GET via inline review recompute. No `rating-reconcile` job. |
 | `SAM-GAP-2` | L | `liveRequestCount` / `canCreateRequest` on `GET /v1/me` | **P6 #38**, T20 | **Built** (uncommitted). |
-| `SAM-GAP-5` | L | Seed keys `legal.termsUrl`, `legal.privacyUrl`, `supportContactUrl` served by `GET /v1/platform-config` | **P3 #25**, T16 | **Built.** Seeded, including `subscriptionContactUrl`. Config route on disk. |
+| `SAM-GAP-5` | L | Seed keys `legal.termsUrl`, `legal.privacyUrl`, `supportContactUrl` served by `GET /v1/platform-config` | **P3 #25**, T16 | **Resolved.** `taxonomy/application/platform-config.query.ts` returns `termsUrl`, `privacyUrl`, `supportContactUrl` (seeded, incl. `subscriptionContactUrl`). |
 | `SAM-GAP-10` | L | Announcement preview vs count-at-dispatch | **P11 #72 / #72a**, T29 | **Built** as post-send count at dispatch. No preview endpoint (Async-Contract §11). |
 | `SAM-GAP-9`, `11`, `12`, `13` | L | No backend work, or verify audit-log fields at P11 | Out of this plan / P11 #72 | Audit-log list returns full rows (`before` / `after` / `ip` / `userAgent`). Gold-rate poll/staleness keys are settings, not a dedicated route. |
 
@@ -137,7 +137,7 @@ flowchart TD
 
 **P9 is the commercial spine.** Nothing after it is more important than getting P9 correct.
 
-**Phase status (7 Sep working tree):** P0 **done**. P1 **done**. P2 **partly built**. P3 **done** (config route uncommitted). P4 **partly built** (image-clean worker open). P5 **partly built** (subscriptions on disk; dashboard still zeros). P6–P9 **built, uncommitted** (leftovers: `unreadOfferCount`, `connectionId` join, `BR-007` test). P10 **partly built**. P11 **built except gold-rate Admin**, uncommitted. P12 **not built**.
+**Phase status (7 Sep working tree):** P0 **done**. P1 **done**. P2 **partly built**. P3 **done** (config route uncommitted). P4 **partly built** (image-clean worker open). P5 **partly built** (subscriptions on disk; dashboard still zeros). P6–P9 **built, uncommitted** (`connectionId` join now done — `SAM-GAP-3`; leftovers: `unreadOfferCount` (`SAM-GAP-1` / CBG-01), `BR-007` test). P10 **partly built**. P11 **built except gold-rate Admin**, uncommitted. P12 **not built**.
 
 ---
 
@@ -277,13 +277,13 @@ State machine SRS §5.3.
 
 ## P9 — Acceptance and Connections (spine)
 
-**Status: built, uncommitted.** `modules/connections/` has accept (`SELECT … FOR UPDATE`), presenters, Talk URL, close, contact-events. `connectionId?` is on the Customer Request **type** but GET does not join it (`SAM-GAP-3`). No `BR-007` second-Request masking test.
+**Status: built, uncommitted.** `modules/connections/` has accept (`SELECT … FOR UPDATE`), presenters, Talk URL, close, contact-events. `connectionId?` on the Customer Request is now joined and derived on `findById` / `findByIdForCustomer` / `listForCustomer` (`SAM-GAP-3` resolved). No `BR-007` second-Request masking test.
 
 52. Domain: `SELECT … FOR UPDATE` Request; Offer `PENDING` and unexpired; Request open.
 53. One transaction: Offer `ACCEPTED`, Request `ACCEPTED`, other `PENDING` → `REJECTED`, insert Connection, audit `IDENTITY_REVEALED`, outbox notifications (`AD-BE-09`).
 54. `POST /v1/offers/{id}/accept` with required Idempotency-Key and `confirmation: REVEAL_AND_CONNECT`.
 55. `POST /v1/offers/{id}/decline`.
-56. `GET /v1/me/connections`, `GET /v1/connections/{id}` with `talk.waUrl` (normalised number, no WhatsApp call). Add `connectionId?` to `RequestForCustomer` when `state = ACCEPTED` so `CUS-S10` can deep-link to the Connection — a presenter join on the unique `connection.offer_id`, no new column (`SAM-GAP-3`). The Vendor presenter already carries it.
+56. `GET /v1/me/connections`, `GET /v1/connections/{id}` with `talk.waUrl` (normalised number, no WhatsApp call). Add `connectionId?` to `RequestForCustomer` when `state = ACCEPTED` so `CUS-S10` can deep-link to the Connection — a presenter join on the unique `connection.offer_id`, no new column (`SAM-GAP-3`). The Vendor presenter already carries it. **Done** — `acceptedOfferConnectionInclude` + `connectionIdForAcceptedRequest()`.
 57. Close Connection; `POST .../contact-events` (channel + time only, no content field — `NFR-017`). Closing emits `connection.closed`, which is what prompts both parties to review in P10.
 58. **Concurrency test:** two accepts → one Connection (`BR-011`, `BR-012`).
 
@@ -297,7 +297,7 @@ State machine SRS §5.3.
 
 59. Reviews hold-for-approval; one per party (`BR-016`, `BR-017`); edit window 14 days; Vendor response + flag. **Built** (uncommitted).
 60. Rating aggregation worker (`FR-SYS-012`) — on `review.published` / `review.moderated`, plus a 5-minute reconciliation; full recompute, so idempotent by construction. Customer ratings hidden from other Customers (`BR-018`). Same worker emits the 6-month `ratingTrend[]` for `GET /v1/me/vendor/performance` that `VEN-S20` charts (`SAM-GAP-8`) — an aggregate, not a read-time scan. **Partial:** inline recompute on review write; no `rating-reconcile` job.
-61. `POST /v1/abuse-reports`; reporter identity withheld. Schema enum already includes `VENDOR` and `CUSTOMER` (`SAM-GAP-4`). **Built** (uncommitted).
+61. `POST /v1/abuse-reports`; reporter identity withheld. Controller enum and `abuse.repository.ts` switch handle `VENDOR` and `CUSTOMER` (`SAM-GAP-4` resolved). **Built** (uncommitted).
 62. In-app notification centre + preferences + quiet hours; push adapters (APNs/FCM) behind ports — stub OK if credentials absent; **persist in-app regardless of push** (`FR-SYS-008.6`). Centre **built**. Adapter folders `platform/adapters/{apns,fcm,email}` exist and are empty. 21-event dispatcher **not built**.
 62a. **Notification retry job** (`notification-retry`, 1 min) — `notification_delivery` rows `FAILED` with `attempt < 3` (`FR-SYS-008.3`). Distinct from outbox drain: the outbox guarantees the event, this guarantees the delivery. **Built** (uncommitted; retry marks `DELIVERED` without a real push).
 63. Request T−6 h warning + hard expiry 48 h worker (`FR-SYS-005`, `C-07`). Both sweeps run at 1 min, not the 5 the spec permits — a Customer-visible countdown at zero while the Request still reads live is a trust problem (Async-Contract §6 cadence note). **Built** (uncommitted).
@@ -415,7 +415,7 @@ Working backlog. Tick in this file as work lands. IDs are stable and never reuse
 | T21 | Fan-out + `/v1/matches` + masking tests | **done** (uncommitted) except dashboard counts (G2-M06) |
 | T22 | Offer submit/revise/withdraw/list | **done** (uncommitted). Residual: `unreadOfferCount` |
 | T23 | Accept transaction + decline | **done** (uncommitted) |
-| T24 | Connections + Talk URL + contact-events | **partial** — routes built; `connectionId` join (G2-C05) and `BR-007` test (G2-C07) open |
+| T24 | Connections + Talk URL + contact-events | **partial** — routes built; `connectionId` join (G2-C05) **done** (`SAM-GAP-3`); `BR-007` test (G2-C07) open |
 | T25 | Concurrency test: single Connection | **done** (mocked `FOR UPDATE` simulation, uncommitted) |
 
 ### P10–P12 Rest of v1
@@ -498,3 +498,4 @@ Open, not guessed:
 | 0.9 | 7 Sep 2026 | Track A closed: inventory `AD-API-13`, KH-token-only guard, Flutter session exchange, Vendor Google completer, password/OTP LOGIN removed, auto-provision repair script. Next leftovers: I04/I07–I09/I13 then P9 residuals. |
 | 1.0 | 7 Sep 2026 | Wave-1 agents closed I07–I09, C05/C07, M06, P07, F03, N06 (merged from worktrees). Wave-2 in flight: P02, N02/N03, GR01–GR04, GR05. |
 | 1.1 | 7 Sep 2026 | Wave-2 merged: P02 media worker, N02/N03 dispatcher+push stubs, GR01–GR04 gold-rate, GR05 OpenAPI. Remaining: GR06–GR09, I13; D04 blocked. |
+| 1.2 | 8 Sep 2026 | CBG-05: `SAM-GAP-3` (`connectionId?` join), `SAM-GAP-4` (abuse `VENDOR`/`CUSTOMER`), and `SAM-GAP-5` (`legal`/`support` URLs) re-verified against the `main` tree and marked **Resolved**, each with a source-file pointer. `SAM-GAP-1` stays open, tracked as `Customer-App-Backend-Gaps.md` CBG-01. |

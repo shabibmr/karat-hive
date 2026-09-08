@@ -181,7 +181,7 @@ describe('GoldRateService', () => {
   describe('getPublicRates (G2-GR02)', () => {
     it('returns DISPLAY_NOT_LICENSED while goldRates.endUserDisplay is false', async () => {
       const data = await service.getPublicRates(customerViewer);
-      expect(data).toEqual({ available: false, reason: 'DISPLAY_NOT_LICENSED' });
+      expect(data).toEqual({ available: false, stale: true, reason: 'DISPLAY_NOT_LICENSED' });
       expect(repo.findEffectiveRates).not.toHaveBeenCalled();
     });
 

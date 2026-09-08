@@ -4,9 +4,9 @@
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | HTTP API Route Inventory (pre-code contract) |
-| **Version** | 0.2 |
+| **Version** | 0.3 |
 | **Status** | Draft — `[PROPOSED]`. Technical Lead sign-off required before it becomes binding. |
-| **Date** | 7 September 2026 |
+| **Date** | 8 September 2026 |
 | **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`CONTEXT.md`](../CONTEXT.md) · [`docs/Architecture-Backend.md`](Architecture-Backend.md) §13–§16 |
 | **Superseded by** | Generated OpenAPI (`NFR-030`, `AD-BE-14`) once application code exists. Until then this document is the catalogue the clients may design against. |
 | **Companion** | [`docs/Screen-API-Map.md`](Screen-API-Map.md) — screen-by-screen coverage check of this inventory; open gaps tracked as `SAM-GAP-nn`. |
@@ -368,6 +368,7 @@ Presenter variants:
 RequestForCustomer = RequestBase & {
   cancellationReason?: string
   acceptedOfferId?: UUID
+  unreadOfferCount: integer     // PENDING offers with viewedByCustomerAt = null; on GET /v1/me/requests rows and GET /v1/requests/{id} (SAM-GAP-1 / CBG-01)
   offers?: OfferForCustomer[]   // only on GET /requests/{id} for the owner, not on list rows
 }
 
@@ -1056,7 +1057,9 @@ data: {
 
 ### `GET /v1/gold-rates`
 
-**Legal:** production **display** of these values to end users is `[BLOCKED]` on Yahoo Finance redistribution terms (SRS §7.4, A-06). The route is specified so clients and the indicative-value calculation have a contract. Until Legal signs off, a feature flag `goldRates.endUserDisplay` (platform setting) gates whether `rates` is populated or returned as `{ available: false, reason: "DISPLAY_NOT_LICENSED" }`. Admin `/v1/admin/gold-rates` is not gated.
+**Legal:** production **display** of these values to end users is `[BLOCKED]` on Yahoo Finance redistribution terms (SRS §7.4, A-06). The route is specified so clients and the indicative-value calculation have a contract. Until Legal signs off, a feature flag `goldRates.endUserDisplay` (platform setting) gates whether `rates` is populated or returned as `{ available: false, stale: true, reason: "DISPLAY_NOT_LICENSED" }`. Admin `/v1/admin/gold-rates` is not gated.
+
+**Every** response shape of this route — the populated snapshot, the empty last-good case, and the display-not-licensed branch — carries both `available` (boolean) and `stale` (boolean). Clients (`CUS-S04`–`S07`) branch on those two flags only and never infer staleness from a timestamp (`CBG-02`). The display-not-licensed branch reports `available: false, stale: true`.
 
 ```
 200 data: {
@@ -1193,7 +1196,7 @@ limit, cursor
 
 `state` including terminal values is the History screen (`CUS-S17`, `FR-CUS-028`). History is read-only; the same list endpoint serves it.
 
-Each row is `RequestForCustomer` **without** nested `offers` (use the offers sub-collection).
+Each row is `RequestForCustomer` **without** nested `offers` (use the offers sub-collection). Rows still carry `unreadOfferCount` (PENDING offers not yet marked viewed) so `CUS-S02` / `CUS-S11` can badge without fetching the offers (`SAM-GAP-1` / `CBG-01`; presenter-time aggregate, no denormalised column).
 
 ### `GET /v1/requests/{id}`
 
@@ -2123,6 +2126,7 @@ These are recorded so implementation does not silently resolve them.
 |---|---|---|
 | 0.1 | 1 Sep 2026 | Initial inventory against SRS v1.3 and backend architecture §13–§16. Locked: `AD-API-01`–`03`, shared resources, coarse Admin, full `[ASSUMED]` schemas. |
 | 0.2 | 7 Sep 2026 | `AD-API-13`: Google session exchange (`POST /v1/auth/google/session` + firebase alias) is the only login. §3.4, §5.1, §6, §8, §22 updated. Password/2FA marked leftover (G2-A15). G2-D02. |
+| 0.3 | 8 Sep 2026 | Sync to the Checkpoint-1 Customer presenters. §4.7 `RequestForCustomer` gains `unreadOfferCount: integer` (PENDING offers not yet viewed) on `GET /v1/me/requests` rows and `GET /v1/requests/{id}` — `SAM-GAP-1` / `CBG-01`, verified against `request.presenter.ts`. §11 `GET /v1/gold-rates`: recorded that every response shape, the display-not-licensed branch included, carries both `available` and `stale` (`CBG-02`), verified against `gold-rate.presenter.ts`. No route added. |
 
 ## Appendix B — Sign-off
 

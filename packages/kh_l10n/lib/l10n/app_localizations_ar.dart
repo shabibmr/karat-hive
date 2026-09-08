@@ -437,7 +437,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authPasswordTab => 'البريد وكلمة المرور';
 
   @override
-  String get authSignInFailed => 'فشل تسجيل الدخول.';
+  String get authSignInFailed =>
+      'تعذّر تسجيل الدخول. تحقّق من اتصالك وحاول مرة أخرى.';
 
   @override
   String get authContinue => 'متابعة';
@@ -646,4 +647,77 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get authWelcomeTitle => 'مرحبًا بك في كارات هايف';
+
+  @override
+  String get authWelcomeSubtitle =>
+      'اطلب الذهب بطريقتك — اشترِ المشغولات، أو بِع الذهب القديم، أو اطلب العملات والسبائك. سجّل الدخول للبدء.';
+
+  @override
+  String get authContinueWithGoogle => 'المتابعة عبر Google';
+
+  @override
+  String get authSigningIn => 'جارٍ تسجيل الدخول…';
+
+  @override
+  String get authBiometricUnlock => 'الفتح بالمقاييس الحيوية';
+
+  @override
+  String get authBiometricUnlockHint =>
+      'استخدم بصمة الوجه أو الإصبع على هذا الجهاز بدلاً من تسجيل الدخول مرة أخرى.';
+
+  @override
+  String get authLockoutTitle => 'لا يمكنك تسجيل الدخول';
+
+  @override
+  String get authLockoutHelp => 'تواصل مع الدعم إذا كنت تعتقد أن هذا خطأ.';
+
+  @override
+  String get authCompleteProfileTitle => 'أكمل إعداد حسابك';
+
+  @override
+  String get authCompleteProfileSubtitle =>
+      'خطوة أخيرة. أكّد اسمك وتحقّق من رقم جوال حتى يتمكّن التجّار من التواصل معك عبر واتساب.';
+
+  @override
+  String get authDisplayNameLabel => 'اسمك';
+
+  @override
+  String authOtpSentTo(String mobile) {
+    return 'أرسلنا رمزًا مكوّنًا من 6 أرقام إلى $mobile';
+  }
+
+  @override
+  String get authAcceptTerms => 'أوافق على شروط الخدمة وسياسة الخصوصية';
+
+  @override
+  String get authAcceptTermsRequired =>
+      'وافق على شروط الخدمة وسياسة الخصوصية للمتابعة.';
+
+  @override
+  String get authViewTerms => 'شروط الخدمة';
+
+  @override
+  String get authViewPrivacy => 'سياسة الخصوصية';
+
+  @override
+  String get authChangeNumber => 'تغيير الرقم';
+
+  @override
+  String get authCreateAccount => 'إنشاء حساب';
+
+  @override
+  String get authVerifyAndContinue => 'تحقّق وتابع';
+
+  @override
+  String get authPublishGateTitle => 'تحقّق عبر Google للنشر';
+
+  @override
+  String get authPublishGateBody =>
+      'يتطلّب نشر الطلب تحقّقًا لمرة واحدة عبر Google. أما التصفّح وإنشاء مسودة الطلب فلا يتطلّبان ذلك.';
+
+  @override
+  String get authPublishGateAction => 'تحقّق عبر Google';
 }
