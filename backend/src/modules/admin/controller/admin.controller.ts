@@ -7,9 +7,11 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import type { AbuseReportState, ExportFormat, Prisma, RequestState, UserAccountState, VendorVerificationState } from '@prisma/client';
+import type { FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { Viewer } from '../../../edge/auth/viewer.decorator';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
@@ -140,7 +142,7 @@ export class AdminController {
       limit: limit ? Number.parseInt(limit, 10) : undefined,
       cursor,
     });
-    return { data: data.items, nextCursor: data.nextCursor };
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
   }
 
   @Get('customers/:id')
@@ -197,7 +199,7 @@ export class AdminController {
       limit: limit ? Number.parseInt(limit, 10) : undefined,
       cursor,
     });
-    return { data: data.items, nextCursor: data.nextCursor };
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
   }
 
   @Get('vendors/:id')
@@ -297,16 +299,34 @@ export class AdminController {
   async listRequests(
     @Query('q') q?: string,
     @Query('state') state?: RequestState,
+    @Query('requestType') requestType?: string,
+    @Query('direction') direction?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('regionId') regionId?: string,
+    @Query('zeroOffers') zeroOffers?: string,
+    @Query('minValue') minValue?: string,
+    @Query('maxValue') maxValue?: string,
+    @Query('valueMin') valueMin?: string,
+    @Query('valueMax') valueMax?: string,
     @Query('limit') limit?: string,
     @Query('cursor') cursor?: string,
   ) {
     const data = await this.service.listRequests({
       q,
       state,
+      requestType,
+      direction,
+      categoryId,
+      regionId,
+      zeroOffers: parseOptionalBoolean(zeroOffers),
+      minValue: parseOptionalNumber(minValue),
+      maxValue: parseOptionalNumber(maxValue),
+      valueMin: parseOptionalNumber(valueMin),
+      valueMax: parseOptionalNumber(valueMax),
       limit: limit ? Number.parseInt(limit, 10) : undefined,
       cursor,
     });
-    return { data: data.items, nextCursor: data.nextCursor };
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
   }
 
   @Get('requests/:id')
@@ -330,16 +350,30 @@ export class AdminController {
   async listOffers(
     @Query('state') state?: string,
     @Query('vendorId') vendorId?: string,
+    @Query('requestType') requestType?: string,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
+    @Query('priceMin') priceMin?: string,
+    @Query('priceMax') priceMax?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
     @Query('limit') limit?: string,
     @Query('cursor') cursor?: string,
   ) {
     const data = await this.service.listOffers({
       state,
       vendorId,
+      requestType,
+      minPrice: parseOptionalNumber(minPrice),
+      maxPrice: parseOptionalNumber(maxPrice),
+      priceMin: parseOptionalNumber(priceMin),
+      priceMax: parseOptionalNumber(priceMax),
+      dateFrom,
+      dateTo,
       limit: limit ? Number.parseInt(limit, 10) : undefined,
       cursor,
     });
-    return { data: data.items, nextCursor: data.nextCursor };
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
   }
 
   @Get('offers/:id')
@@ -360,7 +394,7 @@ export class AdminController {
       limit: limit ? Number.parseInt(limit, 10) : undefined,
       cursor,
     });
-    return { data: data.items, nextCursor: data.nextCursor };
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
   }
 
   @Get('connections/:id')
@@ -389,7 +423,7 @@ export class AdminController {
       limit: limit ? Number.parseInt(limit, 10) : undefined,
       cursor,
     });
-    return { data: data.items, nextCursor: data.nextCursor };
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
   }
 
   @Post('reviews/:id/approve')
@@ -433,7 +467,7 @@ export class AdminController {
       limit: limit ? Number.parseInt(limit, 10) : undefined,
       cursor,
     });
-    return { data: data.items, nextCursor: data.nextCursor };
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
   }
 
   @Get('abuse-reports/:id')
@@ -503,7 +537,7 @@ export class AdminController {
       to,
       ip,
     });
-    return { data: data.items, nextCursor: data.nextCursor };
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
   }
 
   // --- Admin Notes ---
@@ -537,7 +571,7 @@ export class AdminController {
   @Get('admins')
   async listAdmins() {
     const data = await this.service.listAdmins();
-    return { data };
+    return { data, meta: { nextCursor: null } };
   }
 
   @Post('admins')
@@ -577,7 +611,7 @@ export class AdminController {
       limit: limit ? Number.parseInt(limit, 10) : undefined,
       cursor,
     });
-    return { data: data.items, nextCursor: data.nextCursor };
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
   }
 
   @Post('announcements')
@@ -652,4 +686,31 @@ export class AdminController {
     const data = await this.service.getExportJob(id, viewer.userId);
     return { data };
   }
+
+  @Get('exports/:id/download')
+  async downloadExport(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Res() reply: FastifyReply,
+  ) {
+    const file = await this.service.downloadExport(id, viewer.userId);
+    return reply
+      .header('Content-Type', file.contentType)
+      .header('Content-Disposition', `attachment; filename="${file.filename}"`)
+      .send(file.body);
+  }
+}
+
+function parseOptionalNumber(value?: string): number | undefined {
+  if (value === undefined || value === '') return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function parseOptionalBoolean(value?: string): boolean | undefined {
+  if (value === undefined || value === '') return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'true' || normalized === '1') return true;
+  if (normalized === 'false' || normalized === '0') return false;
+  return undefined;
 }

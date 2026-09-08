@@ -50,6 +50,43 @@ void main() {
             );
           }
 
+          if (options.path == '/v1/collection') {
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {
+                  'data': [
+                    {'id': '1'},
+                    {'id': '2'},
+                  ],
+                  'meta': {
+                    'requestId': 'req-col',
+                    'nextCursor': 'cursor-2',
+                  },
+                },
+              ),
+            );
+          }
+
+          if (options.path == '/v1/collection-legacy') {
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {
+                  'data': {
+                    'data': [
+                      {'id': 'legacy-1'},
+                    ],
+                    'nextCursor': 'legacy-cursor',
+                  },
+                  'meta': {'nextCursor': null},
+                },
+              ),
+            );
+          }
+
           if (options.path == '/v1/protected') {
             final auth = options.headers['Authorization'] as String?;
             if (auth == 'Bearer refreshed-token') {
@@ -112,6 +149,18 @@ void main() {
       expect(e.requestId, 'req-err');
       expect(e.details.length, 1);
     }
+  });
+
+  test('getCollection reads { data: [...], meta.nextCursor }', () async {
+    final page = await apiClient.getCollection('/v1/collection');
+    expect(page.items.map((e) => (e as Map)['id']), ['1', '2']);
+    expect(page.meta?['nextCursor'], 'cursor-2');
+  });
+
+  test('getCollection falls back to the old double-wrapped list envelope', () async {
+    final page = await apiClient.getCollection('/v1/collection-legacy');
+    expect(page.items.map((e) => (e as Map)['id']), ['legacy-1']);
+    expect(page.meta?['nextCursor'], 'legacy-cursor');
   });
 
   test('ApiClient triggers onUnauthorized and retries with refreshed token on 401',

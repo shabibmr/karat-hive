@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type {
   AbuseReportState,
   ExportFormat,
@@ -7,14 +7,19 @@ import type {
   UserAccountState,
   VendorVerificationState,
 } from '@prisma/client';
+import { ENV, type Env } from '../../../config/env';
 import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import { PrismaService } from '../../../platform/db/prisma.service';
 import { enqueueOutbox } from '../../../platform/outbox/outbox.producer';
+import { OBJECT_STORAGE, type ObjectStorage } from '../../../platform/ports/storage.port';
 import { AuditWriter } from '../../audit';
+import { storagePath } from '../../media/domain/media-rules';
 import { ReviewService } from '../../reviews';
 import { SettingsService } from '../../settings';
 import { AdminRepository } from '../repository/admin.repository';
+
+const SIGNED_DOCUMENT_URL_TTL_SECONDS = 15 * 60;
 
 @Injectable()
 export class AdminService {
@@ -24,6 +29,8 @@ export class AdminService {
     private readonly audit: AuditWriter,
     private readonly reviews: ReviewService,
     private readonly settings: SettingsService,
+    @Inject(OBJECT_STORAGE) private readonly storage: ObjectStorage,
+    @Inject(ENV) private readonly env: Env,
   ) {}
 
   async getDashboard() {
@@ -242,6 +249,24 @@ export class AdminService {
     if (!doc || !doc.media) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
+    if (doc.media.state === 'QUARANTINED') {
+      throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.MEDIA_QUARANTINED);
+    }
+    if (doc.media.state === 'PENDING_UPLOAD' || doc.media.state === 'FAILED') {
+      throw new ApiException(HttpStatus.CONFLICT, ErrorCode.UPLOAD_NOT_COMPLETED);
+    }
+
+    const objectKey = storagePath({
+      purpose: 'KYC_DOCUMENT',
+      key: doc.media.key,
+      vendorProfileId: doc.vendorProfileId,
+      ownerUserId: doc.media.uploadedByUserId ?? vendorProfileId,
+    });
+    const signed = await this.storage.createSignedDownloadUrl(
+      this.env.SUPABASE_STORAGE_BUCKET_KYC,
+      objectKey,
+      SIGNED_DOCUMENT_URL_TTL_SECONDS,
+    );
 
     // Audited call (NFR-015)
     await this.audit.append(this.prisma, {
@@ -251,10 +276,9 @@ export class AdminService {
       entityId: doc.id,
     });
 
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     return {
-      url: `/v1/media/${doc.media.key}`,
-      expiresAt: expiresAt.toISOString(),
+      url: signed.url,
+      expiresAt: signed.expiresAt.toISOString(),
     };
   }
 
@@ -262,6 +286,15 @@ export class AdminService {
   async listRequests(query: {
     q?: string;
     state?: RequestState;
+    requestType?: string;
+    direction?: string;
+    categoryId?: string;
+    regionId?: string;
+    zeroOffers?: boolean;
+    minValue?: number;
+    maxValue?: number;
+    valueMin?: number;
+    valueMax?: number;
     limit?: number;
     cursor?: string;
   }) {
@@ -312,6 +345,13 @@ export class AdminService {
   async listOffers(query: {
     state?: string;
     vendorId?: string;
+    requestType?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    priceMin?: number;
+    priceMax?: number;
+    dateFrom?: string;
+    dateTo?: string;
     limit?: number;
     cursor?: string;
   }) {
@@ -690,16 +730,9 @@ export class AdminService {
     return job;
   }
 
-  async getExportJob(id: string, adminUserId: string) {
+  async getExportJob(id: string, _adminUserId?: string) {
     const job = await this.repo.findExportJob(id);
     if (!job) throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
-
-    await this.audit.append(this.prisma, {
-      actorUserId: adminUserId,
-      action: 'EXPORT_DOWNLOADED',
-      entityType: 'export_job',
-      entityId: job.id,
-    });
 
     return {
       id: job.id,
@@ -709,4 +742,76 @@ export class AdminService {
       completedAt: job.completedAt,
     };
   }
+
+  /**
+   * ADM-C-76: CSV is generated from stored filters + report rows.
+   * XLSX is the same CSV bytes with `text/csv` (no spreadsheet library).
+   * PNG chart export is 501 until implemented.
+   */
+  async downloadExport(id: string, adminUserId: string) {
+    const job = await this.repo.findExportJob(id);
+    if (!job) throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+
+    if (job.state === 'QUEUED' || job.state === 'RUNNING') {
+      throw new ApiException(HttpStatus.CONFLICT, ErrorCode.EXPORT_IN_PROGRESS);
+    }
+    if (job.state !== 'READY') {
+      throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+    }
+    if (job.format === 'PNG') {
+      throw new ApiException(HttpStatus.NOT_IMPLEMENTED, ErrorCode.VALIDATION_FAILED, [
+        {
+          path: 'format',
+          code: 'PNG_EXPORT_UNSUPPORTED',
+          message: 'PNG chart export is not implemented.',
+        },
+      ]);
+    }
+
+    const filters = asReportFilters(job.filters);
+    const report = await this.repo.getReportData(job.reportName, filters);
+    const csv = rowsToCsv(report.rows);
+    const body = Buffer.from(csv, 'utf8');
+
+    await this.audit.append(this.prisma, {
+      actorUserId: adminUserId,
+      action: 'EXPORT_DOWNLOADED',
+      entityType: 'export_job',
+      entityId: job.id,
+    });
+
+    return {
+      body,
+      contentType: 'text/csv; charset=utf-8',
+      filename: `${job.reportName}-${job.id}.csv`,
+    };
+  }
+}
+
+type ReportFilters = { from?: string; to?: string; regionId?: string; categoryId?: string };
+
+function asReportFilters(value: unknown): ReportFilters {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const rec = value as Record<string, unknown>;
+  return {
+    ...(typeof rec.from === 'string' ? { from: rec.from } : {}),
+    ...(typeof rec.to === 'string' ? { to: rec.to } : {}),
+    ...(typeof rec.regionId === 'string' ? { regionId: rec.regionId } : {}),
+    ...(typeof rec.categoryId === 'string' ? { categoryId: rec.categoryId } : {}),
+  };
+}
+
+function rowsToCsv(rows: Array<Record<string, unknown>>): string {
+  if (rows.length === 0) return '';
+  const headers = Object.keys(rows[0]!);
+  const escape = (value: unknown): string => {
+    const text = value == null ? '' : String(value);
+    if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+    return text;
+  };
+  const lines = [headers.join(',')];
+  for (const row of rows) {
+    lines.push(headers.map((header) => escape(row[header])).join(','));
+  }
+  return `${lines.join('\n')}\n`;
 }

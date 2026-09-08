@@ -137,13 +137,12 @@ class ApiClient {
 
     if (body is Map<String, dynamic>) {
       var data = body['data'];
-      var meta = body['meta'] is Map<String, dynamic>
+      final meta = body['meta'] is Map<String, dynamic>
           ? Map<String, dynamic>.from(body['meta'] as Map<String, dynamic>)
           : <String, dynamic>{};
 
-      // The admin list routes double-wrap: `{ data: { data: [...], nextCursor },
-      // meta: { nextCursor: null } }`. Unwrap one more level and lift the real
-      // cursor out. Customer-facing routes already use `{ data: [...], meta }`.
+      // Canonical admin list envelope: `{ data: [...], meta: { nextCursor } }`.
+      // Fallback: pre-ADM-C-70 double-wrap `{ data: { data, nextCursor }, meta }`.
       if (data is Map<String, dynamic>) {
         if (data['nextCursor'] != null && meta['nextCursor'] == null) {
           meta['nextCursor'] = data['nextCursor'];

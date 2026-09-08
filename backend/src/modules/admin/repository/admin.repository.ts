@@ -3,13 +3,17 @@ import { Prisma } from '@prisma/client';
 import type {
   AbuseReportState,
   ConnectionState,
+  Direction,
   ExportFormat,
   OfferState,
   RequestState,
+  RequestType,
   UserAccountState,
   VendorVerificationState,
 } from '@prisma/client';
 import { PrismaService } from '../../../platform/db/prisma.service';
+import { buildOfferStateTransitions } from '../presenter/admin-offers.presenter';
+import { buildRequestStateTransitions } from '../presenter/admin-requests.presenter';
 
 @Injectable()
 export class AdminRepository {
@@ -277,12 +281,36 @@ export class AdminRepository {
   async listRequests(options: {
     q?: string;
     state?: RequestState;
+    requestType?: string;
+    direction?: string;
+    categoryId?: string;
+    regionId?: string;
+    zeroOffers?: boolean;
+    minValue?: number;
+    maxValue?: number;
+    valueMin?: number;
+    valueMax?: number;
     limit?: number;
     cursor?: string;
   }) {
     const limit = Math.min(options.limit ?? 20, 100);
+    const minValue = options.minValue ?? options.valueMin;
+    const maxValue = options.maxValue ?? options.valueMax;
+    const indicativeValue =
+      minValue !== undefined || maxValue !== undefined
+        ? {
+            ...(minValue !== undefined ? { gte: new Prisma.Decimal(minValue) } : {}),
+            ...(maxValue !== undefined ? { lte: new Prisma.Decimal(maxValue) } : {}),
+          }
+        : undefined;
     const where: Prisma.RequestWhereInput = {
       ...(options.state ? { state: options.state } : {}),
+      ...(options.requestType ? { requestType: options.requestType as RequestType } : {}),
+      ...(options.direction ? { direction: options.direction as Direction } : {}),
+      ...(options.categoryId ? { categoryId: options.categoryId } : {}),
+      ...(options.regionId ? { regionId: options.regionId } : {}),
+      ...(options.zeroOffers === true ? { offerCount: 0 } : {}),
+      ...(indicativeValue ? { indicativeValue } : {}),
       ...(options.q
         ? {
             OR: [
@@ -324,25 +352,76 @@ export class AdminRepository {
   }
 
   async findRequest(id: string) {
-    return this.prisma.request.findUnique({
-      where: { id },
-      include: {
-        customerProfile: {
-          include: { user: true },
-        },
-        category: true,
-        region: true,
-        media: { include: { media: true } },
-        offers: {
-          include: {
-            vendorProfile: {
-              include: { user: true },
+    const [request, auditLogs] = await Promise.all([
+      this.prisma.request.findUnique({
+        where: { id },
+        include: {
+          customerProfile: {
+            include: { user: true },
+          },
+          category: true,
+          region: true,
+          media: { include: { media: true } },
+          matches: {
+            include: {
+              vendorProfile: {
+                include: { user: true },
+              },
+            },
+            orderBy: { matchedAt: 'desc' },
+          },
+          offers: {
+            include: {
+              vendorProfile: {
+                include: { user: true },
+              },
+              revisions: {
+                orderBy: { revisionNumber: 'desc' },
+              },
+            },
+          },
+          connections: {
+            include: {
+              vendorProfile: {
+                include: { user: true },
+              },
+              customerProfile: {
+                include: { user: true },
+              },
+            },
+          },
+          acceptedOffer: {
+            include: {
+              vendorProfile: {
+                include: { user: true },
+              },
             },
           },
         },
-        connections: true,
-      },
-    });
+      }),
+      this.prisma.auditLog.findMany({
+        where: { entityType: 'request', entityId: id },
+        include: { actor: true },
+        orderBy: { occurredAt: 'asc' },
+      }),
+    ]);
+
+    if (!request) {
+      return null;
+    }
+
+    const matchedVendors = mapMatchedVendors(request.matches);
+    const transitions = mergeTransitions(
+      buildRequestStateTransitions(request),
+      mapAuditTransitions(auditLogs),
+    );
+
+    return {
+      ...request,
+      matchedVendors,
+      transitions,
+      timeline: transitions,
+    };
   }
 
   async removeRequest(
@@ -373,14 +452,36 @@ export class AdminRepository {
   async listOffers(options: {
     state?: string;
     vendorId?: string;
+    requestType?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    priceMin?: number;
+    priceMax?: number;
+    dateFrom?: string;
+    dateTo?: string;
     limit?: number;
     cursor?: string;
   }) {
     const limit = Math.min(options.limit ?? 20, 100);
+    const minPrice = options.minPrice ?? options.priceMin;
+    const maxPrice = options.maxPrice ?? options.priceMax;
+    const offeredPrice =
+      minPrice !== undefined || maxPrice !== undefined
+        ? {
+            ...(minPrice !== undefined ? { gte: new Prisma.Decimal(minPrice) } : {}),
+            ...(maxPrice !== undefined ? { lte: new Prisma.Decimal(maxPrice) } : {}),
+          }
+        : undefined;
+    const createdAt = parseInclusiveDayRange(options.dateFrom, options.dateTo);
     const items = await this.prisma.offer.findMany({
       where: {
         ...(options.state ? { state: options.state as OfferState } : {}),
         ...(options.vendorId ? { vendorProfileId: options.vendorId } : {}),
+        ...(options.requestType
+          ? { request: { requestType: options.requestType as RequestType } }
+          : {}),
+        ...(offeredPrice ? { offeredPrice } : {}),
+        ...(createdAt ? { createdAt } : {}),
       },
       take: limit + 1,
       ...(options.cursor ? { cursor: { id: options.cursor }, skip: 1 } : {}),
@@ -401,14 +502,52 @@ export class AdminRepository {
   }
 
   async findOffer(id: string) {
-    return this.prisma.offer.findUnique({
-      where: { id },
-      include: {
-        vendorProfile: { include: { user: true } },
-        request: { include: { customerProfile: { include: { user: true } } } },
-        revisions: true,
-      },
-    });
+    const [offer, auditLogs] = await Promise.all([
+      this.prisma.offer.findUnique({
+        where: { id },
+        include: {
+          vendorProfile: { include: { user: true } },
+          request: {
+            include: {
+              customerProfile: { include: { user: true } },
+              category: true,
+              region: true,
+              acceptedOffer: true,
+            },
+          },
+          revisions: {
+            orderBy: { revisionNumber: 'desc' },
+          },
+          media: {
+            include: { media: true },
+            orderBy: { displayOrder: 'asc' },
+          },
+          connection: true,
+        },
+      }),
+      this.prisma.auditLog.findMany({
+        where: { entityType: 'offer', entityId: id },
+        include: { actor: true },
+        orderBy: { occurredAt: 'asc' },
+      }),
+    ]);
+
+    if (!offer) {
+      return null;
+    }
+
+    const revisions = offer.revisions.map(projectOfferRevision);
+    const transitions = mergeTransitions(
+      buildOfferStateTransitions(offer),
+      mapAuditTransitions(auditLogs),
+    );
+
+    return {
+      ...offer,
+      revisions,
+      transitions,
+      stateTransitions: transitions,
+    };
   }
 
   // --- Connections ---
@@ -588,6 +727,9 @@ export class AdminRepository {
   }) {
     return this.prisma.adminNote.create({
       data,
+      include: {
+        author: { select: { displayName: true } },
+      },
     });
   }
 
@@ -852,4 +994,181 @@ export class AdminRepository {
       },
     });
   }
+}
+
+const DAY_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+function parseInclusiveDayRange(
+  dateFrom?: string,
+  dateTo?: string,
+): Prisma.DateTimeFilter | undefined {
+  const from = dateFrom && DAY_ONLY.test(dateFrom) ? new Date(`${dateFrom}T00:00:00.000Z`) : undefined;
+  const to = dateTo && DAY_ONLY.test(dateTo) ? new Date(`${dateTo}T23:59:59.999Z`) : undefined;
+  if (from && Number.isNaN(from.getTime())) return to ? { lte: to } : undefined;
+  if (to && Number.isNaN(to.getTime())) return from ? { gte: from } : undefined;
+  if (!from && !to) return undefined;
+  return {
+    ...(from ? { gte: from } : {}),
+    ...(to ? { lte: to } : {}),
+  };
+}
+
+type JsonRecord = Record<string, unknown>;
+
+type AdminStateTransition = {
+  fromState?: string | null;
+  toState: string;
+  transition: string;
+  timestamp: string;
+  transitionedAt: string;
+  actorUserId?: string | null;
+  actorName?: string | null;
+  actor?: string | null;
+  reason?: string | null;
+  state?: string;
+};
+
+function asRecord(value: unknown): JsonRecord {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as JsonRecord;
+  }
+  return {};
+}
+
+function toNumber(value: unknown): number | null {
+  if (value == null || value === '') {
+    return null;
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'object' && value !== null && 'toNumber' in value) {
+    const n = (value as { toNumber: () => number }).toNumber();
+    return Number.isFinite(n) ? n : null;
+  }
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function toIso(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : String(value);
+}
+
+function enrichTransition(entry: {
+  fromState?: string | null;
+  toState: string;
+  transition: string;
+  timestamp: string;
+  actorUserId?: string | null;
+  actorName?: string | null;
+  reason?: string | null;
+}): AdminStateTransition {
+  return {
+    ...entry,
+    transitionedAt: entry.timestamp,
+    actor: entry.actorName ?? null,
+    state: entry.toState,
+  };
+}
+
+function mapAuditTransitions(
+  logs: Array<{
+    action: string;
+    occurredAt: Date;
+    actorUserId: string | null;
+    actor?: { email: string | null } | null;
+    beforeValue: unknown;
+    afterValue: unknown;
+  }>,
+): AdminStateTransition[] {
+  return logs.map((entry) => {
+    const before = asRecord(entry.beforeValue);
+    const after = asRecord(entry.afterValue);
+    const toState = (typeof after.state === 'string' ? after.state : undefined) ?? entry.action;
+    return enrichTransition({
+      fromState: typeof before.state === 'string' ? before.state : null,
+      toState,
+      transition: entry.action,
+      timestamp: toIso(entry.occurredAt),
+      actorUserId: entry.actorUserId,
+      actorName: entry.actor?.email ?? null,
+      reason: typeof after.reasonText === 'string' ? after.reasonText : null,
+    });
+  });
+}
+
+function mergeTransitions(
+  synthesized: Array<{
+    fromState?: string | null;
+    toState: string;
+    transition: string;
+    timestamp: string;
+    actorUserId?: string | null;
+    actorName?: string | null;
+    reason?: string | null;
+  }>,
+  extra: AdminStateTransition[],
+): AdminStateTransition[] {
+  return [...synthesized.map(enrichTransition), ...extra].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  );
+}
+
+function mapMatchedVendors(
+  matches: Array<{
+    vendorProfileId: string;
+    isEligible: boolean;
+    matchedAt: Date;
+    viewedAt: Date | null;
+    vendorProfile?: {
+      id: string;
+      legalBusinessName: string;
+      tradingName: string;
+      tradeLicenceNumber?: string;
+      user?: { id: string; mobileNumber: string; email?: string | null };
+    };
+  }>,
+) {
+  return matches.map((m) => ({
+    vendorProfileId: m.vendorProfileId,
+    isEligible: m.isEligible,
+    matchedAt: toIso(m.matchedAt),
+    viewedAt: m.viewedAt ? toIso(m.viewedAt) : null,
+    vendor: {
+      id: m.vendorProfile?.id ?? m.vendorProfileId,
+      legalBusinessName: m.vendorProfile?.legalBusinessName ?? '',
+      tradingName: m.vendorProfile?.tradingName ?? '',
+      tradeLicenceNumber: m.vendorProfile?.tradeLicenceNumber,
+      mobileNumber: m.vendorProfile?.user?.mobileNumber,
+      email: m.vendorProfile?.user?.email,
+      user: m.vendorProfile?.user
+        ? {
+            id: m.vendorProfile.user.id,
+            mobileNumber: m.vendorProfile.user.mobileNumber,
+            email: m.vendorProfile.user.email,
+          }
+        : undefined,
+    },
+  }));
+}
+
+function projectOfferRevision(rev: {
+  id: string;
+  revisionNumber: number;
+  revisedAt: Date;
+  previousTerms: unknown;
+}) {
+  const terms = asRecord(rev.previousTerms);
+  return {
+    ...rev,
+    id: rev.id,
+    revisionNumber: rev.revisionNumber,
+    revisedAt: rev.revisedAt,
+    previousTerms: rev.previousTerms,
+    offeredPrice: toNumber(terms.offeredPrice),
+    makingCharges: toNumber(terms.makingCharges),
+    ratePerGram: toNumber(terms.ratePerGram),
+    deliveryTimeframe: typeof terms.deliveryTimeframe === 'string' ? terms.deliveryTimeframe : null,
+    vendorNote: typeof terms.vendorNote === 'string' ? terms.vendorNote : null,
+  };
 }

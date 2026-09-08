@@ -8,7 +8,7 @@
 | **Status** | Draft — awaiting Technical Lead sign-off on the `[PROPOSED]` register (§7) |
 | **Date** | 7 September 2026 |
 | **Scope** | Admin Portal only. `apps/kh_admin` is standalone (excluded from the Melos workspace) |
-| **Task register** | [`Admin-App-Completion-Tasks.md`](Admin-App-Completion-Tasks.md) |
+| **Task register** | Flutter: [`Admin-App-Completion-Tasks.md`](Admin-App-Completion-Tasks.md). Backend follow-ups: [`Admin-Backend-Followup-Tasks.md`](Admin-Backend-Followup-Tasks.md) (`ADM-C-70`–`ADM-C-76`). |
 | **Predecessor** | [`Admin-Checkpoint-1-Taxonomy-Plan.md`](Admin-Checkpoint-1-Taxonomy-Plan.md) |
 | **Does not override** | SRS v1.3 · `API-Route-Inventory.md` · `Architecture-Frontend.md` · `Screen-API-Map.md` |
 
@@ -46,31 +46,33 @@ overwhelmingly Flutter, screen by screen, against routes that already exist.**
 
 ## 2. Screen ledger (ADM-S01–S23)
 
+In-scope Flutter screens are **done** (8 Sep 2026). The only remaining placeholder is ADM-S20 (deferred). Backend payload gaps for some screens are [`Admin-Backend-Followup-Tasks.md`](Admin-Backend-Followup-Tasks.md), not missing screens.
+
 | Screen | Route | Backend | Flutter | State |
 |---|---|---|---|---|
 | ADM-S01 Login | `/login` | ✅ | ✅ | **Done** (CP-1 + G2-A14) |
-| ADM-S02 Dashboard | `/` | ✅ `GET /v1/admin/dashboard` | thin, sample data | **Wire real data** |
-| ADM-S03 Customer list | `/customers` | ✅ | placeholder | Group A |
-| ADM-S04 Customer detail | `/customers/:id` | ✅ (+ suspend/reactivate/erasure) | — | Group A |
-| ADM-S05 Vendor list | `/vendors` | ✅ | ✅ adapted | **Verify + polish** |
-| ADM-S06 Vendor detail | `/vendors/:id` | ✅ | ✅ adapted | **Verify + polish** |
-| ADM-S07 Verification queue + detail | `/verification` | ✅ | ✅ adapted | **Verify + polish** |
-| ADM-S08 Request list | `/requests` | ✅ (filters limited, §5) | ✅ adapted | **Verify + polish** |
-| ADM-S09 Request detail | `/requests/:id` | ✅ (sub-resources limited, §5) | ✅ adapted | **Verify + polish** |
-| ADM-S10 Offer list | `/offers` | ✅ (filters limited, §5) | ✅ adapted | **Verify + polish** |
-| ADM-S11 Offer detail | `/offers/:id` | ✅ | ✅ adapted | **Verify + polish** |
-| ADM-S12 Connection list | `/connections` | ✅ | placeholder | Group B |
-| ADM-S13 Connection detail | `/connections/:id` | ✅ (+ close) | — | Group B |
+| ADM-S02 Dashboard | `/` | ✅ `GET /v1/admin/dashboard` | ✅ live metrics + queue snapshots | **Done** |
+| ADM-S03 Customer list | `/customers` | ✅ | ✅ | **Done** |
+| ADM-S04 Customer detail | `/customers/:id` | ✅ (+ suspend/reactivate/erasure) | ✅ | **Done** |
+| ADM-S05 Vendor list | `/vendors` | ✅ | ✅ | **Done** |
+| ADM-S06 Vendor detail | `/vendors/:id` | ✅ | ✅ | **Done** |
+| ADM-S07 Verification queue + detail | `/verification` | ✅ | ✅ | **Done** |
+| ADM-S08 Request list | `/requests` | ✅ (filters limited, §5) | ✅ (client-side extra filters) | **Done** |
+| ADM-S09 Request detail | `/requests/:id` | ✅ (sub-resources limited, §5) | ✅ (empty sections until ADM-C-72) | **Done** |
+| ADM-S10 Offer list | `/offers` | ✅ (filters limited, §5) | ✅ (client-side extra filters) | **Done** |
+| ADM-S11 Offer detail | `/offers/:id` | ✅ | ✅ (revisions until ADM-C-73) | **Done** |
+| ADM-S12 Connection list | `/connections` | ✅ | ✅ | **Done** |
+| ADM-S13 Connection detail | `/connections/:id` | ✅ (+ close) | ✅ | **Done** |
 | ADM-S14 Categories | `/taxonomy/categories` | ✅ | ✅ | **Done** (CP-1) |
 | ADM-S15 Regions | `/taxonomy/regions` | ✅ | ✅ | **Done** (CP-1) |
-| ADM-S16 Review moderation | `/moderation` | ✅ (`reviews` + approve/reject/redact) | ✅ | **Done** |
-| ADM-S17 Reports & analytics | `/reports` | ✅ (`reports/:name`, `exports`) | placeholder | Group D (needs charts lib) |
-| ADM-S18 Announcement composer | `/announcements` | ✅ (`announcements` + cancel) | placeholder | Group C |
-| ADM-S19 Platform settings | `/settings` | ✅ (`GET settings`, `PATCH settings/:key`) | placeholder | Group C |
-| ADM-S20 Gold-rate config | `/gold-rates` | — | — | **Deferred** — out of this completion effort (Yahoo Finance redistribution terms open; needs new backend routes). Tracked in SRS §7.4 / ADM-S20. |
-| ADM-S21 Abuse-report queue | `/abuse` | ✅ (`abuse-reports` + resolve/dismiss) | ✅ | **Done** |
-| ADM-S22 Audit log | `/audit` | ✅ `GET /v1/admin/audit-log` | placeholder | **Group A — smallest** |
-| ADM-S23 Admin user management | `/admin-users` | ✅ (`admins`, create/suspend/revoke) | placeholder | Group B |
+| ADM-S16 Review moderation | `/moderation` | ✅ | ✅ | **Done** |
+| ADM-S17 Reports & analytics | `/reports` | ✅ (`reports/:name`, `exports`; download bytes ADM-C-76) | ✅ (`fl_chart` + CSV fallback) | **Done** |
+| ADM-S18 Announcement composer | `/announcements` | ✅ | ✅ | **Done** |
+| ADM-S19 Platform settings | `/settings` | ✅ | ✅ | **Done** |
+| ADM-S20 Gold-rate config | `/gold-rates` | — | placeholder | **Deferred** — out of this completion effort (Yahoo Finance redistribution terms open). Tracked in SRS §7.4 / ADM-S20. |
+| ADM-S21 Abuse-report queue | `/abuse` | ✅ | ✅ | **Done** |
+| ADM-S22 Audit log | `/audit` | ✅ | ✅ | **Done** |
+| ADM-S23 Admin user management | `/admin-users` | ✅ | ✅ | **Done** |
 
 ## 3. Build order
 
@@ -112,6 +114,8 @@ polish items in §4. Commit per vertical.
 | Remove orphaned ARB keys | — | `vendorsDetailStubBody`, `vendorsDetailComingSoon` |
 
 ## 5. Known backend gaps (raise as `G2-*` follow-ups; frontends work around for now)
+
+Live tick list: [`Admin-Backend-Followup-Tasks.md`](Admin-Backend-Followup-Tasks.md).
 
 | Gap | Impact | Workaround in place |
 |---|---|---|

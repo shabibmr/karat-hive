@@ -202,9 +202,11 @@ class OfferRepository {
               'rating': _toDoubleOrNull(vendorProfile['aggregateRating']),
               'completedDeals': vendorProfile['offersAcceptedCount'],
             },
-      // No backend source for these three.
+      // Attachments are still a separate media projection.
       'attachments': const <dynamic>[],
-      'stateTransitions': const <dynamic>[],
+      'stateTransitions': _normalizeTransitions(
+        raw['stateTransitions'] ?? raw['transitions'],
+      ),
       'revisions': _normalizeRevisions(raw['revisions']),
       // Replaced by the caller after the notes fetch.
       'internalNotes': const <dynamic>[],
@@ -214,18 +216,34 @@ class OfferRepository {
   List<Map<String, dynamic>> _normalizeRevisions(dynamic raw) {
     if (raw is! List) return const [];
     return raw.whereType<Map<String, dynamic>>().map((row) {
-      // Revision rows carry only `previousTerms` (a JSON blob of the terms
-      // *before* the revision), not price columns.
+      // Prefer typed projection columns (ADM-C-73); fall back to the
+      // `previousTerms` JSON blob of the terms *before* the revision.
       final prev = _asMap(row['previousTerms']);
       return <String, dynamic>{
         'revisionNumber': row['revisionNumber'],
         'revisedAt': row['revisedAt'],
-        'offeredPrice': _toDouble(prev['offeredPrice']),
-        'makingCharges': _toDoubleOrNull(prev['makingCharges']),
-        'ratePerGram': _toDoubleOrNull(prev['ratePerGram']),
-        'deliveryTimeframe': prev['deliveryTimeframe'],
-        'vendorNote': prev['vendorNote'],
-        'changeSummary': null,
+        'offeredPrice': _toDouble(row['offeredPrice'] ?? prev['offeredPrice']),
+        'makingCharges':
+            _toDoubleOrNull(row['makingCharges'] ?? prev['makingCharges']),
+        'ratePerGram': _toDoubleOrNull(row['ratePerGram'] ?? prev['ratePerGram']),
+        'deliveryTimeframe':
+            row['deliveryTimeframe'] ?? prev['deliveryTimeframe'],
+        'vendorNote': row['vendorNote'] ?? prev['vendorNote'],
+        'changeSummary': row['changeSummary'],
+      };
+    }).toList(growable: false);
+  }
+
+  List<Map<String, dynamic>> _normalizeTransitions(dynamic raw) {
+    if (raw is! List) return const [];
+    return raw.whereType<Map<String, dynamic>>().map((row) {
+      return <String, dynamic>{
+        'fromState': row['fromState'],
+        'toState': row['toState'] ?? row['state'],
+        'transitionedAt':
+            row['transitionedAt'] ?? row['timestamp'] ?? row['occurredAt'],
+        'actor': row['actor'] ?? row['actorName'] ?? row['actorType'],
+        'reason': row['reason'] ?? row['notes'],
       };
     }).toList(growable: false);
   }

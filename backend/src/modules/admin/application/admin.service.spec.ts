@@ -9,9 +9,13 @@ import type {
   Request,
   Review,
   User,
+  VendorDocument,
   VendorProfile,
 } from '@prisma/client';
+import type { Env } from '../../../config/env';
+import { ErrorCode } from '../../../edge/errors/error-codes';
 import type { PrismaService } from '../../../platform/db/prisma.service';
+import type { ObjectStorage } from '../../../platform/ports/storage.port';
 import type { AuditWriter } from '../../audit';
 import type { ReviewService } from '../../reviews';
 import type { SettingsService } from '../../settings';
@@ -85,12 +89,22 @@ describe('AdminService', () => {
     updateAdminSetting: vi.fn(),
   } as unknown as SettingsService;
 
+  const mockStorage = {
+    createSignedDownloadUrl: vi.fn(),
+  } as unknown as ObjectStorage;
+
+  const mockEnv = {
+    SUPABASE_STORAGE_BUCKET_KYC: 'kyc',
+  } as unknown as Env;
+
   const service = new AdminService(
     mockRepo,
     mockPrisma,
     mockAudit,
     mockReviews,
     mockSettings,
+    mockStorage,
+    mockEnv,
   );
 
   it('fetches dashboard stats', async () => {
@@ -172,6 +186,98 @@ describe('AdminService', () => {
       expect.anything(),
       expect.objectContaining({ action: 'VENDOR_VERIFICATION_REJECTED' }),
     );
+  });
+
+  it('returns request detail with matchedVendors and transitions', async () => {
+    vi.mocked(mockRepo.findRequest).mockResolvedValueOnce({
+      id: 'req-1',
+      notes: 'Customer brief',
+      matchedVendors: [
+        {
+          vendorProfileId: 'v-1',
+          isEligible: true,
+          matchedAt: '2026-09-01T10:05:00.000Z',
+          viewedAt: null,
+          vendor: { id: 'v-1', legalBusinessName: 'Gold Star LLC', tradingName: 'Gold Star' },
+        },
+      ],
+      transitions: [
+        {
+          fromState: 'DRAFT',
+          toState: 'PUBLISHED',
+          transition: 'PUBLISH_REQUEST',
+          timestamp: '2026-09-01T10:00:00.000Z',
+        },
+      ],
+      timeline: [
+        {
+          fromState: 'DRAFT',
+          toState: 'PUBLISHED',
+          transition: 'PUBLISH_REQUEST',
+          timestamp: '2026-09-01T10:00:00.000Z',
+        },
+      ],
+      connections: [
+        {
+          id: 'conn-1',
+          vendorProfile: { id: 'v-1', legalBusinessName: 'Gold Star LLC' },
+          customerProfile: { id: 'cust-1', displayName: 'Fatima Al-Nuaimi' },
+        },
+      ],
+    } as unknown as Request);
+
+    const result = await service.getRequest('req-1');
+    expect(result).toMatchObject({
+      id: 'req-1',
+      matchedVendors: [expect.objectContaining({ vendorProfileId: 'v-1' })],
+      transitions: [expect.objectContaining({ toState: 'PUBLISHED' })],
+      timeline: [expect.objectContaining({ toState: 'PUBLISHED' })],
+    });
+    expect(
+      (result as unknown as { connections: Array<{ vendorProfile: { id: string } }> }).connections[0]
+        .vendorProfile.id,
+    ).toBe('v-1');
+  });
+
+  it('returns offer detail with transitions and typed revision columns', async () => {
+    vi.mocked(mockRepo.findOffer).mockResolvedValueOnce({
+      id: 'off-1',
+      revisions: [
+        {
+          id: 'rev-1',
+          revisionNumber: 1,
+          revisedAt: new Date('2026-09-01T14:00:00.000Z'),
+          previousTerms: { offeredPrice: '15450.00' },
+          offeredPrice: 15450,
+          makingCharges: 600,
+          ratePerGram: 270,
+        },
+      ],
+      transitions: [
+        {
+          fromState: null,
+          toState: 'PENDING',
+          transition: 'OFFER_SUBMITTED',
+          timestamp: '2026-09-01T12:00:00.000Z',
+        },
+      ],
+      stateTransitions: [
+        {
+          fromState: null,
+          toState: 'PENDING',
+          transition: 'OFFER_SUBMITTED',
+          timestamp: '2026-09-01T12:00:00.000Z',
+        },
+      ],
+    } as never);
+
+    const result = await service.getOffer('off-1');
+    expect(result).toMatchObject({
+      id: 'off-1',
+      revisions: [expect.objectContaining({ id: 'rev-1', offeredPrice: 15450, ratePerGram: 270 })],
+      transitions: [expect.objectContaining({ transition: 'OFFER_SUBMITTED' })],
+      stateTransitions: [expect.objectContaining({ toState: 'PENDING' })],
+    });
   });
 
   it('removes a request and audits action', async () => {
@@ -296,6 +402,44 @@ describe('AdminService', () => {
     expect(mockRepo.recordAnnouncementDispatched).toHaveBeenCalled();
   });
 
+  it('forwards ADM-C-71 request list filters to the repository', async () => {
+    vi.mocked(mockRepo.listRequests).mockResolvedValueOnce({ items: [], nextCursor: undefined });
+    const query = {
+      q: 'necklace',
+      state: 'PUBLISHED' as const,
+      requestType: 'FIND_ORNAMENT',
+      direction: 'BUY',
+      categoryId: 'cat-1',
+      regionId: 'reg-1',
+      zeroOffers: true,
+      minValue: 1000,
+      maxValue: 5000,
+      limit: 20,
+    };
+
+    await service.listRequests(query);
+
+    expect(mockRepo.listRequests).toHaveBeenCalledWith(query);
+  });
+
+  it('forwards ADM-C-71 offer list filters to the repository', async () => {
+    vi.mocked(mockRepo.listOffers).mockResolvedValueOnce({ items: [], nextCursor: undefined });
+    const query = {
+      state: 'PENDING',
+      vendorId: 'v-1',
+      requestType: 'GOLD_COIN',
+      minPrice: 4000,
+      maxPrice: 9000,
+      dateFrom: '2026-09-01',
+      dateTo: '2026-09-08',
+      limit: 20,
+    };
+
+    await service.listOffers(query);
+
+    expect(mockRepo.listOffers).toHaveBeenCalledWith(query);
+  });
+
   it('handles report queries and export jobs with watermark', async () => {
     vi.mocked(mockRepo.getReportData).mockResolvedValueOnce({
       name: 'funnel',
@@ -336,5 +480,176 @@ describe('AdminService', () => {
     const retrieved = await service.getExportJob('exp-1', 'admin-user-1');
     expect(retrieved.downloadUrl).toBe('/v1/admin/exports/exp-1/download');
     expect(retrieved.watermark).toEqual({ generatedByAdminId: 'admin-user-1' });
+  });
+
+  it('issues a 15-minute signed KYC download URL and audits access (NFR-015)', async () => {
+    vi.mocked(mockRepo.findVendorDocument).mockResolvedValueOnce({
+      id: 'doc-1',
+      vendorProfileId: 'ven-1',
+      media: {
+        id: 'media-1',
+        key: 'tl-doc-key',
+        state: 'READY',
+        uploadedByUserId: 'user-vendor-1',
+      },
+    } as unknown as VendorDocument & {
+      media: { id: string; key: string; state: string; uploadedByUserId: string };
+    });
+    vi.mocked(mockStorage.createSignedDownloadUrl).mockResolvedValueOnce({
+      url: 'https://storage.example/signed-kyc.pdf',
+      expiresAt: new Date('2026-09-08T12:15:00.000Z'),
+    });
+
+    const result = await service.getVendorDocumentUrl('ven-1', 'doc-1', 'admin-user-1');
+
+    expect(mockStorage.createSignedDownloadUrl).toHaveBeenCalledWith(
+      'kyc',
+      'vendor/ven-1/KYC_DOCUMENT/tl-doc-key',
+      900,
+    );
+    expect(result).toEqual({
+      url: 'https://storage.example/signed-kyc.pdf',
+      expiresAt: '2026-09-08T12:15:00.000Z',
+    });
+    expect(mockAudit.append).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: 'KYC_DOCUMENT_ACCESSED',
+        entityType: 'vendor_document',
+        entityId: 'doc-1',
+        actorUserId: 'admin-user-1',
+      }),
+    );
+  });
+
+  it('rejects quarantined and incomplete KYC documents', async () => {
+    vi.mocked(mockRepo.findVendorDocument).mockResolvedValueOnce({
+      id: 'doc-1',
+      vendorProfileId: 'ven-1',
+      media: { state: 'QUARANTINED', key: 'k' },
+    } as unknown as VendorDocument & { media: { state: string; key: string } });
+
+    await expect(
+      service.getVendorDocumentUrl('ven-1', 'doc-1', 'admin-user-1'),
+    ).rejects.toMatchObject({ errorCode: ErrorCode.MEDIA_QUARANTINED });
+
+    vi.mocked(mockRepo.findVendorDocument).mockResolvedValueOnce({
+      id: 'doc-1',
+      vendorProfileId: 'ven-1',
+      media: { state: 'PENDING_UPLOAD', key: 'k' },
+    } as unknown as VendorDocument & { media: { state: string; key: string } });
+
+    await expect(
+      service.getVendorDocumentUrl('ven-1', 'doc-1', 'admin-user-1'),
+    ).rejects.toMatchObject({ errorCode: ErrorCode.UPLOAD_NOT_COMPLETED });
+  });
+
+  it('returns author displayName on createAdminNote to match list items', async () => {
+    vi.mocked(mockRepo.createAdminNote).mockResolvedValueOnce({
+      id: 'note-1',
+      entityType: 'vendors',
+      entityId: 'ven-1',
+      text: 'Called vendor',
+      authorAdminId: 'admin-prof-1',
+      author: { displayName: 'Admin Sarah' },
+      createdAt: new Date('2026-09-08T10:00:00.000Z'),
+    });
+
+    const result = await service.createAdminNote(
+      'vendors',
+      'ven-1',
+      'Called vendor',
+      'admin-prof-1',
+    );
+
+    expect(mockRepo.createAdminNote).toHaveBeenCalledWith({
+      entityType: 'vendors',
+      entityId: 'ven-1',
+      text: 'Called vendor',
+      authorAdminId: 'admin-prof-1',
+    });
+    expect(result.author).toEqual({ displayName: 'Admin Sarah' });
+  });
+
+  it('audits export download once and streams CSV from report rows', async () => {
+    const job = {
+      id: 'exp-1',
+      state: 'READY',
+      format: 'CSV',
+      reportName: 'funnel',
+      filters: { from: '2026-08-01', to: '2026-08-31' },
+      watermark: { generatedByAdminId: 'admin-user-1' },
+      completedAt: new Date(),
+    } as unknown as ExportJob;
+    vi.mocked(mockRepo.findExportJob).mockResolvedValue(job);
+    vi.mocked(mockRepo.getReportData).mockResolvedValueOnce({
+      name: 'funnel',
+      generatedAt: new Date().toISOString(),
+      rows: [
+        { stage: 'requests', count: 10 },
+        { stage: 'offers', count: 4 },
+      ],
+      series: [],
+    });
+    vi.mocked(mockAudit.append).mockClear();
+
+    const polled = await service.getExportJob('exp-1', 'admin-user-1');
+    expect(polled.downloadUrl).toBe('/v1/admin/exports/exp-1/download');
+    expect(mockAudit.append).not.toHaveBeenCalled();
+
+    const file = await service.downloadExport('exp-1', 'admin-user-1');
+    expect(mockRepo.getReportData).toHaveBeenCalledWith('funnel', {
+      from: '2026-08-01',
+      to: '2026-08-31',
+    });
+    expect(file.contentType).toBe('text/csv; charset=utf-8');
+    expect(file.filename).toBe('funnel-exp-1.csv');
+    expect(file.body.toString('utf8')).toBe(
+      'stage,count\nrequests,10\noffers,4\n',
+    );
+    expect(mockAudit.append).toHaveBeenCalledTimes(1);
+    expect(mockAudit.append).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: 'EXPORT_DOWNLOADED',
+        entityType: 'export_job',
+        entityId: 'exp-1',
+        actorUserId: 'admin-user-1',
+      }),
+    );
+  });
+
+  it('serves XLSX jobs as CSV bytes and rejects PNG chart export with 501', async () => {
+    vi.mocked(mockRepo.findExportJob).mockResolvedValueOnce({
+      id: 'exp-xlsx',
+      state: 'READY',
+      format: 'XLSX',
+      reportName: 'request-volume',
+      filters: {},
+      watermark: {},
+    } as unknown as ExportJob);
+    vi.mocked(mockRepo.getReportData).mockResolvedValueOnce({
+      name: 'request-volume',
+      generatedAt: new Date().toISOString(),
+      rows: [{ state: 'OPEN', count: 2 }],
+      series: [],
+    });
+
+    const xlsx = await service.downloadExport('exp-xlsx', 'admin-user-1');
+    expect(xlsx.contentType).toBe('text/csv; charset=utf-8');
+    expect(xlsx.body.toString('utf8')).toContain('state,count');
+
+    vi.mocked(mockRepo.findExportJob).mockResolvedValueOnce({
+      id: 'exp-png',
+      state: 'READY',
+      format: 'PNG',
+      reportName: 'funnel',
+      filters: {},
+    } as unknown as ExportJob);
+
+    await expect(service.downloadExport('exp-png', 'admin-user-1')).rejects.toMatchObject({
+      status: 501,
+      errorCode: ErrorCode.VALIDATION_FAILED,
+    });
   });
 });

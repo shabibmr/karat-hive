@@ -2,7 +2,8 @@
 
 > **Source of truth**: [`Admin-App-Completion-Plan.md`](Admin-App-Completion-Plan.md)
 > **Branch**: `main` (completion work continues on `main`)
-> **Prefix**: `ADM-C-nn` (Admin completion). Slices `Backend-Implementation-Plan.md` `T`-IDs; does not renumber them.
+> **Prefix**: `ADM-C-nn` (Admin Flutter completion). Slices `Backend-Implementation-Plan.md` `T`-IDs; does not renumber them.
+> **Backend follow-ups**: [`Admin-Backend-Followup-Tasks.md`](Admin-Backend-Followup-Tasks.md) (`ADM-C-70`–`ADM-C-76`).
 
 Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 
@@ -50,13 +51,10 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 
 - ~~ADM-C-60, ADM-C-61~~ — **withdrawn**: gold-rate config (ADM-S20) descoped from this effort (Yahoo Finance redistribution terms open; retained in SRS §7.4 / ui-screens/admin/ADM-S20).
 - [x] **ADM-C-62** Introduce a charting library into `kh_admin` — `fl_chart` (MIT, Flutter Web).
-- [x] **ADM-C-63** ADM-S17 reports & analytics — `GET /v1/admin/reports/:name` (7 types), `POST /v1/admin/exports` + poll `GET /v1/admin/exports/:id`; charts + results table + export flow. Client-side CSV fallback (backend download route still missing).
+- [x] **ADM-C-63** ADM-S17 reports & analytics — `GET /v1/admin/reports/:name` (7 types), `POST /v1/admin/exports` + poll `GET /v1/admin/exports/:id`; charts + results table + export flow. Client-side CSV fallback until **ADM-C-76**.
 
-## Backend follow-ups (raise as `G2-*`)
+## Backend follow-ups — moved
 
-- [ ] **ADM-C-70** Admin list routes double-wrap the envelope — fix `admin.controller.ts` to return `{ data: items, meta: { nextCursor } }` like the customer controllers; then simplify `ApiClient.getCollection`.
-- [ ] **ADM-C-71** `listRequests` / `listOffers` — add the filter params the screens need (`requestType`, `direction`, `categoryId`, `regionId`, price/value ranges, `zeroOffers`).
-- [ ] **ADM-C-72** Request detail — include `matchedVendors`, a state timeline, and deep `connections` (nested vendor/customer).
-- [ ] **ADM-C-73** Offer detail — expose state transitions; give `OfferRevision` real columns or a typed projection.
-- [ ] **ADM-C-74** Signed / public media URL for admin document view (current `/v1/media/<key>` needs a bearer a new tab can't send).
-- [ ] **ADM-C-75** `admin_note` create response — return `author:{displayName}` to match the list shape.
+Live register (backend code only): [`Admin-Backend-Followup-Tasks.md`](Admin-Backend-Followup-Tasks.md).
+
+IDs `ADM-C-70`–`ADM-C-76` are **not** tracked here. Do not re-add them to this Flutter register.
