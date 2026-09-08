@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'guards.dart';
 import 'session/session_controller.dart';
 import 'shells/awaiting_approval_shell.dart';
+import 'shells/customer_shell.dart';
 import 'shells/splash_screen.dart';
 import 'shells/unauth_shell.dart';
 import 'shells/vendor_shell.dart';
+import '../features/auth/presentation/customer_onboarding_screen.dart';
 import '../features/auth/presentation/vendor_login_screen.dart';
 import '../features/auth/presentation/vendor_register_screen.dart';
 import '../features/dashboard/presentation/vendor_dashboard_screen.dart';
@@ -44,6 +46,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: AppGuards.register,
             builder: (_, __) => const VendorRegisterScreen(),
           ),
+          // CUS-S01 — Customer onboarding (CFE-09 / CFE-10). Pre-auth: an
+          // unauthenticated session reaches it directly.
+          GoRoute(
+            path: AppGuards.customerOnboarding,
+            builder: (_, __) => const CustomerOnboardingScreen(),
+          ),
         ],
       ),
       ShellRoute(
@@ -69,6 +77,34 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppGuards.home,
             builder: (_, __) => const VendorDashboardScreen(),
+          ),
+        ],
+      ),
+      // Customer shell (SH-SHELL-01/02/03). Placeholder bodies — real screens
+      // are built on top of this foundation.
+      ShellRoute(
+        builder: (context, state, child) => CustomerShell(child: child),
+        routes: [
+          GoRoute(
+            path: AppGuards.customerHome,
+            builder: (_, __) =>
+                const CustomerScreenPlaceholder('CUS-S02'),
+          ),
+          GoRoute(
+            path: AppGuards.customerNotifications,
+            builder: (_, __) =>
+                const CustomerScreenPlaceholder('CUS-S19'),
+          ),
+          GoRoute(
+            path: AppGuards.customerProfile,
+            builder: (_, __) =>
+                const CustomerScreenPlaceholder('CUS-S20'),
+          ),
+          GoRoute(
+            path: AppGuards.customerRequestDetail,
+            builder: (_, state) => CustomerScreenPlaceholder(
+              'CUS-S10 · ${state.pathParameters['id']}',
+            ),
           ),
         ],
       ),

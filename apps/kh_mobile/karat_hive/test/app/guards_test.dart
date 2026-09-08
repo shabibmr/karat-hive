@@ -21,6 +21,20 @@ SignedIn _signedIn(VendorLifecycle lifecycle) => SignedIn(
       ),
     );
 
+SignedIn _customer() => const SignedIn(
+      MeUser(
+        userId: 'c1',
+        userType: 'CUSTOMER',
+        mobileNumber: '+971500000009',
+        preferredLanguage: 'en',
+        customer: CustomerMe(
+          displayName: 'Layla',
+          reviewCount: 0,
+          connectionCount: 0,
+        ),
+      ),
+    );
+
 void main() {
   group('AppGuards.redirect', () {
     test('SessionLoading always lands on splash', () {
@@ -49,6 +63,24 @@ void main() {
       );
     });
 
+    test('CUS-S01 onboarding is reachable pre-auth and gated otherwise', () {
+      // Unauthenticated: CUS-S01 loads directly (it is the pre-auth screen).
+      expect(
+        AppGuards.redirect(const SignedOut(), AppGuards.customerOnboarding),
+        isNull,
+      );
+      // Still bootstrapping: everything waits on splash.
+      expect(
+        AppGuards.redirect(const SessionLoading(), AppGuards.customerOnboarding),
+        AppGuards.splash,
+      );
+      // A completed Customer visiting /welcome is sent into the shell.
+      expect(
+        AppGuards.redirect(_customer(), AppGuards.customerOnboarding),
+        AppGuards.customerHome,
+      );
+    });
+
     test('pendingVerification / rejected stay on awaiting or KYC', () {
       final pending = _signedIn(VendorLifecycle.pendingVerification);
       expect(AppGuards.redirect(pending, AppGuards.home), AppGuards.awaiting);
@@ -74,6 +106,26 @@ void main() {
       expect(AppGuards.redirect(active, AppGuards.home), isNull);
       expect(AppGuards.redirect(active, AppGuards.awaiting), AppGuards.home);
       expect(AppGuards.redirect(active, AppGuards.login), AppGuards.home);
+    });
+
+    test('the role gate routes a Customer session to the Customer shell', () {
+      final c = _customer();
+      // From splash, or from any vendor / unauth route, land on customer home.
+      expect(AppGuards.redirect(c, AppGuards.splash), AppGuards.customerHome);
+      expect(AppGuards.redirect(c, AppGuards.home), AppGuards.customerHome);
+      expect(AppGuards.redirect(c, AppGuards.login), AppGuards.customerHome);
+      expect(AppGuards.redirect(c, AppGuards.awaiting), AppGuards.customerHome);
+      // Customer routes are allowed as-is, including the parametric detail route.
+      expect(AppGuards.redirect(c, AppGuards.customerHome), isNull);
+      expect(AppGuards.redirect(c, AppGuards.customerNotifications), isNull);
+      expect(AppGuards.redirect(c, AppGuards.customerProfile), isNull);
+      expect(AppGuards.redirect(c, '/requests/abc-123'), isNull);
+    });
+
+    test('an ACTIVE Vendor is redirected off Customer routes', () {
+      final active = _signedIn(VendorLifecycle.active);
+      expect(AppGuards.redirect(active, AppGuards.customerHome), AppGuards.home);
+      expect(AppGuards.redirect(active, '/requests/abc'), AppGuards.home);
     });
 
     test('suspended / unknown are not treated as a Vendor session', () {

@@ -4,8 +4,19 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 
-/// Minimal string table for the onboarding vertical. A full ARB + gen_l10n setup
-/// replaces this once more surfaces land (Architecture-Frontend §14).
+import 'l10n/app_localizations.dart';
+
+/// Generated ARB-backed localisations (`flutter gen-l10n`, Architecture-Frontend
+/// §14). New surfaces use `KhL10n.of(context)`; [KhStrings] below is a
+/// compatibility shim for the existing onboarding/vendor call sites.
+export 'l10n/app_localizations.dart';
+export 'l10n/app_localizations_en.dart';
+export 'l10n/app_localizations_ar.dart';
+
+/// Compatibility shim for the onboarding vertical's string-table API. Retained
+/// so existing `KhStrings.of(context).s('key')` call sites keep working while
+/// screens migrate to the generated [KhL10n]. Its delegate list now also wires
+/// [KhL10n] so both lookups resolve.
 class KhStrings {
   KhStrings(this.locale);
   final Locale locale;
@@ -13,6 +24,7 @@ class KhStrings {
   static const supportedLocales = [Locale('en'), Locale('ar')];
   static const delegates = <LocalizationsDelegate<dynamic>>[
     _KhStringsDelegate(),
+    KhL10n.delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalWidgetsLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,

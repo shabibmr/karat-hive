@@ -1,6 +1,15 @@
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+export 'dtos/common_dtos.dart';
+export 'dtos/request_dtos.dart';
+export 'dtos/offer_dtos.dart';
+export 'dtos/connection_dtos.dart';
+export 'dtos/review_dtos.dart';
+export 'dtos/notification_dtos.dart';
+export 'dtos/settings_dtos.dart';
+export 'dtos/gold_rate_dtos.dart';
+
 class OtpChallenge {
   const OtpChallenge({required this.challengeId, required this.expiresAt});
   final String challengeId;

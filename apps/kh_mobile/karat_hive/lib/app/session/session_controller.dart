@@ -25,8 +25,19 @@ class SignedIn extends SessionState {
   const SignedIn(this.user);
   final MeUser user;
 
+  /// Authenticated account role — drives the role gate (`SH-SHELL-04`,
+  /// Architecture-Frontend §7.2). `null` for a discriminator with no mobile
+  /// shell (e.g. `ADMIN`); the gate treats that as a session to reject.
+  UserRole? get role => user.role;
+
+  bool get isCustomer => role == UserRole.customer;
+  bool get isVendor => role == UserRole.vendor;
+
   VendorLifecycle get vendorLifecycle =>
       user.vendor?.lifecycle ?? VendorLifecycle.unknown;
+
+  /// Customer profile block, present only on a Customer session.
+  CustomerMe? get customerProfile => user.customer;
 }
 
 /// Keep-alive session provider: tokens, current user, vendor lifecycle

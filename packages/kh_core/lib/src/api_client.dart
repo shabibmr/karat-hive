@@ -12,6 +12,14 @@ typedef TokenGetter = Future<String?> Function();
 typedef TokenRefreshHandler = Future<bool> Function();
 typedef RefreshCallback = Future<SessionTokens?> Function(String refreshToken);
 
+/// A cursor-paged collection response: the `data` array plus `meta.nextCursor`
+/// from the backend list envelope (Architecture-Frontend §9.6, backend §13.4).
+class KhListPayload {
+  const KhListPayload({required this.items, this.nextCursor});
+  final List<dynamic> items;
+  final String? nextCursor;
+}
+
 /// Dio wrapper implementing the interceptor chain from Architecture-Frontend §9.2:
 /// correlation id, bearer auth + single-flight refresh, locale, idempotency key,
 /// server-time sync, and envelope → [Failure] mapping.
@@ -74,6 +82,37 @@ class KhApiClient {
         options: Options(method: method, extra: {'kh.revealAuth': revealAuth}),
       );
       return _mapResponse(response);
+    } on DioException catch (e) {
+      return Err(_mapDioError(e));
+    }
+  }
+
+  /// Like [send], but preserves `meta.nextCursor` for cursor-paged list
+  /// endpoints. Success payload shape: `{ data: [...], meta: { nextCursor } }`.
+  Future<Result<KhListPayload>> sendList(
+    String method,
+    String path, {
+    Map<String, dynamic>? query,
+    Object? body,
+  }) async {
+    try {
+      final response = await dio.request<dynamic>(
+        path,
+        data: body,
+        queryParameters: query,
+        options: Options(method: method),
+      );
+      final status = response.statusCode ?? 0;
+      final data = response.data;
+      if (status >= 200 && status < 300) {
+        final map = data is Map ? data : const {};
+        final items = (map['data'] as List?) ?? const [];
+        final meta = map['meta'];
+        final nextCursor =
+            meta is Map ? meta['nextCursor'] as String? : null;
+        return Ok(KhListPayload(items: items, nextCursor: nextCursor));
+      }
+      return Err(_mapEnvelopeError(status, data));
     } on DioException catch (e) {
       return Err(_mapDioError(e));
     }
