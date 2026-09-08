@@ -9,6 +9,7 @@ import '../../../core/design/theme/kh_theme.dart';
 import '../../../core/design/widgets/kh_data_table.dart';
 import '../../../core/design/widgets/kh_screen_header.dart';
 import '../../../core/design/widgets/kh_status_chip.dart';
+import '../../../core/router/request_query_params.dart';
 import '../../../l10n/app_localizations.dart';
 import '../controller/request_list_controller.dart';
 import '../model/request_enums.dart';
@@ -26,6 +27,7 @@ class RequestListScreen extends ConsumerStatefulWidget {
 class _RequestListScreenState extends ConsumerState<RequestListScreen> {
   late final TextEditingController _searchController;
   Timer? _debounceTimer;
+  Uri? _lastSyncedUri;
 
   @override
   void initState() {
@@ -35,28 +37,61 @@ class _RequestListScreenState extends ConsumerState<RequestListScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncFiltersFromUri();
+  }
+
+  @override
   void dispose() {
     _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
+  void _syncFiltersFromUri() {
+    Uri uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } catch (_) {
+      return;
+    }
+    if (uri == _lastSyncedUri) return;
+    _lastSyncedUri = uri;
+
+    final parsed = RequestQueryParams.fromUri(uri).toFilters();
+    final current = ref.read(requestListControllerProvider).filters;
+    if (parsed == current) return;
+    ref.read(requestListControllerProvider.notifier).applyFilters(parsed);
+    if (_searchController.text != parsed.query) {
+      _searchController.text = parsed.query;
+    }
+  }
+
+  void _applyFilters(RequestListFilters filters) {
+    ref.read(requestListControllerProvider.notifier).applyFilters(filters);
+    context.updateRequestQuery(filters);
+  }
+
+  void _commitSearch(String query) {
+    final controller = ref.read(requestListControllerProvider.notifier);
+    controller.setSearchQuery(query);
+    controller.submitSearch();
+    context.updateRequestQuery(ref.read(requestListControllerProvider).filters);
+  }
+
   void _onSearchChanged(String query) {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 350), () {
       if (mounted) {
-        ref.read(requestListControllerProvider.notifier).setSearchQuery(query);
-        ref.read(requestListControllerProvider.notifier).submitSearch();
+        _commitSearch(query);
       }
     });
   }
 
   void _onSearchSubmitted() {
     _debounceTimer?.cancel();
-    ref
-        .read(requestListControllerProvider.notifier)
-        .setSearchQuery(_searchController.text.trim());
-    ref.read(requestListControllerProvider.notifier).submitSearch();
+    _commitSearch(_searchController.text.trim());
   }
 
   @override
@@ -89,16 +124,18 @@ class _RequestListScreenState extends ConsumerState<RequestListScreen> {
               key: const Key('request-filter-bar'),
               filters: listState.filters,
               searchController: _searchController,
-              onTypeChanged: (type) => controller.applyFilters(
+              onTypeChanged: (type) => _applyFilters(
                 listState.filters.copyWith(requestType: type),
               ),
-              onDirectionChanged: (dir) => controller.applyFilters(
+              onDirectionChanged: (dir) => _applyFilters(
                 listState.filters.copyWith(direction: dir),
               ),
-              onStateChanged: (state) => controller.applyFilters(
+              onStateChanged: (state) => _applyFilters(
                 listState.filters.copyWith(state: state),
               ),
-              onZeroOffersToggled: (val) => controller.toggleZeroOffers(val),
+              onZeroOffersToggled: (val) => _applyFilters(
+                listState.filters.copyWith(zeroOffersOnly: val ?? false),
+              ),
               onSearchSubmitted: _onSearchSubmitted,
               onSearchChanged: _onSearchChanged,
             ),

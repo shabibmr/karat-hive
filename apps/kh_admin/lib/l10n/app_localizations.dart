@@ -227,7 +227,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardSampleDataNotice.
   ///
   /// In en, this message translates to:
-  /// **'Indicative sample figures. The admin dashboard endpoint (GET /v1/admin/dashboard) is not implemented yet — no number below reflects live platform data.'**
+  /// **'Live platform figures from GET /v1/admin/dashboard. Queue rows snapshot verification, abuse reports, and pending reviews. Settlement is off-platform; GMV is not shown.'**
   String get dashboardSampleDataNotice;
 
   /// No description provided for @quickActionQueues.
@@ -2393,6 +2393,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get requestsDetailErrorRetry;
+
+  /// No description provided for @reportsEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'BUSINESS INTELLIGENCE'**
+  String get reportsEyebrow;
+
+  /// No description provided for @reportsHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform Analytics & Reports'**
+  String get reportsHeading;
+
+  /// No description provided for @reportsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Operational reports over a date range, filtered by Region and Category.'**
+  String get reportsSubtitle;
+
+  /// No description provided for @reportsIndicativeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Figures are indicative operational metrics, not settlement or GMV. Settlement happens off-platform. Units: AED, grams, karat/fineness. Timestamps display as Gulf Standard Time.'**
+  String get reportsIndicativeNote;
+
+  /// No description provided for @reportsTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Report type'**
+  String get reportsTypeLabel;
+
+  /// No description provided for @reportsTypeAcquisition.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer acquisition & retention'**
+  String get reportsTypeAcquisition;
+
+  /// No description provided for @reportsTypeVendorLeague.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor performance league'**
+  String get reportsTypeVendorLeague;
+
+  /// No description provided for @reportsTypeRequestVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Request volume'**
+  String get reportsTypeRequestVolume;
+
+  /// No description provided for @reportsTypeOfferCompetitiveness.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer competitiveness'**
+  String get reportsTypeOfferCompetitiveness;
+
+  /// No description provided for @reportsTypeFunnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Funnel conversion'**
+  String get reportsTypeFunnel;
+
+  /// No description provided for @reportsTypeLiquidityGaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Liquidity gaps'**
+  String get reportsTypeLiquidityGaps;
+
+  /// No description provided for @reportsTypeRatingDistribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating distribution'**
+  String get reportsTypeRatingDistribution;
+
+  /// No description provided for @reportsFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From (YYYY-MM-DD)'**
+  String get reportsFrom;
+
+  /// No description provided for @reportsTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To (YYYY-MM-DD)'**
+  String get reportsTo;
+
+  /// No description provided for @reportsRegionId.
+  ///
+  /// In en, this message translates to:
+  /// **'Region ID (optional)'**
+  String get reportsRegionId;
+
+  /// No description provided for @reportsCategoryId.
+  ///
+  /// In en, this message translates to:
+  /// **'Category ID (optional)'**
+  String get reportsCategoryId;
+
+  /// No description provided for @reportsApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get reportsApply;
+
+  /// No description provided for @reportsEmptyPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'No rows for this period. Try a different date range, Region, or Category.'**
+  String get reportsEmptyPeriod;
+
+  /// No description provided for @reportsEmptyChart.
+  ///
+  /// In en, this message translates to:
+  /// **'No chart data for this period.'**
+  String get reportsEmptyChart;
+
+  /// No description provided for @reportsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get reportsRetry;
+
+  /// No description provided for @reportsExportCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV'**
+  String get reportsExportCsv;
+
+  /// No description provided for @reportsExportXlsx.
+  ///
+  /// In en, this message translates to:
+  /// **'Export XLSX'**
+  String get reportsExportXlsx;
+
+  /// No description provided for @reportsExportPng.
+  ///
+  /// In en, this message translates to:
+  /// **'Export chart PNG'**
+  String get reportsExportPng;
+
+  /// No description provided for @reportsExportPurposeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export purpose'**
+  String get reportsExportPurposeTitle;
+
+  /// No description provided for @reportsExportPurposeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Required for the audit watermark (admin, timestamp, purpose).'**
+  String get reportsExportPurposeHint;
+
+  /// No description provided for @reportsExportPurposeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Purpose'**
+  String get reportsExportPurposeLabel;
+
+  /// No description provided for @reportsExportPurposeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Purpose is required.'**
+  String get reportsExportPurposeRequired;
+
+  /// No description provided for @reportsExportConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Start export'**
+  String get reportsExportConfirm;
+
+  /// No description provided for @reportsExportCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get reportsExportCancel;
+
+  /// No description provided for @reportsExportAsyncNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Exports over 50,000 rows are generated asynchronously and delivered as a time-limited download link. Personal-data exports are watermarked with admin, time, and purpose (NFR-016).'**
+  String get reportsExportAsyncNotice;
 }
 
 class _AppLocalizationsDelegate

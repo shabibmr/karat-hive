@@ -10,6 +10,7 @@ import '../../../core/design/widgets/kh_section_label.dart';
 import '../../../core/design/widgets/kh_status_chip.dart';
 import '../../../l10n/app_localizations.dart';
 import '../controller/dashboard_controller.dart';
+import '../model/dashboard_queue_item.dart';
 import '../model/dashboard_stats.dart';
 
 /// A metric tile on the dashboard.
@@ -66,67 +67,11 @@ const List<_DashboardMetric> _kPlaceholderMetrics = [
     route: '/connections',
   ),
   _DashboardMetric(
-    value: 'AED 4.2M',
-    label: 'Platform Statistics',
-    caption: 'Reports & Analytics →',
-    route: '/reports',
-    tintValue: true,
-  ),
-];
-
-/// A row in the Quick Action Queues table.
-class _QueueItem {
-  const _QueueItem({
-    required this.subject,
-    required this.reference,
-    required this.type,
-    required this.submitted,
-    required this.status,
-    required this.tone,
-    required this.actionLabel,
-    required this.route,
-  });
-
-  final String subject;
-  final String reference;
-  final String type;
-  final String submitted;
-  final String status;
-  final KhStatusTone tone;
-  final String actionLabel;
-  final String route;
-}
-
-const List<_QueueItem> _kSampleQueue = [
-  _QueueItem(
-    subject: 'Al Noor Jewellery LLC',
-    reference: 'CN-1092834',
-    type: 'KYC Verification',
-    submitted: '10 Aug 05:30',
-    status: 'PENDING',
-    tone: KhStatusTone.pending,
-    actionLabel: 'Review KYC',
+    value: '—',
+    label: 'KYC Queue',
+    caption: 'Verification Queue →',
     route: '/verification',
-  ),
-  _QueueItem(
-    subject: 'Report #AB-2026-081',
-    reference: 'Inappropriate quote',
-    type: 'Abuse Report',
-    submitted: '10 Aug 04:12',
-    status: 'HIGH PRIORITY',
-    tone: KhStatusTone.error,
-    actionLabel: 'Inspect',
-    route: '/abuse',
-  ),
-  _QueueItem(
-    subject: 'Review #REV-9912',
-    reference: 'By Fatima M.',
-    type: 'Review Moderation',
-    submitted: '09 Aug 22:40',
-    status: 'MODERATION',
-    tone: KhStatusTone.moderation,
-    actionLabel: 'Approve',
-    route: '/moderation',
+    tintValue: true,
   ),
 ];
 
@@ -173,20 +118,32 @@ List<_DashboardMetric> _buildMetrics(DashboardStats stats) {
       caption: 'Active Connections →',
       route: '/connections',
     ),
-    const _DashboardMetric(
-      value: 'AED 4.2M',
-      label: 'Platform Statistics',
-      caption: 'Reports & Analytics →',
-      route: '/reports',
+    _DashboardMetric(
+      value: _formatCount(stats.pendingVerificationVendors),
+      label: 'KYC Queue',
+      caption: 'Verification Queue →',
+      route: '/verification',
       tintValue: true,
     ),
   ];
 }
 
+KhStatusTone _toneForKind(DashboardQueueKind kind) {
+  switch (kind) {
+    case DashboardQueueKind.verification:
+      return KhStatusTone.pending;
+    case DashboardQueueKind.abuse:
+      return KhStatusTone.error;
+    case DashboardQueueKind.review:
+      return KhStatusTone.moderation;
+  }
+}
+
 /// ADM-S02 · Admin dashboard.
 ///
-/// Platform-health landing with live metric panels and actionable queue counts
-/// (`FR-ADM-003`–`FR-ADM-009`). Dynamically loads stats from `GET /v1/admin/dashboard`.
+/// Platform-health landing with live metric panels and queue snapshots
+/// (`FR-ADM-003`–`FR-ADM-009`). Stats from `GET /v1/admin/dashboard`; queues
+/// from verification / abuse / pending-review endpoints. No GMV (`BR-015`).
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -214,8 +171,8 @@ class DashboardScreen extends ConsumerWidget {
           SizedBox(height: spacing.lg),
           _IndicativeDataNotice(
             message: l10n?.dashboardSampleDataNotice ??
-                'Indicative figures synchronized with the admin dashboard endpoint '
-                    '(GET /v1/admin/dashboard). Platform analytics reflect operational metrics.',
+                'Live platform figures from GET /v1/admin/dashboard. Queue rows '
+                    'snapshot verification, abuse reports, and pending reviews.',
           ),
           SizedBox(height: spacing.lg),
           if (statsAsync.hasError) ...[
@@ -230,7 +187,7 @@ class DashboardScreen extends ConsumerWidget {
           SizedBox(height: spacing.xl),
           KhSectionLabel(l10n?.quickActionQueues ?? 'Quick Action Queues'),
           SizedBox(height: spacing.sm),
-          _QueueTable(l10n: l10n),
+          _QueueTable(l10n: l10n, itemsAsync: ref.watch(dashboardQueueProvider)),
         ],
       ),
     );
@@ -405,77 +362,100 @@ class _MetricGrid extends StatelessWidget {
 }
 
 class _QueueTable extends StatelessWidget {
-  const _QueueTable({required this.l10n});
+  const _QueueTable({
+    required this.l10n,
+    required this.itemsAsync,
+  });
 
   final AppLocalizations? l10n;
+  final AsyncValue<List<DashboardQueueItem>> itemsAsync;
 
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final items = itemsAsync.valueOrNull ?? const <DashboardQueueItem>[];
+    final isEmpty = !itemsAsync.isLoading && items.isEmpty;
 
-    return KhDataTable(
-      key: const Key('dashboard-queue-table'),
-      columns: [
-        KhTableColumn(l10n?.queueColumnItem ?? 'Queue Item', flex: 4),
-        KhTableColumn(l10n?.queueColumnType ?? 'Type', flex: 2),
-        KhTableColumn(l10n?.queueColumnSubmitted ?? 'Submitted', flex: 2),
-        KhTableColumn(l10n?.queueColumnStatus ?? 'Status', flex: 3),
-        KhTableColumn(l10n?.queueColumnAction ?? 'Action', flex: 2),
-      ],
-      minWidth: 720,
-      rows: [
-        for (final item in _kSampleQueue)
-          KhTableRow(
-            key: Key('queue-row-${item.route.substring(1)}'),
-            cells: [
-              RichText(
-                text: TextSpan(
-                  style: kh.typography.bodySmall
-                      .copyWith(color: kh.colors.textSecondary),
-                  children: [
-                    TextSpan(
-                      text: item.subject,
-                      style: kh.typography.bodySmall.copyWith(
-                        color: kh.colors.textPrimary,
-                        fontWeight: FontWeight.w700,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        KhDataTable(
+          key: const Key('dashboard-queue-table'),
+          columns: [
+            KhTableColumn(l10n?.queueColumnItem ?? 'Queue Item', flex: 4),
+            KhTableColumn(l10n?.queueColumnType ?? 'Type', flex: 2),
+            KhTableColumn(l10n?.queueColumnSubmitted ?? 'Submitted', flex: 2),
+            KhTableColumn(l10n?.queueColumnStatus ?? 'Status', flex: 3),
+            KhTableColumn(l10n?.queueColumnAction ?? 'Action', flex: 2),
+          ],
+          minWidth: 720,
+          rows: [
+            for (final item in items)
+              KhTableRow(
+                key: Key('queue-row-${item.kind.name}-${item.id}'),
+                cells: [
+                  RichText(
+                    text: TextSpan(
+                      style: kh.typography.bodySmall
+                          .copyWith(color: kh.colors.textSecondary),
+                      children: [
+                        TextSpan(
+                          text: item.subject,
+                          style: kh.typography.bodySmall.copyWith(
+                            color: kh.colors.textPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        TextSpan(text: '  (${item.reference})'),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    item.type,
+                    style: kh.typography.bodySmall
+                        .copyWith(color: kh.colors.textSecondary),
+                  ),
+                  Text(
+                    item.submittedLabel,
+                    style: kh.typography.bodySmall
+                        .copyWith(color: kh.colors.textMuted),
+                  ),
+                  KhStatusChip(
+                    label: item.status,
+                    tone: _toneForKind(item.kind),
+                    dense: true,
+                  ),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: OutlinedButton(
+                      onPressed: () => context.go(item.route),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: kh.spacing.sm,
+                          vertical: kh.spacing.xxs,
+                        ),
+                        minimumSize: Size(0, kh.spacing.buttonHeight - 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        item.actionLabel,
+                        style: kh.typography.caption
+                            .copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
-                    TextSpan(text: '  (${item.reference})'),
-                  ],
-                ),
-              ),
-              Text(
-                item.type,
-                style: kh.typography.bodySmall
-                    .copyWith(color: kh.colors.textSecondary),
-              ),
-              Text(
-                item.submitted,
-                style: kh.typography.bodySmall
-                    .copyWith(color: kh.colors.textMuted),
-              ),
-              KhStatusChip(label: item.status, tone: item.tone, dense: true),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: OutlinedButton(
-                  onPressed: () => context.go(item.route),
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: kh.spacing.sm,
-                      vertical: kh.spacing.xxs,
-                    ),
-                    minimumSize: Size(0, kh.spacing.buttonHeight - 8),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: Text(
-                    item.actionLabel,
-                    style: kh.typography.caption
-                        .copyWith(fontWeight: FontWeight.w600),
-                  ),
-                ),
+                ],
               ),
-            ],
+          ],
+        ),
+        if (isEmpty) ...[
+          SizedBox(height: kh.spacing.sm),
+          Text(
+            'No items in the action queues.',
+            key: const Key('dashboard-queue-empty'),
+            style: kh.typography.bodySmall.copyWith(color: kh.colors.textMuted),
           ),
+        ],
       ],
     );
   }

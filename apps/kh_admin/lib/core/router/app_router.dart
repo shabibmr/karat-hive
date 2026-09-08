@@ -17,6 +17,7 @@ import '../../features/connections/presentation/connection_list_screen.dart';
 import '../../features/customers/presentation/customer_detail_screen.dart';
 import '../../features/customers/presentation/customer_list_screen.dart';
 import '../../features/moderation/presentation/moderation_screen.dart';
+import '../../features/reports/presentation/reports_screen.dart';
 import '../../features/settings/presentation/platform_settings_screen.dart';
 import '../../features/offers/presentation/offer_detail_screen.dart';
 import '../../features/offers/presentation/offer_list_screen.dart';
@@ -196,6 +197,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/announcements',
             builder: (context, state) => const AnnouncementsScreen(),
           ),
+          GoRoute(
+            path: '/reports',
+            builder: (context, state) => const ReportsScreen(),
+          ),
           // Placeholder routes for navigation completeness
           ...kAdminNavItems
               .where((item) =>
@@ -213,7 +218,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   item.route != '/moderation' &&
                   item.route != '/admin-users' &&
                   item.route != '/settings' &&
-                  item.route != '/announcements')
+                  item.route != '/announcements' &&
+                  item.route != '/reports')
               .map(
                 (item) => GoRoute(
                   path: item.route,

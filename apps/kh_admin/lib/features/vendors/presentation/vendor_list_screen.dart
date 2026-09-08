@@ -8,6 +8,7 @@ import '../../../core/design/theme/kh_theme.dart';
 import '../../../core/design/widgets/kh_data_table.dart';
 import '../../../core/design/widgets/kh_screen_header.dart';
 import '../../../core/design/widgets/kh_status_chip.dart';
+import '../../../core/router/vendor_query_params.dart';
 import '../../../l10n/app_localizations.dart';
 import '../controller/vendor_list_controller.dart';
 import '../model/vendor_enums.dart';
@@ -25,6 +26,7 @@ class VendorListScreen extends ConsumerStatefulWidget {
 class _VendorListScreenState extends ConsumerState<VendorListScreen> {
   late final TextEditingController _searchController;
   Timer? _debounceTimer;
+  Uri? _lastSyncedUri;
 
   @override
   void initState() {
@@ -34,28 +36,61 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncFiltersFromUri();
+  }
+
+  @override
   void dispose() {
     _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
+  void _syncFiltersFromUri() {
+    Uri uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } catch (_) {
+      return;
+    }
+    if (uri == _lastSyncedUri) return;
+    _lastSyncedUri = uri;
+
+    final parsed = VendorQueryParams.fromUri(uri).toFilters();
+    final current = ref.read(vendorListControllerProvider).filters;
+    if (parsed == current) return;
+    ref.read(vendorListControllerProvider.notifier).applyFilters(parsed);
+    if (_searchController.text != parsed.query) {
+      _searchController.text = parsed.query;
+    }
+  }
+
+  void _applyFilters(VendorListFilters filters) {
+    ref.read(vendorListControllerProvider.notifier).applyFilters(filters);
+    context.updateVendorQuery(filters);
+  }
+
+  void _commitSearch(String query) {
+    final controller = ref.read(vendorListControllerProvider.notifier);
+    controller.setSearchQuery(query);
+    controller.submitSearch();
+    context.updateVendorQuery(ref.read(vendorListControllerProvider).filters);
+  }
+
   void _onSearchChanged(String query) {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 350), () {
       if (mounted) {
-        ref.read(vendorListControllerProvider.notifier).setSearchQuery(query);
-        ref.read(vendorListControllerProvider.notifier).submitSearch();
+        _commitSearch(query);
       }
     });
   }
 
   void _onSearchSubmitted() {
     _debounceTimer?.cancel();
-    ref
-        .read(vendorListControllerProvider.notifier)
-        .setSearchQuery(_searchController.text.trim());
-    ref.read(vendorListControllerProvider.notifier).submitSearch();
+    _commitSearch(_searchController.text.trim());
   }
 
   @override
@@ -88,10 +123,10 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
               key: const Key('vendor-filter-bar'),
               filters: listState.filters,
               searchController: _searchController,
-              onVerificationChanged: (value) => controller.applyFilters(
+              onVerificationChanged: (value) => _applyFilters(
                 listState.filters.copyWith(verificationState: value),
               ),
-              onAccountChanged: (value) => controller.applyFilters(
+              onAccountChanged: (value) => _applyFilters(
                 listState.filters.copyWith(accountState: value),
               ),
               onSearchSubmitted: _onSearchSubmitted,

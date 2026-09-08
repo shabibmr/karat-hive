@@ -100,6 +100,7 @@ const List<AdminNavItem> kAdminNavItems = [
     title: 'Reports & Analytics',
     icon: Icons.bar_chart_outlined,
     route: '/reports',
+    isLive: true,
   ),
   AdminNavItem(
     id: 'ADM-S18',

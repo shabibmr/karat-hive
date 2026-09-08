@@ -1,7 +1,7 @@
 # Admin App Completion — Task Register
 
 > **Source of truth**: [`Admin-App-Completion-Plan.md`](Admin-App-Completion-Plan.md)
-> **Branch**: `feat/admin-portal-on-main` (off `origin/main`)
+> **Branch**: `main` (completion work continues on `main`)
 > **Prefix**: `ADM-C-nn` (Admin completion). Slices `Backend-Implementation-Plan.md` `T`-IDs; does not renumber them.
 
 Legend: `[x]` done · `[~]` in progress · `[ ]` not started
@@ -17,15 +17,15 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 
 ## Slice 1 — Land the adapted verticals (ADM-S05–S11)
 
-- [ ] **ADM-C-10** Seed a local backend, dev auto-login, click through Vendors / Verification / Requests / Offers list+detail; fix live-data breakage; capture screenshots.
+- [ ] **ADM-C-10** Seed a local backend, dev auto-login, click through Vendors / Verification / Requests / Offers list+detail; fix live-data breakage; capture screenshots. *(blocked on live seed + browser; not this Flutter slice)*
 - [x] **ADM-C-11** `offers` + `requests` l10n — ~220 keys EN/AR, wired via `AppLocalizations`. Commit `6100943`.
-- [ ] **ADM-C-12** URL query-param state for `vendors` / `requests` / `offers` list filters (mirror `verification_query_params.dart`).
+- [x] **ADM-C-12** URL query-param state for `vendors` / `requests` / `offers` list filters (mirror `verification_query_params.dart`).
 - [x] **ADM-C-13** Removed orphaned ARB keys (`vendorsDetailStubBody`, `vendorsDetailComingSoon`). Commit `6100943`.
-- [ ] **ADM-C-14** Commit per vertical; open draft PR with GIF.
+- [ ] **ADM-C-14** Commit per vertical; open draft PR with GIF. *(commit on this slice; GIF/PR still open)*
 
 ## Slice 2 — Dashboard (ADM-S02)
 
-- [x] **ADM-C-20** Replace `dashboard_screen.dart` sample data with `GET /v1/admin/dashboard`; keep responsive layout; loading / error / empty states.
+- [x] **ADM-C-20** Replace `dashboard_screen.dart` sample data with `GET /v1/admin/dashboard`; keep responsive layout; loading / error / empty states. Live queue snapshots (verification / abuse / pending reviews); KYC count tile replaces fake AED 4.2M.
 
 ## Group A — list/detail pattern, backend ready
 
@@ -49,8 +49,8 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 ## Group D — heaviest (reports & analytics)
 
 - ~~ADM-C-60, ADM-C-61~~ — **withdrawn**: gold-rate config (ADM-S20) descoped from this effort (Yahoo Finance redistribution terms open; retained in SRS §7.4 / ui-screens/admin/ADM-S20).
-- [ ] **ADM-C-62** Introduce a charting library into `kh_admin` (evaluate; none present).
-- [ ] **ADM-C-63** ADM-S17 reports & analytics — `GET /v1/admin/reports/:name` (7 types), `POST /v1/admin/exports` + poll `GET /v1/admin/exports/:id`; charts + results table + export flow.
+- [x] **ADM-C-62** Introduce a charting library into `kh_admin` — `fl_chart` (MIT, Flutter Web).
+- [x] **ADM-C-63** ADM-S17 reports & analytics — `GET /v1/admin/reports/:name` (7 types), `POST /v1/admin/exports` + poll `GET /v1/admin/exports/:id`; charts + results table + export flow. Client-side CSV fallback (backend download route still missing).
 
 ## Backend follow-ups (raise as `G2-*`)
 

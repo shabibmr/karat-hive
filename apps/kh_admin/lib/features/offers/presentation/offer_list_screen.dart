@@ -8,6 +8,7 @@ import '../../../core/design/theme/kh_theme.dart';
 import '../../../core/design/widgets/kh_data_table.dart';
 import '../../../core/design/widgets/kh_screen_header.dart';
 import '../../../core/design/widgets/kh_status_chip.dart';
+import '../../../core/router/offer_query_params.dart';
 import '../../../l10n/app_localizations.dart';
 import '../controller/offer_list_controller.dart';
 import '../model/offer_enums.dart';
@@ -25,6 +26,7 @@ class OfferListScreen extends ConsumerStatefulWidget {
 class _OfferListScreenState extends ConsumerState<OfferListScreen> {
   late final TextEditingController _searchController;
   Timer? _debounceTimer;
+  Uri? _lastSyncedUri;
 
   @override
   void initState() {
@@ -34,28 +36,61 @@ class _OfferListScreenState extends ConsumerState<OfferListScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncFiltersFromUri();
+  }
+
+  @override
   void dispose() {
     _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
+  void _syncFiltersFromUri() {
+    Uri uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } catch (_) {
+      return;
+    }
+    if (uri == _lastSyncedUri) return;
+    _lastSyncedUri = uri;
+
+    final parsed = OfferQueryParams.fromUri(uri).toFilters();
+    final current = ref.read(offerListControllerProvider).filters;
+    if (parsed == current) return;
+    ref.read(offerListControllerProvider.notifier).applyFilters(parsed);
+    if (_searchController.text != parsed.query) {
+      _searchController.text = parsed.query;
+    }
+  }
+
+  void _applyFilters(OfferListFilters filters) {
+    ref.read(offerListControllerProvider.notifier).applyFilters(filters);
+    context.updateOfferQuery(filters);
+  }
+
+  void _commitSearch(String query) {
+    final controller = ref.read(offerListControllerProvider.notifier);
+    controller.setSearchQuery(query);
+    controller.submitSearch();
+    context.updateOfferQuery(ref.read(offerListControllerProvider).filters);
+  }
+
   void _onSearchChanged(String query) {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 350), () {
       if (mounted) {
-        ref.read(offerListControllerProvider.notifier).setSearchQuery(query);
-        ref.read(offerListControllerProvider.notifier).submitSearch();
+        _commitSearch(query);
       }
     });
   }
 
   void _onSearchSubmitted() {
     _debounceTimer?.cancel();
-    ref
-        .read(offerListControllerProvider.notifier)
-        .setSearchQuery(_searchController.text.trim());
-    ref.read(offerListControllerProvider.notifier).submitSearch();
+    _commitSearch(_searchController.text.trim());
   }
 
   @override
@@ -88,10 +123,10 @@ class _OfferListScreenState extends ConsumerState<OfferListScreen> {
               key: const Key('offer-filter-bar'),
               filters: listState.filters,
               searchController: _searchController,
-              onStateChanged: (value) => controller.applyFilters(
+              onStateChanged: (value) => _applyFilters(
                 listState.filters.copyWith(state: value),
               ),
-              onTypeChanged: (value) => controller.applyFilters(
+              onTypeChanged: (value) => _applyFilters(
                 listState.filters.copyWith(requestType: value),
               ),
               onSearchSubmitted: _onSearchSubmitted,

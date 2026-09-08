@@ -9,6 +9,7 @@ import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/auth/session_state.dart';
 import 'package:kh_admin/core/auth/token_storage.dart';
 import 'package:kh_admin/core/design/theme/kh_colors.dart';
+import 'package:kh_admin/features/dashboard/model/dashboard_queue_item.dart';
 import 'package:kh_admin/features/dashboard/model/dashboard_stats.dart';
 import 'package:kh_admin/features/dashboard/repository/dashboard_repository.dart';
 import 'package:kh_admin/main.dart';
@@ -34,6 +35,17 @@ class _FakeDashboardRepository implements DashboardRepository {
       activeConnections: 30,
     );
   }
+
+  @override
+  Future<List<DashboardQueueItem>> fetchVerificationSnapshot() async =>
+      const [];
+
+  @override
+  Future<List<DashboardQueueItem>> fetchAbuseSnapshot() async => const [];
+
+  @override
+  Future<List<DashboardQueueItem>> fetchPendingReviewsSnapshot() async =>
+      const [];
 }
 
 /// Stands in for the backend during the dev auto-login test: a real

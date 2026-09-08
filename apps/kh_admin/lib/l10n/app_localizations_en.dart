@@ -77,7 +77,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardSampleDataNotice =>
-      'Indicative sample figures. The admin dashboard endpoint (GET /v1/admin/dashboard) is not implemented yet — no number below reflects live platform data.';
+      'Live platform figures from GET /v1/admin/dashboard. Queue rows snapshot verification, abuse reports, and pending reviews. Settlement is off-platform; GMV is not shown.';
 
   @override
   String get quickActionQueues => 'Quick Action Queues';
@@ -1309,4 +1309,99 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get requestsDetailErrorRetry => 'Retry';
+
+  @override
+  String get reportsEyebrow => 'BUSINESS INTELLIGENCE';
+
+  @override
+  String get reportsHeading => 'Platform Analytics & Reports';
+
+  @override
+  String get reportsSubtitle =>
+      'Operational reports over a date range, filtered by Region and Category.';
+
+  @override
+  String get reportsIndicativeNote =>
+      'Figures are indicative operational metrics, not settlement or GMV. Settlement happens off-platform. Units: AED, grams, karat/fineness. Timestamps display as Gulf Standard Time.';
+
+  @override
+  String get reportsTypeLabel => 'Report type';
+
+  @override
+  String get reportsTypeAcquisition => 'Customer acquisition & retention';
+
+  @override
+  String get reportsTypeVendorLeague => 'Vendor performance league';
+
+  @override
+  String get reportsTypeRequestVolume => 'Request volume';
+
+  @override
+  String get reportsTypeOfferCompetitiveness => 'Offer competitiveness';
+
+  @override
+  String get reportsTypeFunnel => 'Funnel conversion';
+
+  @override
+  String get reportsTypeLiquidityGaps => 'Liquidity gaps';
+
+  @override
+  String get reportsTypeRatingDistribution => 'Rating distribution';
+
+  @override
+  String get reportsFrom => 'From (YYYY-MM-DD)';
+
+  @override
+  String get reportsTo => 'To (YYYY-MM-DD)';
+
+  @override
+  String get reportsRegionId => 'Region ID (optional)';
+
+  @override
+  String get reportsCategoryId => 'Category ID (optional)';
+
+  @override
+  String get reportsApply => 'Apply';
+
+  @override
+  String get reportsEmptyPeriod =>
+      'No rows for this period. Try a different date range, Region, or Category.';
+
+  @override
+  String get reportsEmptyChart => 'No chart data for this period.';
+
+  @override
+  String get reportsRetry => 'Retry';
+
+  @override
+  String get reportsExportCsv => 'Export CSV';
+
+  @override
+  String get reportsExportXlsx => 'Export XLSX';
+
+  @override
+  String get reportsExportPng => 'Export chart PNG';
+
+  @override
+  String get reportsExportPurposeTitle => 'Export purpose';
+
+  @override
+  String get reportsExportPurposeHint =>
+      'Required for the audit watermark (admin, timestamp, purpose).';
+
+  @override
+  String get reportsExportPurposeLabel => 'Purpose';
+
+  @override
+  String get reportsExportPurposeRequired => 'Purpose is required.';
+
+  @override
+  String get reportsExportConfirm => 'Start export';
+
+  @override
+  String get reportsExportCancel => 'Cancel';
+
+  @override
+  String get reportsExportAsyncNotice =>
+      'Exports over 50,000 rows are generated asynchronously and delivered as a time-limited download link. Personal-data exports are watermarked with admin, time, and purpose (NFR-016).';
 }

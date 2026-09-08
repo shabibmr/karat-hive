@@ -77,7 +77,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dashboardSampleDataNotice =>
-      'أرقام إرشادية للعرض فقط. لم يتم تنفيذ نقطة نهاية لوحة التحكم الإدارية (GET /v1/admin/dashboard) بعد — ولا يعكس أي رقم أدناه بيانات المنصة الفعلية.';
+      'أرقام المنصة الحية من GET /v1/admin/dashboard. صفوف قوائم الإجراءات لقطات من التحقق وبلاغات الإساءة والمراجعات المعلقة. التسوية تتم خارج المنصة؛ ولا يُعرض حجم التداول.';
 
   @override
   String get quickActionQueues => 'قوائم الإجراءات السريعة';
@@ -1301,4 +1301,99 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get requestsDetailErrorRetry => 'إعادة المحاولة';
+
+  @override
+  String get reportsEyebrow => 'ذكاء الأعمال';
+
+  @override
+  String get reportsHeading => 'تحليلات وتقارير المنصة';
+
+  @override
+  String get reportsSubtitle =>
+      'تقارير تشغيلية عبر فترة زمنية، مع التصفية حسب المنطقة والفئة.';
+
+  @override
+  String get reportsIndicativeNote =>
+      'الأرقام مؤشرات تشغيلية وليست تسوية أو قيمة صفقات. تتم التسوية خارج المنصة. الوحدات: درهم، غرام، قيراط/نقاء. تُعرض الطوابع الزمنية بتوقيت الخليج.';
+
+  @override
+  String get reportsTypeLabel => 'نوع التقرير';
+
+  @override
+  String get reportsTypeAcquisition => 'اكتساب العملاء والاحتفاظ بهم';
+
+  @override
+  String get reportsTypeVendorLeague => 'ترتيب أداء التجار';
+
+  @override
+  String get reportsTypeRequestVolume => 'حجم الطلبات';
+
+  @override
+  String get reportsTypeOfferCompetitiveness => 'تنافسية العروض';
+
+  @override
+  String get reportsTypeFunnel => 'تحويل مسار التعامل';
+
+  @override
+  String get reportsTypeLiquidityGaps => 'فجوات السيولة';
+
+  @override
+  String get reportsTypeRatingDistribution => 'توزيع التقييمات';
+
+  @override
+  String get reportsFrom => 'من (YYYY-MM-DD)';
+
+  @override
+  String get reportsTo => 'إلى (YYYY-MM-DD)';
+
+  @override
+  String get reportsRegionId => 'معرّف المنطقة (اختياري)';
+
+  @override
+  String get reportsCategoryId => 'معرّف الفئة (اختياري)';
+
+  @override
+  String get reportsApply => 'تطبيق';
+
+  @override
+  String get reportsEmptyPeriod =>
+      'لا توجد صفوف لهذه الفترة. جرّب نطاقاً زمنياً أو منطقة أو فئة مختلفة.';
+
+  @override
+  String get reportsEmptyChart => 'لا توجد بيانات للرسم البياني في هذه الفترة.';
+
+  @override
+  String get reportsRetry => 'إعادة المحاولة';
+
+  @override
+  String get reportsExportCsv => 'تصدير CSV';
+
+  @override
+  String get reportsExportXlsx => 'تصدير XLSX';
+
+  @override
+  String get reportsExportPng => 'تصدير الرسم PNG';
+
+  @override
+  String get reportsExportPurposeTitle => 'غرض التصدير';
+
+  @override
+  String get reportsExportPurposeHint =>
+      'مطلوب لعلامة التدقيق المائية (المسؤول، الوقت، الغرض).';
+
+  @override
+  String get reportsExportPurposeLabel => 'الغرض';
+
+  @override
+  String get reportsExportPurposeRequired => 'الغرض مطلوب.';
+
+  @override
+  String get reportsExportConfirm => 'بدء التصدير';
+
+  @override
+  String get reportsExportCancel => 'إلغاء';
+
+  @override
+  String get reportsExportAsyncNotice =>
+      'عمليات التصدير التي تتجاوز 50,000 صف تُنشأ بشكل غير متزامن وتُسلَّم عبر رابط تنزيل محدود زمنياً. صادرات البيانات الشخصية تُوسَم بعلامة مائية تتضمن المسؤول والوقت والغرض (NFR-016).';
 }
