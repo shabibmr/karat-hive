@@ -54,6 +54,24 @@ const acceptedOfferConnectionInclude = {
   },
 } as const;
 
+/**
+ * SAM-GAP-1 / CBG-01: presenter-time unread-Offer badge. Filtered relation count of
+ * offers that are still PENDING and not yet marked viewed by the Customer. No
+ * denormalised column — mirrors the acceptedOfferConnectionInclude join approach.
+ */
+const unreadOfferCountInclude = {
+  _count: {
+    select: {
+      offers: {
+        where: {
+          state: 'PENDING' as const,
+          viewedByCustomerAt: null,
+        },
+      },
+    },
+  },
+} satisfies Prisma.RequestInclude;
+
 @Injectable()
 export class RequestRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -126,6 +144,7 @@ export class RequestRepository {
           orderBy: { createdAt: 'desc' },
         },
         ...acceptedOfferConnectionInclude,
+        ...unreadOfferCountInclude,
       },
     }) as Promise<FullPrismaRequest | null>;
   }
@@ -151,6 +170,7 @@ export class RequestRepository {
           orderBy: { createdAt: 'desc' },
         },
         ...acceptedOfferConnectionInclude,
+        ...unreadOfferCountInclude,
       },
     }) as Promise<FullPrismaRequest | null>;
   }
@@ -187,6 +207,7 @@ export class RequestRepository {
           orderBy: { createdAt: 'desc' },
         },
         ...acceptedOfferConnectionInclude,
+        ...unreadOfferCountInclude,
       },
     }) as Promise<FullPrismaRequest>;
   }
@@ -257,6 +278,7 @@ export class RequestRepository {
           orderBy: { displayOrder: 'asc' },
         },
         ...acceptedOfferConnectionInclude,
+        ...unreadOfferCountInclude,
       },
     })) as FullPrismaRequest[];
 

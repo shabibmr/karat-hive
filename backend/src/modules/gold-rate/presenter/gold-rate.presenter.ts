@@ -7,6 +7,9 @@ export const DISPLAY_NOT_LICENSED = 'DISPLAY_NOT_LICENSED' as const;
 
 export type DisplayNotLicensedPayload = {
   available: false;
+  // CBG-02: carried on every /v1/gold-rates shape so the create screens
+  // (CUS-S04–S07) never infer staleness from timestamps.
+  stale: true;
   reason: typeof DISPLAY_NOT_LICENSED;
 };
 
@@ -56,7 +59,7 @@ export function disclaimerFor(lang: 'en' | 'ar'): string {
 }
 
 export function presentDisplayNotLicensed(): DisplayNotLicensedPayload {
-  return { available: false, reason: DISPLAY_NOT_LICENSED };
+  return { available: false, stale: true, reason: DISPLAY_NOT_LICENSED };
 }
 
 export function presentSnapshot(

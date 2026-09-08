@@ -472,10 +472,16 @@ export class OfferRepository {
     return { items, nextCursor };
   }
 
+  /**
+   * CBG-03: first-write-wins (`viewedByCustomerAt: null` guard) and a no-op on
+   * terminal offers (`state: 'PENDING'` guard). Ownership is enforced by the
+   * caller in OfferService. Safe to call on every offer-detail open / list render.
+   */
   async markOfferViewedByCustomer(offerId: string, now: Date): Promise<void> {
     await this.prisma.offer.updateMany({
       where: {
         id: offerId,
+        state: 'PENDING',
         viewedByCustomerAt: null,
       },
       data: {

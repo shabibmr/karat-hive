@@ -1,6 +1,7 @@
 import 'offer.dart';
 import 'party.dart';
 import 'request.dart';
+import 'review.dart';
 
 enum ConnectionState {
   active,
@@ -154,6 +155,7 @@ class ConnectionForCustomer {
     this.offerId,
     this.requestId,
     this.createdAt,
+    this.myReview,
   });
 
   final String id;
@@ -168,6 +170,7 @@ class ConnectionForCustomer {
   final String? offerId;
   final String? requestId;
   final DateTime? createdAt;
+  final Review? myReview;
 
   static ConnectionForCustomer fromJson(Map<String, dynamic> j) {
     final accepted = j['acceptedOffer'] ?? j['offer'];
@@ -189,6 +192,24 @@ class ConnectionForCustomer {
       offerId: j['offerId'] as String?,
       requestId: j['requestId'] as String?,
       createdAt: _dt(j['createdAt']),
+      myReview: j['myReview'] is Map
+          ? Review.fromJson(Map<String, dynamic>.from(j['myReview'] as Map))
+          : null,
+    );
+  }
+}
+
+/// `POST /v1/offers/{id}/accept` success body.
+class AcceptOfferResult {
+  const AcceptOfferResult({required this.offer, required this.connection});
+
+  final OfferForCustomer offer;
+  final ConnectionForCustomer connection;
+
+  static AcceptOfferResult fromJson(Map<String, dynamic> j) {
+    return AcceptOfferResult(
+      offer: OfferForCustomer.fromJson(_map(j['offer'])),
+      connection: ConnectionForCustomer.fromJson(_map(j['connection'])),
     );
   }
 }

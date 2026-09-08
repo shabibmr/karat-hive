@@ -124,6 +124,30 @@ describe('request.presenter', () => {
     expect(findIdentityKey(presented)).toBeNull();
   });
 
+  it('surfaces unreadOfferCount from the filtered _count relation (SAM-GAP-1 / CBG-01)', () => {
+    const presented = presentRequestForCustomer({
+      ...mockFullRequest,
+      state: 'OFFERS_RECEIVED',
+      offerCount: 3,
+      _count: { offers: 3 },
+    });
+    expect(presented.offerCount).toBe(3);
+    expect(presented.unreadOfferCount).toBe(3);
+
+    const afterOneViewed = presentRequestForCustomer({
+      ...mockFullRequest,
+      state: 'OFFERS_RECEIVED',
+      offerCount: 3,
+      _count: { offers: 2 },
+    });
+    expect(afterOneViewed.unreadOfferCount).toBe(2);
+  });
+
+  it('defaults unreadOfferCount to 0 when the _count relation is absent', () => {
+    const presented = presentRequestForCustomer(mockFullRequest);
+    expect(presented.unreadOfferCount).toBe(0);
+  });
+
   it('omits connectionId unless state is ACCEPTED', () => {
     const presented = presentRequestForCustomer({
       ...mockFullRequest,

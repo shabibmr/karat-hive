@@ -184,7 +184,7 @@
   "authVerify": "تحقق",
   "authOtpTab": "الجوال والرمز",
   "authPasswordTab": "البريد وكلمة المرور",
-  "authSignInFailed": "فشل تسجيل الدخول.",
+  "authSignInFailed": "تعذّر تسجيل الدخول. تحقّق من اتصالك وحاول مرة أخرى.",
   "authContinue": "متابعة",
   "authBackToSignIn": "العودة لتسجيل الدخول",
   "authOtpSentMobile": "أرسلنا رمزاً إلى رقم جوالك.",
@@ -267,5 +267,34 @@
   "connectionIdentityRevealedAt": "كُشف الهوية في",
   "connectionAcceptedTerms": "شروط العرض المقبول",
   "connectionLeaveFeedback": "ترك تقييم",
-  "connectionReport": "إبلاغ"
+  "connectionReport": "إبلاغ",
+  "authWelcomeTitle": "مرحبًا بك في كارات هايف",
+  "authWelcomeSubtitle": "اطلب الذهب بطريقتك — اشترِ المشغولات، أو بِع الذهب القديم، أو اطلب العملات والسبائك. سجّل الدخول للبدء.",
+  "authContinueWithGoogle": "المتابعة عبر Google",
+  "authSigningIn": "جارٍ تسجيل الدخول…",
+  "authBiometricUnlock": "الفتح بالمقاييس الحيوية",
+  "authBiometricUnlockHint": "استخدم بصمة الوجه أو الإصبع على هذا الجهاز بدلاً من تسجيل الدخول مرة أخرى.",
+  "authLockoutTitle": "لا يمكنك تسجيل الدخول",
+  "authLockoutHelp": "تواصل مع الدعم إذا كنت تعتقد أن هذا خطأ.",
+  "authCompleteProfileTitle": "أكمل إعداد حسابك",
+  "authCompleteProfileSubtitle": "خطوة أخيرة. أكّد اسمك وتحقّق من رقم جوال حتى يتمكّن التجّار من التواصل معك عبر واتساب.",
+  "authDisplayNameLabel": "اسمك",
+  "authOtpSentTo": "أرسلنا رمزًا مكوّنًا من 6 أرقام إلى {mobile}",
+  "@authOtpSentTo": {
+    "placeholders": {
+      "mobile": {
+        "type": "String"
+      }
+    }
+  },
+  "authAcceptTerms": "أوافق على شروط الخدمة وسياسة الخصوصية",
+  "authAcceptTermsRequired": "وافق على شروط الخدمة وسياسة الخصوصية للمتابعة.",
+  "authViewTerms": "شروط الخدمة",
+  "authViewPrivacy": "سياسة الخصوصية",
+  "authChangeNumber": "تغيير الرقم",
+  "authCreateAccount": "إنشاء حساب",
+  "authVerifyAndContinue": "تحقّق وتابع",
+  "authPublishGateTitle": "تحقّق عبر Google للنشر",
+  "authPublishGateBody": "يتطلّب نشر الطلب تحقّقًا لمرة واحدة عبر Google. أما التصفّح وإنشاء مسودة الطلب فلا يتطلّبان ذلك.",
+  "authPublishGateAction": "تحقّق عبر Google"
 }

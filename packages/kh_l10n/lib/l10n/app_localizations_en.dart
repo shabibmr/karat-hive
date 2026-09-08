@@ -568,7 +568,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPasswordTab => 'Email & password';
 
   @override
-  String get authSignInFailed => 'Sign in failed.';
+  String get authSignInFailed =>
+      'Could not sign in. Check your connection and try again.';
 
   @override
   String get authContinue => 'Continue';
@@ -853,4 +854,79 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connectionReport => 'Report';
+
+  @override
+  String get authWelcomeTitle => 'Welcome to Karat Hive';
+
+  @override
+  String get authWelcomeSubtitle =>
+      'Request gold your way — buy ornaments, sell old gold, or order coins and bullion. Sign in to get started.';
+
+  @override
+  String get authContinueWithGoogle => 'Continue with Google';
+
+  @override
+  String get authSigningIn => 'Signing in…';
+
+  @override
+  String get authBiometricUnlock => 'Unlock with biometrics';
+
+  @override
+  String get authBiometricUnlockHint =>
+      'Use Face ID or fingerprint on this device instead of signing in again.';
+
+  @override
+  String get authLockoutTitle => 'You can\'t sign in';
+
+  @override
+  String get authLockoutHelp =>
+      'Contact support if you think this is a mistake.';
+
+  @override
+  String get authCompleteProfileTitle => 'Finish setting up your account';
+
+  @override
+  String get authCompleteProfileSubtitle =>
+      'One more step. Confirm your name and verify a mobile number so vendors can reach you on WhatsApp.';
+
+  @override
+  String get authDisplayNameLabel => 'Your name';
+
+  @override
+  String authOtpSentTo(String mobile) {
+    return 'We sent a 6-digit code to $mobile';
+  }
+
+  @override
+  String get authAcceptTerms =>
+      'I accept the Terms of Service and the Privacy Policy';
+
+  @override
+  String get authAcceptTermsRequired =>
+      'Accept the Terms of Service and Privacy Policy to continue.';
+
+  @override
+  String get authViewTerms => 'Terms of Service';
+
+  @override
+  String get authViewPrivacy => 'Privacy Policy';
+
+  @override
+  String get authChangeNumber => 'Change number';
+
+  @override
+  String get authCreateAccount => 'Create account';
+
+  @override
+  String get authVerifyAndContinue => 'Verify and continue';
+
+  @override
+  String get authPublishGateTitle => 'Verify with Google to publish';
+
+  @override
+  String get authPublishGateBody =>
+      'Publishing a request needs a one-time Google verification. Browsing and drafting a request do not.';
+
+  @override
+  String get authPublishGateAction => 'Verify with Google';
 }

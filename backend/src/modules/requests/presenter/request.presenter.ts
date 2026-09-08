@@ -84,6 +84,12 @@ export type RequestBaseDto = {
 };
 
 export type RequestForCustomer = RequestBaseDto & {
+  /**
+   * SAM-GAP-1 / CBG-01: presenter-time aggregate — offers on this Request that are
+   * still PENDING and have not been marked viewed (`POST /v1/offers/{id}/viewed`).
+   * Drives the CUS-S02 per-Request badge and the CUS-S11 list-level count.
+   */
+  unreadOfferCount: number;
   gemstones?: Record<string, unknown>;
   cancellationReason?: string;
   acceptedOfferId?: string;
@@ -144,6 +150,8 @@ export type FullPrismaRequest = Request & {
   media: Array<RequestMedia & { media: Media }>;
   offers?: Offer[];
   acceptedOffer?: AcceptedOfferConnectionJoin | null;
+  /** Filtered relation count for SAM-GAP-1: PENDING & unviewed offers. */
+  _count?: { offers: number } | null;
 };
 
 /**
@@ -230,6 +238,7 @@ export function presentRequestForCustomer(
     publishedAt: request.publishedAt?.toISOString(),
     expiresAt: request.expiresAt?.toISOString(),
     offerCount: request.offerCount,
+    unreadOfferCount: request._count?.offers ?? 0,
     media: mediaList,
     createdAt: request.createdAt.toISOString(),
     updatedAt: request.updatedAt.toISOString(),

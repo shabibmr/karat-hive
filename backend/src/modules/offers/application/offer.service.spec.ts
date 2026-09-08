@@ -281,4 +281,50 @@ describe('OfferService', () => {
       expect(res.state).toBe('REJECTED');
     });
   });
+
+  describe('markOfferViewed (CBG-03)', () => {
+    const pendingOffer = {
+      id: 'offer-1',
+      requestId: 'req-1',
+      vendorProfileId: 'vendor-1',
+      state: 'PENDING',
+      viewedByCustomerAt: null,
+    } as unknown as Awaited<ReturnType<typeof repo.findOfferById>>;
+
+    it('lets the owning customer mark an offer viewed (delegates first-write-wins to the repo)', async () => {
+      vi.mocked(repo.findOfferById).mockResolvedValueOnce(pendingOffer);
+
+      await service.markOfferViewed(customerViewer, 'offer-1');
+
+      expect(repo.markOfferViewedByCustomer).toHaveBeenCalledWith('offer-1', mockNow);
+    });
+
+    it('rejects a vendor caller with FORBIDDEN', async () => {
+      await expect(service.markOfferViewed(vendorViewer, 'offer-1')).rejects.toMatchObject({
+        errorCode: 'FORBIDDEN',
+      });
+      expect(repo.markOfferViewedByCustomer).not.toHaveBeenCalled();
+    });
+
+    it('returns NOT_FOUND when a different customer calls', async () => {
+      vi.mocked(repo.findOfferById).mockResolvedValueOnce(pendingOffer);
+      const otherCustomer: ViewerContext = {
+        ...customerViewer,
+        customerProfileId: 'cust-2',
+      };
+
+      await expect(service.markOfferViewed(otherCustomer, 'offer-1')).rejects.toMatchObject({
+        errorCode: 'NOT_FOUND',
+      });
+      expect(repo.markOfferViewedByCustomer).not.toHaveBeenCalled();
+    });
+
+    it('returns NOT_FOUND for an unknown offer', async () => {
+      vi.mocked(repo.findOfferById).mockResolvedValueOnce(null);
+
+      await expect(service.markOfferViewed(customerViewer, 'missing')).rejects.toMatchObject({
+        errorCode: 'NOT_FOUND',
+      });
+    });
+  });
 });

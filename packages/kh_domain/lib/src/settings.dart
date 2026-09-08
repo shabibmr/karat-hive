@@ -1,3 +1,34 @@
+class AccountDeletionRequest {
+  const AccountDeletionRequest({
+    required this.id,
+    required this.state,
+    required this.createdAt,
+    this.challengeId,
+    this.expiresAt,
+    this.retryAfterSeconds,
+  });
+
+  final String id;
+  final String state;
+  final DateTime createdAt;
+  final String? challengeId;
+  final DateTime? expiresAt;
+  final int? retryAfterSeconds;
+
+  static AccountDeletionRequest fromJson(Map<String, dynamic> j) =>
+      AccountDeletionRequest(
+        id: j['id'] as String,
+        state: j['state'] as String? ?? 'QUEUED',
+        createdAt: DateTime.tryParse(j['createdAt'] as String? ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0),
+        challengeId: j['challengeId'] as String?,
+        expiresAt: j['expiresAt'] is String
+            ? DateTime.tryParse(j['expiresAt'] as String)
+            : null,
+        retryAfterSeconds: (j['retryAfterSeconds'] as num?)?.toInt(),
+      );
+}
+
 class QuietHours {
   const QuietHours({
     required this.start,

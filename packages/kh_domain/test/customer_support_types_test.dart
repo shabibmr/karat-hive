@@ -42,7 +42,8 @@ void main() {
     test('parses acknowledgement and entity types', () {
       expect(AbuseEntityType.parse('OFFER'), AbuseEntityType.offer);
       expect(AbuseEntityType.parse('CONNECTION'), AbuseEntityType.connection);
-      expect(AbuseEntityType.parse('VENDOR'), AbuseEntityType.unknown);
+      expect(AbuseEntityType.parse('VENDOR'), AbuseEntityType.vendor);
+      expect(AbuseEntityType.parse('CUSTOMER'), AbuseEntityType.customer);
       final ack = AbuseReport.fromJson({
         'id': 'ab-1',
         'state': 'OPEN',

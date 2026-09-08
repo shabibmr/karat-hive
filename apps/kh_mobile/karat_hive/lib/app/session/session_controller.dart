@@ -21,12 +21,41 @@ class SignedOut extends SessionState {
   const SignedOut();
 }
 
+/// Google identity is signed in, but no Karat Hive user exists yet (401 UNAUTHENTICATED).
+class UnboundGoogle extends SessionState {
+  const UnboundGoogle();
+}
+
+/// Google/session refused with an account-state error and no usable MeUser.
+class AuthBlocked extends SessionState {
+  const AuthBlocked(this.failure);
+  final Failure failure;
+}
+
 class SignedIn extends SessionState {
   const SignedIn(this.user);
   final MeUser user;
 
+  /// Authenticated account role — drives the role gate (`SH-SHELL-04`,
+  /// Architecture-Frontend §7.2). `null` for a discriminator with no mobile
+  /// shell (e.g. `ADMIN`); the gate treats that as a session to reject.
+  UserRole? get role => user.role;
+
+  bool get isCustomer => role == UserRole.customer;
+
+  bool get isVendor => role == UserRole.vendor;
+
+  bool get isCustomerBlocked =>
+      isCustomer &&
+      (user.accountState == AccountState.suspended ||
+          user.accountState == AccountState.deactivated);
+
+  /// Vendor routing only. Customer sessions must not fall through to this.
   VendorLifecycle get vendorLifecycle =>
       user.vendor?.lifecycle ?? VendorLifecycle.unknown;
+
+  /// Customer profile block, present only on a Customer session.
+  CustomerMe? get customerProfile => user.customer;
 }
 
 /// Keep-alive session provider: tokens, current user, vendor lifecycle
@@ -86,9 +115,18 @@ class SessionController extends Notifier<SessionState> {
           await _storage.save(bundle.tokens);
           state = SignedIn(bundle.user);
         },
-        err: (_) async {
-          // Unbound Google identity — no KH account yet. Clear any stale tokens.
+        err: (failure) async {
           await _storage.clear();
+          final code = failure.code;
+          if (code == 'ACCOUNT_SUSPENDED' || code == 'ACCOUNT_DEACTIVATED') {
+            state = AuthBlocked(failure);
+            return;
+          }
+          // Unbound Google identity — no KH account yet (401 UNAUTHENTICATED).
+          if (failure is UnauthorisedFailure) {
+            state = const UnboundGoogle();
+            return;
+          }
           state = const SignedOut();
         },
       );
