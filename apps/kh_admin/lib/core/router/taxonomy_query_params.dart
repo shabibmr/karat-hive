@@ -69,7 +69,7 @@ extension TaxonomyQueryNavigation on BuildContext {
       );
 
       go(newUri.toString());
-    } catch (_) {
+    } on Object catch (_) {
       // Safe fallback when executed outside a GoRouter context (e.g. isolated widget tests)
     }
   }

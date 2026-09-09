@@ -1,5 +1,5 @@
-import 'vendor_enums.dart';
-import '../../verification/model/vendor_verification_detail.dart';
+import 'package:kh_admin/features/vendors/model/vendor_enums.dart';
+import 'package:kh_admin/features/verification/model/vendor_verification_detail.dart';
 
 /// Full vendor profile data model for ADM-S06.
 class VendorDetail {

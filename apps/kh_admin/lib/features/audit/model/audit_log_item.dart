@@ -81,7 +81,7 @@ class AuditLogItem {
       if (value is String) {
         try {
           return jsonDecode(value);
-        } catch (_) {
+        } on Object catch (_) {
           return value;
         }
       }

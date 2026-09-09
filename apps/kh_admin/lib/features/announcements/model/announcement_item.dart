@@ -1,4 +1,4 @@
-import 'announcement_enums.dart';
+import 'package:kh_admin/features/announcements/model/announcement_enums.dart';
 
 /// Per-announcement delivery and open metrics.
 class DispatchStats {

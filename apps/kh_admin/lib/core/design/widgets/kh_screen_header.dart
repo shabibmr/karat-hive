@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme/kh_theme.dart';
-import 'kh_section_label.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
 
 /// Standard admin screen header: gold eyebrow, display heading, optional
 /// supporting line, and a trailing slot for a status chip or primary action.

@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/connection_enums.dart';
-import '../model/connection_list_filters.dart';
-import '../model/connection_list_item.dart';
-import '../repository/connection_repository.dart';
+import 'package:kh_admin/features/connections/model/connection_enums.dart';
+import 'package:kh_admin/features/connections/model/connection_list_filters.dart';
+import 'package:kh_admin/features/connections/model/connection_list_item.dart';
+import 'package:kh_admin/features/connections/repository/connection_repository.dart';
 
 /// State of the ADM-S12 Connection List table.
 class ConnectionListState {

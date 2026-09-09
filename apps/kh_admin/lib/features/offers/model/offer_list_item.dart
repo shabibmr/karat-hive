@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'offer_enums.dart';
+import 'package:kh_admin/features/offers/model/offer_enums.dart';
 
 part 'offer_list_item.freezed.dart';
 part 'offer_list_item.g.dart';

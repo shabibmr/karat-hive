@@ -1,8 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/offers/model/offer_enums.dart';
-import '../../features/offers/model/offer_list_filters.dart';
+import 'package:kh_admin/features/offers/model/offer_enums.dart';
+import 'package:kh_admin/features/offers/model/offer_list_filters.dart';
+import 'package:kh_admin/core/router/query_navigation.dart';
 
 /// Offer list query state encoded in URL query parameters (AD-FE §16.2).
 class OfferQueryParams {
@@ -129,18 +130,7 @@ class OfferQueryParams {
 /// Extension on [BuildContext] for updating offer list query parameters.
 extension OfferQueryNavigation on BuildContext {
   void updateOfferQuery(OfferListFilters filters) {
-    try {
-      final routerState = GoRouterState.of(this);
-      final updated = OfferQueryParams.fromFilters(filters).toQueryParameters();
-      if (_stringMapsEqual(routerState.uri.queryParameters, updated)) return;
-
-      final newUri = updated.isEmpty
-          ? routerState.uri.replace(queryParameters: const <String, String>{})
-          : routerState.uri.replace(queryParameters: updated);
-      go(newUri.toString());
-    } catch (_) {
-      // Safe fallback when executed outside a GoRouter context (e.g. widget tests)
-    }
+    applyQueryParameters(OfferQueryParams.fromFilters(filters).toQueryParameters());
   }
 }
 
@@ -172,12 +162,4 @@ DateTime? _parseDate(String? raw) {
 double? _parseDecimal(String? raw) {
   if (raw == null || raw.isEmpty) return null;
   return double.tryParse(raw);
-}
-
-bool _stringMapsEqual(Map<String, String> a, Map<String, String> b) {
-  if (a.length != b.length) return false;
-  for (final entry in b.entries) {
-    if (a[entry.key] != entry.value) return false;
-  }
-  return true;
 }

@@ -1,4 +1,4 @@
-import 'moderation_enums.dart';
+import 'package:kh_admin/features/moderation/model/moderation_enums.dart';
 
 class ModerationFilters {
   const ModerationFilters({

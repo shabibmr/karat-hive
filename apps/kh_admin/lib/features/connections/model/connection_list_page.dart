@@ -1,4 +1,4 @@
-import 'connection_list_item.dart';
+import 'package:kh_admin/features/connections/model/connection_list_item.dart';
 
 /// Cursor-paginated slice of connections for ADM-S12.
 class ConnectionListPage {

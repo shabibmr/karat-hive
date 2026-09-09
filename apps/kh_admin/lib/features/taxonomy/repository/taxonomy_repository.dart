@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/taxonomy_dto.dart';
-import '../model/taxonomy_kind.dart';
-import '../model/taxonomy_node.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_dto.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_kind.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_node.dart';
 
 /// Typed repository wrapping [ApiClient] for the 8 Admin Taxonomy endpoints:
 /// - GET /v1/admin/categories

@@ -1,17 +1,17 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_data_table.dart';
-import '../../../core/design/widgets/kh_metric_card.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../controller/moderation_controller.dart';
-import '../model/moderation_enums.dart';
-import '../model/moderation_filters.dart';
-import '../model/moderation_review_item.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/features/moderation/controller/moderation_controller.dart';
+import 'package:kh_admin/features/moderation/model/moderation_enums.dart';
+import 'package:kh_admin/features/moderation/model/moderation_filters.dart';
+import 'package:kh_admin/features/moderation/model/moderation_review_item.dart';
+import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S16 · Review moderation queue — Hold-for-approval queue for reviews and vendor responses.
 class ModerationScreen extends ConsumerStatefulWidget {
@@ -21,9 +21,8 @@ class ModerationScreen extends ConsumerStatefulWidget {
   ConsumerState<ModerationScreen> createState() => _ModerationScreenState();
 }
 
-class _ModerationScreenState extends ConsumerState<ModerationScreen> {
+class _ModerationScreenState extends ConsumerState<ModerationScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
-  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -34,23 +33,18 @@ class _ModerationScreenState extends ConsumerState<ModerationScreen> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   void _onSearchChanged(String query) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 350), () {
-      if (mounted) {
-        ref.read(moderationListControllerProvider.notifier).setSearchQuery(query);
-        ref.read(moderationListControllerProvider.notifier).submitSearch();
-      }
+    debounceSearch(() {
+      ref.read(moderationListControllerProvider.notifier).setSearchQuery(query);
+      ref.read(moderationListControllerProvider.notifier).submitSearch();
     });
   }
 
   void _onSearchSubmitted() {
-    _debounceTimer?.cancel();
     ref.read(moderationListControllerProvider.notifier).setSearchQuery(_searchController.text.trim());
     ref.read(moderationListControllerProvider.notifier).submitSearch();
   }

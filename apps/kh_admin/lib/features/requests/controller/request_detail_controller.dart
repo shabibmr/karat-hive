@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/request_detail.dart';
-import '../repository/request_repository.dart';
+import 'package:kh_admin/features/requests/model/request_detail.dart';
+import 'package:kh_admin/features/requests/repository/request_repository.dart';
 
 /// Riverpod family async notifier managing request inspection and admin actions (ADM-S09).
 class RequestDetailController extends FamilyAsyncNotifier<RequestDetail, String> {

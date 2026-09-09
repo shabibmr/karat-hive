@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/request_detail.dart';
-import '../model/request_list_filters.dart';
-import '../model/request_list_item.dart';
-import '../model/request_list_page.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/requests/model/request_detail.dart';
+import 'package:kh_admin/features/requests/model/request_list_filters.dart';
+import 'package:kh_admin/features/requests/model/request_list_item.dart';
+import 'package:kh_admin/features/requests/model/request_list_page.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 
 /// Typed repository for Admin Request management (ADM-S08, ADM-S09, API-Route-Inventory §21.5).
 class RequestRepository {
@@ -76,7 +77,7 @@ class RequestRepository {
     final nextCursor = meta?['nextCursor']?.toString();
     // No totalCount/total in the admin envelope; hasMore is derived purely from
     // the presence of a next cursor.
-    final hasMore = nextCursor != null && nextCursor.isNotEmpty;
+    final hasMore = hasMoreFromCursor(nextCursor);
     final totalCount = (meta?['totalCount'] ?? meta?['total']) as int?;
 
     return RequestListPage(

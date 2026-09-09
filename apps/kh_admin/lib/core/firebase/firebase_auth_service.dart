@@ -4,23 +4,28 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:kh_admin/core/log/kh_logger.dart';
+import 'package:kh_admin/core/log/kh_logger_provider.dart';
 
 class FirebaseAuthService {
   FirebaseAuthService({
     FirebaseAuth? auth,
     GoogleSignIn? googleSignIn,
+    KhLogger? logger,
   })  : _customAuth = auth,
-        _customGoogleSignIn = googleSignIn;
+        _customGoogleSignIn = googleSignIn,
+        _logger = logger ?? const KhLogger();
 
   final FirebaseAuth? _customAuth;
   final GoogleSignIn? _customGoogleSignIn;
+  final KhLogger _logger;
   static bool _googleSignInInitialized = false;
 
   FirebaseAuth? get _auth {
     if (_customAuth != null) return _customAuth;
     try {
       return FirebaseAuth.instance;
-    } catch (_) {
+    } on Object catch (_) {
       return null;
     }
   }
@@ -29,7 +34,7 @@ class FirebaseAuthService {
     if (_customGoogleSignIn != null) return _customGoogleSignIn;
     try {
       return GoogleSignIn.instance;
-    } catch (_) {
+    } on Object catch (_) {
       return null;
     }
   }
@@ -71,14 +76,14 @@ class FirebaseAuthService {
 
       final credential = GoogleAuthProvider.credential(idToken: idToken);
       return await auth.signInWithCredential(credential);
-    } on GoogleSignInException catch (e) {
+    } on GoogleSignInException catch (e, st) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
         return null;
       }
-      debugPrint('Google Sign-In exception: $e');
+      _logger.error('Google Sign-In exception', e, st);
       rethrow;
-    } catch (e, st) {
-      debugPrint('Error signing in with Google: $e\n$st');
+    } on Object catch (e, st) {
+      _logger.error('Error signing in with Google', e, st);
       rethrow;
     }
   }
@@ -99,15 +104,16 @@ class FirebaseAuthService {
       if (_auth != null) futures.add(_auth!.signOut());
       if (_googleSignIn != null) futures.add(_googleSignIn!.signOut());
       await Future.wait(futures);
-    } catch (e) {
-      debugPrint('Error signing out: $e');
+    } on Object catch (e, st) {
+      _logger.error('Error signing out', e, st);
       rethrow;
     }
   }
 }
 
 final firebaseAuthServiceProvider = Provider<FirebaseAuthService>((ref) {
-  return FirebaseAuthService();
+  final logger = ref.watch(khLoggerProvider);
+  return FirebaseAuthService(logger: logger);
 });
 
 final firebaseUserProvider = StreamProvider<User?>((ref) {

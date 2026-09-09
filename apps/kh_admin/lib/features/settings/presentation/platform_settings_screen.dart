@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_data_table.dart';
-import '../../../core/design/widgets/kh_metric_card.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../controller/platform_settings_controller.dart';
-import '../model/platform_setting_item.dart';
-import '../model/platform_settings_state.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/features/settings/controller/platform_settings_controller.dart';
+import 'package:kh_admin/features/settings/model/platform_setting_item.dart';
+import 'package:kh_admin/features/settings/model/platform_settings_state.dart';
 
 /// ADM-S19 Platform Settings screen.
 /// Surfaces global operational parameters, timeouts, trading constraints, and media limits.
@@ -684,7 +684,7 @@ class _EditSettingDialogState extends ConsumerState<_EditSettingDialog> {
         item.dataType == 'string[]') {
       try {
         return jsonDecode(rawText);
-      } catch (_) {
+      } on Object catch (_) {
         return rawText;
       }
     }
@@ -712,7 +712,7 @@ class _EditSettingDialogState extends ConsumerState<_EditSettingDialog> {
         item.dataType == 'string[]') {
       try {
         jsonDecode(val.trim());
-      } catch (e) {
+      } on Object catch (e) {
         return 'Invalid JSON format: ${e.toString()}';
       }
     } else {

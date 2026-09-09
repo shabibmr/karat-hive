@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'kh_colors.dart';
-import 'kh_shapes.dart';
-import 'kh_spacing.dart';
-import 'kh_typography.dart';
+import 'package:kh_admin/core/design/theme/kh_colors.dart';
+import 'package:kh_admin/core/design/theme/kh_shapes.dart';
+import 'package:kh_admin/core/design/theme/kh_spacing.dart';
+import 'package:kh_admin/core/design/theme/kh_typography.dart';
 
 /// Aggregated design theme extension.
 /// Exposes `context.kh.colors`, `context.kh.typography`, `context.kh.spacing`, `context.kh.shapes`.

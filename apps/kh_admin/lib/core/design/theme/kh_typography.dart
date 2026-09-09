@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'kh_colors.dart';
+import 'package:kh_admin/core/design/theme/kh_colors.dart';
 
 /// Admin-density typography tokens matching Karat_Hive_UI_Design_Context.md §12.
 /// Clear, legible typography hierarchy tailored for data-dense admin workflows.

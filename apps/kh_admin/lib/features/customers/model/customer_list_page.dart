@@ -1,4 +1,4 @@
-import 'customer_list_item.dart';
+import 'package:kh_admin/features/customers/model/customer_list_item.dart';
 
 /// Cursor-paginated slice of the admin customer list.
 class CustomerListPage {

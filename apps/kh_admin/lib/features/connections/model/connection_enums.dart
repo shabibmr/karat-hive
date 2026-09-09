@@ -1,4 +1,4 @@
-import '../../../core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
 
 /// Connection state machine (`ConnectionState` in Prisma).
 ///

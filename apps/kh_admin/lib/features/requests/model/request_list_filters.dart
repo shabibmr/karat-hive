@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'request_enums.dart';
+import 'package:kh_admin/features/requests/model/request_enums.dart';
 
 part 'request_list_filters.freezed.dart';
 

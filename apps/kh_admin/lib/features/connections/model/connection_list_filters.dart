@@ -1,4 +1,4 @@
-import 'connection_enums.dart';
+import 'package:kh_admin/features/connections/model/connection_enums.dart';
 
 /// Filter criteria for ADM-S12 Connection List.
 class ConnectionListFilters {

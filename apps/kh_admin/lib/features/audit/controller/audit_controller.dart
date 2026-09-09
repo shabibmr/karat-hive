@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/audit_log_filters.dart';
-import '../model/audit_log_item.dart';
-import '../repository/audit_repository.dart';
+import 'package:kh_admin/features/audit/model/audit_log_filters.dart';
+import 'package:kh_admin/features/audit/model/audit_log_item.dart';
+import 'package:kh_admin/features/audit/repository/audit_repository.dart';
 
 /// State object for the ADM-S22 audit log viewer.
 class AuditState {

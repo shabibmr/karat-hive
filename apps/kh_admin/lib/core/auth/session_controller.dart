@@ -2,11 +2,11 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../firebase/firebase_auth_service.dart';
-import 'auth_repository.dart';
-import 'dev_auth.dart';
-import 'session_state.dart';
-import 'token_storage.dart';
+import 'package:kh_admin/core/firebase/firebase_auth_service.dart';
+import 'package:kh_admin/core/auth/auth_repository.dart';
+import 'package:kh_admin/core/auth/dev_auth.dart';
+import 'package:kh_admin/core/auth/session_state.dart';
+import 'package:kh_admin/core/auth/token_storage.dart';
 
 /// Riverpod StateNotifier managing the admin user session, token persistence,
 /// and silent 401 token refresh.
@@ -79,7 +79,7 @@ class SessionController extends StateNotifier<SessionState> {
         admin: bundle.user,
         clearError: true,
       );
-    } catch (_) {
+    } on Object catch (_) {
       // Unbound Google identity — Admin must already exist; no auto-provision.
       await _tokenStorage.clearTokens();
       state = state.copyWith(
@@ -111,7 +111,7 @@ class SessionController extends StateNotifier<SessionState> {
           status: SessionStatus.authenticated,
           admin: me,
         );
-      } catch (_) {
+      } on Object catch (_) {
         // Access token might be expired, attempt one-shot refresh
         final refreshed = await silentRefresh();
         if (refreshed) {
@@ -124,7 +124,7 @@ class SessionController extends StateNotifier<SessionState> {
           await logout();
         }
       }
-    } catch (_) {
+    } on Object catch (_) {
       state = state.copyWith(status: SessionStatus.unauthenticated);
     }
   }
@@ -141,7 +141,7 @@ class SessionController extends StateNotifier<SessionState> {
     try {
       await login(_devAuth.email, _devAuth.password);
       return state.isAuthenticated;
-    } catch (_) {
+    } on Object catch (_) {
       return false;
     }
   }
@@ -158,7 +158,7 @@ class SessionController extends StateNotifier<SessionState> {
         admin: bundle.user,
         clearError: true,
       );
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         status: SessionStatus.unauthenticated,
         errorMessage: e.toString(),
@@ -196,7 +196,7 @@ class SessionController extends StateNotifier<SessionState> {
       );
       completer.complete(true);
       return true;
-    } catch (_) {
+    } on Object catch (_) {
       completer.complete(false);
       await logout();
       return false;
@@ -216,7 +216,7 @@ class SessionController extends StateNotifier<SessionState> {
     );
     try {
       await _authRepository.logout(currentTokens?.refreshToken);
-    } catch (_) {
+    } on Object catch (_) {
       // Ignore API logout errors on teardown
     } finally {
       await _tokenStorage.clearTokens();

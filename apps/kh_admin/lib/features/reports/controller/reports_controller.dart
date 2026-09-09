@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_exception.dart';
-import '../model/export_job.dart';
-import '../model/report_filters.dart';
-import '../model/report_name.dart';
-import '../model/report_result.dart';
-import '../repository/reports_repository.dart';
+import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/features/reports/model/export_job.dart';
+import 'package:kh_admin/features/reports/model/report_filters.dart';
+import 'package:kh_admin/features/reports/model/report_name.dart';
+import 'package:kh_admin/features/reports/model/report_result.dart';
+import 'package:kh_admin/features/reports/repository/reports_repository.dart';
 
 class ReportsState {
   const ReportsState({
@@ -77,7 +77,7 @@ class ReportsController extends StateNotifier<ReportsState> {
         isLoading: false,
         result: result,
       );
-    } catch (error) {
+    } on Object catch (error) {
       state = state.copyWith(
         isLoading: false,
         clearResult: true,
@@ -150,7 +150,7 @@ class ReportsController extends StateNotifier<ReportsState> {
         return true;
       }
       return false;
-    } catch (error) {
+    } on Object catch (error) {
       state = state.copyWith(
         isExporting: false,
         lastExportStatus: ExportJobStatus.failed,

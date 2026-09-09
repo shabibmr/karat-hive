@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_data_table.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_section_label.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../controller/customer_detail_controller.dart';
-import '../model/customer_detail.dart';
-import '../model/customer_enums.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/features/customers/controller/customer_detail_controller.dart';
+import 'package:kh_admin/features/customers/model/customer_detail.dart';
+import 'package:kh_admin/features/customers/model/customer_enums.dart';
 
 /// ADM-S04 · Customer detail screen — full customer record, request history,
 /// admin internal notes, and lifecycle controls (suspend, reactivate, erasure).
@@ -435,7 +435,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                 key: const Key('customer-erasure-button'),
                 onPressed: () => _promptErasureDialog(context, kh, detail),
                 icon: const Icon(Icons.delete_forever, size: 18),
-                label: const Text('Request GDPR Erasure'),
+                label: const Text('Request data erasure'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: kh.colors.error,
                   side: BorderSide(color: kh.colors.error),
@@ -897,7 +897,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
           children: [
             Icon(Icons.warning_amber_rounded, color: kh.colors.error, size: 24),
             SizedBox(width: kh.spacing.xs),
-            Text('Confirm GDPR Erasure', style: kh.typography.title),
+            Text('Confirm data erasure', style: kh.typography.title),
           ],
         ),
         content: SizedBox(

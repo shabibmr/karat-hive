@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'offer_list_item.dart';
+import 'package:kh_admin/features/offers/model/offer_list_item.dart';
 
 part 'offer_list_page.freezed.dart';
 

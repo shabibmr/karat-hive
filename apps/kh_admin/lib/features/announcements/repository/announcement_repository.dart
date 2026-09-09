@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/announcement_filters.dart';
-import '../model/announcement_item.dart';
-import '../model/announcement_page.dart';
-import '../model/create_announcement_dto.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/announcements/model/announcement_filters.dart';
+import 'package:kh_admin/features/announcements/model/announcement_item.dart';
+import 'package:kh_admin/features/announcements/model/announcement_page.dart';
+import 'package:kh_admin/features/announcements/model/create_announcement_dto.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 
 final announcementRepositoryProvider = Provider<AnnouncementRepository>((ref) {
   final client = ref.watch(apiClientProvider);
@@ -44,7 +45,7 @@ class AnnouncementRepository {
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = nextCursor != null && nextCursor.isNotEmpty;
+    final hasMore = hasMoreFromCursor(nextCursor);
 
     return AnnouncementPage(
       items: items,

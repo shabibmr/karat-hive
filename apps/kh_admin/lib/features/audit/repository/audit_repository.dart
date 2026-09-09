@@ -2,10 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/audit_log_filters.dart';
-import '../model/audit_log_item.dart';
-import '../model/audit_log_page.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/audit/model/audit_log_filters.dart';
+import 'package:kh_admin/features/audit/model/audit_log_item.dart';
+import 'package:kh_admin/features/audit/model/audit_log_page.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 
 /// Typed repository for `GET /v1/admin/audit-log` (ADM-S22).
 ///
@@ -44,7 +45,7 @@ class AuditRepository {
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = nextCursor != null && nextCursor.isNotEmpty;
+    final hasMore = hasMoreFromCursor(nextCursor);
 
     return AuditLogPage(
       items: items,
@@ -60,7 +61,7 @@ class AuditRepository {
       if (value is String) {
         try {
           return jsonDecode(value);
-        } catch (_) {
+        } on Object catch (_) {
           return value;
         }
       }

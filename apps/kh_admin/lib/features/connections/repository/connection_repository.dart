@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/connection_detail.dart';
-import '../model/connection_list_filters.dart';
-import '../model/connection_list_item.dart';
-import '../model/connection_list_page.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/connections/model/connection_detail.dart';
+import 'package:kh_admin/features/connections/model/connection_list_filters.dart';
+import 'package:kh_admin/features/connections/model/connection_list_item.dart';
+import 'package:kh_admin/features/connections/model/connection_list_page.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 
 /// Typed repository for `/v1/admin/connections` (ADM-S12, ADM-S13).
 class ConnectionRepository {
@@ -40,7 +41,7 @@ class ConnectionRepository {
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = nextCursor != null && nextCursor.isNotEmpty;
+    final hasMore = hasMoreFromCursor(nextCursor);
 
     return ConnectionListPage(
       items: items,
@@ -109,7 +110,7 @@ class ConnectionRepository {
     final response = await _apiClient.get('/v1/admin/connections/$connectionId/notes');
     if (response is List) {
       return response
-          .whereType<Map>()
+          .whereType<Map<dynamic, dynamic>>()
           .map((e) => ConnectionAdminNote.fromJson(Map<String, dynamic>.from(e)))
           .toList(growable: false);
     }
@@ -121,17 +122,17 @@ class ConnectionRepository {
   // ---------------------------------------------------------------------------
 
   Map<String, dynamic> _normalizeConnectionListRow(Map<String, dynamic> raw) {
-    final request = _asMap(raw['request']);
-    final customerProfile = _asMap(request['customerProfile']);
-    final customerUser = _asMap(customerProfile['user']);
+    final request = asMap(raw['request']);
+    final customerProfile = asMap(request['customerProfile']);
+    final customerUser = asMap(customerProfile['user']);
 
-    final offer = _asMap(raw['offer']);
-    final vendorProfile = _asMap(offer['vendorProfile']);
+    final offer = asMap(raw['offer']);
+    final vendorProfile = asMap(offer['vendorProfile']);
 
     final contactEventsRaw = raw['contactEvents'];
     final contactEvents = contactEventsRaw is List
         ? contactEventsRaw
-            .whereType<Map>()
+            .whereType<Map<dynamic, dynamic>>()
             .map((e) => Map<String, dynamic>.from(e))
             .toList(growable: false)
         : const <Map<String, dynamic>>[];
@@ -150,7 +151,7 @@ class ConnectionRepository {
     }
 
     final countRaw = raw['_count'] is Map
-        ? _asMap(raw['_count'])['contactEvents']
+        ? asMap(raw['_count'])['contactEvents']
         : null;
     final countFromCountObj = countRaw is num
         ? countRaw.toInt()
@@ -173,7 +174,7 @@ class ConnectionRepository {
       'requestType': request['requestType'] ?? raw['requestType'],
       'customerName': _customerName(customerProfile, customerUser, raw),
       'vendorName': _vendorName(vendorProfile, raw),
-      'agreedPriceAed': _toDouble(offer['offeredPrice'] ?? raw['agreedPriceAed']),
+      'agreedPriceAed': toDouble(offer['offeredPrice'] ?? raw['agreedPriceAed']),
       'state': raw['state'],
       'contactEventsCount': contactEventsCount,
       'lastContactAt': lastContactStr,
@@ -238,17 +239,7 @@ class ConnectionRepository {
     return true;
   }
 
-  Map<String, dynamic> _asMap(dynamic value) {
-    if (value is Map<String, dynamic>) return value;
-    if (value is Map) return Map<String, dynamic>.from(value);
-    return const <String, dynamic>{};
-  }
 
-  double _toDouble(dynamic value, [double fallback = 0.0]) {
-    if (value == null) return fallback;
-    if (value is num) return value.toDouble();
-    return double.tryParse(value.toString()) ?? fallback;
-  }
 }
 
 final Provider<ConnectionRepository> connectionRepositoryProvider =

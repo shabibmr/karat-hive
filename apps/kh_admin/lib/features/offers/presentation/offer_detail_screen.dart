@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../../../l10n/app_localizations.dart';
-import '../controller/offer_detail_controller.dart';
-import '../model/offer_detail.dart';
-import '../model/offer_enums.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/offers/controller/offer_detail_controller.dart';
+import 'package:kh_admin/features/offers/model/offer_detail.dart';
+import 'package:kh_admin/features/offers/model/offer_enums.dart';
 
 /// ADM-S11 · Offer detail — Full offer terms, revisions, state history, and unmasked parties.
 class OfferDetailScreen extends ConsumerStatefulWidget {

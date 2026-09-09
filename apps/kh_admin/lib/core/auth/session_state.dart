@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'auth_models.dart';
+import 'package:kh_admin/core/auth/auth_models.dart';
 
 enum SessionStatus {
   initial,

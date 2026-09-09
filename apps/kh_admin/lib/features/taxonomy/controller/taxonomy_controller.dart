@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/taxonomy_dto.dart';
-import '../model/taxonomy_kind.dart';
-import '../model/taxonomy_node.dart';
-import '../repository/taxonomy_repository.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_dto.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_kind.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_node.dart';
+import 'package:kh_admin/features/taxonomy/repository/taxonomy_repository.dart';
 
 /// Riverpod [FamilyAsyncNotifier] managing taxonomy tree state for Categories and Regions.
 /// Supports optimistic updates, rollback on network failure, and cache invalidation (AD-FE-09).
@@ -49,7 +49,7 @@ class TaxonomyController
       // Invalidate and reload authoritative server state
       await reload();
       return created;
-    } catch (e, st) {
+    } on Object catch (e, st) {
       // Rollback optimistic update on error
       state = previousState;
       state = AsyncValue.error(e, st);
@@ -82,7 +82,7 @@ class TaxonomyController
       final updated = await repository.updateNode(arg, id, dto);
       await reload();
       return updated;
-    } catch (e, st) {
+    } on Object catch (e, st) {
       state = previousState;
       state = AsyncValue.error(e, st);
       rethrow;
@@ -107,7 +107,7 @@ class TaxonomyController
       final deactivated = await repository.deactivateNode(arg, id);
       await reload();
       return deactivated;
-    } catch (e, st) {
+    } on Object catch (e, st) {
       state = previousState;
       state = AsyncValue.error(e, st);
       rethrow;

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/offer_detail.dart';
-import '../repository/offer_repository.dart';
+import 'package:kh_admin/features/offers/model/offer_detail.dart';
+import 'package:kh_admin/features/offers/repository/offer_repository.dart';
 
 /// Riverpod family notifier managing offer inspection and adding admin notes (ADM-S11).
 class OfferDetailController

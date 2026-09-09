@@ -1,18 +1,18 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_data_table.dart';
-import '../../../core/design/widgets/kh_metric_card.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../controller/announcement_controller.dart';
-import '../model/announcement_enums.dart';
-import '../model/announcement_filters.dart';
-import '../model/announcement_item.dart';
-import '../model/create_announcement_dto.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/features/announcements/controller/announcement_controller.dart';
+import 'package:kh_admin/features/announcements/model/announcement_enums.dart';
+import 'package:kh_admin/features/announcements/model/announcement_filters.dart';
+import 'package:kh_admin/features/announcements/model/announcement_item.dart';
+import 'package:kh_admin/features/announcements/model/create_announcement_dto.dart';
+import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S18 · Announcement Composer — Broadcast system alerts and marketing notifications.
 class AnnouncementsScreen extends ConsumerStatefulWidget {
@@ -22,9 +22,8 @@ class AnnouncementsScreen extends ConsumerStatefulWidget {
   ConsumerState<AnnouncementsScreen> createState() => _AnnouncementsScreenState();
 }
 
-class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
+class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
-  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -35,23 +34,18 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   void _onSearchChanged(String query) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 350), () {
-      if (mounted) {
-        ref.read(announcementListControllerProvider.notifier).setSearchQuery(query);
-        ref.read(announcementListControllerProvider.notifier).submitSearch();
-      }
+    debounceSearch(() {
+      ref.read(announcementListControllerProvider.notifier).setSearchQuery(query);
+      ref.read(announcementListControllerProvider.notifier).submitSearch();
     });
   }
 
   void _onSearchSubmitted() {
-    _debounceTimer?.cancel();
     ref
         .read(announcementListControllerProvider.notifier)
         .setSearchQuery(_searchController.text.trim());
@@ -904,7 +898,7 @@ class _ComposeAnnouncementDialogState extends State<_ComposeAnnouncementDialog>
     try {
       await widget.onSubmit(dto);
       if (mounted) Navigator.of(context).pop();
-    } catch (e) {
+    } on Object catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;

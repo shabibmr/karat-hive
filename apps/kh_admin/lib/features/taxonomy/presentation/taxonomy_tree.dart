@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../../../core/router/taxonomy_query_params.dart';
-import '../../../l10n/app_localizations.dart';
-import '../model/taxonomy_kind.dart';
-import '../model/taxonomy_node.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/core/router/taxonomy_query_params.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_kind.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_node.dart';
 
 /// 2-Level Expandable Taxonomy Tree View (SH-ADM-14).
 /// Renders hierarchical category and region trees with expand/collapse,

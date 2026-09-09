@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_exception.dart';
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../l10n/app_localizations.dart';
-import '../controller/verification_controller.dart';
+import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/verification/controller/verification_controller.dart';
 
 /// Shows the [ApproveVerificationDialog]. Returns true if approval was submitted successfully.
 Future<bool?> showApproveVerificationDialog({
@@ -96,7 +96,7 @@ class _ApproveVerificationDialogState
       if (mounted) {
         Navigator.of(context).pop(true);
       }
-    } catch (e) {
+    } on Object catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;
@@ -257,7 +257,7 @@ class _RejectVerificationDialogState
       if (mounted) {
         Navigator.of(context).pop(true);
       }
-    } catch (e) {
+    } on Object catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;
@@ -431,7 +431,7 @@ class _RequestInfoDialogState extends ConsumerState<RequestInfoDialog> {
       if (mounted) {
         Navigator.of(context).pop(true);
       }
-    } catch (e) {
+    } on Object catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;

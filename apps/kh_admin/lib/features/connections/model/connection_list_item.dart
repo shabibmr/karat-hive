@@ -1,4 +1,4 @@
-import 'connection_enums.dart';
+import 'package:kh_admin/features/connections/model/connection_enums.dart';
 
 /// Single item in the ADM-S12 Connection List table.
 class ConnectionListItem {

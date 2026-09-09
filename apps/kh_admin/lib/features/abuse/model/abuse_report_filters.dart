@@ -1,4 +1,4 @@
-import 'abuse_report_enums.dart';
+import 'package:kh_admin/features/abuse/model/abuse_report_enums.dart';
 
 class AbuseReportFilters {
   const AbuseReportFilters({

@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../../../core/platform/open_url.dart';
-import '../model/export_job.dart';
-import '../model/report_filters.dart';
-import '../model/report_name.dart';
-import '../model/report_result.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/platform/open_url.dart';
+import 'package:kh_admin/features/reports/model/export_job.dart';
+import 'package:kh_admin/features/reports/model/report_filters.dart';
+import 'package:kh_admin/features/reports/model/report_name.dart';
+import 'package:kh_admin/features/reports/model/report_result.dart';
 
 typedef UrlOpener = void Function(String url);
 
@@ -22,12 +22,18 @@ class ReportsRepository {
     this._apiClient, {
     this.openUrl = openUrlInNewTab,
     this.pollInterval = const Duration(milliseconds: 400),
-    this.maxPolls = 40,
+    this.maxPollInterval = const Duration(seconds: 2),
+    this.maxPolls = 12,
   });
 
   final ApiClient _apiClient;
   final UrlOpener openUrl;
+  /// Delay before the first re-check. Doubles after each attempt.
   final Duration pollInterval;
+
+  /// Ceiling for the backoff, so a slow export still gets checked regularly.
+  final Duration maxPollInterval;
+
   final int maxPolls;
 
   Future<ReportResult> fetchReport({
@@ -69,13 +75,24 @@ class ReportsRepository {
     return ExportJob.fromJson(_unwrapMap(response));
   }
 
+  /// Re-checks [id] until the job reaches a terminal state or [maxPolls] is hit.
+  ///
+  /// The wait doubles after each attempt up to [maxPollInterval], so a job that
+  /// finishes quickly is still noticed promptly while a slow one does not
+  /// generate a request every [pollInterval] for the whole of its life. With
+  /// the defaults that is ~21s of patience across 12 requests, where a flat
+  /// 400ms interval spent 40 requests to cover ~16s.
+  ///
+  /// A zero [pollInterval] disables waiting entirely (used by tests).
   Future<ExportJob> pollUntilComplete(String id) async {
     var job = await getExport(id);
+    var delay = pollInterval;
     var attempts = 0;
     while (!job.status.isTerminal && attempts < maxPolls) {
       attempts += 1;
-      if (pollInterval > Duration.zero) {
-        await Future<void>.delayed(pollInterval);
+      if (delay > Duration.zero) {
+        await Future<void>.delayed(delay);
+        delay = delay * 2 > maxPollInterval ? maxPollInterval : delay * 2;
       }
       job = await getExport(id);
     }

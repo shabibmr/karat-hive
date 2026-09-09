@@ -234,7 +234,7 @@ void main() {
       final controller = container.read(customerListControllerProvider.notifier);
       controller.setSearchQuery('Fatima');
 
-      var state = container.read(customerListControllerProvider);
+      final state = container.read(customerListControllerProvider);
       expect(state.filters.query, 'Fatima');
 
       await controller.submitSearch();

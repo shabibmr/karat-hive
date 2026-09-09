@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../auth/dev_auth.dart';
-import '../auth/session_controller.dart';
-import '../design/theme/kh_theme.dart';
+import 'package:kh_admin/core/auth/dev_auth.dart';
+import 'package:kh_admin/core/auth/session_controller.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
 
 /// Navigation item definition.
 class AdminNavItem {

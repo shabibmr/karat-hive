@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../model/offer_list_filters.dart';
-import '../model/offer_list_item.dart';
-import '../repository/offer_repository.dart';
+import 'package:kh_admin/features/offers/model/offer_list_filters.dart';
+import 'package:kh_admin/features/offers/model/offer_list_item.dart';
+import 'package:kh_admin/features/offers/repository/offer_repository.dart';
 
 part 'offer_list_controller.freezed.dart';
 

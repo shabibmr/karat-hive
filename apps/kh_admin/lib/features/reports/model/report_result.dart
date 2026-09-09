@@ -1,4 +1,4 @@
-import 'report_name.dart';
+import 'package:kh_admin/features/reports/model/report_name.dart';
 
 /// One plotted value derived from `series` or numeric `rows`.
 class ReportChartPoint {
@@ -76,7 +76,7 @@ class ReportResult {
   static List<Map<String, dynamic>> _objectList(dynamic raw) {
     if (raw is! List) return const [];
     return raw
-        .whereType<Map>()
+        .whereType<Map<dynamic, dynamic>>()
         .map((item) => Map<String, dynamic>.from(item))
         .toList(growable: false);
   }

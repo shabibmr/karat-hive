@@ -1,4 +1,4 @@
-import 'customer_enums.dart';
+import 'package:kh_admin/features/customers/model/customer_enums.dart';
 
 /// One row in `GET /v1/admin/customers` (ADM-S03).
 class CustomerListItem {

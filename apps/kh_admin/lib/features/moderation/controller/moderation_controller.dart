@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/moderation_enums.dart';
-import '../model/moderation_filters.dart';
-import '../model/moderation_review_item.dart';
-import '../repository/moderation_repository.dart';
+import 'package:kh_admin/features/moderation/model/moderation_enums.dart';
+import 'package:kh_admin/features/moderation/model/moderation_filters.dart';
+import 'package:kh_admin/features/moderation/model/moderation_review_item.dart';
+import 'package:kh_admin/features/moderation/repository/moderation_repository.dart';
 
 class ModerationListState {
   const ModerationListState({
@@ -67,7 +67,7 @@ class ModerationListController extends StateNotifier<ModerationListState> {
         clearCursor: page.nextCursor == null,
         hasMore: page.hasMore,
       );
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString(),
@@ -88,7 +88,7 @@ class ModerationListController extends StateNotifier<ModerationListState> {
         clearCursor: page.nextCursor == null,
         hasMore: page.hasMore,
       );
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(errorMessage: e.toString());
     }
   }
@@ -130,7 +130,7 @@ class ModerationListController extends StateNotifier<ModerationListState> {
       state = state.copyWith(isActionLoading: false);
       await refresh();
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isActionLoading: false,
         errorMessage: 'Failed to approve review: $e',
@@ -146,7 +146,7 @@ class ModerationListController extends StateNotifier<ModerationListState> {
       state = state.copyWith(isActionLoading: false);
       await refresh();
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isActionLoading: false,
         errorMessage: 'Failed to reject review: $e',
@@ -166,7 +166,7 @@ class ModerationListController extends StateNotifier<ModerationListState> {
       state = state.copyWith(isActionLoading: false);
       await refresh();
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isActionLoading: false,
         errorMessage: 'Failed to redact review: $e',

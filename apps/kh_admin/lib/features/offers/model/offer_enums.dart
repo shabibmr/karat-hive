@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../../core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
 
 part 'offer_enums.g.dart';
 

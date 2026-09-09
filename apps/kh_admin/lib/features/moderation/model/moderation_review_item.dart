@@ -1,4 +1,4 @@
-import 'moderation_enums.dart';
+import 'package:kh_admin/features/moderation/model/moderation_enums.dart';
 
 /// Single review item in the ADM-S16 Review Moderation Queue.
 class ModerationReviewItem {

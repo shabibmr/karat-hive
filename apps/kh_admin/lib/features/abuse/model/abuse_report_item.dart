@@ -1,4 +1,4 @@
-import 'abuse_report_enums.dart';
+import 'package:kh_admin/features/abuse/model/abuse_report_enums.dart';
 
 /// Single item in the ADM-S21 Abuse Report Queue.
 class AbuseReportItem {

@@ -1,5 +1,5 @@
-import 'admin_user_enums.dart';
-import 'admin_user_item.dart';
+import 'package:kh_admin/features/admin_users/model/admin_user_enums.dart';
+import 'package:kh_admin/features/admin_users/model/admin_user_item.dart';
 
 /// Filters applied to the ADM-S23 admin users directory.
 class AdminUserFilters {

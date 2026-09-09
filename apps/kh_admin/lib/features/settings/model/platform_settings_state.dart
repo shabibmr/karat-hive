@@ -1,4 +1,4 @@
-import 'platform_setting_item.dart';
+import 'package:kh_admin/features/settings/model/platform_setting_item.dart';
 
 /// State representation for the ADM-S19 Platform Settings screen.
 class PlatformSettingsState {

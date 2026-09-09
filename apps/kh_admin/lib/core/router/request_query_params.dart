@@ -1,8 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/requests/model/request_enums.dart';
-import '../../features/requests/model/request_list_filters.dart';
+import 'package:kh_admin/features/requests/model/request_enums.dart';
+import 'package:kh_admin/features/requests/model/request_list_filters.dart';
+import 'package:kh_admin/core/router/query_navigation.dart';
 
 /// Request list query state encoded in URL query parameters (AD-FE §16.2).
 class RequestQueryParams {
@@ -138,30 +139,11 @@ class RequestQueryParams {
 /// Extension on [BuildContext] for updating request list query parameters.
 extension RequestQueryNavigation on BuildContext {
   void updateRequestQuery(RequestListFilters filters) {
-    try {
-      final routerState = GoRouterState.of(this);
-      final updated = RequestQueryParams.fromFilters(filters).toQueryParameters();
-      if (_stringMapsEqual(routerState.uri.queryParameters, updated)) return;
-
-      final newUri = updated.isEmpty
-          ? routerState.uri.replace(queryParameters: const <String, String>{})
-          : routerState.uri.replace(queryParameters: updated);
-      go(newUri.toString());
-    } catch (_) {
-      // Safe fallback when executed outside a GoRouter context (e.g. widget tests)
-    }
+    applyQueryParameters(RequestQueryParams.fromFilters(filters).toQueryParameters());
   }
 }
 
 double? _parseDecimal(String? raw) {
   if (raw == null || raw.isEmpty) return null;
   return double.tryParse(raw);
-}
-
-bool _stringMapsEqual(Map<String, String> a, Map<String, String> b) {
-  if (a.length != b.length) return false;
-  for (final entry in b.entries) {
-    if (a[entry.key] != entry.value) return false;
-  }
-  return true;
 }

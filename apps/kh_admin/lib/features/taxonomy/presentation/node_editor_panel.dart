@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../l10n/app_localizations.dart';
-import '../model/taxonomy_dto.dart';
-import '../model/taxonomy_kind.dart';
-import '../model/taxonomy_node.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_dto.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_kind.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_node.dart';
 
 /// Available icon keys for Category nodes.
 const List<String> kTaxonomyIcons = [

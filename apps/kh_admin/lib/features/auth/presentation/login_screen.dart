@@ -1,12 +1,11 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_exception.dart';
-import '../../../core/auth/session_controller.dart';
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/firebase/firebase.dart';
-import '../../../l10n/app_localizations.dart';
+import 'package:kh_admin/core/auth/session_controller.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/error/api_error_messages.dart';
+import 'package:kh_admin/core/firebase/firebase.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
 
 /// Admin Login Screen (ADM-S01)
 /// Authenticates Platform Administrators with email and password.
@@ -59,7 +58,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             password,
           );
       // Navigation is handled reactively by GoRouter via RouterNotifier listening to SessionController
-    } catch (e) {
+    } on Object catch (e) {
       if (!mounted) return;
       setState(() {
         _errorMessage = _resolveErrorMessage(e);
@@ -84,10 +83,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await authService.signInWithGoogle();
       // On successful sign-in, SessionController's authStateChanges listener
       // triggers _syncFirebaseUser -> authenticated, and RouterNotifier routes to /
-    } catch (e) {
+    } on Object catch (_) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'Google Sign-In failed: ${e.toString()}';
+        _errorMessage = AppLocalizations.of(context)?.errorUnknown ??
+            'Google Sign-In failed. Please try again.';
       });
     } finally {
       if (mounted) {
@@ -100,65 +100,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   String _resolveErrorMessage(Object error) {
     final l10n = AppLocalizations.of(context);
-
-    if (error is ApiException) {
-      if (error.code == 'ACCOUNT_LOCKED' || error.statusCode == 423) {
-        return l10n?.errorAccountLocked ??
-            'Your administrative account has been temporarily locked due to consecutive failed login attempts. Please wait 30 minutes or contact security.';
-      }
-      if (error.code == 'UNAUTHENTICATED' || error.statusCode == 401) {
-        return l10n?.errorInvalidCredentials ??
-            'Invalid administrative credentials. Please check your email and password.';
-      }
-      if (error.statusCode >= 500 && error.statusCode < 600) {
-        return l10n?.errorServerUnavailable ??
-            'Administrative service unavailable. Please check your connection and try again.';
-      }
-      if (error.message.isNotEmpty) {
-        return error.message;
-      }
-    }
-
-    if (error is DioException) {
-      if (error.type == DioExceptionType.connectionTimeout ||
-          error.type == DioExceptionType.sendTimeout ||
-          error.type == DioExceptionType.receiveTimeout ||
-          error.type == DioExceptionType.connectionError) {
-        return l10n?.errorServerUnavailable ??
-            'Administrative service unavailable. Please check your connection and try again.';
-      }
-      final responseData = error.response?.data;
-      if (responseData is Map<String, dynamic> &&
-          responseData['error'] is Map<String, dynamic>) {
-        final err = responseData['error'] as Map<String, dynamic>;
-        final code = err['code']?.toString();
-        if (code == 'ACCOUNT_LOCKED') {
-          return l10n?.errorAccountLocked ??
-              'Your administrative account has been temporarily locked due to consecutive failed login attempts. Please wait 30 minutes or contact security.';
-        }
-        if (code == 'UNAUTHENTICATED') {
-          return l10n?.errorInvalidCredentials ??
-              'Invalid administrative credentials. Please check your email and password.';
-        }
-        return err['message']?.toString() ?? (l10n?.errorUnknown ?? 'An unexpected error occurred.');
-      }
-    }
-
-    final errorString = error.toString().toLowerCase();
-    if (errorString.contains('account_locked') || errorString.contains('locked')) {
-      return l10n?.errorAccountLocked ??
-          'Your administrative account has been temporarily locked due to consecutive failed login attempts. Please wait 30 minutes or contact security.';
-    }
-    if (errorString.contains('unauthenticated') || errorString.contains('invalid credentials')) {
-      return l10n?.errorInvalidCredentials ??
-          'Invalid administrative credentials. Please check your email and password.';
-    }
-    if (errorString.contains('unavailable') || errorString.contains('connection')) {
-      return l10n?.errorServerUnavailable ??
-          'Administrative service unavailable. Please check your connection and try again.';
-    }
-
-    return l10n?.errorUnknown ?? 'An unexpected error occurred. Please try again.';
+    return resolveApiErrorMessage(error, l10n);
   }
 
   @override
@@ -168,6 +110,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final spacing = context.kh.spacing;
     final shapes = context.kh.shapes;
     final l10n = AppLocalizations.of(context);
+    final session = ref.watch(sessionControllerProvider);
+    final displayError = _errorMessage ??
+        (!session.isAuthenticated ? session.errorMessage : null);
 
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
@@ -277,7 +222,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             SizedBox(height: spacing.xl),
 
                             // Error banner (if any)
-                            if (_errorMessage != null) ...[
+                            if (displayError != null) ...[
                               Container(
                                 key: const Key('login-error-banner'),
                                 padding: EdgeInsets.all(spacing.md),
@@ -300,7 +245,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     SizedBox(width: spacing.sm),
                                     Expanded(
                                       child: Text(
-                                        _errorMessage!,
+                                        displayError,
                                         style: typography.bodySmall.copyWith(
                                           color: colors.cream100,
                                           fontWeight: FontWeight.w500,

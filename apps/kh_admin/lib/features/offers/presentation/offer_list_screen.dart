@@ -1,19 +1,19 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_data_table.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../../../core/router/offer_query_params.dart';
-import '../../../l10n/app_localizations.dart';
-import '../controller/offer_list_controller.dart';
-import '../model/offer_enums.dart';
-import '../model/offer_list_filters.dart';
-import '../model/offer_list_item.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/core/router/offer_query_params.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/offers/controller/offer_list_controller.dart';
+import 'package:kh_admin/features/offers/model/offer_enums.dart';
+import 'package:kh_admin/features/offers/model/offer_list_filters.dart';
+import 'package:kh_admin/features/offers/model/offer_list_item.dart';
+import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S10 · Offer list — Platform-wide vendor offer monitoring and inspection.
 class OfferListScreen extends ConsumerStatefulWidget {
@@ -23,9 +23,8 @@ class OfferListScreen extends ConsumerStatefulWidget {
   ConsumerState<OfferListScreen> createState() => _OfferListScreenState();
 }
 
-class _OfferListScreenState extends ConsumerState<OfferListScreen> {
+class _OfferListScreenState extends ConsumerState<OfferListScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
-  Timer? _debounceTimer;
   Uri? _lastSyncedUri;
 
   @override
@@ -43,7 +42,6 @@ class _OfferListScreenState extends ConsumerState<OfferListScreen> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -52,7 +50,7 @@ class _OfferListScreenState extends ConsumerState<OfferListScreen> {
     Uri uri;
     try {
       uri = GoRouterState.of(context).uri;
-    } catch (_) {
+    } on Object catch (_) {
       return;
     }
     if (uri == _lastSyncedUri) return;
@@ -80,16 +78,13 @@ class _OfferListScreenState extends ConsumerState<OfferListScreen> {
   }
 
   void _onSearchChanged(String query) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 350), () {
-      if (mounted) {
-        _commitSearch(query);
-      }
+    debounceSearch(() {
+      _commitSearch(query);
     });
   }
 
   void _onSearchSubmitted() {
-    _debounceTimer?.cancel();
+    cancelSearchDebounce();
     _commitSearch(_searchController.text.trim());
   }
 

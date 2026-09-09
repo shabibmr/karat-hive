@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/api/api_client.dart' show khApiBase;
-import '../../../core/api/api_exception.dart';
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../../../core/platform/open_url.dart';
-import '../../../l10n/app_localizations.dart';
-import '../controller/verification_controller.dart';
-import '../model/vendor_verification_detail.dart';
-import '../repository/verification_repository.dart';
-import 'verification_dialogs.dart';
+import 'package:kh_admin/core/api/api_client.dart' show khApiBase;
+import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/core/platform/open_url.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/verification/controller/verification_controller.dart';
+import 'package:kh_admin/features/verification/model/vendor_verification_detail.dart';
+import 'package:kh_admin/features/verification/repository/verification_repository.dart';
+import 'package:kh_admin/features/verification/presentation/verification_dialogs.dart';
+import 'package:kh_admin/core/format/kh_formats.dart';
 
 /// Right-hand detail pane for ADM-S07 displaying vendor credentials,
 /// uploaded KYC documents with signed URL viewer, and verification actions.
@@ -84,7 +85,7 @@ class _VerificationDetailPaneState
         });
         openUrlInNewTab(resolvedUrl);
       }
-    } catch (e) {
+    } on Object catch (e) {
       if (mounted) {
         setState(() {
           _loadingDocId = null;
@@ -212,7 +213,7 @@ class _VerificationDetailPaneState
         ),
       ),
       data: (detail) {
-        final dateFormat = DateFormat.yMMMd();
+        final dateFormat = khShortDateFormat;
 
         return Container(
           key: Key('verification-detail-pane-${detail.id}'),

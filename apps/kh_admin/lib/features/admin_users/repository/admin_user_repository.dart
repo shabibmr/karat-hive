@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/admin_user_filters.dart';
-import '../model/admin_user_item.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/admin_users/model/admin_user_filters.dart';
+import 'package:kh_admin/features/admin_users/model/admin_user_item.dart';
 
 /// Typed repository for ADM-S23 Admin User Provisioning & Management.
 ///

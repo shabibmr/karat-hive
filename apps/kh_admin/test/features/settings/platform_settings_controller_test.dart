@@ -8,9 +8,7 @@ import 'package:kh_admin/features/settings/repository/platform_settings_reposito
 class _FakeSettingsRepository extends PlatformSettingsRepository {
   _FakeSettingsRepository({
     List<PlatformSettingItem>? initialItems,
-    this.failFetch = false,
     this.failUpdate = false,
-    this.updateErrorCode,
   })  : items = initialItems ??
             [
               PlatformSettingItem(
@@ -43,7 +41,7 @@ class _FakeSettingsRepository extends PlatformSettingsRepository {
         super(ApiClient());
 
   List<PlatformSettingItem> items;
-  bool failFetch;
+  bool failFetch = false;
   bool failUpdate;
   String? updateErrorCode;
   String? lastUpdatedKey;

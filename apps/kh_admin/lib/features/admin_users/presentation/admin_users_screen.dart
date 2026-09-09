@@ -1,16 +1,16 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_data_table.dart';
-import '../../../core/design/widgets/kh_metric_card.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../controller/admin_user_controller.dart';
-import '../model/admin_user_enums.dart';
-import '../model/admin_user_item.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/features/admin_users/controller/admin_user_controller.dart';
+import 'package:kh_admin/features/admin_users/model/admin_user_enums.dart';
+import 'package:kh_admin/features/admin_users/model/admin_user_item.dart';
+import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S23 · Admin User Provisioning & Management.
 ///
@@ -27,9 +27,8 @@ class AdminUsersScreen extends ConsumerStatefulWidget {
   ConsumerState<AdminUsersScreen> createState() => _AdminUsersScreenState();
 }
 
-class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
+class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
-  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -40,17 +39,17 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
+  @override
+  Duration get searchDebounceDuration =>
+      const Duration(milliseconds: 300);
+
   void _onSearchChanged(String query) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        ref.read(adminUserControllerProvider.notifier).setSearchQuery(query);
-      }
+    debounceSearch(() {
+      ref.read(adminUserControllerProvider.notifier).setSearchQuery(query);
     });
   }
 

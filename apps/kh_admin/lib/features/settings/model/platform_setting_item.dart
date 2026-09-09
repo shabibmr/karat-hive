@@ -255,7 +255,7 @@ class PlatformSettingItem {
         category = SettingCategory.values.firstWhere(
           (c) => c.name.toLowerCase() == categoryStr.toLowerCase(),
         );
-      } catch (_) {
+      } on Object catch (_) {
         category = SettingCategory.fromKey(key);
       }
     }
@@ -294,7 +294,7 @@ class PlatformSettingItem {
 
   String get formattedValue {
     if (value == null) return 'null';
-    if (value is bool) return value ? 'Enabled (true)' : 'Disabled (false)';
+    if (value is bool) return (value as bool) ? 'Enabled (true)' : 'Disabled (false)';
     if (value is List) {
       return (value as List).join(', ');
     }

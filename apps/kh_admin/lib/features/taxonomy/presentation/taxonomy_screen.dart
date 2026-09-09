@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/api/api_exception.dart';
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/router/taxonomy_query_params.dart';
-import '../../../l10n/app_localizations.dart';
-import '../controller/taxonomy_controller.dart';
-import '../model/taxonomy_dto.dart';
-import '../model/taxonomy_kind.dart';
-import '../model/taxonomy_node.dart';
-import 'node_editor_panel.dart';
-import 'taxonomy_tree.dart';
+import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/router/taxonomy_query_params.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/taxonomy/controller/taxonomy_controller.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_dto.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_kind.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_node.dart';
+import 'package:kh_admin/features/taxonomy/presentation/node_editor_panel.dart';
+import 'package:kh_admin/features/taxonomy/presentation/taxonomy_tree.dart';
 
 /// Taxonomy Management Screen unifying ADM-S14 (Categories) and ADM-S15 (Regions).
 /// Integrates 2-level expandable tree, responsive node editor panel,
@@ -129,7 +129,7 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
             : (l10n?.toastRegionUpdated ?? 'Region updated successfully.');
         _showSuccessToast(msg);
       }
-    } catch (e) {
+    } on Object catch (e) {
       if (mounted) {
         setState(() {
           _panelErrorMessage = _formatErrorMessage(e);
@@ -167,7 +167,7 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
             : (l10n?.toastRegionCreated ?? 'Region created successfully.');
         _showSuccessToast(msg);
       }
-    } catch (e) {
+    } on Object catch (e) {
       if (mounted) {
         setState(() {
           _panelErrorMessage = _formatErrorMessage(e);
@@ -202,7 +202,7 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                 'Region deactivated successfully.');
         _showSuccessToast(msg);
       }
-    } catch (e) {
+    } on Object catch (e) {
       if (mounted) {
         setState(() {
           _panelErrorMessage = _formatErrorMessage(e);
@@ -223,7 +223,7 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
       return query.selectedId != null
           ? query
           : query.copyWith(selectedId: _localSelectedId);
-    } catch (_) {
+    } on Object catch (_) {
       return TaxonomyQueryParams(
         selectedId: _localSelectedId,
         showInactive: _localShowInactive,

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import 'auth_models.dart';
+import 'package:kh_admin/core/auth/auth_models.dart';
 
 /// Secure token persistence wrapping [FlutterSecureStorage].
 class TokenStorage {

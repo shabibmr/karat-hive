@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/verification_decision_dto.dart';
-import '../model/verification_queue_item.dart';
-import '../model/vendor_verification_detail.dart';
-import '../repository/verification_repository.dart';
+import 'package:kh_admin/features/verification/model/verification_decision_dto.dart';
+import 'package:kh_admin/features/verification/model/verification_queue_item.dart';
+import 'package:kh_admin/features/verification/model/vendor_verification_detail.dart';
+import 'package:kh_admin/features/verification/repository/verification_repository.dart';
 
 /// Riverpod [AsyncNotifier] managing the verification queue list (ADM-S07).
 class VerificationQueueController extends AsyncNotifier<List<VerificationQueueItem>> {

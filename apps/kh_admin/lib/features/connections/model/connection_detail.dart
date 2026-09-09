@@ -1,4 +1,4 @@
-import 'connection_enums.dart';
+import 'package:kh_admin/features/connections/model/connection_enums.dart';
 
 /// Customer profile information in the connection detail context.
 class ConnectionCustomerInfo {
@@ -473,13 +473,13 @@ class ConnectionDetail {
     final vendorJson = json['vendor'] is Map
         ? Map<String, dynamic>.from(json['vendor'] as Map)
         : (offerJson != null && offerJson['vendorProfile'] is Map
-            ? Map<String, dynamic>.from(offerJson['vendorProfile'] as Map)
+            ? Map<String, dynamic>.from(offerJson['vendorProfile'] as Map<dynamic, dynamic>)
             : null);
 
     final contactEventsRaw = json['contactEvents'];
     final contactEvents = (contactEventsRaw is List)
         ? contactEventsRaw
-            .whereType<Map>()
+            .whereType<Map<dynamic, dynamic>>()
             .map((e) => ConnectionContactEvent.fromJson(Map<String, dynamic>.from(e)))
             .toList(growable: false)
         : const <ConnectionContactEvent>[];
@@ -487,7 +487,7 @@ class ConnectionDetail {
     final adminNotesRaw = json['adminNotes'] ?? json['notes'];
     final adminNotes = (adminNotesRaw is List)
         ? adminNotesRaw
-            .whereType<Map>()
+            .whereType<Map<dynamic, dynamic>>()
             .map((e) => ConnectionAdminNote.fromJson(Map<String, dynamic>.from(e)))
             .toList(growable: false)
         : const <ConnectionAdminNote>[];

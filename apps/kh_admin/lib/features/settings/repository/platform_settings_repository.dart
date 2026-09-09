@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/platform_setting_item.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/settings/model/platform_setting_item.dart';
 
 final platformSettingsRepositoryProvider =
     Provider<PlatformSettingsRepository>((ref) {

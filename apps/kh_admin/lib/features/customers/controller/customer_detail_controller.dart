@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/customer_detail.dart';
-import '../repository/customer_repository.dart';
+import 'package:kh_admin/features/customers/model/customer_detail.dart';
+import 'package:kh_admin/features/customers/repository/customer_repository.dart';
 
 /// Riverpod family notifier managing Customer Detail view and actions (ADM-S04).
 class CustomerDetailController

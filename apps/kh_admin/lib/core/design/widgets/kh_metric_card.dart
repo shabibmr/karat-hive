@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/kh_theme.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
 
 /// Dashboard metric tile: large value, uppercase gold label, and a drill-down
 /// link that navigates to the matching management screen.

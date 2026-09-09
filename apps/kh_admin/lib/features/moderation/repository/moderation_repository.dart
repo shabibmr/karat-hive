@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/moderation_filters.dart';
-import '../model/moderation_page.dart';
-import '../model/moderation_review_item.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/moderation/model/moderation_filters.dart';
+import 'package:kh_admin/features/moderation/model/moderation_page.dart';
+import 'package:kh_admin/features/moderation/model/moderation_review_item.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 
 final moderationRepositoryProvider = Provider<ModerationRepository>((ref) {
   final client = ref.watch(apiClientProvider);
@@ -42,7 +43,7 @@ class ModerationRepository {
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = nextCursor != null && nextCursor.isNotEmpty;
+    final hasMore = hasMoreFromCursor(nextCursor);
 
     return ModerationPage(
       items: items,

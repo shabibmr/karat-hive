@@ -1,4 +1,4 @@
-import 'abuse_report_item.dart';
+import 'package:kh_admin/features/abuse/model/abuse_report_item.dart';
 
 class AbuseReportPage {
   const AbuseReportPage({

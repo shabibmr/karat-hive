@@ -1,4 +1,4 @@
-import 'customer_enums.dart';
+import 'package:kh_admin/features/customers/model/customer_enums.dart';
 
 /// Filter criteria for customer list screen (ADM-S03).
 class CustomerListFilters {

@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/offer_detail.dart';
-import '../model/offer_list_filters.dart';
-import '../model/offer_list_item.dart';
-import '../model/offer_list_page.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/offers/model/offer_detail.dart';
+import 'package:kh_admin/features/offers/model/offer_list_filters.dart';
+import 'package:kh_admin/features/offers/model/offer_list_item.dart';
+import 'package:kh_admin/features/offers/model/offer_list_page.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 
 /// Typed repository for `GET /v1/admin/offers` and `/v1/admin/offers/:id` (ADM-S10, ADM-S11).
 ///
@@ -56,7 +57,7 @@ class OfferRepository {
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = nextCursor != null && nextCursor.isNotEmpty;
+    final hasMore = hasMoreFromCursor(nextCursor);
 
     return OfferListPage(
       items: items,
@@ -118,8 +119,8 @@ class OfferRepository {
   // ---------------------------------------------------------------------------
 
   Map<String, dynamic> _normalizeOfferListRow(Map<String, dynamic> raw) {
-    final vendorProfile = _asMap(raw['vendorProfile']);
-    final request = _asMap(raw['request']);
+    final vendorProfile = asMap(raw['vendorProfile']);
+    final request = asMap(raw['request']);
 
     return <String, dynamic>{
       'id': raw['id'],
@@ -129,9 +130,9 @@ class OfferRepository {
       'requestType': request['requestType'],
       'vendorId': raw['vendorProfileId'],
       'vendorName': _vendorName(vendorProfile),
-      'offeredPrice': _toDouble(raw['offeredPrice']),
-      'makingCharges': _toDoubleOrNull(raw['makingCharges']),
-      'ratePerGram': _toDoubleOrNull(raw['ratePerGram']),
+      'offeredPrice': toDouble(raw['offeredPrice']),
+      'makingCharges': toDoubleOrNull(raw['makingCharges']),
+      'ratePerGram': toDoubleOrNull(raw['ratePerGram']),
       'state': raw['state'],
       'submittedAt': raw['submittedAt'] ?? raw['createdAt'],
       'expiresAt': raw['expiresAt'],
@@ -141,19 +142,19 @@ class OfferRepository {
   }
 
   Map<String, dynamic> _normalizeOfferDetail(Map<String, dynamic> raw) {
-    final vendorProfile = _asMap(raw['vendorProfile']);
-    final vendorUser = _asMap(vendorProfile['user']);
-    final request = _asMap(raw['request']);
-    final customerProfile = _asMap(request['customerProfile']);
-    final customerUser = _asMap(customerProfile['user']);
+    final vendorProfile = asMap(raw['vendorProfile']);
+    final vendorUser = asMap(vendorProfile['user']);
+    final request = asMap(raw['request']);
+    final customerProfile = asMap(request['customerProfile']);
+    final customerUser = asMap(customerProfile['user']);
 
     return <String, dynamic>{
       'id': raw['id'],
       'reference': raw['reference'],
       'state': raw['state'],
-      'offeredPrice': _toDouble(raw['offeredPrice']),
-      'makingCharges': _toDoubleOrNull(raw['makingCharges']),
-      'ratePerGram': _toDoubleOrNull(raw['ratePerGram']),
+      'offeredPrice': toDouble(raw['offeredPrice']),
+      'makingCharges': toDoubleOrNull(raw['makingCharges']),
+      'ratePerGram': toDoubleOrNull(raw['ratePerGram']),
       // Derived pricing fields are absent on the raw row; the model getters
       // (calculatedGoldPrice / calculatedVat / calculatedTotal) fall back.
       'goldPrice': null,
@@ -186,7 +187,7 @@ class OfferRepository {
               'customerEmail': customerUser['email'],
               'categoryName': null,
               'regionName': null,
-              'indicativeValue': _toDoubleOrNull(request['indicativeValue']),
+              'indicativeValue': toDoubleOrNull(request['indicativeValue']),
               'notes': request['notes'],
             },
       'vendor': vendorProfile.isEmpty
@@ -199,7 +200,7 @@ class OfferRepository {
               'contactPersonName': vendorProfile['contactPersonName'],
               'mobileNumber': vendorUser['mobileNumber'],
               'email': vendorUser['email'] ?? vendorProfile['businessEmail'],
-              'rating': _toDoubleOrNull(vendorProfile['aggregateRating']),
+              'rating': toDoubleOrNull(vendorProfile['aggregateRating']),
               'completedDeals': vendorProfile['offersAcceptedCount'],
             },
       // Attachments are still a separate media projection.
@@ -218,14 +219,14 @@ class OfferRepository {
     return raw.whereType<Map<String, dynamic>>().map((row) {
       // Prefer typed projection columns (ADM-C-73); fall back to the
       // `previousTerms` JSON blob of the terms *before* the revision.
-      final prev = _asMap(row['previousTerms']);
+      final prev = asMap(row['previousTerms']);
       return <String, dynamic>{
         'revisionNumber': row['revisionNumber'],
         'revisedAt': row['revisedAt'],
-        'offeredPrice': _toDouble(row['offeredPrice'] ?? prev['offeredPrice']),
+        'offeredPrice': toDouble(row['offeredPrice'] ?? prev['offeredPrice']),
         'makingCharges':
-            _toDoubleOrNull(row['makingCharges'] ?? prev['makingCharges']),
-        'ratePerGram': _toDoubleOrNull(row['ratePerGram'] ?? prev['ratePerGram']),
+            toDoubleOrNull(row['makingCharges'] ?? prev['makingCharges']),
+        'ratePerGram': toDoubleOrNull(row['ratePerGram'] ?? prev['ratePerGram']),
         'deliveryTimeframe':
             row['deliveryTimeframe'] ?? prev['deliveryTimeframe'],
         'vendorNote': row['vendorNote'] ?? prev['vendorNote'],
@@ -302,23 +303,8 @@ class OfferRepository {
     return 'Unknown vendor';
   }
 
-  Map<String, dynamic> _asMap(dynamic value) {
-    if (value is Map<String, dynamic>) return value;
-    if (value is Map) return Map<String, dynamic>.from(value);
-    return const <String, dynamic>{};
-  }
 
-  double _toDouble(dynamic value, [double fallback = 0.0]) {
-    if (value == null) return fallback;
-    if (value is num) return value.toDouble();
-    return double.tryParse(value.toString()) ?? fallback;
-  }
 
-  double? _toDoubleOrNull(dynamic value) {
-    if (value == null) return null;
-    if (value is num) return value.toDouble();
-    return double.tryParse(value.toString());
-  }
 }
 
 final Provider<OfferRepository> offerRepositoryProvider =

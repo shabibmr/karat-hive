@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/admin_user_enums.dart';
-import '../model/admin_user_filters.dart';
-import '../model/admin_user_item.dart';
-import '../repository/admin_user_repository.dart';
+import 'package:kh_admin/features/admin_users/model/admin_user_enums.dart';
+import 'package:kh_admin/features/admin_users/model/admin_user_filters.dart';
+import 'package:kh_admin/features/admin_users/model/admin_user_item.dart';
+import 'package:kh_admin/features/admin_users/repository/admin_user_repository.dart';
 
 /// State for ADM-S23 Admin User Provisioning & Management.
 class AdminUserState {
@@ -93,7 +93,7 @@ class AdminUserController extends StateNotifier<AdminUserState> {
         isLoading: false,
         admins: list,
       );
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString(),
@@ -149,7 +149,7 @@ class AdminUserController extends StateNotifier<AdminUserState> {
       );
       await loadAdmins();
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isActionLoading: false,
         errorMessage: 'Failed to provision admin: $e',
@@ -173,7 +173,7 @@ class AdminUserController extends StateNotifier<AdminUserState> {
       );
       await loadAdmins();
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isActionLoading: false,
         errorMessage: 'Failed to suspend admin: $e',
@@ -199,7 +199,7 @@ class AdminUserController extends StateNotifier<AdminUserState> {
       );
       await loadAdmins();
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       final errStr = e.toString();
       final userMessage =
           errStr.contains('409') || errStr.toLowerCase().contains('conflict')

@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/customer_enums.dart';
-import '../model/customer_list_filters.dart';
-import '../model/customer_list_item.dart';
-import '../repository/customer_repository.dart';
+import 'package:kh_admin/features/customers/model/customer_enums.dart';
+import 'package:kh_admin/features/customers/model/customer_list_filters.dart';
+import 'package:kh_admin/features/customers/model/customer_list_item.dart';
+import 'package:kh_admin/features/customers/repository/customer_repository.dart';
 
 /// State for the customer list screen (ADM-S03).
 class CustomerListState {

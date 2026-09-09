@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../model/vendor_list_filters.dart';
-import '../model/vendor_list_item.dart';
-import '../repository/vendor_repository.dart';
+import 'package:kh_admin/features/vendors/model/vendor_list_filters.dart';
+import 'package:kh_admin/features/vendors/model/vendor_list_item.dart';
+import 'package:kh_admin/features/vendors/repository/vendor_repository.dart';
 
 part 'vendor_list_controller.freezed.dart';
 

@@ -1,4 +1,4 @@
-import 'announcement_item.dart';
+import 'package:kh_admin/features/announcements/model/announcement_item.dart';
 
 /// Cursor-paginated page of announcements.
 class AnnouncementPage {

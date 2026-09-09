@@ -1,4 +1,4 @@
-import 'admin_user_enums.dart';
+import 'package:kh_admin/features/admin_users/model/admin_user_enums.dart';
 
 /// Single item in ADM-S23 Admin User Provisioning & Management.
 ///

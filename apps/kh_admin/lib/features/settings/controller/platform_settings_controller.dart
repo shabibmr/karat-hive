@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_exception.dart';
-import '../model/platform_setting_item.dart';
-import '../model/platform_settings_state.dart';
-import '../repository/platform_settings_repository.dart';
+import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/features/settings/model/platform_setting_item.dart';
+import 'package:kh_admin/features/settings/model/platform_settings_state.dart';
+import 'package:kh_admin/features/settings/repository/platform_settings_repository.dart';
 
 final platformSettingsControllerProvider =
     StateNotifierProvider<PlatformSettingsController, PlatformSettingsState>(
@@ -30,7 +30,7 @@ class PlatformSettingsController extends StateNotifier<PlatformSettingsState> {
         isLoading: false,
         settings: items,
       );
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: _extractErrorMessage(e),
@@ -85,7 +85,7 @@ class PlatformSettingsController extends StateNotifier<PlatformSettingsState> {
         successMessage: 'Setting "$key" updated successfully.',
       );
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       final msg = _extractErrorMessage(e);
       state = state.copyWith(
         isSaving: false,

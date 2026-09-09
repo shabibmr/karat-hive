@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/vendor_detail.dart';
-import '../repository/vendor_repository.dart';
+import 'package:kh_admin/features/vendors/model/vendor_detail.dart';
+import 'package:kh_admin/features/vendors/repository/vendor_repository.dart';
 
 /// Riverpod family notifier managing full vendor profile inspection and admin lifecycle actions (ADM-S06).
 class VendorDetailController

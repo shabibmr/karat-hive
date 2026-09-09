@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../api/api_client.dart';
-import 'auth_models.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/auth/auth_models.dart';
 
 /// Authentication repository talking to backend identity endpoints.
 class AuthRepository {
@@ -50,7 +50,7 @@ class AuthRepository {
           'refreshToken': refreshToken,
         },
       );
-    } catch (_) {
+    } on Object catch (_) {
       // Best-effort logout: ignore server errors and proceed with local cleanup
     }
   }

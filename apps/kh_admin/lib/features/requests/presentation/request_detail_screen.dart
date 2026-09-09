@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_data_table.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_section_label.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../../../l10n/app_localizations.dart';
-import '../controller/request_detail_controller.dart';
-import '../model/request_detail.dart';
-import '../model/request_enums.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/requests/controller/request_detail_controller.dart';
+import 'package:kh_admin/features/requests/model/request_detail.dart';
+import 'package:kh_admin/features/requests/model/request_enums.dart';
+import 'package:kh_admin/core/format/kh_formats.dart';
 
 /// ADM-S09 · Request detail — full request oversight, matched vendors, offers, unmasked customer,
 /// state timeline, connection status, internal notes, and administrative removal action.
@@ -163,7 +163,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildBackButton(BuildContext context, dynamic kh) {
+  Widget _buildBackButton(BuildContext context, KhThemeExtension kh) {
     final l10n = AppLocalizations.of(context);
     return TextButton.icon(
       key: const Key('request-detail-back-button'),
@@ -180,9 +180,9 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildHeader(dynamic kh, RequestDetail detail) {
+  Widget _buildHeader(KhThemeExtension kh, RequestDetail detail) {
     final l10n = AppLocalizations.of(context);
-    final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
+    final dateFormat = khDateTimeFormat;
     final heading = detail.ornamentType != null && detail.ornamentType!.isNotEmpty
         ? '${detail.purityKarat != null ? "${detail.purityKarat} " : ""}${detail.ornamentType}'
         : '${detail.requestType.label} (${detail.direction.label})';
@@ -245,7 +245,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildFeedbackBanner(dynamic kh) {
+  Widget _buildFeedbackBanner(KhThemeExtension kh) {
     final isSuccess = _actionSuccess;
     final color = isSuccess ? kh.colors.success : kh.colors.error;
 
@@ -277,7 +277,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildRemovedNoticeBanner(dynamic kh, RequestDetail detail) {
+  Widget _buildRemovedNoticeBanner(KhThemeExtension kh, RequestDetail detail) {
     final l10n = AppLocalizations.of(context);
     return Container(
       key: const Key('request-removed-banner'),
@@ -340,9 +340,9 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildConnectionBanner(dynamic kh, RequestConnectionSummary connection) {
+  Widget _buildConnectionBanner(KhThemeExtension kh, RequestConnectionSummary connection) {
     final l10n = AppLocalizations.of(context);
-    final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
+    final dateFormat = khDateTimeFormat;
 
     return Container(
       key: const Key('request-connection-banner'),
@@ -418,9 +418,9 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildSpecificationsCard(dynamic kh, RequestDetail detail) {
+  Widget _buildSpecificationsCard(KhThemeExtension kh, RequestDetail detail) {
     final l10n = AppLocalizations.of(context);
-    final currencyFormat = NumberFormat('#,##0', 'en_US');
+    final currencyFormat = khNumberFormat;
 
     return Container(
       padding: EdgeInsets.all(kh.spacing.lg),
@@ -566,10 +566,10 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildCustomerCard(dynamic kh, RequestDetail detail) {
+  Widget _buildCustomerCard(KhThemeExtension kh, RequestDetail detail) {
     final l10n = AppLocalizations.of(context);
     final cust = detail.customer;
-    final dateFormat = DateFormat('dd MMM yyyy');
+    final dateFormat = khDateFormat;
 
     return Container(
       key: const Key('request-customer-card'),
@@ -645,7 +645,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildMediaGalleryCard(dynamic kh, RequestDetail detail) {
+  Widget _buildMediaGalleryCard(KhThemeExtension kh, RequestDetail detail) {
     final l10n = AppLocalizations.of(context);
     return Container(
       key: const Key('request-media-gallery'),
@@ -736,10 +736,10 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildOffersCard(dynamic kh, RequestDetail detail) {
+  Widget _buildOffersCard(KhThemeExtension kh, RequestDetail detail) {
     final l10n = AppLocalizations.of(context);
-    final currencyFormat = NumberFormat('#,##0', 'en_US');
-    final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
+    final currencyFormat = khNumberFormat;
+    final dateFormat = khDateTimeFormat;
 
     return Container(
       key: const Key('request-offers-card'),
@@ -838,9 +838,9 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildMatchedVendorsCard(dynamic kh, RequestDetail detail) {
+  Widget _buildMatchedVendorsCard(KhThemeExtension kh, RequestDetail detail) {
     final l10n = AppLocalizations.of(context);
-    final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
+    final dateFormat = khDateTimeFormat;
 
     return Container(
       key: const Key('request-matched-vendors'),
@@ -948,9 +948,9 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildTimelineCard(dynamic kh, RequestDetail detail) {
+  Widget _buildTimelineCard(KhThemeExtension kh, RequestDetail detail) {
     final l10n = AppLocalizations.of(context);
-    final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
+    final dateFormat = khDateTimeFormat;
 
     return Container(
       key: const Key('request-timeline'),
@@ -1034,7 +1034,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildAdminActionsCard(BuildContext context, dynamic kh, RequestDetail detail) {
+  Widget _buildAdminActionsCard(BuildContext context, KhThemeExtension kh, RequestDetail detail) {
     final l10n = AppLocalizations.of(context);
     return Container(
       padding: EdgeInsets.all(kh.spacing.lg),
@@ -1085,9 +1085,9 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Widget _buildInternalNotesCard(dynamic kh, RequestDetail detail) {
+  Widget _buildInternalNotesCard(KhThemeExtension kh, RequestDetail detail) {
     final l10n = AppLocalizations.of(context);
-    final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
+    final dateFormat = khDateTimeFormat;
 
     return Container(
       padding: EdgeInsets.all(kh.spacing.lg),
@@ -1192,7 +1192,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     );
   }
 
-  Future<void> _handleAddNote(dynamic kh) async {
+  Future<void> _handleAddNote(KhThemeExtension kh) async {
     final l10n = AppLocalizations.of(context);
     final text = _noteController.text.trim();
     if (text.isEmpty) return;
@@ -1222,7 +1222,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
 
   Future<void> _showRemoveDialog(
     BuildContext context,
-    dynamic kh,
+    KhThemeExtension kh,
     RequestDetail detail,
   ) async {
     final l10n = AppLocalizations.of(context);
@@ -1380,7 +1380,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildDetailRow(
-    dynamic kh,
+    KhThemeExtension kh,
     String label,
     String value, {
     bool highlightGold = false,
@@ -1416,7 +1416,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Widget _buildErrorView(
-    dynamic kh,
+    KhThemeExtension kh,
     String message,
     VoidCallback onRetry,
   ) {

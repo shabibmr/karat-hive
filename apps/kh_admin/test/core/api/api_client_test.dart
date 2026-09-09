@@ -1,18 +1,23 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/core/api/server_time_provider.dart';
 
 void main() {
   late Dio dio;
   late ApiClient apiClient;
   bool refreshCalled = false;
   String? currentToken = 'initial-token';
+  DateTime? capturedServerTime;
 
   setUp(() {
+    ApiClient.resetStaticServerTime();
     dio = Dio();
     refreshCalled = false;
     currentToken = 'initial-token';
+    capturedServerTime = null;
 
     // Use an interceptor to mock responses directly in Dio
     dio.interceptors.add(
@@ -31,6 +36,19 @@ void main() {
             );
           }
 
+          if (options.path == '/v1/server-time-top') {
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {
+                  'data': {'status': 'ok'},
+                  'serverTime': '2026-09-08T15:30:00Z',
+                },
+              ),
+            );
+          }
+
           if (options.path == '/v1/error') {
             return handler.resolve(
               Response(
@@ -44,7 +62,7 @@ void main() {
                       {'path': 'nameEn', 'message': 'Required'},
                     ],
                   },
-                  'meta': {'requestId': 'req-err'},
+                  'meta': {'requestId': 'req-err', 'serverTime': '2026-09-05T12:00:00Z'},
                 },
               ),
             );
@@ -128,6 +146,9 @@ void main() {
         currentToken = 'refreshed-token';
         return true;
       },
+      onServerTime: (time) {
+        capturedServerTime = time;
+      },
     );
   });
 
@@ -169,5 +190,55 @@ void main() {
     expect(refreshCalled, isTrue);
     expect(res, isA<Map<String, dynamic>>());
     expect(res['secret'], 'unlocked');
+  });
+
+  test('ApiClient captures meta.serverTime from success response', () async {
+    expect(apiClient.latestServerTime, isNull);
+    await apiClient.get('/v1/success');
+    expect(
+      apiClient.latestServerTime,
+      equals(DateTime.parse('2026-09-04T00:00:00Z')),
+    );
+    expect(
+      capturedServerTime,
+      equals(DateTime.parse('2026-09-04T00:00:00Z')),
+    );
+  });
+
+  test('ApiClient captures meta.serverTime even on error response', () async {
+    try {
+      await apiClient.get('/v1/error');
+    } on ApiException catch (_) {}
+    expect(
+      apiClient.latestServerTime,
+      equals(DateTime.parse('2026-09-05T12:00:00Z')),
+    );
+    expect(
+      capturedServerTime,
+      equals(DateTime.parse('2026-09-05T12:00:00Z')),
+    );
+  });
+
+  test('ApiClient captures top-level serverTime', () async {
+    await apiClient.get('/v1/server-time-top');
+    expect(
+      apiClient.latestServerTime,
+      equals(DateTime.parse('2026-09-08T15:30:00Z')),
+    );
+    expect(
+      capturedServerTime,
+      equals(DateTime.parse('2026-09-08T15:30:00Z')),
+    );
+  });
+
+  test('serverTimeProvider stores latest captured server time when updated', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(serverTimeProvider), isNull);
+    final timestamp = DateTime.parse('2026-09-04T00:00:00Z');
+    container.read(serverTimeProvider.notifier).state = timestamp;
+
+    expect(container.read(serverTimeProvider), equals(timestamp));
   });
 }

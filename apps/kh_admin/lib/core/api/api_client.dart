@@ -2,9 +2,10 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../auth/session_controller.dart';
-import '../auth/token_storage.dart';
-import 'api_exception.dart';
+import 'package:kh_admin/core/auth/session_controller.dart';
+import 'package:kh_admin/core/auth/token_storage.dart';
+import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/core/api/server_time_provider.dart';
 
 /// Default base URL read from `--dart-define=KH_API_BASE`, defaulting to `http://localhost:3000`.
 const String khApiBase = String.fromEnvironment(
@@ -14,6 +15,7 @@ const String khApiBase = String.fromEnvironment(
 
 typedef TokenGetter = Future<String?> Function();
 typedef RefreshHandler = Future<bool> Function();
+typedef ServerTimeCallback = void Function(DateTime serverTime);
 
 /// Typed API client wrapping Dio.
 /// Handles `{ data, meta }` response unwrapping, bearer token injection,
@@ -24,8 +26,10 @@ class ApiClient {
     Dio? dio,
     TokenGetter? tokenGetter,
     RefreshHandler? onUnauthorized,
+    ServerTimeCallback? onServerTime,
   })  : _tokenGetter = tokenGetter,
         _onUnauthorized = onUnauthorized,
+        _onServerTime = onServerTime,
         _dio = dio ?? Dio() {
     _dio.options = BaseOptions(
       baseUrl: baseUrl,
@@ -43,8 +47,28 @@ class ApiClient {
   final Dio _dio;
   final TokenGetter? _tokenGetter;
   final RefreshHandler? _onUnauthorized;
+  final ServerTimeCallback? _onServerTime;
+
+  DateTime? _latestServerTime;
+  static DateTime? _staticLatestServerTime;
 
   Dio get rawDio => _dio;
+
+  /// Returns the most recently captured server timestamp from response envelopes.
+  DateTime? get latestServerTime => _latestServerTime;
+
+  /// Returns the latest server timestamp captured across any [ApiClient] instance.
+  static DateTime? get staticLatestServerTime => _staticLatestServerTime;
+
+  /// Resets the static server time tracker (e.g. for testing).
+  static void resetStaticServerTime() => _staticLatestServerTime = null;
+
+  /// Records or updates the latest captured server time.
+  void recordServerTime(DateTime serverTime) {
+    _latestServerTime = serverTime;
+    _staticLatestServerTime = serverTime;
+    _onServerTime?.call(serverTime);
+  }
 
   /// Performs a GET request and unwraps the `{ data }` payload.
   Future<dynamic> get(
@@ -203,6 +227,8 @@ class ApiClient {
       }
     }
 
+    _inspectServerTime(response.data);
+
     final status = response.statusCode ?? 0;
 
     // Handle 401 with silent one-shot refresh (except on auth endpoints)
@@ -239,6 +265,33 @@ class ApiClient {
     throw _parseErrorEnvelope(status, response.data);
   }
 
+  void _inspectServerTime(dynamic body) {
+    if (body is! Map) return;
+
+    dynamic rawServerTime;
+    final meta = body['meta'];
+    if (meta is Map && meta['serverTime'] != null) {
+      rawServerTime = meta['serverTime'];
+    } else if (body['serverTime'] != null) {
+      rawServerTime = body['serverTime'];
+    } else if (body['meta.serverTime'] != null) {
+      rawServerTime = body['meta.serverTime'];
+    }
+
+    if (rawServerTime == null) return;
+
+    DateTime? parsed;
+    if (rawServerTime is DateTime) {
+      parsed = rawServerTime;
+    } else {
+      parsed = DateTime.tryParse(rawServerTime.toString());
+    }
+
+    if (parsed != null) {
+      recordServerTime(parsed);
+    }
+  }
+
   ApiException _parseErrorEnvelope(int status, dynamic body) {
     if (body is Map<String, dynamic>) {
       final err = body['error'];
@@ -264,7 +317,8 @@ class ApiClient {
   }
 }
 
-/// Provider for [ApiClient] wired with session tokens and silent 401 refresh handler.
+/// Provider for [ApiClient] wired with session tokens, silent 401 refresh handler,
+/// and server timestamp sync.
 final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
   return ApiClient(
@@ -275,6 +329,9 @@ final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
     },
     onUnauthorized: () async {
       return ref.read(sessionControllerProvider.notifier).silentRefresh();
+    },
+    onServerTime: (serverTime) {
+      ref.read(serverTimeProvider.notifier).state = serverTime;
     },
   );
 });

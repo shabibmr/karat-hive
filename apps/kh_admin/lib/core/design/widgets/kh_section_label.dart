@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/kh_theme.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
 
 /// Uppercase gold eyebrow that sits above a screen heading.
 ///

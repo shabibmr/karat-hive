@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/customer_detail.dart';
-import '../model/customer_list_filters.dart';
-import '../model/customer_list_item.dart';
-import '../model/customer_list_page.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/customers/model/customer_detail.dart';
+import 'package:kh_admin/features/customers/model/customer_list_filters.dart';
+import 'package:kh_admin/features/customers/model/customer_list_item.dart';
+import 'package:kh_admin/features/customers/model/customer_list_page.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 
 /// Repository for customer management endpoints (ADM-S03, ADM-S04).
 class CustomerRepository {
@@ -47,7 +48,7 @@ class CustomerRepository {
     return CustomerListPage(
       items: items,
       nextCursor: nextCursor,
-      hasMore: nextCursor != null && nextCursor.isNotEmpty,
+      hasMore: hasMoreFromCursor(nextCursor),
     );
   }
 
@@ -104,7 +105,7 @@ class CustomerRepository {
     List<CustomerAdminNote> notes = const [];
     try {
       notes = await listAdminNotes(customerId);
-    } catch (_) {
+    } on Object catch (_) {
       // Best-effort: if note list fails, use whatever notes were embedded in customer response
     }
 

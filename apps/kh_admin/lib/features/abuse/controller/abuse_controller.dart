@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/abuse_report_enums.dart';
-import '../model/abuse_report_filters.dart';
-import '../model/abuse_report_item.dart';
-import '../repository/abuse_repository.dart';
+import 'package:kh_admin/features/abuse/model/abuse_report_enums.dart';
+import 'package:kh_admin/features/abuse/model/abuse_report_filters.dart';
+import 'package:kh_admin/features/abuse/model/abuse_report_item.dart';
+import 'package:kh_admin/features/abuse/repository/abuse_repository.dart';
 
 class AbuseListState {
   const AbuseListState({
@@ -67,7 +67,7 @@ class AbuseListController extends StateNotifier<AbuseListState> {
         clearCursor: page.nextCursor == null,
         hasMore: page.hasMore,
       );
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString(),
@@ -88,7 +88,7 @@ class AbuseListController extends StateNotifier<AbuseListState> {
         clearCursor: page.nextCursor == null,
         hasMore: page.hasMore,
       );
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(errorMessage: e.toString());
     }
   }
@@ -130,7 +130,7 @@ class AbuseListController extends StateNotifier<AbuseListState> {
       state = state.copyWith(isActionLoading: false);
       await refresh();
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isActionLoading: false,
         errorMessage: 'Failed to resolve report: $e',
@@ -146,7 +146,7 @@ class AbuseListController extends StateNotifier<AbuseListState> {
       state = state.copyWith(isActionLoading: false);
       await refresh();
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isActionLoading: false,
         errorMessage: 'Failed to dismiss report: $e',

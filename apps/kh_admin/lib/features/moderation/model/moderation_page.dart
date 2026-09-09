@@ -1,4 +1,4 @@
-import 'moderation_review_item.dart';
+import 'package:kh_admin/features/moderation/model/moderation_review_item.dart';
 
 class ModerationPage {
   const ModerationPage({

@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/api/api_exception.dart';
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../../../core/router/verification_query_params.dart';
-import '../../../l10n/app_localizations.dart';
-import '../controller/verification_controller.dart';
-import '../model/verification_queue_item.dart';
-import 'verification_detail_pane.dart';
-import 'verification_queue_list.dart';
+import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/core/router/verification_query_params.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/verification/controller/verification_controller.dart';
+import 'package:kh_admin/features/verification/model/verification_queue_item.dart';
+import 'package:kh_admin/features/verification/presentation/verification_detail_pane.dart';
+import 'package:kh_admin/features/verification/presentation/verification_queue_list.dart';
 
 /// ADM-S07 Verification Queue Screen.
 /// Oldest-first review queue for vendor business credentials (FR-ADM-015).
@@ -40,7 +40,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
       if (query.selectedId != null && query.selectedId!.isNotEmpty) {
         return query.selectedId;
       }
-    } catch (_) {
+    } on Object catch (_) {
       // Outside GoRouter context (e.g. tests)
     }
     return _selectedId;

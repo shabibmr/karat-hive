@@ -1,19 +1,19 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_data_table.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../../../core/router/vendor_query_params.dart';
-import '../../../l10n/app_localizations.dart';
-import '../controller/vendor_list_controller.dart';
-import '../model/vendor_enums.dart';
-import '../model/vendor_list_filters.dart';
-import '../model/vendor_list_item.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/core/router/vendor_query_params.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/vendors/controller/vendor_list_controller.dart';
+import 'package:kh_admin/features/vendors/model/vendor_enums.dart';
+import 'package:kh_admin/features/vendors/model/vendor_list_filters.dart';
+import 'package:kh_admin/features/vendors/model/vendor_list_item.dart';
+import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S05 · Vendor list — browse and search vendors with verification filters.
 class VendorListScreen extends ConsumerStatefulWidget {
@@ -23,9 +23,8 @@ class VendorListScreen extends ConsumerStatefulWidget {
   ConsumerState<VendorListScreen> createState() => _VendorListScreenState();
 }
 
-class _VendorListScreenState extends ConsumerState<VendorListScreen> {
+class _VendorListScreenState extends ConsumerState<VendorListScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
-  Timer? _debounceTimer;
   Uri? _lastSyncedUri;
 
   @override
@@ -43,7 +42,6 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -52,7 +50,7 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
     Uri uri;
     try {
       uri = GoRouterState.of(context).uri;
-    } catch (_) {
+    } on Object catch (_) {
       return;
     }
     if (uri == _lastSyncedUri) return;
@@ -80,16 +78,13 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
   }
 
   void _onSearchChanged(String query) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 350), () {
-      if (mounted) {
-        _commitSearch(query);
-      }
+    debounceSearch(() {
+      _commitSearch(query);
     });
   }
 
   void _onSearchSubmitted() {
-    _debounceTimer?.cancel();
+    cancelSearchDebounce();
     _commitSearch(_searchController.text.trim());
   }
 
@@ -427,7 +422,7 @@ class _VendorRowAction extends StatelessWidget {
       key: Key('vendor-action-${item.id}'),
       onPressed: () {
         if (isPending) {
-          context.go('/verification');
+          context.go('/verification?selectedId=${item.id}');
         } else {
           context.go('/vendors/${item.id}');
         }

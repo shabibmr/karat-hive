@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'vendor_enums.dart';
+import 'package:kh_admin/features/vendors/model/vendor_enums.dart';
 
 part 'vendor_list_item.freezed.dart';
 part 'vendor_list_item.g.dart';

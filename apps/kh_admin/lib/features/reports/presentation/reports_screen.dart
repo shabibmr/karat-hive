@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_data_table.dart';
-import '../../../core/design/widgets/kh_metric_card.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../../../l10n/app_localizations.dart';
-import '../controller/reports_controller.dart';
-import '../model/export_job.dart';
-import '../model/report_filters.dart';
-import '../model/report_name.dart';
-import '../model/report_result.dart';
-import 'report_chart.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/reports/controller/reports_controller.dart';
+import 'package:kh_admin/features/reports/model/export_job.dart';
+import 'package:kh_admin/features/reports/model/report_filters.dart';
+import 'package:kh_admin/features/reports/model/report_name.dart';
+import 'package:kh_admin/features/reports/model/report_result.dart';
+import 'package:kh_admin/features/reports/presentation/report_chart.dart';
 
 /// ADM-S17 · Reports & analytics.
 class ReportsScreen extends ConsumerStatefulWidget {

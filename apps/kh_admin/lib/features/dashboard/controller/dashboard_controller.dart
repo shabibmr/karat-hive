@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/dashboard_queue_item.dart';
-import '../model/dashboard_stats.dart';
-import '../repository/dashboard_repository.dart';
+import 'package:kh_admin/features/dashboard/model/dashboard_queue_item.dart';
+import 'package:kh_admin/features/dashboard/model/dashboard_stats.dart';
+import 'package:kh_admin/features/dashboard/repository/dashboard_repository.dart';
 
 /// AsyncNotifier controller for ADM-S02 Dashboard statistics.
 class DashboardController extends AsyncNotifier<DashboardStats> {
@@ -44,7 +44,7 @@ Future<List<DashboardQueueItem>> _omitQueueSource(
 ) async {
   try {
     return await fetch();
-  } catch (_) {
+  } on Object catch (_) {
     return const [];
   }
 }

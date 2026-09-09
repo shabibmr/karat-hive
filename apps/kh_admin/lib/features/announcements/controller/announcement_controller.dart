@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/announcement_enums.dart';
-import '../model/announcement_filters.dart';
-import '../model/announcement_item.dart';
-import '../model/create_announcement_dto.dart';
-import '../repository/announcement_repository.dart';
+import 'package:kh_admin/features/announcements/model/announcement_enums.dart';
+import 'package:kh_admin/features/announcements/model/announcement_filters.dart';
+import 'package:kh_admin/features/announcements/model/announcement_item.dart';
+import 'package:kh_admin/features/announcements/model/create_announcement_dto.dart';
+import 'package:kh_admin/features/announcements/repository/announcement_repository.dart';
 
 class AnnouncementListState {
   const AnnouncementListState({
@@ -68,7 +68,7 @@ class AnnouncementListController extends StateNotifier<AnnouncementListState> {
         clearCursor: page.nextCursor == null,
         hasMore: page.hasMore,
       );
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString(),
@@ -89,7 +89,7 @@ class AnnouncementListController extends StateNotifier<AnnouncementListState> {
         clearCursor: page.nextCursor == null,
         hasMore: page.hasMore,
       );
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(errorMessage: e.toString());
     }
   }
@@ -131,7 +131,7 @@ class AnnouncementListController extends StateNotifier<AnnouncementListState> {
       state = state.copyWith(isActionLoading: false);
       await refresh();
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isActionLoading: false,
         errorMessage: 'Failed to create announcement: $e',
@@ -147,7 +147,7 @@ class AnnouncementListController extends StateNotifier<AnnouncementListState> {
       state = state.copyWith(isActionLoading: false);
       await refresh();
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(
         isActionLoading: false,
         errorMessage: 'Failed to cancel announcement: $e',

@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/dashboard_queue_item.dart';
-import '../model/dashboard_stats.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/dashboard/model/dashboard_queue_item.dart';
+import 'package:kh_admin/features/dashboard/model/dashboard_stats.dart';
 
 /// Repository for ADM-S02 dashboard stats and queue snapshots.
 class DashboardRepository {

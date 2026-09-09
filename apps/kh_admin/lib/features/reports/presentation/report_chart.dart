@@ -1,8 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../model/report_result.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/features/reports/model/report_result.dart';
 
 /// Bar or line chart for ADM-S17. Empty [points] must not be passed — the
 /// parent shows a placeholder instead of building a chart.

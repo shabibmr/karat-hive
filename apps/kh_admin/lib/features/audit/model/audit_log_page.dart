@@ -1,4 +1,4 @@
-import 'audit_log_item.dart';
+import 'package:kh_admin/features/audit/model/audit_log_item.dart';
 
 /// Cursor-paginated page of audit log entries (ADM-S22).
 class AuditLogPage {

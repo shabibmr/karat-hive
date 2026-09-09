@@ -1,8 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/vendors/model/vendor_enums.dart';
-import '../../features/vendors/model/vendor_list_filters.dart';
+import 'package:kh_admin/features/vendors/model/vendor_enums.dart';
+import 'package:kh_admin/features/vendors/model/vendor_list_filters.dart';
+import 'package:kh_admin/core/router/query_navigation.dart';
 
 /// Vendor list query state encoded in URL query parameters (AD-FE §16.2).
 class VendorQueryParams {
@@ -82,26 +83,6 @@ class VendorQueryParams {
 /// Extension on [BuildContext] for updating vendor list query parameters.
 extension VendorQueryNavigation on BuildContext {
   void updateVendorQuery(VendorListFilters filters) {
-    try {
-      final state = GoRouterState.of(this);
-      final updated = VendorQueryParams.fromFilters(filters).toQueryParameters();
-      final current = state.uri.queryParameters;
-      if (_stringMapsEqual(current, updated)) return;
-
-      final newUri = updated.isEmpty
-          ? state.uri.replace(queryParameters: const <String, String>{})
-          : state.uri.replace(queryParameters: updated);
-      go(newUri.toString());
-    } catch (_) {
-      // Safe fallback when executed outside a GoRouter context (e.g. widget tests)
-    }
+    applyQueryParameters(VendorQueryParams.fromFilters(filters).toQueryParameters());
   }
-}
-
-bool _stringMapsEqual(Map<String, String> a, Map<String, String> b) {
-  if (a.length != b.length) return false;
-  for (final entry in b.entries) {
-    if (a[entry.key] != entry.value) return false;
-  }
-  return true;
 }

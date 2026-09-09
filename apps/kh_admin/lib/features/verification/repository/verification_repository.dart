@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/document_url_response.dart';
-import '../model/verification_decision_dto.dart';
-import '../model/verification_queue_item.dart';
-import '../model/vendor_verification_detail.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/verification/model/document_url_response.dart';
+import 'package:kh_admin/features/verification/model/verification_decision_dto.dart';
+import 'package:kh_admin/features/verification/model/verification_queue_item.dart';
+import 'package:kh_admin/features/verification/model/vendor_verification_detail.dart';
 
 /// Typed repository for ADM-S07 verification queue endpoints (API §21.3).
 class VerificationRepository {

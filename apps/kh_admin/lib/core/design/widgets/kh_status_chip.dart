@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme/kh_colors.dart';
-import '../theme/kh_theme.dart';
+import 'package:kh_admin/core/design/theme/kh_colors.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
 
 /// Semantic states a [KhStatusChip] can render.
 ///

@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../model/request_list_filters.dart';
-import '../model/request_list_item.dart';
-import '../repository/request_repository.dart';
+import 'package:kh_admin/features/requests/model/request_list_filters.dart';
+import 'package:kh_admin/features/requests/model/request_list_item.dart';
+import 'package:kh_admin/features/requests/repository/request_repository.dart';
 
 part 'request_list_controller.freezed.dart';
 

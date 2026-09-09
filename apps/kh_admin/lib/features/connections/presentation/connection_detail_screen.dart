@@ -2,13 +2,13 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_section_label.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../controller/connection_detail_controller.dart';
-import '../model/connection_detail.dart';
-import '../model/connection_enums.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/features/connections/controller/connection_detail_controller.dart';
+import 'package:kh_admin/features/connections/model/connection_detail.dart';
+import 'package:kh_admin/features/connections/model/connection_enums.dart';
 
 /// ADM-S13 · Connection detail — Full connection record, unmasked parties,
 /// contact attempts timeline, admin notes, and connection close lifecycle action.
@@ -179,7 +179,7 @@ class _ConnectionDetailScreenState extends ConsumerState<ConnectionDetailScreen>
                             if (dialogContext.mounted) {
                               Navigator.of(dialogContext).pop();
                             }
-                          } catch (e) {
+                          } on Object catch (e) {
                             setDialogState(() {
                               isClosing = false;
                               validationError = 'Error: $e';
@@ -324,7 +324,7 @@ class _ConnectionDetailScreenState extends ConsumerState<ConnectionDetailScreen>
     );
   }
 
-  Widget _buildRequestCard(dynamic kh, ConnectionDetail detail) {
+  Widget _buildRequestCard(KhThemeExtension kh, ConnectionDetail detail) {
     final request = detail.request;
     final customer = detail.customer;
 
@@ -381,7 +381,7 @@ class _ConnectionDetailScreenState extends ConsumerState<ConnectionDetailScreen>
     );
   }
 
-  Widget _buildAcceptedOfferCard(dynamic kh, ConnectionDetail detail) {
+  Widget _buildAcceptedOfferCard(KhThemeExtension kh, ConnectionDetail detail) {
     final offer = detail.offer;
     final vendor = detail.vendor;
 
@@ -453,7 +453,7 @@ class _ConnectionDetailScreenState extends ConsumerState<ConnectionDetailScreen>
     );
   }
 
-  Widget _buildContactEventsCard(dynamic kh, ConnectionDetail detail) {
+  Widget _buildContactEventsCard(KhThemeExtension kh, ConnectionDetail detail) {
     return Container(
       padding: EdgeInsets.all(kh.spacing.lg),
       decoration: BoxDecoration(
@@ -548,7 +548,7 @@ class _ConnectionDetailScreenState extends ConsumerState<ConnectionDetailScreen>
 
   Widget _buildLifecycleActionsCard(
     BuildContext context,
-    dynamic kh,
+    KhThemeExtension kh,
     ConnectionDetail detail,
   ) {
     final isClosed = detail.state == ConnectionState.closed;
@@ -628,7 +628,7 @@ class _ConnectionDetailScreenState extends ConsumerState<ConnectionDetailScreen>
     );
   }
 
-  Widget _buildAdminNotesCard(dynamic kh, ConnectionDetail detail) {
+  Widget _buildAdminNotesCard(KhThemeExtension kh, ConnectionDetail detail) {
     return Container(
       padding: EdgeInsets.all(kh.spacing.lg),
       decoration: BoxDecoration(
@@ -743,7 +743,7 @@ class _ConnectionDetailScreenState extends ConsumerState<ConnectionDetailScreen>
   }
 
   Widget _infoRow(
-    dynamic kh,
+    KhThemeExtension kh,
     String label,
     String value, {
     bool isHighlighted = false,

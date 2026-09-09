@@ -1,17 +1,17 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_data_table.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../controller/connection_list_controller.dart';
-import '../model/connection_enums.dart';
-import '../model/connection_list_filters.dart';
-import '../model/connection_list_item.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/features/connections/controller/connection_list_controller.dart';
+import 'package:kh_admin/features/connections/model/connection_enums.dart';
+import 'package:kh_admin/features/connections/model/connection_list_filters.dart';
+import 'package:kh_admin/features/connections/model/connection_list_item.dart';
+import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S12 · Connection list — Browse Introductions, monitor contact SLAs, and flag failed talks.
 class ConnectionListScreen extends ConsumerStatefulWidget {
@@ -21,9 +21,8 @@ class ConnectionListScreen extends ConsumerStatefulWidget {
   ConsumerState<ConnectionListScreen> createState() => _ConnectionListScreenState();
 }
 
-class _ConnectionListScreenState extends ConsumerState<ConnectionListScreen> {
+class _ConnectionListScreenState extends ConsumerState<ConnectionListScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
-  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -34,23 +33,18 @@ class _ConnectionListScreenState extends ConsumerState<ConnectionListScreen> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   void _onSearchChanged(String query) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 350), () {
-      if (mounted) {
-        ref.read(connectionListControllerProvider.notifier).setSearchQuery(query);
-        ref.read(connectionListControllerProvider.notifier).submitSearch();
-      }
+    debounceSearch(() {
+      ref.read(connectionListControllerProvider.notifier).setSearchQuery(query);
+      ref.read(connectionListControllerProvider.notifier).submitSearch();
     });
   }
 
   void _onSearchSubmitted() {
-    _debounceTimer?.cancel();
     ref
         .read(connectionListControllerProvider.notifier)
         .setSearchQuery(_searchController.text.trim());

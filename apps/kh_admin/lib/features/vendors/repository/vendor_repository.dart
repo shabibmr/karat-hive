@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_client.dart';
-import '../model/vendor_detail.dart';
-import '../model/vendor_list_filters.dart';
-import '../model/vendor_list_item.dart';
-import '../model/vendor_list_page.dart';
+import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/vendors/model/vendor_detail.dart';
+import 'package:kh_admin/features/vendors/model/vendor_list_filters.dart';
+import 'package:kh_admin/features/vendors/model/vendor_list_item.dart';
+import 'package:kh_admin/features/vendors/model/vendor_list_page.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 
 /// Typed repository for `GET /v1/admin/vendors` (ADM-S05, API-Route-Inventory §21.3).
 class VendorRepository {
@@ -48,7 +49,7 @@ class VendorRepository {
     return VendorListPage(
       items: items,
       nextCursor: nextCursor,
-      hasMore: nextCursor != null && nextCursor.isNotEmpty,
+      hasMore: hasMoreFromCursor(nextCursor),
     );
   }
 
@@ -68,9 +69,8 @@ class VendorRepository {
         : raw['accountState']?.toString();
     normalized['accountState'] = accountState ?? 'ACTIVE';
 
-    final rating = raw['aggregateRating'] ?? raw['rating'];
     normalized['rating'] =
-        rating == null ? null : double.tryParse(rating.toString());
+        toDoubleOrNull(raw['aggregateRating'] ?? raw['rating']);
 
     final submitted = (raw['offersSubmittedCount'] as num?)?.toInt();
     final accepted = (raw['offersAcceptedCount'] as num?)?.toInt();

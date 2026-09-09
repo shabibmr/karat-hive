@@ -2,33 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/auth/presentation/login_screen.dart';
-import '../../features/dashboard/presentation/dashboard_screen.dart';
-import '../../features/taxonomy/model/taxonomy_kind.dart';
-import '../../features/taxonomy/presentation/taxonomy_screen.dart';
-import '../../features/verification/presentation/verification_screen.dart';
-import 'verification_query_params.dart';
-import '../../features/abuse/presentation/abuse_screen.dart';
-import '../../features/admin_users/presentation/admin_users_screen.dart';
-import '../../features/announcements/presentation/announcements_screen.dart';
-import '../../features/audit/presentation/audit_screen.dart';
-import '../../features/connections/presentation/connection_detail_screen.dart';
-import '../../features/connections/presentation/connection_list_screen.dart';
-import '../../features/customers/presentation/customer_detail_screen.dart';
-import '../../features/customers/presentation/customer_list_screen.dart';
-import '../../features/moderation/presentation/moderation_screen.dart';
-import '../../features/reports/presentation/reports_screen.dart';
-import '../../features/settings/presentation/platform_settings_screen.dart';
-import '../../features/offers/presentation/offer_detail_screen.dart';
-import '../../features/offers/presentation/offer_list_screen.dart';
-import '../../features/requests/presentation/request_detail_screen.dart';
-import '../../features/requests/presentation/request_list_screen.dart';
-import '../../features/vendors/presentation/vendor_detail_screen.dart';
-import '../../features/vendors/presentation/vendor_list_screen.dart';
-import '../auth/session_controller.dart';
-import '../auth/session_state.dart';
-import '../design/theme/kh_theme.dart';
-import '../shell/kh_admin_scaffold.dart';
+import 'package:kh_admin/features/auth/presentation/login_screen.dart';
+import 'package:kh_admin/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:kh_admin/features/taxonomy/model/taxonomy_kind.dart';
+import 'package:kh_admin/features/taxonomy/presentation/taxonomy_screen.dart';
+import 'package:kh_admin/features/verification/presentation/verification_screen.dart';
+import 'package:kh_admin/core/router/verification_query_params.dart';
+import 'package:kh_admin/features/abuse/presentation/abuse_screen.dart';
+import 'package:kh_admin/features/admin_users/presentation/admin_users_screen.dart';
+import 'package:kh_admin/features/announcements/presentation/announcements_screen.dart';
+import 'package:kh_admin/features/audit/presentation/audit_screen.dart';
+import 'package:kh_admin/features/connections/presentation/connection_detail_screen.dart';
+import 'package:kh_admin/features/connections/presentation/connection_list_screen.dart';
+import 'package:kh_admin/features/customers/presentation/customer_detail_screen.dart';
+import 'package:kh_admin/features/customers/presentation/customer_list_screen.dart';
+import 'package:kh_admin/features/moderation/presentation/moderation_screen.dart';
+import 'package:kh_admin/features/reports/presentation/reports_screen.dart';
+import 'package:kh_admin/features/settings/presentation/platform_settings_screen.dart';
+import 'package:kh_admin/features/offers/presentation/offer_detail_screen.dart';
+import 'package:kh_admin/features/offers/presentation/offer_list_screen.dart';
+import 'package:kh_admin/features/requests/presentation/request_detail_screen.dart';
+import 'package:kh_admin/features/requests/presentation/request_list_screen.dart';
+import 'package:kh_admin/features/vendors/presentation/vendor_detail_screen.dart';
+import 'package:kh_admin/features/vendors/presentation/vendor_list_screen.dart';
+import 'package:kh_admin/core/auth/session_controller.dart';
+import 'package:kh_admin/core/auth/session_state.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/shell/kh_admin_scaffold.dart';
 
 export 'taxonomy_query_params.dart';
 export 'verification_query_params.dart';
@@ -203,23 +203,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           // Placeholder routes for navigation completeness
           ...kAdminNavItems
-              .where((item) =>
-                  item.route != '/' &&
-                  item.route != '/taxonomy/categories' &&
-                  item.route != '/taxonomy/regions' &&
-                  item.route != '/customers' &&
-                  item.route != '/vendors' &&
-                  item.route != '/verification' &&
-                  item.route != '/offers' &&
-                  item.route != '/requests' &&
-                  item.route != '/connections' &&
-                  item.route != '/audit' &&
-                  item.route != '/abuse' &&
-                  item.route != '/moderation' &&
-                  item.route != '/admin-users' &&
-                  item.route != '/settings' &&
-                  item.route != '/announcements' &&
-                  item.route != '/reports')
+              .where((item) => !item.isLive)
               .map(
                 (item) => GoRoute(
                   path: item.route,

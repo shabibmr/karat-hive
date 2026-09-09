@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/connection_detail.dart';
-import '../repository/connection_repository.dart';
+import 'package:kh_admin/features/connections/model/connection_detail.dart';
+import 'package:kh_admin/features/connections/repository/connection_repository.dart';
 
 /// Riverpod family notifier managing connection inspection, closing, and admin notes (ADM-S13).
 class ConnectionDetailController

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_section_label.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../../../l10n/app_localizations.dart';
-import '../controller/vendor_detail_controller.dart';
-import '../model/vendor_detail.dart';
-import '../model/vendor_enums.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/vendors/controller/vendor_detail_controller.dart';
+import 'package:kh_admin/features/vendors/model/vendor_detail.dart';
+import 'package:kh_admin/features/vendors/model/vendor_enums.dart';
 
 /// ADM-S06 · Vendor detail — full business profile, KYC document inspection,
 /// taxonomy subscriptions, and admin lifecycle controls (suspend, reactivate, deactivate).
@@ -130,7 +130,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
     );
   }
 
-  Widget _buildBackButton(BuildContext context, dynamic kh) {
+  Widget _buildBackButton(BuildContext context, KhThemeExtension kh) {
     return TextButton.icon(
       key: const Key('vendor-detail-back-button'),
       onPressed: () => context.go('/vendors'),
@@ -148,7 +148,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
 
   Widget _buildHeader(
     BuildContext context,
-    dynamic kh,
+    KhThemeExtension kh,
     AppLocalizations? l10n,
     VendorDetail detail,
   ) {
@@ -175,7 +175,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
     );
   }
 
-  Widget _buildFeedbackBanner(dynamic kh) {
+  Widget _buildFeedbackBanner(KhThemeExtension kh) {
     final bgColor = _actionSuccess
         ? kh.colors.success.withValues(alpha: 0.12)
         : kh.colors.error.withValues(alpha: 0.12);
@@ -218,7 +218,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
     );
   }
 
-  Widget _buildProfileCard(dynamic kh, VendorDetail detail) {
+  Widget _buildProfileCard(KhThemeExtension kh, VendorDetail detail) {
     final isExpired = detail.isLicenceExpired;
     final expiryFormatted = _formatDate(detail.licenceExpiryDate);
 
@@ -258,7 +258,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
   }
 
   Widget _buildFieldRow(
-    dynamic kh,
+    KhThemeExtension kh,
     String label,
     String value, {
     Widget? badge,
@@ -302,7 +302,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
     );
   }
 
-  Widget _buildTaxonomyCard(dynamic kh, VendorDetail detail) {
+  Widget _buildTaxonomyCard(KhThemeExtension kh, VendorDetail detail) {
     return Container(
       key: const Key('vendor-taxonomy-card'),
       padding: EdgeInsets.all(kh.spacing.lg),
@@ -404,7 +404,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
     );
   }
 
-  Widget _buildKycDocumentsCard(dynamic kh, VendorDetail detail) {
+  Widget _buildKycDocumentsCard(KhThemeExtension kh, VendorDetail detail) {
     return Container(
       key: const Key('vendor-kyc-documents-card'),
       padding: EdgeInsets.all(kh.spacing.lg),
@@ -509,7 +509,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
 
   Widget _buildLifecycleActionsCard(
     BuildContext context,
-    dynamic kh,
+    KhThemeExtension kh,
     VendorDetail detail,
   ) {
     final isActive = detail.accountState == VendorAccountState.active;
@@ -646,7 +646,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
 
   Future<void> _promptSuspendDialog(
     BuildContext context,
-    dynamic kh,
+    KhThemeExtension kh,
     VendorDetail detail,
   ) async {
     final formKey = GlobalKey<FormState>();
@@ -755,7 +755,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
 
   Future<void> _promptReactivateDialog(
     BuildContext context,
-    dynamic kh,
+    KhThemeExtension kh,
     VendorDetail detail,
   ) async {
     // 1. Confirm unexpired KYC rule
@@ -861,7 +861,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
 
   Future<void> _promptDeactivateDialog(
     BuildContext context,
-    dynamic kh,
+    KhThemeExtension kh,
     VendorDetail detail,
   ) async {
     final formKey = GlobalKey<FormState>();
@@ -972,7 +972,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
           _actionFeedback = successMessage;
         });
       }
-    } catch (e) {
+    } on Object catch (e) {
       if (mounted) {
         setState(() {
           _isProcessingAction = false;
@@ -985,7 +985,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
 
   Widget _buildErrorView(
     BuildContext context,
-    dynamic kh,
+    KhThemeExtension kh,
     AppLocalizations? l10n,
     String message,
     VoidCallback onRetry,

@@ -1,18 +1,18 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/design/theme/kh_theme.dart';
-import '../../../core/design/widgets/kh_data_table.dart';
-import '../../../core/design/widgets/kh_metric_card.dart';
-import '../../../core/design/widgets/kh_screen_header.dart';
-import '../../../core/design/widgets/kh_status_chip.dart';
-import '../controller/abuse_controller.dart';
-import '../model/abuse_report_enums.dart';
-import '../model/abuse_report_filters.dart';
-import '../model/abuse_report_item.dart';
+import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
+import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/features/abuse/controller/abuse_controller.dart';
+import 'package:kh_admin/features/abuse/model/abuse_report_enums.dart';
+import 'package:kh_admin/features/abuse/model/abuse_report_filters.dart';
+import 'package:kh_admin/features/abuse/model/abuse_report_item.dart';
+import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S21 · Abuse report queue — Triage customer and vendor abuse reports.
 class AbuseScreen extends ConsumerStatefulWidget {
@@ -22,9 +22,8 @@ class AbuseScreen extends ConsumerStatefulWidget {
   ConsumerState<AbuseScreen> createState() => _AbuseScreenState();
 }
 
-class _AbuseScreenState extends ConsumerState<AbuseScreen> {
+class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
-  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -35,23 +34,18 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   void _onSearchChanged(String query) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 350), () {
-      if (mounted) {
-        ref.read(abuseListControllerProvider.notifier).setSearchQuery(query);
-        ref.read(abuseListControllerProvider.notifier).submitSearch();
-      }
+    debounceSearch(() {
+      ref.read(abuseListControllerProvider.notifier).setSearchQuery(query);
+      ref.read(abuseListControllerProvider.notifier).submitSearch();
     });
   }
 
   void _onSearchSubmitted() {
-    _debounceTimer?.cancel();
     ref.read(abuseListControllerProvider.notifier).setSearchQuery(_searchController.text.trim());
     ref.read(abuseListControllerProvider.notifier).submitSearch();
   }
