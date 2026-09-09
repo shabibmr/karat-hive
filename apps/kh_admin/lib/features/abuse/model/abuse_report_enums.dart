@@ -51,6 +51,62 @@ enum AbuseReportState {
   }
 }
 
+/// FR-ADM-032 AC3 — the four resolutions an Admin can take against the reported
+/// party from an abuse report. Each requires a rationale. Sent to
+/// `POST /v1/admin/abuse-reports/:id/action` as [wireValue].
+enum AbuseReportAction {
+  dismiss,
+  warn,
+  suspend,
+  deactivate;
+
+  String get wireValue {
+    switch (this) {
+      case AbuseReportAction.dismiss:
+        return 'DISMISS';
+      case AbuseReportAction.warn:
+        return 'WARN';
+      case AbuseReportAction.suspend:
+        return 'SUSPEND';
+      case AbuseReportAction.deactivate:
+        return 'DEACTIVATE';
+    }
+  }
+
+  /// Menu label.
+  String get label {
+    switch (this) {
+      case AbuseReportAction.dismiss:
+        return 'Dismiss report';
+      case AbuseReportAction.warn:
+        return 'Warn reported party';
+      case AbuseReportAction.suspend:
+        return 'Suspend reported party';
+      case AbuseReportAction.deactivate:
+        return 'Deactivate reported party';
+    }
+  }
+
+  /// Past-tense outcome for the confirmation snackbar.
+  String get pastTense {
+    switch (this) {
+      case AbuseReportAction.dismiss:
+        return 'DISMISSED';
+      case AbuseReportAction.warn:
+        return 'resolved with a warning';
+      case AbuseReportAction.suspend:
+        return 'resolved — reported party suspended';
+      case AbuseReportAction.deactivate:
+        return 'resolved — reported party deactivated';
+    }
+  }
+
+  /// Whether this action changes the reported party's account state (used to
+  /// gate the extra confirmation copy).
+  bool get sanctionsParty =>
+      this == AbuseReportAction.suspend || this == AbuseReportAction.deactivate;
+}
+
 enum AbuseEntityType {
   request,
   offer,

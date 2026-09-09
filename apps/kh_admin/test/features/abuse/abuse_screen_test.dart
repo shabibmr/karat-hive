@@ -16,10 +16,9 @@ class _FakeAbuseRepository extends AbuseRepository {
 
   bool empty = false;
   bool failNext = false;
-  String? resolvedReportId;
-  String? resolvedRationale;
-  String? dismissedReportId;
-  String? dismissedRationale;
+  String? actionedReportId;
+  AbuseReportAction? actionedAction;
+  String? actionedRationale;
 
   @override
   Future<AbuseReportPage> fetchAbuseReports({
@@ -50,15 +49,14 @@ class _FakeAbuseRepository extends AbuseRepository {
   }
 
   @override
-  Future<void> resolveAbuseReport(String id, {required String resolution}) async {
-    resolvedReportId = id;
-    resolvedRationale = resolution;
-  }
-
-  @override
-  Future<void> dismissAbuseReport(String id, {required String resolution}) async {
-    dismissedReportId = id;
-    dismissedRationale = resolution;
+  Future<void> actionAbuseReport(
+    String id, {
+    required AbuseReportAction action,
+    required String rationale,
+  }) async {
+    actionedReportId = id;
+    actionedAction = action;
+    actionedRationale = rationale;
   }
 }
 
@@ -115,7 +113,7 @@ void main() {
       expect(find.text('Sara Al Maktoum'), findsOneWidget);
     });
 
-    testWidgets('opens resolve dialog and submits resolution', (tester) async {
+    testWidgets('warns the reported party via the row action menu', (tester) async {
       tester.view.physicalSize = const Size(1400, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -124,25 +122,26 @@ void main() {
       await tester.pumpWidget(buildTestableScreen(repository: repo));
       await tester.pumpAndSettle();
 
-      final resolveIcon = find.byIcon(Icons.check_circle_outline);
-      expect(resolveIcon, findsOneWidget);
-      await tester.tap(resolveIcon);
+      await tester.tap(find.byKey(const Key('abuse-action-menu-ab-1')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Resolve Abuse Report #ab-1'), findsOneWidget);
+      await tester.tap(find.text('Warn reported party').last);
+      await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.byKey(const Key('abuse-resolve-rationale-field')),
-        'Issued official warning to vendor',
+        find.byKey(const Key('abuse-action-rationale-field')),
+        'First formal caution for off-platform solicitation',
       );
-      await tester.tap(find.byKey(const Key('abuse-confirm-resolve-button')));
+      await tester.tap(find.byKey(const Key('abuse-confirm-action-button')));
       await tester.pumpAndSettle();
 
-      expect(repo.resolvedReportId, 'ab-1');
-      expect(repo.resolvedRationale, 'Issued official warning to vendor');
+      expect(repo.actionedReportId, 'ab-1');
+      expect(repo.actionedAction, AbuseReportAction.warn);
+      expect(repo.actionedRationale,
+          'First formal caution for off-platform solicitation');
     });
 
-    testWidgets('opens dismiss dialog and submits dismissal', (tester) async {
+    testWidgets('suspends the reported party from the detail dialog', (tester) async {
       tester.view.physicalSize = const Size(1400, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -151,22 +150,24 @@ void main() {
       await tester.pumpWidget(buildTestableScreen(repository: repo));
       await tester.pumpAndSettle();
 
-      final dismissIcon = find.byIcon(Icons.cancel_outlined);
-      expect(dismissIcon, findsOneWidget);
-      await tester.tap(dismissIcon);
+      await tester.tap(find.text('INAPPROPRIATE_TERMS'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Dismiss Abuse Report #ab-1'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('abuse-detail-action-menu')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Suspend reported party').last);
+      await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.byKey(const Key('abuse-dismiss-rationale-field')),
-        'No rule violation found',
+        find.byKey(const Key('abuse-action-rationale-field')),
+        'Repeated violations after prior warning',
       );
-      await tester.tap(find.byKey(const Key('abuse-confirm-dismiss-button')));
+      await tester.tap(find.byKey(const Key('abuse-confirm-action-button')));
       await tester.pumpAndSettle();
 
-      expect(repo.dismissedReportId, 'ab-1');
-      expect(repo.dismissedRationale, 'No rule violation found');
+      expect(repo.actionedReportId, 'ab-1');
+      expect(repo.actionedAction, AbuseReportAction.suspend);
     });
 
     testWidgets('shows empty state when no reports match', (tester) async {

@@ -144,25 +144,34 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with 
     );
 
     final kh = context.kh;
-    final state = ref.watch(announcementListControllerProvider);
+    final filters =
+        ref.watch(announcementListControllerProvider.select((s) => s.filters));
+    final isLoading =
+        ref.watch(announcementListControllerProvider.select((s) => s.isLoading));
+    final errorMessage = ref
+        .watch(announcementListControllerProvider.select((s) => s.errorMessage));
+    final items =
+        ref.watch(announcementListControllerProvider.select((s) => s.items));
+    final hasMore =
+        ref.watch(announcementListControllerProvider.select((s) => s.hasMore));
     final controller = ref.read(announcementListControllerProvider.notifier);
 
-    if (_searchController.text != state.filters.query &&
+    if (_searchController.text != filters.query &&
         !_searchController.selection.isValid) {
-      _searchController.text = state.filters.query;
+      _searchController.text = filters.query;
     }
 
-    final totalCount = state.items.length;
+    final totalCount = items.length;
     final scheduledCount =
-        state.items.where((i) => i.status == AnnouncementStatus.scheduled).length;
+        items.where((i) => i.status == AnnouncementStatus.scheduled).length;
     final dispatchedCount =
-        state.items.where((i) => i.status == AnnouncementStatus.dispatched).length;
+        items.where((i) => i.status == AnnouncementStatus.dispatched).length;
     final cancelledCount =
-        state.items.where((i) => i.status == AnnouncementStatus.cancelled).length;
+        items.where((i) => i.status == AnnouncementStatus.cancelled).length;
 
     return Material(
       color: kh.colors.backgroundSurface,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(kh.spacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,7 +190,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with 
             ),
             SizedBox(height: kh.spacing.lg),
             AnnouncementMetricsRow(
-              isLoading: state.isLoading,
+              isLoading: isLoading,
               totalCount: totalCount,
               scheduledCount: scheduledCount,
               dispatchedCount: dispatchedCount,
@@ -190,7 +199,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with 
             ),
             SizedBox(height: kh.spacing.lg),
             AnnouncementFilterBar(
-              filters: state.filters,
+              filters: filters,
               searchController: _searchController,
               onStatusChanged: controller.setStatusFilter,
               onAudienceChanged: controller.setAudienceFilter,
@@ -198,70 +207,78 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with 
               onSearchSubmitted: _onSearchSubmitted,
             ),
             SizedBox(height: kh.spacing.lg),
-            if (state.isLoading)
-              const Center(
-                key: Key('announcement-list-loading'),
-                child: Padding(
-                  padding: EdgeInsets.all(48),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (state.errorMessage != null)
-              Container(
-                key: const Key('announcement-list-error'),
-                padding: EdgeInsets.all(kh.spacing.lg),
-                decoration: BoxDecoration(
-                  color: kh.colors.error.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: kh.colors.error.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.error_outline, color: kh.colors.error),
-                    SizedBox(width: kh.spacing.md),
-                    Expanded(
-                      child: Text(
-                        state.errorMessage!,
-                        style: kh.typography.body.copyWith(color: kh.colors.error),
+            Expanded(
+              child: isLoading && items.isEmpty
+                  ? const Center(
+                      key: Key('announcement-list-loading'),
+                      child: Padding(
+                        padding: EdgeInsets.all(48),
+                        child: CircularProgressIndicator(),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: controller.refresh,
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              )
-            else if (state.items.isEmpty)
-              Container(
-                key: const Key('announcement-list-empty'),
-                padding: EdgeInsets.all(kh.spacing.xxl),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: kh.colors.backgroundElevated,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: kh.colors.borderStandard),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.campaign_outlined, size: 48, color: kh.colors.textMuted),
-                    SizedBox(height: kh.spacing.md),
-                    Text('No announcements found', style: kh.typography.title),
-                    SizedBox(height: kh.spacing.xs),
-                    Text(
-                      'No announcements match the current filters.',
-                      style: kh.typography.bodySmall.copyWith(color: kh.colors.textMuted),
-                    ),
-                  ],
-                ),
-              )
-            else
-              AnnouncementTable(
-                items: state.items,
-                onRowTap: _openDetail,
-                onCancel: _handleCancel,
-              ),
-            if (state.hasMore) ...[
+                    )
+                  : errorMessage != null && items.isEmpty
+                      ? Container(
+                          key: const Key('announcement-list-error'),
+                          padding: EdgeInsets.all(kh.spacing.lg),
+                          decoration: BoxDecoration(
+                            color: kh.colors.error.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: kh.colors.error.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline, color: kh.colors.error),
+                              SizedBox(width: kh.spacing.md),
+                              Expanded(
+                                child: Text(
+                                  errorMessage,
+                                  style: kh.typography.body
+                                      .copyWith(color: kh.colors.error),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: controller.refresh,
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : items.isEmpty
+                          ? Container(
+                              key: const Key('announcement-list-empty'),
+                              padding: EdgeInsets.all(kh.spacing.xxl),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: kh.colors.backgroundElevated,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: kh.colors.borderStandard),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.campaign_outlined,
+                                      size: 48, color: kh.colors.textMuted),
+                                  SizedBox(height: kh.spacing.md),
+                                  Text('No announcements found',
+                                      style: kh.typography.title),
+                                  SizedBox(height: kh.spacing.xs),
+                                  Text(
+                                    'No announcements match the current filters.',
+                                    style: kh.typography.bodySmall
+                                        .copyWith(color: kh.colors.textMuted),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : AnnouncementTable(
+                              items: items,
+                              onRowTap: _openDetail,
+                              onCancel: _handleCancel,
+                            ),
+            ),
+            if (hasMore) ...[
               SizedBox(height: kh.spacing.lg),
               Center(
                 child: OutlinedButton(

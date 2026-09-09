@@ -92,17 +92,24 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> with Deboun
   Widget build(BuildContext context) {
     final kh = context.kh;
     final l10n = AppLocalizations.of(context);
-    final listState = ref.watch(vendorListControllerProvider);
+    final filters =
+        ref.watch(vendorListControllerProvider.select((s) => s.filters));
+    final isLoading =
+        ref.watch(vendorListControllerProvider.select((s) => s.isLoading));
+    final error =
+        ref.watch(vendorListControllerProvider.select((s) => s.error));
+    final hasItems = ref
+        .watch(vendorListControllerProvider.select((s) => s.items.isNotEmpty));
     final controller = ref.read(vendorListControllerProvider.notifier);
 
-    if (_searchController.text != listState.filters.query &&
+    if (_searchController.text != filters.query &&
         !_searchController.selection.isValid) {
-      _searchController.text = listState.filters.query;
+      _searchController.text = filters.query;
     }
 
     return Material(
       color: kh.colors.backgroundSurface,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(kh.spacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,52 +123,52 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> with Deboun
             SizedBox(height: kh.spacing.lg),
             _VendorFilterBar(
               key: const Key('vendor-filter-bar'),
-              filters: listState.filters,
+              filters: filters,
               searchController: _searchController,
               onVerificationChanged: (value) => _applyFilters(
-                listState.filters.copyWith(verificationState: value),
+                filters.copyWith(verificationState: value),
               ),
               onAccountChanged: (value) => _applyFilters(
-                listState.filters.copyWith(accountState: value),
+                filters.copyWith(accountState: value),
               ),
               onSearchSubmitted: _onSearchSubmitted,
               onSearchChanged: _onSearchChanged,
             ),
             SizedBox(height: kh.spacing.lg),
-            if (listState.isLoading)
-              const Center(
-                key: Key('vendor-list-loading'),
-                child: Padding(
-                  padding: EdgeInsets.all(48),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (listState.error != null && listState.items.isEmpty)
-              _VendorErrorView(
-                message: listState.error!,
-                onRetry: controller.refresh,
-              )
-            else if (listState.items.isEmpty)
-              _VendorEmptyView(
-                message: l10n?.vendorsEmptyBody ??
-                    'No vendors match the current filters.',
-              )
-            else ...[
-              _VendorTable(
-                items: listState.items,
-                l10n: l10n,
-              ),
+            Expanded(
+              child: isLoading && !hasItems
+                  ? const Center(
+                      key: Key('vendor-list-loading'),
+                      child: Padding(
+                        padding: EdgeInsets.all(48),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : error != null && !hasItems
+                      ? _VendorErrorView(
+                          message: error,
+                          onRetry: controller.refresh,
+                        )
+                      : !hasItems
+                          ? _VendorEmptyView(
+                              message: l10n?.vendorsEmptyBody ??
+                                  'No vendors match the current filters.',
+                            )
+                          : _VendorTable(
+                              l10n: l10n,
+                            ),
+            ),
+            if (hasItems) ...[
               SizedBox(height: kh.spacing.md),
               _VendorPaginationControls(
-                listState: listState,
                 controller: controller,
                 l10n: l10n,
               ),
             ],
-            if (listState.error != null && listState.items.isNotEmpty) ...[
+            if (error != null && hasItems) ...[
               SizedBox(height: kh.spacing.sm),
               Text(
-                listState.error!,
+                error,
                 style: kh.typography.bodySmall.copyWith(color: kh.colors.error),
               ),
             ],
@@ -275,17 +282,17 @@ class _VendorFilterBar extends StatelessWidget {
   }
 }
 
-class _VendorTable extends StatelessWidget {
+class _VendorTable extends ConsumerWidget {
   const _VendorTable({
-    required this.items,
     required this.l10n,
   });
 
-  final List<VendorListItem> items;
   final AppLocalizations? l10n;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items =
+        ref.watch(vendorListControllerProvider.select((s) => s.items));
     final kh = context.kh;
 
     return KhDataTable(
@@ -445,29 +452,37 @@ class _VendorRowAction extends StatelessWidget {
   }
 }
 
-class _VendorPaginationControls extends StatelessWidget {
+class _VendorPaginationControls extends ConsumerWidget {
   const _VendorPaginationControls({
-    required this.listState,
     required this.controller,
     required this.l10n,
   });
 
-  final VendorListState listState;
   final VendorListController controller;
   final AppLocalizations? l10n;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final canLoadMore =
+        ref.watch(vendorListControllerProvider.select((s) => s.canLoadMore));
+    final isLoadingMore =
+        ref.watch(vendorListControllerProvider.select((s) => s.isLoadingMore));
+    final canGoPrevious =
+        ref.watch(vendorListControllerProvider.select((s) => s.canGoPrevious));
+    final canGoNext =
+        ref.watch(vendorListControllerProvider.select((s) => s.canGoNext));
+    final page =
+        ref.watch(vendorListControllerProvider.select((s) => s.page));
     final kh = context.kh;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        if (listState.canLoadMore)
+        if (canLoadMore)
           OutlinedButton(
             key: const Key('vendor-load-more-button'),
-            onPressed: listState.isLoadingMore ? null : controller.loadMore,
-            child: listState.isLoadingMore
+            onPressed: isLoadingMore ? null : controller.loadMore,
+            child: isLoadingMore
                 ? const SizedBox(
                     width: 16,
                     height: 16,
@@ -482,15 +497,15 @@ class _VendorPaginationControls extends StatelessWidget {
           children: [
             OutlinedButton(
               key: const Key('vendor-prev-page-button'),
-              onPressed: listState.canGoPrevious
-                  ? (listState.isLoadingMore ? null : controller.previousPage)
+              onPressed: canGoPrevious
+                  ? (isLoadingMore ? null : controller.previousPage)
                   : null,
               child: const Text('Previous'),
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: kh.spacing.md),
               child: Text(
-                'Page ${listState.page}',
+                'Page $page',
                 key: const Key('vendor-current-page'),
                 style: kh.typography.caption.copyWith(
                   color: kh.colors.textSecondary,
@@ -500,8 +515,8 @@ class _VendorPaginationControls extends StatelessWidget {
             ),
             OutlinedButton(
               key: const Key('vendor-next-page-button'),
-              onPressed: listState.canGoNext
-                  ? (listState.isLoadingMore ? null : controller.nextPage)
+              onPressed: canGoNext
+                  ? (isLoadingMore ? null : controller.nextPage)
                   : null,
               child: const Text('Next'),
             ),

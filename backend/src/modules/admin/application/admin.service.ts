@@ -508,6 +508,63 @@ export class AdminService {
     });
   }
 
+  /// FR-ADM-032 AC3 — the four resolutions the Admin can take against the
+  /// reported party from an abuse report: dismiss, warn, suspend, or deactivate.
+  /// DISMISS closes the report with no sanction; WARN records a caution without a
+  /// state change; SUSPEND / DEACTIVATE move the reported user's account. All four
+  /// close the report and write a party-facing audit entry (AC5) in one
+  /// transaction.
+  async actionAbuseReport(
+    id: string,
+    dto: {
+      action: 'DISMISS' | 'WARN' | 'SUSPEND' | 'DEACTIVATE';
+      rationale: string;
+    },
+    adminUserId: string,
+  ) {
+    const report = await this.repo.findAbuseReport(id);
+    if (!report) {
+      throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      if (dto.action === 'SUSPEND' || dto.action === 'DEACTIVATE') {
+        await this.repo.updateUserAccountState(
+          tx,
+          report.reportedUserId,
+          dto.action === 'SUSPEND' ? 'SUSPENDED' : 'DEACTIVATED',
+        );
+      }
+
+      const res = await this.repo.resolveAbuseReport(
+        tx,
+        id,
+        dto.action === 'DISMISS' ? 'DISMISSED' : 'RESOLVED',
+        dto.rationale,
+        adminUserId,
+      );
+
+      const auditAction = {
+        DISMISS: 'ABUSE_REPORT_DISMISSED',
+        WARN: 'ABUSE_PARTY_WARNED',
+        SUSPEND: 'ABUSE_PARTY_SUSPENDED',
+        DEACTIVATE: 'ABUSE_PARTY_DEACTIVATED',
+      }[dto.action];
+      await this.audit.append(tx, {
+        actorUserId: adminUserId,
+        action: auditAction,
+        entityType: 'abuse_report',
+        entityId: id,
+        afterValue: {
+          action: dto.action,
+          rationale: dto.rationale,
+          reportedUserId: report.reportedUserId,
+        },
+      });
+      return res;
+    });
+  }
+
   // --- Platform Settings ---
   async getSettings() {
     return this.settings.getAllAdminSettings();

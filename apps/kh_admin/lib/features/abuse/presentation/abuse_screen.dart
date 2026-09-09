@@ -27,6 +27,10 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchM
   late final TextEditingController _searchController;
   Uri? _lastSyncedUri;
 
+  /// Report id from a `?selected=` deep-link (dashboard drill-down, `TR-S6-05`).
+  /// Opened once the matching row has loaded, then cleared.
+  String? _pendingSelectedId;
+
   @override
   void initState() {
     super.initState();
@@ -50,7 +54,12 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchM
     if (uri == _lastSyncedUri) return;
     _lastSyncedUri = uri;
 
-    final parsed = AbuseQueryParams.fromUri(uri).toFilters();
+    final deepLink = AbuseQueryParams.fromUri(uri);
+    if (deepLink.selectedId != null && deepLink.selectedId!.isNotEmpty) {
+      _pendingSelectedId = deepLink.selectedId;
+    }
+
+    final parsed = deepLink.toFilters();
     final current = ref.read(abuseListControllerProvider).filters;
     if (parsed == current) return;
     ref.read(abuseListControllerProvider.notifier).applyFilters(parsed);
@@ -85,14 +94,19 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchM
     return str.length >= maxLen ? str.substring(0, maxLen) : str;
   }
 
-  void _showResolveDialog(AbuseReportItem item) {
-    final resolutionController = TextEditingController();
+  /// FR-ADM-032 AC3 — one rationale-gated dialog for all four resolutions
+  /// (dismiss / warn / suspend / deactivate).
+  void _showActionDialog(AbuseReportItem item, AbuseReportAction action) {
+    final rationaleController = TextEditingController();
+    final reportedLabel = item.reportedName ?? _shortId(item.reportedUserId);
     showDialog<void>(
       context: context,
       builder: (dialogCtx) {
         final kh = dialogCtx.kh;
+        final destructive =
+            action != AbuseReportAction.warn && action != AbuseReportAction.dismiss;
         return AlertDialog(
-          title: Text('Resolve Abuse Report #${_shortId(item.id)}'),
+          title: Text('${action.label} · Report #${_shortId(item.id)}'),
           content: SizedBox(
             width: 480,
             child: Column(
@@ -100,17 +114,27 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchM
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Enter the resolution rationale. This action will mark the report as RESOLVED and notify parties in accordance with platform policy.',
+                  switch (action) {
+                    AbuseReportAction.dismiss =>
+                      'Closes the report as DISMISSED with no sanction. Explain why no violation was found.',
+                    AbuseReportAction.warn =>
+                      'Records a formal warning against $reportedLabel and resolves the report. Their account is not changed.',
+                    AbuseReportAction.suspend =>
+                      'Suspends $reportedLabel\'s account and resolves the report. They regain access only on Admin reactivation.',
+                    AbuseReportAction.deactivate =>
+                      'Deactivates $reportedLabel\'s account and resolves the report.',
+                  },
                   style: kh.typography.bodySmall.copyWith(color: kh.colors.textMuted),
                 ),
                 SizedBox(height: kh.spacing.md),
                 TextField(
-                  key: const Key('abuse-resolve-rationale-field'),
-                  controller: resolutionController,
+                  key: const Key('abuse-action-rationale-field'),
+                  controller: rationaleController,
                   maxLines: 3,
                   decoration: const InputDecoration(
-                    labelText: 'Resolution Rationale *',
-                    hintText: 'e.g. Warning issued to vendor, offending terms removed.',
+                    labelText: 'Rationale *',
+                    hintText:
+                        'e.g. Repeated off-platform solicitation after a prior caution.',
                   ),
                 ),
               ],
@@ -122,21 +146,28 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchM
               child: const Text('Cancel'),
             ),
             FilledButton(
-              key: const Key('abuse-confirm-resolve-button'),
+              key: const Key('abuse-confirm-action-button'),
+              style: destructive
+                  ? FilledButton.styleFrom(backgroundColor: kh.colors.error)
+                  : null,
               onPressed: () async {
-                final rationale = resolutionController.text.trim();
+                final rationale = rationaleController.text.trim();
                 if (rationale.isEmpty) return;
                 Navigator.of(dialogCtx).pop();
                 final success = await ref
                     .read(abuseListControllerProvider.notifier)
-                    .resolveReport(item.id, rationale);
-                if (mounted && success) {
+                    .actionReport(item.id, action, rationale);
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Report #${_shortId(item.id)} marked as RESOLVED')),
+                    SnackBar(
+                      content: Text(success
+                          ? 'Report #${_shortId(item.id)} ${action.pastTense}'
+                          : 'Could not action report #${_shortId(item.id)} — please retry'),
+                    ),
                   );
                 }
               },
-              child: const Text('Resolve Report'),
+              child: Text(action.label),
             ),
           ],
         );
@@ -144,63 +175,22 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchM
     );
   }
 
-  void _showDismissDialog(AbuseReportItem item) {
-    final resolutionController = TextEditingController();
-    showDialog<void>(
-      context: context,
-      builder: (dialogCtx) {
-        final kh = dialogCtx.kh;
-        return AlertDialog(
-          title: Text('Dismiss Abuse Report #${_shortId(item.id)}'),
-          content: SizedBox(
-            width: 480,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Enter dismissal rationale explaining why no violation was found or no action was required.',
-                  style: kh.typography.bodySmall.copyWith(color: kh.colors.textMuted),
-                ),
-                SizedBox(height: kh.spacing.md),
-                TextField(
-                  key: const Key('abuse-dismiss-rationale-field'),
-                  controller: resolutionController,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Dismissal Rationale *',
-                    hintText: 'e.g. Activity reviewed, within acceptable trading guidelines.',
-                  ),
-                ),
-              ],
-            ),
+  /// Action menu shown on open / under-review reports. Pass [child] to render a
+  /// labelled trigger (detail dialog) instead of the compact icon (table row).
+  Widget _actionMenu(AbuseReportItem item, {required Key key, Widget? child}) {
+    return PopupMenuButton<AbuseReportAction>(
+      key: key,
+      tooltip: 'Take action',
+      icon: child == null ? const Icon(Icons.gavel_outlined, size: 18) : null,
+      child: child,
+      onSelected: (action) => _showActionDialog(item, action),
+      itemBuilder: (context) => [
+        for (final action in AbuseReportAction.values)
+          PopupMenuItem<AbuseReportAction>(
+            value: action,
+            child: Text(action.label),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogCtx).pop(),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              key: const Key('abuse-confirm-dismiss-button'),
-              style: FilledButton.styleFrom(backgroundColor: kh.colors.error),
-              onPressed: () async {
-                final rationale = resolutionController.text.trim();
-                if (rationale.isEmpty) return;
-                Navigator.of(dialogCtx).pop();
-                final success = await ref
-                    .read(abuseListControllerProvider.notifier)
-                    .dismissReport(item.id, rationale);
-                if (mounted && success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Report #${_shortId(item.id)} DISMISSED')),
-                  );
-                }
-              },
-              child: const Text('Dismiss Report'),
-            ),
-          ],
-        );
-      },
+      ],
     );
   }
 
@@ -269,22 +259,25 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchM
             ),
           ),
           actions: [
-            if (item.state == AbuseReportState.open || item.state == AbuseReportState.underReview) ...[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogCtx).pop();
-                  _showDismissDialog(item);
-                },
-                child: Text('Dismiss', style: TextStyle(color: kh.colors.error)),
+            if (item.state == AbuseReportState.open ||
+                item.state == AbuseReportState.underReview)
+              _actionMenu(
+                item,
+                key: const Key('abuse-detail-action-menu'),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: kh.spacing.md,
+                    vertical: kh.spacing.sm,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text('Take action'),
+                      Icon(Icons.arrow_drop_down, size: 18),
+                    ],
+                  ),
+                ),
               ),
-              FilledButton(
-                onPressed: () {
-                  Navigator.of(dialogCtx).pop();
-                  _showResolveDialog(item);
-                },
-                child: const Text('Resolve'),
-              ),
-            ],
             TextButton(
               onPressed: () => Navigator.of(dialogCtx).pop(),
               child: const Text('Close'),
@@ -359,9 +352,23 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchM
     final resolvedCount = state.items.where((i) => i.state == AbuseReportState.resolved).length;
     final dismissedCount = state.items.where((i) => i.state == AbuseReportState.dismissed).length;
 
+    // Dashboard drill-down (`TR-S6-05`): open the deep-linked report once its row
+    // has loaded.
+    if (_pendingSelectedId != null && !state.isLoading) {
+      final targetId = _pendingSelectedId!;
+      _pendingSelectedId = null;
+      final matches = state.items.where((i) => i.id == targetId).toList();
+      if (matches.isNotEmpty) {
+        final match = matches.first;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _showDetailDialog(context, match);
+        });
+      }
+    }
+
     return Material(
       color: kh.colors.backgroundSurface,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(kh.spacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,156 +431,165 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchM
               onSearchSubmitted: _onSearchSubmitted,
             ),
             SizedBox(height: kh.spacing.lg),
-            if (state.isLoading)
-              const Center(
-                key: Key('abuse-list-loading'),
-                child: Padding(
-                  padding: EdgeInsets.all(48),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (state.errorMessage != null)
-              Container(
-                key: const Key('abuse-list-error'),
-                padding: EdgeInsets.all(kh.spacing.lg),
-                decoration: BoxDecoration(
-                  color: kh.colors.error.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: kh.colors.error.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.error_outline, color: kh.colors.error),
-                    SizedBox(width: kh.spacing.md),
-                    Expanded(
-                      child: Text(
-                        state.errorMessage!,
-                        style: kh.typography.body.copyWith(color: kh.colors.error),
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  if (state.isLoading) {
+                    return const Center(
+                      key: Key('abuse-list-loading'),
+                      child: Padding(
+                        padding: EdgeInsets.all(48),
+                        child: CircularProgressIndicator(),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: controller.refresh,
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              )
-            else if (state.items.isEmpty)
-              Container(
-                key: const Key('abuse-list-empty'),
-                padding: EdgeInsets.all(kh.spacing.xxl),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: kh.colors.backgroundElevated,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: kh.colors.borderStandard),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.shield_outlined, size: 48, color: kh.colors.textMuted),
-                    SizedBox(height: kh.spacing.md),
-                    Text('No abuse reports found', style: kh.typography.title),
-                    SizedBox(height: kh.spacing.xs),
-                    Text(
-                      'No reports match the current filters.',
-                      style: kh.typography.bodySmall.copyWith(color: kh.colors.textMuted),
-                    ),
-                  ],
-                ),
-              )
-            else
-              KhDataTable(
-                columns: const [
-                  KhTableColumn('Date', flex: 2),
-                  KhTableColumn('Category', flex: 2),
-                  KhTableColumn('Reported Party', flex: 2),
-                  KhTableColumn('Target Entity', flex: 2),
-                  KhTableColumn('Status', flex: 2),
-                  KhTableColumn('Actions', flex: 3),
-                ],
-                rows: state.items.map((item) {
-                  final dateStr = _formatDateTime(item.createdAt, 10);
-                  KhStatusTone tone = KhStatusTone.neutral;
-                  if (item.state == AbuseReportState.open) {
-                    tone = KhStatusTone.error;
-                  } else if (item.state == AbuseReportState.underReview) {
-                    tone = KhStatusTone.pending;
-                  } else if (item.state == AbuseReportState.resolved) {
-                    tone = KhStatusTone.success;
+                    );
                   }
-
-                  return KhTableRow(
-                    key: ValueKey(item.id),
-                    onTap: () => _showDetailDialog(context, item),
-                    cells: [
-                      Text(dateStr, style: kh.typography.bodySmall),
-                      Text(
-                        item.category,
-                        style: kh.typography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                  if (state.errorMessage != null) {
+                    return Container(
+                      key: const Key('abuse-list-error'),
+                      padding: EdgeInsets.all(kh.spacing.lg),
+                      decoration: BoxDecoration(
+                        color: kh.colors.error.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: kh.colors.error.withValues(alpha: 0.3)),
                       ),
-                      Text(
-                        item.reportedName ?? _shortId(item.reportedUserId),
-                        style: kh.typography.bodySmall,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      InkWell(
-                        onTap: () => _navigateToEntity(context, item),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              item.entityType.label,
-                              style: kh.typography.bodySmall.copyWith(
-                                color: kh.colors.accentPrimary,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                            SizedBox(width: kh.spacing.xxs),
-                            Icon(Icons.open_in_new, size: 14, color: kh.colors.accentPrimary),
-                          ],
-                        ),
-                      ),
-                      KhStatusChip(
-                        label: item.state.label,
-                        tone: tone,
-                        dense: true,
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
+                      child: Row(
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.info_outline, size: 18),
-                            tooltip: 'View details',
-                            onPressed: () => _showDetailDialog(context, item),
+                          Icon(Icons.error_outline, color: kh.colors.error),
+                          SizedBox(width: kh.spacing.md),
+                          Expanded(
+                            child: Text(
+                              state.errorMessage!,
+                              style: kh.typography.body.copyWith(color: kh.colors.error),
+                            ),
                           ),
-                          if (item.state == AbuseReportState.open ||
-                              item.state == AbuseReportState.underReview) ...[
-                            IconButton(
-                              icon: Icon(Icons.check_circle_outline, size: 18, color: kh.colors.success),
-                              tooltip: 'Resolve',
-                              onPressed: () => _showResolveDialog(item),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.cancel_outlined, size: 18, color: kh.colors.error),
-                              tooltip: 'Dismiss',
-                              onPressed: () => _showDismissDialog(item),
-                            ),
-                          ],
+                          TextButton(
+                            onPressed: controller.refresh,
+                            child: const Text('Retry'),
+                          ),
                         ],
                       ),
+                    );
+                  }
+                  if (state.items.isEmpty) {
+                    return Container(
+                      key: const Key('abuse-list-empty'),
+                      padding: EdgeInsets.all(kh.spacing.xxl),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: kh.colors.backgroundElevated,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: kh.colors.borderStandard),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.shield_outlined, size: 48, color: kh.colors.textMuted),
+                          SizedBox(height: kh.spacing.md),
+                          Text('No abuse reports found', style: kh.typography.title),
+                          SizedBox(height: kh.spacing.xs),
+                          Text(
+                            'No reports match the current filters.',
+                            style: kh.typography.bodySmall.copyWith(color: kh.colors.textMuted),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: KhDataTable(
+                          columns: const [
+                            KhTableColumn('Date', flex: 2),
+                            KhTableColumn('Category', flex: 2),
+                            KhTableColumn('Reported Party', flex: 2),
+                            KhTableColumn('Target Entity', flex: 2),
+                            KhTableColumn('Status', flex: 2),
+                            KhTableColumn('Actions', flex: 3),
+                          ],
+                          rows: state.items.map((item) {
+                            final dateStr = _formatDateTime(item.createdAt, 10);
+                            KhStatusTone tone = KhStatusTone.neutral;
+                            if (item.state == AbuseReportState.open) {
+                              tone = KhStatusTone.error;
+                            } else if (item.state == AbuseReportState.underReview) {
+                              tone = KhStatusTone.pending;
+                            } else if (item.state == AbuseReportState.resolved) {
+                              tone = KhStatusTone.success;
+                            }
+
+                            return KhTableRow(
+                              key: ValueKey(item.id),
+                              onTap: () => _showDetailDialog(context, item),
+                              cells: [
+                                Text(dateStr, style: kh.typography.bodySmall),
+                                Text(
+                                  item.category,
+                                  style: kh.typography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                Text(
+                                  item.reportedName ?? _shortId(item.reportedUserId),
+                                  style: kh.typography.bodySmall,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                InkWell(
+                                  onTap: () => _navigateToEntity(context, item),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        item.entityType.label,
+                                        style: kh.typography.bodySmall.copyWith(
+                                          color: kh.colors.accentPrimary,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                      SizedBox(width: kh.spacing.xxs),
+                                      Icon(Icons.open_in_new, size: 14, color: kh.colors.accentPrimary),
+                                    ],
+                                  ),
+                                ),
+                                KhStatusChip(
+                                  label: item.state.label,
+                                  tone: tone,
+                                  dense: true,
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.info_outline, size: 18),
+                                      tooltip: 'View details',
+                                      onPressed: () => _showDetailDialog(context, item),
+                                    ),
+                                    if (item.state == AbuseReportState.open ||
+                                        item.state == AbuseReportState.underReview)
+                                      _actionMenu(
+                                        item,
+                                        key: Key('abuse-action-menu-${item.id}'),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      if (state.hasMore) ...[
+                        SizedBox(height: kh.spacing.lg),
+                        Center(
+                          child: OutlinedButton(
+                            onPressed: controller.loadMore,
+                            child: const Text('Load More Reports'),
+                          ),
+                        ),
+                      ],
                     ],
                   );
-                }).toList(),
+                },
               ),
-            if (state.hasMore) ...[
-              SizedBox(height: kh.spacing.lg),
-              Center(
-                child: OutlinedButton(
-                  onPressed: controller.loadMore,
-                  child: const Text('Load More Reports'),
-                ),
-              ),
-            ],
+            ),
           ],
         ),
       ),

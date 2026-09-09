@@ -145,7 +145,7 @@ class _AuditScreenState extends ConsumerState<AuditScreen> {
 
     return Material(
       color: colors.backgroundSurface,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(spacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,32 +168,46 @@ class _AuditScreenState extends ConsumerState<AuditScreen> {
               onReset: _resetFilters,
             ),
             SizedBox(height: spacing.lg),
-            if (auditState.isLoading)
-              const Center(
-                key: Key('audit-loading-indicator'),
-                child: Padding(
-                  padding: EdgeInsets.all(48.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (auditState.error != null && auditState.items.isEmpty)
-              AuditErrorView(
-                error: auditState.error!,
-                onRetry: controller.refresh,
-              )
-            else if (auditState.items.isEmpty)
-              const AuditEmptyView()
-            else ...[
-              AuditDataTable(
-                items: auditState.items,
-                onInspect: (item) => showAuditDetailDialog(context, item),
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  if (auditState.isLoading) {
+                    return const Center(
+                      key: Key('audit-loading-indicator'),
+                      child: Padding(
+                        padding: EdgeInsets.all(48.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  if (auditState.error != null && auditState.items.isEmpty) {
+                    return AuditErrorView(
+                      error: auditState.error!,
+                      onRetry: controller.refresh,
+                    );
+                  }
+                  if (auditState.items.isEmpty) {
+                    return const AuditEmptyView();
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: AuditDataTable(
+                          items: auditState.items,
+                          onInspect: (item) => showAuditDetailDialog(context, item),
+                        ),
+                      ),
+                      SizedBox(height: spacing.md),
+                      AuditPaginationControls(
+                        state: auditState,
+                        controller: controller,
+                      ),
+                    ],
+                  );
+                },
               ),
-              SizedBox(height: spacing.md),
-              AuditPaginationControls(
-                state: auditState,
-                controller: controller,
-              ),
-            ],
+            ),
           ],
         ),
       ),

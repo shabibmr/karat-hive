@@ -55,29 +55,36 @@ const List<_DashboardMetric> _kPlaceholderMetrics = [
   _DashboardMetric(
     value: '—',
     label: 'Requests',
-    caption: 'All Requests →',
-    route: '/requests',
+    caption: 'Active Requests →',
+    route: _kActiveRequestsRoute,
   ),
   _DashboardMetric(
     value: '—',
     label: 'Offers',
-    caption: 'All Active & Past Offers →',
-    route: '/offers',
+    caption: 'Active Offers →',
+    route: _kActiveOffersRoute,
   ),
   _DashboardMetric(
     value: '—',
     label: 'Connections',
     caption: 'Active Connections →',
-    route: '/connections',
+    route: _kActiveConnectionsRoute,
   ),
   _DashboardMetric(
     value: '—',
     label: 'KYC Queue',
     caption: 'Verification Queue →',
-    route: '/verification',
+    route: _kPendingKycRoute,
     tintValue: true,
   ),
 ];
+
+/// Drill-down deep-links (`TR-S6-05` / `E21`). Each dashboard figure opens the
+/// underlying list pre-filtered to the same slice the count measures.
+const String _kActiveRequestsRoute = '/requests?state=PUBLISHED';
+const String _kActiveOffersRoute = '/offers?state=PENDING';
+const String _kActiveConnectionsRoute = '/connections?state=ACTIVE';
+const String _kPendingKycRoute = '/vendors?verificationState=PENDING_VERIFICATION';
 
 /// Formats integer count with thousand separators (e.g. 1,420).
 String _formatCount(int value) {
@@ -107,26 +114,26 @@ List<_DashboardMetric> _buildMetrics(DashboardStats stats) {
     _DashboardMetric(
       value: _formatCount(stats.activeRequests),
       label: 'Requests',
-      caption: 'All Requests →',
-      route: '/requests',
+      caption: 'Active Requests →',
+      route: _kActiveRequestsRoute,
     ),
     _DashboardMetric(
       value: _formatCount(stats.activeOffers),
       label: 'Offers',
-      caption: 'All Active & Past Offers →',
-      route: '/offers',
+      caption: 'Active Offers →',
+      route: _kActiveOffersRoute,
     ),
     _DashboardMetric(
       value: _formatCount(stats.activeConnections),
       label: 'Connections',
       caption: 'Active Connections →',
-      route: '/connections',
+      route: _kActiveConnectionsRoute,
     ),
     _DashboardMetric(
       value: _formatCount(stats.pendingVerificationVendors),
       label: 'KYC Queue',
       caption: 'Verification Queue →',
-      route: '/verification',
+      route: _kPendingKycRoute,
       tintValue: true,
     ),
   ];
@@ -505,7 +512,7 @@ class _QueueTable extends StatelessWidget {
                   Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: OutlinedButton(
-                      onPressed: () => context.go(item.route),
+                      onPressed: () => context.go(item.deepLinkRoute),
                       style: OutlinedButton.styleFrom(
                         padding: EdgeInsets.symmetric(
                           horizontal: kh.spacing.sm,

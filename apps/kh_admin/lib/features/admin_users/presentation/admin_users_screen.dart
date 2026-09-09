@@ -433,20 +433,33 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
     );
 
     final kh = context.kh;
-    final state = ref.watch(adminUserControllerProvider);
+    final filters =
+        ref.watch(adminUserControllerProvider.select((s) => s.filters));
+    final isLoading =
+        ref.watch(adminUserControllerProvider.select((s) => s.isLoading));
+    final errorMessage =
+        ref.watch(adminUserControllerProvider.select((s) => s.errorMessage));
+    final totalCount =
+        ref.watch(adminUserControllerProvider.select((s) => s.totalCount));
+    final activeCount =
+        ref.watch(adminUserControllerProvider.select((s) => s.activeCount));
+    final suspendedCount =
+        ref.watch(adminUserControllerProvider.select((s) => s.suspendedCount));
+    final revokedCount =
+        ref.watch(adminUserControllerProvider.select((s) => s.revokedCount));
+    final filteredAdmins =
+        ref.watch(adminUserControllerProvider.select((s) => s.filteredAdmins));
     final controller = ref.read(adminUserControllerProvider.notifier);
 
     // Sync search input if cleared externally
-    if (_searchController.text != state.filters.query &&
+    if (_searchController.text != filters.query &&
         !_searchController.selection.isValid) {
-      _searchController.text = state.filters.query;
+      _searchController.text = filters.query;
     }
-
-    final filteredAdmins = state.filteredAdmins;
 
     return Material(
       color: kh.colors.backgroundSurface,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(kh.spacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -483,7 +496,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                 Expanded(
                   child: KhMetricCard(
                     label: 'Total Admins',
-                    value: state.isLoading ? '-' : '${state.totalCount}',
+                    value: isLoading ? '-' : '$totalCount',
                     linkText: 'View all',
                     onTap: () => controller.setStateFilter(null),
                   ),
@@ -492,7 +505,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                 Expanded(
                   child: KhMetricCard(
                     label: 'Active',
-                    value: state.isLoading ? '-' : '${state.activeCount}',
+                    value: isLoading ? '-' : '$activeCount',
                     linkText: 'View active',
                     onTap: () => controller.setStateFilter(AdminAccountState.active),
                   ),
@@ -501,7 +514,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                 Expanded(
                   child: KhMetricCard(
                     label: 'Suspended',
-                    value: state.isLoading ? '-' : '${state.suspendedCount}',
+                    value: isLoading ? '-' : '$suspendedCount',
                     linkText: 'View suspended',
                     onTap: () => controller.setStateFilter(AdminAccountState.suspended),
                   ),
@@ -510,7 +523,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                 Expanded(
                   child: KhMetricCard(
                     label: 'Revoked',
-                    value: state.isLoading ? '-' : '${state.revokedCount}',
+                    value: isLoading ? '-' : '$revokedCount',
                     linkText: 'View revoked',
                     onTap: () => controller.setStateFilter(AdminAccountState.deactivated),
                   ),
@@ -522,7 +535,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
             // Filter Bar
             _AdminFilterBar(
               queryController: _searchController,
-              currentState: state.filters.state,
+              currentState: filters.state,
               onSearchChanged: _onSearchChanged,
               onStateChanged: controller.setStateFilter,
               onClear: () {
@@ -533,150 +546,152 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
             SizedBox(height: kh.spacing.lg),
 
             // Table Body / States
-            if (state.isLoading)
-              const Center(
-                key: Key('admin-list-loading'),
-                child: Padding(
-                  padding: EdgeInsets.all(48),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (state.errorMessage != null && state.admins.isEmpty)
-              Container(
-                key: const Key('admin-list-error'),
-                padding: EdgeInsets.all(kh.spacing.lg),
-                decoration: BoxDecoration(
-                  color: kh.colors.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: kh.colors.error.withValues(alpha: 0.4)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.error_outline, color: kh.colors.error),
-                    SizedBox(width: kh.spacing.md),
-                    Expanded(
-                      child: Text(
-                        state.errorMessage!,
-                        style: kh.typography.body.copyWith(color: kh.colors.error),
+            Expanded(
+              child: isLoading && filteredAdmins.isEmpty
+                  ? const Center(
+                      key: Key('admin-list-loading'),
+                      child: Padding(
+                        padding: EdgeInsets.all(48),
+                        child: CircularProgressIndicator(),
                       ),
-                    ),
-                    FilledButton(
-                      onPressed: controller.refresh,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: kh.colors.error,
-                        foregroundColor: kh.colors.cream100,
-                      ),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              )
-            else if (filteredAdmins.isEmpty)
-              Container(
-                key: const Key('admin-list-empty'),
-                width: double.infinity,
-                padding: EdgeInsets.all(kh.spacing.xxl),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: kh.colors.backgroundElevated,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: kh.colors.borderStandard),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.manage_accounts_outlined, size: 48, color: kh.colors.textMuted),
-                    SizedBox(height: kh.spacing.md),
-                    Text('No admin users found', style: kh.typography.title),
-                    SizedBox(height: kh.spacing.xs),
-                    Text(
-                      'No administrator accounts match the selected filters.',
-                      style: kh.typography.bodySmall.copyWith(color: kh.colors.textSecondary),
-                    ),
-                  ],
-                ),
-              )
-            else
-              KhDataTable(
-                columns: const [
-                  KhTableColumn('Name', flex: 3),
-                  KhTableColumn('Email', flex: 3),
-                  KhTableColumn('Status', flex: 2),
-                  KhTableColumn('Created Date', flex: 2),
-                  KhTableColumn('Actions', flex: 2),
-                ],
-                rows: filteredAdmins.map((item) {
-                  return KhTableRow(
-                    key: ValueKey(item.id),
-                    cells: [
-                      // Name + short ID
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            item.displayName,
-                            style: kh.typography.body.copyWith(fontWeight: FontWeight.w600),
+                    )
+                  : errorMessage != null && filteredAdmins.isEmpty
+                      ? Container(
+                          key: const Key('admin-list-error'),
+                          padding: EdgeInsets.all(kh.spacing.lg),
+                          decoration: BoxDecoration(
+                            color: kh.colors.error.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: kh.colors.error.withValues(alpha: 0.4)),
                           ),
-                          Text(
-                            '#${_shortId(item.id)}',
-                            style: kh.typography.caption.copyWith(color: kh.colors.textMuted),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline, color: kh.colors.error),
+                              SizedBox(width: kh.spacing.md),
+                              Expanded(
+                                child: Text(
+                                  errorMessage,
+                                  style: kh.typography.body.copyWith(color: kh.colors.error),
+                                ),
+                              ),
+                              FilledButton(
+                                onPressed: controller.refresh,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: kh.colors.error,
+                                  foregroundColor: kh.colors.cream100,
+                                ),
+                                child: const Text('Retry'),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      // Email
-                      Text(
-                        item.email,
-                        style: kh.typography.bodySmall,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      // Status Chip
-                      KhStatusChip(
-                        label: item.accountState.label,
-                        tone: item.accountState.tone,
-                        dense: true,
-                      ),
-                      // Created Date
-                      Text(
-                        _formatDateTime(item.createdAt),
-                        style: kh.typography.bodySmall,
-                      ),
-                      // Actions (Suspend / Revoke)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (item.accountState == AdminAccountState.active)
-                            IconButton(
-                              key: ValueKey('suspend-${item.id}'),
-                              icon: Icon(
-                                Icons.pause_circle_outline,
-                                size: 18,
-                                color: kh.colors.warning,
+                        )
+                      : filteredAdmins.isEmpty
+                          ? Container(
+                              key: const Key('admin-list-empty'),
+                              width: double.infinity,
+                              padding: EdgeInsets.all(kh.spacing.xxl),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: kh.colors.backgroundElevated,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: kh.colors.borderStandard),
                               ),
-                              tooltip: 'Suspend Admin',
-                              onPressed: () => _showSuspendDialog(item),
-                            ),
-                          if (item.accountState != AdminAccountState.deactivated)
-                            IconButton(
-                              key: ValueKey('revoke-${item.id}'),
-                              icon: Icon(
-                                Icons.person_off_outlined,
-                                size: 18,
-                                color: kh.colors.error,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.manage_accounts_outlined, size: 48, color: kh.colors.textMuted),
+                                  SizedBox(height: kh.spacing.md),
+                                  Text('No admin users found', style: kh.typography.title),
+                                  SizedBox(height: kh.spacing.xs),
+                                  Text(
+                                    'No administrator accounts match the selected filters.',
+                                    style: kh.typography.bodySmall.copyWith(color: kh.colors.textSecondary),
+                                  ),
+                                ],
                               ),
-                              tooltip: 'Revoke Admin',
-                              onPressed: () => _showRevokeDialog(item),
+                            )
+                          : KhDataTable(
+                              columns: const [
+                                KhTableColumn('Name', flex: 3),
+                                KhTableColumn('Email', flex: 3),
+                                KhTableColumn('Status', flex: 2),
+                                KhTableColumn('Created Date', flex: 2),
+                                KhTableColumn('Actions', flex: 2),
+                              ],
+                              rows: filteredAdmins.map((item) {
+                                return KhTableRow(
+                                  key: ValueKey(item.id),
+                                  cells: [
+                                    // Name + short ID
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          item.displayName,
+                                          style: kh.typography.body.copyWith(fontWeight: FontWeight.w600),
+                                        ),
+                                        Text(
+                                          '#${_shortId(item.id)}',
+                                          style: kh.typography.caption.copyWith(color: kh.colors.textMuted),
+                                        ),
+                                      ],
+                                    ),
+                                    // Email
+                                    Text(
+                                      item.email,
+                                      style: kh.typography.bodySmall,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    // Status Chip
+                                    KhStatusChip(
+                                      label: item.accountState.label,
+                                      tone: item.accountState.tone,
+                                      dense: true,
+                                    ),
+                                    // Created Date
+                                    Text(
+                                      _formatDateTime(item.createdAt),
+                                      style: kh.typography.bodySmall,
+                                    ),
+                                    // Actions (Suspend / Revoke)
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (item.accountState == AdminAccountState.active)
+                                          IconButton(
+                                            key: ValueKey('suspend-${item.id}'),
+                                            icon: Icon(
+                                              Icons.pause_circle_outline,
+                                              size: 18,
+                                              color: kh.colors.warning,
+                                            ),
+                                            tooltip: 'Suspend Admin',
+                                            onPressed: () => _showSuspendDialog(item),
+                                          ),
+                                        if (item.accountState != AdminAccountState.deactivated)
+                                          IconButton(
+                                            key: ValueKey('revoke-${item.id}'),
+                                            icon: Icon(
+                                              Icons.person_off_outlined,
+                                              size: 18,
+                                              color: kh.colors.error,
+                                            ),
+                                            tooltip: 'Revoke Admin',
+                                            onPressed: () => _showRevokeDialog(item),
+                                          ),
+                                        if (item.accountState == AdminAccountState.deactivated)
+                                          Text(
+                                            'Revoked',
+                                            style: kh.typography.caption.copyWith(color: kh.colors.textMuted),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
                             ),
-                          if (item.accountState == AdminAccountState.deactivated)
-                            Text(
-                              'Revoked',
-                              style: kh.typography.caption.copyWith(color: kh.colors.textMuted),
-                            ),
-                        ],
-                      ),
-                    ],
-                  );
-                }).toList(),
-              ),
+            ),
           ],
         ),
       ),

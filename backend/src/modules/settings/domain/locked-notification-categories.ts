@@ -1,3 +1,4 @@
+/**
  * Preference categories that cannot be disabled (FR-CUS-032 AC4, FR-SYS-008 AC2,
  * API-Route-Inventory §9). Key matches notification.plans / dispatcher `category: 'security'`.
  *

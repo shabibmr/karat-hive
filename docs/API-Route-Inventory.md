@@ -715,6 +715,8 @@ Mutating routes require `Idempotency-Key`; a `*` marks it mandatory.
 | GET | `/v1/admin/abuse-reports` | A | ADM-032 | `[ASSUMED]` |
 | GET | `/v1/admin/abuse-reports/{id}` | A | ADM-032 | `[ASSUMED]` |
 | POST | `/v1/admin/abuse-reports/{id}/resolve` | A | ADM-032 | `[ASSUMED]` |
+| POST | `/v1/admin/abuse-reports/{id}/dismiss` | A | ADM-032 | `[ASSUMED]` |
+| POST | `/v1/admin/abuse-reports/{id}/action` | A | ADM-032 AC3 | `[ASSUMED]` — `{action: DISMISS\|WARN\|SUSPEND\|DEACTIVATE, rationale}`; atomic party sanction + report close + audit (AC5) |
 | GET | `/v1/admin/audit-log` | A | ADM-033, SYS-011 | `[ASSUMED]` |
 | GET | `/v1/admin/admins` | A | ADM-002 | `[ASSUMED]` coarse |
 | POST | `/v1/admin/admins` | A | ADM-002 | `[ASSUMED]` coarse |
@@ -1957,11 +1959,13 @@ Not blocked on Yahoo redistribution — this is operator configuration. End-user
 ```
 GET  /v1/admin/abuse-reports           // OPEN | UNDER_REVIEW first; severity then age
 GET  /v1/admin/abuse-reports/{id}      // reporter (Admin only), reported party, linked entity
-POST /v1/admin/abuse-reports/{id}/resolve
-body: { resolution: DISMISS | WARN | SUSPEND | DEACTIVATE, rationale: string }
+POST /v1/admin/abuse-reports/{id}/action
+body: { action: DISMISS | WARN | SUSPEND | DEACTIVATE, rationale: string }
+POST /v1/admin/abuse-reports/{id}/resolve   // legacy generic close, body: { resolution: string }
+POST /v1/admin/abuse-reports/{id}/dismiss   // legacy generic close, body: { resolution: string }
 ```
 
-`SUSPEND` / `DEACTIVATE` compose the corresponding account action in the same transaction. Reporter is notified that it was resolved; resolution detail and reporter identity are never sent to the reported party.
+`/action` (built `TR-S6-07`): `SUSPEND` / `DEACTIVATE` move the reported user's `accountState` in the same transaction that closes the report and writes the party-facing audit entry (`FR-ADM-032` AC5); `WARN` records the caution without a state change; `DISMISS` closes with no sanction. Reporter is notified that it was resolved; resolution detail and reporter identity are never sent to the reported party.
 
 ### 21.13 Audit log (`ADM-S22`, `FR-ADM-033`) `[ASSUMED]`
 

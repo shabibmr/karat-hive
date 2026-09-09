@@ -127,6 +127,11 @@ While ~45 admin endpoints exist covering most verticals, **1 critical bug** and 
 - **Frontend state (`TR-S6-04`)**: the ADM-S02 "Trends" section reuses `GET /v1/admin/reports/request-volume` scoped to the selected range (request counts by state). It is range-aware but not a time series.
 - **Required Fix**: add a `series`-returning report (e.g. `request-volume` with a `bucket=day|week` param, or a dedicated `dashboard-trends` route) so the dashboard can plot metric-over-time.
 
+### GAP-ADM-16: Abuse-report party sanctions — RESOLVED (`TR-S6-07`) (Abuse Reports — ADM-S21)
+- **Was**: `FR-ADM-032` AC3 requires four resolutions against the reported party — dismiss, warn, suspend, deactivate — but the backend only had `POST :id/resolve` and `POST :id/dismiss`. No `warn`, no reported-party account move tied to the report, no customer `deactivate`, and no single atomic path applying the sanction + closing the report + writing the audit entry (AC5).
+- **Fix (landed)**: `POST /v1/admin/abuse-reports/:id/action` with `{ action: 'DISMISS'|'WARN'|'SUSPEND'|'DEACTIVATE', rationale }`. In one transaction it moves the reported user's `accountState` (SUSPEND → `SUSPENDED`, DEACTIVATE → `DEACTIVATED`; WARN / DISMISS leave it), sets the report to `RESOLVED` (or `DISMISSED` for DISMISS) with the rationale, and appends a party-facing audit entry (`ABUSE_PARTY_WARNED` / `_SUSPENDED` / `_DEACTIVATED`, or `ABUSE_REPORT_DISMISSED`). `admin.repository.ts` gains `updateUserAccountState(tx, userId, state)` (profile-agnostic — the reported party may be a customer or a vendor). The legacy `resolve` / `dismiss` routes are retained for the generic close.
+- **Frontend**: `AbuseRepository.actionAbuseReport`, `AbuseListController.actionReport`, and a unified rationale-gated action menu on the ADM-S21 row + detail dialog (`TR-S6-08`).
+
 ---
 
 ## 5. Summary Matrix of Backend Routes vs Admin Screens
@@ -153,6 +158,6 @@ While ~45 admin endpoints exist covering most verticals, **1 critical bug** and 
 | ADM-S18 | Announcements | `GET/POST /v1/admin/announcements`<br>`POST :id/cancel` | ⚠️ Partially Complete | Missing `audienceType` and `q` query params (GAP-ADM-13) |
 | ADM-S19 | Platform Settings | `GET /v1/admin/settings`<br>`PATCH /v1/admin/settings/:key` | ✅ Operational | Key-value settings with confirmation supported |
 | ADM-S20 | Gold Rates | `GET /v1/admin/gold-rates`<br>`GET :history`<br>`POST :override` | ✅ Operational | Backend exists in `AdminGoldRateController`; UI deferred |
-| ADM-S21 | Abuse Reports | `GET /v1/admin/abuse-reports`<br>`GET :id`<br>`POST :id/resolve\|dismiss` | ⚠️ Partially Complete | Missing `entityType` and `q` query params (GAP-ADM-14) |
+| ADM-S21 | Abuse Reports | `GET /v1/admin/abuse-reports`<br>`GET :id`<br>`POST :id/resolve\|dismiss`<br>`POST :id/action` | ⚠️ Partially Complete | Party sanctions (dismiss/warn/suspend/deactivate) landed via `POST :id/action` (GAP-ADM-16, `TR-S6-07/08`); still missing `entityType` and `q` query params (GAP-ADM-14) |
 | ADM-S22 | Audit Log | `GET /v1/admin/audit-log` | ⚠️ Partially Complete | Missing query filters (actor, action, entity, dates, ip) (GAP-ADM-01) |
 | ADM-S23 | Admin Users | `GET/POST /v1/admin/admins`<br>`POST :id/suspend\|revoke` | ✅ Operational | Provisioning, suspension, revocation supported |

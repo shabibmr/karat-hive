@@ -80,72 +80,77 @@ class _PlatformSettingsScreenState
 
     final filteredItems = state.filteredSettings;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(kh.spacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 1. Screen Header
-          KhScreenHeader(
-            eyebrow: 'PLATFORM GOVERNANCE',
-            heading: 'Platform Settings',
-            supportingText:
-                'Global operational parameters, lifecycle timeouts, trading constraints, and media limits.',
-            trailing: OutlinedButton.icon(
-              key: const Key('refresh-settings-button'),
-              icon: const Icon(Icons.refresh, size: 16),
-              label: const Text('Refresh'),
-              onPressed: state.isLoading ? null : () => controller.refresh(),
-            ),
-          ),
-          SizedBox(height: kh.spacing.lg),
-
-          // 2. Metrics Overview Row
-          PlatformSettingsMetricsOverview(
-            state: state,
-            onSelectCategory: controller.selectCategory,
-          ),
-          SizedBox(height: kh.spacing.lg),
-
-          // 3. Pending Offer-Validity Architecture Decision Banner
-          const OfferValidityNoticeBanner(),
-          SizedBox(height: kh.spacing.lg),
-
-          // 4. Category Tabs & Search Bar
-          PlatformSettingsFilterBar(
-            state: state,
-            searchController: _searchController,
-            onSelectCategory: controller.selectCategory,
-            onSearchChanged: controller.setSearchQuery,
-            onClearSearch: () {
-              _searchController.clear();
-              controller.setSearchQuery('');
-            },
-          ),
-          SizedBox(height: kh.spacing.md),
-
-          // 5. Settings Data Table
-          if (state.isLoading && state.settings.isEmpty)
-            Center(
-              key: const Key('settings-list-loading'),
-              child: Padding(
-                padding: EdgeInsets.all(kh.spacing.xl),
-                child: const CircularProgressIndicator(),
+    return Material(
+      color: kh.colors.backgroundSurface,
+      child: Padding(
+        padding: EdgeInsets.all(kh.spacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 1. Screen Header
+            KhScreenHeader(
+              eyebrow: 'PLATFORM GOVERNANCE',
+              heading: 'Platform Settings',
+              supportingText:
+                  'Global operational parameters, lifecycle timeouts, trading constraints, and media limits.',
+              trailing: OutlinedButton.icon(
+                key: const Key('refresh-settings-button'),
+                icon: const Icon(Icons.refresh, size: 16),
+                label: const Text('Refresh'),
+                onPressed: state.isLoading ? null : () => controller.refresh(),
               ),
-            )
-          else if (state.errorMessage != null && state.settings.isEmpty)
-            PlatformSettingsErrorState(
-              message: state.errorMessage!,
-              onRetry: () => controller.refresh(),
-            )
-          else if (filteredItems.isEmpty)
-            const PlatformSettingsEmptyState()
-          else
-            PlatformSettingsTable(
-              items: filteredItems,
-              onEdit: (item) => _showEditSettingDialog(context, item),
             ),
-        ],
+            SizedBox(height: kh.spacing.lg),
+
+            // 2. Metrics Overview Row
+            PlatformSettingsMetricsOverview(
+              state: state,
+              onSelectCategory: controller.selectCategory,
+            ),
+            SizedBox(height: kh.spacing.lg),
+
+            // 3. Pending Offer-Validity Architecture Decision Banner
+            const OfferValidityNoticeBanner(),
+            SizedBox(height: kh.spacing.lg),
+
+            // 4. Category Tabs & Search Bar
+            PlatformSettingsFilterBar(
+              state: state,
+              searchController: _searchController,
+              onSelectCategory: controller.selectCategory,
+              onSearchChanged: controller.setSearchQuery,
+              onClearSearch: () {
+                _searchController.clear();
+                controller.setSearchQuery('');
+              },
+            ),
+            SizedBox(height: kh.spacing.md),
+
+            // 5. Settings Data Table
+            Expanded(
+              child: state.isLoading && state.settings.isEmpty
+                  ? Center(
+                      key: const Key('settings-list-loading'),
+                      child: Padding(
+                        padding: EdgeInsets.all(kh.spacing.xl),
+                        child: const CircularProgressIndicator(),
+                      ),
+                    )
+                  : state.errorMessage != null && state.settings.isEmpty
+                      ? PlatformSettingsErrorState(
+                          message: state.errorMessage!,
+                          onRetry: () => controller.refresh(),
+                        )
+                      : filteredItems.isEmpty
+                          ? const PlatformSettingsEmptyState()
+                          : PlatformSettingsTable(
+                              items: filteredItems,
+                              onEdit: (item) =>
+                                  _showEditSettingDialog(context, item),
+                            ),
+            ),
+          ],
+        ),
       ),
     );
   }

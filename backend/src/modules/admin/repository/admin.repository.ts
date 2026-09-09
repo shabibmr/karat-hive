@@ -671,6 +671,20 @@ export class AdminRepository {
     });
   }
 
+  /// Moves a user's account state — used by the abuse-report SUSPEND / DEACTIVATE
+  /// party sanctions (FR-ADM-032 AC3), which apply to the reported user
+  /// regardless of whether they hold a customer or vendor profile.
+  async updateUserAccountState(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    accountState: UserAccountState,
+  ) {
+    return tx.user.update({
+      where: { id: userId },
+      data: { accountState },
+    });
+  }
+
   // --- Audit Log ---
   async listAuditLogs(options: {
     limit?: number;

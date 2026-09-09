@@ -12,7 +12,6 @@ import 'package:kh_admin/l10n/app_localizations.dart';
 import 'package:kh_admin/features/requests/controller/request_list_controller.dart';
 import 'package:kh_admin/features/requests/model/request_enums.dart';
 import 'package:kh_admin/features/requests/model/request_list_filters.dart';
-import 'package:kh_admin/features/requests/model/request_list_item.dart';
 import 'package:kh_admin/core/format/kh_formats.dart';
 import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
@@ -93,17 +92,24 @@ class _RequestListScreenState extends ConsumerState<RequestListScreen> with Debo
   Widget build(BuildContext context) {
     final kh = context.kh;
     final l10n = AppLocalizations.of(context);
-    final listState = ref.watch(requestListControllerProvider);
+    final filters =
+        ref.watch(requestListControllerProvider.select((s) => s.filters));
+    final isLoading =
+        ref.watch(requestListControllerProvider.select((s) => s.isLoading));
+    final error =
+        ref.watch(requestListControllerProvider.select((s) => s.error));
+    final hasItems = ref
+        .watch(requestListControllerProvider.select((s) => s.items.isNotEmpty));
     final controller = ref.read(requestListControllerProvider.notifier);
 
-    if (_searchController.text != listState.filters.query &&
+    if (_searchController.text != filters.query &&
         !_searchController.selection.isValid) {
-      _searchController.text = listState.filters.query;
+      _searchController.text = filters.query;
     }
 
     return Material(
       color: kh.colors.backgroundSurface,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(kh.spacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,55 +123,54 @@ class _RequestListScreenState extends ConsumerState<RequestListScreen> with Debo
             SizedBox(height: kh.spacing.lg),
             _RequestFilterBar(
               key: const Key('request-filter-bar'),
-              filters: listState.filters,
+              filters: filters,
               searchController: _searchController,
               onTypeChanged: (type) => _applyFilters(
-                listState.filters.copyWith(requestType: type),
+                filters.copyWith(requestType: type),
               ),
               onDirectionChanged: (dir) => _applyFilters(
-                listState.filters.copyWith(direction: dir),
+                filters.copyWith(direction: dir),
               ),
               onStateChanged: (state) => _applyFilters(
-                listState.filters.copyWith(state: state),
+                filters.copyWith(state: state),
               ),
               onZeroOffersToggled: (val) => _applyFilters(
-                listState.filters.copyWith(zeroOffersOnly: val ?? false),
+                filters.copyWith(zeroOffersOnly: val ?? false),
               ),
               onSearchSubmitted: _onSearchSubmitted,
               onSearchChanged: _onSearchChanged,
             ),
             SizedBox(height: kh.spacing.lg),
-            if (listState.isLoading)
-              const Center(
-                key: Key('request-list-loading'),
-                child: Padding(
-                  padding: EdgeInsets.all(48.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (listState.error != null && listState.items.isEmpty)
-              _RequestErrorView(
-                message: listState.error!,
-                onRetry: controller.refresh,
-              )
-            else if (listState.items.isEmpty)
-              _RequestEmptyView(
-                key: const Key('request-list-empty'),
-                message: l10n?.requestsEmptyBody ??
-                    'No requests match the current filters.',
-              )
-            else ...[
-              _RequestTable(items: listState.items),
+            Expanded(
+              child: isLoading && !hasItems
+                  ? const Center(
+                      key: Key('request-list-loading'),
+                      child: Padding(
+                        padding: EdgeInsets.all(48.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : error != null && !hasItems
+                      ? _RequestErrorView(
+                          message: error,
+                          onRetry: controller.refresh,
+                        )
+                      : !hasItems
+                          ? _RequestEmptyView(
+                              key: const Key('request-list-empty'),
+                              message: l10n?.requestsEmptyBody ??
+                                  'No requests match the current filters.',
+                            )
+                          : const _RequestTable(),
+            ),
+            if (hasItems) ...[
               SizedBox(height: kh.spacing.md),
-              _RequestPaginationControls(
-                listState: listState,
-                controller: controller,
-              ),
+              const _RequestPaginationControls(),
             ],
-            if (listState.error != null && listState.items.isNotEmpty) ...[
+            if (error != null && hasItems) ...[
               SizedBox(height: kh.spacing.sm),
               Text(
-                listState.error!,
+                error,
                 style: kh.typography.bodySmall.copyWith(
                   color: kh.colors.error,
                   fontSize: 12.0,
@@ -319,15 +324,13 @@ class _RequestFilterBar extends StatelessWidget {
   }
 }
 
-class _RequestTable extends StatelessWidget {
-  const _RequestTable({
-    required this.items,
-  });
-
-  final List<RequestListItem> items;
+class _RequestTable extends ConsumerWidget {
+  const _RequestTable();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items =
+        ref.watch(requestListControllerProvider.select((s) => s.items));
     final kh = context.kh;
     final l10n = AppLocalizations.of(context);
     final currencyFormat = khNumberFormat;
@@ -525,28 +528,33 @@ class _RequestTable extends StatelessWidget {
   }
 }
 
-class _RequestPaginationControls extends StatelessWidget {
-  const _RequestPaginationControls({
-    required this.listState,
-    required this.controller,
-  });
-
-  final RequestListState listState;
-  final RequestListController controller;
+class _RequestPaginationControls extends ConsumerWidget {
+  const _RequestPaginationControls();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final canLoadMore =
+        ref.watch(requestListControllerProvider.select((s) => s.canLoadMore));
+    final isLoadingMore =
+        ref.watch(requestListControllerProvider.select((s) => s.isLoadingMore));
+    final canGoPrevious =
+        ref.watch(requestListControllerProvider.select((s) => s.canGoPrevious));
+    final canGoNext =
+        ref.watch(requestListControllerProvider.select((s) => s.canGoNext));
+    final page =
+        ref.watch(requestListControllerProvider.select((s) => s.page));
+    final controller = ref.read(requestListControllerProvider.notifier);
     final kh = context.kh;
     final l10n = AppLocalizations.of(context);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        if (listState.canLoadMore)
+        if (canLoadMore)
           OutlinedButton(
             key: const Key('request-load-more-button'),
-            onPressed: listState.isLoadingMore ? null : controller.loadMore,
-            child: listState.isLoadingMore
+            onPressed: isLoadingMore ? null : controller.loadMore,
+            child: isLoadingMore
                 ? const SizedBox(
                     width: 16.0,
                     height: 16.0,
@@ -560,13 +568,12 @@ class _RequestPaginationControls extends StatelessWidget {
           children: [
             OutlinedButton(
               key: const Key('request-page-prev'),
-              onPressed: listState.canGoPrevious ? controller.previousPage : null,
+              onPressed: canGoPrevious ? controller.previousPage : null,
               child: Text(l10n?.requestsPaginationPrevious ?? 'Previous'),
             ),
             SizedBox(width: kh.spacing.sm),
             Text(
-              l10n?.requestsPaginationPage(listState.page) ??
-                  'Page ${listState.page}',
+              l10n?.requestsPaginationPage(page) ?? 'Page $page',
               style: kh.typography.bodySmall.copyWith(
                 color: kh.colors.textSecondary,
                 fontSize: 12.0,
@@ -575,7 +582,7 @@ class _RequestPaginationControls extends StatelessWidget {
             SizedBox(width: kh.spacing.sm),
             OutlinedButton(
               key: const Key('request-page-next'),
-              onPressed: listState.canGoNext ? controller.nextPage : null,
+              onPressed: canGoNext ? controller.nextPage : null,
               child: Text(l10n?.requestsPaginationNext ?? 'Next'),
             ),
           ],

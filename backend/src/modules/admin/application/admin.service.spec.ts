@@ -45,6 +45,7 @@ describe('AdminService', () => {
     listAbuseReports: vi.fn(),
     findAbuseReport: vi.fn(),
     resolveAbuseReport: vi.fn(),
+    updateUserAccountState: vi.fn(),
     listAuditLogs: vi.fn(),
     createAdminNote: vi.fn(),
     listAdminNotes: vi.fn(),
@@ -341,6 +342,36 @@ describe('AdminService', () => {
       expect.anything(),
       expect.objectContaining({ action: 'ABUSE_REPORT_DISMISSED' }),
     );
+  });
+
+  it('actions abuse reports against the reported party (FR-ADM-032 AC3)', async () => {
+    vi.mocked(mockRepo.findAbuseReport).mockResolvedValue({ id: 'ab-1', reportedUserId: 'u-9' } as unknown as AbuseReport);
+    vi.mocked(mockRepo.resolveAbuseReport).mockResolvedValue({ id: 'ab-1', state: 'RESOLVED' } as unknown as AbuseReport);
+
+    await service.actionAbuseReport('ab-1', { action: 'SUSPEND', rationale: 'Repeated abuse' }, 'admin-1');
+    expect(mockRepo.updateUserAccountState).toHaveBeenCalledWith(expect.anything(), 'u-9', 'SUSPENDED');
+    expect(mockRepo.resolveAbuseReport).toHaveBeenLastCalledWith(expect.anything(), 'ab-1', 'RESOLVED', 'Repeated abuse', 'admin-1');
+    expect(mockAudit.append).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ action: 'ABUSE_PARTY_SUSPENDED' }),
+    );
+
+    vi.mocked(mockRepo.updateUserAccountState).mockClear();
+    await service.actionAbuseReport('ab-1', { action: 'WARN', rationale: 'First warning' }, 'admin-1');
+    expect(mockRepo.updateUserAccountState).not.toHaveBeenCalled();
+
+    await service.actionAbuseReport('ab-1', { action: 'DEACTIVATE', rationale: 'Severe' }, 'admin-1');
+    expect(mockRepo.updateUserAccountState).toHaveBeenCalledWith(expect.anything(), 'u-9', 'DEACTIVATED');
+
+    await service.actionAbuseReport('ab-1', { action: 'DISMISS', rationale: 'No violation' }, 'admin-1');
+    expect(mockRepo.resolveAbuseReport).toHaveBeenLastCalledWith(expect.anything(), 'ab-1', 'DISMISSED', 'No violation', 'admin-1');
+  });
+
+  it('rejects actioning a missing abuse report', async () => {
+    vi.mocked(mockRepo.findAbuseReport).mockResolvedValueOnce(null);
+    await expect(
+      service.actionAbuseReport('nope', { action: 'WARN', rationale: 'x' }, 'admin-1'),
+    ).rejects.toMatchObject({ errorCode: ErrorCode.NOT_FOUND });
   });
 
   it('prevents revoking the last remaining active admin', async () => {

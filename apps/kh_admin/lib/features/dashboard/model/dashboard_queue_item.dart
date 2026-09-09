@@ -31,6 +31,19 @@ class DashboardQueueItem {
   final DashboardQueueKind kind;
   final DateTime? submittedAt;
 
+  /// Deep-link that opens this exact item in its owning screen (`TR-S6-05`).
+  /// Verification and moderation panes read `selectedId`; the abuse queue reads
+  /// `selected` and opens the report detail.
+  String get deepLinkRoute {
+    switch (kind) {
+      case DashboardQueueKind.verification:
+        return '$route?selectedId=$id';
+      case DashboardQueueKind.abuse:
+      case DashboardQueueKind.review:
+        return '$route?selected=$id';
+    }
+  }
+
   /// GST (UTC+4) label matching the ADM-S02 queue column (`BR-021`).
   String get submittedLabel {
     if (submittedAt == null) return '—';

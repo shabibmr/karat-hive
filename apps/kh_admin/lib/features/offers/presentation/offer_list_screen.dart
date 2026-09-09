@@ -12,7 +12,6 @@ import 'package:kh_admin/l10n/app_localizations.dart';
 import 'package:kh_admin/features/offers/controller/offer_list_controller.dart';
 import 'package:kh_admin/features/offers/model/offer_enums.dart';
 import 'package:kh_admin/features/offers/model/offer_list_filters.dart';
-import 'package:kh_admin/features/offers/model/offer_list_item.dart';
 import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S10 · Offer list — Platform-wide vendor offer monitoring and inspection.
@@ -92,17 +91,24 @@ class _OfferListScreenState extends ConsumerState<OfferListScreen> with Debounce
   Widget build(BuildContext context) {
     final kh = context.kh;
     final l10n = AppLocalizations.of(context);
-    final listState = ref.watch(offerListControllerProvider);
+    final filters =
+        ref.watch(offerListControllerProvider.select((s) => s.filters));
+    final isLoading =
+        ref.watch(offerListControllerProvider.select((s) => s.isLoading));
+    final error =
+        ref.watch(offerListControllerProvider.select((s) => s.error));
+    final hasItems = ref
+        .watch(offerListControllerProvider.select((s) => s.items.isNotEmpty));
     final controller = ref.read(offerListControllerProvider.notifier);
 
-    if (_searchController.text != listState.filters.query &&
+    if (_searchController.text != filters.query &&
         !_searchController.selection.isValid) {
-      _searchController.text = listState.filters.query;
+      _searchController.text = filters.query;
     }
 
     return Material(
       color: kh.colors.backgroundSurface,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(kh.spacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,52 +122,49 @@ class _OfferListScreenState extends ConsumerState<OfferListScreen> with Debounce
             SizedBox(height: kh.spacing.lg),
             _OfferFilterBar(
               key: const Key('offer-filter-bar'),
-              filters: listState.filters,
+              filters: filters,
               searchController: _searchController,
               onStateChanged: (value) => _applyFilters(
-                listState.filters.copyWith(state: value),
+                filters.copyWith(state: value),
               ),
               onTypeChanged: (value) => _applyFilters(
-                listState.filters.copyWith(requestType: value),
+                filters.copyWith(requestType: value),
               ),
               onSearchSubmitted: _onSearchSubmitted,
               onSearchChanged: _onSearchChanged,
             ),
             SizedBox(height: kh.spacing.lg),
-            if (listState.isLoading)
-              const Center(
-                key: Key('offer-list-loading'),
-                child: Padding(
-                  padding: EdgeInsets.all(48.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (listState.error != null && listState.items.isEmpty)
-              _OfferErrorView(
-                key: const Key('offer-error-view'),
-                message: listState.error!,
-                onRetry: controller.refresh,
-              )
-            else if (listState.items.isEmpty)
-              _OfferEmptyView(
-                key: const Key('offer-empty-view'),
-                message: l10n?.offersEmptyBody ??
-                    'No offers match the current filter criteria.',
-              )
-            else ...[
-              _OfferTable(
-                items: listState.items,
-              ),
+            Expanded(
+              child: isLoading && !hasItems
+                  ? const Center(
+                      key: Key('offer-list-loading'),
+                      child: Padding(
+                        padding: EdgeInsets.all(48.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : error != null && !hasItems
+                      ? _OfferErrorView(
+                          key: const Key('offer-error-view'),
+                          message: error,
+                          onRetry: controller.refresh,
+                        )
+                      : !hasItems
+                          ? _OfferEmptyView(
+                              key: const Key('offer-empty-view'),
+                              message: l10n?.offersEmptyBody ??
+                                  'No offers match the current filter criteria.',
+                            )
+                          : const _OfferTable(),
+            ),
+            if (hasItems) ...[
               SizedBox(height: kh.spacing.md),
-              _OfferPaginationControls(
-                listState: listState,
-                controller: controller,
-              ),
+              const _OfferPaginationControls(),
             ],
-            if (listState.error != null && listState.items.isNotEmpty) ...[
+            if (error != null && hasItems) ...[
               SizedBox(height: kh.spacing.sm),
               Text(
-                listState.error!,
+                error,
                 style: kh.typography.bodySmall.copyWith(
                   color: kh.colors.error,
                   fontSize: 12.0,
@@ -278,12 +281,8 @@ class _OfferFilterBar extends StatelessWidget {
   }
 }
 
-class _OfferTable extends StatelessWidget {
-  const _OfferTable({
-    required this.items,
-  });
-
-  final List<OfferListItem> items;
+class _OfferTable extends ConsumerWidget {
+  const _OfferTable();
 
   static String _formatPrice(double amount) {
     final parts = amount.toStringAsFixed(2).split('.');
@@ -305,7 +304,9 @@ class _OfferTable extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items =
+        ref.watch(offerListControllerProvider.select((s) => s.items));
     final kh = context.kh;
     final l10n = AppLocalizations.of(context);
 
@@ -434,17 +435,22 @@ class _OfferTable extends StatelessWidget {
   }
 }
 
-class _OfferPaginationControls extends StatelessWidget {
-  const _OfferPaginationControls({
-    required this.listState,
-    required this.controller,
-  });
-
-  final OfferListState listState;
-  final OfferListController controller;
+class _OfferPaginationControls extends ConsumerWidget {
+  const _OfferPaginationControls();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final itemCount =
+        ref.watch(offerListControllerProvider.select((s) => s.items.length));
+    final totalCount =
+        ref.watch(offerListControllerProvider.select((s) => s.totalCount));
+    final canGoPrevious =
+        ref.watch(offerListControllerProvider.select((s) => s.canGoPrevious));
+    final canGoNext =
+        ref.watch(offerListControllerProvider.select((s) => s.canGoNext));
+    final page =
+        ref.watch(offerListControllerProvider.select((s) => s.page));
+    final controller = ref.read(offerListControllerProvider.notifier);
     final kh = context.kh;
     final l10n = AppLocalizations.of(context);
 
@@ -452,12 +458,11 @@ class _OfferPaginationControls extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          listState.totalCount != null
-              ? (l10n?.offersPaginationShowingOf(
-                      listState.items.length, listState.totalCount!) ??
-                  'Showing ${listState.items.length} offers of ${listState.totalCount}')
-              : (l10n?.offersPaginationShowing(listState.items.length) ??
-                  'Showing ${listState.items.length} offers'),
+          totalCount != null
+              ? (l10n?.offersPaginationShowingOf(itemCount, totalCount) ??
+                  'Showing $itemCount offers of $totalCount')
+              : (l10n?.offersPaginationShowing(itemCount) ??
+                  'Showing $itemCount offers'),
           style: kh.typography.caption.copyWith(
             color: kh.colors.textMuted,
             fontSize: 11.0,
@@ -472,8 +477,7 @@ class _OfferPaginationControls extends StatelessWidget {
                 l10n?.offersPaginationPrevious ?? 'Previous',
                 style: const TextStyle(fontSize: 12.0),
               ),
-              onPressed:
-                  listState.canGoPrevious ? controller.previousPage : null,
+              onPressed: canGoPrevious ? controller.previousPage : null,
             ),
             SizedBox(width: kh.spacing.sm),
             Container(
@@ -487,8 +491,7 @@ class _OfferPaginationControls extends StatelessWidget {
                 border: Border.all(color: kh.colors.borderSubtle),
               ),
               child: Text(
-                l10n?.offersPaginationPage(listState.page) ??
-                    'Page ${listState.page}',
+                l10n?.offersPaginationPage(page) ?? 'Page $page',
                 style: kh.typography.bodySmall.copyWith(
                   fontWeight: FontWeight.w600,
                   fontSize: 12.0,
@@ -503,7 +506,7 @@ class _OfferPaginationControls extends StatelessWidget {
                 l10n?.offersPaginationNext ?? 'Next',
                 style: const TextStyle(fontSize: 12.0),
               ),
-              onPressed: listState.canGoNext ? controller.nextPage : null,
+              onPressed: canGoNext ? controller.nextPage : null,
             ),
           ],
         ),

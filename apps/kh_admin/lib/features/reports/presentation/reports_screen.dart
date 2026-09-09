@@ -116,43 +116,52 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       }
     });
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(kh.spacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          KhScreenHeader(
-            eyebrow: l10n?.reportsEyebrow ?? 'BUSINESS INTELLIGENCE',
-            heading: l10n?.reportsHeading ?? 'Platform Analytics & Reports',
-            supportingText: l10n?.reportsSubtitle ??
-                'Operational reports over a date range, filtered by Region and Category.',
-            trailing: KhStatusChip(
-              label: state.result?.name.fallbackLabel ?? state.name.fallbackLabel,
-              tone: KhStatusTone.moderation,
-            ),
-          ),
-          SizedBox(height: kh.spacing.md),
-          _indicativeBanner(context, l10n),
-          SizedBox(height: kh.spacing.md),
-          _metrics(context, state),
-          SizedBox(height: kh.spacing.lg),
-          _filters(context, l10n, state, controller),
-          SizedBox(height: kh.spacing.md),
-          _exportBar(context, l10n, state),
-          SizedBox(height: kh.spacing.lg),
-          if (state.isLoading && state.result == null)
-            Center(
-              key: const Key('reports-loading'),
-              child: Padding(
-                padding: EdgeInsets.all(kh.spacing.xl),
-                child: const CircularProgressIndicator(),
+    return Material(
+      child: Padding(
+        padding: EdgeInsets.all(kh.spacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            KhScreenHeader(
+              eyebrow: l10n?.reportsEyebrow ?? 'BUSINESS INTELLIGENCE',
+              heading: l10n?.reportsHeading ?? 'Platform Analytics & Reports',
+              supportingText: l10n?.reportsSubtitle ??
+                  'Operational reports over a date range, filtered by Region and Category.',
+              trailing: KhStatusChip(
+                label: state.result?.name.fallbackLabel ?? state.name.fallbackLabel,
+                tone: KhStatusTone.moderation,
               ),
-            )
-          else if (state.errorMessage != null && state.result == null)
-            _errorState(context, l10n, state.errorMessage!, controller)
-          else
-            _results(context, l10n, state),
-        ],
+            ),
+            SizedBox(height: kh.spacing.md),
+            _indicativeBanner(context, l10n),
+            SizedBox(height: kh.spacing.md),
+            _metrics(context, state),
+            SizedBox(height: kh.spacing.lg),
+            _filters(context, l10n, state, controller),
+            SizedBox(height: kh.spacing.md),
+            _exportBar(context, l10n, state),
+            SizedBox(height: kh.spacing.lg),
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  if (state.isLoading && state.result == null) {
+                    return Center(
+                      key: const Key('reports-loading'),
+                      child: Padding(
+                        padding: EdgeInsets.all(kh.spacing.xl),
+                        child: const CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  if (state.errorMessage != null && state.result == null) {
+                    return _errorState(context, l10n, state.errorMessage!, controller);
+                  }
+                  return _results(context, l10n, state);
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -459,24 +468,26 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             ),
           )
         else
-          KhDataTable(
-            key: const Key('reports-table'),
-            columns: [
-              for (final column in result.columnKeys)
-                KhTableColumn(_humanize(column)),
-            ],
-            rows: [
-              for (final row in result.rows)
-                KhTableRow(
-                  cells: [
-                    for (final column in result.columnKeys)
-                      Text(
-                        '${row[column] ?? ''}',
-                        style: kh.typography.bodySmall,
-                      ),
-                  ],
-                ),
-            ],
+          Expanded(
+            child: KhDataTable(
+              key: const Key('reports-table'),
+              columns: [
+                for (final column in result.columnKeys)
+                  KhTableColumn(_humanize(column)),
+              ],
+              rows: [
+                for (final row in result.rows)
+                  KhTableRow(
+                    cells: [
+                      for (final column in result.columnKeys)
+                        Text(
+                          '${row[column] ?? ''}',
+                          style: kh.typography.bodySmall,
+                        ),
+                    ],
+                  ),
+              ],
+            ),
           ),
       ],
     );

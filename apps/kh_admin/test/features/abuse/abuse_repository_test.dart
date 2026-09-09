@@ -45,6 +45,7 @@ void main() {
   ApiClient buildClient({
     void Function(RequestOptions)? onPostResolve,
     void Function(RequestOptions)? onPostDismiss,
+    void Function(RequestOptions)? onPostAction,
   }) {
     final dio = Dio();
     dio.interceptors.add(
@@ -91,6 +92,17 @@ void main() {
 
           if (path.startsWith('/v1/admin/abuse-reports/') && path.endsWith('/resolve')) {
             onPostResolve?.call(options);
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {'data': {'id': 'ab-1', 'state': 'RESOLVED'}},
+              ),
+            );
+          }
+
+          if (path.startsWith('/v1/admin/abuse-reports/') && path.endsWith('/action')) {
+            onPostAction?.call(options);
             return handler.resolve(
               Response(
                 requestOptions: options,
@@ -191,6 +203,25 @@ void main() {
       expect(captured, isNotNull);
       expect(captured!.path, '/v1/admin/abuse-reports/ab-1/dismiss');
       expect(captured!.data, {'resolution': 'No violation found'});
+    });
+
+    test('calls the action endpoint with the wire action and rationale', () async {
+      RequestOptions? captured;
+      final client = buildClient(onPostAction: (opt) => captured = opt);
+      final repo = AbuseRepository(client);
+
+      await repo.actionAbuseReport(
+        'ab-1',
+        action: AbuseReportAction.suspend,
+        rationale: 'Repeated off-platform solicitation',
+      );
+
+      expect(captured, isNotNull);
+      expect(captured!.path, '/v1/admin/abuse-reports/ab-1/action');
+      expect(captured!.data, {
+        'action': 'SUSPEND',
+        'rationale': 'Repeated off-platform solicitation',
+      });
     });
 
     test('fetches single abuse report detail', () async {

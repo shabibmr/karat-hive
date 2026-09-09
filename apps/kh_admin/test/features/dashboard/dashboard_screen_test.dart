@@ -175,7 +175,11 @@ Widget createDashboardWidget({List<Override> overrides = const []}) {
       for (final route in _targetRoutes)
         GoRoute(
           path: route,
-          builder: (context, state) => Scaffold(body: Text('LANDED $route')),
+          builder: (context, state) => Scaffold(
+            body: Text(
+              'LANDED $route${state.uri.hasQuery ? '?${state.uri.query}' : ''}',
+            ),
+          ),
         ),
     ],
   );
@@ -282,14 +286,32 @@ void main() {
     expect(find.text('LANDED /customers'), findsOneWidget);
   });
 
-  testWidgets('tapping the KYC Queue metric navigates to verification',
+  testWidgets('dashboard figures drill into the pre-filtered list (TR-S6-05)',
+      (tester) async {
+    Future<void> tapMetric(String key, String expected) async {
+      await pumpDesktopDashboard(tester);
+      await tester.tap(find.byKey(Key(key)));
+      await tester.pumpAndSettle();
+      expect(find.text(expected), findsOneWidget);
+    }
+
+    await tapMetric('metric-card-kyc queue',
+        'LANDED /vendors?verificationState=PENDING_VERIFICATION');
+    await tapMetric('metric-card-requests', 'LANDED /requests?state=PUBLISHED');
+    await tapMetric('metric-card-offers', 'LANDED /offers?state=PENDING');
+    await tapMetric(
+        'metric-card-connections', 'LANDED /connections?state=ACTIVE');
+  });
+
+  testWidgets('the verification queue row deep-links to the selected item',
       (tester) async {
     await pumpDesktopDashboard(tester);
 
-    await tester.tap(find.byKey(const Key('metric-card-kyc queue')));
+    await tester.tap(find.text('Review KYC'));
     await tester.pumpAndSettle();
 
-    expect(find.text('LANDED /verification'), findsOneWidget);
+    expect(find.text('LANDED /verification?selectedId=ven-live-1'),
+        findsOneWidget);
   });
 
   testWidgets('quick action queue lists live snapshot rows with working actions',
@@ -326,7 +348,8 @@ void main() {
     await tester.tap(find.text('Review KYC'));
     await tester.pumpAndSettle();
 
-    expect(find.text('LANDED /verification'), findsOneWidget);
+    expect(find.text('LANDED /verification?selectedId=ven-live-1'),
+        findsOneWidget);
   });
 
   testWidgets('empty queues show an empty table message, not sample rows',

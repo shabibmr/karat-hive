@@ -386,7 +386,7 @@ class _ModerationScreenState extends ConsumerState<ModerationScreen> with Deboun
 
     return Material(
       color: kh.colors.backgroundSurface,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(kh.spacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,163 +449,179 @@ class _ModerationScreenState extends ConsumerState<ModerationScreen> with Deboun
               onSearchSubmitted: _onSearchSubmitted,
             ),
             SizedBox(height: kh.spacing.lg),
-            if (state.isLoading)
-              const Center(
-                key: Key('moderation-list-loading'),
-                child: Padding(
-                  padding: EdgeInsets.all(48),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (state.errorMessage != null)
-              Container(
-                key: const Key('moderation-list-error'),
-                padding: EdgeInsets.all(kh.spacing.lg),
-                decoration: BoxDecoration(
-                  color: kh.colors.error.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: kh.colors.error.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.error_outline, color: kh.colors.error),
-                    SizedBox(width: kh.spacing.md),
-                    Expanded(
-                      child: Text(
-                        state.errorMessage!,
-                        style: kh.typography.body.copyWith(color: kh.colors.error),
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  if (state.isLoading) {
+                    return const Center(
+                      key: Key('moderation-list-loading'),
+                      child: Padding(
+                        padding: EdgeInsets.all(48),
+                        child: CircularProgressIndicator(),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: controller.refresh,
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              )
-            else if (state.items.isEmpty)
-              Container(
-                key: const Key('moderation-list-empty'),
-                padding: EdgeInsets.all(kh.spacing.xxl),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: kh.colors.backgroundElevated,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: kh.colors.borderStandard),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.rate_review_outlined, size: 48, color: kh.colors.textMuted),
-                    SizedBox(height: kh.spacing.md),
-                    Text('No reviews found', style: kh.typography.title),
-                    SizedBox(height: kh.spacing.xs),
-                    Text(
-                      'No reviews match the current filters.',
-                      style: kh.typography.bodySmall.copyWith(color: kh.colors.textMuted),
-                    ),
-                  ],
-                ),
-              )
-            else
-              KhDataTable(
-                columns: const [
-                  KhTableColumn('Date', flex: 2),
-                  KhTableColumn('Rating', flex: 1),
-                  KhTableColumn('Author', flex: 2),
-                  KhTableColumn('Subject', flex: 2),
-                  KhTableColumn('Comment', flex: 3),
-                  KhTableColumn('Status', flex: 2),
-                  KhTableColumn('Actions', flex: 3),
-                ],
-                rows: state.items.map((item) {
-                  final dateStr = _formatDateTime(item.createdAt, 10);
-                  KhStatusTone tone = KhStatusTone.neutral;
-                  if (item.state == ReviewState.pendingModeration) {
-                    tone = KhStatusTone.pending;
-                  } else if (item.state == ReviewState.published) {
-                    tone = KhStatusTone.success;
-                  } else if (item.state == ReviewState.rejected) {
-                    tone = KhStatusTone.error;
-                  } else if (item.state == ReviewState.redacted) {
-                    tone = KhStatusTone.moderation;
+                    );
                   }
-
-                  return KhTableRow(
-                    key: ValueKey(item.id),
-                    onTap: () => _showDetailDialog(context, item),
-                    cells: [
-                      Text(dateStr, style: kh.typography.bodySmall),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
+                  if (state.errorMessage != null) {
+                    return Container(
+                      key: const Key('moderation-list-error'),
+                      padding: EdgeInsets.all(kh.spacing.lg),
+                      decoration: BoxDecoration(
+                        color: kh.colors.error.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: kh.colors.error.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
                         children: [
-                          Icon(Icons.star, size: 14, color: kh.colors.warning),
-                          SizedBox(width: kh.spacing.xxs),
-                          Text('${item.rating}', style: kh.typography.bodySmall.copyWith(fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      Text(
-                        item.authorName ?? _shortId(item.authorUserId),
-                        style: kh.typography.bodySmall,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        item.subjectName ?? _shortId(item.subjectUserId),
-                        style: kh.typography.bodySmall,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        item.comment ?? '(No comment)',
-                        style: kh.typography.bodySmall.copyWith(
-                          fontStyle: item.comment == null ? FontStyle.italic : FontStyle.normal,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      KhStatusChip(
-                        label: item.state.label,
-                        tone: tone,
-                        dense: true,
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.info_outline, size: 18),
-                            tooltip: 'View details',
-                            onPressed: () => _showDetailDialog(context, item),
+                          Icon(Icons.error_outline, color: kh.colors.error),
+                          SizedBox(width: kh.spacing.md),
+                          Expanded(
+                            child: Text(
+                              state.errorMessage!,
+                              style: kh.typography.body.copyWith(color: kh.colors.error),
+                            ),
                           ),
-                          if (item.state == ReviewState.pendingModeration) ...[
-                            IconButton(
-                              icon: Icon(Icons.check_circle_outline, size: 18, color: kh.colors.success),
-                              tooltip: 'Approve & Publish',
-                              onPressed: () => _showApproveDialog(item),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.edit_note, size: 18, color: kh.colors.info),
-                              tooltip: 'Redact text',
-                              onPressed: () => _showRedactDialog(item),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.cancel_outlined, size: 18, color: kh.colors.error),
-                              tooltip: 'Reject review',
-                              onPressed: () => _showRejectDialog(item),
-                            ),
-                          ],
+                          TextButton(
+                            onPressed: controller.refresh,
+                            child: const Text('Retry'),
+                          ),
                         ],
                       ),
+                    );
+                  }
+                  if (state.items.isEmpty) {
+                    return Container(
+                      key: const Key('moderation-list-empty'),
+                      padding: EdgeInsets.all(kh.spacing.xxl),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: kh.colors.backgroundElevated,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: kh.colors.borderStandard),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.rate_review_outlined, size: 48, color: kh.colors.textMuted),
+                          SizedBox(height: kh.spacing.md),
+                          Text('No reviews found', style: kh.typography.title),
+                          SizedBox(height: kh.spacing.xs),
+                          Text(
+                            'No reviews match the current filters.',
+                            style: kh.typography.bodySmall.copyWith(color: kh.colors.textMuted),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: KhDataTable(
+                          columns: const [
+                            KhTableColumn('Date', flex: 2),
+                            KhTableColumn('Rating', flex: 1),
+                            KhTableColumn('Author', flex: 2),
+                            KhTableColumn('Subject', flex: 2),
+                            KhTableColumn('Comment', flex: 3),
+                            KhTableColumn('Status', flex: 2),
+                            KhTableColumn('Actions', flex: 3),
+                          ],
+                          rows: state.items.map((item) {
+                            final dateStr = _formatDateTime(item.createdAt, 10);
+                            KhStatusTone tone = KhStatusTone.neutral;
+                            if (item.state == ReviewState.pendingModeration) {
+                              tone = KhStatusTone.pending;
+                            } else if (item.state == ReviewState.published) {
+                              tone = KhStatusTone.success;
+                            } else if (item.state == ReviewState.rejected) {
+                              tone = KhStatusTone.error;
+                            } else if (item.state == ReviewState.redacted) {
+                              tone = KhStatusTone.moderation;
+                            }
+
+                            return KhTableRow(
+                              key: ValueKey(item.id),
+                              onTap: () => _showDetailDialog(context, item),
+                              cells: [
+                                Text(dateStr, style: kh.typography.bodySmall),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.star, size: 14, color: kh.colors.warning),
+                                    SizedBox(width: kh.spacing.xxs),
+                                    Text('${item.rating}', style: kh.typography.bodySmall.copyWith(fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                Text(
+                                  item.authorName ?? _shortId(item.authorUserId),
+                                  style: kh.typography.bodySmall,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  item.subjectName ?? _shortId(item.subjectUserId),
+                                  style: kh.typography.bodySmall,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  item.comment ?? '(No comment)',
+                                  style: kh.typography.bodySmall.copyWith(
+                                    fontStyle: item.comment == null ? FontStyle.italic : FontStyle.normal,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                KhStatusChip(
+                                  label: item.state.label,
+                                  tone: tone,
+                                  dense: true,
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.info_outline, size: 18),
+                                      tooltip: 'View details',
+                                      onPressed: () => _showDetailDialog(context, item),
+                                    ),
+                                    if (item.state == ReviewState.pendingModeration) ...[
+                                      IconButton(
+                                        icon: Icon(Icons.check_circle_outline, size: 18, color: kh.colors.success),
+                                        tooltip: 'Approve & Publish',
+                                        onPressed: () => _showApproveDialog(item),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.edit_note, size: 18, color: kh.colors.info),
+                                        tooltip: 'Redact text',
+                                        onPressed: () => _showRedactDialog(item),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.cancel_outlined, size: 18, color: kh.colors.error),
+                                        tooltip: 'Reject review',
+                                        onPressed: () => _showRejectDialog(item),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      if (state.hasMore) ...[
+                        SizedBox(height: kh.spacing.lg),
+                        Center(
+                          child: OutlinedButton(
+                            onPressed: controller.loadMore,
+                            child: const Text('Load More Reviews'),
+                          ),
+                        ),
+                      ],
                     ],
                   );
-                }).toList(),
+                },
               ),
-            if (state.hasMore) ...[
-              SizedBox(height: kh.spacing.lg),
-              Center(
-                child: OutlinedButton(
-                  onPressed: controller.loadMore,
-                  child: const Text('Load More Reviews'),
-                ),
-              ),
-            ],
+            ),
           ],
         ),
       ),

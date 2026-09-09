@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/features/abuse/model/abuse_report_enums.dart';
 import 'package:kh_admin/features/abuse/model/abuse_report_filters.dart';
 import 'package:kh_admin/features/abuse/model/abuse_report_item.dart';
 import 'package:kh_admin/features/abuse/model/abuse_report_page.dart';
@@ -84,4 +85,20 @@ class AbuseRepository {
     );
   }
 
+  /// FR-ADM-032 AC3 — take one of the four resolutions (dismiss / warn / suspend
+  /// / deactivate) against the reported party. The backend closes the report,
+  /// applies the party sanction, and writes the audit entry in one transaction.
+  Future<void> actionAbuseReport(
+    String id, {
+    required AbuseReportAction action,
+    required String rationale,
+  }) async {
+    await _apiClient.post(
+      '/v1/admin/abuse-reports/$id/action',
+      data: <String, dynamic>{
+        'action': action.wireValue,
+        'rationale': rationale,
+      },
+    );
+  }
 }

@@ -82,6 +82,27 @@ class AbuseListController
       return false;
     }
   }
+
+  /// FR-ADM-032 AC3 — dismiss / warn / suspend / deactivate the reported party,
+  /// each with a mandatory rationale. Refreshes the list so the row reflects the
+  /// new report state.
+  Future<bool> actionReport(
+    String id,
+    AbuseReportAction action,
+    String rationale,
+  ) async {
+    try {
+      await ref.read(abuseRepositoryProvider).actionAbuseReport(
+            id,
+            action: action,
+            rationale: rationale,
+          );
+      await refresh();
+      return true;
+    } on Object catch (_) {
+      return false;
+    }
+  }
 }
 
 final abuseListControllerProvider =

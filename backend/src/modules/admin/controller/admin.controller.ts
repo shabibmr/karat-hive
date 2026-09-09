@@ -76,6 +76,11 @@ const resolveAbuseSchema = z.object({
   resolution: z.string().trim().min(1).max(500),
 });
 
+const actionAbuseSchema = z.object({
+  action: z.enum(['DISMISS', 'WARN', 'SUSPEND', 'DEACTIVATE']),
+  rationale: z.string().trim().min(1).max(500),
+});
+
 const updateSettingSchema = z.object({
   value: z.unknown(),
   confirm: z.boolean().optional(),
@@ -493,6 +498,16 @@ export class AdminController {
     @Body(zodBody(resolveAbuseSchema)) body: z.infer<typeof resolveAbuseSchema>,
   ) {
     const data = await this.service.dismissAbuseReport(id, body, viewer.userId);
+    return { data };
+  }
+
+  @Post('abuse-reports/:id/action')
+  async actionAbuseReport(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(actionAbuseSchema)) body: z.infer<typeof actionAbuseSchema>,
+  ) {
+    const data = await this.service.actionAbuseReport(id, body, viewer.userId);
     return { data };
   }
 

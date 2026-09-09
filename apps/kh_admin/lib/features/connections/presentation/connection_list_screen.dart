@@ -100,7 +100,7 @@ class _ConnectionListScreenState extends ConsumerState<ConnectionListScreen> wit
 
     return Material(
       color: kh.colors.backgroundSurface,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(kh.spacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,45 +124,59 @@ class _ConnectionListScreenState extends ConsumerState<ConnectionListScreen> wit
               onSearchSubmitted: _onSearchSubmitted,
             ),
             SizedBox(height: kh.spacing.lg),
-            if (listState.isLoading)
-              const Center(
-                key: Key('connection-list-loading'),
-                child: Padding(
-                  padding: EdgeInsets.all(48.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (listState.error != null && listState.items.isEmpty)
-              _ConnectionErrorView(
-                key: const Key('connection-error-view'),
-                message: listState.error!,
-                onRetry: controller.refresh,
-              )
-            else if (listState.items.isEmpty)
-              const _ConnectionEmptyView(
-                key: Key('connection-empty-view'),
-                message: 'No connections match the current filter criteria.',
-              )
-            else ...[
-              _ConnectionTable(
-                items: listState.items,
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  if (listState.isLoading) {
+                    return const Center(
+                      key: Key('connection-list-loading'),
+                      child: Padding(
+                        padding: EdgeInsets.all(48.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  if (listState.error != null && listState.items.isEmpty) {
+                    return _ConnectionErrorView(
+                      key: const Key('connection-error-view'),
+                      message: listState.error!,
+                      onRetry: controller.refresh,
+                    );
+                  }
+                  if (listState.items.isEmpty) {
+                    return const _ConnectionEmptyView(
+                      key: Key('connection-empty-view'),
+                      message: 'No connections match the current filter criteria.',
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _ConnectionTable(
+                          items: listState.items,
+                        ),
+                      ),
+                      SizedBox(height: kh.spacing.md),
+                      _ConnectionPaginationControls(
+                        listState: listState,
+                        controller: controller,
+                      ),
+                      if (listState.error != null) ...[
+                        SizedBox(height: kh.spacing.sm),
+                        Text(
+                          listState.error!,
+                          style: kh.typography.bodySmall.copyWith(
+                            color: kh.colors.error,
+                            fontSize: 12.0,
+                          ),
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
-              SizedBox(height: kh.spacing.md),
-              _ConnectionPaginationControls(
-                listState: listState,
-                controller: controller,
-              ),
-            ],
-            if (listState.error != null && listState.items.isNotEmpty) ...[
-              SizedBox(height: kh.spacing.sm),
-              Text(
-                listState.error!,
-                style: kh.typography.bodySmall.copyWith(
-                  color: kh.colors.error,
-                  fontSize: 12.0,
-                ),
-              ),
-            ],
+            ),
           ],
         ),
       ),

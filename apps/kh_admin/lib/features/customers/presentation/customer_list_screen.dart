@@ -100,7 +100,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> with De
 
     return Material(
       color: kh.colors.backgroundSurface,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(kh.spacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,41 +124,55 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> with De
               onSearchChanged: _onSearchChanged,
             ),
             SizedBox(height: kh.spacing.lg),
-            if (listState.isLoading)
-              const Center(
-                key: Key('customer-list-loading'),
-                child: Padding(
-                  padding: EdgeInsets.all(48),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (listState.error != null && listState.items.isEmpty)
-              _CustomerErrorView(
-                message: listState.error!,
-                onRetry: controller.refresh,
-              )
-            else if (listState.items.isEmpty)
-              _CustomerEmptyView(
-                onResetFilters: () {
-                  _searchController.clear();
-                  controller.applyFilters(const CustomerListFilters());
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  if (listState.isLoading) {
+                    return const Center(
+                      key: Key('customer-list-loading'),
+                      child: Padding(
+                        padding: EdgeInsets.all(48),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  if (listState.error != null && listState.items.isEmpty) {
+                    return _CustomerErrorView(
+                      message: listState.error!,
+                      onRetry: controller.refresh,
+                    );
+                  }
+                  if (listState.items.isEmpty) {
+                    return _CustomerEmptyView(
+                      onResetFilters: () {
+                        _searchController.clear();
+                        controller.applyFilters(const CustomerListFilters());
+                      },
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _CustomerTable(items: listState.items),
+                      ),
+                      SizedBox(height: kh.spacing.md),
+                      _CustomerPaginationControls(
+                        listState: listState,
+                        controller: controller,
+                      ),
+                      if (listState.error != null) ...[
+                        SizedBox(height: kh.spacing.sm),
+                        Text(
+                          listState.error!,
+                          style: kh.typography.bodySmall.copyWith(color: kh.colors.error),
+                        ),
+                      ],
+                    ],
+                  );
                 },
-              )
-            else ...[
-              _CustomerTable(items: listState.items),
-              SizedBox(height: kh.spacing.md),
-              _CustomerPaginationControls(
-                listState: listState,
-                controller: controller,
               ),
-            ],
-            if (listState.error != null && listState.items.isNotEmpty) ...[
-              SizedBox(height: kh.spacing.sm),
-              Text(
-                listState.error!,
-                style: kh.typography.bodySmall.copyWith(color: kh.colors.error),
-              ),
-            ],
+            ),
           ],
         ),
       ),
