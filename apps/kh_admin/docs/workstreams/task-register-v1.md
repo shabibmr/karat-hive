@@ -204,7 +204,7 @@ than a screenful.
 | `[x]` **TR-S2-10** _completed: 2026-09-09_ | E12 | `lib/features/vendors/presentation/vendor_detail_screen.dart` (1075→430) | TR-S2-01..05 | header, row, profile/taxonomy/KYC/lifecycle cards, error view → `presentation/widgets/`; dialogs stay in screen |
 | `[x]` **TR-S2-11** _completed: 2026-09-09_ | E12 | `lib/features/settings/presentation/platform_settings_screen.dart` (1059→147) | TR-S2-01..05 | metrics, banner, filter bar, states, table, `EditSettingDialog` → `presentation/widgets/` |
 | `[x]` **TR-S2-12** _completed: 2026-09-09_ | E12 | `lib/features/customers/presentation/customer_detail_screen.dart` (1022→470) | TR-S2-01..05 | header, row, summary/lifecycle/history/notes cards, error view → `presentation/widgets/`; dialogs stay in screen |
-| `[ ]` **TR-S2-13** | E12 | `lib/features/audit/presentation/audit_screen.dart` (882) | TR-S2-01..05 | structure only |
+| `[x]` **TR-S2-13** _completed: 2026-09-09_ | E12 | `lib/features/audit/presentation/audit_screen.dart` (882→200) | TR-S2-01..05 | structure only — self-view notice, action-tone, filters toolbar, data table, pagination, empty/error views, detail dialog → `presentation/widgets/` |
 | `[x]` **TR-S2-14** _completed: 2026-09-09_ | E12 | `lib/features/connections/presentation/connection_detail_screen.dart` (819→310) | TR-S2-01..05 | info row, error state, request/offer/contact-events/lifecycle/notes cards → `presentation/widgets/`; close modal stays in screen |
 
 ### Step 3 — presentation must not call repositories
