@@ -1,11 +1,47 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kh_domain/kh_domain.dart' show Party, MaskedParty, RevealedParty, UserRole;
 
 import 'package:kh_admin/features/offers/model/offer_enums.dart';
 
 part 'offer_detail.freezed.dart';
 part 'offer_detail.g.dart';
 
-/// Parent request summary embedded in [OfferDetail] (ADM-S11).
+class _PartyConverter implements JsonConverter<Party?, Object?> {
+  const _PartyConverter();
+
+  @override
+  Party? fromJson(Object? json) {
+    if (json == null) return null;
+    if (json is Party) return json;
+    if (json is Map<String, dynamic>) {
+      final name = json['name'] ?? json['displayName'] ?? json['customerName'];
+      final mobile = json['mobile'] ?? json['mobileNumber'] ?? json['customerMobile'];
+      final isMasked = json['isMasked'] == true ||
+          json['revealed'] == false ||
+          name == null ||
+          mobile == null ||
+          name.toString().trim().isEmpty ||
+          mobile.toString().trim().isEmpty;
+      if (isMasked) {
+        return MaskedParty.fromJson(json);
+      }
+      return RevealedParty(
+        displayName: name.toString(),
+        mobile: mobile.toString(),
+        role: UserRole.customer,
+      );
+    }
+    if (json is Map) {
+      return fromJson(Map<String, dynamic>.from(json));
+    }
+    return null;
+  }
+
+  @override
+  Object? toJson(Party? object) => object?.toJson();
+}
+
+/// Parent request summary embedded in [OfferDetail] (ADM-S11, E15, AD-FE-07).
 @freezed
 class OfferParentRequestSummary with _$OfferParentRequestSummary {
   const factory OfferParentRequestSummary({
@@ -13,17 +49,25 @@ class OfferParentRequestSummary with _$OfferParentRequestSummary {
     String? reference,
     @JsonKey(unknownEnumValue: RequestType.findOrnament)
     RequestType? requestType,
-    String? customerName,
-    String? customerMobile,
-    String? customerEmail,
+    @_PartyConverter() Party? customer,
     String? categoryName,
     String? regionName,
     double? indicativeValue,
     String? notes,
   }) = _OfferParentRequestSummary;
 
-  factory OfferParentRequestSummary.fromJson(Map<String, dynamic> json) =>
-      _$OfferParentRequestSummaryFromJson(json);
+  factory OfferParentRequestSummary.fromJson(Map<String, dynamic> json) {
+    final modified = Map<String, dynamic>.from(json);
+    if (modified['customer'] == null &&
+        (modified['customerName'] != null || modified['customerMobile'] != null)) {
+      modified['customer'] = {
+        'name': modified['customerName'],
+        'mobile': modified['customerMobile'],
+        'isMasked': modified['isMasked'] ?? false,
+      };
+    }
+    return _$OfferParentRequestSummaryFromJson(modified);
+  }
 }
 
 /// Unmasked vendor profile summary embedded in [OfferDetail] (ADM-S11).

@@ -1,169 +1,38 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
-
+import 'package:kh_admin/core/list/cursor_paginated_notifier.dart';
+import 'package:kh_admin/core/list/list_state.dart';
+import 'package:kh_admin/core/list/paginated.dart';
 import 'package:kh_admin/features/offers/model/offer_list_filters.dart';
 import 'package:kh_admin/features/offers/model/offer_list_item.dart';
 import 'package:kh_admin/features/offers/repository/offer_repository.dart';
 
-part 'offer_list_controller.freezed.dart';
+typedef OfferListState = CursorListState<OfferListItem, OfferListFilters>;
 
-/// Riverpod state for the ADM-S10 offers table (filters + cursor pagination).
-@freezed
-class OfferListState with _$OfferListState {
-  const OfferListState._();
-
-  const factory OfferListState({
-    @Default([]) List<OfferListItem> items,
-    @Default(OfferListFilters()) OfferListFilters filters,
-    String? nextCursor,
-    bool? hasMore,
-    int? totalCount,
-    @Default(false) bool isLoading,
-    @Default(false) bool isLoadingMore,
-    String? error,
-    @Default(1) int page,
-    @Default([null]) List<String?> cursorHistory,
-  }) = _OfferListState;
-
-  bool get canLoadMore {
-    if (hasMore == false) return false;
-    final cursor = nextCursor;
-    return cursor != null && cursor.isNotEmpty;
-  }
-
-  bool get canGoNext => canLoadMore && !isLoading && !isLoadingMore;
-  bool get canGoPrevious => page > 1 && !isLoading && !isLoadingMore;
-}
-
-class OfferListController extends Notifier<OfferListState> {
+/// Controller for the ADM-S10 offers table (filters + cursor pagination)
+/// built on the shared list kernel (TR-S1-17c).
+class OfferListController
+    extends CursorPaginatedNotifier<OfferListItem, OfferListFilters> {
   @override
-  OfferListState build() {
-    Future.microtask(refresh);
-    return const OfferListState(isLoading: true);
-  }
+  OfferListFilters get initialFilters => const OfferListFilters();
 
-  OfferRepository get _repository => ref.read(offerRepositoryProvider);
+  @override
+  Object? Function(OfferListItem item)? get itemKey => (item) => item.id;
 
-  Future<void> refresh() async {
-    state = state.copyWith(
-      isLoading: true,
-      isLoadingMore: false,
-      error: null,
-      items: const [],
-      nextCursor: null,
-      hasMore: null,
-      page: 1,
-      cursorHistory: const [null],
-    );
-
-    try {
-      final page = await _repository.fetchOffers(filters: state.filters);
-      state = state.copyWith(
-        isLoading: false,
-        items: page.items,
-        nextCursor: page.nextCursor,
-        hasMore: page.hasMore,
-        totalCount: page.totalCount,
-        page: 1,
-        cursorHistory: const [null],
-      );
-    } on Object catch (e) {
-      final msg = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
-      state = state.copyWith(
-        isLoading: false,
-        error: msg,
-      );
-    }
-  }
-
-  Future<void> loadMore() async {
-    if (state.isLoading || state.isLoadingMore || !state.canLoadMore) {
-      return;
-    }
-
-    state = state.copyWith(isLoadingMore: true, error: null);
-
-    try {
-      final page = await _repository.fetchOffers(
-        filters: state.filters,
-        cursor: state.nextCursor,
-      );
-      state = state.copyWith(
-        isLoadingMore: false,
-        items: [...state.items, ...page.items],
-        nextCursor: page.nextCursor,
-        hasMore: page.hasMore,
-      );
-    } on Object catch (e) {
-      state = state.copyWith(
-        isLoadingMore: false,
-        error: e.toString(),
-      );
-    }
-  }
-
-  Future<void> nextPage() async {
-    if (!state.canGoNext) return;
-    final currentCursor = state.nextCursor;
-    state = state.copyWith(isLoadingMore: true, error: null);
-
-    try {
-      final page = await _repository.fetchOffers(
-        filters: state.filters,
-        cursor: currentCursor,
-      );
-      final newHistory = [...state.cursorHistory, currentCursor];
-      state = state.copyWith(
-        isLoadingMore: false,
-        items: page.items,
-        nextCursor: page.nextCursor,
-        hasMore: page.hasMore,
-        page: state.page + 1,
-        cursorHistory: newHistory,
-      );
-    } on Object catch (e) {
-      state = state.copyWith(
-        isLoadingMore: false,
-        error: e.toString(),
-      );
-    }
-  }
-
-  Future<void> previousPage() async {
-    if (!state.canGoPrevious) return;
-    final targetPage = state.page - 1;
-    final targetCursor = state.cursorHistory[targetPage - 1];
-    state = state.copyWith(isLoadingMore: true, error: null);
-
-    try {
-      final page = await _repository.fetchOffers(
-        filters: state.filters,
-        cursor: targetCursor,
-      );
-      state = state.copyWith(
-        isLoadingMore: false,
-        items: page.items,
-        nextCursor: page.nextCursor,
-        hasMore: page.hasMore,
-        page: targetPage,
-      );
-    } on Object catch (e) {
-      state = state.copyWith(
-        isLoadingMore: false,
-        error: e.toString(),
-      );
-    }
-  }
-
-  Future<void> applyFilters(OfferListFilters filters) async {
-    state = state.copyWith(filters: filters);
-    await refresh();
+  @override
+  Future<Paginated<OfferListItem>> fetchPage({
+    required OfferListFilters filters,
+    String? cursor,
+    int limit = 20,
+  }) {
+    return ref.read(offerRepositoryProvider).fetchOffers(
+          filters: filters,
+          cursor: cursor,
+          limit: limit,
+        );
   }
 
   void setSearchQuery(String query) {
-    state = state.copyWith(
-      filters: state.filters.copyWith(query: query),
-    );
+    applyFilters(state.filters.copyWith(query: query));
   }
 
   Future<void> submitSearch() => refresh();

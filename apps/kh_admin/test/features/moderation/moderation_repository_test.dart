@@ -59,16 +59,34 @@ void main() {
           final path = options.path;
 
           if (path == '/v1/admin/reviews') {
+            final query = options.queryParameters;
+            var rows = [
+              rawReviewRow(id: 'rev-1', state: 'PENDING_MODERATION'),
+              rawReviewRow(id: 'rev-2', state: 'PENDING_MODERATION'),
+            ];
+
+            if (query['state'] != null) {
+              rows = rows.where((r) => r['state'] == query['state']).toList();
+            }
+            if (query['authorType'] != null) {
+              rows = rows.where((r) => r['authorType'] == query['authorType']).toList();
+            }
+            if (query['q'] != null) {
+              final q = query['q'].toString().toLowerCase();
+              rows = rows
+                  .where((r) =>
+                      r['id'].toString().toLowerCase().contains(q) ||
+                      r['comment'].toString().toLowerCase().contains(q))
+                  .toList();
+            }
+
             return handler.resolve(
               Response(
                 requestOptions: options,
                 statusCode: 200,
                 data: {
                   'data': {
-                    'data': [
-                      rawReviewRow(id: 'rev-1', state: 'PENDING_MODERATION'),
-                      rawReviewRow(id: 'rev-2', state: 'PUBLISHED'),
-                    ],
+                    'data': rows,
                     'nextCursor': 'rev-2',
                   },
                   'meta': {'nextCursor': 'rev-2'},
@@ -134,7 +152,7 @@ void main() {
       expect(page.nextCursor, 'rev-2');
     });
 
-    test('filters reviews client-side by query', () async {
+    test('filters reviews by query via query parameters', () async {
       final client = buildClient();
       final repo = ModerationRepository(client);
 
@@ -144,6 +162,17 @@ void main() {
 
       expect(page.items.length, 1);
       expect(page.items.first.id, 'rev-1');
+    });
+
+    test('filters reviews by authorType via query parameters', () async {
+      final client = buildClient();
+      final repo = ModerationRepository(client);
+
+      final page = await repo.fetchReviews(
+        filters: const ModerationFilters(authorType: AuthorType.customer),
+      );
+
+      expect(page.items.length, 2);
     });
 
     test('calls approve endpoint', () async {

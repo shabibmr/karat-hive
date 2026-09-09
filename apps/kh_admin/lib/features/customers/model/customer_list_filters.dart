@@ -12,11 +12,13 @@ class CustomerListFilters {
 
   CustomerListFilters copyWith({
     String? query,
-    CustomerAccountState? Function()? accountState,
+    CustomerAccountState? accountState,
+    bool clearAccountState = false,
   }) {
     return CustomerListFilters(
       query: query ?? this.query,
-      accountState: accountState != null ? accountState() : this.accountState,
+      accountState:
+          clearAccountState ? null : (accountState ?? this.accountState),
     );
   }
 

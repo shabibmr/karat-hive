@@ -24,7 +24,7 @@ class ConnectionRepository {
     final queryParameters = <String, dynamic>{
       'limit': limit.toString(),
       if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
-      if (filters.state != null) 'state': filters.state!.apiValue,
+      ...filters.toQueryParameters(),
     };
 
     final response = await _apiClient.getCollection(
@@ -36,18 +36,16 @@ class ConnectionRepository {
         .whereType<Map<String, dynamic>>()
         .map(_normalizeConnectionListRow)
         .map(ConnectionListItem.fromJson)
-        .where((item) => _matchesClientFilters(item, filters))
         .toList(growable: false);
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = hasMoreFromCursor(nextCursor);
 
     return ConnectionListPage(
       items: items,
-      nextCursor: hasMore ? nextCursor : null,
-      hasMore: hasMore,
-      totalCount: null,
+      nextCursor: nextCursor,
+      totalCount:
+          meta?['total'] is num ? (meta!['total'] as num).toInt() : null,
     );
   }
 
@@ -55,7 +53,7 @@ class ConnectionRepository {
   /// contact events, and merges internal admin notes.
   Future<ConnectionDetail> fetchConnectionDetail(String connectionId) async {
     final response = await _apiClient.get('/v1/admin/connections/$connectionId');
-    final raw = Map<String, dynamic>.from(response as Map<String, dynamic>);
+    final raw = unwrapEntity(response);
 
     List<ConnectionAdminNote> notes = const [];
     try {
@@ -93,8 +91,9 @@ class ConnectionRepository {
       data: {'text': text},
     );
 
-    if (response is Map<String, dynamic>) {
-      return ConnectionAdminNote.fromJson(response);
+    final map = unwrapEntity(response);
+    if (map.isNotEmpty) {
+      return ConnectionAdminNote.fromJson(map);
     }
 
     return ConnectionAdminNote(
@@ -107,14 +106,11 @@ class ConnectionRepository {
 
   /// Lists internal admin notes for the connection.
   Future<List<ConnectionAdminNote>> listAdminNotes(String connectionId) async {
-    final response = await _apiClient.get('/v1/admin/connections/$connectionId/notes');
-    if (response is List) {
-      return response
-          .whereType<Map<dynamic, dynamic>>()
-          .map((e) => ConnectionAdminNote.fromJson(Map<String, dynamic>.from(e)))
-          .toList(growable: false);
-    }
-    return const [];
+    final response = await _apiClient.getCollection('/v1/admin/connections/$connectionId/notes');
+    return response.items
+        .whereType<Map<dynamic, dynamic>>()
+        .map((e) => ConnectionAdminNote.fromJson(Map<String, dynamic>.from(e)))
+        .toList(growable: false);
   }
 
   // ---------------------------------------------------------------------------
@@ -212,32 +208,7 @@ class ConnectionRepository {
     return 'Vendor';
   }
 
-  bool _matchesClientFilters(
-    ConnectionListItem item,
-    ConnectionListFilters filters,
-  ) {
-    if (filters.state != null && item.state != filters.state) {
-      return false;
-    }
-    if (filters.hasNoContactOnly && !item.hasNoContact48h) {
-      return false;
-    }
-    final q = filters.query.trim().toLowerCase();
-    if (q.isNotEmpty) {
-      final haystack = [
-        item.id,
-        item.requestId,
-        item.offerId,
-        item.customerName,
-        item.vendorName,
-        item.requestType,
-        item.agreedPriceAed.toString(),
-        item.agreedPriceAed.toStringAsFixed(2),
-      ].whereType<String>().map((s) => s.toLowerCase());
-      if (!haystack.any((s) => s.contains(q))) return false;
-    }
-    return true;
-  }
+
 
 
 }

@@ -12,6 +12,9 @@ import 'package:kh_admin/core/design/theme/kh_colors.dart';
 import 'package:kh_admin/features/dashboard/model/dashboard_queue_item.dart';
 import 'package:kh_admin/features/dashboard/model/dashboard_stats.dart';
 import 'package:kh_admin/features/dashboard/repository/dashboard_repository.dart';
+import 'package:kh_admin/features/reports/model/report_filters.dart';
+import 'package:kh_admin/features/reports/model/report_name.dart';
+import 'package:kh_admin/features/reports/model/report_result.dart';
 import 'package:kh_admin/main.dart';
 
 class _FakeTokenStorage extends TokenStorage {
@@ -25,7 +28,7 @@ class _FakeTokenStorage extends TokenStorage {
 
 class _FakeDashboardRepository implements DashboardRepository {
   @override
-  Future<DashboardStats> fetchStats() async {
+  Future<DashboardStats> fetchStats({DateTime? from, DateTime? to}) async {
     return const DashboardStats(
       totalCustomers: 100,
       totalVendors: 20,
@@ -46,6 +49,12 @@ class _FakeDashboardRepository implements DashboardRepository {
   @override
   Future<List<DashboardQueueItem>> fetchPendingReviewsSnapshot() async =>
       const [];
+
+  @override
+  Future<ReportResult> fetchTrend(ReportFilters filters) async => ReportResult(
+        name: ReportName.requestVolume,
+        generatedAt: DateTime.utc(2026, 9, 9),
+      );
 }
 
 /// Stands in for the backend during the dev auto-login test: a real
@@ -55,12 +64,12 @@ class _SeededAdminAuthRepository extends AuthRepository {
 
   @override
   Future<SessionBundle> login(String email, String password) async {
-    return const SessionBundle(
+    return SessionBundle(
       tokens: SessionTokens(
         accessToken: 'dev-access',
-        accessExpiresAt: '2026-12-31T23:59:59Z',
+        accessExpiresAt: DateTime.fromMillisecondsSinceEpoch(1798761599000, isUtc: true),
         refreshToken: 'dev-refresh',
-        refreshExpiresAt: '2026-12-31T23:59:59Z',
+        refreshExpiresAt: DateTime.fromMillisecondsSinceEpoch(1798761599000, isUtc: true),
       ),
       user: AdminUser(
         userId: 'seed-admin',
@@ -219,13 +228,13 @@ class _AuthenticatedSessionController extends StateNotifier<SessionState>
     implements SessionController {
   _AuthenticatedSessionController()
       : super(
-          const SessionState(
+          SessionState(
             status: SessionStatus.authenticated,
             tokens: SessionTokens(
               accessToken: 'test-access-token',
-              accessExpiresAt: '2026-12-31T23:59:59Z',
+              accessExpiresAt: DateTime.fromMillisecondsSinceEpoch(1798761599000, isUtc: true),
               refreshToken: 'test-refresh-token',
-              refreshExpiresAt: '2026-12-31T23:59:59Z',
+              refreshExpiresAt: DateTime.fromMillisecondsSinceEpoch(1798761599000, isUtc: true),
             ),
             admin: AdminUser(
               userId: 'admin-1',
@@ -246,7 +255,7 @@ class _AuthenticatedSessionController extends StateNotifier<SessionState>
   Future<void> loginWithPassword(String email, String password) async {}
 
   @override
-  Future<void> logout() async {
+  Future<void> logout({bool broadcast = true}) async {
     state = const SessionState(status: SessionStatus.unauthenticated);
   }
 

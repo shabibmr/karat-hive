@@ -2,7 +2,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
 
-part 'offer_enums.g.dart';
 
 /// State of an offer submitted by a vendor (`OfferState` in Prisma).
 @JsonEnum(alwaysCreate: true)

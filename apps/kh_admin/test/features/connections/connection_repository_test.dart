@@ -84,34 +84,51 @@ void main() {
           final path = options.path;
 
           if (path == '/v1/admin/connections') {
+            final query = options.queryParameters;
+            var rows = [
+              rawConnectionRow(
+                id: 'conn-1',
+                state: 'ACTIVE',
+                createdAt: '2026-08-01T10:00:00.000Z',
+                contactEvents: [],
+              ),
+              rawConnectionRow(
+                id: 'conn-2',
+                state: 'CLOSED',
+                offeredPrice: '25000.00',
+                contactEvents: [
+                  {
+                    'id': 'ce-1',
+                    'connectionId': 'conn-2',
+                    'channel': 'WHATSAPP',
+                    'initiatedBy': 'CUSTOMER',
+                    'occurredAt': '2026-08-02T11:00:00.000Z',
+                  }
+                ],
+              ),
+            ];
+
+            if (query['state'] != null) {
+              rows = rows.where((r) => r['state'] == query['state']).toList();
+            }
+            if (query['q'] != null) {
+              final q = query['q'].toString().toLowerCase();
+              rows = rows
+                  .where((r) =>
+                      r['id'].toString().toLowerCase().contains(q) ||
+                      ((r['offer'] as Map)['offeredPrice'] ?? '')
+                          .toString()
+                          .contains(q))
+                  .toList();
+            }
+
             return handler.resolve(
               Response(
                 requestOptions: options,
                 statusCode: 200,
                 data: {
                   'data': {
-                    'data': [
-                      rawConnectionRow(
-                        id: 'conn-1',
-                        state: 'ACTIVE',
-                        createdAt: '2026-08-01T10:00:00.000Z',
-                        contactEvents: [],
-                      ),
-                      rawConnectionRow(
-                        id: 'conn-2',
-                        state: 'CLOSED',
-                        offeredPrice: '25000.00',
-                        contactEvents: [
-                          {
-                            'id': 'ce-1',
-                            'connectionId': 'conn-2',
-                            'channel': 'WHATSAPP',
-                            'initiatedBy': 'CUSTOMER',
-                            'occurredAt': '2026-08-02T11:00:00.000Z',
-                          }
-                        ],
-                      ),
-                    ],
+                    'data': rows,
                     'nextCursor': 'conn-2',
                   },
                   'meta': {'nextCursor': 'conn-2'},
@@ -234,6 +251,39 @@ void main() {
       expect(second.hasNoContact48h, isFalse); // closed state
     });
 
+    test('pushes state, q, and hasNoContactOnly to API query parameters', () async {
+      RequestOptions? captured;
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            captured = options;
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {'data': <dynamic>[]},
+              ),
+            );
+          },
+        ),
+      );
+      final repo = ConnectionRepository(ApiClient(dio: dio));
+
+      await repo.fetchConnections(
+        filters: const ConnectionListFilters(
+          state: ConnectionState.active,
+          query: 'Damani',
+          hasNoContactOnly: true,
+        ),
+      );
+
+      expect(captured, isNotNull);
+      expect(captured!.queryParameters['state'], 'ACTIVE');
+      expect(captured!.queryParameters['q'], 'Damani');
+      expect(captured!.queryParameters['hasNoContactOnly'], 'true');
+    });
+
     test('falls back to user email and tradingName when display names are absent', () async {
       final dio = Dio();
       dio.interceptors.add(
@@ -271,10 +321,9 @@ void main() {
 
       expect(page.nextCursor, 'conn-2');
       expect(page.hasMore, isTrue);
-      expect(page.canLoadMore, isTrue);
     });
 
-    test('applies client-side query search', () async {
+    test('applies query search via query parameters', () async {
       final repo = ConnectionRepository(buildClient());
       final searchResult = await repo.fetchConnections(
         filters: const ConnectionListFilters(query: '25000'),

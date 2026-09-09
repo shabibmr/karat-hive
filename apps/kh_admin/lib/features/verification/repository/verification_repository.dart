@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 import 'package:kh_admin/features/verification/model/document_url_response.dart';
 import 'package:kh_admin/features/verification/model/verification_decision_dto.dart';
 import 'package:kh_admin/features/verification/model/verification_queue_item.dart';
@@ -18,18 +19,15 @@ class VerificationRepository {
   /// `oldestWaitingHours`, no `submittedAt`). We derive the wait figure from
   /// `createdAt` here so the queue can show how long each vendor has waited.
   Future<List<VerificationQueueItem>> fetchQueue() async {
-    final response = await _apiClient.get('/v1/admin/verification-queue');
-
-    if (response is List) {
-      return response
-          .map(
-            (item) => VerificationQueueItem.fromJson(
-              _normalizeQueueItem(item as Map<String, dynamic>),
-            ),
-          )
-          .toList();
-    }
-    return const [];
+    final response = await _apiClient.getCollection('/v1/admin/verification-queue');
+    return response.items
+        .whereType<Map<String, dynamic>>()
+        .map(
+          (item) => VerificationQueueItem.fromJson(
+            _normalizeQueueItem(item),
+          ),
+        )
+        .toList();
   }
 
   static Map<String, dynamic> _normalizeQueueItem(Map<String, dynamic> json) {
@@ -50,7 +48,7 @@ class VerificationRepository {
   /// `GET /v1/admin/vendors/{id}` — unmasked vendor profile with documents.
   Future<VendorVerificationDetail> fetchVendorDetail(String vendorId) async {
     final response = await _apiClient.get('/v1/admin/vendors/$vendorId');
-    final map = Map<String, dynamic>.from(response as Map<String, dynamic>);
+    final map = unwrapEntity(response);
     return VendorVerificationDetail.fromJson(_normalizeVendorDetail(map));
   }
 

@@ -12,6 +12,7 @@ import 'package:kh_admin/features/abuse/controller/abuse_controller.dart';
 import 'package:kh_admin/features/abuse/model/abuse_report_enums.dart';
 import 'package:kh_admin/features/abuse/model/abuse_report_filters.dart';
 import 'package:kh_admin/features/abuse/model/abuse_report_item.dart';
+import 'package:kh_admin/core/router/abuse_query_params.dart';
 import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S21 · Abuse report queue — Triage customer and vendor abuse reports.
@@ -24,12 +25,38 @@ class AbuseScreen extends ConsumerStatefulWidget {
 
 class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
+  Uri? _lastSyncedUri;
 
   @override
   void initState() {
     super.initState();
     final query = ref.read(abuseListControllerProvider).filters.query;
     _searchController = TextEditingController(text: query);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncFromUri();
+  }
+
+  void _syncFromUri() {
+    Uri uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } on Object catch (_) {
+      return;
+    }
+    if (uri == _lastSyncedUri) return;
+    _lastSyncedUri = uri;
+
+    final parsed = AbuseQueryParams.fromUri(uri).toFilters();
+    final current = ref.read(abuseListControllerProvider).filters;
+    if (parsed == current) return;
+    ref.read(abuseListControllerProvider.notifier).applyFilters(parsed);
+    if (_searchController.text != parsed.query) {
+      _searchController.text = parsed.query;
+    }
   }
 
   @override
@@ -309,6 +336,15 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchM
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AbuseReportFilters>(
+      abuseListControllerProvider.select((s) => s.filters),
+      (prev, next) {
+        if (prev != next) {
+          context.updateAbuseQuery(next);
+        }
+      },
+    );
+
     final kh = context.kh;
     final state = ref.watch(abuseListControllerProvider);
     final controller = ref.read(abuseListControllerProvider.notifier);

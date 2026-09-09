@@ -71,7 +71,6 @@ class _MockRequestRepository extends RequestRepository {
     return RequestListPage(
       items: pageOne,
       nextCursor: 'cursor-2',
-      hasMore: true,
     );
   }
 }

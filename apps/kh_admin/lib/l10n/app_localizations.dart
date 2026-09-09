@@ -266,6 +266,72 @@ abstract class AppLocalizations {
   /// **'Action'**
   String get queueColumnAction;
 
+  /// Label above the ADM-S02 dashboard date-range selector
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get dashboardRangeLabel;
+
+  /// No description provided for @dashboardRange7.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get dashboardRange7;
+
+  /// No description provided for @dashboardRange30.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get dashboardRange30;
+
+  /// No description provided for @dashboardRange90.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 days'**
+  String get dashboardRange90;
+
+  /// No description provided for @dashboardTrendsHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Trends'**
+  String get dashboardTrendsHeading;
+
+  /// No description provided for @dashboardTrendCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Request volume by state over the selected range.'**
+  String get dashboardTrendCaption;
+
+  /// No description provided for @dashboardTrendEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No trend data for this range.'**
+  String get dashboardTrendEmpty;
+
+  /// Retry button on a dashboard queue-source or trend error
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get dashboardQueueRetry;
+
+  /// No description provided for @queueSourceVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'verification queue'**
+  String get queueSourceVerification;
+
+  /// No description provided for @queueSourceAbuse.
+  ///
+  /// In en, this message translates to:
+  /// **'abuse reports'**
+  String get queueSourceAbuse;
+
+  /// No description provided for @queueSourceReview.
+  ///
+  /// In en, this message translates to:
+  /// **'pending reviews'**
+  String get queueSourceReview;
+
   /// No description provided for @categoriesEyebrow.
   ///
   /// In en, this message translates to:

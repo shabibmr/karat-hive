@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kh_admin/core/auth/dev_auth.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/error/api_error_messages.dart';
 import 'package:kh_admin/core/firebase/firebase.dart';
+import 'package:kh_admin/core/firebase/firebase_init.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 
 /// Admin Login Screen (ADM-S01)
@@ -73,6 +75,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
+    final firebaseInit = ref.read(firebaseInitStateProvider);
+    final isProdMode = !ref.read(devAuthConfigProvider).autoLogin;
+    if (isProdMode && firebaseInit.isFailed) {
+      setState(() {
+        _errorMessage = 'Authentication service unavailable: Firebase initialization failed.';
+      });
+      return;
+    }
+
     setState(() {
       _errorMessage = null;
       _isSubmitting = true;
@@ -111,8 +122,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final shapes = context.kh.shapes;
     final l10n = AppLocalizations.of(context);
     final session = ref.watch(sessionControllerProvider);
+    final devAuth = ref.watch(devAuthConfigProvider);
+    final firebaseInit = ref.watch(firebaseInitStateProvider);
+    final isGoogleSignInBlocked = !devAuth.autoLogin && firebaseInit.isFailed;
     final displayError = _errorMessage ??
-        (!session.isAuthenticated ? session.errorMessage : null);
+        (isGoogleSignInBlocked
+            ? 'Authentication service unavailable: Firebase initialization failed.'
+            : (!session.isAuthenticated ? session.errorMessage : null));
 
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
@@ -258,139 +274,142 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               SizedBox(height: spacing.lg),
                             ],
 
-                            // Email input field
-                            Text(
-                              l10n?.emailLabel ?? 'Admin Email',
-                              style: typography.label.copyWith(
-                                color: colors.textSecondary,
-                              ),
-                            ),
-                            SizedBox(height: spacing.xs),
-                            TextFormField(
-                              key: const Key('login-email-field'),
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              autocorrect: false,
-                              enabled: !_isSubmitting,
-                              style: typography.body.copyWith(
-                                color: colors.textPrimary,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: l10n?.emailHint ?? 'admin@karathive.ae',
-                                prefixIcon: Icon(
-                                  Icons.email_outlined,
-                                  size: 20,
-                                  color: colors.textMuted,
+                            // Dev auto-login only: render password login fields when devAuth.autoLogin is true
+                            if (devAuth.autoLogin) ...[
+                              // Email input field
+                              Text(
+                                l10n?.emailLabel ?? 'Admin Email',
+                                style: typography.label.copyWith(
+                                  color: colors.textSecondary,
                                 ),
                               ),
-                              validator: (value) {
-                                final text = value?.trim() ?? '';
-                                if (text.isEmpty) {
-                                  return l10n?.emailRequired ?? 'Admin email is required';
-                                }
-                                if (!_emailRegExp.hasMatch(text)) {
-                                  return l10n?.emailInvalid ?? 'Please enter a valid email address';
-                                }
-                                return null;
-                              },
-                            ),
-                            SizedBox(height: spacing.lg),
-
-                            // Password input field
-                            Text(
-                              l10n?.passwordLabel ?? 'Password',
-                              style: typography.label.copyWith(
-                                color: colors.textSecondary,
-                              ),
-                            ),
-                            SizedBox(height: spacing.xs),
-                            TextFormField(
-                              key: const Key('login-password-field'),
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              enabled: !_isSubmitting,
-                              style: typography.body.copyWith(
-                                color: colors.textPrimary,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: l10n?.passwordHint ?? 'Enter your password',
-                                prefixIcon: Icon(
-                                  Icons.lock_outline,
-                                  size: 20,
-                                  color: colors.textMuted,
+                              SizedBox(height: spacing.xs),
+                              TextFormField(
+                                key: const Key('login-email-field'),
+                                controller: _emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                autocorrect: false,
+                                enabled: !_isSubmitting,
+                                style: typography.body.copyWith(
+                                  color: colors.textPrimary,
                                 ),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_outlined
-                                        : Icons.visibility_off_outlined,
+                                decoration: InputDecoration(
+                                  hintText: l10n?.emailHint ?? 'admin@karathive.ae',
+                                  prefixIcon: Icon(
+                                    Icons.email_outlined,
                                     size: 20,
                                     color: colors.textMuted,
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
+                                ),
+                                validator: (value) {
+                                  final text = value?.trim() ?? '';
+                                  if (text.isEmpty) {
+                                    return l10n?.emailRequired ?? 'Admin email is required';
+                                  }
+                                  if (!_emailRegExp.hasMatch(text)) {
+                                    return l10n?.emailInvalid ?? 'Please enter a valid email address';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              SizedBox(height: spacing.lg),
+
+                              // Password input field
+                              Text(
+                                l10n?.passwordLabel ?? 'Password',
+                                style: typography.label.copyWith(
+                                  color: colors.textSecondary,
                                 ),
                               ),
-                              validator: (value) {
-                                final text = value ?? '';
-                                if (text.isEmpty) {
-                                  return l10n?.passwordRequired ?? 'Password is required';
-                                }
-                                if (text.length < 8) {
-                                  return l10n?.passwordTooShort ??
-                                      'Password must be at least 8 characters';
-                                }
-                                return null;
-                              },
-                            ),
-
-                            // TODO ADM-S01 2FA: In subsequent release, insert Authenticator TOTP 6-digit input here when required by backend.
-
-                            SizedBox(height: spacing.xl),
-
-                            // Authenticate submit button
-                            ElevatedButton(
-                              key: const Key('login-submit-button'),
-                              onPressed: _isSubmitting ? null : _handleSubmit,
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: Size(double.infinity, spacing.buttonHeight + 8),
-                              ),
-                              child: _isSubmitting
-                                  ? SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          colors.sapphire900,
-                                        ),
-                                      ),
-                                    )
-                                  : Text(
-                                      l10n?.signInButton ?? 'Authenticate & Enter Portal',
+                              SizedBox(height: spacing.xs),
+                              TextFormField(
+                                key: const Key('login-password-field'),
+                                controller: _passwordController,
+                                obscureText: _obscurePassword,
+                                enabled: !_isSubmitting,
+                                style: typography.body.copyWith(
+                                  color: colors.textPrimary,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: l10n?.passwordHint ?? 'Enter your password',
+                                  prefixIcon: Icon(
+                                    Icons.lock_outline,
+                                    size: 20,
+                                    color: colors.textMuted,
+                                  ),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
+                                      size: 20,
+                                      color: colors.textMuted,
                                     ),
-                            ),
-                            SizedBox(height: spacing.md),
-                            Row(
-                              children: [
-                                Expanded(child: Divider(color: colors.borderStandard)),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: spacing.sm),
-                                  child: Text(
-                                    'OR',
-                                    style: typography.caption.copyWith(color: colors.textMuted),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
                                   ),
                                 ),
-                                Expanded(child: Divider(color: colors.borderStandard)),
-                              ],
-                            ),
-                            SizedBox(height: spacing.md),
+                                validator: (value) {
+                                  final text = value ?? '';
+                                  if (text.isEmpty) {
+                                    return l10n?.passwordRequired ?? 'Password is required';
+                                  }
+                                  if (text.length < 8) {
+                                    return l10n?.passwordTooShort ??
+                                        'Password must be at least 8 characters';
+                                  }
+                                  return null;
+                                },
+                              ),
+
+                              // TODO ADM-S01 2FA: In subsequent release, insert Authenticator TOTP 6-digit input here when required by backend.
+
+                              SizedBox(height: spacing.xl),
+
+                              // Authenticate submit button
+                              ElevatedButton(
+                                key: const Key('login-submit-button'),
+                                onPressed: _isSubmitting ? null : _handleSubmit,
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: Size(double.infinity, spacing.buttonHeight + 8),
+                                ),
+                                child: _isSubmitting
+                                    ? SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                            colors.sapphire900,
+                                          ),
+                                        ),
+                                      )
+                                    : Text(
+                                        l10n?.signInButton ?? 'Authenticate & Enter Portal',
+                                      ),
+                              ),
+                              SizedBox(height: spacing.md),
+                              Row(
+                                children: [
+                                  Expanded(child: Divider(color: colors.borderStandard)),
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: spacing.sm),
+                                    child: Text(
+                                      'OR',
+                                      style: typography.caption.copyWith(color: colors.textMuted),
+                                    ),
+                                  ),
+                                  Expanded(child: Divider(color: colors.borderStandard)),
+                                ],
+                              ),
+                              SizedBox(height: spacing.md),
+                            ],
                             OutlinedButton.icon(
                               key: const Key('login-google-button'),
-                              onPressed: _isSubmitting ? null : _handleGoogleSignIn,
+                              onPressed: (_isSubmitting || isGoogleSignInBlocked) ? null : _handleGoogleSignIn,
                               icon: const Icon(Icons.account_circle_outlined, size: 20),
                               label: const Text('Sign in with Google'),
                               style: OutlinedButton.styleFrom(

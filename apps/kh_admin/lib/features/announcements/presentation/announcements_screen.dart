@@ -1,7 +1,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:kh_admin/core/router/announcement_query_params.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
 import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
@@ -24,12 +26,38 @@ class AnnouncementsScreen extends ConsumerStatefulWidget {
 
 class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
+  Uri? _lastSyncedUri;
 
   @override
   void initState() {
     super.initState();
     final query = ref.read(announcementListControllerProvider).filters.query;
     _searchController = TextEditingController(text: query);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncFromUri();
+  }
+
+  void _syncFromUri() {
+    Uri uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } on Object catch (_) {
+      return;
+    }
+    if (uri == _lastSyncedUri) return;
+    _lastSyncedUri = uri;
+
+    final parsed = AnnouncementQueryParams.fromUri(uri).toFilters();
+    final current = ref.read(announcementListControllerProvider).filters;
+    if (parsed == current) return;
+    ref.read(announcementListControllerProvider.notifier).applyFilters(parsed);
+    if (_searchController.text != parsed.query) {
+      _searchController.text = parsed.query;
+    }
   }
 
   @override
@@ -244,14 +272,32 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with 
                         if (item.dispatchStats != null) ...[
                           Row(
                             children: [
-                              _buildStatTile(
-                                  kh, 'Sent', '${item.dispatchStats!.sent}', kh.colors.info),
+                              Expanded(
+                                child: KhMetricCard(
+                                  label: 'Sent',
+                                  value: '${item.dispatchStats!.sent}',
+                                  linkText: 'Dispatched',
+                                  valueColor: kh.colors.info,
+                                ),
+                              ),
                               SizedBox(width: kh.spacing.md),
-                              _buildStatTile(kh, 'Delivered',
-                                  '${item.dispatchStats!.delivered}', kh.colors.success),
+                              Expanded(
+                                child: KhMetricCard(
+                                  label: 'Delivered',
+                                  value: '${item.dispatchStats!.delivered}',
+                                  linkText: 'Confirmed',
+                                  valueColor: kh.colors.success,
+                                ),
+                              ),
                               SizedBox(width: kh.spacing.md),
-                              _buildStatTile(
-                                  kh, 'Opened', '${item.dispatchStats!.opened}', kh.colors.goldPrimary),
+                              Expanded(
+                                child: KhMetricCard(
+                                  label: 'Opened',
+                                  value: '${item.dispatchStats!.opened}',
+                                  linkText: 'Read',
+                                  valueColor: kh.colors.goldPrimary,
+                                ),
+                              ),
                             ],
                           ),
                         ] else ...[
@@ -303,24 +349,6 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with 
     );
   }
 
-  Widget _buildStatTile(KhThemeExtension kh, String label, String value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.all(kh.spacing.xs),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: kh.shapes.roundedSm,
-          border: Border.all(color: color.withValues(alpha: 0.25)),
-        ),
-        child: Column(
-          children: [
-            Text(value, style: kh.typography.title.copyWith(color: color)),
-            Text(label, style: kh.typography.caption.copyWith(color: kh.colors.textMuted)),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _showCancelDialog(BuildContext context, AnnouncementItem item) {
     final messenger = ScaffoldMessenger.of(context);
@@ -378,6 +406,15 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with 
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AnnouncementFilters>(
+      announcementListControllerProvider.select((s) => s.filters),
+      (prev, next) {
+        if (prev != next) {
+          context.updateAnnouncementQuery(next);
+        }
+      },
+    );
+
     final kh = context.kh;
     final state = ref.watch(announcementListControllerProvider);
     final controller = ref.read(announcementListControllerProvider.notifier);
@@ -525,6 +562,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with 
               )
             else
               KhDataTable(
+                rowHeight: 64,
                 columns: const [
                   KhTableColumn('Title', flex: 3),
                   KhTableColumn('Audience', flex: 2),

@@ -16,6 +16,7 @@ const String khApiBase = String.fromEnvironment(
 typedef TokenGetter = Future<String?> Function();
 typedef RefreshHandler = Future<bool> Function();
 typedef ServerTimeCallback = void Function(DateTime serverTime);
+typedef ContractMismatchCallback = void Function();
 
 /// Typed API client wrapping Dio.
 /// Handles `{ data, meta }` response unwrapping, bearer token injection,
@@ -27,9 +28,11 @@ class ApiClient {
     TokenGetter? tokenGetter,
     RefreshHandler? onUnauthorized,
     ServerTimeCallback? onServerTime,
+    ContractMismatchCallback? onContractMismatch,
   })  : _tokenGetter = tokenGetter,
         _onUnauthorized = onUnauthorized,
         _onServerTime = onServerTime,
+        _onContractMismatch = onContractMismatch,
         _dio = dio ?? Dio() {
     _dio.options = BaseOptions(
       baseUrl: baseUrl,
@@ -48,6 +51,7 @@ class ApiClient {
   final TokenGetter? _tokenGetter;
   final RefreshHandler? _onUnauthorized;
   final ServerTimeCallback? _onServerTime;
+  final ContractMismatchCallback? _onContractMismatch;
 
   DateTime? _latestServerTime;
   static DateTime? _staticLatestServerTime;
@@ -249,14 +253,24 @@ class ApiClient {
       }
     }
 
+    // Handle 426 Upgrade Required (contract version mismatch - TR-S4-17)
+    if (status == 426) {
+      _onContractMismatch?.call();
+      throw _parseErrorEnvelope(status, response.data);
+    }
+
     // Success range: 200..299
     if (status >= 200 && status < 300) {
       final body = response.data;
       if (!unwrapData) {
         return body;
       }
-      if (body is Map<String, dynamic> && body.containsKey('data')) {
-        return body['data'];
+      if (body is Map && body.containsKey('data')) {
+        var payload = body['data'];
+        if (payload is Map && payload.containsKey('data')) {
+          payload = payload['data'];
+        }
+        return payload;
       }
       return body;
     }
@@ -317,8 +331,11 @@ class ApiClient {
   }
 }
 
+/// Global state tracking whether a 426 Upgrade Required / contract mismatch was received (TR-S4-17).
+final contractMismatchProvider = StateProvider<bool>((ref) => false);
+
 /// Provider for [ApiClient] wired with session tokens, silent 401 refresh handler,
-/// and server timestamp sync.
+/// server timestamp sync, and 426 contract mismatch notifier.
 final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
   return ApiClient(
@@ -333,5 +350,9 @@ final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
     onServerTime: (serverTime) {
       ref.read(serverTimeProvider.notifier).state = serverTime;
     },
+    onContractMismatch: () {
+      ref.read(contractMismatchProvider.notifier).state = true;
+    },
   );
 });
+

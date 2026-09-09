@@ -38,24 +38,24 @@ class AbuseRepository {
     final items = response.items
         .whereType<Map<String, dynamic>>()
         .map(AbuseReportItem.fromJson)
-        .where((item) => _matchesClientFilters(item, filters))
         .toList(growable: false);
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = hasMoreFromCursor(nextCursor);
 
     return AbuseReportPage(
       items: items,
-      nextCursor: hasMore ? nextCursor : null,
-      hasMore: hasMore,
+      nextCursor: nextCursor,
+      totalCount:
+          meta?['total'] is num ? (meta!['total'] as num).toInt() : null,
     );
   }
 
   Future<AbuseReportItem> getAbuseReport(String id) async {
     final response = await _apiClient.get('/v1/admin/abuse-reports/$id');
-    if (response is Map<String, dynamic>) {
-      return AbuseReportItem.fromJson(response);
+    final map = unwrapEntity(response);
+    if (map.isNotEmpty) {
+      return AbuseReportItem.fromJson(map);
     }
     throw Exception('Unexpected response format when fetching abuse report: $response');
   }
@@ -84,19 +84,4 @@ class AbuseRepository {
     );
   }
 
-  bool _matchesClientFilters(AbuseReportItem item, AbuseReportFilters filters) {
-    if (filters.entityType != null && item.entityType != filters.entityType) {
-      return false;
-    }
-    if (filters.query.isEmpty) return true;
-    final q = filters.query.toLowerCase();
-    return item.id.toLowerCase().contains(q) ||
-        item.category.toLowerCase().contains(q) ||
-        item.description.toLowerCase().contains(q) ||
-        item.entityId.toLowerCase().contains(q) ||
-        (item.reporterName?.toLowerCase().contains(q) ?? false) ||
-        (item.reportedName?.toLowerCase().contains(q) ?? false) ||
-        (item.reporterEmail?.toLowerCase().contains(q) ?? false) ||
-        (item.reportedEmail?.toLowerCase().contains(q) ?? false);
-  }
 }

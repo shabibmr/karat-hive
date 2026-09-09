@@ -4,7 +4,19 @@ import '../tokens.dart';
 
 /// Domain-free tone for SH-FND-19. Feature code maps Request/Offer/Connection
 /// states onto these values — this package must not import kh_domain.
-enum KhStatusTone { neutral, success, warning, danger, info, accent }
+enum KhStatusTone {
+  neutral,
+  success,
+  warning,
+  danger,
+  info,
+  accent;
+
+  /// Compatibility aliases matching legacy admin tone names.
+  static const KhStatusTone pending = warning;
+  static const KhStatusTone error = danger;
+  static const KhStatusTone moderation = info;
+}
 
 /// SH-FND-19 — status chip with a token colour map.
 class KhStatusChip extends StatelessWidget {

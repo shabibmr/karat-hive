@@ -1,9 +1,29 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kh_admin/core/router/query_navigation.dart';
+import 'package:kh_admin/core/router/query_params_codec.dart';
+
+/// Codec for encoding/decoding taxonomy query state (TR-S1-25 / ADM-SMP-07).
+class TaxonomyQueryParamsCodec extends QueryParamsCodec<bool> {
+  const TaxonomyQueryParamsCodec();
+
+  @override
+  bool decodeFilters(Map<String, String> query) {
+    return query['showInactive'] == 'true';
+  }
+
+  @override
+  Map<String, String> encodeFilters(bool filters) {
+    if (filters) return {'showInactive': 'true'};
+    return const {};
+  }
+}
 
 /// Taxonomy list query state encoded in URL query parameters (AD-FE §16.2).
 /// Preserves selected node and showInactive filter across page reloads and browser history.
 class TaxonomyQueryParams {
+  static const codec = TaxonomyQueryParamsCodec();
+
   const TaxonomyQueryParams({
     this.selectedId,
     this.showInactive = false,
@@ -13,9 +33,10 @@ class TaxonomyQueryParams {
   final bool showInactive;
 
   factory TaxonomyQueryParams.fromUri(Uri uri) {
+    final state = codec.fromUri(uri);
     return TaxonomyQueryParams(
-      selectedId: uri.queryParameters['selected'],
-      showInactive: uri.queryParameters['showInactive'] == 'true',
+      selectedId: state.selectedId,
+      showInactive: state.filters,
     );
   }
 
@@ -24,14 +45,12 @@ class TaxonomyQueryParams {
   }
 
   Map<String, String> toQueryParameters() {
-    final params = <String, String>{};
-    if (selectedId != null && selectedId!.isNotEmpty) {
-      params['selected'] = selectedId!;
-    }
-    if (showInactive) {
-      params['showInactive'] = 'true';
-    }
-    return params;
+    return codec.encode(
+      ListUrlState<bool>(
+        filters: showInactive,
+        selectedId: selectedId,
+      ),
+    );
   }
 
   TaxonomyQueryParams copyWith({
@@ -62,13 +81,7 @@ extension TaxonomyQueryNavigation on BuildContext {
         clearSelected: clearSelected,
       );
 
-      final newUri = state.uri.replace(
-        queryParameters: updated.toQueryParameters().isEmpty
-            ? null
-            : updated.toQueryParameters(),
-      );
-
-      go(newUri.toString());
+      applyQueryParameters(updated.toQueryParameters());
     } on Object catch (_) {
       // Safe fallback when executed outside a GoRouter context (e.g. isolated widget tests)
     }

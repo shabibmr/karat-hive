@@ -44,7 +44,6 @@ class _MockAbuseRepository extends AbuseRepository {
         ),
       ],
       nextCursor: null,
-      hasMore: false,
     );
   }
 

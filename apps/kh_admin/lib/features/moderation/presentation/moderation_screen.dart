@@ -1,7 +1,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:kh_admin/core/router/moderation_query_params.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
 import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
@@ -23,12 +25,38 @@ class ModerationScreen extends ConsumerStatefulWidget {
 
 class _ModerationScreenState extends ConsumerState<ModerationScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
+  Uri? _lastSyncedUri;
 
   @override
   void initState() {
     super.initState();
     final query = ref.read(moderationListControllerProvider).filters.query;
     _searchController = TextEditingController(text: query);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncFromUri();
+  }
+
+  void _syncFromUri() {
+    Uri uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } on Object catch (_) {
+      return;
+    }
+    if (uri == _lastSyncedUri) return;
+    _lastSyncedUri = uri;
+
+    final parsed = ModerationQueryParams.fromUri(uri).toFilters();
+    final current = ref.read(moderationListControllerProvider).filters;
+    if (parsed == current) return;
+    ref.read(moderationListControllerProvider.notifier).applyFilters(parsed);
+    if (_searchController.text != parsed.query) {
+      _searchController.text = parsed.query;
+    }
   }
 
   @override
@@ -333,6 +361,15 @@ class _ModerationScreenState extends ConsumerState<ModerationScreen> with Deboun
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<ModerationFilters>(
+      moderationListControllerProvider.select((s) => s.filters),
+      (prev, next) {
+        if (prev != next) {
+          context.updateModerationQuery(next);
+        }
+      },
+    );
+
     final kh = context.kh;
     final state = ref.watch(moderationListControllerProvider);
     final controller = ref.read(moderationListControllerProvider.notifier);

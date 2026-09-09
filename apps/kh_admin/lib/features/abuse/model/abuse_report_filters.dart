@@ -28,6 +28,24 @@ class AbuseReportFilters {
   Map<String, dynamic> toQueryParameters() {
     return <String, dynamic>{
       if (state != null) 'state': state!.wireValue,
+      if (entityType != null) 'entityType': entityType!.wireValue,
+      if (query.trim().isNotEmpty) 'q': query.trim(),
     };
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AbuseReportFilters &&
+          runtimeType == other.runtimeType &&
+          state == other.state &&
+          entityType == other.entityType &&
+          query == other.query;
+
+  @override
+  int get hashCode => Object.hash(state, entityType, query);
+
+  @override
+  String toString() =>
+      'AbuseReportFilters(state: $state, entityType: $entityType, query: $query)';
 }

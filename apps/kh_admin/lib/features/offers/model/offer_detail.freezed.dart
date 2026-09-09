@@ -27,9 +27,7 @@ mixin _$OfferParentRequestSummary {
   String? get reference => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: RequestType.findOrnament)
   RequestType? get requestType => throw _privateConstructorUsedError;
-  String? get customerName => throw _privateConstructorUsedError;
-  String? get customerMobile => throw _privateConstructorUsedError;
-  String? get customerEmail => throw _privateConstructorUsedError;
+  Party? get customer => throw _privateConstructorUsedError;
   String? get categoryName => throw _privateConstructorUsedError;
   String? get regionName => throw _privateConstructorUsedError;
   double? get indicativeValue => throw _privateConstructorUsedError;
@@ -57,9 +55,7 @@ abstract class $OfferParentRequestSummaryCopyWith<$Res> {
     String? reference,
     @JsonKey(unknownEnumValue: RequestType.findOrnament)
     RequestType? requestType,
-    String? customerName,
-    String? customerMobile,
-    String? customerEmail,
+    Party? customer,
     String? categoryName,
     String? regionName,
     double? indicativeValue,
@@ -88,9 +84,7 @@ class _$OfferParentRequestSummaryCopyWithImpl<
     Object? id = null,
     Object? reference = freezed,
     Object? requestType = freezed,
-    Object? customerName = freezed,
-    Object? customerMobile = freezed,
-    Object? customerEmail = freezed,
+    Object? customer = freezed,
     Object? categoryName = freezed,
     Object? regionName = freezed,
     Object? indicativeValue = freezed,
@@ -110,18 +104,10 @@ class _$OfferParentRequestSummaryCopyWithImpl<
                 ? _value.requestType
                 : requestType // ignore: cast_nullable_to_non_nullable
                       as RequestType?,
-            customerName: freezed == customerName
-                ? _value.customerName
-                : customerName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            customerMobile: freezed == customerMobile
-                ? _value.customerMobile
-                : customerMobile // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            customerEmail: freezed == customerEmail
-                ? _value.customerEmail
-                : customerEmail // ignore: cast_nullable_to_non_nullable
-                      as String?,
+            customer: freezed == customer
+                ? _value.customer
+                : customer // ignore: cast_nullable_to_non_nullable
+                      as Party?,
             categoryName: freezed == categoryName
                 ? _value.categoryName
                 : categoryName // ignore: cast_nullable_to_non_nullable
@@ -158,9 +144,7 @@ abstract class _$$OfferParentRequestSummaryImplCopyWith<$Res>
     String? reference,
     @JsonKey(unknownEnumValue: RequestType.findOrnament)
     RequestType? requestType,
-    String? customerName,
-    String? customerMobile,
-    String? customerEmail,
+    Party? customer,
     String? categoryName,
     String? regionName,
     double? indicativeValue,
@@ -189,9 +173,7 @@ class __$$OfferParentRequestSummaryImplCopyWithImpl<$Res>
     Object? id = null,
     Object? reference = freezed,
     Object? requestType = freezed,
-    Object? customerName = freezed,
-    Object? customerMobile = freezed,
-    Object? customerEmail = freezed,
+    Object? customer = freezed,
     Object? categoryName = freezed,
     Object? regionName = freezed,
     Object? indicativeValue = freezed,
@@ -211,18 +193,10 @@ class __$$OfferParentRequestSummaryImplCopyWithImpl<$Res>
             ? _value.requestType
             : requestType // ignore: cast_nullable_to_non_nullable
                   as RequestType?,
-        customerName: freezed == customerName
-            ? _value.customerName
-            : customerName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        customerMobile: freezed == customerMobile
-            ? _value.customerMobile
-            : customerMobile // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        customerEmail: freezed == customerEmail
-            ? _value.customerEmail
-            : customerEmail // ignore: cast_nullable_to_non_nullable
-                  as String?,
+        customer: freezed == customer
+            ? _value.customer
+            : customer // ignore: cast_nullable_to_non_nullable
+                  as Party?,
         categoryName: freezed == categoryName
             ? _value.categoryName
             : categoryName // ignore: cast_nullable_to_non_nullable
@@ -251,9 +225,7 @@ class _$OfferParentRequestSummaryImpl implements _OfferParentRequestSummary {
     required this.id,
     this.reference,
     @JsonKey(unknownEnumValue: RequestType.findOrnament) this.requestType,
-    this.customerName,
-    this.customerMobile,
-    this.customerEmail,
+    this.customer,
     this.categoryName,
     this.regionName,
     this.indicativeValue,
@@ -271,11 +243,7 @@ class _$OfferParentRequestSummaryImpl implements _OfferParentRequestSummary {
   @JsonKey(unknownEnumValue: RequestType.findOrnament)
   final RequestType? requestType;
   @override
-  final String? customerName;
-  @override
-  final String? customerMobile;
-  @override
-  final String? customerEmail;
+  final Party? customer;
   @override
   final String? categoryName;
   @override
@@ -287,7 +255,7 @@ class _$OfferParentRequestSummaryImpl implements _OfferParentRequestSummary {
 
   @override
   String toString() {
-    return 'OfferParentRequestSummary(id: $id, reference: $reference, requestType: $requestType, customerName: $customerName, customerMobile: $customerMobile, customerEmail: $customerEmail, categoryName: $categoryName, regionName: $regionName, indicativeValue: $indicativeValue, notes: $notes)';
+    return 'OfferParentRequestSummary(id: $id, reference: $reference, requestType: $requestType, customer: $customer, categoryName: $categoryName, regionName: $regionName, indicativeValue: $indicativeValue, notes: $notes)';
   }
 
   @override
@@ -300,12 +268,8 @@ class _$OfferParentRequestSummaryImpl implements _OfferParentRequestSummary {
                 other.reference == reference) &&
             (identical(other.requestType, requestType) ||
                 other.requestType == requestType) &&
-            (identical(other.customerName, customerName) ||
-                other.customerName == customerName) &&
-            (identical(other.customerMobile, customerMobile) ||
-                other.customerMobile == customerMobile) &&
-            (identical(other.customerEmail, customerEmail) ||
-                other.customerEmail == customerEmail) &&
+            (identical(other.customer, customer) ||
+                other.customer == customer) &&
             (identical(other.categoryName, categoryName) ||
                 other.categoryName == categoryName) &&
             (identical(other.regionName, regionName) ||
@@ -322,9 +286,7 @@ class _$OfferParentRequestSummaryImpl implements _OfferParentRequestSummary {
     id,
     reference,
     requestType,
-    customerName,
-    customerMobile,
-    customerEmail,
+    customer,
     categoryName,
     regionName,
     indicativeValue,
@@ -354,9 +316,7 @@ abstract class _OfferParentRequestSummary implements OfferParentRequestSummary {
     final String? reference,
     @JsonKey(unknownEnumValue: RequestType.findOrnament)
     final RequestType? requestType,
-    final String? customerName,
-    final String? customerMobile,
-    final String? customerEmail,
+    final Party? customer,
     final String? categoryName,
     final String? regionName,
     final double? indicativeValue,
@@ -374,11 +334,7 @@ abstract class _OfferParentRequestSummary implements OfferParentRequestSummary {
   @JsonKey(unknownEnumValue: RequestType.findOrnament)
   RequestType? get requestType;
   @override
-  String? get customerName;
-  @override
-  String? get customerMobile;
-  @override
-  String? get customerEmail;
+  Party? get customer;
   @override
   String? get categoryName;
   @override

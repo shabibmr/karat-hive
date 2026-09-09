@@ -53,7 +53,6 @@ class _MockConnectionRepository extends ConnectionRepository {
       return ConnectionListPage(
         items: [_item('conn-3', ConnectionState.closed)],
         nextCursor: null,
-        hasMore: false,
       );
     }
 
@@ -63,7 +62,6 @@ class _MockConnectionRepository extends ConnectionRepository {
         _item('conn-2', ConnectionState.active),
       ],
       nextCursor: 'cursor-2',
-      hasMore: true,
     );
   }
 

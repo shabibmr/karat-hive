@@ -1,13 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
+import 'package:kh_admin/core/list/paginated.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_filters.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_item.dart';
 
 /// Typed repository for ADM-S23 Admin User Provisioning & Management.
 ///
 /// Communicates with:
-/// - `GET /v1/admin/admins`: list existing admin accounts
+/// - `GET /v1/admin/admins`: list existing admin accounts with cursor pagination (TR-S1-28)
 /// - `POST /v1/admin/admins`: provision a new admin account (coarse RBAC, no role field)
 /// - `POST /v1/admin/admins/:id/suspend`: suspend admin account
 /// - `POST /v1/admin/admins/:id/revoke`: revoke admin account (backend protects last active admin)
@@ -16,21 +18,39 @@ class AdminUserRepository {
 
   final ApiClient _apiClient;
 
-  /// Fetches admin users matching the given [filters].
-  Future<List<AdminUserItem>> fetchAdmins({
+  static const int defaultLimit = 20;
+
+  /// Fetches admin users matching the given [filters] with cursor pagination (TR-S1-28).
+  Future<Paginated<AdminUserItem>> fetchAdmins({
     AdminUserFilters filters = const AdminUserFilters(),
+    String? cursor,
+    int limit = defaultLimit,
   }) async {
+    final queryParameters = <String, dynamic>{
+      'limit': limit.toString(),
+      if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
+      ...filters.toQueryParameters(),
+    };
+
     final response = await _apiClient.getCollection(
       '/v1/admin/admins',
-      queryParameters:
-          filters.toQueryParameters().isEmpty ? null : filters.toQueryParameters(),
+      queryParameters: queryParameters.isEmpty ? null : queryParameters,
     );
 
-    return response.items
+    final items = response.items
         .whereType<Map<String, dynamic>>()
         .map(AdminUserItem.fromJson)
-        .where(filters.matches)
         .toList(growable: false);
+
+    final meta = response.meta;
+    final nextCursor = meta?['nextCursor']?.toString();
+
+    return Paginated<AdminUserItem>(
+      items: items,
+      nextCursor: nextCursor,
+      totalCount:
+          meta?['total'] is num ? (meta!['total'] as num).toInt() : null,
+    );
   }
 
   /// Provisions a new administrator account with [email] and [displayName].
@@ -49,7 +69,7 @@ class AdminUserRepository {
       },
     );
 
-    return AdminUserItem.fromJson(_unwrapEntity(response));
+    return AdminUserItem.fromJson(unwrapEntity(response));
   }
 
   /// Suspends the administrator account with identifier [id].
@@ -64,20 +84,6 @@ class AdminUserRepository {
   Future<void> revokeAdmin(String id) async {
     await _apiClient.post('/v1/admin/admins/$id/revoke');
   }
-}
-
-/// Unwraps a nested `{ data: { ...entity } }` envelope left after [ApiClient.get].
-Map<String, dynamic> _unwrapEntity(dynamic response) {
-  if (response is! Map<String, dynamic>) {
-    throw StateError('Unexpected response format when creating admin');
-  }
-  if (response['data'] is Map<String, dynamic> &&
-      response['id'] == null &&
-      response['profile'] == null &&
-      response['user'] == null) {
-    return Map<String, dynamic>.from(response['data'] as Map);
-  }
-  return response;
 }
 
 /// Provider for [AdminUserRepository].

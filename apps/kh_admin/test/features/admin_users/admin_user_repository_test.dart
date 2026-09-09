@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_enums.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_filters.dart';
 import 'package:kh_admin/features/admin_users/repository/admin_user_repository.dart';
@@ -42,34 +43,61 @@ void main() {
           final path = options.path;
 
           if (options.method == 'GET' && path == '/v1/admin/admins') {
+            var rows = [
+              rawAdminProfileRow(
+                id: 'prof-1',
+                userId: 'usr-1',
+                displayName: 'Sarah Connor',
+                email: 'sarah@karathive.ae',
+                accountState: 'ACTIVE',
+              ),
+              rawAdminProfileRow(
+                id: 'prof-2',
+                userId: 'usr-2',
+                displayName: 'John Wick',
+                email: 'john@karathive.ae',
+                accountState: 'SUSPENDED',
+              ),
+              rawAdminProfileRow(
+                id: 'prof-3',
+                userId: 'usr-3',
+                displayName: 'Kyle Reese',
+                email: 'kyle@karathive.ae',
+                accountState: 'DEACTIVATED',
+              ),
+            ];
+
+            final qp = options.queryParameters;
+            if (qp.containsKey('state')) {
+              rows = rows
+                  .where((r) =>
+                      (r['user'] as Map<String, dynamic>)['accountState'] ==
+                      qp['state'])
+                  .toList();
+            }
+            if (qp.containsKey('q')) {
+              final query = (qp['q'] as String).toLowerCase();
+              rows = rows
+                  .where((r) =>
+                      (r['displayName'] as String)
+                          .toLowerCase()
+                          .contains(query) ||
+                      ((r['user'] as Map<String, dynamic>)['email'] as String)
+                          .toLowerCase()
+                          .contains(query))
+                  .toList();
+            }
+
             return handler.resolve(
               Response(
                 requestOptions: options,
                 statusCode: 200,
                 data: {
-                  'data': [
-                    rawAdminProfileRow(
-                      id: 'prof-1',
-                      userId: 'usr-1',
-                      displayName: 'Sarah Connor',
-                      email: 'sarah@karathive.ae',
-                      accountState: 'ACTIVE',
-                    ),
-                    rawAdminProfileRow(
-                      id: 'prof-2',
-                      userId: 'usr-2',
-                      displayName: 'John Wick',
-                      email: 'john@karathive.ae',
-                      accountState: 'SUSPENDED',
-                    ),
-                    rawAdminProfileRow(
-                      id: 'prof-3',
-                      userId: 'usr-3',
-                      displayName: 'Kyle Reese',
-                      email: 'kyle@karathive.ae',
-                      accountState: 'DEACTIVATED',
-                    ),
-                  ],
+                  'data': rows,
+                  'meta': {
+                    'nextCursor': rows.isNotEmpty ? rows.last['id'] : null,
+                    'total': rows.length,
+                  },
                 },
               ),
             );
@@ -149,30 +177,32 @@ void main() {
   group('AdminUserRepository', () {
     test('fetchAdmins normalizes profiles and maps enums accurately', () async {
       final repo = AdminUserRepository(buildClient());
-      final list = await repo.fetchAdmins();
+      final page = await repo.fetchAdmins();
 
-      expect(list.length, 3);
+      expect(page.items.length, 3);
 
-      final first = list.first;
+      final first = page.items.first;
       expect(first.id, 'prof-1');
       expect(first.userId, 'usr-1');
       expect(first.displayName, 'Sarah Connor');
       expect(first.email, 'sarah@karathive.ae');
       expect(first.accountState, AdminAccountState.active);
       expect(first.accountState.label, 'Active');
-      expect(first.accountState.tone.name, 'success');
+      expect(first.accountState.tone, KhStatusTone.success);
 
-      final second = list[1];
+      final second = page.items[1];
       expect(second.displayName, 'John Wick');
       expect(second.accountState, AdminAccountState.suspended);
       expect(second.accountState.label, 'Suspended');
-      expect(second.accountState.tone.name, 'pending');
+      expect(second.accountState.tone, KhStatusTone.pending);
 
-      final third = list[2];
+      final third = page.items[2];
       expect(third.displayName, 'Kyle Reese');
       expect(third.accountState, AdminAccountState.deactivated);
       expect(third.accountState.label, 'Revoked');
-      expect(third.accountState.tone.name, 'error');
+      expect(page.nextCursor, 'prof-3');
+      expect(page.hasMore, isTrue);
+      expect(page.totalCount, 3);
     });
 
     test('fetchAdmins filters by state and search query', () async {
@@ -181,19 +211,19 @@ void main() {
       final activeOnly = await repo.fetchAdmins(
         filters: const AdminUserFilters(state: AdminAccountState.active),
       );
-      expect(activeOnly.length, 1);
-      expect(activeOnly.first.displayName, 'Sarah Connor');
+      expect(activeOnly.items.length, 1);
+      expect(activeOnly.items.first.displayName, 'Sarah Connor');
 
       final queryMatches = await repo.fetchAdmins(
         filters: const AdminUserFilters(query: 'wick'),
       );
-      expect(queryMatches.length, 1);
-      expect(queryMatches.first.displayName, 'John Wick');
+      expect(queryMatches.items.length, 1);
+      expect(queryMatches.items.first.displayName, 'John Wick');
 
       final noMatches = await repo.fetchAdmins(
         filters: const AdminUserFilters(query: 'nonexistent'),
       );
-      expect(noMatches, isEmpty);
+      expect(noMatches.items, isEmpty);
     });
 
     test('createAdmin sends email and displayName with NO role selector payload', () async {

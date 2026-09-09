@@ -81,13 +81,12 @@ class _MockCustomerRepository extends CustomerRepository {
     }
 
     if (cursor == 'page-2') {
-      return CustomerListPage(items: pageTwo, nextCursor: null, hasMore: false);
+      return CustomerListPage(items: pageTwo, nextCursor: null);
     }
 
     return CustomerListPage(
       items: pageOne,
       nextCursor: 'page-2',
-      hasMore: true,
     );
   }
 

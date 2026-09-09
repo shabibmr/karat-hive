@@ -2,11 +2,12 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:kh_admin/core/firebase/firebase_auth_service.dart';
+import 'package:kh_admin/core/auth/auth_broadcast.dart';
 import 'package:kh_admin/core/auth/auth_repository.dart';
 import 'package:kh_admin/core/auth/dev_auth.dart';
 import 'package:kh_admin/core/auth/session_state.dart';
 import 'package:kh_admin/core/auth/token_storage.dart';
+import 'package:kh_admin/core/firebase/firebase_auth_service.dart';
 
 /// Riverpod StateNotifier managing the admin user session, token persistence,
 /// and silent 401 token refresh.
@@ -15,21 +16,26 @@ class SessionController extends StateNotifier<SessionState> {
     required TokenStorage tokenStorage,
     required AuthRepository authRepository,
     FirebaseAuthService? firebaseAuthService,
+    AuthBroadcast? authBroadcast,
     DevAuthConfig devAuth = DevAuthConfig.disabled,
   })  : _tokenStorage = tokenStorage,
         _authRepository = authRepository,
         _firebaseAuthService = firebaseAuthService,
+        _authBroadcast = authBroadcast,
         _devAuth = devAuth,
         super(const SessionState()) {
     _initAuthListener();
+    _initBroadcastListener();
     init();
   }
 
   final TokenStorage _tokenStorage;
   final AuthRepository _authRepository;
   final FirebaseAuthService? _firebaseAuthService;
+  final AuthBroadcast? _authBroadcast;
   final DevAuthConfig _devAuth;
   StreamSubscription<User?>? _firebaseAuthSub;
+  StreamSubscription<void>? _authBroadcastSub;
   Completer<bool>? _refreshCompleter;
 
   void _initAuthListener() {
@@ -42,9 +48,16 @@ class SessionController extends StateNotifier<SessionState> {
     });
   }
 
+  void _initBroadcastListener() {
+    _authBroadcastSub = _authBroadcast?.onLogout.listen((_) {
+      _handleMultiTabLogout();
+    });
+  }
+
   @override
   void dispose() {
     _firebaseAuthSub?.cancel();
+    _authBroadcastSub?.cancel();
     super.dispose();
   }
 
@@ -205,8 +218,25 @@ class SessionController extends StateNotifier<SessionState> {
     }
   }
 
-  /// Logs out the user, notifies backend, and deletes persisted tokens.
-  Future<void> logout() async {
+  /// Handles multi-tab logout notification from another browser tab (TR-S4-05).
+  Future<void> _handleMultiTabLogout() async {
+    if (state.isAuthenticated) {
+      state = state.copyWith(
+        status: SessionStatus.unauthenticated,
+        clearTokens: true,
+        clearAdmin: true,
+        clearError: true,
+      );
+      await _tokenStorage.clearTokens();
+      await _firebaseAuthService?.signOut();
+    }
+  }
+
+  /// Logs out the user, notifies backend, broadcasts to other tabs, and deletes persisted tokens.
+  Future<void> logout({bool broadcast = true}) async {
+    if (broadcast) {
+      _authBroadcast?.broadcastLogout();
+    }
     final currentTokens = state.tokens;
     state = state.copyWith(
       status: SessionStatus.unauthenticated,
@@ -231,11 +261,14 @@ final StateNotifierProvider<SessionController, SessionState>
   final tokenStorage = ref.watch(tokenStorageProvider);
   final authRepository = ref.watch(authRepositoryProvider);
   final firebaseAuth = ref.watch(firebaseAuthServiceProvider);
+  final authBroadcast = ref.watch(authBroadcastProvider);
   final devAuth = ref.watch(devAuthConfigProvider);
   return SessionController(
     tokenStorage: tokenStorage,
     authRepository: authRepository,
     firebaseAuthService: firebaseAuth,
+    authBroadcast: authBroadcast,
     devAuth: devAuth,
   );
 });
+

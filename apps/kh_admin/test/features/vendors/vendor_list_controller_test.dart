@@ -65,7 +65,6 @@ class _MockVendorRepository extends VendorRepository {
     return VendorListPage(
       items: pageOne,
       nextCursor: 'page-2',
-      hasMore: true,
     );
   }
 }

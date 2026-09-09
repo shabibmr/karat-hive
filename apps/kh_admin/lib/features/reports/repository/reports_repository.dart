@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 import 'package:kh_admin/core/platform/open_url.dart';
 import 'package:kh_admin/features/reports/model/export_job.dart';
 import 'package:kh_admin/features/reports/model/report_filters.dart';
@@ -44,7 +45,11 @@ class ReportsRepository {
       '/v1/admin/reports/${name.apiValue}',
       queryParameters: filters.toQueryParameters(),
     );
-    return ReportResult.fromJson(_unwrapEntity(response, fallbackName: name));
+    final map = unwrapEntity(response);
+    if (map['name'] == null) {
+      map['name'] = name.apiValue;
+    }
+    return ReportResult.fromJson(map);
   }
 
   Future<ExportJob> startExport({
@@ -67,12 +72,12 @@ class ReportsRepository {
         'purpose': trimmed,
       },
     );
-    return ExportJob.fromJson(_unwrapMap(response));
+    return ExportJob.fromJson(unwrapEntity(response));
   }
 
   Future<ExportJob> getExport(String id) async {
     final response = await _apiClient.get('/v1/admin/exports/$id');
-    return ExportJob.fromJson(_unwrapMap(response));
+    return ExportJob.fromJson(unwrapEntity(response));
   }
 
   /// Re-checks [id] until the job reaches a terminal state or [maxPolls] is hit.
@@ -144,28 +149,6 @@ class ReportsRepository {
     }
     if (downloadUrl.startsWith('/')) return '$khApiBase$downloadUrl';
     return '$khApiBase/$downloadUrl';
-  }
-
-  Map<String, dynamic> _unwrapEntity(
-    dynamic response, {
-    required ReportName fallbackName,
-  }) {
-    final map = _unwrapMap(response);
-    if (map['name'] == null) {
-      map['name'] = fallbackName.apiValue;
-    }
-    return map;
-  }
-
-  Map<String, dynamic> _unwrapMap(dynamic response) {
-    if (response is! Map) {
-      return <String, dynamic>{};
-    }
-    final map = Map<String, dynamic>.from(response);
-    if (map['data'] is Map && map['id'] == null && map['name'] == null && map['status'] == null) {
-      return Map<String, dynamic>.from(map['data'] as Map);
-    }
-    return map;
   }
 
   static String _csvCell(dynamic value) {

@@ -65,7 +65,7 @@ class _MockAuditRepository implements AuditRepository {
     if (throwError) {
       throw Exception('Database query timeout');
     }
-    return AuditLogPage(items: items, hasMore: false);
+    return AuditLogPage(items: items);
   }
 }
 
@@ -214,7 +214,7 @@ void main() {
 
     expect(find.byKey(const Key('audit-loading-indicator')), findsOneWidget);
 
-    delay.complete(const AuditLogPage(items: [], hasMore: false));
+    delay.complete(const AuditLogPage(items: []));
     await tester.pumpAndSettle();
   });
 

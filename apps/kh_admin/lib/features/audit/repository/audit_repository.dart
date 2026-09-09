@@ -6,7 +6,6 @@ import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/features/audit/model/audit_log_filters.dart';
 import 'package:kh_admin/features/audit/model/audit_log_item.dart';
 import 'package:kh_admin/features/audit/model/audit_log_page.dart';
-import 'package:kh_admin/core/api/json_parse.dart';
 
 /// Typed repository for `GET /v1/admin/audit-log` (ADM-S22).
 ///
@@ -40,17 +39,16 @@ class AuditRepository {
         .whereType<Map<String, dynamic>>()
         .map(_normalizeAuditLogRow)
         .map(AuditLogItem.fromJson)
-        .where((item) => _matchesClientFilters(item, filters))
         .toList(growable: false);
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = hasMoreFromCursor(nextCursor);
 
     return AuditLogPage(
       items: items,
-      nextCursor: hasMore ? nextCursor : null,
-      hasMore: hasMore,
+      nextCursor: nextCursor,
+      totalCount:
+          meta?['total'] is num ? (meta!['total'] as num).toInt() : null,
     );
   }
 
@@ -82,40 +80,7 @@ class AuditRepository {
     };
   }
 
-  bool _matchesClientFilters(AuditLogItem item, AuditLogFilters filters) {
-    if (filters.actorUserId != null &&
-        filters.actorUserId!.isNotEmpty &&
-        item.actorUserId != filters.actorUserId) {
-      return false;
-    }
-    if (filters.action != null &&
-        filters.action!.isNotEmpty &&
-        !item.action.toLowerCase().contains(filters.action!.toLowerCase())) {
-      return false;
-    }
-    if (filters.entityType != null &&
-        filters.entityType!.isNotEmpty &&
-        item.entityType.toLowerCase() != filters.entityType!.toLowerCase()) {
-      return false;
-    }
-    if (filters.entityId != null &&
-        filters.entityId!.isNotEmpty &&
-        item.entityId != filters.entityId) {
-      return false;
-    }
-    if (filters.from != null && item.occurredAt.isBefore(filters.from!)) {
-      return false;
-    }
-    if (filters.to != null && item.occurredAt.isAfter(filters.to!)) {
-      return false;
-    }
-    if (filters.ip != null &&
-        filters.ip!.isNotEmpty &&
-        !(item.ip ?? '').toLowerCase().contains(filters.ip!.toLowerCase())) {
-      return false;
-    }
-    return true;
-  }
+
 }
 
 final Provider<AuditRepository> auditRepositoryProvider =

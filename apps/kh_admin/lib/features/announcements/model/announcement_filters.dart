@@ -29,6 +29,24 @@ class AnnouncementFilters {
   Map<String, dynamic> toQueryParameters() {
     return <String, dynamic>{
       if (status != null) 'status': status!.wireValue,
+      if (audienceType != null) 'audienceType': audienceType!.wireValue,
+      if (query.trim().isNotEmpty) 'q': query.trim(),
     };
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AnnouncementFilters &&
+          runtimeType == other.runtimeType &&
+          status == other.status &&
+          audienceType == other.audienceType &&
+          query == other.query;
+
+  @override
+  int get hashCode => Object.hash(status, audienceType, query);
+
+  @override
+  String toString() =>
+      'AnnouncementFilters(status: $status, audienceType: $audienceType, query: $query)';
 }

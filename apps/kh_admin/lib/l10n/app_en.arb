@@ -32,6 +32,23 @@
   "queueColumnSubmitted": "Submitted",
   "queueColumnStatus": "Status",
   "queueColumnAction": "Action",
+  "dashboardRangeLabel": "Date range",
+  "@dashboardRangeLabel": {
+    "description": "Label above the ADM-S02 dashboard date-range selector"
+  },
+  "dashboardRange7": "Last 7 days",
+  "dashboardRange30": "Last 30 days",
+  "dashboardRange90": "Last 90 days",
+  "dashboardTrendsHeading": "Trends",
+  "dashboardTrendCaption": "Request volume by state over the selected range.",
+  "dashboardTrendEmpty": "No trend data for this range.",
+  "dashboardQueueRetry": "Retry",
+  "@dashboardQueueRetry": {
+    "description": "Retry button on a dashboard queue-source or trend error"
+  },
+  "queueSourceVerification": "verification queue",
+  "queueSourceAbuse": "abuse reports",
+  "queueSourceReview": "pending reviews",
 
   "categoriesEyebrow": "Taxonomy Config",
   "categoriesTitle": "Product Categories",

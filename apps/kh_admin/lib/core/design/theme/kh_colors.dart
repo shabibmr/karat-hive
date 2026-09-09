@@ -63,6 +63,7 @@ class KhColors extends ThemeExtension<KhColors> {
   Color get backgroundPrimary => sapphire900;
   Color get backgroundElevated => sapphire800;
   Color get backgroundSurface => sapphire700;
+  Color get surface => backgroundElevated;
 
   Color get textPrimary => cream100;
   Color get textSecondary => cream200;
@@ -76,6 +77,7 @@ class KhColors extends ThemeExtension<KhColors> {
   Color get borderSubtle => gold400.withValues(alpha: 0.18);
   Color get borderStandard => gold400.withValues(alpha: 0.35);
   Color get borderStrong => gold200.withValues(alpha: 0.65);
+  Color get border => borderSubtle;
 
   LinearGradient get goldMetallicGradient => LinearGradient(
         colors: [

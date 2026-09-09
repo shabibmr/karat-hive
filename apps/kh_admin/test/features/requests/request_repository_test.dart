@@ -100,7 +100,7 @@ void main() {
       expect(page.nextCursor, isNull);
     });
 
-    test('only sends q/state/limit/cursor to the backend', () async {
+    test('pushes request-list filters to queryParameters on the backend (TR-S1-27)', () async {
       api.collectionResponse = (items: const [], meta: null);
 
       await repo.fetchRequests(
@@ -110,36 +110,24 @@ void main() {
           requestType: RequestType.goldCoin,
           direction: Direction.sell,
           categoryId: 'cat-1',
+          regionId: 'reg-dubai',
           zeroOffersOnly: true,
+          minValue: 1000.0,
+          maxValue: 5000.0,
         ),
       );
 
       final q = api.lastCollectionQuery!;
-      expect(q.keys, containsAll(<String>['limit', 'q', 'state']));
-      expect(q.containsKey('requestType'), isFalse);
-      expect(q.containsKey('direction'), isFalse);
-      expect(q.containsKey('categoryId'), isFalse);
-      expect(q.containsKey('zeroOffers'), isFalse);
-    });
-
-    test('applies zeroOffers / requestType / direction client-side', () async {
-      api.collectionResponse = (
-        items: [
-          _rawRow(id: '1', offerCount: 0, requestType: 'GOLD_COIN'),
-          _rawRow(id: '2', offerCount: 5, requestType: 'GOLD_COIN'),
-          _rawRow(id: '3', offerCount: 0, requestType: 'FIND_ORNAMENT'),
-        ],
-        meta: null,
-      );
-
-      final page = await repo.fetchRequests(
-        filters: const RequestListFilters(
-          zeroOffersOnly: true,
-          requestType: RequestType.goldCoin,
-        ),
-      );
-
-      expect(page.items.map((i) => i.id), ['1']);
+      expect(q['limit'], '20');
+      expect(q['q'], 'bangle');
+      expect(q['state'], 'PUBLISHED');
+      expect(q['requestType'], 'GOLD_COIN');
+      expect(q['direction'], 'SELL');
+      expect(q['categoryId'], 'cat-1');
+      expect(q['regionId'], 'reg-dubai');
+      expect(q['zeroOffers'], 'true');
+      expect(q['minValue'], '1000.0');
+      expect(q['maxValue'], '5000.0');
     });
   });
 
@@ -159,9 +147,9 @@ void main() {
           },
           'category': {'nameEn': 'Bangles'},
           'region': {'nameEn': 'Dubai'},
-          'media': const [],
-          'offers': const [],
-          'connections': const [],
+          'media': const <Map<String, dynamic>>[],
+          'offers': const <Map<String, dynamic>>[],
+          'connections': const <Map<String, dynamic>>[],
         },
         '/v1/admin/requests/req-1/notes': [
           {

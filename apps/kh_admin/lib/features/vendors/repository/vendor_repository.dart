@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/list/paginated.dart';
 import 'package:kh_admin/features/vendors/model/vendor_detail.dart';
 import 'package:kh_admin/features/vendors/model/vendor_list_filters.dart';
 import 'package:kh_admin/features/vendors/model/vendor_list_item.dart';
@@ -44,12 +45,9 @@ class VendorRepository {
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
 
-    // origin/main's admin list route never sends `hasMore`/`totalCount` — the
-    // only pagination signal is the presence of a cursor for the next page.
-    return VendorListPage(
+    return Paginated<VendorListItem>(
       items: items,
       nextCursor: nextCursor,
-      hasMore: hasMoreFromCursor(nextCursor),
     );
   }
 
@@ -87,7 +85,7 @@ class VendorRepository {
 
   Future<VendorDetail> fetchVendorDetail(String vendorId) async {
     final response = await _apiClient.get('/v1/admin/vendors/$vendorId');
-    final map = Map<String, dynamic>.from(response as Map<String, dynamic>);
+    final map = unwrapEntity(response);
     return VendorDetail.fromJson(map);
   }
 

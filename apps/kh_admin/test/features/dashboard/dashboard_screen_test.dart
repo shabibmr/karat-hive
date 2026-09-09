@@ -11,6 +11,9 @@ import 'package:kh_admin/features/dashboard/model/dashboard_queue_item.dart';
 import 'package:kh_admin/features/dashboard/model/dashboard_stats.dart';
 import 'package:kh_admin/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:kh_admin/features/dashboard/repository/dashboard_repository.dart';
+import 'package:kh_admin/features/reports/model/report_filters.dart';
+import 'package:kh_admin/features/reports/model/report_name.dart';
+import 'package:kh_admin/features/reports/model/report_result.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 
 /// Routes the dashboard drills into. Each renders a marker so a tap can be
@@ -68,12 +71,40 @@ class _MockDashboardRepository implements DashboardRepository {
     this.throwError = false,
     this.delay,
     this.throwAbuse = false,
+    this.throwTrend = false,
+    this.emptyTrend = false,
     List<DashboardQueueItem>? verificationItems,
     List<DashboardQueueItem>? abuseItems,
     List<DashboardQueueItem>? reviewItems,
   })  : verificationItems = verificationItems ?? <DashboardQueueItem>[_kLiveVerification],
         abuseItems = abuseItems ?? <DashboardQueueItem>[_kLiveAbuse],
         reviewItems = reviewItems ?? <DashboardQueueItem>[_kLiveReview];
+
+  bool throwTrend;
+  bool emptyTrend;
+  int trendFetchCount = 0;
+  ReportFilters? lastTrendFilters;
+  DateTime? lastStatsFrom;
+  DateTime? lastStatsTo;
+
+  @override
+  Future<ReportResult> fetchTrend(ReportFilters filters) async {
+    trendFetchCount++;
+    lastTrendFilters = filters;
+    if (throwTrend) {
+      throw Exception('reports/request-volume unavailable');
+    }
+    return ReportResult(
+      name: ReportName.requestVolume,
+      generatedAt: DateTime.utc(2026, 9, 9),
+      rows: emptyTrend
+          ? const []
+          : const [
+              {'state': 'OPEN', 'count': 12},
+              {'state': 'CONNECTED', 'count': 4},
+            ],
+    );
+  }
 
   final DashboardStats stats = const DashboardStats(
     totalCustomers: 1420,
@@ -95,8 +126,10 @@ class _MockDashboardRepository implements DashboardRepository {
   bool throwReviews = false;
 
   @override
-  Future<DashboardStats> fetchStats() async {
+  Future<DashboardStats> fetchStats({DateTime? from, DateTime? to}) async {
     fetchCount++;
+    lastStatsFrom = from;
+    lastStatsTo = to;
     if (delay != null) {
       return delay!.future;
     }
@@ -314,13 +347,12 @@ void main() {
     expect(find.text('Review KYC'), findsNothing);
   });
 
-  testWidgets('a failing queue source is omitted without failing the dashboard',
+  testWidgets('a failing queue source shows a retry chip, not a silent omission',
       (tester) async {
-    await pumpDesktopDashboard(
-      tester,
-      repository: _MockDashboardRepository(throwAbuse: true),
-    );
+    final repo = _MockDashboardRepository(throwAbuse: true);
+    await pumpDesktopDashboard(tester, repository: repo);
 
+    // Stats and the healthy sources are unaffected.
     expect(find.byKey(const Key('dashboard-error-banner')), findsNothing);
     expect(find.text('1,420'), findsOneWidget);
     expect(
@@ -328,8 +360,83 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('queue-row-review-rev-live-1')), findsOneWidget);
+
+    // The abuse source failed: a per-source error chip with a retry (TR-S6-02),
+    // not a vanished row that reads as "0 pending" (ADM-INS-61).
+    expect(
+      find.byKey(const Key('dashboard-queue-source-error-abuse')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('dashboard-queue-source-retry-abuse')),
+      findsOneWidget,
+    );
     expect(find.byKey(const Key('queue-row-abuse-ab-live-1')), findsNothing);
-    expect(find.text('Inspect'), findsNothing);
+
+    // Retry once the endpoint recovers.
+    repo.throwAbuse = false;
+    await tester.tap(
+      find.byKey(const Key('dashboard-queue-source-retry-abuse')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('dashboard-queue-source-error-abuse')),
+      findsNothing,
+    );
+    expect(find.byKey(const Key('queue-row-abuse-ab-live-1')), findsOneWidget);
+  });
+
+  testWidgets('changing the date range refetches the dashboard (TR-S6-03)',
+      (tester) async {
+    final repo = _MockDashboardRepository();
+    await pumpDesktopDashboard(tester, repository: repo);
+
+    final before = repo.fetchCount;
+    expect(find.byKey(const Key('dashboard-range-selector')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('dashboard-range-chip-7')));
+    await tester.pumpAndSettle();
+
+    expect(repo.fetchCount, greaterThan(before));
+    expect(repo.lastStatsFrom, isNotNull);
+    expect(
+      repo.lastStatsTo!.difference(repo.lastStatsFrom!).inDays,
+      7,
+    );
+  });
+
+  testWidgets('renders a range-scoped trend chart (TR-S6-04)', (tester) async {
+    await pumpDesktopDashboard(tester);
+
+    expect(find.byKey(const Key('dashboard-trend-section')), findsOneWidget);
+    expect(find.byKey(const Key('dashboard-trend-chart')), findsOneWidget);
+  });
+
+  testWidgets('trend shows an empty placeholder when the series is empty',
+      (tester) async {
+    await pumpDesktopDashboard(
+      tester,
+      repository: _MockDashboardRepository(emptyTrend: true),
+    );
+
+    expect(find.byKey(const Key('dashboard-trend-empty')), findsOneWidget);
+    expect(find.byKey(const Key('dashboard-trend-chart')), findsNothing);
+  });
+
+  testWidgets('a failing trend source shows a retry, not a blank section',
+      (tester) async {
+    final repo = _MockDashboardRepository(throwTrend: true);
+    await pumpDesktopDashboard(tester, repository: repo);
+
+    expect(find.byKey(const Key('dashboard-trend-error')), findsOneWidget);
+
+    repo.throwTrend = false;
+    await tester.tap(find.byKey(const Key('dashboard-trend-retry')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('dashboard-trend-error')), findsNothing);
+    expect(find.byKey(const Key('dashboard-trend-chart')), findsOneWidget);
   });
 
   testWidgets('shows loading metrics while dashboard stats are in flight',

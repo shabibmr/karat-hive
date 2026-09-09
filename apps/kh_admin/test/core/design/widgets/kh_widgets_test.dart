@@ -103,5 +103,80 @@ void main() {
       expect(find.byKey(const Key('row-a')), findsOneWidget);
       expect(find.text('Al Noor Jewellery LLC'), findsOneWidget);
     });
+
+    testWidgets('virtualises 500 rows building only bounded visible rows',
+        (tester) async {
+      var buildCount = 0;
+      final rows = List.generate(
+        500,
+        (i) => KhTableRow(
+          key: Key('row-$i'),
+          cells: [
+            Builder(
+              builder: (context) {
+                buildCount++;
+                return Text('Item $i');
+              },
+            ),
+            Text('Status $i'),
+          ],
+        ),
+      );
+
+      await tester.pumpWidget(
+        wrap(
+          SizedBox(
+            width: 800,
+            height: 400,
+            child: KhDataTable(
+              columns: const [
+                KhTableColumn('Item'),
+                KhTableColumn('Status'),
+              ],
+              rows: rows,
+            ),
+          ),
+        ),
+      );
+
+      // In a 400px viewport, only a small bounded slice of 500 rows is built.
+      expect(buildCount, lessThan(30));
+      expect(find.byKey(const Key('row-0')), findsOneWidget);
+      expect(find.byKey(const Key('row-499')), findsNothing);
+
+      // Scrolling brings later rows into view and recycles earlier ones.
+      await tester.drag(find.byType(ListView), const Offset(0, -3000));
+      await tester.pump();
+
+      expect(find.byKey(const Key('row-0')), findsNothing);
+    });
+
+    testWidgets('fires onTap on interactive rows and renders InkWell hover',
+        (tester) async {
+      var tapped = false;
+
+      await tester.pumpWidget(
+        wrap(
+          SizedBox(
+            width: 800,
+            height: 300,
+            child: KhDataTable(
+              columns: const [KhTableColumn('Col 1')],
+              rows: [
+                KhTableRow(
+                  key: const Key('clickable-row'),
+                  onTap: () => tapped = true,
+                  cells: const [Text('Click Me')],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(InkWell), findsOneWidget);
+      await tester.tap(find.byKey(const Key('clickable-row')));
+      expect(tapped, isTrue);
+    });
   });
 }

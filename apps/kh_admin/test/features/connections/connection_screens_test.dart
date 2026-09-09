@@ -55,7 +55,6 @@ class _FakeConnectionRepository extends ConnectionRepository {
           hasNoContact48h: true,
         ),
       ],
-      hasMore: false,
     );
   }
 

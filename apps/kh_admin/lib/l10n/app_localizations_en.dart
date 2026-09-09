@@ -98,6 +98,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get queueColumnAction => 'Action';
 
   @override
+  String get dashboardRangeLabel => 'Date range';
+
+  @override
+  String get dashboardRange7 => 'Last 7 days';
+
+  @override
+  String get dashboardRange30 => 'Last 30 days';
+
+  @override
+  String get dashboardRange90 => 'Last 90 days';
+
+  @override
+  String get dashboardTrendsHeading => 'Trends';
+
+  @override
+  String get dashboardTrendCaption =>
+      'Request volume by state over the selected range.';
+
+  @override
+  String get dashboardTrendEmpty => 'No trend data for this range.';
+
+  @override
+  String get dashboardQueueRetry => 'Retry';
+
+  @override
+  String get queueSourceVerification => 'verification queue';
+
+  @override
+  String get queueSourceAbuse => 'abuse reports';
+
+  @override
+  String get queueSourceReview => 'pending reviews';
+
+  @override
   String get categoriesEyebrow => 'Taxonomy Config';
 
   @override

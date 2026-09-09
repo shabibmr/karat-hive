@@ -5,6 +5,7 @@ import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/features/dashboard/model/dashboard_queue_item.dart';
 import 'package:kh_admin/features/dashboard/model/dashboard_stats.dart';
 import 'package:kh_admin/features/dashboard/repository/dashboard_repository.dart';
+import 'package:kh_admin/features/reports/model/report_filters.dart';
 
 void main() {
   Map<String, dynamic> vendorProfile({
@@ -154,6 +155,28 @@ void main() {
                     'nextCursor': 'ab-3',
                   },
                   'meta': {'nextCursor': 'ab-3'},
+                },
+              ),
+            );
+          }
+
+          if (path == '/v1/admin/reports/request-volume') {
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {
+                  'data': {
+                    'name': 'request-volume',
+                    'generatedAt': '2026-09-09T00:00:00.000Z',
+                    'rows': [
+                      {'state': 'OPEN', 'count': 42},
+                      {'state': 'CONNECTED', 'count': 17},
+                      {'state': 'EXPIRED', 'count': 9},
+                    ],
+                    'series': <dynamic>[],
+                  },
+                  'meta': {'serverTime': '2026-09-09T00:00:00.000Z'},
                 },
               ),
             );
@@ -392,6 +415,72 @@ void main() {
 
       final reviews = await repository.fetchPendingReviewsSnapshot();
       expect(reviews, isNotEmpty);
+    });
+
+    test('fetchStats forwards from/to as yyyy-MM-dd query params (TR-S6-03)',
+        () async {
+      RequestOptions? captured;
+      final client = buildClient(onRequest: (opt) {
+        if (opt.path == '/v1/admin/dashboard') captured = opt;
+      });
+      final repository = DashboardRepository(client);
+
+      await repository.fetchStats(
+        from: DateTime.utc(2026, 8, 10),
+        to: DateTime.utc(2026, 9, 9),
+      );
+
+      expect(captured, isNotNull);
+      expect(captured!.queryParameters['from'], '2026-08-10');
+      expect(captured!.queryParameters['to'], '2026-09-09');
+    });
+
+    test('fetchStats sends no query params when no range is given', () async {
+      RequestOptions? captured;
+      final client = buildClient(onRequest: (opt) {
+        if (opt.path == '/v1/admin/dashboard') captured = opt;
+      });
+      final repository = DashboardRepository(client);
+
+      await repository.fetchStats();
+
+      expect(captured!.queryParameters.containsKey('from'), isFalse);
+      expect(captured!.queryParameters.containsKey('to'), isFalse);
+    });
+
+    test('fetchTrend parses request-volume into chart points (TR-S6-04)',
+        () async {
+      RequestOptions? captured;
+      final client = buildClient(onRequest: (opt) {
+        if (opt.path == '/v1/admin/reports/request-volume') captured = opt;
+      });
+      final repository = DashboardRepository(client);
+
+      final result = await repository.fetchTrend(
+        const ReportFilters(),
+      );
+
+      expect(result.chartPoints, isNotEmpty);
+      expect(result.chartPoints.first.value, 42);
+      expect(captured, isNotNull);
+    });
+
+    test('fetchTrend passes the range through as query params', () async {
+      RequestOptions? captured;
+      final client = buildClient(onRequest: (opt) {
+        if (opt.path == '/v1/admin/reports/request-volume') captured = opt;
+      });
+      final repository = DashboardRepository(client);
+
+      await repository.fetchTrend(
+        ReportFilters(
+          from: DateTime.utc(2026, 8, 10),
+          to: DateTime.utc(2026, 9, 9),
+        ),
+      );
+
+      expect(captured!.queryParameters['from'], '2026-08-10');
+      expect(captured!.queryParameters['to'], '2026-09-09');
     });
   });
 }

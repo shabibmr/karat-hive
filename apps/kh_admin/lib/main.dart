@@ -1,19 +1,20 @@
 import 'dart:async';
 
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/error/error_retry_widget.dart';
-import 'package:kh_admin/core/firebase/firebase.dart';
+import 'package:kh_admin/core/firebase/firebase_init.dart';
+import 'package:kh_admin/core/firebase/firebase_notification_service.dart';
+import 'package:kh_admin/core/firebase/firebase_push_handler.dart';
 import 'package:kh_admin/core/log/kh_logger.dart';
 import 'package:kh_admin/core/log/provider_logger.dart';
+import 'package:kh_admin/core/platform/flavor.dart';
 import 'package:kh_admin/core/router/app_router.dart';
-import 'package:kh_admin/firebase_options.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 
 Future<void> main() async {
@@ -39,15 +40,13 @@ Future<void> main() async {
     ErrorWidget.builder = (details) => ErrorRetryWidget(details: details);
   }
 
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  } on Object catch (e, st) {
-    logger.warning('Firebase initialization warning: $e', e, st);
-  }
+  // TR-S4-15 & TR-S4-16: Fast flavor configuration validation at startup
+  final flavor = AppFlavor.fromString(
+    const String.fromEnvironment('KH_FLAVOR', defaultValue: 'dev'),
+  );
+  FlavorConfig(flavor: flavor, apiBaseUrl: khApiBase).validate();
 
+  // TR-S4-19: runApp is executed immediately without blocking the first frame
   runZonedGuarded(
     () {
       runApp(
@@ -62,11 +61,41 @@ Future<void> main() async {
 }
 
 /// Root application widget for the Karat Hive Admin Portal.
-class KhAdminApp extends ConsumerWidget {
+class KhAdminApp extends ConsumerStatefulWidget {
   const KhAdminApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<KhAdminApp> createState() => _KhAdminAppState();
+}
+
+class _KhAdminAppState extends ConsumerState<KhAdminApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Non-blocking Firebase init (TR-S4-19)
+      initializeFirebaseNonBlocking(ref);
+
+      // FCM foreground push listener (TR-S4-18)
+      _initForegroundPush();
+    });
+  }
+
+  void _initForegroundPush() {
+    try {
+      final notifService = ref.read(firebaseNotificationServiceProvider);
+      notifService.initializeForegroundHandler(
+        onMessageReceived: (message) {
+          invalidateListProvidersOnPush(ref.invalidate, message);
+        },
+      );
+    } on Object catch (_) {
+      // Non-fatal if messaging is unavailable
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
@@ -84,3 +113,4 @@ class KhAdminApp extends ConsumerWidget {
     );
   }
 }
+

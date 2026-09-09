@@ -1,16 +1,34 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kh_admin/core/router/query_navigation.dart';
+import 'package:kh_admin/core/router/query_params_codec.dart';
+
+/// Codec for encoding/decoding verification queue query state (TR-S1-25 / ADM-SMP-07).
+class VerificationQueryParamsCodec extends QueryParamsCodec<void> {
+  const VerificationQueryParamsCodec();
+
+  @override
+  String get selectedIdKey => 'selectedId';
+
+  @override
+  void decodeFilters(Map<String, String> query) {}
+
+  @override
+  Map<String, String> encodeFilters(void filters) => const {};
+}
 
 /// Verification queue query state encoded in URL query parameters (AD-FE §16.2).
 class VerificationQueryParams {
+  static const codec = VerificationQueryParamsCodec();
+
   const VerificationQueryParams({this.selectedId});
 
   final String? selectedId;
 
   factory VerificationQueryParams.fromUri(Uri uri) {
+    final state = codec.fromUri(uri);
     return VerificationQueryParams(
-      selectedId:
-          uri.queryParameters['selectedId'] ?? uri.queryParameters['selected'],
+      selectedId: state.selectedId,
     );
   }
 
@@ -19,11 +37,12 @@ class VerificationQueryParams {
   }
 
   Map<String, String> toQueryParameters() {
-    final params = <String, String>{};
-    if (selectedId != null && selectedId!.isNotEmpty) {
-      params['selectedId'] = selectedId!;
-    }
-    return params;
+    return codec.encode(
+      ListUrlState<void>(
+        filters: null,
+        selectedId: selectedId,
+      ),
+    );
   }
 
   VerificationQueryParams copyWith({
@@ -50,13 +69,7 @@ extension VerificationQueryNavigation on BuildContext {
         clearSelected: clearSelected,
       );
 
-      final newUri = state.uri.replace(
-        queryParameters: updated.toQueryParameters().isEmpty
-            ? null
-            : updated.toQueryParameters(),
-      );
-
-      go(newUri.toString());
+      applyQueryParameters(updated.toQueryParameters());
     } on Object catch (_) {
       // Safe fallback when executed outside a GoRouter context (e.g. widget tests)
     }

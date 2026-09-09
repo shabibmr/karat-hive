@@ -98,6 +98,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get queueColumnAction => 'الإجراء';
 
   @override
+  String get dashboardRangeLabel => 'النطاق الزمني';
+
+  @override
+  String get dashboardRange7 => 'آخر 7 أيام';
+
+  @override
+  String get dashboardRange30 => 'آخر 30 يومًا';
+
+  @override
+  String get dashboardRange90 => 'آخر 90 يومًا';
+
+  @override
+  String get dashboardTrendsHeading => 'الاتجاهات';
+
+  @override
+  String get dashboardTrendCaption =>
+      'حجم الطلبات حسب الحالة خلال النطاق المحدد.';
+
+  @override
+  String get dashboardTrendEmpty => 'لا توجد بيانات اتجاه لهذا النطاق.';
+
+  @override
+  String get dashboardQueueRetry => 'إعادة المحاولة';
+
+  @override
+  String get queueSourceVerification => 'قائمة التحقق';
+
+  @override
+  String get queueSourceAbuse => 'بلاغات الإساءة';
+
+  @override
+  String get queueSourceReview => 'المراجعات المعلقة';
+
+  @override
   String get categoriesEyebrow => 'إعدادات التصنيف';
 
   @override

@@ -55,7 +55,6 @@ class _MockOfferRepository extends OfferRepository {
         _item('off-2', OfferState.accepted),
       ],
       nextCursor: 'cursor-2',
-      hasMore: true,
     );
   }
 }

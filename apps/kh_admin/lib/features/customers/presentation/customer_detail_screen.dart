@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_feedback_banner.dart';
 import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
 import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
@@ -132,7 +133,11 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               _buildHeader(context, kh, detail),
               if (_actionFeedback != null) ...[
                 SizedBox(height: kh.spacing.md),
-                _buildFeedbackBanner(kh),
+                KhFeedbackBanner(
+                  key: const Key('customer-detail-feedback-banner'),
+                  message: _actionFeedback!,
+                  isSuccess: _actionSuccess,
+                ),
               ],
               SizedBox(height: kh.spacing.xl),
               LayoutBuilder(
@@ -215,45 +220,6 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
       trailing: KhStatusChip(
         label: detail.accountState.displayName,
         tone: _statusTone(detail.accountState),
-      ),
-    );
-  }
-
-  Widget _buildFeedbackBanner(KhThemeExtension kh) {
-    return Container(
-      key: const Key('customer-detail-feedback-banner'),
-      padding: EdgeInsets.symmetric(
-        horizontal: kh.spacing.md,
-        vertical: kh.spacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: _actionSuccess
-            ? kh.colors.success.withValues(alpha: 0.1)
-            : kh.colors.error.withValues(alpha: 0.1),
-        borderRadius: kh.shapes.roundedMd,
-        border: Border.all(
-          color: _actionSuccess
-              ? kh.colors.success.withValues(alpha: 0.4)
-              : kh.colors.error.withValues(alpha: 0.4),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            _actionSuccess ? Icons.check_circle_outline : Icons.error_outline,
-            color: _actionSuccess ? kh.colors.success : kh.colors.error,
-            size: 20,
-          ),
-          SizedBox(width: kh.spacing.sm),
-          Expanded(
-            child: Text(
-              _actionFeedback!,
-              style: kh.typography.bodySmall.copyWith(
-                color: _actionSuccess ? kh.colors.success : kh.colors.error,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

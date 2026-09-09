@@ -8,10 +8,14 @@ import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
 import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
 import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/core/error/api_error_messages.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 import 'package:kh_admin/features/dashboard/controller/dashboard_controller.dart';
 import 'package:kh_admin/features/dashboard/model/dashboard_queue_item.dart';
+import 'package:kh_admin/features/dashboard/model/dashboard_range.dart';
 import 'package:kh_admin/features/dashboard/model/dashboard_stats.dart';
+import 'package:kh_admin/features/reports/model/report_result.dart';
+import 'package:kh_admin/features/reports/presentation/report_chart.dart';
 
 /// A metric tile on the dashboard.
 class _DashboardMetric {
@@ -175,6 +179,8 @@ class DashboardScreen extends ConsumerWidget {
                     'snapshot verification, abuse reports, and pending reviews.',
           ),
           SizedBox(height: spacing.lg),
+          _RangeSelector(l10n: l10n),
+          SizedBox(height: spacing.lg),
           if (statsAsync.hasError) ...[
             _DashboardErrorBanner(
               message: statsAsync.error.toString(),
@@ -185,11 +191,47 @@ class DashboardScreen extends ConsumerWidget {
           ],
           _buildMetricsSection(context, statsAsync),
           SizedBox(height: spacing.xl),
+          KhSectionLabel(l10n?.dashboardTrendsHeading ?? 'Trends'),
+          SizedBox(height: spacing.sm),
+          const _TrendSection(),
+          SizedBox(height: spacing.xl),
           KhSectionLabel(l10n?.quickActionQueues ?? 'Quick Action Queues'),
           SizedBox(height: spacing.sm),
-          _QueueTable(l10n: l10n, itemsAsync: ref.watch(dashboardQueueProvider)),
+          _buildQueueSection(context, ref, l10n),
         ],
       ),
+    );
+  }
+
+  Widget _buildQueueSection(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations? l10n,
+  ) {
+    const kinds = DashboardQueueKind.values;
+    final sources = <DashboardQueueKind, AsyncValue<List<DashboardQueueItem>>>{
+      for (final kind in kinds)
+        kind: ref.watch(dashboardQueueSourceProvider(kind)),
+    };
+
+    final items = <DashboardQueueItem>[
+      for (final kind in kinds)
+        ...(sources[kind]!.valueOrNull ?? const <DashboardQueueItem>[]),
+    ];
+    final errors = <_QueueSourceError>[
+      for (final kind in kinds)
+        if (sources[kind]!.hasError)
+          _QueueSourceError(kind, sources[kind]!.error!),
+    ];
+    final anyLoading = sources.values.any((s) => s.isLoading);
+
+    return _QueueTable(
+      l10n: l10n,
+      items: items,
+      errors: errors,
+      isLoading: anyLoading,
+      onRetry: (kind) =>
+          ref.invalidate(dashboardQueueSourceProvider(kind)),
     );
   }
 
@@ -361,24 +403,59 @@ class _MetricGrid extends StatelessWidget {
   }
 }
 
+/// A queue source that threw, kept alongside its [DashboardQueueKind] so the
+/// screen can render a per-source retry (`TR-S6-02`).
+class _QueueSourceError {
+  const _QueueSourceError(this.kind, this.error);
+
+  final DashboardQueueKind kind;
+  final Object error;
+}
+
+String _queueSourceLabel(DashboardQueueKind kind, AppLocalizations? l10n) {
+  switch (kind) {
+    case DashboardQueueKind.verification:
+      return l10n?.queueSourceVerification ?? 'verification queue';
+    case DashboardQueueKind.abuse:
+      return l10n?.queueSourceAbuse ?? 'abuse reports';
+    case DashboardQueueKind.review:
+      return l10n?.queueSourceReview ?? 'pending reviews';
+  }
+}
+
 class _QueueTable extends StatelessWidget {
   const _QueueTable({
     required this.l10n,
-    required this.itemsAsync,
+    required this.items,
+    required this.errors,
+    required this.isLoading,
+    required this.onRetry,
   });
 
   final AppLocalizations? l10n;
-  final AsyncValue<List<DashboardQueueItem>> itemsAsync;
+  final List<DashboardQueueItem> items;
+  final List<_QueueSourceError> errors;
+  final bool isLoading;
+  final void Function(DashboardQueueKind kind) onRetry;
 
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
-    final items = itemsAsync.valueOrNull ?? const <DashboardQueueItem>[];
-    final isEmpty = !itemsAsync.isLoading && items.isEmpty;
+    final isEmpty = !isLoading && items.isEmpty && errors.isEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        for (final err in errors) ...[
+          _QueueSourceErrorChip(
+            kind: err.kind,
+            message: resolveApiErrorMessage(err.error, l10n),
+            sourceLabel: _queueSourceLabel(err.kind, l10n),
+            retryLabel: l10n?.dashboardQueueRetry ?? 'Retry',
+            onRetry: () => onRetry(err.kind),
+          ),
+          SizedBox(height: kh.spacing.sm),
+        ],
         KhDataTable(
           key: const Key('dashboard-queue-table'),
           columns: [
@@ -457,6 +534,222 @@ class _QueueTable extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Inline error strip with a Retry — shared by the queue sources and the trend
+/// series (`TR-S6-02`, `TR-S6-04`).
+class _DashboardInlineError extends StatelessWidget {
+  const _DashboardInlineError({
+    required this.errorKey,
+    required this.message,
+    required this.retryLabel,
+    required this.onRetry,
+    this.retryKey,
+  });
+
+  final Key errorKey;
+  final Key? retryKey;
+  final String message;
+  final String retryLabel;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final kh = context.kh;
+    final colors = kh.colors;
+
+    return Container(
+      key: errorKey,
+      padding: EdgeInsets.symmetric(
+        horizontal: kh.spacing.md,
+        vertical: kh.spacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: colors.error.withValues(alpha: 0.10),
+        borderRadius: kh.shapes.roundedSm,
+        border: Border.all(color: colors.error.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, size: 18, color: colors.error),
+          SizedBox(width: kh.spacing.sm),
+          Expanded(
+            child: Text(
+              message,
+              style: kh.typography.bodySmall.copyWith(color: colors.error),
+            ),
+          ),
+          SizedBox(width: kh.spacing.sm),
+          OutlinedButton.icon(
+            key: retryKey,
+            icon: const Icon(Icons.refresh, size: 16),
+            label: Text(retryLabel),
+            onPressed: onRetry,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QueueSourceErrorChip extends StatelessWidget {
+  const _QueueSourceErrorChip({
+    required this.kind,
+    required this.message,
+    required this.sourceLabel,
+    required this.retryLabel,
+    required this.onRetry,
+  });
+
+  final DashboardQueueKind kind;
+  final String message;
+  final String sourceLabel;
+  final String retryLabel;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return _DashboardInlineError(
+      errorKey: Key('dashboard-queue-source-error-${kind.name}'),
+      retryKey: Key('dashboard-queue-source-retry-${kind.name}'),
+      message: "Couldn't load $sourceLabel — $message",
+      retryLabel: retryLabel,
+      onRetry: onRetry,
+    );
+  }
+}
+
+String _rangeLabel(DashboardRange range, AppLocalizations? l10n) {
+  switch (range) {
+    case DashboardRange.last7Days:
+      return l10n?.dashboardRange7 ?? range.fallbackLabel;
+    case DashboardRange.last30Days:
+      return l10n?.dashboardRange30 ?? range.fallbackLabel;
+    case DashboardRange.last90Days:
+      return l10n?.dashboardRange90 ?? range.fallbackLabel;
+  }
+}
+
+/// ADM-S02 date-range selector (`TR-S6-03`). `Wrap` of chips so it reflows
+/// instead of overflowing at narrow widths.
+class _RangeSelector extends ConsumerWidget {
+  const _RangeSelector({required this.l10n});
+
+  final AppLocalizations? l10n;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final kh = context.kh;
+    final selected = ref.watch(dashboardRangeProvider);
+
+    return Column(
+      key: const Key('dashboard-range-selector'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n?.dashboardRangeLabel ?? 'Date range',
+          style: kh.typography.caption.copyWith(color: kh.colors.textMuted),
+        ),
+        SizedBox(height: kh.spacing.xs),
+        Wrap(
+          spacing: kh.spacing.sm,
+          runSpacing: kh.spacing.xs,
+          children: [
+            for (final range in DashboardRange.values)
+              ChoiceChip(
+                key: Key('dashboard-range-chip-${range.days}'),
+                label: Text(_rangeLabel(range, l10n)),
+                selected: range == selected,
+                onSelected: (isSelected) {
+                  if (isSelected) {
+                    ref.read(dashboardRangeProvider.notifier).state = range;
+                  }
+                },
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// ADM-S02 trend series (`TR-S6-04`). Range-scoped request-volume figures — the
+/// only range-aware data the backend exposes today (GAP-ADM-10).
+class _TrendSection extends ConsumerWidget {
+  const _TrendSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final kh = context.kh;
+    final l10n = AppLocalizations.of(context);
+    final trendAsync = ref.watch(dashboardTrendProvider);
+
+    return Column(
+      key: const Key('dashboard-trend-section'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n?.dashboardTrendCaption ??
+              'Request volume by state over the selected range.',
+          style: kh.typography.caption.copyWith(color: kh.colors.textMuted),
+        ),
+        SizedBox(height: kh.spacing.sm),
+        trendAsync.when(
+          loading: () => const SizedBox(
+            key: Key('dashboard-trend-loading'),
+            height: 120,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (error, _) => _DashboardInlineError(
+            errorKey: const Key('dashboard-trend-error'),
+            retryKey: const Key('dashboard-trend-retry'),
+            message: resolveApiErrorMessage(error, l10n),
+            retryLabel: l10n?.dashboardQueueRetry ?? 'Retry',
+            onRetry: () => ref.invalidate(dashboardTrendProvider),
+          ),
+          data: (result) => _trendBody(context, result, l10n),
+        ),
+      ],
+    );
+  }
+
+  Widget _trendBody(
+    BuildContext context,
+    ReportResult result,
+    AppLocalizations? l10n,
+  ) {
+    final kh = context.kh;
+    final points = result.chartPoints;
+
+    if (points.isEmpty) {
+      return Container(
+        key: const Key('dashboard-trend-empty'),
+        height: 120,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: kh.colors.backgroundElevated,
+          borderRadius: kh.shapes.roundedSm,
+          border: Border.all(color: kh.colors.borderSubtle),
+        ),
+        child: Text(
+          l10n?.dashboardTrendEmpty ?? 'No trend data for this range.',
+          style:
+              kh.typography.bodySmall.copyWith(color: kh.colors.textSecondary),
+        ),
+      );
+    }
+
+    return Container(
+      key: const Key('dashboard-trend-chart'),
+      padding: EdgeInsets.all(kh.spacing.md),
+      decoration: BoxDecoration(
+        color: kh.colors.backgroundElevated,
+        borderRadius: kh.shapes.roundedSm,
+        border: Border.all(color: kh.colors.borderSubtle),
+      ),
+      child: ReportChart(points: points),
     );
   }
 }

@@ -1,8 +1,7 @@
-import 'package:flutter/foundation.dart';
+import 'package:kh_core/kh_core.dart';
+export 'package:kh_core/kh_core.dart' show Failure;
 
-/// Typed API exception representing backend error envelopes:
-/// `{ error: { code: string, message: string, details: [...] }, meta: { requestId, serverTime } }`
-@immutable
+/// Thin adapter mapping [ApiException] to sealed [Failure] (ADM-SMP-01).
 class ApiException implements Exception {
   const ApiException({
     required this.statusCode,
@@ -10,13 +9,16 @@ class ApiException implements Exception {
     required this.message,
     this.details = const [],
     this.requestId,
+    this.failure,
   });
-
   final int statusCode;
   final String code;
   final String message;
   final List<dynamic> details;
   final String? requestId;
+  final Failure? failure;
+
+  Failure toFailure() => failure ?? ServerFailure(code: code, message: message);
 
   @override
   String toString() =>

@@ -7,6 +7,7 @@ import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 import 'package:kh_admin/features/offers/controller/offer_detail_controller.dart';
+import 'package:kh_domain/kh_domain.dart' show MaskedParty, RevealedParty;
 import 'package:kh_admin/features/offers/model/offer_detail.dart';
 import 'package:kh_admin/features/offers/model/offer_enums.dart';
 
@@ -525,14 +526,20 @@ class _ParentRequestCard extends StatelessWidget {
                 label: l10n?.offersDetailLabelRequestType ?? 'Request Type',
                 value: request!.requestType!.displayName,
               ),
-            if (request!.customerName != null || request!.customerMobile != null)
+            if (request!.customer case final RevealedParty revealed)
               _DetailRow(
                 label: l10n?.offersDetailLabelCustomerMobile ??
                     'Customer Name & Mobile',
                 value: [
-                  if (request!.customerName != null) request!.customerName!,
-                  if (request!.customerMobile != null) request!.customerMobile!,
+                  if (revealed.displayName.isNotEmpty) revealed.displayName,
+                  if (revealed.mobile.e164.isNotEmpty) revealed.mobile.e164,
                 ].join(' · '),
+              )
+            else if (request!.customer case final MaskedParty masked)
+              _DetailRow(
+                label: l10n?.offersDetailLabelCustomerMobile ??
+                    'Customer',
+                value: masked.displayPseudonym,
               ),
             if (request!.categoryName != null)
               _DetailRow(

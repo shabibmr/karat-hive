@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_feedback_banner.dart';
 import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
 import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
@@ -77,7 +78,12 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
               _buildHeader(context, kh, l10n, detail),
               if (_actionFeedback != null) ...[
                 SizedBox(height: kh.spacing.md),
-                _buildFeedbackBanner(kh),
+                KhFeedbackBanner(
+                  key: const Key('vendor-action-feedback-banner'),
+                  message: _actionFeedback!,
+                  isSuccess: _actionSuccess,
+                  onDismiss: () => setState(() => _actionFeedback = null),
+                ),
               ],
               SizedBox(height: kh.spacing.xl),
               LayoutBuilder(
@@ -169,49 +175,6 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
           KhStatusChip(
             label: _accountLabel(l10n, detail.accountState),
             tone: _accountTone(detail.accountState),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeedbackBanner(KhThemeExtension kh) {
-    final bgColor = _actionSuccess
-        ? kh.colors.success.withValues(alpha: 0.12)
-        : kh.colors.error.withValues(alpha: 0.12);
-    final borderColor = _actionSuccess ? kh.colors.success : kh.colors.error;
-    final textColor = _actionSuccess ? kh.colors.success : kh.colors.error;
-
-    return Container(
-      key: const Key('vendor-action-feedback-banner'),
-      padding: EdgeInsets.all(kh.spacing.md),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: kh.shapes.roundedMd,
-        border: Border.all(color: borderColor),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            _actionSuccess ? Icons.check_circle_outline : Icons.error_outline,
-            color: textColor,
-            size: 20,
-          ),
-          SizedBox(width: kh.spacing.sm),
-          Expanded(
-            child: Text(
-              _actionFeedback!,
-              style: kh.typography.bodySmall.copyWith(
-                color: textColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close, size: 16),
-            color: textColor,
-            onPressed: () => setState(() => _actionFeedback = null),
-            splashRadius: 16,
           ),
         ],
       ),

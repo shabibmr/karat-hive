@@ -46,7 +46,6 @@ class _MockAnnouncementRepository extends AnnouncementRepository {
         ),
       ],
       nextCursor: null,
-      hasMore: false,
     );
   }
 

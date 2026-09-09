@@ -1,27 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:kh_design_system/kh_design_system.dart' show KhStatusTone;
 
 import 'package:kh_admin/core/design/theme/kh_colors.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 
-/// Semantic states a [KhStatusChip] can render.
-///
-/// Mirrors the `.status-*` modifiers in `ui-mock/css/components.css` (L216).
-enum KhStatusTone {
-  /// `.status-success` — healthy, operational, accepted.
-  success,
-
-  /// `.status-pending` — awaiting an admin action.
-  pending,
-
-  /// `.status-error` — high priority, failed, deactivated.
-  error,
-
-  /// `.status-published` — in moderation / informational.
-  moderation,
-
-  /// `.status-draft` — neutral, no urgency.
-  neutral,
-}
+export 'package:kh_design_system/kh_design_system.dart' show KhStatusTone;
 
 /// Pill-shaped status badge with a leading dot.
 ///
@@ -49,16 +32,18 @@ class KhStatusChip extends StatelessWidget {
 
   Color _toneColor(KhColors colors) {
     switch (tone) {
-      case KhStatusTone.success:
-        return colors.success;
-      case KhStatusTone.pending:
-        return colors.warning;
-      case KhStatusTone.error:
-        return colors.error;
-      case KhStatusTone.moderation:
-        return colors.info;
       case KhStatusTone.neutral:
         return colors.textMuted;
+      case KhStatusTone.success:
+        return colors.success;
+      case KhStatusTone.warning:
+        return colors.warning;
+      case KhStatusTone.danger:
+        return colors.error;
+      case KhStatusTone.info:
+        return colors.info;
+      case KhStatusTone.accent:
+        return colors.gold400;
     }
   }
 

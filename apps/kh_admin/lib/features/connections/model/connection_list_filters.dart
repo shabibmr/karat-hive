@@ -25,6 +25,14 @@ class ConnectionListFilters {
     );
   }
 
+  Map<String, dynamic> toQueryParameters() {
+    return <String, dynamic>{
+      if (state != null) 'state': state!.apiValue,
+      if (query.trim().isNotEmpty) 'q': query.trim(),
+      if (hasNoContactOnly) 'hasNoContactOnly': 'true',
+    };
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

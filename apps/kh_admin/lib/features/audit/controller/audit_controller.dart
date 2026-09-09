@@ -1,190 +1,36 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:kh_admin/core/list/cursor_paginated_notifier.dart';
+import 'package:kh_admin/core/list/list_state.dart';
+import 'package:kh_admin/core/list/paginated.dart';
 import 'package:kh_admin/features/audit/model/audit_log_filters.dart';
 import 'package:kh_admin/features/audit/model/audit_log_item.dart';
 import 'package:kh_admin/features/audit/repository/audit_repository.dart';
 
-/// State object for the ADM-S22 audit log viewer.
-class AuditState {
-  const AuditState({
-    this.items = const [],
-    this.filters = const AuditLogFilters(),
-    this.nextCursor,
-    this.hasMore = false,
-    this.isLoading = false,
-    this.isLoadingMore = false,
-    this.error,
-    this.page = 1,
-    this.cursorHistory = const [null],
-    this.selectedItem,
-  });
+typedef AuditState = CursorListState<AuditLogItem, AuditLogFilters>;
 
-  final List<AuditLogItem> items;
-  final AuditLogFilters filters;
-  final String? nextCursor;
-  final bool hasMore;
-  final bool isLoading;
-  final bool isLoadingMore;
-  final String? error;
-  final int page;
-  final List<String?> cursorHistory;
-  final AuditLogItem? selectedItem;
-
-  bool get canLoadMore =>
-      hasMore && nextCursor != null && nextCursor!.isNotEmpty;
-  bool get canGoNext => canLoadMore && !isLoading && !isLoadingMore;
-  bool get canGoPrevious => page > 1 && !isLoading && !isLoadingMore;
-
-  AuditState copyWith({
-    List<AuditLogItem>? items,
-    AuditLogFilters? filters,
-    String? nextCursor,
-    bool? hasMore,
-    bool? isLoading,
-    bool? isLoadingMore,
-    String? error,
-    bool clearError = false,
-    int? page,
-    List<String?>? cursorHistory,
-    AuditLogItem? selectedItem,
-    bool clearSelectedItem = false,
-  }) {
-    return AuditState(
-      items: items ?? this.items,
-      filters: filters ?? this.filters,
-      nextCursor: nextCursor ?? this.nextCursor,
-      hasMore: hasMore ?? this.hasMore,
-      isLoading: isLoading ?? this.isLoading,
-      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      error: clearError ? null : (error ?? this.error),
-      page: page ?? this.page,
-      cursorHistory: cursorHistory ?? this.cursorHistory,
-      selectedItem:
-          clearSelectedItem ? null : (selectedItem ?? this.selectedItem),
-    );
-  }
-}
-
-class AuditController extends Notifier<AuditState> {
+/// Controller managing ADM-S22 audit log state, filters, and pagination (TR-S1-17f).
+class AuditController
+    extends CursorPaginatedNotifier<AuditLogItem, AuditLogFilters> {
   @override
-  AuditState build() {
-    Future.microtask(refresh);
-    return const AuditState(isLoading: true);
-  }
+  AuditLogFilters get initialFilters => const AuditLogFilters();
 
-  AuditRepository get _repository => ref.read(auditRepositoryProvider);
+  @override
+  Object? Function(AuditLogItem item)? get itemKey => (item) => item.id;
 
-  Future<void> refresh() async {
-    state = state.copyWith(
-      isLoading: true,
-      isLoadingMore: false,
-      clearError: true,
-      items: const [],
-      nextCursor: null,
-      hasMore: false,
-      page: 1,
-      cursorHistory: const [null],
-    );
+  @override
+  int get pageSize => 50;
 
-    try {
-      final page = await _repository.fetchAuditLogs(filters: state.filters);
-      state = state.copyWith(
-        isLoading: false,
-        items: page.items,
-        nextCursor: page.nextCursor,
-        hasMore: page.hasMore,
-        page: 1,
-        cursorHistory: const [null],
-      );
-    } on Object catch (e) {
-      final msg = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
-      state = state.copyWith(
-        isLoading: false,
-        error: msg,
-      );
-    }
-  }
-
-  Future<void> nextPage() async {
-    if (!state.canGoNext) return;
-    final currentCursor = state.nextCursor;
-    state = state.copyWith(isLoadingMore: true, clearError: true);
-
-    try {
-      final page = await _repository.fetchAuditLogs(
-        filters: state.filters,
-        cursor: currentCursor,
-      );
-      final newHistory = [...state.cursorHistory, currentCursor];
-      state = state.copyWith(
-        isLoadingMore: false,
-        items: page.items,
-        nextCursor: page.nextCursor,
-        hasMore: page.hasMore,
-        page: state.page + 1,
-        cursorHistory: newHistory,
-      );
-    } on Object catch (e) {
-      state = state.copyWith(
-        isLoadingMore: false,
-        error: e.toString(),
-      );
-    }
-  }
-
-  Future<void> previousPage() async {
-    if (!state.canGoPrevious) return;
-    final targetPage = state.page - 1;
-    final targetCursor = state.cursorHistory[targetPage - 1];
-    state = state.copyWith(isLoadingMore: true, clearError: true);
-
-    try {
-      final page = await _repository.fetchAuditLogs(
-        filters: state.filters,
-        cursor: targetCursor,
-      );
-      state = state.copyWith(
-        isLoadingMore: false,
-        items: page.items,
-        nextCursor: page.nextCursor,
-        hasMore: page.hasMore,
-        page: targetPage,
-      );
-    } on Object catch (e) {
-      state = state.copyWith(
-        isLoadingMore: false,
-        error: e.toString(),
-      );
-    }
-  }
-
-  Future<void> loadMore() async {
-    if (state.isLoading || state.isLoadingMore || !state.canLoadMore) return;
-    final currentCursor = state.nextCursor;
-    state = state.copyWith(isLoadingMore: true, clearError: true);
-
-    try {
-      final page = await _repository.fetchAuditLogs(
-        filters: state.filters,
-        cursor: currentCursor,
-      );
-      state = state.copyWith(
-        isLoadingMore: false,
-        items: [...state.items, ...page.items],
-        nextCursor: page.nextCursor,
-        hasMore: page.hasMore,
-      );
-    } on Object catch (e) {
-      state = state.copyWith(
-        isLoadingMore: false,
-        error: e.toString(),
-      );
-    }
-  }
-
-  void applyFilters(AuditLogFilters filters) {
-    state = state.copyWith(filters: filters);
-    refresh();
+  @override
+  Future<Paginated<AuditLogItem>> fetchPage({
+    required AuditLogFilters filters,
+    String? cursor,
+    int limit = 50,
+  }) {
+    return ref.read(auditRepositoryProvider).fetchAuditLogs(
+          filters: filters,
+          cursor: cursor,
+          limit: limit,
+        );
   }
 
   void setActionFilter(String? action) {
@@ -235,16 +81,10 @@ class AuditController extends Notifier<AuditState> {
   }
 
   void clearFilters() {
-    state = state.copyWith(filters: const AuditLogFilters());
-    refresh();
+    applyFilters(const AuditLogFilters());
   }
 
-  void selectItem(AuditLogItem? item) {
-    state = state.copyWith(
-      selectedItem: item,
-      clearSelectedItem: item == null,
-    );
-  }
+  void selectItem(AuditLogItem? item) {}
 }
 
 final auditControllerProvider =

@@ -51,31 +51,56 @@ void main() {
           final path = options.path;
 
           if (path == '/v1/admin/announcements' && options.method == 'GET') {
+            final query = options.queryParameters;
+            var rows = [
+              rawAnnouncementRow(
+                id: 'ann-1',
+                titleEn: 'Eid Holiday Hours',
+                userType: 'ALL',
+                scheduledFor: '2026-09-15T10:00:00.000Z',
+              ),
+              rawAnnouncementRow(
+                id: 'ann-2',
+                titleEn: 'Vendor Commission Policy',
+                userType: 'VENDOR',
+                dispatchStats: {'sent': 150, 'delivered': 148, 'opened': 95},
+              ),
+              rawAnnouncementRow(
+                id: 'ann-3',
+                titleEn: 'Cancelled Alert',
+                cancelledAt: '2026-09-02T12:00:00.000Z',
+              ),
+            ];
+
+            if (query['status'] != null) {
+              final status = query['status'];
+              rows = rows.where((r) {
+                if (status == 'SCHEDULED') return r['scheduledFor'] != null;
+                if (status == 'DISPATCHED') return r['dispatchStats'] != null;
+                if (status == 'CANCELLED') return r['cancelledAt'] != null;
+                return true;
+              }).toList();
+            }
+            if (query['audienceType'] != null) {
+              final aud = query['audienceType'];
+              rows = rows.where((r) => (r['audience'] as Map)['userType'] == aud).toList();
+            }
+            if (query['q'] != null) {
+              final q = query['q'].toString().toLowerCase();
+              rows = rows
+                  .where((r) =>
+                      r['titleEn'].toString().toLowerCase().contains(q) ||
+                      r['id'].toString().toLowerCase().contains(q))
+                  .toList();
+            }
+
             return handler.resolve(
               Response(
                 requestOptions: options,
                 statusCode: 200,
                 data: {
                   'data': {
-                    'data': [
-                      rawAnnouncementRow(
-                        id: 'ann-1',
-                        titleEn: 'Eid Holiday Hours',
-                        userType: 'ALL',
-                        scheduledFor: '2026-09-15T10:00:00.000Z',
-                      ),
-                      rawAnnouncementRow(
-                        id: 'ann-2',
-                        titleEn: 'Vendor Commission Policy',
-                        userType: 'VENDOR',
-                        dispatchStats: {'sent': 150, 'delivered': 148, 'opened': 95},
-                      ),
-                      rawAnnouncementRow(
-                        id: 'ann-3',
-                        titleEn: 'Cancelled Alert',
-                        cancelledAt: '2026-09-02T12:00:00.000Z',
-                      ),
-                    ],
+                    'data': rows,
                     'nextCursor': 'ann-3',
                   },
                   'meta': {'nextCursor': 'ann-3'},
@@ -160,7 +185,7 @@ void main() {
       expect(page.nextCursor, 'ann-3');
     });
 
-    test('filters announcements by query client-side', () async {
+    test('filters announcements by query via query parameters', () async {
       final client = buildClient();
       final repo = AnnouncementRepository(client);
 
@@ -172,7 +197,7 @@ void main() {
       expect(page.items.first.id, 'ann-2');
     });
 
-    test('filters announcements by status client-side', () async {
+    test('filters announcements by status via query parameters', () async {
       final client = buildClient();
       final repo = AnnouncementRepository(client);
 
@@ -184,7 +209,7 @@ void main() {
       expect(page.items.first.id, 'ann-1');
     });
 
-    test('filters announcements by audience type client-side', () async {
+    test('filters announcements by audience type via query parameters', () async {
       final client = buildClient();
       final repo = AnnouncementRepository(client);
 

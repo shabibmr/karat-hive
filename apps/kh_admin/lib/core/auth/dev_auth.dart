@@ -52,7 +52,7 @@ const String _kDevAdminEmail = String.fromEnvironment(
 );
 const String _kDevAdminPassword = String.fromEnvironment(
   'KH_DEV_ADMIN_PASSWORD',
-  defaultValue: 'AdminSecret123!',
+  defaultValue: '',
 );
 
 /// Injectable so widget tests can flip auto-login without a compile-time

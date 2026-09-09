@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kh_domain/kh_domain.dart' show MaskedParty;
 import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/features/offers/model/offer_enums.dart';
 import 'package:kh_admin/features/offers/model/offer_list_filters.dart';
@@ -69,20 +70,56 @@ void main() {
           final path = options.path;
 
           if (path == '/v1/admin/offers') {
+            final query = options.queryParameters;
+            var rows = [
+              rawOfferRow(id: 'off-1', state: 'PENDING'),
+              rawOfferRow(
+                id: 'off-2',
+                state: 'ACCEPTED',
+                offeredPrice: '18900.00',
+              ),
+            ];
+
+            if (query['state'] != null) {
+              rows = rows.where((r) => r['state'] == query['state']).toList();
+            }
+            if (query['requestType'] != null) {
+              rows = rows
+                  .where((r) =>
+                      (r['request'] as Map)['requestType'] ==
+                      query['requestType'])
+                  .toList();
+            }
+            if (query['minPrice'] != null) {
+              final minP = double.parse(query['minPrice'].toString());
+              rows = rows
+                  .where((r) =>
+                      double.parse(r['offeredPrice'].toString()) >= minP)
+                  .toList();
+            }
+            if (query['maxPrice'] != null) {
+              final maxP = double.parse(query['maxPrice'].toString());
+              rows = rows
+                  .where((r) =>
+                      double.parse(r['offeredPrice'].toString()) <= maxP)
+                  .toList();
+            }
+            if (query['q'] != null) {
+              final q = query['q'].toString().toLowerCase();
+              rows = rows
+                  .where((r) =>
+                      r['id'].toString().toLowerCase().contains(q) ||
+                      r['vendorProfileId'].toString().toLowerCase().contains(q))
+                  .toList();
+            }
+
             return handler.resolve(
               Response(
                 requestOptions: options,
                 statusCode: 200,
                 data: {
                   'data': {
-                    'data': [
-                      rawOfferRow(id: 'off-1', state: 'PENDING'),
-                      rawOfferRow(
-                        id: 'off-2',
-                        state: 'ACCEPTED',
-                        offeredPrice: '18900.00',
-                      ),
-                    ],
+                    'data': rows,
                     'nextCursor': 'off-2',
                   },
                   'meta': {'requestId': 'req-list-1'},
@@ -219,7 +256,7 @@ void main() {
       expect(page.totalCount, isNull);
     });
 
-    test('applies unsupported filters (price/type/query) client-side',
+    test('pushes filters (price/type/query) to API query parameters',
         () async {
       final byType = await repository.fetchOffers(
         filters: const OfferListFilters(requestType: RequestType.goldCoin),
@@ -255,8 +292,8 @@ void main() {
 
       expect(detail.parentRequest, isNotNull);
       expect(detail.parentRequest!.reference, 'KH-RQ-2026-01482');
-      expect(detail.parentRequest!.customerName, 'Sara Al Maktoum');
-      expect(detail.parentRequest!.customerMobile, '+971501234567');
+      expect(detail.parentRequest!.customer, isA<MaskedParty>());
+      expect((detail.parentRequest!.customer as MaskedParty).displayPseudonym, 'Sara Al Maktoum');
       expect(detail.parentRequest!.indicativeValue, 15000.0);
     });
 

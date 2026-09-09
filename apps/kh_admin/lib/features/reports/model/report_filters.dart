@@ -57,4 +57,21 @@ class ReportFilters {
     final d = utc.day.toString().padLeft(2, '0');
     return '$y-$m-$d';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ReportFilters &&
+          runtimeType == other.runtimeType &&
+          from == other.from &&
+          to == other.to &&
+          regionId == other.regionId &&
+          categoryId == other.categoryId;
+
+  @override
+  int get hashCode => Object.hash(from, to, regionId, categoryId);
+
+  @override
+  String toString() =>
+      'ReportFilters(from: $from, to: $to, regionId: $regionId, categoryId: $categoryId)';
 }

@@ -11,24 +11,26 @@ class SessionTokens {
   });
 
   final String accessToken;
-  final String accessExpiresAt;
+  final DateTime accessExpiresAt;
   final String refreshToken;
-  final String refreshExpiresAt;
+  final DateTime refreshExpiresAt;
 
   factory SessionTokens.fromJson(Map<String, dynamic> json) {
     return SessionTokens(
       accessToken: json['accessToken'] as String? ?? '',
-      accessExpiresAt: json['accessExpiresAt'] as String? ?? '',
+      accessExpiresAt: DateTime.tryParse(json['accessExpiresAt']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       refreshToken: json['refreshToken'] as String? ?? '',
-      refreshExpiresAt: json['refreshExpiresAt'] as String? ?? '',
+      refreshExpiresAt: DateTime.tryParse(json['refreshExpiresAt']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     );
   }
 
   Map<String, dynamic> toJson() => {
         'accessToken': accessToken,
-        'accessExpiresAt': accessExpiresAt,
+        'accessExpiresAt': accessExpiresAt.toIso8601String(),
         'refreshToken': refreshToken,
-        'refreshExpiresAt': refreshExpiresAt,
+        'refreshExpiresAt': refreshExpiresAt.toIso8601String(),
       };
 }
 

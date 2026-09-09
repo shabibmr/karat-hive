@@ -40,17 +40,16 @@ class AnnouncementRepository {
     final items = response.items
         .whereType<Map<String, dynamic>>()
         .map(AnnouncementItem.fromJson)
-        .where((item) => _matchesClientFilters(item, filters))
         .toList(growable: false);
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = hasMoreFromCursor(nextCursor);
 
     return AnnouncementPage(
       items: items,
-      nextCursor: hasMore ? nextCursor : null,
-      hasMore: hasMore,
+      nextCursor: nextCursor,
+      totalCount:
+          meta?['total'] is num ? (meta!['total'] as num).toInt() : null,
     );
   }
 
@@ -60,7 +59,7 @@ class AnnouncementRepository {
       '/v1/admin/announcements',
       data: dto.toJson(),
     );
-    return AnnouncementItem.fromJson(_unwrapEntity(response));
+    return AnnouncementItem.fromJson(unwrapEntity(response));
   }
 
   /// Cancels a scheduled announcement before dispatch.
@@ -68,9 +67,9 @@ class AnnouncementRepository {
     final response = await _apiClient.post(
       '/v1/admin/announcements/$id/cancel',
     );
-    if (response is Map<String, dynamic> ||
-        (response is Map && response['data'] is Map<String, dynamic>)) {
-      return AnnouncementItem.fromJson(_unwrapEntity(response));
+    final map = unwrapEntity(response);
+    if (map.isNotEmpty) {
+      return AnnouncementItem.fromJson(map);
     }
     return AnnouncementItem(
       id: id,
@@ -86,35 +85,4 @@ class AnnouncementRepository {
     );
   }
 
-  bool _matchesClientFilters(AnnouncementItem item, AnnouncementFilters filters) {
-    if (filters.status != null && item.status != filters.status) {
-      return false;
-    }
-    if (filters.audienceType != null && item.audienceType != filters.audienceType) {
-      return false;
-    }
-    if (filters.query.isEmpty) return true;
-    final q = filters.query.toLowerCase();
-    return item.id.toLowerCase().contains(q) ||
-        item.titleEn.toLowerCase().contains(q) ||
-        item.titleAr.toLowerCase().contains(q) ||
-        item.bodyEn.toLowerCase().contains(q) ||
-        item.bodyAr.toLowerCase().contains(q) ||
-        (item.createdByDisplayName?.toLowerCase().contains(q) ?? false);
-  }
-}
-
-Map<String, dynamic> _unwrapEntity(dynamic response) {
-  if (response is! Map<String, dynamic>) {
-    throw Exception(
-      'Unexpected response format when mutating announcement: $response',
-    );
-  }
-  if (response['data'] is Map<String, dynamic> &&
-      response['id'] == null &&
-      response['titleEn'] == null &&
-      response['title_en'] == null) {
-    return Map<String, dynamic>.from(response['data'] as Map);
-  }
-  return response;
 }

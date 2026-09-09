@@ -10,14 +10,14 @@ import 'package:kh_admin/features/verification/presentation/verification_screen.
 import 'package:kh_admin/core/router/verification_query_params.dart';
 import 'package:kh_admin/features/abuse/presentation/abuse_screen.dart';
 import 'package:kh_admin/features/admin_users/presentation/admin_users_screen.dart';
-import 'package:kh_admin/features/announcements/presentation/announcements_screen.dart';
-import 'package:kh_admin/features/audit/presentation/audit_screen.dart';
+import 'package:kh_admin/features/announcements/presentation/announcements_screen.dart' deferred as announcements_screen;
+import 'package:kh_admin/features/audit/presentation/audit_screen.dart' deferred as audit_screen;
 import 'package:kh_admin/features/connections/presentation/connection_detail_screen.dart';
 import 'package:kh_admin/features/connections/presentation/connection_list_screen.dart';
 import 'package:kh_admin/features/customers/presentation/customer_detail_screen.dart';
 import 'package:kh_admin/features/customers/presentation/customer_list_screen.dart';
 import 'package:kh_admin/features/moderation/presentation/moderation_screen.dart';
-import 'package:kh_admin/features/reports/presentation/reports_screen.dart';
+import 'package:kh_admin/features/reports/presentation/reports_screen.dart' deferred as reports_screen;
 import 'package:kh_admin/features/settings/presentation/platform_settings_screen.dart';
 import 'package:kh_admin/features/offers/presentation/offer_detail_screen.dart';
 import 'package:kh_admin/features/offers/presentation/offer_list_screen.dart';
@@ -25,11 +25,15 @@ import 'package:kh_admin/features/requests/presentation/request_detail_screen.da
 import 'package:kh_admin/features/requests/presentation/request_list_screen.dart';
 import 'package:kh_admin/features/vendors/presentation/vendor_detail_screen.dart';
 import 'package:kh_admin/features/vendors/presentation/vendor_list_screen.dart';
+import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/auth/session_state.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/router/admin_routes.dart';
 import 'package:kh_admin/core/shell/kh_admin_scaffold.dart';
+import 'package:kh_admin/features/contract_version/presentation/contract_mismatch_screen.dart';
 
+export 'admin_routes.dart';
 export 'taxonomy_query_params.dart';
 export 'verification_query_params.dart';
 
@@ -40,13 +44,23 @@ class RouterNotifier extends ChangeNotifier {
       sessionControllerProvider,
       (_, __) => notifyListeners(),
     );
+    ref.listen<bool>(
+      contractMismatchProvider,
+      (_, __) => notifyListeners(),
+    );
   }
 
   final Ref ref;
 
   String? redirect(BuildContext context, GoRouterState state) {
+    final hasMismatch = ref.read(contractMismatchProvider);
+    final isMismatchRoute = state.matchedLocation == AdminRoutes.contractMismatch;
+    if (hasMismatch) {
+      return isMismatchRoute ? null : AdminRoutes.contractMismatch;
+    }
+
     final session = ref.read(sessionControllerProvider);
-    final isLoggingIn = state.matchedLocation == '/login';
+    final isLoggingIn = state.matchedLocation == AdminRoutes.login;
 
     // While resolving initial token/session state, stay on splash/login
     if (session.isLoading) {
@@ -54,12 +68,12 @@ class RouterNotifier extends ChangeNotifier {
     }
 
     if (!session.isAuthenticated) {
-      return isLoggingIn ? null : '/login';
+      return isLoggingIn ? null : AdminRoutes.login;
     }
 
     // Authenticated admin trying to visit /login -> redirect to default dashboard
     if (isLoggingIn) {
-      return '/';
+      return AdminRoutes.dashboard;
     }
 
     return null;
@@ -74,39 +88,47 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(routerNotifierProvider);
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: AdminRoutes.dashboard,
     refreshListenable: notifier,
     redirect: notifier.redirect,
     routes: [
       GoRoute(
-        path: '/login',
+        path: AdminRoutes.login,
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AdminRoutes.contractMismatch,
+        builder: (context, state) => const ContractMismatchScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) => KhAdminScaffold(child: child),
         routes: [
           GoRoute(
-            path: '/',
+            path: AdminRoutes.dashboard,
             builder: (context, state) => const DashboardScreen(),
           ),
           GoRoute(
-            path: '/taxonomy/categories',
+            path: AdminRoutes.categories,
             builder: (context, state) => const TaxonomyScreen(
               kind: TaxonomyKind.category,
             ),
           ),
           GoRoute(
-            path: '/taxonomy/regions',
+            path: AdminRoutes.regions,
             builder: (context, state) => const TaxonomyScreen(
               kind: TaxonomyKind.region,
             ),
           ),
           GoRoute(
-            path: '/vendors',
+            path: AdminRoutes.vendors,
             builder: (context, state) => const VendorListScreen(),
             routes: [
               GoRoute(
-                path: ':id',
+                path: AdminRoutes.vendorDetail,
+                redirect: (context, state) {
+                  final id = state.pathParameters['id']?.trim() ?? '';
+                  return id.isEmpty ? AdminRoutes.vendors : null;
+                },
                 builder: (context, state) {
                   final id = state.pathParameters['id'] ?? '';
                   return VendorDetailScreen(vendorId: id);
@@ -115,18 +137,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(
-            path: '/verification',
+            path: AdminRoutes.verification,
             builder: (context, state) {
               final query = VerificationQueryParams.fromState(state);
               return VerificationScreen(initialSelectedId: query.selectedId);
             },
           ),
           GoRoute(
-            path: '/offers',
+            path: AdminRoutes.offers,
             builder: (context, state) => const OfferListScreen(),
             routes: [
               GoRoute(
-                path: ':id',
+                path: AdminRoutes.offerDetail,
+                redirect: (context, state) {
+                  final id = state.pathParameters['id']?.trim() ?? '';
+                  return id.isEmpty ? AdminRoutes.offers : null;
+                },
                 builder: (context, state) {
                   final id = state.pathParameters['id'] ?? '';
                   return OfferDetailScreen(offerId: id);
@@ -135,11 +161,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(
-            path: '/requests',
+            path: AdminRoutes.requests,
             builder: (context, state) => const RequestListScreen(),
             routes: [
               GoRoute(
-                path: ':id',
+                path: AdminRoutes.requestDetail,
+                redirect: (context, state) {
+                  final id = state.pathParameters['id']?.trim() ?? '';
+                  return id.isEmpty ? AdminRoutes.requests : null;
+                },
                 builder: (context, state) {
                   final id = state.pathParameters['id'] ?? '';
                   return RequestDetailScreen(requestId: id);
@@ -148,11 +178,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(
-            path: '/customers',
+            path: AdminRoutes.customers,
             builder: (context, state) => const CustomerListScreen(),
             routes: [
               GoRoute(
-                path: ':id',
+                path: AdminRoutes.customerDetail,
+                redirect: (context, state) {
+                  final id = state.pathParameters['id']?.trim() ?? '';
+                  return id.isEmpty ? AdminRoutes.customers : null;
+                },
                 builder: (context, state) {
                   final id = state.pathParameters['id'] ?? '';
                   return CustomerDetailScreen(customerId: id);
@@ -161,11 +195,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(
-            path: '/connections',
+            path: AdminRoutes.connections,
             builder: (context, state) => const ConnectionListScreen(),
             routes: [
               GoRoute(
-                path: ':id',
+                path: AdminRoutes.connectionDetail,
+                redirect: (context, state) {
+                  final id = state.pathParameters['id']?.trim() ?? '';
+                  return id.isEmpty ? AdminRoutes.connections : null;
+                },
                 builder: (context, state) {
                   final id = state.pathParameters['id'] ?? '';
                   return ConnectionDetailScreen(connectionId: id);
@@ -174,32 +212,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(
-            path: '/audit',
-            builder: (context, state) => const AuditScreen(),
+            path: AdminRoutes.audit,
+            builder: (context, state) => DeferredScreen(
+              loader: audit_screen.loadLibrary,
+              builder: () => audit_screen.AuditScreen(),
+            ),
           ),
           GoRoute(
-            path: '/abuse',
+            path: AdminRoutes.abuse,
             builder: (context, state) => const AbuseScreen(),
           ),
           GoRoute(
-            path: '/moderation',
+            path: AdminRoutes.moderation,
             builder: (context, state) => const ModerationScreen(),
           ),
           GoRoute(
-            path: '/admin-users',
+            path: AdminRoutes.adminUsers,
             builder: (context, state) => const AdminUsersScreen(),
           ),
           GoRoute(
-            path: '/settings',
+            path: AdminRoutes.settings,
             builder: (context, state) => const PlatformSettingsScreen(),
           ),
           GoRoute(
-            path: '/announcements',
-            builder: (context, state) => const AnnouncementsScreen(),
+            path: AdminRoutes.announcements,
+            builder: (context, state) => DeferredScreen(
+              loader: announcements_screen.loadLibrary,
+              builder: () => announcements_screen.AnnouncementsScreen(),
+            ),
           ),
           GoRoute(
-            path: '/reports',
-            builder: (context, state) => const ReportsScreen(),
+            path: AdminRoutes.reports,
+            builder: (context, state) => DeferredScreen(
+              loader: reports_screen.loadLibrary,
+              builder: () => reports_screen.ReportsScreen(),
+            ),
           ),
           // Placeholder routes for navigation completeness
           ...kAdminNavItems
@@ -218,6 +265,52 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+/// Lazily loads a deferred library and displays a spinner while resolving (TR-S4-11).
+class DeferredScreen extends StatefulWidget {
+  const DeferredScreen({
+    super.key,
+    required this.loader,
+    required this.builder,
+  });
+
+  final Future<void> Function() loader;
+  final Widget Function() builder;
+
+  @override
+  State<DeferredScreen> createState() => _DeferredScreenState();
+}
+
+class _DeferredScreenState extends State<DeferredScreen> {
+  late Future<void> _loadFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFuture = widget.loader();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _loadFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Failed to load module: ${snapshot.error}',
+                style: context.kh.typography.body,
+              ),
+            );
+          }
+          return widget.builder();
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+}
 
 class _GenericPlaceholderScreen extends StatelessWidget {
   const _GenericPlaceholderScreen({
@@ -250,3 +343,4 @@ class _GenericPlaceholderScreen extends StatelessWidget {
     );
   }
 }
+

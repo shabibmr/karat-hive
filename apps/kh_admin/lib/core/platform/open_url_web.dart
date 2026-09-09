@@ -1,7 +1,6 @@
-// ignore: avoid_web_libraries_in_flutter, deprecated_member_use
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 
 /// Opens [url] in a new browser tab on Flutter Web.
 void openUrlInNewTab(String url) {
-  html.window.open(url, '_blank');
+  web.window.open(url, '_blank');
 }

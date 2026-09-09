@@ -3,9 +3,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/core/auth/dev_auth.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/auth/session_state.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/firebase/firebase_init.dart';
 import 'package:kh_admin/features/auth/presentation/login_screen.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 
@@ -36,7 +38,7 @@ class _MockSessionController extends StateNotifier<SessionState>
       login(email, password);
 
   @override
-  Future<void> logout() async {
+  Future<void> logout({bool broadcast = true}) async {
     state = const SessionState(status: SessionStatus.unauthenticated);
   }
 
@@ -51,10 +53,18 @@ void main() {
     mockSessionController = _MockSessionController();
   });
 
-  Widget createLoginScreenWidget() {
+  Widget createLoginScreenWidget({
+    bool devAutoLogin = true,
+    FirebaseInitState firebaseInit =
+        const FirebaseInitState(status: FirebaseInitStatus.initialized),
+  }) {
     return ProviderScope(
       overrides: [
         sessionControllerProvider.overrideWith((ref) => mockSessionController),
+        devAuthConfigProvider.overrideWithValue(
+          DevAuthConfig(autoLogin: devAutoLogin, email: '', password: ''),
+        ),
+        firebaseInitStateProvider.overrideWith((ref) => firebaseInit),
       ],
       child: MaterialApp(
         theme: buildKhAdminTheme(),
@@ -205,5 +215,48 @@ void main() {
       find.textContaining('Administrative service unavailable'),
       findsOneWidget,
     );
+  });
+
+  testWidgets(
+      'renders only Google Sign-In button when devAutoLogin is false (production mode)',
+      (tester) async {
+    await tester.pumpWidget(createLoginScreenWidget(devAutoLogin: false));
+    await tester.pumpAndSettle();
+
+    expect(find.text('KARAT HIVE'), findsOneWidget);
+    expect(find.text('Administrative Portal'), findsOneWidget);
+    expect(find.byKey(const Key('login-google-button')), findsOneWidget);
+    expect(find.text('Sign in with Google'), findsOneWidget);
+    expect(find.byKey(const Key('login-email-field')), findsNothing);
+    expect(find.byKey(const Key('login-password-field')), findsNothing);
+    expect(find.byKey(const Key('login-submit-button')), findsNothing);
+    expect(find.text('OR'), findsNothing);
+  });
+
+  testWidgets(
+      'blocks Google Sign-In and displays error when Firebase init fails in prod mode (TR-S4-19)',
+      (tester) async {
+    await tester.pumpWidget(
+      createLoginScreenWidget(
+        devAutoLogin: false,
+        firebaseInit: const FirebaseInitState(
+          status: FirebaseInitStatus.failed,
+          error: 'Firebase mock init failed',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('login-error-banner')), findsOneWidget);
+    expect(
+      find.textContaining('Authentication service unavailable: Firebase initialization failed'),
+      findsOneWidget,
+    );
+
+    // Google Sign-In button is disabled (onPressed == null)
+    final button = tester.widget<OutlinedButton>(
+      find.byKey(const Key('login-google-button')),
+    );
+    expect(button.onPressed, isNull);
   });
 }

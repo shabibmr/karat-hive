@@ -38,3 +38,19 @@ double? toDoubleOrNull(dynamic value) {
 /// next cursor is the only pagination signal.
 bool hasMoreFromCursor(String? nextCursor) =>
     nextCursor != null && nextCursor.isNotEmpty;
+
+/// Unwraps an entity from an API response, ensuring a string-keyed map is returned.
+///
+/// Strips single or double `{ data: ... }` response wrappers without relying on
+/// repo-local sentinel heuristics.
+Map<String, dynamic> unwrapEntity(dynamic response) {
+  if (response is! Map) {
+    return const <String, dynamic>{};
+  }
+  var current = response;
+  if (current.containsKey('data') && current['data'] is Map) {
+    current = current['data'] as Map;
+  }
+  return asMap(current);
+}
+

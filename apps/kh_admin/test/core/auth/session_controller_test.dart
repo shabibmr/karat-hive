@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/auth/auth_broadcast.dart';
 import 'package:kh_admin/core/auth/auth_models.dart';
 import 'package:kh_admin/core/auth/auth_repository.dart';
 import 'package:kh_admin/core/auth/dev_auth.dart';
@@ -44,14 +47,14 @@ class _MockAuthRepository extends AuthRepository {
     if (loginShouldFail) {
       throw Exception('connection refused');
     }
-    return const SessionBundle(
+    return SessionBundle(
       tokens: SessionTokens(
         accessToken: 'access-1',
-        accessExpiresAt: '2026-12-31T23:59:59Z',
+        accessExpiresAt: DateTime.fromMillisecondsSinceEpoch(1798761599000, isUtc: true),
         refreshToken: 'refresh-1',
-        refreshExpiresAt: '2026-12-31T23:59:59Z',
+        refreshExpiresAt: DateTime.fromMillisecondsSinceEpoch(1798761599000, isUtc: true),
       ),
-      user: AdminUser(
+      user: const AdminUser(
         userId: 'u-1',
         userType: 'ADMIN',
         email: 'admin@kh.ae',
@@ -63,14 +66,14 @@ class _MockAuthRepository extends AuthRepository {
   @override
   Future<SessionBundle> refresh(String refreshToken) async {
     refreshCalled = true;
-    return const SessionBundle(
+    return SessionBundle(
       tokens: SessionTokens(
         accessToken: 'access-2',
-        accessExpiresAt: '2026-12-31T23:59:59Z',
+        accessExpiresAt: DateTime.fromMillisecondsSinceEpoch(1798761599000, isUtc: true),
         refreshToken: 'refresh-2',
-        refreshExpiresAt: '2026-12-31T23:59:59Z',
+        refreshExpiresAt: DateTime.fromMillisecondsSinceEpoch(1798761599000, isUtc: true),
       ),
-      user: AdminUser(
+      user: const AdminUser(
         userId: 'u-1',
         userType: 'ADMIN',
         email: 'admin@kh.ae',
@@ -193,11 +196,11 @@ void main() {
 
     test('is not attempted when a stored session already exists', () async {
       await tokenStorage.saveTokens(
-        const SessionTokens(
+        SessionTokens(
           accessToken: 'stored-access',
-          accessExpiresAt: '2026-12-31T23:59:59Z',
+          accessExpiresAt: DateTime.fromMillisecondsSinceEpoch(1798761599000, isUtc: true),
           refreshToken: 'stored-refresh',
-          refreshExpiresAt: '2026-12-31T23:59:59Z',
+          refreshExpiresAt: DateTime.fromMillisecondsSinceEpoch(1798761599000, isUtc: true),
         ),
       );
       final controller = SessionController(
@@ -212,4 +215,64 @@ void main() {
       expect(controller.state.tokens?.accessToken, 'stored-access');
     });
   });
+
+  group('Multi-tab logout broadcast (TR-S4-05)', () {
+    test('calls broadcastLogout() when controller.logout() is invoked', () async {
+      final mockBroadcast = _MockAuthBroadcast();
+      final controller = SessionController(
+        tokenStorage: tokenStorage,
+        authRepository: authRepository,
+        authBroadcast: mockBroadcast,
+      );
+
+      await controller.login('admin@kh.ae', 'password');
+      expect(controller.state.isAuthenticated, isTrue);
+
+      await controller.logout();
+      expect(mockBroadcast.broadcastLogoutCalled, isTrue);
+      expect(controller.state.isAuthenticated, isFalse);
+    });
+
+    test('logs out and clears tokens when remote onLogout stream fires', () async {
+      final mockBroadcast = _MockAuthBroadcast();
+      final controller = SessionController(
+        tokenStorage: tokenStorage,
+        authRepository: authRepository,
+        authBroadcast: mockBroadcast,
+      );
+
+      await controller.login('admin@kh.ae', 'password');
+      expect(controller.state.isAuthenticated, isTrue);
+
+      // Simulate broadcast received from another tab
+      mockBroadcast.simulateRemoteLogout();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.state.isAuthenticated, isFalse);
+      expect(await tokenStorage.loadTokens(), isNull);
+    });
+  });
 }
+
+class _MockAuthBroadcast implements AuthBroadcast {
+  final _controller = StreamController<void>.broadcast();
+  bool broadcastLogoutCalled = false;
+
+  @override
+  void broadcastLogout() {
+    broadcastLogoutCalled = true;
+  }
+
+  @override
+  Stream<void> get onLogout => _controller.stream;
+
+  void simulateRemoteLogout() {
+    _controller.add(null);
+  }
+
+  @override
+  void dispose() {
+    _controller.close();
+  }
+}
+

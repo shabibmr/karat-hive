@@ -46,7 +46,6 @@ class _MockModerationRepository extends ModerationRepository {
         ),
       ],
       nextCursor: null,
-      hasMore: false,
     );
   }
 

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/list/paginated.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_enums.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_filters.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_item.dart';
@@ -17,16 +18,18 @@ class _FakeAdminUserRepository extends AdminUserRepository {
 
   bool empty = false;
   bool failNext = false;
-  Completer<List<AdminUserItem>>? delay;
+  Completer<Paginated<AdminUserItem>>? delay;
 
   @override
-  Future<List<AdminUserItem>> fetchAdmins({
+  Future<Paginated<AdminUserItem>> fetchAdmins({
     AdminUserFilters filters = const AdminUserFilters(),
+    String? cursor,
+    int limit = 20,
   }) async {
     if (delay != null) return delay!.future;
     if (failNext) throw Exception('Admin directory unavailable');
-    if (empty) return const [];
-    return [
+    if (empty) return const Paginated(items: []);
+    final items = [
       AdminUserItem(
         id: 'prof-1',
         userId: 'usr-1',
@@ -36,6 +39,7 @@ class _FakeAdminUserRepository extends AdminUserRepository {
         createdAt: DateTime(2026, 9, 1),
       ),
     ].where(filters.matches).toList(growable: false);
+    return Paginated(items: items);
   }
 
   @override
@@ -105,13 +109,13 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
 
       final repo = _FakeAdminUserRepository()
-        ..delay = Completer<List<AdminUserItem>>();
+        ..delay = Completer<Paginated<AdminUserItem>>();
       await tester.pumpWidget(buildTestableScreen(repository: repo));
       await tester.pump();
 
       expect(find.byKey(const Key('admin-list-loading')), findsOneWidget);
 
-      repo.delay!.complete(const []);
+      repo.delay!.complete(const Paginated(items: []));
       await tester.pumpAndSettle();
     });
 

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
@@ -37,17 +39,27 @@ class KhDataTable extends StatelessWidget {
     required this.columns,
     required this.rows,
     this.minWidth = 560,
+    this.rowHeight,
+    this.shrinkWrap,
+    this.scrollController,
+    this.physics,
   });
 
   final List<KhTableColumn> columns;
   final List<KhTableRow> rows;
   final double minWidth;
+  final double? rowHeight;
+  final bool? shrinkWrap;
+  final ScrollController? scrollController;
+  final ScrollPhysics? physics;
 
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
     final colors = kh.colors;
     final borderWidth = kh.shapes.cardBorderWidth;
+    final effectiveRowHeight = rowHeight ??
+        (kh.spacing.tableRowHeight > 0 ? kh.spacing.tableRowHeight : 52.0);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -55,9 +67,68 @@ class KhDataTable extends StatelessWidget {
         // `Expanded` columns cannot resolve. Size the content explicitly: fill
         // the available width, or fall back to [minWidth] and scroll.
         final inner = constraints.maxWidth.isFinite
-            ? constraints.maxWidth - borderWidth * 2
+            ? math.max(0.0, constraints.maxWidth - borderWidth * 2)
             : minWidth;
         final contentWidth = inner > minWidth ? inner : minWidth;
+        final isShrinkWrapped = shrinkWrap ?? !constraints.hasBoundedHeight;
+
+        Widget content;
+        if (isShrinkWrapped) {
+          content = SizedBox(
+            width: contentWidth,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _headerRow(context),
+                ListView.builder(
+                  primary: false,
+                  shrinkWrap: true,
+                  physics: physics ?? const NeverScrollableScrollPhysics(),
+                  controller: scrollController,
+                  padding: EdgeInsets.zero,
+                  itemCount: rows.length,
+                  itemExtent: rowHeight,
+                  itemBuilder: (context, index) => _bodyRow(
+                    context,
+                    rows[index],
+                    isLast: index == rows.length - 1,
+                    rowHeight: effectiveRowHeight,
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          final innerHeight =
+              math.max(0.0, constraints.maxHeight - borderWidth * 2);
+          content = SizedBox(
+            width: contentWidth,
+            height: innerHeight,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _headerRow(context),
+                Expanded(
+                  child: ListView.builder(
+                    primary: false,
+                    physics: physics,
+                    controller: scrollController,
+                    padding: EdgeInsets.zero,
+                    itemCount: rows.length,
+                    itemExtent: rowHeight,
+                    itemBuilder: (context, index) => _bodyRow(
+                      context,
+                      rows[index],
+                      isLast: index == rows.length - 1,
+                      rowHeight: effectiveRowHeight,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
 
         return Container(
           decoration: BoxDecoration(
@@ -68,18 +139,7 @@ class KhDataTable extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              width: contentWidth,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _headerRow(context),
-                  for (var i = 0; i < rows.length; i++)
-                    _bodyRow(context, rows[i], isLast: i == rows.length - 1),
-                ],
-              ),
-            ),
+            child: content,
           ),
         );
       },
@@ -114,12 +174,18 @@ class KhDataTable extends StatelessWidget {
     );
   }
 
-  Widget _bodyRow(BuildContext context, KhTableRow row, {required bool isLast}) {
+  Widget _bodyRow(
+    BuildContext context,
+    KhTableRow row, {
+    required bool isLast,
+    double? rowHeight,
+  }) {
     final kh = context.kh;
+    final minH = rowHeight ?? kh.spacing.tableRowHeight;
 
     final rowWidget = Container(
       key: row.key,
-      constraints: BoxConstraints(minHeight: kh.spacing.tableRowHeight),
+      constraints: BoxConstraints(minHeight: minH),
       padding: EdgeInsets.symmetric(
         horizontal: kh.spacing.md,
         vertical: kh.spacing.sm,

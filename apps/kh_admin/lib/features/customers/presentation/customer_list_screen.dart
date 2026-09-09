@@ -11,6 +11,7 @@ import 'package:kh_admin/features/customers/controller/customer_list_controller.
 import 'package:kh_admin/features/customers/model/customer_enums.dart';
 import 'package:kh_admin/features/customers/model/customer_list_filters.dart';
 import 'package:kh_admin/features/customers/model/customer_list_item.dart';
+import 'package:kh_admin/core/router/customer_query_params.dart';
 import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S03 · Customer list screen — browse and search customers with PII audit notice.
@@ -23,12 +24,38 @@ class CustomerListScreen extends ConsumerStatefulWidget {
 
 class _CustomerListScreenState extends ConsumerState<CustomerListScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
+  Uri? _lastSyncedUri;
 
   @override
   void initState() {
     super.initState();
     final query = ref.read(customerListControllerProvider).filters.query;
     _searchController = TextEditingController(text: query);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncFromUri();
+  }
+
+  void _syncFromUri() {
+    Uri uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } on Object catch (_) {
+      return;
+    }
+    if (uri == _lastSyncedUri) return;
+    _lastSyncedUri = uri;
+
+    final parsed = CustomerQueryParams.fromUri(uri).toFilters();
+    final current = ref.read(customerListControllerProvider).filters;
+    if (parsed == current) return;
+    ref.read(customerListControllerProvider.notifier).applyFilters(parsed);
+    if (_searchController.text != parsed.query) {
+      _searchController.text = parsed.query;
+    }
   }
 
   @override
@@ -53,6 +80,15 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> with De
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<CustomerListFilters>(
+      customerListControllerProvider.select((s) => s.filters),
+      (prev, next) {
+        if (prev != next) {
+          context.updateCustomerQuery(next);
+        }
+      },
+    );
+
     final kh = context.kh;
     final listState = ref.watch(customerListControllerProvider);
     final controller = ref.read(customerListControllerProvider.notifier);

@@ -1,7 +1,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:kh_admin/core/router/admin_user_query_params.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
 import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
@@ -9,6 +11,7 @@ import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
 import 'package:kh_admin/features/admin_users/controller/admin_user_controller.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_enums.dart';
+import 'package:kh_admin/features/admin_users/model/admin_user_filters.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_item.dart';
 import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
@@ -29,12 +32,38 @@ class AdminUsersScreen extends ConsumerStatefulWidget {
 
 class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
+  Uri? _lastSyncedUri;
 
   @override
   void initState() {
     super.initState();
     final query = ref.read(adminUserControllerProvider).filters.query;
     _searchController = TextEditingController(text: query);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncFromUri();
+  }
+
+  void _syncFromUri() {
+    Uri uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } on Object catch (_) {
+      return;
+    }
+    if (uri == _lastSyncedUri) return;
+    _lastSyncedUri = uri;
+
+    final parsed = AdminUserQueryParams.fromUri(uri).toFilters();
+    final current = ref.read(adminUserControllerProvider).filters;
+    if (parsed == current) return;
+    ref.read(adminUserControllerProvider.notifier).applyFilters(parsed);
+    if (_searchController.text != parsed.query) {
+      _searchController.text = parsed.query;
+    }
   }
 
   @override
@@ -394,6 +423,15 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AdminUserFilters>(
+      adminUserControllerProvider.select((s) => s.filters),
+      (prev, next) {
+        if (prev != next) {
+          context.updateAdminUserQuery(next);
+        }
+      },
+    );
+
     final kh = context.kh;
     final state = ref.watch(adminUserControllerProvider);
     final controller = ref.read(adminUserControllerProvider.notifier);

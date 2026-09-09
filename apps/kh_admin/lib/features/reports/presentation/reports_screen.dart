@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:kh_admin/core/router/report_query_params.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
 import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
@@ -28,6 +30,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   late final TextEditingController _toController;
   late final TextEditingController _regionController;
   late final TextEditingController _categoryController;
+  Uri? _lastSyncedUri;
 
   @override
   void initState() {
@@ -41,6 +44,42 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
     _regionController = TextEditingController(text: filters.regionId ?? '');
     _categoryController = TextEditingController(text: filters.categoryId ?? '');
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncFromUri();
+  }
+
+  void _syncFromUri() {
+    Uri uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } on Object catch (_) {
+      return;
+    }
+    if (uri == _lastSyncedUri) return;
+    _lastSyncedUri = uri;
+
+    final parsed = ReportQueryParams.fromUri(uri).filters;
+    final current = ref.read(reportsControllerProvider).filters;
+    if (parsed == current) return;
+    ref.read(reportsControllerProvider.notifier).applyFilters(parsed);
+    final fromStr = parsed.from != null ? ReportFilters.toIsoDate(parsed.from!) : '';
+    if (_fromController.text != fromStr) {
+      _fromController.text = fromStr;
+    }
+    final toStr = parsed.to != null ? ReportFilters.toIsoDate(parsed.to!) : '';
+    if (_toController.text != toStr) {
+      _toController.text = toStr;
+    }
+    if (_regionController.text != (parsed.regionId ?? '')) {
+      _regionController.text = parsed.regionId ?? '';
+    }
+    if (_categoryController.text != (parsed.categoryId ?? '')) {
+      _categoryController.text = parsed.categoryId ?? '';
+    }
   }
 
   @override
@@ -58,6 +97,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(reportsControllerProvider);
     final controller = ref.read(reportsControllerProvider.notifier);
+
+    ref.listen<ReportFilters>(
+      reportsControllerProvider.select((s) => s.filters),
+      (prev, next) {
+        if (prev != next) {
+          context.updateReportQuery(next);
+        }
+      },
+    );
 
     ref.listen<ReportsState>(reportsControllerProvider, (previous, next) {
       if (next.exportMessage != null &&

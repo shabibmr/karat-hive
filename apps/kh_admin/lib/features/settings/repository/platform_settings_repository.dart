@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 import 'package:kh_admin/features/settings/model/platform_setting_item.dart';
 
 final platformSettingsRepositoryProvider =
@@ -45,9 +46,10 @@ class PlatformSettingsRepository {
       data: body,
     );
 
-    if (response is Map<String, dynamic>) {
+    final map = unwrapEntity(response);
+    if (map.isNotEmpty) {
       return _enrichOfferValidity(
-        PlatformSettingItem.fromJson(_unwrapEntity(response)),
+        PlatformSettingItem.fromJson(map),
       );
     }
 
@@ -73,14 +75,6 @@ class PlatformSettingsRepository {
       );
     }
     return item;
-  }
-
-  Map<String, dynamic> _unwrapEntity(Map<String, dynamic> response) {
-    if (response['data'] is Map<String, dynamic> &&
-        response['key'] == null) {
-      return Map<String, dynamic>.from(response['data'] as Map);
-    }
-    return response;
   }
 
   String _inferDataType(dynamic value) {

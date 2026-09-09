@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_domain/kh_domain.dart' show RevealedParty, UserRole;
 import 'package:kh_admin/features/offers/model/offer_detail.dart';
 import 'package:kh_admin/features/offers/model/offer_enums.dart';
 import 'package:kh_admin/features/offers/presentation/offer_detail_screen.dart';
@@ -46,12 +47,15 @@ class _FakeOfferDetailRepository extends OfferRepository {
           winningOfferReference: 'OFF-2026-9905',
           winningOfferPrice: 13900.0,
           winningVendorName: 'Sharjah Heritage Gold',
-          parentRequest: const OfferParentRequestSummary(
+          parentRequest: OfferParentRequestSummary(
             id: 'req-1',
             reference: 'KH-RQ-2026-01482',
             requestType: RequestType.findOrnament,
-            customerName: 'Sara Al Maktoum',
-            customerMobile: '+971 50 123 4567',
+            customer: RevealedParty(
+              displayName: 'Sara Al Maktoum',
+              mobile: '+971501234567',
+              role: UserRole.customer,
+            ),
             categoryName: 'Bridal Set',
             regionName: 'Dubai',
             indicativeValue: 15000.0,
@@ -216,7 +220,7 @@ void main() {
     expect(find.text('Parent Request Reference'), findsOneWidget);
     expect(find.text('KH-RQ-2026-01482'), findsOneWidget);
     expect(
-      find.text('Sara Al Maktoum · +971 50 123 4567'),
+      find.text('Sara Al Maktoum · +971501234567'),
       findsOneWidget,
     );
     expect(find.byKey(const Key('parent-request-link')), findsOneWidget);

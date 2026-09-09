@@ -68,33 +68,72 @@ void main() {
               );
             }
 
+            final query = options.queryParameters;
+            var rows = [
+              rawAuditRow(
+                id: 'log-1',
+                action: 'VENDOR_VERIFIED',
+                entityType: 'vendor_profile',
+                entityId: 'ven-1',
+                beforeValue: {'status': 'PENDING'},
+                afterValue: {'status': 'VERIFIED'},
+                occurredAt: '2026-08-10T05:30:00.000Z', // 09:30 GST
+              ),
+              rawAuditRow(
+                id: 'log-2',
+                action: 'CUSTOMER_SUSPENDED',
+                entityType: 'customer_profile',
+                entityId: 'cust-2',
+                actorUserId: 'admin-user-002',
+                beforeValue: '{"accountState": "ACTIVE"}',
+                afterValue:
+                    '{"accountState": "SUSPENDED", "reasonCode": "TOS_BREACH"}',
+                occurredAt:
+                    '2026-08-10T22:15:00.000Z', // 02:15 GST next day
+              ),
+            ];
+
+            if (query['action'] != null) {
+              final a = query['action'].toString().toLowerCase();
+              rows = rows
+                  .where((r) =>
+                      r['action'].toString().toLowerCase().contains(a))
+                  .toList();
+            }
+            if (query['entityType'] != null) {
+              rows = rows
+                  .where((r) => r['entityType'] == query['entityType'])
+                  .toList();
+            }
+            if (query['actorUserId'] != null) {
+              rows = rows
+                  .where((r) => r['actorUserId'] == query['actorUserId'])
+                  .toList();
+            }
+            if (query['from'] != null) {
+              final fromDt = DateTime.parse(query['from'].toString());
+              rows = rows
+                  .where((r) =>
+                      !DateTime.parse(r['occurredAt'].toString())
+                          .isBefore(fromDt))
+                  .toList();
+            }
+            if (query['to'] != null) {
+              final toDt = DateTime.parse(query['to'].toString());
+              rows = rows
+                  .where((r) =>
+                      !DateTime.parse(r['occurredAt'].toString())
+                          .isAfter(toDt))
+                  .toList();
+            }
+
             return handler.resolve(
               Response(
                 requestOptions: options,
                 statusCode: 200,
                 data: {
                   'data': {
-                    'data': [
-                      rawAuditRow(
-                        id: 'log-1',
-                        action: 'VENDOR_VERIFIED',
-                        entityType: 'vendor_profile',
-                        entityId: 'ven-1',
-                        beforeValue: {'status': 'PENDING'},
-                        afterValue: {'status': 'VERIFIED'},
-                        occurredAt: '2026-08-10T05:30:00.000Z', // 09:30 GST
-                      ),
-                      rawAuditRow(
-                        id: 'log-2',
-                        action: 'CUSTOMER_SUSPENDED',
-                        entityType: 'customer_profile',
-                        entityId: 'cust-2',
-                        actorUserId: 'admin-user-002',
-                        beforeValue: '{"accountState": "ACTIVE"}',
-                        afterValue: '{"accountState": "SUSPENDED", "reasonCode": "TOS_BREACH"}',
-                        occurredAt: '2026-08-10T22:15:00.000Z', // 02:15 GST next day
-                      ),
-                    ],
+                    'data': rows,
                     'nextCursor': 'cursor-page-2',
                   },
                   'meta': {'requestId': 'req-audit-1'},
@@ -204,7 +243,6 @@ void main() {
 
       expect(page.nextCursor, 'cursor-page-2');
       expect(page.hasMore, isTrue);
-      expect(page.canLoadMore, isTrue);
     });
 
     test('fetches next page using cursor parameter', () async {
@@ -216,7 +254,6 @@ void main() {
       expect(secondPage.items.first.action, 'SETTINGS_UPDATED');
       expect(secondPage.nextCursor, isNull);
       expect(secondPage.hasMore, isFalse);
-      expect(secondPage.canLoadMore, isFalse);
     });
   });
 

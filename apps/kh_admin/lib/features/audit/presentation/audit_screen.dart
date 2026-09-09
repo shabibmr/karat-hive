@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:kh_admin/core/router/audit_query_params.dart';
 
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
@@ -71,6 +74,8 @@ class _AuditScreenState extends ConsumerState<AuditScreen> {
   late final TextEditingController _actorSearchController;
   late final TextEditingController _ipSearchController;
 
+  Uri? _lastSyncedUri;
+
   @override
   void initState() {
     super.initState();
@@ -79,6 +84,37 @@ class _AuditScreenState extends ConsumerState<AuditScreen> {
     _actorSearchController =
         TextEditingController(text: filters.actorUserId ?? '');
     _ipSearchController = TextEditingController(text: filters.ip ?? '');
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncFromUri();
+  }
+
+  void _syncFromUri() {
+    Uri uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } on Object catch (_) {
+      return;
+    }
+    if (uri == _lastSyncedUri) return;
+    _lastSyncedUri = uri;
+
+    final parsed = AuditQueryParams.fromUri(uri).filters;
+    final current = ref.read(auditControllerProvider).filters;
+    if (parsed == current) return;
+    ref.read(auditControllerProvider.notifier).applyFilters(parsed);
+    if (_actionSearchController.text != (parsed.action ?? '')) {
+      _actionSearchController.text = parsed.action ?? '';
+    }
+    if (_actorSearchController.text != (parsed.actorUserId ?? '')) {
+      _actorSearchController.text = parsed.actorUserId ?? '';
+    }
+    if (_ipSearchController.text != (parsed.ip ?? '')) {
+      _ipSearchController.text = parsed.ip ?? '';
+    }
   }
 
   @override
@@ -408,6 +444,15 @@ class _AuditScreenState extends ConsumerState<AuditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AuditLogFilters>(
+      auditControllerProvider.select((s) => s.filters),
+      (prev, next) {
+        if (prev != next) {
+          context.updateAuditQuery(next);
+        }
+      },
+    );
+
     final kh = context.kh;
     final colors = kh.colors;
     final spacing = kh.spacing;

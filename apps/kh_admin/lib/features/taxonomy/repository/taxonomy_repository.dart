@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 import 'package:kh_admin/features/taxonomy/model/taxonomy_dto.dart';
 import 'package:kh_admin/features/taxonomy/model/taxonomy_kind.dart';
 import 'package:kh_admin/features/taxonomy/model/taxonomy_node.dart';
@@ -21,17 +22,14 @@ class TaxonomyRepository {
 
   /// Fetches the Category taxonomy tree.
   Future<List<TaxonomyNode>> fetchCategories({bool includeInactive = true}) async {
-    final response = await _apiClient.get(
+    final response = await _apiClient.getCollection(
       '/v1/admin/categories',
       queryParameters: {'includeInactive': includeInactive.toString()},
     );
-
-    if (response is List) {
-      return response
-          .map((item) => TaxonomyNode.fromJson(item as Map<String, dynamic>))
-          .toList();
-    }
-    return const [];
+    return response.items
+        .whereType<Map<String, dynamic>>()
+        .map(TaxonomyNode.fromJson)
+        .toList();
   }
 
   /// Creates a new Category node.
@@ -40,7 +38,7 @@ class TaxonomyRepository {
       '/v1/admin/categories',
       data: dto.toJson(),
     );
-    return TaxonomyNode.fromJson(response as Map<String, dynamic>);
+    return TaxonomyNode.fromJson(unwrapEntity(response));
   }
 
   /// Updates an existing Category node.
@@ -50,7 +48,7 @@ class TaxonomyRepository {
       '/v1/admin/categories/$id',
       data: payload,
     );
-    return TaxonomyNode.fromJson(response as Map<String, dynamic>);
+    return TaxonomyNode.fromJson(unwrapEntity(response));
   }
 
   /// Deactivates a Category node (preserves historical associations; no hard delete per SAM-GAP-9).
@@ -58,22 +56,19 @@ class TaxonomyRepository {
     final response = await _apiClient.post(
       '/v1/admin/categories/$id/deactivate',
     );
-    return TaxonomyNode.fromJson(response as Map<String, dynamic>);
+    return TaxonomyNode.fromJson(unwrapEntity(response));
   }
 
   /// Fetches the Region taxonomy tree.
   Future<List<TaxonomyNode>> fetchRegions({bool includeInactive = true}) async {
-    final response = await _apiClient.get(
+    final response = await _apiClient.getCollection(
       '/v1/admin/regions',
       queryParameters: {'includeInactive': includeInactive.toString()},
     );
-
-    if (response is List) {
-      return response
-          .map((item) => TaxonomyNode.fromJson(item as Map<String, dynamic>))
-          .toList();
-    }
-    return const [];
+    return response.items
+        .whereType<Map<String, dynamic>>()
+        .map(TaxonomyNode.fromJson)
+        .toList();
   }
 
   /// Creates a new Region node.
@@ -82,7 +77,7 @@ class TaxonomyRepository {
       '/v1/admin/regions',
       data: dto.toJson(),
     );
-    return TaxonomyNode.fromJson(response as Map<String, dynamic>);
+    return TaxonomyNode.fromJson(unwrapEntity(response));
   }
 
   /// Updates an existing Region node.
@@ -92,7 +87,7 @@ class TaxonomyRepository {
       '/v1/admin/regions/$id',
       data: payload,
     );
-    return TaxonomyNode.fromJson(response as Map<String, dynamic>);
+    return TaxonomyNode.fromJson(unwrapEntity(response));
   }
 
   /// Deactivates a Region node (preserves historical associations; no hard delete per SAM-GAP-9).
@@ -100,7 +95,7 @@ class TaxonomyRepository {
     final response = await _apiClient.post(
       '/v1/admin/regions/$id/deactivate',
     );
-    return TaxonomyNode.fromJson(response as Map<String, dynamic>);
+    return TaxonomyNode.fromJson(unwrapEntity(response));
   }
 
   /// Generic vertical-unified fetch by [TaxonomyKind].

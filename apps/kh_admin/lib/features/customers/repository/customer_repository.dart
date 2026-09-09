@@ -45,11 +45,33 @@ class CustomerRepository {
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
 
+    // Access to customer personal data in bulk is audit-logged (FR-ADM-010 AC5, ADM-INS-40, TR-S1-30).
+    if (cursor == null || cursor.isEmpty) {
+      await logCustomerListAccess();
+    }
+
     return CustomerListPage(
       items: items,
       nextCursor: nextCursor,
-      hasMore: hasMoreFromCursor(nextCursor),
+      totalCount:
+          meta?['total'] is num ? (meta!['total'] as num).toInt() : null,
     );
+  }
+
+  /// Records an access audit log entry when the customer list is loaded (FR-ADM-010 AC5 / ADM-INS-40).
+  Future<void> logCustomerListAccess() async {
+    try {
+      await _apiClient.post(
+        '/v1/admin/audit-log',
+        data: <String, dynamic>{
+          'action': 'CUSTOMER_LIST_VIEWED',
+          'entityType': 'customer_list',
+          'occurredAt': DateTime.now().toUtc().toIso8601String(),
+        },
+      );
+    } on Object {
+      // Best-effort audit logging; swallow failures so list loading is never blocked.
+    }
   }
 
   /// Normalizes a raw Prisma customer row into the format expected by [CustomerListItem].
@@ -98,9 +120,7 @@ class CustomerRepository {
   /// Calls `GET /v1/admin/customers/$customerId` and joins with admin notes.
   Future<CustomerDetail> fetchCustomerDetail(String customerId) async {
     final response = await _apiClient.get('/v1/admin/customers/$customerId');
-    final map = response is Map<String, dynamic>
-        ? Map<String, dynamic>.from(response)
-        : <String, dynamic>{};
+    final map = unwrapEntity(response);
 
     List<CustomerAdminNote> notes = const [];
     try {
@@ -168,9 +188,7 @@ class CustomerRepository {
       '/v1/admin/customers/$customerId/notes',
       data: {'text': text},
     );
-    final map = response is Map<String, dynamic>
-        ? Map<String, dynamic>.from(response)
-        : <String, dynamic>{};
+    final map = unwrapEntity(response);
     return CustomerAdminNote.fromJson(map);
   }
 
@@ -180,18 +198,13 @@ class CustomerRepository {
   Future<List<CustomerAdminNote>> listAdminNotes(String customerId) async {
     final response =
         await _apiClient.get('/v1/admin/customers/$customerId/notes');
-    List<dynamic> list;
     if (response is List) {
-      list = response;
-    } else if (response is Map<String, dynamic> && response['data'] is List) {
-      list = response['data'] as List;
-    } else {
-      list = const [];
+      return response
+          .whereType<Map<String, dynamic>>()
+          .map(CustomerAdminNote.fromJson)
+          .toList();
     }
-    return list
-        .whereType<Map<String, dynamic>>()
-        .map(CustomerAdminNote.fromJson)
-        .toList();
+    return const [];
   }
 }
 

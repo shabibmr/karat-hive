@@ -11,6 +11,7 @@ import 'package:kh_admin/features/connections/controller/connection_list_control
 import 'package:kh_admin/features/connections/model/connection_enums.dart';
 import 'package:kh_admin/features/connections/model/connection_list_filters.dart';
 import 'package:kh_admin/features/connections/model/connection_list_item.dart';
+import 'package:kh_admin/core/router/connection_query_params.dart';
 import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S12 · Connection list — Browse Introductions, monitor contact SLAs, and flag failed talks.
@@ -23,12 +24,38 @@ class ConnectionListScreen extends ConsumerStatefulWidget {
 
 class _ConnectionListScreenState extends ConsumerState<ConnectionListScreen> with DebouncedSearchMixin {
   late final TextEditingController _searchController;
+  Uri? _lastSyncedUri;
 
   @override
   void initState() {
     super.initState();
     final query = ref.read(connectionListControllerProvider).filters.query;
     _searchController = TextEditingController(text: query);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncFromUri();
+  }
+
+  void _syncFromUri() {
+    Uri uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } on Object catch (_) {
+      return;
+    }
+    if (uri == _lastSyncedUri) return;
+    _lastSyncedUri = uri;
+
+    final parsed = ConnectionQueryParams.fromUri(uri).toFilters();
+    final current = ref.read(connectionListControllerProvider).filters;
+    if (parsed == current) return;
+    ref.read(connectionListControllerProvider.notifier).applyFilters(parsed);
+    if (_searchController.text != parsed.query) {
+      _searchController.text = parsed.query;
+    }
   }
 
   @override
@@ -53,6 +80,15 @@ class _ConnectionListScreenState extends ConsumerState<ConnectionListScreen> wit
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<ConnectionListFilters>(
+      connectionListControllerProvider.select((s) => s.filters),
+      (prev, next) {
+        if (prev != next) {
+          context.updateConnectionQuery(next);
+        }
+      },
+    );
+
     final kh = context.kh;
     final listState = ref.watch(connectionListControllerProvider);
     final controller = ref.read(connectionListControllerProvider.notifier);

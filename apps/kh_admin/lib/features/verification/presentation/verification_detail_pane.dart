@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import 'package:kh_admin/core/api/api_client.dart' show khApiBase;
-import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/core/error/api_error_messages.dart';
 import 'package:kh_admin/core/platform/open_url.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 import 'package:kh_admin/features/verification/controller/verification_controller.dart';
 import 'package:kh_admin/features/verification/model/vendor_verification_detail.dart';
-import 'package:kh_admin/features/verification/repository/verification_repository.dart';
 import 'package:kh_admin/features/verification/presentation/verification_dialogs.dart';
 import 'package:kh_admin/core/format/kh_formats.dart';
 
@@ -33,11 +31,6 @@ class VerificationDetailPane extends ConsumerStatefulWidget {
 
 class _VerificationDetailPaneState
     extends ConsumerState<VerificationDetailPane> {
-  String? _loadingDocId;
-  String? _docError;
-  String? _openedDocId;
-  String? _openedDocUrl;
-
   String _formatDocType(AppLocalizations? l10n, String type) {
     return switch (type) {
       'TRADE_LICENCE' => l10n?.documentTypeTradeLicence ?? 'Trade Licence',
@@ -49,49 +42,14 @@ class _VerificationDetailPaneState
     };
   }
 
-  /// origin/main's document-url endpoint returns a RELATIVE path
-  /// (`/v1/media/<key>`), not a signed absolute URL. Prefix the API base so the
-  /// browser can resolve it. NOTE: `/v1/media/<key>` is an authenticated route
-  /// and opening it in a new tab cannot attach the bearer token — a signed /
-  /// public media URL from the backend is still needed for this to actually
-  /// render. Until then this at least points at the right origin.
-  String _resolveDocumentUrl(String url) {
-    if (url.startsWith('/')) {
-      return '${khApiBase.replaceAll(RegExp(r'/+$'), '')}$url';
-    }
-    return url;
-  }
-
   Future<void> _viewDocument(VendorDocumentDetail doc) async {
-    if (widget.vendorId == null) return;
-    setState(() {
-      _loadingDocId = doc.id;
-      _docError = null;
-    });
-
-    try {
-      final repository = ref.read(verificationRepositoryProvider);
-      final res = await repository.fetchDocumentUrl(
-        vendorId: widget.vendorId!,
-        documentId: doc.id,
-      );
-
-      if (mounted) {
-        final resolvedUrl = _resolveDocumentUrl(res.url);
-        setState(() {
-          _loadingDocId = null;
-          _openedDocId = doc.id;
-          _openedDocUrl = resolvedUrl;
-        });
-        openUrlInNewTab(resolvedUrl);
-      }
-    } on Object catch (e) {
-      if (mounted) {
-        setState(() {
-          _loadingDocId = null;
-          _docError = e is ApiException ? e.message : e.toString();
-        });
-      }
+    final vendorId = widget.vendorId;
+    if (vendorId == null) return;
+    final url = await ref
+        .read(verificationDocViewControllerProvider(vendorId).notifier)
+        .openDocument(doc.id);
+    if (url != null) {
+      openUrlInNewTab(url);
     }
   }
 
@@ -438,6 +396,12 @@ class _VerificationDetailPaneState
     final spacing = context.kh.spacing;
     final shapes = context.kh.shapes;
 
+    final docView =
+        ref.watch(verificationDocViewControllerProvider(widget.vendorId!));
+    final docErrorMessage = docView.error == null
+        ? null
+        : resolveApiErrorMessage(docView.error!, l10n);
+
     return Container(
       padding: EdgeInsets.all(spacing.md),
       decoration: BoxDecoration(
@@ -463,7 +427,7 @@ class _VerificationDetailPaneState
             ],
           ),
           SizedBox(height: spacing.md),
-          if (_docError != null) ...[
+          if (docErrorMessage != null) ...[
             Container(
               padding: EdgeInsets.all(spacing.sm),
               margin: EdgeInsets.only(bottom: spacing.sm),
@@ -478,7 +442,7 @@ class _VerificationDetailPaneState
                   SizedBox(width: spacing.xs),
                   Expanded(
                     child: Text(
-                      _docError!,
+                      docErrorMessage,
                       style: typography.caption.copyWith(color: colors.cream100),
                     ),
                   ),
@@ -502,8 +466,8 @@ class _VerificationDetailPaneState
               separatorBuilder: (_, __) => SizedBox(height: spacing.sm),
               itemBuilder: (context, index) {
                 final doc = detail.documents[index];
-                final isOpening = _loadingDocId == doc.id;
-                final isLastOpened = _openedDocId == doc.id;
+                final isOpening = docView.loadingDocId == doc.id;
+                final isLastOpened = docView.openedDocId == doc.id;
 
                 return Container(
                   key: Key('document-row-${doc.id}'),
@@ -587,7 +551,7 @@ class _VerificationDetailPaneState
               },
             ),
 
-          if (_openedDocUrl != null) ...[
+          if (docView.openedDocUrl != null) ...[
             SizedBox(height: spacing.md),
             Container(
               key: const Key('verification-document-viewer'),
@@ -603,7 +567,7 @@ class _VerificationDetailPaneState
                   SizedBox(width: spacing.xs),
                   Expanded(
                     child: Text(
-                      'Document opened: $_openedDocUrl',
+                      'Document opened: ${docView.openedDocUrl}',
                       style: typography.caption
                           .copyWith(color: colors.textSecondary),
                       maxLines: 1,
@@ -611,7 +575,7 @@ class _VerificationDetailPaneState
                     ),
                   ),
                   TextButton(
-                    onPressed: () => openUrlInNewTab(_openedDocUrl!),
+                    onPressed: () => openUrlInNewTab(docView.openedDocUrl!),
                     child: const Text('Re-open'),
                   ),
                 ],

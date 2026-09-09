@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
+import 'package:kh_admin/core/design/widgets/kh_feedback_banner.dart';
 import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
 import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
@@ -81,7 +82,12 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
               _buildHeader(kh, detail),
               if (_actionFeedback != null) ...[
                 SizedBox(height: kh.spacing.md),
-                _buildFeedbackBanner(kh),
+                KhFeedbackBanner(
+                  key: const Key('request-feedback-banner'),
+                  message: _actionFeedback!,
+                  isSuccess: _actionSuccess,
+                  onDismiss: () => setState(() => _actionFeedback = null),
+                ),
               ],
               if (detail.isRemoved) ...[
                 SizedBox(height: kh.spacing.md),
@@ -242,38 +248,6 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildFeedbackBanner(KhThemeExtension kh) {
-    final isSuccess = _actionSuccess;
-    final color = isSuccess ? kh.colors.success : kh.colors.error;
-
-    return Container(
-      key: const Key('request-feedback-banner'),
-      padding: EdgeInsets.all(kh.spacing.sm),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: kh.shapes.roundedMd,
-        border: Border.all(color: color.withValues(alpha: 0.4)),
-      ),
-      child: Row(
-        children: [
-          Icon(isSuccess ? Icons.check_circle : Icons.error, color: color, size: 20.0),
-          SizedBox(width: kh.spacing.sm),
-          Expanded(
-            child: Text(
-              _actionFeedback!,
-              style: kh.typography.bodySmall.copyWith(color: color, fontSize: 13.0),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close, size: 16.0),
-            color: color,
-            onPressed: () => setState(() => _actionFeedback = null),
-          ),
-        ],
-      ),
     );
   }
 

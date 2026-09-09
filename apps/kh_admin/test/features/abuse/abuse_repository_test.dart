@@ -53,16 +53,34 @@ void main() {
           final path = options.path;
 
           if (path == '/v1/admin/abuse-reports') {
+            final query = options.queryParameters;
+            var rows = [
+              rawAbuseReportRow(id: 'ab-1', state: 'OPEN', entityType: 'VENDOR'),
+              rawAbuseReportRow(id: 'ab-2', state: 'RESOLVED', entityType: 'CUSTOMER'),
+            ];
+
+            if (query['state'] != null) {
+              rows = rows.where((r) => r['state'] == query['state']).toList();
+            }
+            if (query['entityType'] != null) {
+              rows = rows.where((r) => r['entityType'] == query['entityType']).toList();
+            }
+            if (query['q'] != null) {
+              final q = query['q'].toString().toLowerCase();
+              rows = rows
+                  .where((r) =>
+                      r['id'].toString().toLowerCase().contains(q) ||
+                      r['description'].toString().toLowerCase().contains(q))
+                  .toList();
+            }
+
             return handler.resolve(
               Response(
                 requestOptions: options,
                 statusCode: 200,
                 data: {
                   'data': {
-                    'data': [
-                      rawAbuseReportRow(id: 'ab-1', state: 'OPEN'),
-                      rawAbuseReportRow(id: 'ab-2', state: 'RESOLVED'),
-                    ],
+                    'data': rows,
                     'nextCursor': 'ab-2',
                   },
                   'meta': {'nextCursor': 'ab-2'},
@@ -127,7 +145,7 @@ void main() {
       expect(page.nextCursor, 'ab-2');
     });
 
-    test('filters abuse reports by query client-side', () async {
+    test('filters abuse reports by query via query parameters', () async {
       final client = buildClient();
       final repo = AbuseRepository(client);
 
@@ -137,6 +155,18 @@ void main() {
 
       expect(page.items.length, 1);
       expect(page.items.first.id, 'ab-1');
+    });
+
+    test('filters abuse reports by entityType via query parameters', () async {
+      final client = buildClient();
+      final repo = AbuseRepository(client);
+
+      final page = await repo.fetchAbuseReports(
+        filters: const AbuseReportFilters(entityType: AbuseEntityType.customer),
+      );
+
+      expect(page.items.length, 1);
+      expect(page.items.first.id, 'ab-2');
     });
 
     test('calls resolve endpoint with rationale', () async {

@@ -1,12 +1,68 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kh_admin/core/router/query_navigation.dart';
+import 'package:kh_admin/core/router/query_params_codec.dart';
 import 'package:kh_admin/features/offers/model/offer_enums.dart';
 import 'package:kh_admin/features/offers/model/offer_list_filters.dart';
-import 'package:kh_admin/core/router/query_navigation.dart';
+
+/// Codec for encoding/decoding offer list query state (TR-S1-25 / ADM-SMP-07).
+class OfferQueryParamsCodec extends QueryParamsCodec<OfferListFilters> {
+  const OfferQueryParamsCodec();
+
+  @override
+  OfferListFilters decodeFilters(Map<String, String> query) {
+    final q = query['q'];
+    final vendorId = query['vendorId'];
+    return OfferListFilters(
+      query: (q == null || q.isEmpty) ? '' : q,
+      state: OfferState.fromApi(query['state']),
+      requestType: RequestType.fromApi(query['requestType']),
+      vendorId: (vendorId == null || vendorId.isEmpty) ? null : vendorId,
+      dateFrom: _parseDate(query['dateFrom']),
+      dateTo: _parseDate(query['dateTo']),
+      minPrice: _parseDecimal(query['minPrice']),
+      maxPrice: _parseDecimal(query['maxPrice']),
+    );
+  }
+
+  @override
+  Map<String, String> encodeFilters(OfferListFilters filters) {
+    final params = <String, String>{};
+    if (filters.query.isNotEmpty) {
+      params['q'] = filters.query;
+    }
+    if (filters.state != null) {
+      params['state'] = filters.state!.apiValue;
+    }
+    if (filters.requestType != null) {
+      params['requestType'] = filters.requestType!.apiValue;
+    }
+    if (filters.vendorId != null && filters.vendorId!.isNotEmpty) {
+      params['vendorId'] = filters.vendorId!;
+    }
+    final from = _formatDate(filters.dateFrom);
+    if (from != null) {
+      params['dateFrom'] = from;
+    }
+    final to = _formatDate(filters.dateTo);
+    if (to != null) {
+      params['dateTo'] = to;
+    }
+    if (filters.minPrice != null) {
+      params['minPrice'] = filters.minPrice.toString();
+    }
+    if (filters.maxPrice != null) {
+      params['maxPrice'] = filters.maxPrice.toString();
+    }
+    return params;
+  }
+}
 
 /// Offer list query state encoded in URL query parameters (AD-FE §16.2).
 class OfferQueryParams {
+  static const codec = OfferQueryParamsCodec();
+
   const OfferQueryParams({
     this.query,
     this.state,
@@ -16,6 +72,8 @@ class OfferQueryParams {
     this.dateTo,
     this.minPrice,
     this.maxPrice,
+    this.cursor,
+    this.selectedId,
   });
 
   final String? query;
@@ -26,27 +84,33 @@ class OfferQueryParams {
   final DateTime? dateTo;
   final double? minPrice;
   final double? maxPrice;
+  final String? cursor;
+  final String? selectedId;
 
   factory OfferQueryParams.fromUri(Uri uri) {
-    final q = uri.queryParameters['q'];
-    final vendorId = uri.queryParameters['vendorId'];
+    final state = codec.fromUri(uri);
     return OfferQueryParams(
-      query: (q == null || q.isEmpty) ? null : q,
-      state: OfferState.fromApi(uri.queryParameters['state']),
-      requestType: RequestType.fromApi(uri.queryParameters['requestType']),
-      vendorId: (vendorId == null || vendorId.isEmpty) ? null : vendorId,
-      dateFrom: _parseDate(uri.queryParameters['dateFrom']),
-      dateTo: _parseDate(uri.queryParameters['dateTo']),
-      minPrice: _parseDecimal(uri.queryParameters['minPrice']),
-      maxPrice: _parseDecimal(uri.queryParameters['maxPrice']),
+      query: state.filters.query.isEmpty ? null : state.filters.query,
+      state: state.filters.state,
+      requestType: state.filters.requestType,
+      vendorId: state.filters.vendorId,
+      dateFrom: state.filters.dateFrom,
+      dateTo: state.filters.dateTo,
+      minPrice: state.filters.minPrice,
+      maxPrice: state.filters.maxPrice,
+      cursor: state.cursor,
+      selectedId: state.selectedId,
     );
   }
 
-  factory OfferQueryParams.fromState(GoRouterState state) {
-    return OfferQueryParams.fromUri(state.uri);
-  }
+  factory OfferQueryParams.fromState(GoRouterState state) =>
+      OfferQueryParams.fromUri(state.uri);
 
-  factory OfferQueryParams.fromFilters(OfferListFilters filters) {
+  factory OfferQueryParams.fromFilters(
+    OfferListFilters filters, {
+    String? cursor,
+    String? selectedId,
+  }) {
     return OfferQueryParams(
       query: filters.query.isEmpty ? null : filters.query,
       state: filters.state,
@@ -56,6 +120,8 @@ class OfferQueryParams {
       dateTo: _dateOnly(filters.dateTo),
       minPrice: filters.minPrice,
       maxPrice: filters.maxPrice,
+      cursor: cursor,
+      selectedId: selectedId,
     );
   }
 
@@ -73,34 +139,13 @@ class OfferQueryParams {
   }
 
   Map<String, String> toQueryParameters() {
-    final params = <String, String>{};
-    if (query != null && query!.isNotEmpty) {
-      params['q'] = query!;
-    }
-    if (state != null) {
-      params['state'] = state!.apiValue;
-    }
-    if (requestType != null) {
-      params['requestType'] = requestType!.apiValue;
-    }
-    if (vendorId != null && vendorId!.isNotEmpty) {
-      params['vendorId'] = vendorId!;
-    }
-    final from = _formatDate(dateFrom);
-    if (from != null) {
-      params['dateFrom'] = from;
-    }
-    final to = _formatDate(dateTo);
-    if (to != null) {
-      params['dateTo'] = to;
-    }
-    if (minPrice != null) {
-      params['minPrice'] = minPrice.toString();
-    }
-    if (maxPrice != null) {
-      params['maxPrice'] = maxPrice.toString();
-    }
-    return params;
+    return codec.encode(
+      ListUrlState<OfferListFilters>(
+        filters: toFilters(),
+        cursor: cursor,
+        selectedId: selectedId,
+      ),
+    );
   }
 
   OfferQueryParams copyWith({
@@ -112,7 +157,11 @@ class OfferQueryParams {
     DateTime? dateTo,
     double? minPrice,
     double? maxPrice,
+    String? cursor,
+    String? selectedId,
     bool clearQuery = false,
+    bool clearCursor = false,
+    bool clearSelected = false,
   }) {
     return OfferQueryParams(
       query: clearQuery ? null : (query ?? this.query),
@@ -123,14 +172,26 @@ class OfferQueryParams {
       dateTo: dateTo ?? this.dateTo,
       minPrice: minPrice ?? this.minPrice,
       maxPrice: maxPrice ?? this.maxPrice,
+      cursor: clearCursor ? null : (cursor ?? this.cursor),
+      selectedId: clearSelected ? null : (selectedId ?? this.selectedId),
     );
   }
 }
 
 /// Extension on [BuildContext] for updating offer list query parameters.
 extension OfferQueryNavigation on BuildContext {
-  void updateOfferQuery(OfferListFilters filters) {
-    applyQueryParameters(OfferQueryParams.fromFilters(filters).toQueryParameters());
+  void updateOfferQuery(
+    OfferListFilters filters, {
+    String? cursor,
+    String? selectedId,
+  }) {
+    applyQueryParameters(
+      OfferQueryParams.fromFilters(
+        filters,
+        cursor: cursor,
+        selectedId: selectedId,
+      ).toQueryParameters(),
+    );
   }
 }
 
@@ -139,24 +200,17 @@ DateTime? _dateOnly(DateTime? value) {
   return DateTime(value.year, value.month, value.day);
 }
 
-String? _formatDate(DateTime? value) {
-  if (value == null) return null;
-  final year = value.year.toString().padLeft(4, '0');
-  final month = value.month.toString().padLeft(2, '0');
-  final day = value.day.toString().padLeft(2, '0');
-  return '$year-$month-$day';
-}
-
 DateTime? _parseDate(String? raw) {
   if (raw == null || raw.isEmpty) return null;
-  final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(raw);
-  if (match == null) return null;
-  final year = int.tryParse(match.group(1)!);
-  final month = int.tryParse(match.group(2)!);
-  final day = int.tryParse(match.group(3)!);
-  if (year == null || month == null || day == null) return null;
-  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-  return DateTime(year, month, day);
+  return DateTime.tryParse(raw);
+}
+
+String? _formatDate(DateTime? value) {
+  if (value == null) return null;
+  final y = value.year.toString().padLeft(4, '0');
+  final m = value.month.toString().padLeft(2, '0');
+  final d = value.day.toString().padLeft(2, '0');
+  return '$y-$m-$d';
 }
 
 double? _parseDecimal(String? raw) {

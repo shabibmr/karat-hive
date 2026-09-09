@@ -1,6 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/core/list/paginated.dart';
 import 'package:kh_admin/features/admin_users/controller/admin_user_controller.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_enums.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_filters.dart';
@@ -48,11 +50,17 @@ class _FakeAdminUserRepository extends AdminUserRepository {
   String? lastRevokedId;
 
   @override
-  Future<List<AdminUserItem>> fetchAdmins({
+  Future<Paginated<AdminUserItem>> fetchAdmins({
     AdminUserFilters filters = const AdminUserFilters(),
+    String? cursor,
+    int limit = 20,
   }) async {
     if (shouldFailFetch) throw Exception('Network timeout');
-    return admins.where(filters.matches).toList();
+    final filtered = admins.where(filters.matches).toList();
+    return Paginated<AdminUserItem>(
+      items: filtered,
+      totalCount: filtered.length,
+    );
   }
 
   @override
@@ -103,16 +111,34 @@ class _FakeAdminUserRepository extends AdminUserRepository {
   }
 }
 
+Future<void> _settle(ProviderContainer container) async {
+  for (var i = 0; i < 20; i++) {
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    if (!container.read(adminUserControllerProvider).isLoading) return;
+  }
+  fail('AdminUserController did not finish loading');
+}
+
 void main() {
+  late ProviderContainer container;
+  late _FakeAdminUserRepository repo;
+
+  setUp(() {
+    repo = _FakeAdminUserRepository();
+    container = ProviderContainer(
+      overrides: [
+        adminUserRepositoryProvider.overrideWithValue(repo),
+      ],
+    );
+  });
+
+  tearDown(() => container.dispose());
+
   group('AdminUserController', () {
     test('initial state loads admins and populates counts', () async {
-      final repo = _FakeAdminUserRepository();
-      final controller = AdminUserController(repo);
+      await _settle(container);
 
-      // Initial constructor triggers loadAdmins
-      await Future<void>.delayed(Duration.zero);
-
-      final state = controller.state;
+      final state = container.read(adminUserControllerProvider);
       expect(state.isLoading, isFalse);
       expect(state.admins.length, 3);
       expect(state.totalCount, 3);
@@ -123,108 +149,118 @@ void main() {
     });
 
     test('loadAdmins records error message on failure', () async {
-      final repo = _FakeAdminUserRepository()..shouldFailFetch = true;
-      final controller = AdminUserController(repo);
+      repo.shouldFailFetch = true;
+      final controller = container.read(adminUserControllerProvider.notifier);
+      await controller.loadAdmins();
 
-      await Future<void>.delayed(Duration.zero);
-
-      expect(controller.state.isLoading, isFalse);
-      expect(controller.state.admins, isEmpty);
-      expect(controller.state.errorMessage, contains('Network timeout'));
+      final state = container.read(adminUserControllerProvider);
+      expect(state.isLoading, isFalse);
+      expect(state.admins, isEmpty);
+      expect(state.errorMessage, contains('Network timeout'));
     });
 
     test('setSearchQuery and setStateFilter dynamically update filteredAdmins', () async {
-      final repo = _FakeAdminUserRepository();
-      final controller = AdminUserController(repo);
-      await Future<void>.delayed(Duration.zero);
+      await _settle(container);
 
-      expect(controller.state.filteredAdmins.length, 3);
+      final controller = container.read(adminUserControllerProvider.notifier);
+      expect(container.read(adminUserControllerProvider).filteredAdmins.length, 3);
 
       controller.setSearchQuery('bob');
-      expect(controller.state.filteredAdmins.length, 1);
-      expect(controller.state.filteredAdmins.first.displayName, 'Bob Admin');
+      await _settle(container);
+      expect(container.read(adminUserControllerProvider).filteredAdmins.length, 1);
+      expect(container.read(adminUserControllerProvider).filteredAdmins.first.displayName, 'Bob Admin');
 
       controller.resetFilters();
-      expect(controller.state.filteredAdmins.length, 3);
+      await _settle(container);
+      expect(container.read(adminUserControllerProvider).filteredAdmins.length, 3);
 
       controller.setStateFilter(AdminAccountState.active);
-      expect(controller.state.filteredAdmins.length, 1);
-      expect(controller.state.filteredAdmins.first.displayName, 'Alice Admin');
+      await _settle(container);
+      expect(container.read(adminUserControllerProvider).filteredAdmins.length, 1);
+      expect(container.read(adminUserControllerProvider).filteredAdmins.first.displayName, 'Alice Admin');
 
       controller.setStateFilter(null);
-      expect(controller.state.filteredAdmins.length, 3);
+      await _settle(container);
+      expect(container.read(adminUserControllerProvider).filteredAdmins.length, 3);
     });
 
     test('provisionAdmin creates admin and reloads list', () async {
-      final repo = _FakeAdminUserRepository();
-      final controller = AdminUserController(repo);
-      await Future<void>.delayed(Duration.zero);
+      await _settle(container);
 
+      final controller = container.read(adminUserControllerProvider.notifier);
       final success = await controller.provisionAdmin(
         email: 'diana@karathive.ae',
         displayName: 'Diana Admin',
       );
+      await _settle(container);
 
       expect(success, isTrue);
       expect(repo.lastCreatedEmail, 'diana@karathive.ae');
       expect(repo.lastCreatedDisplayName, 'Diana Admin');
-      expect(controller.state.admins.length, 4);
-      expect(controller.state.activeCount, 2);
-      expect(controller.state.actionSuccessMessage, isNotNull);
+      final state = container.read(adminUserControllerProvider);
+      expect(state.admins.length, 4);
+      expect(state.activeCount, 2);
     });
 
     test('provisionAdmin sets errorMessage on failure', () async {
-      final repo = _FakeAdminUserRepository()..shouldFailCreate = true;
-      final controller = AdminUserController(repo);
-      await Future<void>.delayed(Duration.zero);
+      repo.shouldFailCreate = true;
+      await _settle(container);
 
+      final controller = container.read(adminUserControllerProvider.notifier);
       final success = await controller.provisionAdmin(
         email: 'dup@karathive.ae',
         displayName: 'Duplicate',
       );
 
       expect(success, isFalse);
-      expect(controller.state.errorMessage, contains('Duplicate email'));
+      final state = container.read(adminUserControllerProvider);
+      expect(state.errorMessage, contains('Duplicate email'));
     });
 
     test('suspendAdmin updates account state and refreshes list', () async {
-      final repo = _FakeAdminUserRepository();
-      final controller = AdminUserController(repo);
-      await Future<void>.delayed(Duration.zero);
+      await _settle(container);
 
-      expect(controller.state.activeCount, 1);
-      expect(controller.state.suspendedCount, 1);
+      final controller = container.read(adminUserControllerProvider.notifier);
+      expect(container.read(adminUserControllerProvider).activeCount, 1);
+      expect(container.read(adminUserControllerProvider).suspendedCount, 1);
 
       final success = await controller.suspendAdmin('prof-1');
+      await _settle(container);
+
       expect(success, isTrue);
       expect(repo.lastSuspendedId, 'prof-1');
-      expect(controller.state.activeCount, 0);
-      expect(controller.state.suspendedCount, 2);
+      final state = container.read(adminUserControllerProvider);
+      expect(state.activeCount, 0);
+      expect(state.suspendedCount, 2);
     });
 
     test('revokeAdmin deactivates admin account', () async {
-      final repo = _FakeAdminUserRepository();
-      final controller = AdminUserController(repo);
-      await Future<void>.delayed(Duration.zero);
+      await _settle(container);
 
-      expect(controller.state.revokedCount, 1);
+      final controller = container.read(adminUserControllerProvider.notifier);
+      expect(container.read(adminUserControllerProvider).revokedCount, 1);
 
       final success = await controller.revokeAdmin('prof-1');
+      await _settle(container);
+
       expect(success, isTrue);
       expect(repo.lastRevokedId, 'prof-1');
-      expect(controller.state.activeCount, 0);
-      expect(controller.state.revokedCount, 2);
+      final state = container.read(adminUserControllerProvider);
+      expect(state.activeCount, 0);
+      expect(state.revokedCount, 2);
     });
 
     test('revokeAdmin translates 409 conflict into last admin protection message', () async {
-      final repo = _FakeAdminUserRepository()..shouldFailRevokeConflict = true;
-      final controller = AdminUserController(repo);
-      await Future<void>.delayed(Duration.zero);
+      repo.shouldFailRevokeConflict = true;
+      await _settle(container);
 
+      final controller = container.read(adminUserControllerProvider.notifier);
       final success = await controller.revokeAdmin('prof-1');
+
       expect(success, isFalse);
+      final state = container.read(adminUserControllerProvider);
       expect(
-        controller.state.errorMessage,
+        state.errorMessage,
         'Cannot revoke the last remaining active admin account.',
       );
     });

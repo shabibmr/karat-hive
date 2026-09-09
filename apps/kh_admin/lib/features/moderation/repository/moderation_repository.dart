@@ -4,7 +4,6 @@ import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/features/moderation/model/moderation_filters.dart';
 import 'package:kh_admin/features/moderation/model/moderation_page.dart';
 import 'package:kh_admin/features/moderation/model/moderation_review_item.dart';
-import 'package:kh_admin/core/api/json_parse.dart';
 
 final moderationRepositoryProvider = Provider<ModerationRepository>((ref) {
   final client = ref.watch(apiClientProvider);
@@ -38,17 +37,16 @@ class ModerationRepository {
     final items = response.items
         .whereType<Map<String, dynamic>>()
         .map(ModerationReviewItem.fromJson)
-        .where((item) => _matchesClientFilters(item, filters))
         .toList(growable: false);
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = hasMoreFromCursor(nextCursor);
 
     return ModerationPage(
       items: items,
-      nextCursor: hasMore ? nextCursor : null,
-      hasMore: hasMore,
+      nextCursor: nextCursor,
+      totalCount:
+          meta?['total'] is num ? (meta!['total'] as num).toInt() : null,
     );
   }
 
@@ -82,17 +80,4 @@ class ModerationRepository {
     );
   }
 
-  bool _matchesClientFilters(ModerationReviewItem item, ModerationFilters filters) {
-    if (filters.authorType != null && item.authorType != filters.authorType) {
-      return false;
-    }
-    if (filters.query.isEmpty) return true;
-    final q = filters.query.toLowerCase();
-    return item.id.toLowerCase().contains(q) ||
-        (item.comment?.toLowerCase().contains(q) ?? false) ||
-        (item.vendorResponse?.toLowerCase().contains(q) ?? false) ||
-        item.connectionId.toLowerCase().contains(q) ||
-        (item.authorName?.toLowerCase().contains(q) ?? false) ||
-        (item.subjectName?.toLowerCase().contains(q) ?? false);
-  }
 }

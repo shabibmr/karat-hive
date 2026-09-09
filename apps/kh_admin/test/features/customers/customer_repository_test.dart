@@ -217,7 +217,6 @@ void main() {
       expect(page.items.length, 2);
       expect(page.nextCursor, 'cursor-c2');
       expect(page.hasMore, isTrue);
-      expect(page.canLoadMore, isTrue);
     });
 
     test('omits optional query parameters when not provided', () async {
@@ -232,7 +231,6 @@ void main() {
         'limit': '20',
       });
       expect(page.hasMore, isFalse);
-      expect(page.canLoadMore, isFalse);
     });
 
     test('propagates collection fetch errors', () async {
@@ -242,6 +240,45 @@ void main() {
         () => repo.fetchCustomers(),
         throwsA(isA<ApiException>()),
       );
+    });
+
+    test('writes audit log on initial customer list load (FR-ADM-010 AC5 / ADM-INS-40)', () async {
+      api.collectionResponse = (
+        items: [_rawPrismaCustomerRow(id: 'c1')],
+        meta: null,
+      );
+
+      await repo.fetchCustomers();
+
+      expect(api.lastPostPath, '/v1/admin/audit-log');
+      expect(api.lastPostData, isA<Map<String, dynamic>>());
+      final postData = api.lastPostData as Map<String, dynamic>;
+      expect(postData['action'], 'CUSTOMER_LIST_VIEWED');
+      expect(postData['entityType'], 'customer_list');
+      expect(postData['occurredAt'], isNotNull);
+    });
+
+    test('does not write audit log when paging with cursor', () async {
+      api.collectionResponse = (
+        items: [_rawPrismaCustomerRow(id: 'c2')],
+        meta: null,
+      );
+
+      await repo.fetchCustomers(cursor: 'cursor-page-2');
+
+      expect(api.lastPostPath, isNull);
+    });
+
+    test('survives audit log post error without failing customer fetch', () async {
+      api.collectionResponse = (
+        items: [_rawPrismaCustomerRow(id: 'c1')],
+        meta: null,
+      );
+      api.shouldThrowOnPost = true;
+
+      final page = await repo.fetchCustomers();
+
+      expect(page.items, hasLength(1));
     });
   });
 

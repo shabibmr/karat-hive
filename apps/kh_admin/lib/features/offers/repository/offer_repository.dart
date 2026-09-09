@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kh_domain/kh_domain.dart' show Party, MaskedParty, RevealedParty, UserRole;
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/list/paginated.dart';
 import 'package:kh_admin/features/offers/model/offer_detail.dart';
 import 'package:kh_admin/features/offers/model/offer_list_filters.dart';
 import 'package:kh_admin/features/offers/model/offer_list_item.dart';
@@ -28,19 +30,21 @@ class OfferRepository {
     String? cursor,
     int limit = defaultPageSize,
   }) async {
-    // origin/main `GET /v1/admin/offers` accepts ONLY `state`, `vendorId`,
-    // `limit`, `cursor`. `q`, `requestType`, `minPrice`, `maxPrice` are
-    // silently ignored server-side, so we send only the supported params and
-    // apply the rest client-side on the returned page.
     final queryParameters = <String, dynamic>{
       'limit': limit.toString(),
       if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
       if (filters.state != null) 'state': filters.state!.apiValue,
       if (filters.vendorId != null && filters.vendorId!.isNotEmpty)
         'vendorId': filters.vendorId,
-      // backend: unsupported — filters.requestType (client-side below)
-      // backend: unsupported — filters.query (client-side below)
-      // backend: unsupported — filters.minPrice / filters.maxPrice (client-side below)
+      if (filters.requestType != null)
+        'requestType': filters.requestType!.apiValue,
+      if (filters.query.trim().isNotEmpty) 'q': filters.query.trim(),
+      if (filters.minPrice != null) 'minPrice': filters.minPrice!.toString(),
+      if (filters.maxPrice != null) 'maxPrice': filters.maxPrice!.toString(),
+      if (filters.dateFrom != null)
+        'dateFrom': filters.dateFrom!.toUtc().toIso8601String(),
+      if (filters.dateTo != null)
+        'dateTo': filters.dateTo!.toUtc().toIso8601String(),
     };
 
     final response = await _apiClient.getCollection(
@@ -52,37 +56,30 @@ class OfferRepository {
         .whereType<Map<String, dynamic>>()
         .map(_normalizeOfferListRow)
         .map(OfferListItem.fromJson)
-        .where((item) => _matchesClientFilters(item, filters))
         .toList(growable: false);
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final hasMore = hasMoreFromCursor(nextCursor);
 
-    return OfferListPage(
+    return Paginated<OfferListItem>(
       items: items,
-      nextCursor: hasMore ? nextCursor : null,
-      hasMore: hasMore,
-      // backend: unsupported — no total count is ever sent.
-      totalCount: null,
+      nextCursor: nextCursor,
     );
   }
 
   Future<OfferDetail> fetchOfferDetail(String offerId) async {
     final response = await _apiClient.get('/v1/admin/offers/$offerId');
-    final raw = Map<String, dynamic>.from(response as Map<String, dynamic>);
+    final raw = unwrapEntity(response);
 
     // internalNotes has no source on the offer row — merge from the notes route.
     List<Map<String, dynamic>> notes = const [];
     try {
       final notesResponse =
-          await _apiClient.get('/v1/admin/offers/$offerId/notes');
-      if (notesResponse is List) {
-        notes = notesResponse
-            .whereType<Map<String, dynamic>>()
-            .map(_normalizeNote)
-            .toList(growable: false);
-      }
+          await _apiClient.getCollection('/v1/admin/offers/$offerId/notes');
+      notes = notesResponse.items
+          .whereType<Map<String, dynamic>>()
+          .map(_normalizeNote)
+          .toList(growable: false);
     } on Object {
       // Notes are supplementary; a failure here must not break the detail view.
       notes = const [];
@@ -102,8 +99,9 @@ class OfferRepository {
       data: {'text': note},
     );
 
-    if (response is Map<String, dynamic>) {
-      return OfferInternalNoteItem.fromJson(_normalizeNote(response));
+    final map = unwrapEntity(response);
+    if (map.isNotEmpty) {
+      return OfferInternalNoteItem.fromJson(_normalizeNote(map));
     }
 
     return OfferInternalNoteItem(
@@ -180,11 +178,7 @@ class OfferRepository {
               'id': request['id'],
               'reference': request['reference'],
               'requestType': request['requestType'],
-              'customerName': customerProfile['displayName'] ??
-                  customerUser['email'] ??
-                  customerUser['mobileNumber'],
-              'customerMobile': customerUser['mobileNumber'],
-              'customerEmail': customerUser['email'],
+              'customer': _buildCustomerParty(customerProfile, customerUser, raw['state'])?.toJson(),
               'categoryName': null,
               'regionName': null,
               'indicativeValue': toDoubleOrNull(request['indicativeValue']),
@@ -270,30 +264,7 @@ class OfferRepository {
     };
   }
 
-  bool _matchesClientFilters(OfferListItem item, OfferListFilters filters) {
-    if (filters.requestType != null &&
-        item.requestType != filters.requestType) {
-      return false;
-    }
-    if (filters.minPrice != null && item.offeredPrice < filters.minPrice!) {
-      return false;
-    }
-    if (filters.maxPrice != null && item.offeredPrice > filters.maxPrice!) {
-      return false;
-    }
-    final q = filters.query.trim().toLowerCase();
-    if (q.isNotEmpty) {
-      final haystack = [
-        item.reference,
-        item.requestReference,
-        item.vendorName,
-        item.vendorId,
-        item.id,
-      ].whereType<String>().map((s) => s.toLowerCase());
-      if (!haystack.any((s) => s.contains(q))) return false;
-    }
-    return true;
-  }
+
 
   String _vendorName(Map<String, dynamic> vendorProfile) {
     final legal = vendorProfile['legalBusinessName']?.toString();
@@ -302,9 +273,34 @@ class OfferRepository {
     if (trading != null && trading.isNotEmpty) return trading;
     return 'Unknown vendor';
   }
+  static Party? _buildCustomerParty(
+    Map<String, dynamic> customerProfile,
+    Map<String, dynamic> customerUser,
+    dynamic offerState,
+  ) {
+    final name = customerProfile['displayName']?.toString() ??
+        customerUser['email']?.toString() ??
+        customerUser['mobileNumber']?.toString();
+    final mobile = customerUser['mobileNumber']?.toString();
+    final isAccepted = offerState == 'ACCEPTED';
 
+    if (isAccepted && name != null && name.isNotEmpty && mobile != null && mobile.isNotEmpty) {
+      return RevealedParty(
+        displayName: name,
+        mobile: mobile,
+        role: UserRole.customer,
+      );
+    }
 
-
+    if (customerProfile.isNotEmpty || customerUser.isNotEmpty) {
+      return MaskedParty(
+        role: UserRole.customer,
+        pseudonym: customerProfile['displayName']?.toString() ?? 'Customer',
+        region: customerProfile['region']?.toString(),
+      );
+    }
+    return null;
+  }
 }
 
 final Provider<OfferRepository> offerRepositoryProvider =
