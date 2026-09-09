@@ -20,13 +20,25 @@ export async function bootTestApp(): Promise<TestApp> {
   process.env.OTP_DEV_MODE = 'fixed';
   process.env.OTP_FIXED_CODE = '000000';
   process.env.DEV_VERIFY_ENABLED = 'true';
-  process.env.DEV_VERIFY_KEY = process.env.DEV_VERIFY_KEY ?? 'ci-dev-verify';
-  process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET ?? 'integration-test-access-secret';
+  // Vite loads `.env` before hooks; empty `DEV_VERIFY_KEY=""` must not win over the fallback.
+  process.env.DEV_VERIFY_KEY =
+    process.env.DEV_VERIFY_KEY && process.env.DEV_VERIFY_KEY.trim() !== ''
+      ? process.env.DEV_VERIFY_KEY
+      : 'ci-dev-verify';
+  process.env.JWT_ACCESS_SECRET =
+    process.env.JWT_ACCESS_SECRET && process.env.JWT_ACCESS_SECRET.trim() !== ''
+      ? process.env.JWT_ACCESS_SECRET
+      : 'integration-test-access-secret';
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({ logger: false }),
-    { logger: false },
+    { 
+      logger: false, 
+      // abortOnError: false is required in tests so Nest rethrows errors to Vitest
+      // instead of abruptly killing the test process with process.abort().
+      abortOnError: false 
+    },
   );
   await app.init();
   await app.getHttpAdapter().getInstance().ready();
@@ -73,7 +85,7 @@ export async function inject(
     url: opts.url,
     payload: opts.body as never,
     headers: {
-      'content-type': 'application/json',
+      ...(opts.body !== undefined ? { 'content-type': 'application/json' } : {}),
       ...(opts.token ? { authorization: `Bearer ${opts.token}` } : {}),
       ...(opts.headers ?? {}),
     },

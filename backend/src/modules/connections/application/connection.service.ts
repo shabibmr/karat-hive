@@ -68,8 +68,9 @@ export class ConnectionService {
           state: RequestState;
           customer_profile_id: string;
           expires_at: Date | null;
+          accepted_offer_id: string | null;
         }>
-      >`SELECT id, state, customer_profile_id, expires_at FROM request WHERE id = ${targetOffer.requestId}::uuid FOR UPDATE`;
+      >`SELECT id, state, customer_profile_id, expires_at, accepted_offer_id FROM request WHERE id = ${targetOffer.requestId}::uuid FOR UPDATE`;
 
       if (!lockedRequest) {
         throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
@@ -79,7 +80,18 @@ export class ConnectionService {
         throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
       }
 
+      // Same-Offer replay: return the existing Connection (BR-011 / BR-012)
       if (lockedRequest.state === 'ACCEPTED') {
+        if (lockedRequest.accepted_offer_id === targetOffer.id) {
+          const existing = await tx.connection.findUnique({
+            where: { offerId: targetOffer.id },
+            select: { id: true },
+          });
+          if (!existing) {
+            throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+          }
+          return { connectionId: existing.id };
+        }
         throw new ApiException(HttpStatus.CONFLICT, ErrorCode.OFFER_ALREADY_ACCEPTED);
       }
 

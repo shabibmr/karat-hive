@@ -372,7 +372,13 @@ export class OfferService {
     );
 
     return {
-      data: items.map((o) => presentOfferForVendor(o)),
+      data: items.map((o) => {
+        const awardedElsewhere =
+          !!o.request &&
+          o.request.state === 'ACCEPTED' &&
+          o.request.acceptedOfferId !== o.id;
+        return presentOfferForVendor(o, { awardedElsewhere });
+      }),
       meta: { nextCursor },
     };
   }

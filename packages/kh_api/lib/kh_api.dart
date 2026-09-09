@@ -13,6 +13,7 @@ import 'src/clients/me_client.dart';
 import 'src/clients/media_client.dart';
 import 'src/clients/notifications_client.dart';
 import 'src/clients/offers_client.dart';
+import 'src/clients/performance_client.dart';
 import 'src/clients/platform_config_client.dart';
 import 'src/clients/requests_client.dart';
 import 'src/clients/reviews_client.dart';
@@ -31,6 +32,7 @@ export 'src/clients/me_client.dart';
 export 'src/clients/media_client.dart';
 export 'src/clients/notifications_client.dart';
 export 'src/clients/offers_client.dart';
+export 'src/clients/performance_client.dart';
 export 'src/clients/platform_config_client.dart';
 export 'src/clients/requests_client.dart';
 export 'src/clients/reviews_client.dart';
@@ -52,6 +54,7 @@ class KhApi {
         vendor = VendorClient(_client),
         mediaClient = MediaClient(_client),
         dashboardClient = DashboardClient(_client),
+        performance = PerformanceClient(_client),
         matches = MatchesClient(_client),
         requests = RequestsClient(_client),
         offers = OffersClient(_client),
@@ -74,6 +77,7 @@ class KhApi {
   final VendorClient vendor;
   final MediaClient mediaClient;
   final DashboardClient dashboardClient;
+  final PerformanceClient performance;
   final MatchesClient matches;
   final RequestsClient requests;
   final OffersClient offers;
@@ -226,6 +230,25 @@ class KhApi {
 
   // --- vendor onboarding backwards-compat ---
   Future<Result<VendorMe>> vendorMe() => vendor.vendorMe();
+
+  Future<Result<VendorMe>> patchVendorProfile({
+    String? tradingName,
+    String? description,
+    String? contactPersonName,
+    String? businessEmail,
+    String? legalBusinessName,
+    String? tradeLicenceNumber,
+    String? businessAddress,
+  }) =>
+      vendor.patchProfile(
+        tradingName: tradingName,
+        description: description,
+        contactPersonName: contactPersonName,
+        businessEmail: businessEmail,
+        legalBusinessName: legalBusinessName,
+        tradeLicenceNumber: tradeLicenceNumber,
+        businessAddress: businessAddress,
+      );
 
   Future<Result<List<VendorDocument>>> documents() => vendor.documents();
 

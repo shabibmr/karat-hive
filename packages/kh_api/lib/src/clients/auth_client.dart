@@ -67,4 +67,34 @@ class AuthClient {
 
   Future<void> logout(String? refreshToken) =>
       _client.send('POST', '/v1/auth/logout', body: {'refreshToken': refreshToken});
+
+  /// `GET /v1/auth/sessions` — active refresh-token families (`FR-VEN-027`).
+  Future<Result<List<AuthSessionDto>>> listSessions() async {
+    final r = await _client.send('GET', '/v1/auth/sessions');
+    return r.when(
+      ok: (d) => Ok(((d as List?) ?? const [])
+          .map((e) => AuthSessionDto.fromJson(e as Map<String, dynamic>))
+          .toList(growable: false)),
+      err: Err.new,
+    );
+  }
+
+  /// `DELETE /v1/auth/sessions/{id}` — revoke one family (`FR-VEN-027`).
+  Future<Result<void>> revokeSession(String id) async {
+    final r = await _client.send('DELETE', '/v1/auth/sessions/$id');
+    return r.when(ok: (_) => const Ok(null), err: Err.new);
+  }
+
+  /// `POST /v1/auth/password` — set or change email password (`FR-VEN-027`).
+  /// First-time set omits [currentPassword]. Not a login path (`adr/0010`).
+  Future<Result<void>> setPassword({
+    String? currentPassword,
+    required String newPassword,
+  }) async {
+    final r = await _client.send('POST', '/v1/auth/password', body: {
+      if (currentPassword != null) 'currentPassword': currentPassword,
+      'newPassword': newPassword,
+    });
+    return r.when(ok: (_) => const Ok(null), err: Err.new);
+  }
 }

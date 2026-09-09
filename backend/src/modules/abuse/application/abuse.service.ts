@@ -71,6 +71,34 @@ export class AbuseService {
           },
         });
 
+        // FR-VEN-030 AC4: 3 distinct Vendor reporters on one Request → priority.
+        // updateMany is idempotent; AUTO_FLAGGED audit fires only on first raise.
+        if (dto.entityType === 'REQUEST') {
+          await this.repo.lockRequest(tx, dto.entityId);
+          const vendorReporterIds = await this.repo.listDistinctVendorReporterIds(
+            tx,
+            'REQUEST',
+            dto.entityId,
+          );
+          if (vendorReporterIds.length >= 3) {
+            const alreadyFlagged = await this.repo.isEntityFlagged(tx, 'REQUEST', dto.entityId);
+            await this.repo.flagAllReportsForEntity(tx, 'REQUEST', dto.entityId);
+            if (!alreadyFlagged) {
+              await this.audit.append(tx, {
+                actorUserId: viewer.userId,
+                action: 'ABUSE_REPORT_AUTO_FLAGGED',
+                entityType: 'abuse_report',
+                entityId: created.id,
+                afterValue: {
+                  entityType: dto.entityType,
+                  entityId: dto.entityId,
+                  vendorReporterCount: vendorReporterIds.length,
+                },
+              });
+            }
+          }
+        }
+
         return created;
       },
     );

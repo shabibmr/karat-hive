@@ -88,6 +88,7 @@ describe('AdminVendorService', () => {
     ratingTrend: null,
     offersSubmittedCount: 10,
     offersAcceptedCount: 8,
+    defaultFilterPresetId: null,
     createdAt: new Date('2026-09-05T12:00:00.000Z'),
     updatedAt: new Date('2026-09-05T12:00:00.000Z'),
   };

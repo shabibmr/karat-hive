@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import '../../app/guards.dart';
+import '../profile_settings/routes.dart' show categoriesRegionsAwaitingRoute;
 import 'presentation/awaiting_approval_screen.dart';
-import 'presentation/categories_regions_screen.dart';
 import 'presentation/kyc_upload_screen.dart';
 
 final onboardingRoutes = [
@@ -13,8 +13,5 @@ final onboardingRoutes = [
     path: AppGuards.kyc,
     builder: (_, __) => const KycUploadScreen(),
   ),
-  GoRoute(
-    path: AppGuards.categories,
-    builder: (_, __) => const CategoriesRegionsScreen(),
-  ),
+  categoriesRegionsAwaitingRoute,
 ];

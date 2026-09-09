@@ -7,6 +7,27 @@ class VendorClient {
 
   Future<Result<VendorMe>> vendorMe() => _vendorMe('GET', '/v1/me/vendor');
 
+  /// Safe + BR-004 profile fields. Do not send legal-identity keys from VEN-S15
+  /// safe-edit (CP6-B02.2); those land behind the B02.4 warning flow.
+  Future<Result<VendorMe>> patchProfile({
+    String? tradingName,
+    String? description,
+    String? contactPersonName,
+    String? businessEmail,
+    String? legalBusinessName,
+    String? tradeLicenceNumber,
+    String? businessAddress,
+  }) =>
+      _vendorMe('PATCH', '/v1/me/vendor', body: {
+        if (tradingName != null) 'tradingName': tradingName,
+        if (description != null) 'description': description,
+        if (contactPersonName != null) 'contactPersonName': contactPersonName,
+        if (businessEmail != null) 'businessEmail': businessEmail,
+        if (legalBusinessName != null) 'legalBusinessName': legalBusinessName,
+        if (tradeLicenceNumber != null) 'tradeLicenceNumber': tradeLicenceNumber,
+        if (businessAddress != null) 'businessAddress': businessAddress,
+      });
+
   Future<Result<List<VendorDocument>>> documents() async {
     final r = await _client.send('GET', '/v1/me/vendor/documents');
     return r.when(

@@ -12,6 +12,10 @@ abstract final class AppGuards {
   static const kyc = '/vendor/onboarding/kyc';
   static const categories = '/vendor/categories-regions';
   static const home = '/vendor/home';
+  static const vendorNotifications = '/vendor/notifications';
+  static const vendorProfile = '/vendor/profile';
+  static const vendorProfileCategories = '/vendor/profile/categories-regions';
+  static const vendorProfileDocuments = '/vendor/profile/documents';
 
   static const customerOnboarding = '/customer/onboarding';
   static const customerRegister = '/customer/register';

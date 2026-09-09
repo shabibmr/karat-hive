@@ -231,4 +231,138 @@ void main() {
       ),
     );
   });
+
+  testWidgets('KhToast tones LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'kh_toast',
+      size: const Size(400, 220),
+      builder: () => const SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            KhToast(message: 'Saved successfully', tone: KhToastTone.success),
+            SizedBox(height: 12),
+            KhToast(message: 'Something went wrong', tone: KhToastTone.error),
+            SizedBox(height: 12),
+            KhToast(message: 'Request expires in 6 hours', tone: KhToastTone.info),
+          ],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('KhToggle LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'kh_toggle',
+      size: const Size(400, 180),
+      builder: () => SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            KhToggle(label: 'Away mode', value: true, onChanged: (_) {}),
+            const SizedBox(height: 12),
+            KhToggle(label: 'Flexible budget', value: false, onChanged: (_) {}),
+            const SizedBox(height: 12),
+            KhToggle(
+              label: 'Notifications',
+              value: true,
+              enabled: false,
+              onChanged: (_) {},
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('KhDateTimeField LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'kh_date_time_field',
+      size: const Size(400, 220),
+      builder: () => SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            KhDateTimeField(
+              label: 'Licence expiry',
+              value: DateTime(2026, 12, 31),
+              mode: KhDateTimeMode.dateOnly,
+              onChanged: (_) {},
+            ),
+            const SizedBox(height: 16),
+            KhDateTimeField(
+              label: 'Schedule',
+              value: DateTime(2026, 9, 20, 14, 30),
+              mode: KhDateTimeMode.dateTime,
+              onChanged: (_) {},
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('KhDateRangePicker LTR+RTL golden', (tester) async {
+    final clock = DateTime(2026, 9, 8);
+    final range = KhDateRangePicker.rangeForPreset(
+      KhDateRangePreset.last30,
+      now: clock,
+    );
+    await expectKhGoldens(
+      tester,
+      name: 'kh_date_range_picker',
+      size: const Size(400, 160),
+      builder: () => SizedBox(
+        width: 360,
+        child: KhDateRangePicker(
+          label: 'Date range',
+          now: clock,
+          range: range,
+          preset: KhDateRangePreset.last30,
+          onChanged: (_) {},
+        ),
+      ),
+    );
+  });
+
+  testWidgets('KhExternalLinkRow LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'kh_external_link_row',
+      size: const Size(400, 160),
+      builder: () => SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            KhExternalLinkRow(label: 'Terms of Service', onTap: () {}),
+            KhExternalLinkRow(label: 'Privacy Policy', onTap: () {}),
+            KhExternalLinkRow(
+              label: 'Help Centre & Support',
+              onTap: () {},
+              showDivider: false,
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('KhAppVersionFooter LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'kh_app_version_footer',
+      size: const Size(400, 80),
+      builder: () => const SizedBox(
+        width: 360,
+        child: KhAppVersionFooter(version: '1.0.0 (Build 2026.08)'),
+      ),
+    );
+  });
 }

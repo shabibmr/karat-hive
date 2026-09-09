@@ -6,8 +6,8 @@ import 'package:kh_ui_domain/kh_ui_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
 import '../../../app/guards.dart';
+import '../../onboarding/repository/onboarding_repository.dart';
 import '../controller/categories_regions_controller.dart';
-import '../repository/onboarding_repository.dart';
 
 /// VEN-S16 — declare the categories and regions that drive matching (FR-VEN-025).
 class CategoriesRegionsScreen extends ConsumerWidget {

@@ -21,6 +21,7 @@ import '../features/profile_settings/routes.dart';
 import '../features/request_create/routes.dart';
 import '../features/request_feed/routes.dart';
 import '../features/request_manage/routes.dart';
+import '../features/reviews/routes.dart';
 import '../features/subscription/routes.dart';
 
 class _SessionListenable extends ChangeNotifier {
@@ -83,6 +84,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               vendorHomeRoute(routes: [subscriptionNestedRoute]),
               ...subscriptionRoutes,
+              ...vendorNotificationsRoutes,
+              ...vendorAbuseRoutes,
+              ...vendorReviewsRoutes,
             ],
           ),
           StatefulShellBranch(
@@ -95,14 +99,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: connectionsTabRoutes,
           ),
           StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/vendor/profile',
-                builder: (_, __) => const VendorComingSoonPage(
-                  message: 'Vendor profile & settings open in Check-Point 6.',
-                ),
-              ),
-            ],
+            routes: vendorProfileSettingsRoutes,
           ),
         ],
       ),

@@ -7,6 +7,8 @@
 | **Status** | Working backlog — CP-2/CP-3 done; CP-4 Connections Flutter landed (`VEN-S12`–`S13`). Remaining: CP-5 reputation/notifications, CP-6 profile/settings |
 | **Date** | 7 September 2026 |
 | **Plan of record** | [`Vendor-App-Completion-Plan.md`](Vendor-App-Completion-Plan.md) |
+| **Backend remainders** | [`Vendor-App-Backend-Followup-Tasks.md`](Vendor-App-Backend-Followup-Tasks.md) — Track A items that still need code, validated against `backend/` on 8 Sep 2026 |
+| **Small-model split** | [`Vendor-App-Completion-Work-Breakdown.md`](Vendor-App-Completion-Work-Breakdown.md) — incomplete parents expanded to `Parent.n` children |
 | **Does not override** | SRS v1.3 · `API-Route-Inventory.md` · `Architecture-Backend.md` / `-Frontend.md` · `Async-Contract.md` |
 | **Predecessor register** | [`checkpoints/checkpoint-1-vendor-onboarding-tasks.md`](checkpoints/checkpoint-1-vendor-onboarding-tasks.md) |
 | **Screens** | `VEN-S06`–`S15`, `S17`–`S22` (16 new) · `VEN-S05` upgraded |

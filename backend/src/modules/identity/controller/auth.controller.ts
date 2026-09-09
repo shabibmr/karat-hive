@@ -10,6 +10,7 @@ import { RevealsIdentity } from '../../../edge/masking/reveals-identity.decorato
 import { zodBody } from '../../../edge/validation/zod-validation.pipe';
 import { OAuthAccountService } from '../application/oauth-account.service';
 import { OtpService } from '../application/otp.service';
+import { PasswordService } from '../application/password.service';
 import { RegistrationService } from '../application/registration.service';
 import { SessionService, type SessionFamilyView } from '../application/session.service';
 import { clientInfoOf } from './client-info';
@@ -69,6 +70,10 @@ const logoutSchema = z.object({
   refreshToken: z.string().min(1).optional(),
   allDevices: z.boolean().optional(),
 });
+const setPasswordSchema = z.object({
+  currentPassword: z.string().min(1).optional(),
+  newPassword: z.string().min(1),
+});
 
 const firebaseSessionSchema = z
   .object({
@@ -87,6 +92,7 @@ export class AuthController {
     private readonly registration: RegistrationService,
     private readonly session: SessionService,
     private readonly oauthAccount: OAuthAccountService,
+    private readonly passwords: PasswordService,
   ) {}
 
   @Public()
@@ -201,5 +207,15 @@ export class AuthController {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
     await this.session.revokeSession(viewer.userId, familyId);
+  }
+
+  /** Set or change email password (VEN-027). Not a login path (`adr/0010`). */
+  @Post('password')
+  @HttpCode(204)
+  async setPassword(
+    @Viewer() viewer: ViewerContext,
+    @Body(zodBody(setPasswordSchema)) body: z.infer<typeof setPasswordSchema>,
+  ): Promise<void> {
+    await this.passwords.setOrChange(viewer, body);
   }
 }

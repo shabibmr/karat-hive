@@ -160,9 +160,9 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
                         key: const Key('empty-feed-subscriptions-cta'),
                         icon: const Icon(Icons.card_membership_outlined),
                         label: Text(l10n?.viewSubscriptions ?? 'View Subscriptions'),
-                        // ACTIVE vendors cannot open the awaiting-shell
-                        // categories route (AppGuards). Subscriptions explain
-                        // empty feeds today; categories/regions land in CP-6.
+                        // ACTIVE vendors edit Categories/Regions under
+                        // AppGuards.vendorProfileCategories. Empty-feed CTA
+                        // still points at subscriptions for entitlement gaps.
                         onPressed: () => context.push('/vendor/subscriptions'),
                       ),
                     ),

@@ -2,8 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
 
 import '../../../app/session/session_controller.dart';
-import '../repository/onboarding_repository.dart';
-import 'vendor_me_controller.dart';
+import '../../onboarding/controller/vendor_me_controller.dart';
+import '../repository/profile_settings_repository.dart';
+import 'business_profile_controller.dart';
 
 class CategoriesRegionsState {
   const CategoriesRegionsState({
@@ -39,7 +40,8 @@ class CategoriesRegionsState {
       );
 }
 
-class CategoriesRegionsController extends AutoDisposeNotifier<CategoriesRegionsState> {
+class CategoriesRegionsController
+    extends AutoDisposeNotifier<CategoriesRegionsState> {
   @override
   CategoriesRegionsState build() {
     ref.listen(vendorMeProvider, (_, next) {
@@ -65,7 +67,8 @@ class CategoriesRegionsController extends AutoDisposeNotifier<CategoriesRegionsS
     return const CategoriesRegionsState();
   }
 
-  OnboardingRepository get _repo => ref.read(onboardingRepositoryProvider);
+  ProfileSettingsRepository get _repo =>
+      ref.read(profileSettingsRepositoryProvider);
 
   void toggleCategory(String id) => state = state.copyWith(
         categoryIds: _toggle(state.categoryIds, id),
@@ -98,6 +101,7 @@ class CategoriesRegionsController extends AutoDisposeNotifier<CategoriesRegionsS
       return false;
     }
     ref.invalidate(vendorMeProvider);
+    ref.invalidate(vendorProfileProvider);
     await ref.read(sessionProvider.notifier).refreshUser();
     state = state.copyWith(busy: false);
     return true;

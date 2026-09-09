@@ -7,6 +7,10 @@ import type {
   VendorTypeSubscription,
 } from '@prisma/client';
 import { PrismaService } from '../../../platform/db/prisma.service';
+import {
+  buildSixMonthRatingTrend,
+  type RatingTrendPoint,
+} from '../../reviews/domain/rating-aggregates';
 
 export interface PerformanceFilters {
   from?: Date;
@@ -20,8 +24,9 @@ export interface VendorPerformanceData {
   offersSubmitted: number;
   acceptanceRate: string;
   averageResponseMinutes: number;
-  averageOfferedVsAccepted?: string;
   byOutcome: { state: OfferState; count: number }[];
+  /** SAM-GAP-8: six calendar months from vendor_profile.rating_trend (FR-SYS-012). */
+  ratingTrend: RatingTrendPoint[];
 }
 
 @Injectable()
@@ -144,16 +149,22 @@ export class SubscriptionRepository {
         : {}),
     };
 
-    const offers = await this.prisma.offer.findMany({
-      where: whereClause,
-      include: {
-        request: {
-          select: {
-            publishedAt: true,
+    const [offers, profile] = await Promise.all([
+      this.prisma.offer.findMany({
+        where: whereClause,
+        include: {
+          request: {
+            select: {
+              publishedAt: true,
+            },
           },
         },
-      },
-    });
+      }),
+      this.prisma.vendorProfile.findUnique({
+        where: { id: vendorProfileId },
+        select: { ratingTrend: true },
+      }),
+    ]);
 
     const offersSubmitted = offers.length;
     const acceptedCount = offers.filter((o) => o.state === 'ACCEPTED').length;
@@ -192,6 +203,36 @@ export class SubscriptionRepository {
       acceptanceRate,
       averageResponseMinutes,
       byOutcome,
+      ratingTrend: resolveRatingTrend(profile?.ratingTrend),
     };
   }
+}
+
+/** Prefer worker-maintained jsonb; empty-safe six points when null (G2-P06 / SAM-GAP-8). */
+function resolveRatingTrend(stored: Prisma.JsonValue | null | undefined): RatingTrendPoint[] {
+  const parsed = parseStoredRatingTrend(stored);
+  if (parsed) return parsed;
+  return buildSixMonthRatingTrend([], new Date());
+}
+
+function parseStoredRatingTrend(
+  stored: Prisma.JsonValue | null | undefined,
+): RatingTrendPoint[] | null {
+  if (!Array.isArray(stored) || stored.length !== 6) return null;
+  const points: RatingTrendPoint[] = [];
+  for (const item of stored) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
+    const period = (item as { period?: unknown }).period;
+    const average = (item as { average?: unknown }).average;
+    const count = (item as { count?: unknown }).count;
+    if (typeof period !== 'string' || typeof average !== 'number' || typeof count !== 'number') {
+      return null;
+    }
+    points.push({
+      period,
+      average: Number(average.toFixed(1)),
+      count,
+    });
+  }
+  return points;
 }

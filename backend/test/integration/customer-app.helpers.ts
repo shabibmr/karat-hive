@@ -61,7 +61,12 @@ export async function bootCustomerTestApp(): Promise<CustomerTestApp> {
   const app = await NestFactory.create<NestFastifyApplication>(
     CustomerTestRootModule,
     new FastifyAdapter({ logger: false }),
-    { logger: debug ? ['error', 'warn', 'log'] : false, abortOnError: false },
+    { 
+      logger: debug ? ['error', 'warn', 'log'] : false, 
+      // abortOnError: false is required in tests so Nest rethrows errors to Vitest
+      // instead of abruptly killing the test process with process.abort().
+      abortOnError: false 
+    },
   );
   await app.init();
   await app.getHttpAdapter().getInstance().ready();

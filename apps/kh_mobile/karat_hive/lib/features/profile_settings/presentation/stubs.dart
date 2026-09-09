@@ -24,3 +24,18 @@ class CustomerSettingsScreen extends StatelessWidget {
     );
   }
 }
+
+/// Deep-link target for `/vendor/profile/documents` until VEN-S15 (CP6-B02).
+class VendorProfileDocumentsStub extends StatelessWidget {
+  const VendorProfileDocumentsStub({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const KhScaffold(
+      title: 'Documents',
+      body: Center(
+        child: Text('Document management lands with VEN-S15 (CP6-B02).'),
+      ),
+    );
+  }
+}

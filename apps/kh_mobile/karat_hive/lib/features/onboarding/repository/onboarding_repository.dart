@@ -19,10 +19,6 @@ class OnboardingRepository {
   Future<Result<VendorMe>> vendorMe() => _api.vendorMe();
   Future<Result<List<VendorDocument>>> documents() => _api.documents();
   Future<Result<VendorDashboard>> dashboard() => _api.dashboard();
-  Future<Result<VendorMe>> setCategories(List<String> ids) => _api.setCategories(ids);
-  Future<Result<VendorMe>> setRegions(List<String> ids) => _api.setRegions(ids);
-  Future<Result<VendorMe>> setAvailability({required bool awayMode}) =>
-      _api.setAvailability(awayMode: awayMode);
   Future<Result<VendorMe>> resubmit() => _api.resubmit();
 
   /// intent → PUT bytes → complete. Returns the media key on success.
