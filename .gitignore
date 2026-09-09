@@ -21,3 +21,10 @@ build/
 
 # Local agent tool config
 .grok/
+
+# transient golden-test output
+**/test/failures/
+# root scratch
+/task.md
+/todo.md
+/implementation_plan.md
