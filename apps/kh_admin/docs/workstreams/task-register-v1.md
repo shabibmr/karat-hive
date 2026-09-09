@@ -201,7 +201,7 @@ than a screenful.
 | `[ ]` **TR-S2-07** | E12 | `lib/features/offers/presentation/offer_detail_screen.dart` (1388) | TR-S2-01..05 | |
 | `[x]` **TR-S2-08** _completed: 2026-09-09_ | E12 | `lib/features/announcements/presentation/announcements_screen.dart` (1204→256) | TR-S2-01..05 | also **TR-S2-09**; sections → `presentation/widgets/` (metrics row, filter bar, table, detail + cancel dialogs, formatters) |
 | `[x]` **TR-S2-09** extract compose dialog _completed: 2026-09-09_ | E12 | `[NEW] lib/features/announcements/presentation/widgets/compose_announcement_dialog.dart` from `announcements_screen.dart` | — | `ComposeAnnouncementDialog`, verbatim move, all Keys preserved |
-| `[ ]` **TR-S2-10** | E12 | `lib/features/vendors/presentation/vendor_detail_screen.dart` (1075) | TR-S2-01..05 | |
+| `[x]` **TR-S2-10** _completed: 2026-09-09_ | E12 | `lib/features/vendors/presentation/vendor_detail_screen.dart` (1075→430) | TR-S2-01..05 | header, row, profile/taxonomy/KYC/lifecycle cards, error view → `presentation/widgets/`; dialogs stay in screen |
 | `[x]` **TR-S2-11** _completed: 2026-09-09_ | E12 | `lib/features/settings/presentation/platform_settings_screen.dart` (1059→147) | TR-S2-01..05 | metrics, banner, filter bar, states, table, `EditSettingDialog` → `presentation/widgets/` |
 | `[ ]` **TR-S2-12** | E12 | `lib/features/customers/presentation/customer_detail_screen.dart` (1022) | TR-S2-01..05 | |
 | `[ ]` **TR-S2-13** | E12 | `lib/features/audit/presentation/audit_screen.dart` (882) | TR-S2-01..05 | structure only |
