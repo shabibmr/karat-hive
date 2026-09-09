@@ -52,10 +52,28 @@ export class SettingsRepository {
       where: { id: userId },
       include: {
         customerProfile: true,
+        vendorProfile: {
+          select: { id: true, defaultFilterPresetId: true },
+        },
         notificationPreferences: true,
       },
     });
     return user;
+  }
+
+  /** True when the preset exists and belongs to this user's VendorProfile. */
+  async vendorOwnsFilterPreset(userId: string, presetId: string): Promise<boolean> {
+    const vendor = await this.prisma.vendorProfile.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+    if (!vendor) return false;
+
+    const preset = await this.prisma.filterPreset.findFirst({
+      where: { id: presetId, vendorProfileId: vendor.id },
+      select: { id: true },
+    });
+    return preset !== null;
   }
 
   async updateUserSettings(
@@ -63,6 +81,7 @@ export class SettingsRepository {
     data: {
       preferredLanguage?: 'en' | 'ar';
       defaultRegionId?: string | null;
+      defaultFilterPresetId?: string | null;
       quietHoursStart?: string | null;
       quietHoursEnd?: string | null;
       notifications?: Record<string, { inApp?: boolean; push?: boolean; email?: boolean }>;
@@ -92,6 +111,16 @@ export class SettingsRepository {
           await tx.customerProfile.update({
             where: { id: cust.id },
             data: { defaultRegionId: data.defaultRegionId },
+          });
+        }
+      }
+
+      if (data.defaultFilterPresetId !== undefined) {
+        const vendor = await tx.vendorProfile.findUnique({ where: { userId } });
+        if (vendor) {
+          await tx.vendorProfile.update({
+            where: { id: vendor.id },
+            data: { defaultFilterPresetId: data.defaultFilterPresetId },
           });
         }
       }

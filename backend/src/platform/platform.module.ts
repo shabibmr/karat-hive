@@ -8,6 +8,8 @@ import { SupabaseStorageAdapter } from './adapters/storage/supabase-storage.adap
 import { GOLD_RATE_FEED } from './ports/gold-rate.port';
 import { PUSH_GATEWAY } from './ports/push.port';
 import { RoutedPushAdapter } from './adapters/push/routed-push.adapter';
+import { FcmPushAdapter } from './adapters/fcm/fcm-push.adapter';
+import { ApnsPushAdapter } from './adapters/apns/apns-push.adapter';
 import { OTP_SENDER } from './ports/otp-sender.port';
 import { PASSWORD_HASHER } from './ports/password-hasher.port';
 import { OBJECT_STORAGE } from './ports/storage.port';
@@ -25,6 +27,8 @@ import { OBJECT_STORAGE } from './ports/storage.port';
         env.NODE_ENV === 'test' ? new LocalDiskStorageAdapter() : new SupabaseStorageAdapter(env),
     },
     { provide: GOLD_RATE_FEED, useClass: YahooGoldRateAdapter },
+    FcmPushAdapter,
+    ApnsPushAdapter,
     { provide: PUSH_GATEWAY, useClass: RoutedPushAdapter },
   ],
   exports: [OTP_SENDER, PASSWORD_HASHER, OBJECT_STORAGE, GOLD_RATE_FEED, PUSH_GATEWAY],

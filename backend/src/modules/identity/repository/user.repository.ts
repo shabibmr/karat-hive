@@ -143,6 +143,13 @@ export class UserRepository {
     });
   }
 
+  async setPasswordHash(id: string, passwordHash: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { passwordHash, failedLoginAttempts: 0 },
+    });
+  }
+
   async touchLogin(id: string, now: Date): Promise<void> {
     await this.prisma.user.update({ where: { id }, data: { lastLoginAt: now } });
   }

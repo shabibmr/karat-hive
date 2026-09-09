@@ -1,4 +1,13 @@
 # Mobile app — shared tooling rules. Plugins are workspace-root only (CP2-F05).
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 include: ../../../tooling/analysis_options.yaml
 
 # App historically uses relative lib/ imports; do not expand F05 into a rewrite.

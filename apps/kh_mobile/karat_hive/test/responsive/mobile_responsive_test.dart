@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:karat_hive/features/auth/presentation/vendor_login_screen.dart';
 import 'package:karat_hive/features/auth/presentation/vendor_register_screen.dart';
-import 'package:karat_hive/features/onboarding/presentation/categories_regions_screen.dart';
 import 'package:karat_hive/features/onboarding/presentation/kyc_upload_screen.dart';
 import 'package:karat_hive/features/onboarding/repository/onboarding_repository.dart';
+import 'package:karat_hive/features/profile_settings/presentation/categories_regions_screen.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 

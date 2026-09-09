@@ -480,12 +480,15 @@ model VendorProfile {
   ratingTrend          Json?                    @map("rating_trend")
   offersSubmittedCount Int                      @default(0) @map("offers_submitted_count")
   offersAcceptedCount  Int                      @default(0) @map("offers_accepted_count")
+  /// Vendor default Match filter preset (GET/PATCH /v1/me/settings · defaultFilterPresetId).
+  defaultFilterPresetId String?                 @map("default_filter_preset_id") @db.Uuid
   createdAt            DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt            DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   user                 User                     @relation(fields: [userId], references: [id], onDelete: Restrict)
   logoMedia            Media?                   @relation("VendorLogo", fields: [logoMediaId], references: [id], onDelete: SetNull)
   verifiedByAdmin      AdminProfile?            @relation("VendorVerifiedBy", fields: [verifiedByAdminId], references: [id], onDelete: SetNull)
+  defaultFilterPreset  FilterPreset?            @relation("VendorDefaultFilterPreset", fields: [defaultFilterPresetId], references: [id], onDelete: SetNull)
   documents            VendorDocument[]
   subscriptions        VendorTypeSubscription[]
   categories           VendorCategory[]
@@ -493,7 +496,7 @@ model VendorProfile {
   matches              RequestMatch[]
   offers               Offer[]
   connections          Connection[]
-  filterPresets        FilterPreset[]
+  filterPresets        FilterPreset[]           @relation("VendorOwnedFilterPresets")
 
   @@index([verificationState, createdAt])
   @@map("vendor_profile")
@@ -807,7 +810,8 @@ model FilterPreset {
   createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  vendorProfile   VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+  vendorProfile        VendorProfile   @relation("VendorOwnedFilterPresets", fields: [vendorProfileId], references: [id], onDelete: Cascade)
+  defaultForVendors    VendorProfile[] @relation("VendorDefaultFilterPreset")
 
   @@index([vendorProfileId])
   @@map("filter_preset")
@@ -897,6 +901,7 @@ model AbuseReport {
   category           String            @db.VarChar(64)
   description        String
   state              AbuseReportState
+  priority           Boolean           @default(false)
   resolution         String?
   resolvedByAdminId  String?           @map("resolved_by_admin_id") @db.Uuid
   createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)

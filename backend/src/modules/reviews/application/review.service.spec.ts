@@ -201,4 +201,67 @@ describe('ReviewService', () => {
       new Date('2026-03-01T12:00:00Z'),
     );
   });
+
+  it('first vendor response is held PENDING_MODERATION (CP5-A04)', async () => {
+    vi.mocked(mockRepo.findReviewById).mockResolvedValueOnce({
+      id: 'rev-1',
+      subjectUserId: 'vend-1',
+      authorUserId: 'cust-1',
+      state: 'PUBLISHED',
+      vendorResponse: null,
+      vendorResponseState: null,
+    } as unknown as Review);
+
+    vi.mocked(mockRepo.addVendorResponse).mockResolvedValueOnce({
+      id: 'rev-1',
+      connectionId: 'conn-1',
+      authorType: 'CUSTOMER',
+      authorUserId: 'cust-1',
+      subjectUserId: 'vend-1',
+      rating: 5,
+      state: 'PUBLISHED',
+      vendorResponse: 'Thank you for your feedback.',
+      vendorResponseState: 'PENDING_MODERATION',
+      editableUntil: new Date('2026-03-15T12:00:00Z'),
+      createdAt: new Date('2026-03-01T12:00:00Z'),
+      publishedAt: new Date('2026-03-01T12:00:00Z'),
+    } as unknown as Review);
+
+    const result = await service.respondToReview(
+      { userId: 'vend-1', role: 'VENDOR', accountState: 'ACTIVE' },
+      'rev-1',
+      'Thank you for your feedback.',
+    );
+
+    expect(result.id).toBe('rev-1');
+    expect(mockRepo.addVendorResponse).toHaveBeenCalledWith(
+      mockPrisma,
+      'rev-1',
+      'Thank you for your feedback.',
+    );
+  });
+
+  it('second vendor response attempt returns CONFLICT (CP5-A04)', async () => {
+    vi.mocked(mockRepo.addVendorResponse).mockClear();
+    vi.mocked(mockRepo.findReviewById).mockResolvedValueOnce({
+      id: 'rev-1',
+      subjectUserId: 'vend-1',
+      authorUserId: 'cust-1',
+      state: 'PUBLISHED',
+      vendorResponse: 'Already replied.',
+      vendorResponseState: 'PENDING_MODERATION',
+    } as unknown as Review);
+
+    await expect(
+      service.respondToReview(
+        { userId: 'vend-1', role: 'VENDOR', accountState: 'ACTIVE' },
+        'rev-1',
+        'Trying again.',
+      ),
+    ).rejects.toMatchObject({
+      errorCode: 'CONFLICT',
+      status: 409,
+    });
+    expect(mockRepo.addVendorResponse).not.toHaveBeenCalled();
+  });
 });

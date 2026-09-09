@@ -8,6 +8,7 @@ import { SettingsService } from '../application/settings.service';
 const patchSettingsSchema = z.object({
   preferredLanguage: z.enum(['en', 'ar']).optional(),
   defaultRegionId: z.string().uuid().nullable().optional(),
+  defaultFilterPresetId: z.string().uuid().nullable().optional(),
   quietHours: z
     .object({
       start: z.string().regex(/^\d{2}:\d{2}$/),

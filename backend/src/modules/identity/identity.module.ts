@@ -6,6 +6,7 @@ import { FirebaseTokenService } from './application/firebase-token.service';
 import { MeService } from './application/me.service';
 import { OAuthAccountService } from './application/oauth-account.service';
 import { OtpService } from './application/otp.service';
+import { PasswordService } from './application/password.service';
 import { RegistrationService } from './application/registration.service';
 import { SessionQuery } from './application/session.query';
 import { SessionService } from './application/session.service';
@@ -28,6 +29,7 @@ import { UserRepository } from './repository/user.repository';
     SessionService,
     OAuthAccountService,
     MeService,
+    PasswordService,
     OtpRepository,
     UserRepository,
   ],

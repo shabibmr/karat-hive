@@ -29,6 +29,27 @@ class RequestDetailScreen extends ConsumerWidget {
         title: Text(
           l10n?.requestTitleWithId(requestId) ?? 'Request $requestId',
         ),
+        actions: [
+          PopupMenuButton<String>(
+            key: const Key('request-detail-overflow-menu'),
+            icon: const Icon(Icons.more_vert),
+            tooltip: 'Report this request',
+            onSelected: (value) {
+              if (value == 'report') {
+                context.push(
+                  '/abuse/new?targetType=REQUEST&targetId=$requestId',
+                );
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem<String>(
+                key: Key('report-request-menu-item'),
+                value: 'report',
+                child: Text('Report this request'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: detailAsync.when(
         loading: () => const Center(child: KhLoadingView()),
