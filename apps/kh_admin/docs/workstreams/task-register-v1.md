@@ -425,10 +425,10 @@ number; `flutter analyze` warning count for `apps/kh_admin` is 0.
 | `[ ]` **TR-S7-03** `offer_detail_controller` test | E18 | `[NEW] test/features/offers/offer_detail_controller_test.dart` | Same. | — | passes. |
 | `[ ]` **TR-S7-04** `vendor_detail_controller` test | E18 | `[NEW] test/features/vendors/vendor_detail_controller_test.dart` | Same. | — | passes. |
 | `[ ]` **TR-S7-05** `audit` + `dashboard` + `reports` controller tests | E18 | `[NEW] test/features/{audit,dashboard,reports}/*_controller_test.dart` | Controllers untested (repos are). | — | 3 files; pass. |
-| `[ ]` **TR-S7-06** `taxonomy` repository test | E18 | `[NEW] test/features/taxonomy/taxonomy_repository_test.dart` | Repo untested (controller + screen are). | — | passes. |
-| `[ ]` **TR-S7-07** `verification_query_params` test | E18 | `[NEW] test/core/router/verification_query_params_test.dart` | Untested (other query-param helpers are). | — | passes. |
+| `[x]` **TR-S7-06** `taxonomy` repository test _completed: 2026-09-09T09:55:00_ | E18 | `[NEW] test/features/taxonomy/taxonomy_repository_test.dart` | Repo untested (controller + screen are). | — | passes. — 7 cases: double-wrap list unwrap, includeInactive param, create POST body, PATCH null-strip, deactivate route, generic kind dispatch. |
+| `[x]` **TR-S7-07** `verification_query_params` test _completed: 2026-09-09T09:55:00_ | E18 | `[NEW] test/core/router/verification_query_params_test.dart` | Untested (other query-param helpers are). | — | passes. — 5 cases: selectedId round-trip, empty encode, fromUri, bare path, copyWith clearSelected. |
 | `[ ]` **TR-S7-08** exclusive-state transition test | E18, `ADM-INS-19` | `test/core/list/cursor_paginated_notifier_test.dart` | loading→error→retry against the S1 kernel. | `TR-S1-15` | transition asserted; no impossible combo. |
-| `[ ]` **TR-S7-09** fix the 2 existing warnings | E18 | `test/features/announcements/announcements_screen_test.dart` (unused import), `test/features/settings/platform_settings_controller_test.dart` (unused fake params) | Remove them. | — | `flutter analyze` on `test/` drops those 2. |
+| `[x]` **TR-S7-09** fix the 2 existing warnings _completed: 2026-09-09T09:55:00_ | E18 | `test/features/announcements/announcements_screen_test.dart` (unused import), `test/features/settings/platform_settings_controller_test.dart` (unused fake params) | Remove them. | — | `flutter analyze` clean across the whole package (test included) as of the S1–S6 landing; no outstanding warnings. |
 
 ### Goldens + integration + CI
 
