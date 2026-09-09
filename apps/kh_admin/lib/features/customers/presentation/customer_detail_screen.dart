@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
-import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
 import 'package:kh_admin/core/design/widgets/kh_feedback_banner.dart';
-import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
-import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
-import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
 import 'package:kh_admin/features/customers/controller/customer_detail_controller.dart';
 import 'package:kh_admin/features/customers/model/customer_detail.dart';
-import 'package:kh_admin/features/customers/model/customer_enums.dart';
+import 'package:kh_admin/features/customers/presentation/widgets/customer_admin_notes_card.dart';
+import 'package:kh_admin/features/customers/presentation/widgets/customer_detail_error_view.dart';
+import 'package:kh_admin/features/customers/presentation/widgets/customer_detail_header.dart';
+import 'package:kh_admin/features/customers/presentation/widgets/customer_lifecycle_actions_card.dart';
+import 'package:kh_admin/features/customers/presentation/widgets/customer_request_history_card.dart';
+import 'package:kh_admin/features/customers/presentation/widgets/customer_summary_card.dart';
 
 /// ADM-S04 · Customer detail screen — full customer record, request history,
 /// admin internal notes, and lifecycle controls (suspend, reactivate, erasure).
+///
+/// Composition root only: each section lives in `presentation/widgets/`
+/// (TR-S2-12). Screen state owns the note field and lifecycle dialogs.
 class CustomerDetailScreen extends ConsumerStatefulWidget {
   const CustomerDetailScreen({
     super.key,
@@ -37,30 +40,6 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
   void dispose() {
     _noteController.dispose();
     super.dispose();
-  }
-
-  KhStatusTone _statusTone(CustomerAccountState state) {
-    switch (state) {
-      case CustomerAccountState.active:
-        return KhStatusTone.success;
-      case CustomerAccountState.suspended:
-        return KhStatusTone.pending;
-      case CustomerAccountState.deactivated:
-        return KhStatusTone.error;
-    }
-  }
-
-  String _formatDate(DateTime? dt) {
-    if (dt == null) return '—';
-    return '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
-  }
-
-  String _formatDateTime(DateTime? dt) {
-    if (dt == null) return '—';
-    final date = _formatDate(dt);
-    final time =
-        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    return '$date $time';
   }
 
   Future<void> _executeAction({
@@ -96,6 +75,21 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     }
   }
 
+  Future<void> _handleAddNote(CustomerDetail detail) async {
+    final text = _noteController.text.trim();
+    if (text.isEmpty) return;
+    await _executeAction(
+      actionName: 'add note',
+      task: () async {
+        await ref
+            .read(customerDetailControllerProvider(detail.id).notifier)
+            .addAdminNote(text);
+        _noteController.clear();
+      },
+      successMessage: 'Admin note added successfully.',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
@@ -117,9 +111,15 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildBackButton(context, kh),
+              const CustomerDetailBackButton(),
               SizedBox(height: kh.spacing.lg),
-              _buildErrorView(context, kh, err.toString()),
+              CustomerDetailErrorView(
+                error: err.toString(),
+                onRetry: () => ref
+                    .read(customerDetailControllerProvider(widget.customerId)
+                        .notifier)
+                    .reload(),
+              ),
             ],
           ),
         ),
@@ -128,9 +128,9 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildBackButton(context, kh),
+              const CustomerDetailBackButton(),
               SizedBox(height: kh.spacing.md),
-              _buildHeader(context, kh, detail),
+              CustomerDetailHeader(detail: detail),
               if (_actionFeedback != null) ...[
                 SizedBox(height: kh.spacing.md),
                 KhFeedbackBanner(
@@ -143,6 +143,20 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               LayoutBuilder(
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth >= 900;
+                  final lifecycleCard = CustomerLifecycleActionsCard(
+                    detail: detail,
+                    isProcessing: _isProcessingAction,
+                    onReactivate: () =>
+                        _promptReactivateDialog(context, kh, detail),
+                    onSuspend: () => _promptSuspendDialog(context, kh, detail),
+                    onErasure: () => _promptErasureDialog(context, kh, detail),
+                  );
+                  final notesCard = CustomerAdminNotesCard(
+                    detail: detail,
+                    noteController: _noteController,
+                    isProcessing: _isProcessingAction,
+                    onAddNote: () => _handleAddNote(detail),
+                  );
                   if (isWide) {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,18 +166,18 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _buildSummaryCard(kh, detail),
+                              CustomerSummaryCard(detail: detail),
                               SizedBox(height: kh.spacing.lg),
-                              _buildRequestHistoryCard(kh, detail),
+                              CustomerRequestHistoryCard(detail: detail),
                               SizedBox(height: kh.spacing.lg),
-                              _buildAdminNotesCard(kh, detail),
+                              notesCard,
                             ],
                           ),
                         ),
                         SizedBox(width: kh.spacing.lg),
                         Expanded(
                           flex: 2,
-                          child: _buildLifecycleActionsCard(context, kh, detail),
+                          child: lifecycleCard,
                         ),
                       ],
                     );
@@ -172,13 +186,13 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildSummaryCard(kh, detail),
+                      CustomerSummaryCard(detail: detail),
                       SizedBox(height: kh.spacing.lg),
-                      _buildLifecycleActionsCard(context, kh, detail),
+                      lifecycleCard,
                       SizedBox(height: kh.spacing.lg),
-                      _buildRequestHistoryCard(kh, detail),
+                      CustomerRequestHistoryCard(detail: detail),
                       SizedBox(height: kh.spacing.lg),
-                      _buildAdminNotesCard(kh, detail),
+                      notesCard,
                     ],
                   );
                 },
@@ -186,469 +200,6 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildBackButton(BuildContext context, KhThemeExtension kh) {
-    return TextButton.icon(
-      key: const Key('customer-detail-back-button'),
-      onPressed: () => context.go('/customers'),
-      icon: const Icon(Icons.arrow_back, size: 18),
-      label: const Text('Back to Customers'),
-      style: TextButton.styleFrom(
-        foregroundColor: kh.colors.goldPrimary,
-        padding: EdgeInsets.symmetric(
-          horizontal: kh.spacing.sm,
-          vertical: kh.spacing.xs,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(
-    BuildContext context,
-    KhThemeExtension kh,
-    CustomerDetail detail,
-  ) {
-    return KhScreenHeader(
-      eyebrow: 'Customer Profile',
-      heading: detail.displayName.isNotEmpty
-          ? detail.displayName
-          : 'Customer Record',
-      supportingText: 'ID: ${detail.id} • User ID: ${detail.userId}',
-      trailing: KhStatusChip(
-        label: detail.accountState.displayName,
-        tone: _statusTone(detail.accountState),
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard(KhThemeExtension kh, CustomerDetail detail) {
-    return Container(
-      key: const Key('customer-summary-card'),
-      padding: EdgeInsets.all(kh.spacing.lg),
-      decoration: BoxDecoration(
-        color: kh.colors.backgroundElevated,
-        borderRadius: kh.shapes.roundedLg,
-        border: Border.all(
-          color: kh.colors.borderSubtle,
-          width: kh.shapes.cardBorderWidth,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: kh.colors.goldPrimary.withValues(alpha: 0.18),
-                child: Text(
-                  detail.displayName.isNotEmpty
-                      ? detail.displayName[0].toUpperCase()
-                      : 'C',
-                  style: kh.typography.headline.copyWith(
-                    color: kh.colors.goldPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              SizedBox(width: kh.spacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      detail.displayName.isNotEmpty
-                          ? detail.displayName
-                          : 'Unnamed Customer',
-                      style: kh.typography.title.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: kh.colors.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: kh.spacing.xxs),
-                    KhStatusChip(
-                      label: detail.accountState.displayName,
-                      tone: _statusTone(detail.accountState),
-                      dense: true,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: kh.spacing.lg),
-          Divider(color: kh.colors.borderSubtle, height: 1),
-          SizedBox(height: kh.spacing.md),
-          _buildInfoRow(kh, 'Email Address', detail.email ?? '—'),
-          _buildInfoRow(kh, 'Mobile Number', detail.mobileNumber ?? '—'),
-          _buildInfoRow(kh, 'Default Region', detail.defaultRegion ?? 'UAE (Default)'),
-          _buildInfoRow(kh, 'Joined Date', _formatDate(detail.createdAt)),
-          _buildInfoRow(kh, 'User ID', detail.userId),
-          _buildInfoRow(kh, 'Customer Profile ID', detail.id),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(KhThemeExtension kh, String label, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: kh.spacing.xs),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 160,
-            child: Text(
-              label,
-              style: kh.typography.caption.copyWith(
-                color: kh.colors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Expanded(
-            child: SelectableText(
-              value,
-              style: kh.typography.bodySmall.copyWith(
-                color: kh.colors.textPrimary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLifecycleActionsCard(
-    BuildContext context,
-    KhThemeExtension kh,
-    CustomerDetail detail,
-  ) {
-    final isSuspended = detail.accountState == CustomerAccountState.suspended;
-    final isDeactivated = detail.accountState == CustomerAccountState.deactivated;
-
-    return Container(
-      key: const Key('customer-lifecycle-card'),
-      padding: EdgeInsets.all(kh.spacing.lg),
-      decoration: BoxDecoration(
-        color: kh.colors.backgroundElevated,
-        borderRadius: kh.shapes.roundedLg,
-        border: Border.all(
-          color: kh.colors.borderSubtle,
-          width: kh.shapes.cardBorderWidth,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const KhSectionLabel('ADMIN ACTIONS'),
-          SizedBox(height: kh.spacing.xs),
-          Text(
-            'Account Lifecycle Controls',
-            style: kh.typography.title.copyWith(color: kh.colors.textPrimary),
-          ),
-          SizedBox(height: kh.spacing.xs),
-          Text(
-            'Administrative actions modify account access and are logged to the platform audit trail.',
-            style: kh.typography.caption.copyWith(color: kh.colors.textSecondary),
-          ),
-          SizedBox(height: kh.spacing.lg),
-          if (_isProcessingAction)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: CircularProgressIndicator(),
-              ),
-            )
-          else ...[
-            if (isSuspended)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  key: const Key('customer-reactivate-button'),
-                  onPressed: () => _promptReactivateDialog(context, kh, detail),
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Reactivate Customer'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kh.colors.success,
-                    foregroundColor: Colors.black,
-                    padding: EdgeInsets.symmetric(vertical: kh.spacing.sm),
-                  ),
-                ),
-              )
-            else if (!isDeactivated)
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  key: const Key('customer-suspend-button'),
-                  onPressed: () => _promptSuspendDialog(context, kh, detail),
-                  icon: const Icon(Icons.block, size: 18),
-                  label: const Text('Suspend Customer'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: kh.colors.warning,
-                    side: BorderSide(color: kh.colors.warning),
-                    padding: EdgeInsets.symmetric(vertical: kh.spacing.sm),
-                  ),
-                ),
-              ),
-            SizedBox(height: kh.spacing.md),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                key: const Key('customer-erasure-button'),
-                onPressed: () => _promptErasureDialog(context, kh, detail),
-                icon: const Icon(Icons.delete_forever, size: 18),
-                label: const Text('Request data erasure'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: kh.colors.error,
-                  side: BorderSide(color: kh.colors.error),
-                  padding: EdgeInsets.symmetric(vertical: kh.spacing.sm),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRequestHistoryCard(KhThemeExtension kh, CustomerDetail detail) {
-    return Container(
-      key: const Key('customer-request-history-card'),
-      padding: EdgeInsets.all(kh.spacing.lg),
-      decoration: BoxDecoration(
-        color: kh.colors.backgroundElevated,
-        borderRadius: kh.shapes.roundedLg,
-        border: Border.all(
-          color: kh.colors.borderSubtle,
-          width: kh.shapes.cardBorderWidth,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const KhSectionLabel('ACTIVITY HISTORY'),
-          SizedBox(height: kh.spacing.xs),
-          Text(
-            'Customer Requests (${detail.requests.length})',
-            style: kh.typography.title.copyWith(color: kh.colors.textPrimary),
-          ),
-          SizedBox(height: kh.spacing.md),
-          if (detail.requests.isEmpty)
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: kh.spacing.md),
-              child: Center(
-                child: Text(
-                  'No requests submitted by this customer yet.',
-                  style: kh.typography.bodySmall.copyWith(
-                    color: kh.colors.textSecondary,
-                  ),
-                ),
-              ),
-            )
-          else
-            KhDataTable(
-              key: const Key('customer-requests-table'),
-              minWidth: 640,
-              columns: const [
-                KhTableColumn('Reference / ID', flex: 2),
-                KhTableColumn('Type', flex: 2),
-                KhTableColumn('State', flex: 2),
-                KhTableColumn('Offers', flex: 1),
-                KhTableColumn('Created Date', flex: 2),
-              ],
-              rows: [
-                for (final req in detail.requests)
-                  KhTableRow(
-                    cells: [
-                      Text(
-                        req.reference ??
-                            (req.id.length > 8 ? req.id.substring(0, 8) : req.id),
-                        style: kh.typography.bodySmall.copyWith(
-                          color: kh.colors.textPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        req.requestType ?? '—',
-                        style: kh.typography.bodySmall.copyWith(
-                          color: kh.colors.textSecondary,
-                        ),
-                      ),
-                      KhStatusChip(
-                        label: req.state ?? 'UNKNOWN',
-                        dense: true,
-                        tone: (req.state == 'ACCEPTED' || req.state == 'FULFILLED')
-                            ? KhStatusTone.success
-                            : (req.state == 'CANCELLED' || req.state == 'EXPIRED')
-                                ? KhStatusTone.error
-                                : KhStatusTone.neutral,
-                      ),
-                      Text(
-                        '${req.offerCount}',
-                        style: kh.typography.bodySmall.copyWith(
-                          color: kh.colors.textPrimary,
-                        ),
-                      ),
-                      Text(
-                        _formatDate(req.createdAt),
-                        style: kh.typography.bodySmall.copyWith(
-                          color: kh.colors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAdminNotesCard(KhThemeExtension kh, CustomerDetail detail) {
-    return Container(
-      key: const Key('customer-admin-notes-card'),
-      padding: EdgeInsets.all(kh.spacing.lg),
-      decoration: BoxDecoration(
-        color: kh.colors.backgroundElevated,
-        borderRadius: kh.shapes.roundedLg,
-        border: Border.all(
-          color: kh.colors.borderSubtle,
-          width: kh.shapes.cardBorderWidth,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const KhSectionLabel('ADMIN AUDIT & NOTES'),
-          SizedBox(height: kh.spacing.xs),
-          Text(
-            'Internal Notes (${detail.adminNotes.length})',
-            style: kh.typography.title.copyWith(color: kh.colors.textPrimary),
-          ),
-          SizedBox(height: kh.spacing.xs),
-          Text(
-            'Internal notes are strictly visible to platform admins and tracked with timestamps.',
-            style: kh.typography.caption.copyWith(color: kh.colors.textSecondary),
-          ),
-          SizedBox(height: kh.spacing.md),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: TextField(
-                  key: const Key('customer-note-input-field'),
-                  controller: _noteController,
-                  maxLines: 2,
-                  style: kh.typography.bodySmall,
-                  decoration: InputDecoration(
-                    hintText: 'Add an internal admin note…',
-                    isDense: true,
-                    filled: true,
-                    fillColor: kh.colors.backgroundSurface,
-                    border: OutlineInputBorder(
-                      borderRadius: kh.shapes.roundedMd,
-                      borderSide: BorderSide(color: kh.colors.borderSubtle),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: kh.spacing.sm),
-              ElevatedButton.icon(
-                key: const Key('customer-add-note-button'),
-                onPressed: _isProcessingAction
-                    ? null
-                    : () async {
-                        final text = _noteController.text.trim();
-                        if (text.isEmpty) return;
-                        await _executeAction(
-                          actionName: 'add note',
-                          task: () async {
-                            await ref
-                                .read(customerDetailControllerProvider(
-                                        detail.id)
-                                    .notifier)
-                                .addAdminNote(text);
-                            _noteController.clear();
-                          },
-                          successMessage: 'Admin note added successfully.',
-                        );
-                      },
-                icon: const Icon(Icons.note_add, size: 16),
-                label: const Text('Add Note'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kh.colors.goldPrimary,
-                  foregroundColor: Colors.black,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: kh.spacing.md,
-                    vertical: kh.spacing.sm,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: kh.spacing.lg),
-          if (detail.adminNotes.isEmpty)
-            Text(
-              'No internal notes added yet.',
-              style: kh.typography.caption.copyWith(
-                color: kh.colors.textMuted,
-                fontStyle: FontStyle.italic,
-              ),
-            )
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: detail.adminNotes.length,
-              separatorBuilder: (_, __) => SizedBox(height: kh.spacing.sm),
-              itemBuilder: (context, idx) {
-                final note = detail.adminNotes[idx];
-                return Container(
-                  padding: EdgeInsets.all(kh.spacing.sm),
-                  decoration: BoxDecoration(
-                    color: kh.colors.backgroundSurface,
-                    borderRadius: kh.shapes.roundedMd,
-                    border: Border.all(color: kh.colors.borderSubtle),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            note.authorName,
-                            style: kh.typography.caption.copyWith(
-                              color: kh.colors.goldPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            _formatDateTime(note.createdAt),
-                            style: kh.typography.caption.copyWith(
-                              color: kh.colors.textMuted,
-                              fontSize: 10.0,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: kh.spacing.xs),
-                      Text(
-                        note.text,
-                        style: kh.typography.bodySmall.copyWith(
-                          color: kh.colors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-        ],
       ),
     );
   }
@@ -947,42 +498,5 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
         successMessage: 'Customer PII anonymization completed.',
       );
     }
-  }
-
-  Widget _buildErrorView(BuildContext context, KhThemeExtension kh, String error) {
-    return Center(
-      key: const Key('customer-detail-error'),
-      child: Padding(
-        padding: EdgeInsets.all(kh.spacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: kh.colors.error),
-            SizedBox(height: kh.spacing.md),
-            Text(
-              'Failed to load customer profile',
-              style: kh.typography.title.copyWith(color: kh.colors.textPrimary),
-            ),
-            SizedBox(height: kh.spacing.xs),
-            Text(
-              error,
-              textAlign: TextAlign.center,
-              style: kh.typography.bodySmall.copyWith(
-                color: kh.colors.textSecondary,
-              ),
-            ),
-            SizedBox(height: kh.spacing.md),
-            ElevatedButton.icon(
-              key: const Key('customer-detail-retry-button'),
-              onPressed: () => ref
-                  .read(customerDetailControllerProvider(widget.customerId).notifier)
-                  .reload(),
-              icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Retry'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
