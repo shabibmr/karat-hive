@@ -36,7 +36,7 @@
 | **S4** App-shell / bootstrap | ✅ complete | — |
 | **S5** i18n & accessibility | not started | TR-S5-01 … TR-S5-25 (all) |
 | **S6** Feature completion | ✅ complete | — |
-| **S7** Testing | 12 open | TR-S7-01..05, -08, -10..15 |
+| **S7** Testing | 11 open | TR-S7-01..05, -10..15 |
 | **S8** Documentation carve | 11 open | TR-S8-03 … TR-S8-13 |
 
 ---
@@ -105,7 +105,7 @@ S7 goldens at 100% and 200% text scale, LTR + RTL.
 **Keep the style:** hand fakes + `ProviderScope` overrides, **no mocktail/mockito**.
 **Verification:** `flutter test` + `flutter test integration_test` green; CI shows the size
 number; `flutter analyze` warning count for `apps/kh_admin` is 0.
-Done: TR-S7-06 (taxonomy repo test), TR-S7-07 (verification_query_params test), TR-S7-09 (2 warnings).
+Done: TR-S7-06 (taxonomy repo test), TR-S7-07 (verification_query_params test), TR-S7-08 (exclusive-state transition test), TR-S7-09 (2 warnings).
 
 ### Cheap first — no restructure dependency
 
@@ -116,7 +116,6 @@ Done: TR-S7-06 (taxonomy repo test), TR-S7-07 (verification_query_params test), 
 | `[ ]` **TR-S7-03** `offer_detail_controller` test | E18 | `[NEW] test/features/offers/offer_detail_controller_test.dart` | Same. | — | passes. |
 | `[ ]` **TR-S7-04** `vendor_detail_controller` test | E18 | `[NEW] test/features/vendors/vendor_detail_controller_test.dart` | Same. | — | passes. |
 | `[ ]` **TR-S7-05** `audit` + `dashboard` + `reports` controller tests | E18 | `[NEW] test/features/{audit,dashboard,reports}/*_controller_test.dart` | Controllers untested (repos are). | — | 3 files; pass. |
-| `[ ]` **TR-S7-08** exclusive-state transition test | E18, `ADM-INS-19` | `test/core/list/cursor_paginated_notifier_test.dart` | loading→error→retry against the S1 kernel. | `TR-S1-15` (done) | transition asserted; no impossible combo. |
 
 ### Goldens + integration + CI
 
@@ -159,7 +158,7 @@ unaffected; skill re-run idempotent; spot-read passes.
 
 ## Sequencing for the remaining work
 
-1. **S7 cheap tests** (`TR-S7-01..05`, `-08`, `-10`, `-11`) — no restructure dependency, do
+1. **S7 cheap tests** (`TR-S7-01..05`, `-10`, `-11`) — no restructure dependency, do
    anytime; `TR-S7-12`/`-13` unblocked now that S2 and S3 have landed.
 2. **S5** — merges last (string churn). Shell (`TR-S5-01`) and per-feature ARB
    (`TR-S5-02..09`) first, then `TR-S5-11..13`, then a11y and de-litteralise, then time.

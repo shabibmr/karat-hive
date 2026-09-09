@@ -197,8 +197,8 @@ than a screenful.
 
 | Task | Src | File (lines) | Deps | Extra |
 |---|---|---|---|---|
-| `[ ]` **TR-S2-06** | E12, `ADM-SMP-26`, `-27` | `lib/features/requests/presentation/request_detail_screen.dart` (1484) | TR-S2-01..05 | worst; 8× card literal |
-| `[ ]` **TR-S2-07** | E12 | `lib/features/offers/presentation/offer_detail_screen.dart` (1388) | TR-S2-01..05 | |
+| `[x]` **TR-S2-06** _completed: 2026-09-09_ | E12, `ADM-SMP-26`, `-27` | `lib/features/requests/presentation/request_detail_screen.dart` (1484→247) | TR-S2-01..05 | 8 cards + header chrome + remove dialog → `presentation/widgets/` |
+| `[x]` **TR-S2-07** _completed: 2026-09-09_ | E12 | `lib/features/offers/presentation/offer_detail_screen.dart` (1388→209) | TR-S2-01..05 | 11 widget classes → `presentation/widgets/`, formatters lifted |
 | `[x]` **TR-S2-08** _completed: 2026-09-09_ | E12 | `lib/features/announcements/presentation/announcements_screen.dart` (1204→256) | TR-S2-01..05 | also **TR-S2-09**; sections → `presentation/widgets/` (metrics row, filter bar, table, detail + cancel dialogs, formatters) |
 | `[x]` **TR-S2-09** extract compose dialog _completed: 2026-09-09_ | E12 | `[NEW] lib/features/announcements/presentation/widgets/compose_announcement_dialog.dart` from `announcements_screen.dart` | — | `ComposeAnnouncementDialog`, verbatim move, all Keys preserved |
 | `[x]` **TR-S2-10** _completed: 2026-09-09_ | E12 | `lib/features/vendors/presentation/vendor_detail_screen.dart` (1075→430) | TR-S2-01..05 | header, row, profile/taxonomy/KYC/lifecycle cards, error view → `presentation/widgets/`; dialogs stay in screen |
@@ -426,7 +426,7 @@ number; `flutter analyze` warning count for `apps/kh_admin` is 0.
 | `[ ]` **TR-S7-05** `audit` + `dashboard` + `reports` controller tests | E18 | `[NEW] test/features/{audit,dashboard,reports}/*_controller_test.dart` | Controllers untested (repos are). | — | 3 files; pass. |
 | `[x]` **TR-S7-06** `taxonomy` repository test _completed: 2026-09-09T09:55:00_ | E18 | `[NEW] test/features/taxonomy/taxonomy_repository_test.dart` | Repo untested (controller + screen are). | — | passes. — 7 cases: double-wrap list unwrap, includeInactive param, create POST body, PATCH null-strip, deactivate route, generic kind dispatch. |
 | `[x]` **TR-S7-07** `verification_query_params` test _completed: 2026-09-09T09:55:00_ | E18 | `[NEW] test/core/router/verification_query_params_test.dart` | Untested (other query-param helpers are). | — | passes. — 5 cases: selectedId round-trip, empty encode, fromUri, bare path, copyWith clearSelected. |
-| `[ ]` **TR-S7-08** exclusive-state transition test | E18, `ADM-INS-19` | `test/core/list/cursor_paginated_notifier_test.dart` | loading→error→retry against the S1 kernel. | `TR-S1-15` | transition asserted; no impossible combo. |
+| `[x]` **TR-S7-08** exclusive-state transition test _completed: 2026-09-09T07:22:00_ | E18, `ADM-INS-19` | `test/core/list/cursor_paginated_notifier_test.dart` | loading→error→retry against the S1 kernel (landed with `TR-S1-16`). | `TR-S1-15` | transition asserted; no impossible combo. |
 | `[x]` **TR-S7-09** fix the 2 existing warnings _completed: 2026-09-09T09:55:00_ | E18 | `test/features/announcements/announcements_screen_test.dart` (unused import), `test/features/settings/platform_settings_controller_test.dart` (unused fake params) | Remove them. | — | `flutter analyze` clean across the whole package (test included) as of the S1–S6 landing; no outstanding warnings. |
 
 ### Goldens + integration + CI
