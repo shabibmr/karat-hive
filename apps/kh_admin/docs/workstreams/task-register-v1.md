@@ -199,8 +199,8 @@ than a screenful.
 |---|---|---|---|---|
 | `[ ]` **TR-S2-06** | E12, `ADM-SMP-26`, `-27` | `lib/features/requests/presentation/request_detail_screen.dart` (1484) | TR-S2-01..05 | worst; 8× card literal |
 | `[ ]` **TR-S2-07** | E12 | `lib/features/offers/presentation/offer_detail_screen.dart` (1388) | TR-S2-01..05 | |
-| `[ ]` **TR-S2-08** | E12 | `lib/features/announcements/presentation/announcements_screen.dart` (1204) | TR-S2-01..05 | also **TR-S2-09** |
-| `[ ]` **TR-S2-09** extract compose dialog | E12 | `[NEW] lib/features/announcements/presentation/compose_announcement_dialog.dart` from `announcements_screen.dart:774-1210` | — | ~440 L, a whole second feature — its own file |
+| `[x]` **TR-S2-08** _completed: 2026-09-09_ | E12 | `lib/features/announcements/presentation/announcements_screen.dart` (1204→256) | TR-S2-01..05 | also **TR-S2-09**; sections → `presentation/widgets/` (metrics row, filter bar, table, detail + cancel dialogs, formatters) |
+| `[x]` **TR-S2-09** extract compose dialog _completed: 2026-09-09_ | E12 | `[NEW] lib/features/announcements/presentation/widgets/compose_announcement_dialog.dart` from `announcements_screen.dart` | — | `ComposeAnnouncementDialog`, verbatim move, all Keys preserved |
 | `[ ]` **TR-S2-10** | E12 | `lib/features/vendors/presentation/vendor_detail_screen.dart` (1075) | TR-S2-01..05 | |
 | `[ ]` **TR-S2-11** | E12 | `lib/features/settings/presentation/platform_settings_screen.dart` (1059) | TR-S2-01..05 | |
 | `[ ]` **TR-S2-12** | E12 | `lib/features/customers/presentation/customer_detail_screen.dart` (1022) | TR-S2-01..05 | |
