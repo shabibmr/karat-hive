@@ -2,6 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
+import { isLockedNotificationCategory } from '../domain/locked-notification-categories';
 import { SettingsRepository } from '../repository/settings.repository';
 
 export interface PlatformConfigResponse {
@@ -95,6 +96,10 @@ export class SettingsService {
 
     const notifications: Record<string, { inApp: boolean; push: boolean; email: boolean }> = {};
     for (const pref of user.notificationPreferences) {
+      if (isLockedNotificationCategory(pref.category)) {
+        notifications[pref.category] = { inApp: true, push: true, email: true };
+        continue;
+      }
       notifications[pref.category] = {
         inApp: pref.inApp,
         push: pref.push,
@@ -115,6 +120,7 @@ export class SettingsService {
       preferredLanguage: user.preferredLanguage as 'en' | 'ar',
       defaultRegionId: user.customerProfile?.defaultRegionId ?? null,
       quietHours,
+      defaultFilterPresetId: user.vendorProfile?.defaultFilterPresetId ?? null,
       notifications,
     };
   }
@@ -123,15 +129,46 @@ export class SettingsService {
     viewer: ViewerContext,
     dto: UpdateUserSettingsDto,
   ): Promise<UserSettingsResponse> {
+    if (dto.defaultFilterPresetId) {
+      const owned = await this.repository.vendorOwnsFilterPreset(
+        viewer.userId,
+        dto.defaultFilterPresetId,
+      );
+      if (!owned) {
+        throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+      }
+    }
+
+    const notifications = this.normalizeNotificationPatch(dto.notifications);
+
     await this.repository.updateUserSettings(viewer.userId, {
       preferredLanguage: dto.preferredLanguage,
       defaultRegionId: dto.defaultRegionId,
+      defaultFilterPresetId: dto.defaultFilterPresetId,
       quietHoursStart: dto.quietHours ? dto.quietHours.start : dto.quietHours === null ? null : undefined,
       quietHoursEnd: dto.quietHours ? dto.quietHours.end : dto.quietHours === null ? null : undefined,
-      notifications: dto.notifications,
+      notifications,
     });
 
     return this.getMySettings(viewer);
+  }
+
+  /**
+   * Rejects turning off a locked category (SETTING_OUT_OF_RANGE).
+   * Locked categories that remain fully on are passed through unchanged.
+   */
+  private normalizeNotificationPatch(
+    notifications: UpdateUserSettingsDto['notifications'],
+  ): UpdateUserSettingsDto['notifications'] {
+    if (!notifications) return notifications;
+
+    for (const [category, prefs] of Object.entries(notifications)) {
+      if (!isLockedNotificationCategory(category)) continue;
+      if (prefs.inApp === false || prefs.push === false || prefs.email === false) {
+        throw new ApiException(HttpStatus.BAD_REQUEST, ErrorCode.SETTING_OUT_OF_RANGE);
+      }
+    }
+    return notifications;
   }
 
   async getAllAdminSettings() {

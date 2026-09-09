@@ -83,6 +83,10 @@ const MESSAGES: Record<ErrorCode, Record<UiLanguage, string>> = {
     en: 'This account has been deactivated.',
     ar: 'تم إلغاء تنشيط هذا الحساب.',
   },
+  PASSWORD_POLICY: {
+    en: 'Choose a stronger password: at least 12 characters with mixed character classes.',
+    ar: 'اختر كلمة مرور أقوى: 12 حرفًا على الأقل مع أنواع أحرف متعددة.',
+  },
   VENDOR_NOT_ACTIVE: {
     en: 'Your account is not yet active. Complete verification to continue.',
     ar: 'حسابك ليس نشطًا بعد. أكمل التحقق للمتابعة.',

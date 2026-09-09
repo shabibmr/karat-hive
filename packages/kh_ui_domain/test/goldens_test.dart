@@ -264,4 +264,287 @@ void main() {
       ),
     );
   });
+
+  testWidgets('NotificationListItem LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'notification_list_item',
+      size: const Size(440, 280),
+      builder: () => SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            NotificationListItem(
+              notification: AppNotification(
+                id: 'n-unread',
+                type: 'offer.submitted',
+                title: 'New Offer received',
+                body: 'Verified Jeweller submitted a quote.',
+                deepLink: '/requests/req-1',
+                isCritical: false,
+                createdAt: _fixedNow.subtract(const Duration(minutes: 12)),
+              ),
+              now: _fixedNow,
+              onTap: () {},
+            ),
+            const SizedBox(height: 8),
+            NotificationListItem(
+              notification: AppNotification(
+                id: 'n-read',
+                type: 'request.expiry.warning',
+                title: 'Request expiring soon',
+                body: 'KH-RQ-24A1 has 12 hours remaining.',
+                deepLink: '/requests/req-1',
+                isCritical: false,
+                readAt: _fixedNow.subtract(const Duration(hours: 1)),
+                createdAt: _fixedNow.subtract(const Duration(hours: 2)),
+              ),
+              now: _fixedNow,
+              onTap: () {},
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('NotificationCentreList LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'notification_centre_list',
+      size: const Size(440, 360),
+      builder: () => SizedBox(
+        width: 400,
+        height: 320,
+        child: NotificationCentreList(
+          now: _fixedNow,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          onNotificationTap: (_) {},
+          notifications: [
+            AppNotification(
+              id: 'n-unread',
+              type: 'offer.submitted',
+              title: 'New Offer received',
+              body: 'Verified Jeweller submitted a quote.',
+              deepLink: '/requests/req-1',
+              isCritical: false,
+              createdAt: _fixedNow.subtract(const Duration(minutes: 12)),
+            ),
+            AppNotification(
+              id: 'n-read',
+              type: 'request.expiry.warning',
+              title: 'Request expiring soon',
+              body: 'KH-RQ-24A1 has 12 hours remaining.',
+              deepLink: '/requests/req-1',
+              isCritical: false,
+              readAt: _fixedNow.subtract(const Duration(hours: 1)),
+              createdAt: _fixedNow.subtract(const Duration(hours: 2)),
+            ),
+            // Outside 90-day window — must not appear in the golden.
+            AppNotification(
+              id: 'n-stale',
+              type: 'announcement.scheduled',
+              title: 'Stale announcement',
+              body: 'Should be filtered out.',
+              deepLink: '',
+              isCritical: false,
+              createdAt: _fixedNow.subtract(const Duration(days: 120)),
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('NotificationPreferenceMatrix LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'notification_preference_matrix',
+      size: const Size(440, 480),
+      builder: () => SizedBox(
+        width: 400,
+        child: NotificationPreferenceMatrix(
+          onChanged: (_, __) {},
+          categories: const [
+            NotificationPreferenceCategory(
+              id: 'offer.submitted',
+              label: 'New Offers',
+              pref: NotificationChannelPref(
+                inApp: true,
+                push: true,
+                email: false,
+              ),
+            ),
+            NotificationPreferenceCategory(
+              id: 'security',
+              label: 'Security alerts',
+              pref: NotificationChannelPref(
+                inApp: false,
+                push: false,
+                email: false,
+              ),
+              hint: 'Required for account security',
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('RatingSummaryView LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'rating_summary_view',
+      size: const Size(440, 480),
+      builder: () => const SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RatingSummaryView(
+              summary: RatingSummary(
+                average: 4.6,
+                count: 12,
+                distribution: {
+                  '5': 8,
+                  '4': 3,
+                  '3': 1,
+                  '2': 0,
+                  '1': 0,
+                },
+                limitedHistory: false,
+              ),
+            ),
+            SizedBox(height: 12),
+            RatingSummaryView(
+              summary: RatingSummary(
+                average: 5.0,
+                count: 2,
+                distribution: {'5': 2},
+                limitedHistory: true,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('StarRatingInput LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'star_rating_input',
+      size: const Size(400, 220),
+      builder: () => const SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StarRatingInput(
+              value: 4,
+              label: 'Overall Rating',
+              helperText: 'Tap to rate (4 of 5)',
+              onChanged: _noopStar,
+            ),
+            SizedBox(height: 16),
+            StarRatingInput(
+              value: null,
+              label: 'Overall Rating',
+              errorText: 'Rating is required',
+              onChanged: _noopStar,
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('ReviewCommentField LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'review_comment_field',
+      size: const Size(420, 420),
+      builder: () => const SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ReviewCommentField(
+              label: 'Comment',
+              helperText: 'Optional, up to 1000 characters',
+              initialValue: 'Polite and fair pricing.',
+              onChanged: _noopComment,
+            ),
+            SizedBox(height: 12),
+            ReviewCommentField(
+              label: 'Comment',
+              helperText: 'Optional, up to 1000 characters',
+              errorText: 'Comment must be 1000 characters or fewer',
+              onChanged: _noopComment,
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('ReviewListItem LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'review_list_item',
+      size: const Size(420, 420),
+      builder: () => const SizedBox(
+        width: 380,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ReviewListItem(
+              abbreviatedAuthor: 'Fatima M.',
+              rating: 5,
+              dateLabel: '10 Aug 2026',
+              contextLabel: '22K Gold Necklace',
+              comment:
+                  'Exceptional craftsmanship and smooth transaction. Highly recommended Deira jeweller.',
+            ),
+            SizedBox(height: 12),
+            ReviewListItem(
+              abbreviatedAuthor: 'Rashed K.',
+              rating: 4,
+              dateLabel: '02 Aug 2026',
+              contextLabel: 'Sell Old Gold Scrap',
+              comment:
+                  'Fair valuation according to live reference rate. Fast WhatsApp response.',
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('AbuseReportForm LTR+RTL golden', (tester) async {
+    await expectKhGoldens(
+      tester,
+      name: 'abuse_report_form',
+      size: const Size(420, 520),
+      builder: () => const SizedBox(
+        width: 380,
+        child: AbuseReportForm(
+          entityType: AbuseEntityType.request,
+          entityId: 'req-1',
+          entityReference: 'REQ-1001',
+          reporterRole: UserRole.vendor,
+        ),
+      ),
+    );
+  });
 }
+
+void _noopStar(int _) {}
+
+void _noopComment(String _) {}
+
+

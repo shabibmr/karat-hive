@@ -77,15 +77,8 @@ class ConnectionDetailScreen extends ConsumerWidget {
     if (!context.mounted) return;
     res.when(
       ok: (_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n?.connectionReviewsCp5 ?? 'Reviews open in Check-Point 5',
-            ),
-          ),
-        );
         ref.invalidate(connectionsControllerProvider);
-        context.go('/vendor/connections');
+        context.push('/vendor/connections/$connectionId/review');
       },
       err: (failure) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -99,10 +92,6 @@ class ConnectionDetailScreen extends ConsumerWidget {
         );
       },
     );
-  }
-
-  void _cp5Snack(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -198,18 +187,15 @@ class ConnectionDetailScreen extends ConsumerWidget {
               ],
               SizedBox(height: tokens.space.md),
               TextButton(
-                onPressed: () => _cp5Snack(
-                  context,
-                  l10n?.connectionReviewsCp5 ??
-                      'Reviews open in Check-Point 5',
-                ),
+                key: const Key('connection-leave-feedback'),
+                onPressed: () =>
+                    context.push('/vendor/connections/$connectionId/review'),
                 child: Text(l10n?.connectionLeaveFeedback ?? 'Leave feedback'),
               ),
               TextButton(
-                onPressed: () => _cp5Snack(
-                  context,
-                  l10n?.connectionReviewsCp5 ??
-                      'Reviews open in Check-Point 5',
+                key: const Key('connection-report-button'),
+                onPressed: () => context.push(
+                  '/abuse/new?targetType=CONNECTION&targetId=$connectionId',
                 ),
                 child: Text(l10n?.connectionReport ?? 'Report'),
               ),

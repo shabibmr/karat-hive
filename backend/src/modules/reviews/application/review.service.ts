@@ -195,6 +195,10 @@ export class ReviewService {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.CONFLICT);
     }
 
+    if (review.vendorResponse != null || review.vendorResponseState != null) {
+      throw new ApiException(HttpStatus.CONFLICT, ErrorCode.CONFLICT);
+    }
+
     const updated = await this.prisma.$transaction(
       async (tx: Prisma.TransactionClient) => {
         return this.repo.addVendorResponse(tx, reviewId, response);

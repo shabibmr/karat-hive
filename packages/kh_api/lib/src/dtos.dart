@@ -10,6 +10,7 @@ export 'dtos/review_dtos.dart';
 export 'dtos/notification_dtos.dart';
 export 'dtos/settings_dtos.dart';
 export 'dtos/gold_rate_dtos.dart';
+export 'dtos/performance_dtos.dart';
 
 part 'dtos.freezed.dart';
 part 'dtos.g.dart';
@@ -125,4 +126,32 @@ abstract class UploadIntent with _$UploadIntent {
 
   factory UploadIntent.fromJson(Map<String, dynamic> json) =>
       _$UploadIntentFromJson(_normalizeUploadIntentJson(json));
+}
+
+/// `GET /v1/auth/sessions` item — backend `SessionFamilyView`.
+class AuthSessionDto {
+  const AuthSessionDto({
+    required this.id,
+    this.deviceLabel,
+    this.lastIp,
+    required this.lastUsedAt,
+    required this.createdAt,
+    this.isCurrent = false,
+  });
+
+  final String id;
+  final String? deviceLabel;
+  final String? lastIp;
+  final DateTime lastUsedAt;
+  final DateTime createdAt;
+  final bool isCurrent;
+
+  static AuthSessionDto fromJson(Map<String, dynamic> j) => AuthSessionDto(
+        id: j['id'] as String,
+        deviceLabel: j['deviceLabel'] as String?,
+        lastIp: j['lastIp'] as String?,
+        lastUsedAt: DateTime.parse(j['lastUsedAt'] as String),
+        createdAt: DateTime.parse(j['createdAt'] as String),
+        isCurrent: j['isCurrent'] as bool? ?? false,
+      );
 }

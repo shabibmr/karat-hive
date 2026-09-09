@@ -50,6 +50,35 @@ class CustomerMe {
       };
 }
 
+/// One weekday entry in `VendorMe.businessHours` / availability PATCH.
+class BusinessDayHours {
+  const BusinessDayHours({
+    required this.open,
+    required this.close,
+    this.closed = false,
+  });
+
+  final String open;
+  final String close;
+  final bool closed;
+
+  static BusinessDayHours? tryParse(Object? raw) {
+    if (raw is! Map) return null;
+    final m = Map<String, dynamic>.from(raw);
+    return BusinessDayHours(
+      open: m['open'] as String? ?? '',
+      close: m['close'] as String? ?? '',
+      closed: m['closed'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'open': open,
+        'close': close,
+        'closed': closed,
+      };
+}
+
 class VendorMe {
   const VendorMe({
     required this.vendorProfileId,
@@ -64,6 +93,17 @@ class VendorMe {
     this.awayMode = false,
     this.awaitingApprovalReason,
     this.verificationMessage,
+    this.verifiedAt,
+    this.rating,
+    this.offersSubmittedCount = 0,
+    this.connectionCount = 0,
+    this.maskedPreview,
+    this.description,
+    this.tradeLicenceNumber = '',
+    this.registeredAddress = '',
+    this.contactPersonName = '',
+    this.businessEmail = '',
+    this.businessHours = const {},
   });
 
   final String vendorProfileId;
@@ -71,6 +111,8 @@ class VendorMe {
   final bool awaitingApproval;
   final String tradingName;
   final String legalBusinessName;
+  final String tradeLicenceNumber;
+  final String registeredAddress;
   final int categoryCount;
   final int regionCount;
   final List<String> categoryIds;
@@ -79,10 +121,60 @@ class VendorMe {
   final AwaitingApprovalReason? awaitingApprovalReason;
   final String? verificationMessage;
 
+  /// FR-VEN-024 AC3 — verification date (UTC).
+  final DateTime? verifiedAt;
+
+  /// FR-VEN-024 AC3 / SH-ID-03 aggregate rating.
+  final RatingSummary? rating;
+
+  /// FR-VEN-024 AC3 — lifetime Offers submitted.
+  final int offersSubmittedCount;
+
+  /// FR-VEN-024 AC3 — lifetime Connections. Falls back to
+  /// `offersAcceptedCount` when the wire omits `connectionCount`.
+  final int connectionCount;
+
+  /// FR-VEN-024 AC4 — what Customers see pre-acceptance (`maskedPreview`).
+  final MaskedParty? maskedPreview;
+
+  /// Safe-edit showroom blurb (VEN-S15 / FR-VEN-024). Not a BR-004 field.
+  final String? description;
+
+  /// Safe-edit contact name (VEN-S15).
+  final String contactPersonName;
+
+  /// Safe-edit business email (VEN-S15).
+  final String businessEmail;
+
+  /// Per-weekday open/close (`mon`…`sun`). Patched via availability.
+  final Map<String, BusinessDayHours> businessHours;
+
   static VendorMe fromJson(Map<String, dynamic> j) {
     List<String> strs(Object? raw) => (raw as List? ?? const [])
         .map((e) => e.toString())
         .toList(growable: false);
+
+    final maskedRaw = j['maskedPreview'];
+    final MaskedParty? masked = maskedRaw is Map
+        ? MaskedParty.fromJson(
+            Map<String, dynamic>.from(maskedRaw),
+            role: UserRole.vendor,
+          )
+        : null;
+
+    final connectionCount = (j['connectionCount'] as num?)?.toInt() ??
+        (j['offersAcceptedCount'] as num?)?.toInt() ??
+        masked?.dealCount ??
+        0;
+
+    final hoursRaw = j['businessHours'];
+    final hours = <String, BusinessDayHours>{};
+    if (hoursRaw is Map) {
+      for (final e in hoursRaw.entries) {
+        final day = BusinessDayHours.tryParse(e.value);
+        if (day != null) hours[e.key.toString()] = day;
+      }
+    }
 
     return VendorMe(
       vendorProfileId: (j['vendorProfileId'] ?? j['id'] ?? '') as String,
@@ -98,6 +190,19 @@ class VendorMe {
       awaitingApprovalReason:
           AwaitingApprovalReason.parse(j['awaitingApprovalReason'] as String?),
       verificationMessage: j['verificationMessage'] as String?,
+      verifiedAt: j['verifiedAt'] is String
+          ? DateTime.tryParse(j['verifiedAt'] as String)
+          : null,
+      rating: RatingSummary.tryParse(j['rating']),
+      offersSubmittedCount: (j['offersSubmittedCount'] as num?)?.toInt() ?? 0,
+      connectionCount: connectionCount,
+      maskedPreview: masked,
+      description: j['description'] as String?,
+      tradeLicenceNumber: j['tradeLicenceNumber'] as String? ?? '',
+      registeredAddress: (j['registeredAddress'] ?? j['businessAddress']) as String? ?? '',
+      contactPersonName: j['contactPersonName'] as String? ?? '',
+      businessEmail: j['businessEmail'] as String? ?? '',
+      businessHours: hours,
     );
   }
 
@@ -107,6 +212,8 @@ class VendorMe {
         'awaitingApproval': awaitingApproval,
         'tradingName': tradingName,
         'legalBusinessName': legalBusinessName,
+        if (tradeLicenceNumber.isNotEmpty) 'tradeLicenceNumber': tradeLicenceNumber,
+        if (registeredAddress.isNotEmpty) 'registeredAddress': registeredAddress,
         'categoryCount': categoryCount,
         'regionCount': regionCount,
         'categoryIds': categoryIds,
@@ -116,6 +223,18 @@ class VendorMe {
           'awaitingApprovalReason': awaitingApprovalReason!.name.toUpperCase(),
         if (verificationMessage != null)
           'verificationMessage': verificationMessage,
+        if (verifiedAt != null) 'verifiedAt': verifiedAt!.toIso8601String(),
+        if (rating != null) 'rating': rating!.toJson(),
+        'offersSubmittedCount': offersSubmittedCount,
+        'connectionCount': connectionCount,
+        if (maskedPreview != null) 'maskedPreview': maskedPreview!.toJson(),
+        if (description != null) 'description': description,
+        'contactPersonName': contactPersonName,
+        'businessEmail': businessEmail,
+        if (businessHours.isNotEmpty)
+          'businessHours': {
+            for (final e in businessHours.entries) e.key: e.value.toJson(),
+          },
       };
 }
 

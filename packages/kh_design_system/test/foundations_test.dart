@@ -194,4 +194,282 @@ void main() {
     );
     expect(material.color, KhTokens.light.success);
   });
+
+  testWidgets('KhToast maps tones to tokens (SH-FND-17)', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        const KhToast(message: 'Saved', tone: KhToastTone.success),
+      ),
+    );
+    expect(find.byKey(const Key('kh-toast')), findsOneWidget);
+    expect(find.text('Saved'), findsOneWidget);
+    final material = tester.widget<Material>(find.byKey(const Key('kh-toast')));
+    expect(material.color, KhTokens.light.success);
+
+    await tester.pumpWidget(
+      _wrap(
+        const KhToast(message: 'Failed', tone: KhToastTone.error),
+      ),
+    );
+    expect(
+      tester.widget<Material>(find.byKey(const Key('kh-toast'))).color,
+      KhTokens.light.danger,
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        const KhToast(message: 'Note', tone: KhToastTone.info),
+      ),
+    );
+    expect(
+      tester.widget<Material>(find.byKey(const Key('kh-toast'))).color,
+      KhTokens.light.info,
+    );
+  });
+
+  testWidgets('showKhToast presents a floating snackbar (SH-FND-17)',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: khTheme(),
+        home: Builder(
+          builder: (context) {
+            return Scaffold(
+              body: KhButton(
+                label: 'Notify',
+                onPressed: () => showKhToast(
+                  context,
+                  message: 'Offer submitted',
+                  tone: KhToastTone.success,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Notify'));
+    await tester.pump();
+    expect(find.text('Offer submitted'), findsOneWidget);
+    expect(find.byKey(const Key('kh-toast')), findsOneWidget);
+    final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
+    expect(snackBar.behavior, SnackBarBehavior.floating);
+  });
+
+  testWidgets('KhToggle reports value changes (SH-FND-06)', (tester) async {
+    var value = false;
+    await tester.pumpWidget(
+      _wrap(
+        StatefulBuilder(
+          builder: (context, setState) {
+            return KhToggle(
+              label: 'Away mode',
+              value: value,
+              onChanged: (next) => setState(() => value = next),
+            );
+          },
+        ),
+      ),
+    );
+
+    expect(find.text('Away mode'), findsOneWidget);
+    expect(find.byKey(const Key('kh-toggle')), findsOneWidget);
+    expect(tester.widget<Switch>(find.byKey(const Key('kh-toggle'))).value, isFalse);
+
+    await tester.tap(find.byKey(const Key('kh-toggle')));
+    await tester.pumpAndSettle();
+    expect(value, isTrue);
+    expect(tester.widget<Switch>(find.byKey(const Key('kh-toggle'))).value, isTrue);
+  });
+
+  testWidgets('KhToggle ignores taps when disabled (SH-FND-06)', (tester) async {
+    var value = true;
+    await tester.pumpWidget(
+      _wrap(
+        KhToggle(
+          label: 'Flexible budget',
+          value: value,
+          enabled: false,
+          onChanged: (next) => value = next,
+        ),
+      ),
+    );
+
+    final switchWidget =
+        tester.widget<Switch>(find.byKey(const Key('kh-toggle')));
+    expect(switchWidget.onChanged, isNull);
+
+    await tester.tap(find.byKey(const Key('kh-toggle')));
+    await tester.pump();
+    expect(value, isTrue);
+  });
+
+  testWidgets('KhDateTimeField picks date only (SH-FND-09)', (tester) async {
+    DateTime? selected;
+    await tester.pumpWidget(
+      _wrap(
+        StatefulBuilder(
+          builder: (context, setState) {
+            return KhDateTimeField(
+              label: 'Licence expiry',
+              value: selected,
+              emptyLabel: 'Choose date',
+              mode: KhDateTimeMode.dateOnly,
+              pickDate: (
+                context, {
+                required initialDate,
+                required firstDate,
+                required lastDate,
+              }) async =>
+                  DateTime(2026, 9, 15),
+              onChanged: (value) => setState(() => selected = value),
+            );
+          },
+        ),
+      ),
+    );
+
+    expect(find.text('Choose date'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('kh-date-time-field')));
+    await tester.pumpAndSettle();
+
+    expect(selected, DateTime(2026, 9, 15));
+    expect(find.textContaining('Sep 15, 2026'), findsOneWidget);
+  });
+
+  testWidgets('KhDateTimeField picks schedule date+time (SH-FND-09)',
+      (tester) async {
+    DateTime? selected;
+    await tester.pumpWidget(
+      _wrap(
+        StatefulBuilder(
+          builder: (context, setState) {
+            return KhDateTimeField(
+              label: 'Schedule',
+              value: selected,
+              emptyLabel: 'Choose schedule',
+              mode: KhDateTimeMode.dateTime,
+              pickDate: (
+                context, {
+                required initialDate,
+                required firstDate,
+                required lastDate,
+              }) async =>
+                  DateTime(2026, 9, 20),
+              pickTime: (context, {required initialTime}) async =>
+                  const TimeOfDay(hour: 14, minute: 30),
+              onChanged: (value) => setState(() => selected = value),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('kh-date-time-field')));
+    await tester.pumpAndSettle();
+
+    expect(selected, DateTime(2026, 9, 20, 14, 30));
+    expect(find.textContaining('14:30'), findsOneWidget);
+  });
+
+  testWidgets('KhDateRangePicker applies presets (SH-FND-10)', (tester) async {
+    KhDateRangeSelection? selection;
+    final clock = DateTime(2026, 9, 8);
+
+    await tester.pumpWidget(
+      _wrap(
+        StatefulBuilder(
+          builder: (context, setState) {
+            return KhDateRangePicker(
+              label: 'Period',
+              now: clock,
+              range: selection?.range,
+              preset: selection?.preset,
+              onChanged: (next) => setState(() => selection = next),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('kh-date-range-preset-last7')));
+    await tester.pump();
+
+    expect(selection?.preset, KhDateRangePreset.last7);
+    expect(selection?.range.start, DateTime(2026, 9, 2));
+    expect(selection?.range.end, DateTime(2026, 9, 8));
+    expect(find.byKey(const Key('kh-date-range-summary')), findsOneWidget);
+  });
+
+  testWidgets('KhDateRangePicker custom opens range picker (SH-FND-10)',
+      (tester) async {
+    KhDateRangeSelection? selection;
+    final clock = DateTime(2026, 9, 8);
+
+    await tester.pumpWidget(
+      _wrap(
+        StatefulBuilder(
+          builder: (context, setState) {
+            return KhDateRangePicker(
+              now: clock,
+              range: selection?.range,
+              preset: selection?.preset,
+              pickRange: (
+                context, {
+                required initialDateRange,
+                required firstDate,
+                required lastDate,
+              }) async =>
+                  DateTimeRange(
+                    start: DateTime(2026, 8, 1),
+                    end: DateTime(2026, 8, 31),
+                  ),
+              onChanged: (next) => setState(() => selection = next),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('kh-date-range-preset-custom')));
+    await tester.pumpAndSettle();
+
+    expect(selection?.preset, KhDateRangePreset.custom);
+    expect(selection?.range.start, DateTime(2026, 8, 1));
+    expect(selection?.range.end, DateTime(2026, 8, 31));
+  });
+
+  testWidgets('KhExternalLinkRow invokes onTap (SH-FND-23)', (tester) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      _wrap(
+        KhExternalLinkRow(
+          label: 'Terms of Service',
+          onTap: () => taps++,
+        ),
+      ),
+    );
+
+    expect(find.text('Terms of Service'), findsOneWidget);
+    expect(find.byKey(const Key('kh-external-link-row')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('kh-external-link-row')));
+    await tester.pump();
+    expect(taps, 1);
+  });
+
+  testWidgets('KhAppVersionFooter shows label and version (SH-FND-24)',
+      (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        const KhAppVersionFooter(version: '1.0.0 (Build 2026.08)'),
+      ),
+    );
+
+    expect(find.text('App version'), findsOneWidget);
+    expect(find.byKey(const Key('kh-app-version-footer')), findsOneWidget);
+    expect(find.byKey(const Key('kh-app-version-value')), findsOneWidget);
+    expect(find.text('1.0.0 (Build 2026.08)'), findsOneWidget);
+  });
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,30 +39,32 @@ class FirebaseNotificationService {
 
   Stream<String> get onTokenRefresh => _messaging.onTokenRefresh;
 
-  void initializeForegroundHandler({
+  /// Subscribes to foreground and opened-app FCM streams. Caller must cancel
+  /// the returned subscriptions (push invalidation binder does this).
+  List<StreamSubscription<RemoteMessage>> initializeForegroundHandler({
     void Function(RemoteMessage message)? onMessageReceived,
     void Function(RemoteMessage message)? onMessageOpenedApp,
   }) {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('FCM foreground message: ${message.notification?.title}');
-      if (onMessageReceived != null) {
-        onMessageReceived(message);
-      }
-    });
-
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint('FCM opened app from notification: ${message.data}');
-      if (onMessageOpenedApp != null) {
-        onMessageOpenedApp(message);
-      }
-    });
+    return [
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        debugPrint('FCM foreground message: ${message.notification?.title}');
+        onMessageReceived?.call(message);
+      }),
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        debugPrint('FCM opened app from notification: ${message.data}');
+        onMessageOpenedApp?.call(message);
+      }),
+    ];
   }
 
-  Future<void> subscribeToTopic(String topic) => _messaging.subscribeToTopic(topic);
+  Future<void> subscribeToTopic(String topic) =>
+      _messaging.subscribeToTopic(topic);
 
-  Future<void> unsubscribeFromTopic(String topic) => _messaging.unsubscribeFromTopic(topic);
+  Future<void> unsubscribeFromTopic(String topic) =>
+      _messaging.unsubscribeFromTopic(topic);
 }
 
-final firebaseNotificationServiceProvider = Provider<FirebaseNotificationService>((ref) {
+final firebaseNotificationServiceProvider =
+    Provider<FirebaseNotificationService>((ref) {
   return FirebaseNotificationService();
 });

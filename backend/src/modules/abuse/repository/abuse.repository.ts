@@ -102,4 +102,49 @@ export class AbuseRepository {
       },
     });
   }
+
+  async lockRequest(tx: Prisma.TransactionClient, requestId: string): Promise<void> {
+    await tx.$queryRaw`SELECT id FROM request WHERE id = ${requestId}::uuid FOR UPDATE`;
+  }
+
+  /** Distinct VENDOR reporters for entity; visible inside the caller's tx. */
+  async listDistinctVendorReporterIds(
+    tx: Prisma.TransactionClient,
+    entityType: AbuseEntityType,
+    entityId: string,
+  ): Promise<string[]> {
+    const rows = await tx.abuseReport.findMany({
+      where: {
+        entityType,
+        entityId,
+        reporter: { userType: 'VENDOR' },
+      },
+      select: { reporterUserId: true },
+      distinct: ['reporterUserId'],
+    });
+    return rows.map((row) => row.reporterUserId);
+  }
+
+  async isEntityFlagged(
+    tx: Prisma.TransactionClient,
+    entityType: AbuseEntityType,
+    entityId: string,
+  ): Promise<boolean> {
+    const existing = await tx.abuseReport.findFirst({
+      where: { entityType, entityId, priority: true },
+      select: { id: true },
+    });
+    return existing !== null;
+  }
+
+  async flagAllReportsForEntity(
+    tx: Prisma.TransactionClient,
+    entityType: AbuseEntityType,
+    entityId: string,
+  ): Promise<void> {
+    await tx.abuseReport.updateMany({
+      where: { entityType, entityId },
+      data: { priority: true },
+    });
+  }
 }

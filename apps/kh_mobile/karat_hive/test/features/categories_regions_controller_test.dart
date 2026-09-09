@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:karat_hive/app/session/session_controller.dart';
-import 'package:karat_hive/features/onboarding/controller/categories_regions_controller.dart';
-import 'package:karat_hive/features/onboarding/repository/onboarding_repository.dart';
+import 'package:karat_hive/features/profile_settings/controller/categories_regions_controller.dart';
+import 'package:karat_hive/features/profile_settings/repository/profile_settings_repository.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../helpers/fake_session.dart';
 
-class _MockRepo extends Mock implements OnboardingRepository {}
+class _MockRepo extends Mock implements ProfileSettingsRepository {}
 
 void main() {
   late _MockRepo repo;
@@ -33,7 +33,7 @@ void main() {
     repo = _MockRepo();
     container = ProviderContainer(
       overrides: [
-        onboardingRepositoryProvider.overrideWithValue(repo),
+        profileSettingsRepositoryProvider.overrideWithValue(repo),
         sessionProvider.overrideWith(
           () => FakeSessionController(SignedIn(testVendorUser(vendor: me()))),
         ),
@@ -57,7 +57,7 @@ void main() {
     container.dispose();
     container = ProviderContainer(
       overrides: [
-        onboardingRepositoryProvider.overrideWithValue(repo),
+        profileSettingsRepositoryProvider.overrideWithValue(repo),
         sessionProvider.overrideWith(
           () => FakeSessionController(
             SignedIn(

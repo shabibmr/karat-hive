@@ -9,27 +9,20 @@ import 'package:kh_design_system/kh_design_system.dart';
 /// - Requests (VEN-S06)
 /// - Offers (VEN-S11 / CP-3)
 /// - Connections (VEN-S12 / CP-4)
-/// - Profile (VEN-S14, disabled until CP-6)
+/// - Profile (VEN-S15 hub; settings VEN-S18 nested; S16 re-home CP6-B01.3)
 ///
-/// Uses [StatefulNavigationShell] so Home and Requests keep independent
-/// navigation stacks across tab switches.
+/// Notification centre (VEN-S17) is **not** a bottom-nav tab — entry is the
+/// SH-SHELL-02 bell / push → `/vendor/notifications` on the Home branch
+/// (distinct from Customer `/customer/alerts`).
+///
+/// Uses [StatefulNavigationShell] so each tab keeps an independent
+/// navigation stack across tab switches.
 class VendorShell extends StatelessWidget {
   const VendorShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
-  static const _enabledTabCount = 4;
-
-  void _onDestinationSelected(BuildContext context, int index) {
-    if (index >= _enabledTabCount) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vendor profile & settings open in Check-Point 6.'),
-        ),
-      );
-      return;
-    }
-
+  void _onDestinationSelected(int index) {
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
@@ -47,34 +40,32 @@ class VendorShell extends StatelessWidget {
       bottomNavigationBar: NavigationBar(
         key: const Key('vendor-bottom-nav'),
         selectedIndex: selectedIndex,
-        onDestinationSelected: (idx) => _onDestinationSelected(context, idx),
+        onDestinationSelected: _onDestinationSelected,
         indicatorColor: tokens.gold.withValues(alpha: 0.25),
-        destinations: [
-          const NavigationDestination(
+        destinations: const [
+          NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: 'Home',
           ),
-          const NavigationDestination(
+          NavigationDestination(
             icon: Icon(Icons.work_outline),
             selectedIcon: Icon(Icons.work),
             label: 'Requests',
           ),
-          const NavigationDestination(
+          NavigationDestination(
             icon: Icon(Icons.local_offer_outlined),
             selectedIcon: Icon(Icons.local_offer),
             label: 'Offers',
           ),
-          const NavigationDestination(
+          NavigationDestination(
             icon: Icon(Icons.handshake_outlined),
             selectedIcon: Icon(Icons.handshake),
             label: 'Connections',
           ),
           NavigationDestination(
-            icon: Icon(
-              Icons.person_outline,
-              color: tokens.ink.withValues(alpha: 0.35),
-            ),
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],
