@@ -929,4 +929,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authPublishGateAction => 'Verify with Google';
+
+  @override
+  String get guestLandingTitle => 'Karat Hive';
+
+  @override
+  String get guestTypeOrnament => 'Find jewellery';
+
+  @override
+  String get guestTypeSellGold => 'Sell my gold';
+
+  @override
+  String get guestTypeCoins => 'Coins';
+
+  @override
+  String get guestTypeBullion => 'Bullion';
+
+  @override
+  String get guestHowItWorksTitle => 'How this works';
+
+  @override
+  String get guestHowItWorksPost => 'Post a Request describing what you need';
+
+  @override
+  String get guestHowItWorksOffers =>
+      'Verified jewellers send competing Offers';
+
+  @override
+  String get guestHowItWorksAccept =>
+      'Accept one Offer — identities are revealed';
+
+  @override
+  String get guestHowItWorksWhatsApp => 'Continue the conversation on WhatsApp';
+
+  @override
+  String get guestHowItWorksOrnamentExtra =>
+      'Budget and a reference photo help jewellers match what you want.';
+
+  @override
+  String get guestHowItWorksSellGoldExtra =>
+      'Photos must show the actual piece you are selling.';
+
+  @override
+  String get guestHowItWorksCoinsExtra =>
+      'Choose buy or sell, denomination, and quantity.';
+
+  @override
+  String get guestHowItWorksBullionExtra =>
+      'A minimum indicative value applies to bullion Requests.';
+
+  @override
+  String get guestLogIn => 'Log in';
+
+  @override
+  String get guestJewellerFooter => 'Are you a jeweller? Register here.';
 }

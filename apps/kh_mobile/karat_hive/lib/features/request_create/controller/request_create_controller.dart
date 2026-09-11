@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -6,34 +7,35 @@ import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
 import '../../../app/session/session_controller.dart';
+import '../pending_publish_intent.dart';
 import '../repository/request_create_repository.dart';
 import 'request_create_state.dart';
 
 Direction? directionForType(RequestType type) => switch (type) {
-      RequestType.findOrnament => Direction.buy,
-      RequestType.sellOldGold => Direction.sell,
-      _ => null,
-    };
+  RequestType.findOrnament => Direction.buy,
+  RequestType.sellOldGold => Direction.sell,
+  _ => null,
+};
 
 String ornamentWire(OrnamentType t) => switch (t) {
-      OrnamentType.ring => 'RING',
-      OrnamentType.chain => 'CHAIN',
-      OrnamentType.bangle => 'BANGLE',
-      OrnamentType.necklace => 'NECKLACE',
-      OrnamentType.earring => 'EARRING',
-      OrnamentType.bracelet => 'BRACELET',
-      OrnamentType.pendant => 'PENDANT',
-      OrnamentType.other => 'OTHER',
-      OrnamentType.unknown => 'UNKNOWN',
-    };
+  OrnamentType.ring => 'RING',
+  OrnamentType.chain => 'CHAIN',
+  OrnamentType.bangle => 'BANGLE',
+  OrnamentType.necklace => 'NECKLACE',
+  OrnamentType.earring => 'EARRING',
+  OrnamentType.bracelet => 'BRACELET',
+  OrnamentType.pendant => 'PENDANT',
+  OrnamentType.other => 'OTHER',
+  OrnamentType.unknown => 'UNKNOWN',
+};
 
 String conditionWire(ItemCondition t) => switch (t) {
-      ItemCondition.brandNew => 'NEW',
-      ItemCondition.likeNew => 'LIKE_NEW',
-      ItemCondition.used => 'USED',
-      ItemCondition.damaged => 'DAMAGED',
-      ItemCondition.unknown => 'UNKNOWN',
-    };
+  ItemCondition.brandNew => 'NEW',
+  ItemCondition.likeNew => 'LIKE_NEW',
+  ItemCondition.used => 'USED',
+  ItemCondition.damaged => 'DAMAGED',
+  ItemCondition.unknown => 'UNKNOWN',
+};
 
 Karat karatFromConfig(String raw) {
   final n = raw.replaceAll('K', '').replaceAll('k', '');
@@ -46,8 +48,27 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   RequestCreateRepository get _repo =>
       ref.read(requestCreateRepositoryProvider);
 
+  /// One-shot guard for GL-57 (SignedIn Customer + pending → pipeline once).
+  bool _pendingAutoPublishConsumed = false;
+  Future<void>? _reconcileInFlight;
+  bool _disposed = false;
+
   @override
   RequestCreateState build() {
+    _disposed = false;
+    ref.onDispose(() => _disposed = true);
+
+    ref.listen<SessionState>(sessionProvider, (_, __) {
+      unawaited(reconcilePendingPublish());
+    });
+    ref.listen<bool>(pendingPublishIntentProvider, (_, pending) {
+      if (pending) {
+        unawaited(reconcilePendingPublish());
+      } else {
+        _pendingAutoPublishConsumed = false;
+      }
+    });
+
     final session = ref.read(sessionProvider);
     var canCreate = true;
     var oauthBound = false;
@@ -64,6 +85,83 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     );
   }
 
+  /// GL-57…GL-61: Customer + pending → upload/save/publish once;
+  /// Vendor + pending → reset draft and clear intent (no API).
+  ///
+  /// Callers wait out any in-flight run, then re-evaluate with the latest
+  /// session/pending. Joining a SignedOut no-op must not swallow a later
+  /// SignedIn transition (setPending then setSession in the same turn).
+  Future<void> reconcilePendingPublish() async {
+    while (true) {
+      final existing = _reconcileInFlight;
+      if (existing != null) {
+        await existing;
+        continue;
+      }
+      if (_disposed) return;
+
+      // Claim synchronously before the body can await, so waiters join us
+      // instead of starting a parallel publish.
+      final done = Completer<void>();
+      _reconcileInFlight = done.future;
+      try {
+        await _reconcilePendingPublishBody();
+        if (!done.isCompleted) done.complete();
+      } catch (e, st) {
+        if (!done.isCompleted) done.completeError(e, st);
+        rethrow;
+      } finally {
+        if (identical(_reconcileInFlight, done.future)) {
+          _reconcileInFlight = null;
+        }
+      }
+      // Waiters that joined this run loop and re-evaluate with fresh session.
+      return;
+    }
+  }
+
+  Future<void> _reconcilePendingPublishBody() async {
+    if (_disposed) return;
+
+    final pending = ref.read(pendingPublishIntentProvider);
+    if (!pending) {
+      _pendingAutoPublishConsumed = false;
+      return;
+    }
+
+    // Always read latest session (ignore caller snapshots).
+    final current = ref.read(sessionProvider);
+    if (current is! SignedIn) return;
+
+    if (current.isVendor) {
+      resetFlow();
+      if (!_disposed) {
+        ref.read(pendingPublishIntentProvider.notifier).clearPending();
+      }
+      _pendingAutoPublishConsumed = false;
+      return;
+    }
+
+    if (!current.isCustomer) return;
+    if (_pendingAutoPublishConsumed) return;
+    if (state.step == RequestCreateStep.success) {
+      if (!_disposed) {
+        ref.read(pendingPublishIntentProvider.notifier).clearPending();
+      }
+      return;
+    }
+
+    _pendingAutoPublishConsumed = true;
+    final ok = await publish();
+    if (_disposed) return;
+    if (ok) {
+      // publish() already clearPending (GL-60); allow a future guest cycle.
+      _pendingAutoPublishConsumed = false;
+    }
+    // GL-59: stay SignedIn, surface form error; consumed blocks auto re-entry.
+    // Manual Publish on the review screen retries without the overlay.
+  }
+
   Future<void> ensureLoaded() async {
     if (state.lookupsReady || state.lookupsLoading) return;
     await loadLookups();
@@ -75,17 +173,22 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     final ratesR = await _repo.goldRates();
     final catR = await _repo.categories();
     final regR = await _repo.regions();
-    final meR = await _repo.me();
 
-    final fail = configR.failureOrNull ??
+    // Guest compose must not call authenticated me() (GL-50).
+    final signedIn = ref.read(sessionProvider) is SignedIn;
+    final Result<MeUser>? meR = signedIn ? await _repo.me() : null;
+
+    final fail =
+        configR.failureOrNull ??
         catR.failureOrNull ??
         regR.failureOrNull ??
-        meR.failureOrNull;
+        meR?.failureOrNull;
     // Gold rates may be unavailable; compose still allowed except bullion publish.
-    final rates = ratesR.valueOrNull ??
+    final rates =
+        ratesR.valueOrNull ??
         const GoldRateSnapshot(available: false, stale: false);
 
-    final me = meR.valueOrNull;
+    final me = meR?.valueOrNull;
     state = state.copyWith(
       lookupsLoading: false,
       lookupsReady: fail == null,
@@ -120,7 +223,9 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       gemstonesPresent: reset ? false : state.gemstonesPresent,
       clearGemstoneType: reset,
       gemstoneCount: reset ? null : state.gemstoneCount,
-      purityKarat: type == RequestType.goldBullion && (reset || state.purityKarat == null)
+      purityKarat:
+          type == RequestType.goldBullion &&
+              (reset || state.purityKarat == null)
           ? Karat.k24
           : (reset ? null : state.purityKarat),
       step: RequestCreateStep.compose,
@@ -168,9 +273,9 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   void setMint(String value) => state = state.copyWith(mintOrRefiner: value);
 
   void setBudgetMode(BudgetMode mode) => state = state.copyWith(
-        budgetMode: mode,
-        clearBudgetMin: mode == BudgetMode.maxOnly,
-      );
+    budgetMode: mode,
+    clearBudgetMin: mode == BudgetMode.maxOnly,
+  );
 
   void setBudgetMin(String? value) =>
       state = state.copyWith(budgetMin: value, clearBudgetMin: value == null);
@@ -182,10 +287,10 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       state = state.copyWith(budgetIsFlexible: value);
 
   void setGemstonesPresent(bool value) => state = state.copyWith(
-        gemstonesPresent: value,
-        clearGemstoneType: !value,
-        gemstoneCount: value ? state.gemstoneCount : null,
-      );
+    gemstonesPresent: value,
+    clearGemstoneType: !value,
+    gemstoneCount: value ? state.gemstoneCount : null,
+  );
 
   void setGemstoneType(String value) =>
       state = state.copyWith(gemstoneType: value);
@@ -204,9 +309,15 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   void goTo(RequestCreateStep step) => state = state.copyWith(step: step);
 
   /// Draft PATCH/POST — no mandatory-field validation (FR-CUS-015).
+  /// Guest must not hit the API (GL-56); Publish uses pending intent instead.
   Future<bool> saveDraft() async {
+    if (ref.read(sessionProvider) is! SignedIn) return false;
     if (state.requestType == null) return false;
-    state = state.copyWith(busy: true, clearFailure: true, fieldErrors: const {});
+    state = state.copyWith(
+      busy: true,
+      clearFailure: true,
+      fieldErrors: const {},
+    );
     final body = draftBody();
     final Result<DraftSaveResult> result;
     final id = state.draftId;
@@ -242,10 +353,33 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   }
 
   Future<void> addImage(File file, String contentType) async {
-    if (state.mediaKeys.length >= state.maxImages) return;
+    if (state.media.length >= state.maxImages) return;
+    final label = file.path.split(Platform.pathSeparator).last;
+    final placeholderKey =
+        'pending-${file.path.hashCode}-${state.media.length}';
+
+    // Guest: keep the File locally; upload only after SignedIn (GL-53 / GL-55).
+    if (ref.read(sessionProvider) is! SignedIn) {
+      state = state.copyWith(
+        media: [
+          ...state.media,
+          MediaSlot(
+            key: placeholderKey,
+            localLabel: label,
+            localFile: file,
+            contentType: contentType,
+          ),
+        ],
+        clearFailure: true,
+      );
+      return;
+    }
+
     final placeholder = MediaSlot(
-      key: 'pending-${file.path.hashCode}',
-      localLabel: file.path.split(Platform.pathSeparator).last,
+      key: placeholderKey,
+      localLabel: label,
+      localFile: file,
+      contentType: contentType,
       progress: 0,
       uploading: true,
     );
@@ -316,12 +450,85 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   Future<void> removeMediaAt(int index) async {
     if (index < 0 || index >= state.media.length) return;
     final slot = state.media[index];
-    if (slot.key.isNotEmpty && !slot.key.startsWith('pending-')) {
+    final signedIn = ref.read(sessionProvider) is SignedIn;
+    if (signedIn && slot.key.isNotEmpty && !slot.key.startsWith('pending-')) {
       await _repo.deleteMedia(slot.key);
     }
     final next = [...state.media]..removeAt(index);
     state = state.copyWith(media: next);
-    if (state.draftId != null) await saveDraft();
+    if (signedIn && state.draftId != null) await saveDraft();
+  }
+
+  /// Upload guest-held local files once SignedIn, before draft (GL-55).
+  Future<bool> uploadPendingLocalMedia() async {
+    if (ref.read(sessionProvider) is! SignedIn) return false;
+    final pending = state.media
+        .where((m) => m.isLocalPending)
+        .toList(growable: false);
+    if (pending.isEmpty) return true;
+
+    state = state.copyWith(uploading: true, clearFailure: true);
+    for (final slot in pending) {
+      final file = slot.localFile;
+      final contentType = slot.contentType;
+      if (file == null || contentType == null) continue;
+
+      state = state.copyWith(
+        media: [
+          for (final m in state.media)
+            if (m.key == slot.key)
+              m.copyWith(uploading: true, progress: 0, clearFailure: true)
+            else
+              m,
+        ],
+      );
+
+      final result = await _repo.uploadRequestImage(
+        file,
+        contentType,
+        onProgress: (p) {
+          state = state.copyWith(
+            media: [
+              for (final m in state.media)
+                if (m.key == slot.key) m.copyWith(progress: p) else m,
+            ],
+          );
+        },
+      );
+
+      final failed = result.when(
+        ok: (key) {
+          state = state.copyWith(
+            media: [
+              for (final m in state.media)
+                if (m.key == slot.key)
+                  MediaSlot(key: key, localLabel: slot.localLabel)
+                else
+                  m,
+            ],
+          );
+          return false;
+        },
+        err: (f) {
+          state = state.copyWith(
+            uploading: false,
+            failure: f,
+            media: [
+              for (final m in state.media)
+                if (m.key == slot.key)
+                  m.copyWith(uploading: false, failure: f)
+                else
+                  m,
+            ],
+          );
+          return true;
+        },
+      );
+      if (failed) return false;
+    }
+
+    state = state.copyWith(uploading: false);
+    return true;
   }
 
   Future<void> reorderMedia(int from, int to) async {
@@ -342,25 +549,39 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   }
 
   Future<bool> publish() async {
-    if (state.draftId == null) {
-      final created = await saveDraft();
-      if (!created) return false;
-    }
+    // Guest Publish uses pending intent + Login overlay (GL-46), not the API.
+    if (ref.read(sessionProvider) is! SignedIn) return false;
+
+    // GL-58: upload local guest media → persist draft → publish.
+    final uploaded = await uploadPendingLocalMedia();
+    if (!uploaded) return false;
+
+    final saved = await saveDraft();
+    if (!saved) return false;
+
     final id = state.draftId;
     if (id == null) return false;
-    state = state.copyWith(busy: true, clearFailure: true, fieldErrors: const {});
+    state = state.copyWith(
+      busy: true,
+      clearFailure: true,
+      fieldErrors: const {},
+    );
     final key = _ensurePublishKey();
     final result = await _repo.publish(id, idempotencyKey: key);
     return result.when(
       ok: (req) {
+        if (_disposed) return true;
         state = state.copyWith(
           busy: false,
           published: req,
           step: RequestCreateStep.success,
         );
+        // GL-60 — drop intent once the Request is live.
+        ref.read(pendingPublishIntentProvider.notifier).clearPending();
         return true;
       },
       err: (f) {
+        if (_disposed) return false;
         state = state.copyWith(
           busy: false,
           failure: f,
@@ -491,5 +712,5 @@ class RequestCreateController extends Notifier<RequestCreateState> {
 
 final requestCreateControllerProvider =
     NotifierProvider<RequestCreateController, RequestCreateState>(
-  RequestCreateController.new,
-);
+      RequestCreateController.new,
+    );

@@ -9,6 +9,7 @@ class KhScaffold extends StatelessWidget {
     required this.title,
     required this.body,
     this.actions,
+    this.onBack,
     this.onRefresh,
     this.lastUpdated,
   });
@@ -16,6 +17,7 @@ class KhScaffold extends StatelessWidget {
   final String title;
   final Widget body;
   final List<Widget>? actions;
+  final VoidCallback? onBack;
   final Future<void> Function()? onRefresh;
   final String? lastUpdated;
 
@@ -23,7 +25,7 @@ class KhScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = SafeArea(child: body);
     return Scaffold(
-      appBar: KhAppBar(title: title, actions: actions),
+      appBar: KhAppBar(title: title, actions: actions, onBack: onBack),
       body: onRefresh == null
           ? content
           : KhPullToRefresh(

@@ -5,15 +5,6 @@ import '../../../app/session/session_controller.dart';
 import '../../../core/firebase/firebase.dart';
 import '../repository/customer_auth_repository.dart';
 
-/// Account-status error codes that mean "signed in with Google is fine, but this
-/// Karat Hive account may not proceed" — surfaced as a lockout message
-/// (`SH-AUTH-07`), never the completion step.
-const _lockoutCodes = {
-  'ACCOUNT_SUSPENDED',
-  'ACCOUNT_DEACTIVATED',
-  'ACCOUNT_LOCKED',
-};
-
 sealed class CustomerOnboardingState {
   const CustomerOnboardingState();
 }
@@ -70,23 +61,28 @@ class CustomerOnboardingController
   CustomerAuthRepository get _repo => ref.read(customerAuthRepositoryProvider);
   FirebaseAuthService get _firebase => ref.read(firebaseAuthServiceProvider);
 
+  /// Cancel / dismiss Login — idle with no error banner (GL-38).
+  void resetToIdle() => state = const OnboardingIdle();
+
   Future<void> signInWithGoogle() async {
     state = const OnboardingBusy();
 
     try {
       await _firebase.signInWithGoogle();
     } catch (_) {
+      // Network / SDK failure — stay on Login with inline error (GL-39).
       state = const OnboardingFailure(NetworkFailure());
       return;
     }
 
     final idToken = await _firebase.getIdToken(forceRefresh: true);
     if (idToken == null || idToken.isEmpty) {
-      // Cancelled picker, or no Firebase user — return to the button.
+      // Cancelled picker, or no Firebase user — return to the button (GL-38).
       state = const OnboardingIdle();
       return;
     }
 
+    final fbUser = _firebase.currentUser;
     final result = await _repo.googleSession(idToken);
     await result.when(
       ok: (bundle) async {
@@ -94,19 +90,46 @@ class CustomerOnboardingController
         state = const OnboardingAuthenticated();
       },
       err: (failure) async {
-        state = _mapSignInFailure(failure, idToken);
+        state = _mapSignInFailure(
+          failure,
+          idToken,
+          suggestedName: fbUser?.displayName,
+          suggestedEmail: fbUser?.email,
+        );
+        // Hand token to session so UnboundGoogle → customerRegister keeps it.
+        if (state is OnboardingNeedsCompletion) {
+          final needs = state as OnboardingNeedsCompletion;
+          ref.read(sessionProvider.notifier).markUnboundGoogle(
+                firebaseIdToken: needs.firebaseIdToken,
+                suggestedName: needs.suggestedName,
+                suggestedEmail: needs.suggestedEmail,
+              );
+        }
+        // Lockout → AuthBlocked so guards never treat this as Guest (GL-68).
+        if (state is OnboardingLockedOut) {
+          ref.read(sessionProvider.notifier).markAuthBlocked(failure);
+        }
       },
     );
   }
 
-  CustomerOnboardingState _mapSignInFailure(Failure failure, String idToken) {
-    if (_lockoutCodes.contains(failure.code)) {
+  CustomerOnboardingState _mapSignInFailure(
+    Failure failure,
+    String idToken, {
+    String? suggestedName,
+    String? suggestedEmail,
+  }) {
+    if (failure.code != null && kAuthLockoutCodes.contains(failure.code)) {
       return OnboardingLockedOut(failure.message ?? '');
     }
     // Unbound Google identity: backend does not auto-provision (adr/0010).
     if (failure is UnauthorisedFailure &&
         (failure.code == null || failure.code == 'UNAUTHENTICATED')) {
-      return OnboardingNeedsCompletion(firebaseIdToken: idToken);
+      return OnboardingNeedsCompletion(
+        firebaseIdToken: idToken,
+        suggestedName: suggestedName,
+        suggestedEmail: suggestedEmail,
+      );
     }
     return OnboardingFailure(failure);
   }

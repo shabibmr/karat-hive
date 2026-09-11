@@ -20,6 +20,24 @@ class RecordingSessionController extends SessionController {
   }
 
   @override
+  void markUnboundGoogle({
+    required String firebaseIdToken,
+    String? suggestedName,
+    String? suggestedEmail,
+  }) {
+    state = UnboundGoogle(
+      firebaseIdToken: firebaseIdToken,
+      suggestedName: suggestedName,
+      suggestedEmail: suggestedEmail,
+    );
+  }
+
+  @override
+  void markAuthBlocked(Failure failure) {
+    state = AuthBlocked(failure);
+  }
+
+  @override
   Future<void> refreshUser() async {}
 }
 

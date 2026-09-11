@@ -73,14 +73,4 @@ class RequestImageCaptureScreen extends StatelessWidget {
   }
 }
 
-class RequestReviewPublishScreen extends StatelessWidget {
-  const RequestReviewPublishScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const KhScaffold(
-      title: 'Review & publish',
-      body: Center(child: Text('CUS-S09')),
-    );
-  }
-}
+// RequestReviewPublishScreen lives in request_review_publish_screen.dart (GL-46).

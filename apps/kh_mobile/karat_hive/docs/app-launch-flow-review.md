@@ -1,6 +1,7 @@
 # App launch / login flow — review findings
 
 Status: **discussion only** — no fixes yet.  
+Implementation: [`guest-launch-plan.md`](guest-launch-plan.md) · [`guest-launch-tasks.md`](guest-launch-tasks.md)  
 Scope: walk use cases one step at a time; record how it works now + suggestions.
 
 ---

@@ -259,7 +259,6 @@
   "couldNotLoadOffer": "Could not load offer.",
   "commonSubmitting": "Submitting…",
   "commonCancel": "Cancel",
-
   "couldNotLoadDashboard": "Could not load your dashboard.",
   "@couldNotLoadDashboard": {
     "description": "VEN-S05 dashboard load error"
@@ -1098,5 +1097,69 @@
   "authVerifyAndContinue": "Verify and continue",
   "authPublishGateTitle": "Verify with Google to publish",
   "authPublishGateBody": "Publishing a request needs a one-time Google verification. Browsing and drafting a request do not.",
-  "authPublishGateAction": "Verify with Google"
+  "authPublishGateAction": "Verify with Google",
+  "guestLandingTitle": "Karat Hive",
+  "@guestLandingTitle": {
+    "description": "Guest Landing app bar title"
+  },
+  "guestTypeOrnament": "Find jewellery",
+  "@guestTypeOrnament": {
+    "description": "Guest Landing Find jewellery card title"
+  },
+  "guestTypeSellGold": "Sell my gold",
+  "@guestTypeSellGold": {
+    "description": "Guest Landing Sell my gold card title"
+  },
+  "guestTypeCoins": "Coins",
+  "@guestTypeCoins": {
+    "description": "Guest Landing Coins card title"
+  },
+  "guestTypeBullion": "Bullion",
+  "@guestTypeBullion": {
+    "description": "Guest Landing Bullion card title"
+  },
+  "guestHowItWorksTitle": "How this works",
+  "@guestHowItWorksTitle": {
+    "description": "Guest Landing how-this-works section title"
+  },
+  "guestHowItWorksPost": "Post a Request describing what you need",
+  "@guestHowItWorksPost": {
+    "description": "Shared how-this-works step 1"
+  },
+  "guestHowItWorksOffers": "Verified jewellers send competing Offers",
+  "@guestHowItWorksOffers": {
+    "description": "Shared how-this-works step 2"
+  },
+  "guestHowItWorksAccept": "Accept one Offer — identities are revealed",
+  "@guestHowItWorksAccept": {
+    "description": "Shared how-this-works step 3"
+  },
+  "guestHowItWorksWhatsApp": "Continue the conversation on WhatsApp",
+  "@guestHowItWorksWhatsApp": {
+    "description": "Shared how-this-works step 4"
+  },
+  "guestHowItWorksOrnamentExtra": "Budget and a reference photo help jewellers match what you want.",
+  "@guestHowItWorksOrnamentExtra": {
+    "description": "Ornament-specific how-this-works extra"
+  },
+  "guestHowItWorksSellGoldExtra": "Photos must show the actual piece you are selling.",
+  "@guestHowItWorksSellGoldExtra": {
+    "description": "Sell-gold-specific how-this-works extra"
+  },
+  "guestHowItWorksCoinsExtra": "Choose buy or sell, denomination, and quantity.",
+  "@guestHowItWorksCoinsExtra": {
+    "description": "Coins-specific how-this-works extra"
+  },
+  "guestHowItWorksBullionExtra": "A minimum indicative value applies to bullion Requests.",
+  "@guestHowItWorksBullionExtra": {
+    "description": "Bullion-specific how-this-works extra (minimum)"
+  },
+  "guestLogIn": "Log in",
+  "@guestLogIn": {
+    "description": "Guest Landing corner Log in action"
+  },
+  "guestJewellerFooter": "Are you a jeweller? Register here.",
+  "@guestJewellerFooter": {
+    "description": "Guest Landing jeweller register footer link"
+  }
 }

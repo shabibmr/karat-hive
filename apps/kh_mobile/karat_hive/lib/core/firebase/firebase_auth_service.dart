@@ -60,17 +60,30 @@ class FirebaseAuthService {
   /// Signs in with Google using GoogleSignIn.instance and Firebase Auth.
   Future<UserCredential?> signInWithGoogle() async {
     final auth = _auth;
-    final gsi = _googleSignIn;
-    if (auth == null || gsi == null) {
-      throw StateError('Firebase Auth or Google Sign-In is not initialized.');
+    if (auth == null) {
+      throw StateError('Firebase Auth is not initialized.');
     }
     try {
+      if (kIsWeb) {
+        final googleProvider = GoogleAuthProvider();
+        return await auth.signInWithPopup(googleProvider);
+      }
+      final gsi = _googleSignIn;
+      if (gsi == null) {
+        throw StateError('Google Sign-In is not initialized.');
+      }
       await _ensureGoogleSignInInitialized();
       final account = await gsi.authenticate();
       final idToken = account.authentication.idToken;
 
       final credential = GoogleAuthProvider.credential(idToken: idToken);
       return await auth.signInWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'popup-closed-by-user' || e.code == 'cancelled') {
+        return null;
+      }
+      debugPrint('Firebase Google Sign-In exception: $e');
+      rethrow;
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
         return null;

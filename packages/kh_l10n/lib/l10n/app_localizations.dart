@@ -1711,6 +1711,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verify with Google'**
   String get authPublishGateAction;
+
+  /// Guest Landing app bar title
+  ///
+  /// In en, this message translates to:
+  /// **'Karat Hive'**
+  String get guestLandingTitle;
+
+  /// Guest Landing Find jewellery card title
+  ///
+  /// In en, this message translates to:
+  /// **'Find jewellery'**
+  String get guestTypeOrnament;
+
+  /// Guest Landing Sell my gold card title
+  ///
+  /// In en, this message translates to:
+  /// **'Sell my gold'**
+  String get guestTypeSellGold;
+
+  /// Guest Landing Coins card title
+  ///
+  /// In en, this message translates to:
+  /// **'Coins'**
+  String get guestTypeCoins;
+
+  /// Guest Landing Bullion card title
+  ///
+  /// In en, this message translates to:
+  /// **'Bullion'**
+  String get guestTypeBullion;
+
+  /// Guest Landing how-this-works section title
+  ///
+  /// In en, this message translates to:
+  /// **'How this works'**
+  String get guestHowItWorksTitle;
+
+  /// Shared how-this-works step 1
+  ///
+  /// In en, this message translates to:
+  /// **'Post a Request describing what you need'**
+  String get guestHowItWorksPost;
+
+  /// Shared how-this-works step 2
+  ///
+  /// In en, this message translates to:
+  /// **'Verified jewellers send competing Offers'**
+  String get guestHowItWorksOffers;
+
+  /// Shared how-this-works step 3
+  ///
+  /// In en, this message translates to:
+  /// **'Accept one Offer — identities are revealed'**
+  String get guestHowItWorksAccept;
+
+  /// Shared how-this-works step 4
+  ///
+  /// In en, this message translates to:
+  /// **'Continue the conversation on WhatsApp'**
+  String get guestHowItWorksWhatsApp;
+
+  /// Ornament-specific how-this-works extra
+  ///
+  /// In en, this message translates to:
+  /// **'Budget and a reference photo help jewellers match what you want.'**
+  String get guestHowItWorksOrnamentExtra;
+
+  /// Sell-gold-specific how-this-works extra
+  ///
+  /// In en, this message translates to:
+  /// **'Photos must show the actual piece you are selling.'**
+  String get guestHowItWorksSellGoldExtra;
+
+  /// Coins-specific how-this-works extra
+  ///
+  /// In en, this message translates to:
+  /// **'Choose buy or sell, denomination, and quantity.'**
+  String get guestHowItWorksCoinsExtra;
+
+  /// Bullion-specific how-this-works extra (minimum)
+  ///
+  /// In en, this message translates to:
+  /// **'A minimum indicative value applies to bullion Requests.'**
+  String get guestHowItWorksBullionExtra;
+
+  /// Guest Landing corner Log in action
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get guestLogIn;
+
+  /// Guest Landing jeweller register footer link
+  ///
+  /// In en, this message translates to:
+  /// **'Are you a jeweller? Register here.'**
+  String get guestJewellerFooter;
 }
 
 class _AppLocalizationsDelegate

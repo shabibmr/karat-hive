@@ -22,8 +22,18 @@ class SignedOut extends SessionState {
 }
 
 /// Google identity is signed in, but no Karat Hive user exists yet (401 UNAUTHENTICATED).
+///
+/// [firebaseIdToken] must survive the redirect to Customer signup (GL-42 / GL-43).
 class UnboundGoogle extends SessionState {
-  const UnboundGoogle();
+  const UnboundGoogle({
+    this.firebaseIdToken = '',
+    this.suggestedName,
+    this.suggestedEmail,
+  });
+
+  final String firebaseIdToken;
+  final String? suggestedName;
+  final String? suggestedEmail;
 }
 
 /// Google/session refused with an account-state error and no usable MeUser.
@@ -31,6 +41,13 @@ class AuthBlocked extends SessionState {
   const AuthBlocked(this.failure);
   final Failure failure;
 }
+
+/// Account-status codes that map to [AuthBlocked], never Guest/`SignedOut` (GL-68).
+const kAuthLockoutCodes = {
+  'ACCOUNT_SUSPENDED',
+  'ACCOUNT_DEACTIVATED',
+  'ACCOUNT_LOCKED',
+};
 
 class SignedIn extends SessionState {
   const SignedIn(this.user);
@@ -118,13 +135,17 @@ class SessionController extends Notifier<SessionState> {
         err: (failure) async {
           await _storage.clear();
           final code = failure.code;
-          if (code == 'ACCOUNT_SUSPENDED' || code == 'ACCOUNT_DEACTIVATED') {
+          if (code != null && kAuthLockoutCodes.contains(code)) {
             state = AuthBlocked(failure);
             return;
           }
           // Unbound Google identity — no KH account yet (401 UNAUTHENTICATED).
           if (failure is UnauthorisedFailure) {
-            state = const UnboundGoogle();
+            state = UnboundGoogle(
+              firebaseIdToken: idToken,
+              suggestedName: fbUser.displayName,
+              suggestedEmail: fbUser.email,
+            );
             return;
           }
           state = const SignedOut();
@@ -134,6 +155,24 @@ class SessionController extends Notifier<SessionState> {
       await _storage.clear();
       state = const SignedOut();
     }
+  }
+
+  /// Explicit unbound hand-off from Google Login (token must reach signup).
+  void markUnboundGoogle({
+    required String firebaseIdToken,
+    String? suggestedName,
+    String? suggestedEmail,
+  }) {
+    state = UnboundGoogle(
+      firebaseIdToken: firebaseIdToken,
+      suggestedName: suggestedName,
+      suggestedEmail: suggestedEmail,
+    );
+  }
+
+  /// Lockout from Login/onboarding — stay [AuthBlocked], not Guest (GL-68).
+  void markAuthBlocked(Failure failure) {
+    state = AuthBlocked(failure);
   }
 
   Future<void> refreshUser() async {

@@ -18,6 +18,8 @@ import '../features/offers_customer/routes.dart';
 import '../features/offers_vendor/routes.dart';
 import '../features/onboarding/routes.dart';
 import '../features/profile_settings/routes.dart';
+import '../features/request_create/controller/request_create_controller.dart';
+import '../features/request_create/pending_publish_intent.dart';
 import '../features/request_create/routes.dart';
 import '../features/request_feed/routes.dart';
 import '../features/request_manage/routes.dart';
@@ -26,7 +28,18 @@ import '../features/subscription/routes.dart';
 
 class _SessionListenable extends ChangeNotifier {
   _SessionListenable(Ref ref) {
-    ref.listen(sessionProvider, (_, __) => notifyListeners());
+    ref.listen(sessionProvider, (_, next) {
+      // Reset draft + clear intent before notify so redirect stays pure (GL-16/61).
+      clearPendingPublishIfVendor(
+        next,
+        ref.read(pendingPublishIntentProvider),
+        () => ref.read(pendingPublishIntentProvider.notifier).clearPending(),
+        resetCreate: () =>
+            ref.read(requestCreateControllerProvider.notifier).resetFlow(),
+      );
+      notifyListeners();
+    });
+    ref.listen(pendingPublishIntentProvider, (_, __) => notifyListeners());
   }
 }
 
@@ -35,13 +48,13 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: AppGuards.splash,
     refreshListenable: listenable,
-    redirect: (context, state) =>
-        AppGuards.redirect(ref.read(sessionProvider), state.matchedLocation),
+    redirect: (context, state) => AppGuards.redirect(
+      ref.read(sessionProvider),
+      state.matchedLocation,
+      pendingPublish: ref.read(pendingPublishIntentProvider),
+    ),
     routes: [
-      GoRoute(
-        path: AppGuards.splash,
-        builder: (_, __) => const SplashScreen(),
-      ),
+      GoRoute(path: AppGuards.splash, builder: (_, __) => const SplashScreen()),
       ShellRoute(
         builder: (context, state, child) => UnauthShell(child: child),
         routes: authRoutes,
@@ -50,6 +63,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) => AwaitingApprovalShell(child: child),
         routes: onboardingRoutes,
       ),
+      // Create flow is top-level so Guest (SignedOut) can compose without Customer shell nav.
+      ...requestCreateRoutes,
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             CustomerShell(navigationShell: navigationShell),
@@ -57,23 +72,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               customerHomeRoute(),
-              ...requestCreateRoutes,
               ...offersCustomerRoutes,
               ...abuseRoutes,
             ],
           ),
-          StatefulShellBranch(
-            routes: requestManageRoutes,
-          ),
-          StatefulShellBranch(
-            routes: customerConnectionRoutes,
-          ),
-          StatefulShellBranch(
-            routes: notificationsRoutes,
-          ),
-          StatefulShellBranch(
-            routes: profileSettingsRoutes,
-          ),
+          StatefulShellBranch(routes: requestManageRoutes),
+          StatefulShellBranch(routes: customerConnectionRoutes),
+          StatefulShellBranch(routes: notificationsRoutes),
+          StatefulShellBranch(routes: profileSettingsRoutes),
         ],
       ),
       StatefulShellRoute.indexedStack(
@@ -89,18 +95,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               ...vendorReviewsRoutes,
             ],
           ),
-          StatefulShellBranch(
-            routes: requestFeedRoutes,
-          ),
-          StatefulShellBranch(
-            routes: offersVendorTabRoutes,
-          ),
-          StatefulShellBranch(
-            routes: connectionsTabRoutes,
-          ),
-          StatefulShellBranch(
-            routes: vendorProfileSettingsRoutes,
-          ),
+          StatefulShellBranch(routes: requestFeedRoutes),
+          StatefulShellBranch(routes: offersVendorTabRoutes),
+          StatefulShellBranch(routes: connectionsTabRoutes),
+          StatefulShellBranch(routes: vendorProfileSettingsRoutes),
         ],
       ),
     ],

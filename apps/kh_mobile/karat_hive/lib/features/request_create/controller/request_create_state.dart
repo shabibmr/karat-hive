@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
@@ -9,6 +11,8 @@ class MediaSlot {
   const MediaSlot({
     required this.key,
     this.localLabel,
+    this.localFile,
+    this.contentType,
     this.progress = 1,
     this.uploading = false,
     this.failure,
@@ -16,25 +20,35 @@ class MediaSlot {
 
   final String key;
   final String? localLabel;
+
+  /// Guest-held file until signed-in upload (GL-53 / GL-55).
+  final File? localFile;
+  final String? contentType;
   final double progress;
   final bool uploading;
   final Failure? failure;
 
+  bool get isLocalPending => localFile != null && key.startsWith('pending-');
+
   MediaSlot copyWith({
     String? key,
     String? localLabel,
+    File? localFile,
+    String? contentType,
     double? progress,
     bool? uploading,
     Failure? failure,
     bool clearFailure = false,
-  }) =>
-      MediaSlot(
-        key: key ?? this.key,
-        localLabel: localLabel ?? this.localLabel,
-        progress: progress ?? this.progress,
-        uploading: uploading ?? this.uploading,
-        failure: clearFailure ? null : (failure ?? this.failure),
-      );
+    bool clearLocal = false,
+  }) => MediaSlot(
+    key: key ?? this.key,
+    localLabel: localLabel ?? this.localLabel,
+    localFile: clearLocal ? null : (localFile ?? this.localFile),
+    contentType: clearLocal ? null : (contentType ?? this.contentType),
+    progress: progress ?? this.progress,
+    uploading: uploading ?? this.uploading,
+    failure: clearFailure ? null : (failure ?? this.failure),
+  );
 }
 
 class RequestCreateState {
@@ -134,12 +148,15 @@ class RequestCreateState {
     return direction == Direction.sell;
   }
 
-  List<String> get mediaKeys =>
-      media.map((m) => m.key).where((k) => k.isNotEmpty).toList();
+  List<String> get mediaKeys => media
+      .map((m) => m.key)
+      .where((k) => k.isNotEmpty && !k.startsWith('pending-'))
+      .toList();
 
   int get maxImages => config?.maxRequestImages ?? 5;
 
-  String? fieldError(String key) => fieldErrors[key] ?? fieldErrors['body.$key'];
+  String? fieldError(String key) =>
+      fieldErrors[key] ?? fieldErrors['body.$key'];
 
   RequestCreateState copyWith({
     RequestCreateStep? step,
@@ -199,56 +216,53 @@ class RequestCreateState {
     bool clearBudgetMax = false,
     bool clearGemstoneType = false,
     bool clearPackaging = false,
-  }) =>
-      RequestCreateState(
-        step: step ?? this.step,
-        requestType: clearType ? null : (requestType ?? this.requestType),
-        direction: clearDirection ? null : (direction ?? this.direction),
-        draftId: clearDraft ? null : (draftId ?? this.draftId),
-        categoryId: categoryId ?? this.categoryId,
-        regionId: regionId ?? this.regionId,
-        notes: notes ?? this.notes,
-        weightGrams: clearWeight ? null : (weightGrams ?? this.weightGrams),
-        weightIsApproximate:
-            weightIsApproximate ?? this.weightIsApproximate,
-        purityKarat: clearPurity ? null : (purityKarat ?? this.purityKarat),
-        ornamentType:
-            clearOrnament ? null : (ornamentType ?? this.ornamentType),
-        condition: clearCondition ? null : (condition ?? this.condition),
-        denominationGrams: clearDenomination
-            ? null
-            : (denominationGrams ?? this.denominationGrams),
-        quantity: clearQuantity ? null : (quantity ?? this.quantity),
-        mintOrRefiner: clearMint ? null : (mintOrRefiner ?? this.mintOrRefiner),
-        budgetMode: budgetMode ?? this.budgetMode,
-        budgetMin: clearBudgetMin ? null : (budgetMin ?? this.budgetMin),
-        budgetMax: clearBudgetMax ? null : (budgetMax ?? this.budgetMax),
-        budgetIsFlexible: budgetIsFlexible ?? this.budgetIsFlexible,
-        gemstonesPresent: gemstonesPresent ?? this.gemstonesPresent,
-        gemstoneType:
-            clearGemstoneType ? null : (gemstoneType ?? this.gemstoneType),
-        gemstoneCount: gemstoneCount ?? this.gemstoneCount,
-        hasInvoice: hasInvoice ?? this.hasInvoice,
-        packagingSealed:
-            clearPackaging ? null : (packagingSealed ?? this.packagingSealed),
-        hasAssayCertificate:
-            hasAssayCertificate ?? this.hasAssayCertificate,
-        media: media ?? this.media,
-        warnings: warnings ?? this.warnings,
-        fieldErrors: fieldErrors ?? this.fieldErrors,
-        failure: clearFailure ? null : (failure ?? this.failure),
-        busy: busy ?? this.busy,
-        lookupsLoading: lookupsLoading ?? this.lookupsLoading,
-        lookupsReady: lookupsReady ?? this.lookupsReady,
-        config: config ?? this.config,
-        rates: rates ?? this.rates,
-        categories: categories ?? this.categories,
-        regions: regions ?? this.regions,
-        canCreateRequest: canCreateRequest ?? this.canCreateRequest,
-        oauthBound: oauthBound ?? this.oauthBound,
-        publishIdempotencyKey:
-            publishIdempotencyKey ?? this.publishIdempotencyKey,
-        published: clearPublished ? null : (published ?? this.published),
-        uploading: uploading ?? this.uploading,
-      );
+  }) => RequestCreateState(
+    step: step ?? this.step,
+    requestType: clearType ? null : (requestType ?? this.requestType),
+    direction: clearDirection ? null : (direction ?? this.direction),
+    draftId: clearDraft ? null : (draftId ?? this.draftId),
+    categoryId: categoryId ?? this.categoryId,
+    regionId: regionId ?? this.regionId,
+    notes: notes ?? this.notes,
+    weightGrams: clearWeight ? null : (weightGrams ?? this.weightGrams),
+    weightIsApproximate: weightIsApproximate ?? this.weightIsApproximate,
+    purityKarat: clearPurity ? null : (purityKarat ?? this.purityKarat),
+    ornamentType: clearOrnament ? null : (ornamentType ?? this.ornamentType),
+    condition: clearCondition ? null : (condition ?? this.condition),
+    denominationGrams: clearDenomination
+        ? null
+        : (denominationGrams ?? this.denominationGrams),
+    quantity: clearQuantity ? null : (quantity ?? this.quantity),
+    mintOrRefiner: clearMint ? null : (mintOrRefiner ?? this.mintOrRefiner),
+    budgetMode: budgetMode ?? this.budgetMode,
+    budgetMin: clearBudgetMin ? null : (budgetMin ?? this.budgetMin),
+    budgetMax: clearBudgetMax ? null : (budgetMax ?? this.budgetMax),
+    budgetIsFlexible: budgetIsFlexible ?? this.budgetIsFlexible,
+    gemstonesPresent: gemstonesPresent ?? this.gemstonesPresent,
+    gemstoneType: clearGemstoneType
+        ? null
+        : (gemstoneType ?? this.gemstoneType),
+    gemstoneCount: gemstoneCount ?? this.gemstoneCount,
+    hasInvoice: hasInvoice ?? this.hasInvoice,
+    packagingSealed: clearPackaging
+        ? null
+        : (packagingSealed ?? this.packagingSealed),
+    hasAssayCertificate: hasAssayCertificate ?? this.hasAssayCertificate,
+    media: media ?? this.media,
+    warnings: warnings ?? this.warnings,
+    fieldErrors: fieldErrors ?? this.fieldErrors,
+    failure: clearFailure ? null : (failure ?? this.failure),
+    busy: busy ?? this.busy,
+    lookupsLoading: lookupsLoading ?? this.lookupsLoading,
+    lookupsReady: lookupsReady ?? this.lookupsReady,
+    config: config ?? this.config,
+    rates: rates ?? this.rates,
+    categories: categories ?? this.categories,
+    regions: regions ?? this.regions,
+    canCreateRequest: canCreateRequest ?? this.canCreateRequest,
+    oauthBound: oauthBound ?? this.oauthBound,
+    publishIdempotencyKey: publishIdempotencyKey ?? this.publishIdempotencyKey,
+    published: clearPublished ? null : (published ?? this.published),
+    uploading: uploading ?? this.uploading,
+  );
 }

@@ -939,4 +939,56 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authPublishGateAction => 'تحقّق عبر Google';
+
+  @override
+  String get guestLandingTitle => 'كارات هايف';
+
+  @override
+  String get guestTypeOrnament => 'ابحث عن مجوهرات';
+
+  @override
+  String get guestTypeSellGold => 'بِع ذهبي';
+
+  @override
+  String get guestTypeCoins => 'عملات';
+
+  @override
+  String get guestTypeBullion => 'سبائك';
+
+  @override
+  String get guestHowItWorksTitle => 'كيف يعمل هذا';
+
+  @override
+  String get guestHowItWorksPost => 'انشر طلبًا يصف ما تحتاجه';
+
+  @override
+  String get guestHowItWorksOffers => 'يرسل تجّار موثّقون عروضًا متنافسة';
+
+  @override
+  String get guestHowItWorksAccept => 'اقبل عرضًا واحدًا — تُكشف الهويات';
+
+  @override
+  String get guestHowItWorksWhatsApp => 'تابع المحادثة عبر واتساب';
+
+  @override
+  String get guestHowItWorksOrnamentExtra =>
+      'الميزانية وصورة مرجعية تساعد التجّار على مطابقة ما تريده.';
+
+  @override
+  String get guestHowItWorksSellGoldExtra =>
+      'يجب أن تُظهر الصور القطعة الفعلية التي تبيعها.';
+
+  @override
+  String get guestHowItWorksCoinsExtra =>
+      'اختر الشراء أو البيع والفئة والكمية.';
+
+  @override
+  String get guestHowItWorksBullionExtra =>
+      'ينطبق حد أدنى للقيمة الإرشادية على طلبات السبائك.';
+
+  @override
+  String get guestLogIn => 'تسجيل الدخول';
+
+  @override
+  String get guestJewellerFooter => 'هل أنت تاجر مجوهرات؟ سجّل هنا.';
 }

@@ -1,11 +1,13 @@
 import 'package:kh_domain/kh_domain.dart';
 
+import '../features/request_create/routes.dart';
 import 'session/session_controller.dart';
 
 /// Usability mirror of the server rules — never a security boundary
 /// (Architecture-Frontend §7.3, CP1-B02a).
 abstract final class AppGuards {
   static const splash = '/splash';
+  static const guestLanding = '/guest';
   static const login = '/vendor/login';
   static const register = '/vendor/register';
   static const awaiting = '/awaiting';
@@ -28,6 +30,7 @@ abstract final class AppGuards {
   static const customerBlocked = '/customer/blocked';
 
   static const unauthRoutes = {
+    guestLanding,
     login,
     register,
     customerOnboarding,
@@ -39,32 +42,76 @@ abstract final class AppGuards {
 
   static const completerRoutes = {authComplete, customerRegister, register};
 
+  /// Exact Guest compose paths (GL-08).
+  static const guestCreateRoutes = {
+    RequestCreatePaths.type,
+    RequestCreatePaths.ornament,
+    RequestCreatePaths.sellGold,
+    RequestCreatePaths.coins,
+    RequestCreatePaths.bullion,
+    RequestCreatePaths.images,
+    RequestCreatePaths.review,
+  };
+
+  /// GL-15 steal doors only — other unauth (e.g. authComplete) → Dashboard is accepted.
+  static const pendingPublishStealDoors = {
+    splash,
+    customerOnboarding,
+    customerRegister,
+  };
+
+  static bool isGuestCreateLocation(String location) =>
+      guestCreateRoutes.contains(location);
+
   static bool isCustomerLocation(String location) =>
       location == authComplete || location.startsWith('/customer');
 
   static bool isVendorLocation(String location) =>
       location == awaiting || location.startsWith('/vendor');
 
-  /// Guard chain: not bootstrapped → splash; not authed → CUS-S01;
-  /// unbound Google → completer; Customer → customer shell;
+  /// Guard chain: not bootstrapped → splash; SignedOut → Guest (+ create);
+  /// unbound Google → Customer signup (Vendor register still allowed);
+  /// Customer → customer shell (pending-publish exception);
   /// pending/rejected Vendor → awaiting; active Vendor → vendor home.
-  static String? redirect(SessionState session, String location) {
+  ///
+  /// Pending clear for Vendor is owned by the router session listener (GL-16),
+  /// not this redirect — keep redirect free of side effects.
+  static String? redirect(
+    SessionState session,
+    String location, {
+    bool pendingPublish = false,
+  }) {
     switch (session) {
       case SessionLoading():
         return location == splash ? null : splash;
       case SignedOut():
-        return unauthRoutes.contains(location) ? null : customerOnboarding;
+        if (unauthRoutes.contains(location) ||
+            isGuestCreateLocation(location)) {
+          return null;
+        }
+        return guestLanding;
       case UnboundGoogle():
-        return completerRoutes.contains(location) ? null : authComplete;
+        if (location == customerRegister || location == register) return null;
+        return customerRegister;
       case AuthBlocked():
         return location == customerBlocked ? null : customerBlocked;
       case SignedIn(:final user, :final isCustomer, :final isVendor):
-        if (location == splash) return homeFor(session as SignedIn);
-        if (isCustomer) return _customerRedirect(session as SignedIn, location);
-        if (isVendor) {
-          return _signedInRedirect(user.vendor?.lifecycle ?? VendorLifecycle.unknown, location);
+        if (isCustomer) {
+          return _customerRedirect(
+            session,
+            location,
+            pendingPublish: pendingPublish,
+          );
         }
-        return customerOnboarding;
+        if (isVendor) {
+          if (location == splash) return homeFor(session);
+          return _signedInRedirect(
+            user.vendor?.lifecycle ?? VendorLifecycle.unknown,
+            location,
+          );
+        }
+        // Unknown / Admin (F23): Guest Landing, not onboarding.
+        return guestLanding;
     }
   }
 
@@ -76,13 +123,24 @@ abstract final class AppGuards {
       final lifecycle = session.vendorLifecycle;
       return lifecycle == VendorLifecycle.active ? home : awaiting;
     }
-    return customerOnboarding;
+    return guestLanding;
   }
 
-  static String? _customerRedirect(SignedIn session, String location) {
+  static String? _customerRedirect(
+    SignedIn session,
+    String location, {
+    required bool pendingPublish,
+  }) {
     if (session.isCustomerBlocked) {
       return location == customerBlocked ? null : customerBlocked;
     }
+    if (pendingPublish) {
+      if (isGuestCreateLocation(location)) return null;
+      if (pendingPublishStealDoors.contains(location)) {
+        return RequestCreatePaths.review;
+      }
+    }
+    if (location == splash) return homeFor(session);
     if (unauthRoutes.contains(location) || isVendorLocation(location)) {
       return customerHome;
     }
@@ -96,7 +154,8 @@ abstract final class AppGuards {
     }
     switch (lifecycle) {
       case VendorLifecycle.active:
-        return awaitingRoutes.contains(location) || unauthRoutes.contains(location)
+        return awaitingRoutes.contains(location) ||
+                unauthRoutes.contains(location)
             ? home
             : null;
       case VendorLifecycle.verified:

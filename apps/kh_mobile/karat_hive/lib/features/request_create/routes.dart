@@ -2,10 +2,11 @@ import 'package:go_router/go_router.dart';
 import 'package:kh_domain/kh_domain.dart';
 
 import 'presentation/find_ornament_screen.dart';
+import 'presentation/request_review_publish_screen.dart';
 import 'presentation/request_type_screen.dart';
 import 'presentation/stubs.dart' hide RequestTypeScreen;
 
-/// Paths for Agent 1 to mount under the Customer shell.
+/// Paths for the create flow (top-level GoRoutes — not under CustomerShell).
 abstract final class RequestCreatePaths {
   static const type = '/customer/requests/create';
   static const ornament = '/customer/requests/create/ornament';
@@ -16,12 +17,12 @@ abstract final class RequestCreatePaths {
   static const review = '/customer/requests/create/review';
 
   static String composeFor(RequestType type) => switch (type) {
-        RequestType.findOrnament => ornament,
-        RequestType.sellOldGold => sellGold,
-        RequestType.goldCoin => coins,
-        RequestType.goldBullion => bullion,
-        RequestType.unknown => RequestCreatePaths.type,
-      };
+    RequestType.findOrnament => ornament,
+    RequestType.sellOldGold => sellGold,
+    RequestType.goldCoin => coins,
+    RequestType.goldBullion => bullion,
+    RequestType.unknown => RequestCreatePaths.type,
+  };
 }
 
 final List<GoRoute> requestCreateRoutes = [

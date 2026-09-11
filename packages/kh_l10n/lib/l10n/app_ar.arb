@@ -296,5 +296,21 @@
   "authVerifyAndContinue": "تحقّق وتابع",
   "authPublishGateTitle": "تحقّق عبر Google للنشر",
   "authPublishGateBody": "يتطلّب نشر الطلب تحقّقًا لمرة واحدة عبر Google. أما التصفّح وإنشاء مسودة الطلب فلا يتطلّبان ذلك.",
-  "authPublishGateAction": "تحقّق عبر Google"
+  "authPublishGateAction": "تحقّق عبر Google",
+  "guestLandingTitle": "كارات هايف",
+  "guestTypeOrnament": "ابحث عن مجوهرات",
+  "guestTypeSellGold": "بِع ذهبي",
+  "guestTypeCoins": "عملات",
+  "guestTypeBullion": "سبائك",
+  "guestHowItWorksTitle": "كيف يعمل هذا",
+  "guestHowItWorksPost": "انشر طلبًا يصف ما تحتاجه",
+  "guestHowItWorksOffers": "يرسل تجّار موثّقون عروضًا متنافسة",
+  "guestHowItWorksAccept": "اقبل عرضًا واحدًا — تُكشف الهويات",
+  "guestHowItWorksWhatsApp": "تابع المحادثة عبر واتساب",
+  "guestHowItWorksOrnamentExtra": "الميزانية وصورة مرجعية تساعد التجّار على مطابقة ما تريده.",
+  "guestHowItWorksSellGoldExtra": "يجب أن تُظهر الصور القطعة الفعلية التي تبيعها.",
+  "guestHowItWorksCoinsExtra": "اختر الشراء أو البيع والفئة والكمية.",
+  "guestHowItWorksBullionExtra": "ينطبق حد أدنى للقيمة الإرشادية على طلبات السبائك.",
+  "guestLogIn": "تسجيل الدخول",
+  "guestJewellerFooter": "هل أنت تاجر مجوهرات؟ سجّل هنا."
 }

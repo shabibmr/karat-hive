@@ -12,6 +12,7 @@ import 'package:kh_l10n/kh_l10n.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../helpers/customer_auth.dart';
+import '../helpers/fake_session.dart';
 
 class _FakeOnboarding extends CustomerOnboardingController {
   _FakeOnboarding(this._state);
@@ -41,12 +42,17 @@ void main() {
     await tester.pumpWidget(_host([
       customerOnboardingControllerProvider
           .overrideWith(() => _FakeOnboarding(const OnboardingIdle())),
+      sessionProvider.overrideWith(
+        () => FakeSessionController(const SignedOut()),
+      ),
     ]));
     await tester.pumpAndSettle();
 
+    expect(find.text('Log in'), findsOneWidget);
     expect(find.byKey(const Key('customer-google-signin')), findsOneWidget);
     expect(find.text('Continue with Google'), findsOneWidget);
     expect(find.byKey(const Key('biometric-unlock-toggle')), findsOneWidget);
+    expect(find.byKey(const Key('guest-type-ornament')), findsNothing);
   });
 
   testWidgets('a lockout state renders SH-AUTH-07, not the completion step',

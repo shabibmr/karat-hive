@@ -64,6 +64,29 @@ void main() {
     expect(state, isA<OnboardingNeedsCompletion>());
     expect((state as OnboardingNeedsCompletion).firebaseIdToken, 'fb-id-token');
     expect(session.authenticated, isEmpty);
+    final unbound = c.read(sessionProvider);
+    expect(unbound, isA<UnboundGoogle>());
+    expect((unbound as UnboundGoogle).firebaseIdToken, 'fb-id-token');
+  });
+
+  test('resetToIdle clears failure after cancel (GL-38)', () async {
+    when(() => firebase.signInWithGoogle()).thenThrow(StateError('no network'));
+    final c = container();
+    addTearDown(c.dispose);
+
+    await c
+        .read(customerOnboardingControllerProvider.notifier)
+        .signInWithGoogle();
+    expect(
+      c.read(customerOnboardingControllerProvider),
+      isA<OnboardingFailure>(),
+    );
+
+    c.read(customerOnboardingControllerProvider.notifier).resetToIdle();
+    expect(
+      c.read(customerOnboardingControllerProvider),
+      isA<OnboardingIdle>(),
+    );
   });
 
   test('a bare 401 with no code is also treated as unbound', () async {
@@ -80,10 +103,12 @@ void main() {
         isA<OnboardingNeedsCompletion>());
   });
 
-  for (final code in ['ACCOUNT_SUSPENDED', 'ACCOUNT_DEACTIVATED']) {
-    test('$code surfaces a lockout message, not the completion step', () async {
+  for (final code in kAuthLockoutCodes) {
+    test('$code → OnboardingLockedOut + AuthBlocked, not Guest (GL-68)',
+        () async {
       when(() => repo.googleSession(any())).thenAnswer(
-        (_) async => Err(ForbiddenFailure(code: code, message: 'Blocked ($code).')),
+        (_) async =>
+            Err(ForbiddenFailure(code: code, message: 'Blocked ($code).')),
       );
       final c = container();
       addTearDown(c.dispose);
@@ -95,6 +120,11 @@ void main() {
       final state = c.read(customerOnboardingControllerProvider);
       expect(state, isA<OnboardingLockedOut>());
       expect((state as OnboardingLockedOut).message, 'Blocked ($code).');
+
+      final sessionState = c.read(sessionProvider);
+      expect(sessionState, isA<AuthBlocked>());
+      expect((sessionState as AuthBlocked).failure.code, code);
+      expect(sessionState, isNot(isA<SignedOut>()));
     });
   }
 
