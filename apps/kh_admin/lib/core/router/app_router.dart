@@ -64,7 +64,7 @@ class RouterNotifier extends ChangeNotifier {
 
     // While resolving initial token/session state, stay on splash/login
     if (session.isLoading) {
-      return null;
+      return isLoggingIn ? null : AdminRoutes.login;
     }
 
     if (!session.isAuthenticated) {

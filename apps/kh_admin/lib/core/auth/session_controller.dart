@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/auth/auth_broadcast.dart';
 import 'package:kh_admin/core/auth/auth_repository.dart';
 import 'package:kh_admin/core/auth/dev_auth.dart';
@@ -260,15 +261,18 @@ final StateNotifierProvider<SessionController, SessionState>
     StateNotifierProvider<SessionController, SessionState>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
   final authRepository = ref.watch(authRepositoryProvider);
+  final apiClient = ref.watch(apiClientProvider);
   final firebaseAuth = ref.watch(firebaseAuthServiceProvider);
   final authBroadcast = ref.watch(authBroadcastProvider);
   final devAuth = ref.watch(devAuthConfigProvider);
-  return SessionController(
+  final controller = SessionController(
     tokenStorage: tokenStorage,
     authRepository: authRepository,
     firebaseAuthService: firebaseAuth,
     authBroadcast: authBroadcast,
     devAuth: devAuth,
   );
+  apiClient.onUnauthorized = controller.silentRefresh;
+  return controller;
 });
 

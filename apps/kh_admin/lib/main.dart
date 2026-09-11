@@ -18,37 +18,37 @@ import 'package:kh_admin/core/router/app_router.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
   const logger = KhLogger();
 
-  FlutterError.onError = (details) {
-    logger.error(
-      'Flutter error: ${details.exceptionAsString()}',
-      details.exception,
-      details.stack,
-    );
-    FlutterError.presentError(details);
-  };
-
-  PlatformDispatcher.instance.onError = (error, stack) {
-    logger.error('Platform error', error, stack);
-    return true;
-  };
-
-  if (kReleaseMode) {
-    ErrorWidget.builder = (details) => ErrorRetryWidget(details: details);
-  }
-
-  // TR-S4-15 & TR-S4-16: Fast flavor configuration validation at startup
-  final flavor = AppFlavor.fromString(
-    const String.fromEnvironment('KH_FLAVOR', defaultValue: 'dev'),
-  );
-  FlavorConfig(flavor: flavor, apiBaseUrl: khApiBase).validate();
-
-  // TR-S4-19: runApp is executed immediately without blocking the first frame
+  // TR-S4-19: runApp and binding initialization share the same Zone to prevent Zone mismatch
   runZonedGuarded(
     () {
+      WidgetsFlutterBinding.ensureInitialized();
+
+      FlutterError.onError = (details) {
+        logger.error(
+          'Flutter error: ${details.exceptionAsString()}',
+          details.exception,
+          details.stack,
+        );
+        FlutterError.presentError(details);
+      };
+
+      PlatformDispatcher.instance.onError = (error, stack) {
+        logger.error('Platform error', error, stack);
+        return true;
+      };
+
+      if (kReleaseMode) {
+        ErrorWidget.builder = (details) => ErrorRetryWidget(details: details);
+      }
+
+      // TR-S4-15 & TR-S4-16: Fast flavor configuration validation at startup
+      final flavor = AppFlavor.fromString(
+        const String.fromEnvironment('KH_FLAVOR', defaultValue: 'dev'),
+      );
+      FlavorConfig(flavor: flavor, apiBaseUrl: khApiBase).validate();
+
       runApp(
         const ProviderScope(
           observers: [ProviderLogger()],
@@ -72,12 +72,14 @@ class _KhAdminAppState extends ConsumerState<KhAdminApp> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Non-blocking Firebase init (TR-S4-19)
-      initializeFirebaseNonBlocking(ref);
+      await initializeFirebaseNonBlocking(ref);
 
       // FCM foreground push listener (TR-S4-18)
-      _initForegroundPush();
+      if (mounted && ref.read(firebaseInitStateProvider).isInitialized) {
+        _initForegroundPush();
+      }
     });
   }
 

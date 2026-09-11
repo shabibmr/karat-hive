@@ -1,6 +1,52 @@
 import type { PrismaClient } from '@prisma/client';
 import { ScryptPasswordHasher } from '../../src/platform/adapters/crypto/scrypt-password-hasher';
 
+type GoogleAdminConfig = {
+  email: string;
+  mobileNumber: string;
+  displayName: string;
+};
+
+// Google-only admins: no password, first Google sign-in with a verified matching
+// email auto-binds via OAuthAccountService (backend/src/modules/identity/application/oauth-account.service.ts).
+const GOOGLE_ADMINS: GoogleAdminConfig[] = [
+  {
+    email: 'algoraytechnologies@gmail.com',
+    mobileNumber: '+971500000098',
+    displayName: 'Algoray Technologies',
+  },
+];
+
+async function seedGoogleAdmin(prisma: PrismaClient, config: GoogleAdminConfig): Promise<void> {
+  const user = await prisma.user.upsert({
+    where: { email: config.email },
+    update: {
+      userType: 'ADMIN',
+      accountState: 'ACTIVE',
+    },
+    create: {
+      email: config.email,
+      mobileNumber: config.mobileNumber,
+      emailVerifiedAt: new Date(),
+      userType: 'ADMIN',
+      accountState: 'ACTIVE',
+      preferredLanguage: 'en',
+      termsVersion: '1.0',
+      privacyVersion: '1.0',
+      termsAcceptedAt: new Date(),
+    },
+  });
+
+  await prisma.adminProfile.upsert({
+    where: { userId: user.id },
+    update: { displayName: config.displayName },
+    create: { userId: user.id, displayName: config.displayName },
+  });
+
+  // eslint-disable-next-line no-console
+  console.log(`Seeded Google Admin user: ${config.email} (displayName: "${config.displayName}")`);
+}
+
 export async function seedAdmin(prisma: PrismaClient): Promise<void> {
   const email = process.env.SEED_ADMIN_EMAIL || 'admin@karathive.ae';
   const password = process.env.SEED_ADMIN_PASSWORD || 'AdminSecret123!';
@@ -47,4 +93,8 @@ export async function seedAdmin(prisma: PrismaClient): Promise<void> {
 
   // eslint-disable-next-line no-console
   console.log(`Seeded Admin user: ${email} (password: ${password}, displayName: "${displayName}")`);
+
+  for (const config of GOOGLE_ADMINS) {
+    await seedGoogleAdmin(prisma, config);
+  }
 }

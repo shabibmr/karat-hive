@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/auth/token_storage.dart';
 import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/api/server_time_provider.dart';
@@ -49,9 +48,11 @@ class ApiClient {
 
   final Dio _dio;
   final TokenGetter? _tokenGetter;
-  final RefreshHandler? _onUnauthorized;
+  RefreshHandler? _onUnauthorized;
   final ServerTimeCallback? _onServerTime;
   final ContractMismatchCallback? _onContractMismatch;
+
+  set onUnauthorized(RefreshHandler? handler) => _onUnauthorized = handler;
 
   DateTime? _latestServerTime;
   static DateTime? _staticLatestServerTime;
@@ -237,8 +238,9 @@ class ApiClient {
 
     // Handle 401 with silent one-shot refresh (except on auth endpoints)
     if (status == 401 && !isRetry && !path.startsWith('/v1/auth/')) {
-      if (_onUnauthorized != null) {
-        final refreshed = await _onUnauthorized();
+      final onUnauthorized = _onUnauthorized;
+      if (onUnauthorized != null) {
+        final refreshed = await onUnauthorized();
         if (refreshed) {
           // Retry the request once with new token
           return _send(
@@ -340,13 +342,7 @@ final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
   return ApiClient(
     // G2-A14: domain calls use the Karat Hive access token only.
-    tokenGetter: () async {
-      final session = ref.read(sessionControllerProvider);
-      return session.tokens?.accessToken ?? await tokenStorage.getAccessToken();
-    },
-    onUnauthorized: () async {
-      return ref.read(sessionControllerProvider.notifier).silentRefresh();
-    },
+    tokenGetter: () => tokenStorage.getAccessToken(),
     onServerTime: (serverTime) {
       ref.read(serverTimeProvider.notifier).state = serverTime;
     },
