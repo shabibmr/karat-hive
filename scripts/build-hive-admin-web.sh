@@ -28,7 +28,7 @@ Environment Variables:
 Examples:
   $(basename "$0")
   $(basename "$0") hive_admin
-  $(basename "$0") --release --dart-define=KH_API_BASE=https://api.karathive.ae
+  $(basename "$0") --release --dart-define=KH_API_BASE=https://algoray.cloud/kh_api
 EOF
   exit 0
 }

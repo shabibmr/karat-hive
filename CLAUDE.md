@@ -13,7 +13,7 @@ Checkpoint-1 vendor onboarding and admin taxonomy are on `main`. Google Sign-In 
 ```bash
 cd backend && npm run start:dev                          # API :3000
 cd apps/kh_mobile/karat_hive && flutter run --dart-define-from-file=config/dev.json
-cd apps/kh_admin && flutter run -d chrome --dart-define=KH_API_BASE=http://localhost:3000
+cd apps/kh_admin && flutter run -d chrome --dart-define=KH_API_BASE=https://algoray.cloud/kh_api
 npx --yes serve ui-mock                                  # static 67-screen prototype (HTTP only)
 ```
 
