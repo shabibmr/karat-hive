@@ -181,11 +181,16 @@ class OffersClient {
     );
   }
 
-  Future<Result<AcceptOfferResult>> accept(String id) async {
+  /// Accept with a caller-held idempotency key (Architecture-Frontend §9.4).
+  Future<Result<AcceptOfferResult>> accept(
+    String id, {
+    required String idempotencyKey,
+  }) async {
     final r = await _client.send(
       'POST',
       '/v1/offers/$id/accept',
       body: const {'confirmation': 'REVEAL_AND_CONNECT'},
+      headers: {'idempotency-key': idempotencyKey},
     );
     return r.when(
       ok: (d) => Ok(AcceptOfferResult.fromJson(d as Map<String, dynamic>)),

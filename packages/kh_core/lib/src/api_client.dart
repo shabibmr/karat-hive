@@ -68,9 +68,8 @@ class KhApiClient {
 
   /// GET/POST/PATCH/PUT/DELETE returning the unwrapped `data` payload or a [Failure].
   ///
-  /// [headers] are merged onto the request before the interceptor chain. Use
-  /// this for caller-held `idempotency-key` values (Architecture-Frontend §9.4);
-  /// the chain uses `putIfAbsent` so a provided key is not replaced.
+  /// Pass [headers] for caller-held values such as `idempotency-key` (interceptor
+  /// uses `putIfAbsent` and will not mint a second key).
   Future<Result<dynamic>> send(
     String method,
     String path, {

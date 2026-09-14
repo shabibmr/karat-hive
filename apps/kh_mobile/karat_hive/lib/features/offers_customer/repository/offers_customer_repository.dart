@@ -38,7 +38,11 @@ class OffersCustomerRepository {
   Future<Result<VendorRatingDetail>> vendorRating(String offerId) =>
       _api.offers.vendorRating(offerId);
 
-  Future<Result<AcceptOfferResult>> accept(String id) => _api.offers.accept(id);
+  Future<Result<AcceptOfferResult>> accept(
+    String id, {
+    required String idempotencyKey,
+  }) =>
+      _api.offers.accept(id, idempotencyKey: idempotencyKey);
 
   Future<Result<OfferForCustomer>> decline(
     String id, {

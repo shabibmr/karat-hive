@@ -1,7 +1,8 @@
 import 'package:go_router/go_router.dart';
 
 import '../../app/guards.dart';
-import '../offers_customer/presentation/stubs.dart';
+import '../offers_customer/presentation/customer_offers_list_screen.dart';
+import '../offers_customer/presentation/offer_comparison_screen.dart';
 import 'presentation/customer_home_screen.dart';
 import 'presentation/owner_request_detail_screen.dart';
 import 'presentation/request_history_screen.dart';
@@ -15,6 +16,7 @@ GoRoute customerHomeRoute({List<RouteBase> routes = const []}) => GoRoute(
 final requestManageRoutes = [
   GoRoute(
     path: AppGuards.customerRequests,
+    // Requests tab hub: list, not an empty owner-detail (CUS-S02 reuse).
     builder: (_, __) => const CustomerHomeScreen(),
     routes: [
       GoRoute(
@@ -25,17 +27,23 @@ final requestManageRoutes = [
         routes: [
           GoRoute(
             path: 'offers',
-            builder: (context, state) => OffersListScreen(
+            builder: (context, state) => CustomerOffersListScreen(
               requestId: state.pathParameters['requestId']!,
             ),
-            routes: [
-              GoRoute(
-                path: 'compare',
-                builder: (context, state) => OfferComparisonScreen(
-                  requestId: state.pathParameters['requestId']!,
-                ),
-              ),
-            ],
+          ),
+          GoRoute(
+            path: 'compare',
+            builder: (context, state) {
+              final ids = (state.uri.queryParameters['ids'] ?? '')
+                  .split(',')
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList(growable: false);
+              return OfferComparisonScreen(
+                requestId: state.pathParameters['requestId']!,
+                offerIds: ids,
+              );
+            },
           ),
         ],
       ),

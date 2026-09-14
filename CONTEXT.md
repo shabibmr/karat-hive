@@ -4,8 +4,12 @@ A request-driven marketplace that matches retail gold buyers and sellers with ve
 
 ## Actors
 
+**Guest**:
+An unauthenticated visitor in Customer mode. May browse the four Request Types and compose a Request. Must log in to publish, or to open private areas (My Requests, Connections, Alerts, Profile).
+_Avoid_: anonymous user, visitor (as primary), signed-out Customer
+
 **Customer**:
-A retail individual who creates Requests to buy or sell gold or jewellery. Not business-KYC’d by the platform; must bind a one-time external identity before publishing any Request.
+A retail individual who creates Requests to buy or sell gold or jewellery. Not business-KYC’d by the platform; must bind a one-time external identity before publishing any Request. Cold start without a live session is Guest, not this role (`adr/0011`).
 _Avoid_: buyer, client, user (when meaning this role), account
 
 **Vendor**:

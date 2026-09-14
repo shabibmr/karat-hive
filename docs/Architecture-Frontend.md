@@ -4,12 +4,12 @@
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
 | **Document** | Software Architecture Document — **Frontend** |
-| **Version** | 1.0 |
+| **Version** | 1.2 |
 | **Status** | Draft — for Technical Lead review. Contains `[PROPOSED]` decisions requiring sign-off. |
 | **Date** | 10 August 2026 |
 | **Companion** | [`docs/Architecture-Backend.md`](Architecture-Backend.md) — server architecture and the API contract |
 | **Governs** | The Flutter codebase: dual-mode mobile app (iOS + Android) and the Flutter Web Admin Portal |
-| **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`docs/adr/0006`](adr/0006-flutter-single-codebase-all-surfaces.md) · [`ui-screens/`](../ui-screens/) · [`CONTEXT.md`](../CONTEXT.md) |
+| **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`docs/adr/0006`](adr/0006-flutter-single-codebase-all-surfaces.md) · [`docs/adr/0010`](adr/0010-google-signin-only-login.md) · [`docs/adr/0011`](adr/0011-guest-first-landing.md) · [`ui-screens/`](../ui-screens/) · [`CONTEXT.md`](../CONTEXT.md) |
 
 ---
 
@@ -46,7 +46,7 @@
 
 ### 1.1 Purpose
 
-This document describes **how the Karat Hive client applications are built**. It exists to make 67 screens across three user surfaces buildable by several engineers in parallel without the codebase turning into three codebases wearing one repository.
+This document describes **how the Karat Hive client applications are built**. It exists to make 68 screens across three user surfaces buildable by several engineers in parallel without the codebase turning into three codebases wearing one repository. (`CUS-S23` Guest Landing is `[PROPOSED]` in `ui-screens/` until the SRS Appendix C bump; working rule [`adr/0011`](adr/0011-guest-first-landing.md).)
 
 It is written to be sufficient to lay out the repository, fix the state-management and navigation model, define how the client talks to the backend, and settle the questions that Flutter Web raises for the Admin Portal.
 
@@ -123,6 +123,7 @@ It is written to be sufficient to lay out the repository, fix the state-manageme
 | `AD-FE-12` | Admin data grid — **build-or-buy decision required before `ADM-S03` starts** | `[BLOCKED]` |
 | `AD-FE-13` | Golden tests in both LTR and RTL for every shared component | `[PROPOSED]` |
 | `AD-FE-14` | Mobile and Admin ship on independent release trains from one repository | `[PROPOSED]` |
+| `AD-FE-15` | **Guest-first launch.** No live session → `CUS-S23`; login at publish; Guest create draft in-memory only | `[PROPOSED]` — product frozen 11 Sep 2026, [`adr/0011`](adr/0011-guest-first-landing.md) |
 
 ### 3.1 Rationale for the contested ones
 
@@ -152,7 +153,7 @@ flowchart TB
 
     subgraph MobileApp["apps/kh_mobile — one binary"]
         GATE["Role gate<br/>SH-SHELL-04"]
-        CUS["Customer mode<br/>CUS-S01…S22"]
+        CUS["Customer mode<br/>CUS-S01…S23"]
         VEN["Vendor mode<br/>VEN-S01…S22"]
         GATE --> CUS
         GATE --> VEN
@@ -183,7 +184,7 @@ They remain one codebase because they share the domain model, the API client, th
 
 ### 4.3 The dual-mode model
 
-One account has exactly one role (SRS §2.1). There is no in-session mode switch and no dual-role session. On cold start the role gate (`SH-SHELL-04`) reads the authenticated role and hands the app to the correct shell; a session whose role does not match the current shell is redirected, not accommodated.
+One account has exactly one role (SRS §2.1). There is no in-session mode switch and no dual-role session. On cold start the splash restores the session first (`adr/0011`). A live Customer or Vendor token skips Guest. No live token → Guest Landing (`CUS-S23`). The role gate (`SH-SHELL-04`) then hands a signed-in user to the correct shell; a session whose role does not match the current shell is redirected, not accommodated.
 
 Mode divergence is expressed as **two shells over shared features**, not as `if (isVendor)` branches inside widgets. Customer mode gets a Customer navigation set and Customer-density layouts; Vendor mode gets a working-tool information hierarchy with the Submit Offer action reachable in at most two taps from the feed (SRS §7.1). Where a widget genuinely serves both — a Request card, an Offer row — it takes an explicit `view: owner | vendor` parameter (`SH-REQ-01`), so the divergence is a documented parameter rather than scattered role checks.
 
@@ -299,7 +300,7 @@ Not all state is the same, and conflating the four is how Flutter apps become un
 | **Session state** | Auth tokens, role, locale, server-time offset | Keep-alive Riverpod provider | The session |
 | **Server cache** | Requests, Offers, Connections, taxonomy, gold rate | Riverpod async providers with explicit invalidation (§9.5) | Until invalidated |
 
-**Form state deserves specific mention.** The Request creation flow (`CUS-S03`…`CUS-S09`) is a multi-screen wizard, and the SRS gives it a two-minute completion target for a returning user (SRS §7.1) plus a draft-save requirement (`FR-CUS-015`). Its state therefore lives in a controller scoped to the **flow**, not to any one screen, so back-navigation never loses input, and it is persisted to the draft endpoint on step transitions.
+**Form state deserves specific mention.** The Request creation flow (`CUS-S03`…`CUS-S09`) is a multi-screen wizard, and the SRS gives it a two-minute completion target for a returning user (SRS §7.1) plus a draft-save requirement (`FR-CUS-015`). Its state therefore lives in a controller scoped to the **flow**, not to any one screen, so back-navigation never loses input. **Guest** (`adr/0011`, `AD-FE-15`): the same controller is in-memory only until login; there is no draft PATCH. After a Customer session exists, persist to the draft endpoint on step transitions as `FR-CUS-015`. Killing the app discards a Guest form.
 
 ### 6.3 Error handling
 
@@ -325,24 +326,27 @@ URLs are meaningful in both apps — mandatory for Admin (§16.3), and useful on
 
 ```mermaid
 flowchart TB
-    BOOT["Bootstrap<br/><i>config, tokens, server time</i>"] --> AUTH{"Authenticated?"}
-    AUTH -->|no| UNAUTH["Unauthenticated shell<br/>CUS-S01 · VEN-S01, S04"]
+    BOOT["Bootstrap / splash<br/><i>config, tokens, server time</i>"] --> AUTH{"Live session?"}
+    AUTH -->|no| GUEST["Guest Landing<br/>CUS-S23"]
     AUTH -->|yes| ROLE{"Role<br/>SH-SHELL-04"}
-    ROLE -->|Customer| CSHELL["Customer shell<br/>SH-SHELL-01/02/03"]
+    ROLE -->|Customer| CSHELL["Customer shell<br/>SH-SHELL-01/02/03 · CUS-S02"]
     ROLE -->|Vendor| VSTATE{"Vendor account state"}
     VSTATE -->|ACTIVE + VERIFIED| VSHELL["Vendor shell<br/>full marketplace"]
     VSTATE -->|otherwise| WAIT["Awaiting Approval shell<br/>SH-SHELL-05 · VEN-S03"]
+    GUEST -->|Log in / publish gate| LOGIN["CUS-S01 Login"]
+    GUEST -->|service| CREATE["CUS-S03…S09 as Guest"]
+    GUEST -->|Register as Jeweller| VREG["VEN-S01"]
 ```
 
 The Awaiting Approval shell is a **separate shell, not a disabled state of the Vendor shell** (`C-04`, `BR-002`, `FR-VEN-003`). A non-`ACTIVE` Vendor's router simply has no marketplace routes mounted, so there is no navigation path, no cached feed and no dashboard data to leak. Building it as a permission flag inside the full shell would leave every one of those one bug away from being visible.
 
 ### 7.3 Route guards — usability, never security
 
-Guards mirror server rules so users see a sensible screen instead of a rejection: unauthenticated → login; wrong role → correct shell; non-`ACTIVE` Vendor → approval shell; unbound OAuth → the publish gate (`SH-AUTH-05`).
+Guards mirror server rules so users see a sensible screen instead of a rejection: unauthenticated → **Guest Landing** (`CUS-S23`, `adr/0011`); wrong role → correct shell; non-`ACTIVE` Vendor → approval shell; Guest/unbound Google at **publish** → Login (`CUS-S01`) then auto-publish if Customer (`SH-AUTH-05`). Private Customer tabs require a session.
 
 **They are not a security boundary.** The server re-evaluates every rule (`FR-SYS-003`), and a bypassed guard must find a 403 waiting for it. The client's job is to avoid dead ends, not to enforce policy — invariant 3 of §2.3.
 
-The OAuth gate is worth stating precisely because it is unusual: OAuth is not required to sign in or to browse. It gates exactly one action — publishing a Request (`BR-001`, `FR-CUS-014`). So the guard sits on the publish action inside `CUS-S09`, presented as a banner (`SH-AUTH-05`), not on the create flow's entry. Gating the whole flow would be a materially worse product and would not match the requirement.
+The login/publish gate is worth stating precisely: Google is not required to browse or compose (`adr/0011`). It gates **publish** (`BR-001`, `FR-CUS-014`) and private tabs. The guard sits on the publish action inside `CUS-S09` (and on My Requests / Connections / Alerts / Profile), not on the create flow's entry. Gating the whole flow would be a materially worse product. Guest draft is in-memory; after Customer login-at-publish the same form auto-publishes.
 
 ### 7.4 Admin shell
 
@@ -786,6 +790,7 @@ Every `[PROPOSED]` row in §3. The ones worth real discussion: `AD-FE-03` (state
 
 | Screens | Feature module | App |
 |---|---|---|
+| `CUS-S23` | `guest` | mobile |
 | `CUS-S01` | `auth` | mobile |
 | `CUS-S02`, `S10`, `S17` | `request_manage` | mobile |
 | `CUS-S03`–`S09` | `request_create` | mobile |
@@ -829,6 +834,7 @@ Every `[PROPOSED]` row in §3. The ones worth real discussion: `AD-FE-03` (state
 | C-10 Flutter sole framework (Admin = Flutter Web, confirmed) | §4, §16, §21.1 |
 | `BR-006`, `BR-007` masking | **§10**, §8.4 |
 | `BR-001` OAuth publish gate | §7.3 |
+| `adr/0011` Guest-first launch (`AD-FE-15`) | §6.2, §7.2, §7.3 |
 | `BR-002`, C-04 Vendor access gating | §7.2 |
 | `BR-013` acceptance irreversibility | §9.4 |
 | `BR-021` UTC / GST | §11.1, §14 |
@@ -860,6 +866,7 @@ Every `[PROPOSED]` row in §3. The ones worth real discussion: `AD-FE-03` (state
 |---|---|---|
 | 1.0 | 10 Aug 2026 | Initial frontend architecture, derived from SRS v1.2, ADR 0006 and `ui-screens/` |
 | 1.1 | 1 Sep 2026 | Re-based on SRS v1.3: C-10 confirmed (Admin Portal = Flutter Web) — §2.1 and Appendix B lose the `[ASSUMED]` tag; C-13 resolved (object storage → Cloudflare R2, `docs/adr/0008`). §21.1 blocking list drops both items; §16 / §15.2 stand as accepted risk |
+| 1.2 | 11 Sep 2026 | Guest-first launch (`AD-FE-15`, `adr/0011`, `CUS-S23`): splash → session restore or Guest Landing; login at publish; in-memory Guest draft. §6.2, §7.2, §7.3, Appendix A. |
 
 | Role | Signs off on | Status |
 |---|---|---|

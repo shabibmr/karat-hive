@@ -5,12 +5,12 @@
 | **Product** | Karat Hive |
 | **Document** | Executable task list for Customer mode in the dual-mode mobile app |
 | **Status** | Working backlog — derived from the plan of record |
-| **Date** | 7 September 2026 |
-| **Version** | 0.5 |
+| **Date** | 11 September 2026 |
+| **Version** | 0.6 |
 | **Prefix** | `CM-*` — stable, never reused |
-| **Screens** | `CUS-S01` … `CUS-S22` |
+| **Screens** | `CUS-S01` … `CUS-S23` |
 | **App** | `apps/kh_mobile` (same binary as Vendor; role is `userType`, not an in-session switch) |
-| **Does not override** | SRS v1.3 · [`adr/0010`](../adr/0010-google-signin-only-login.md) · API-Route-Inventory · Architecture-Frontend / Backend · Screen-API-Map |
+| **Does not override** | SRS v1.3 · [`adr/0010`](../adr/0010-google-signin-only-login.md) · [`adr/0011`](../adr/0011-guest-first-landing.md) · API-Route-Inventory · Architecture-Frontend / Backend · Screen-API-Map |
 | **Branch (authoring)** | `cursor/customer-app-sweep-ce94` |
 | **Companion Vendor list** | [`checkpoint-1-vendor-onboarding-tasks.md`](checkpoint-1-vendor-onboarding-tasks.md) |
 
@@ -21,6 +21,8 @@ This file is the work list: IDs, order, files, acceptance. Do not invent routes,
 **Current tree (7 Sep 2026, orchestrator pass):** Wave 1 packages landed. `CM-S01`–`S06`, `S10`–`S12` **done**. Gate **S** is **not** passed (`S07`–`S09`, `S13`–`S17` open). `CustomerShell` (G03) still not assembled. Track K unchanged.
 
 Login rule for this list: **Google is the only login** (`adr/0010`). OTP proves a mobile number (Talk / register). Password login is leftover Vendor CP1 UI and must not become the Customer path. SRS `CUS-S01` still mentions OTP login; until the SRS is rewritten, implement `adr/0010` and keep OTP as phone proof only.
+
+Launch rule: **Guest-first** (`adr/0011`). No live token → `CUS-S23`. Login at publish and on private tabs. Guest create draft is in-memory only. Do not send `SignedOut` to `/customer/onboarding`.
 
 ---
 
@@ -268,10 +270,19 @@ Gate G. Do not start until CM-S01 is done (G01) / CM-S12 (G03).
 | ID | Task | Depends on | Files (primary) | Acceptance | Status |
 |---|---|---|---|---|---|
 | CM-G01 | `SessionState.SignedIn` exposes `userType` and Customer vs Vendor home. Suspended Customer is a signed-in dead-end message, not Vendor awaiting | CM-S01 | `lib/app/session/session_controller.dart` | Customer JSON without `vendor` does not run `VendorLifecycle` routing. | open |
-| CM-G02 | `AppGuards` + `SH-SHELL-04`: unauth → login; `CUSTOMER` → customer routes; `VENDOR` → existing Vendor/awaiting chain; never mount the other role's marketplace | CM-G01 | `lib/app/guards.dart`, tests | Existing `test/app/guards_test.dart` still pass for Vendor. New cases for Customer. | open |
+| CM-G02 | `AppGuards` + `SH-SHELL-04`: unauth → **Guest Landing** (`CUS-S23`, `adr/0011`); live Customer → dashboard; live Vendor → home/awaiting; never mount the other role's marketplace | CM-G01 | `lib/app/guards.dart`, tests | Existing `test/app/guards_test.dart` still pass for Vendor. `SignedOut` must not land on `/customer/onboarding`. | open |
 | CM-G03 | `CustomerShell` bottom nav: Home `CUS-S02`, Requests `CUS-S10` (or home stack), Connections `CUS-S16`, Alerts `CUS-S19`, Profile `CUS-S20` — match `ui-mock/js/nav.js` | CM-G02, CM-S12 | `lib/app/shells/customer_shell.dart` | Material nav has ≥2 destinations. Vendor shell unchanged. | open |
-| CM-G04 | Unauth shell: Google Sign-In shared; after session, role gate; **no** password tab on Customer path; Vendor register remains Vendor | CM-G02 | `lib/app/shells/unauth_shell.dart`, `lib/app/router.dart` | Unbound Google stays on completer chooser (Customer vs Vendor register). Bound Customer never sees `/vendor/home`. | open |
+| CM-G04 | Guest + Login: Google Sign-In shared; **no** password tab on Customer path; **no** role chooser on Guest/Publish (`adr/0011`); Vendor register remains the Jeweller footer | CM-G02 | `lib/app/shells/unauth_shell.dart`, `lib/app/router.dart` | New Google from Guest/Publish completes as Customer. Bound Customer never sees `/vendor/home`. | open |
 | CM-G05 | Assemble per-feature route files; typed path params (`requestId`, `offerId`, `connectionId`) | CM-G03, CM-A04 | `lib/app/router.dart`, `lib/features/*/routes.dart` | Deep-link shaped paths exist even if some screens are placeholders until their track. Placeholders must still be guarded. | open |
+| CM-G06 | Guest session: `SignedOut` (or dedicated Guest state) can reach `CUS-S23` and create routes; private tabs redirect to CUS-S01 | CM-G02 | `session_controller.dart`, `guards.dart` | Create compose works with no token. Home/Connections/Alerts/Profile do not. | open |
+
+### Track L — Guest Landing (`CUS-S23`)
+
+Gate L. `adr/0011`. No API.
+
+| ID | Task | Depends on | Files (primary) | Acceptance | Status |
+|---|---|---|---|---|---|
+| CM-L01 | `CUS-S23` Guest Landing: four service cards, how-it-works, top-right Log in, footer “Are you a jeweller? Register here.” | CM-G06, CM-S12 | `lib/features/guest/` | Not CUS-S02. No filled Jeweller CTA. Log in → CUS-S01. Service → create flow. Footer → `/vendor/register`. | open |
 
 ### Track A — Auth (`CUS-S01`)
 
@@ -279,7 +290,7 @@ Gate A. Login follows `adr/0010`, not OTP-as-login.
 
 | ID | Task | Depends on | Files (primary) | Acceptance | Status |
 |---|---|---|---|---|---|
-| CM-A01 | Unauth: Google button (`SH-AUTH-04`); exchange `POST /v1/auth/google/session`; bound Customer → shell; unbound → completer | CM-S06, CM-G04 | `lib/features/auth/` (shared with Vendor, split presentation) | Firebase ID token is not sent to domain routes after exchange (G2-A14 already). | open |
+| CM-A01 | One Login (`CUS-S01`) for corner Log in and publish gate; Google (`SH-AUTH-04`); exchange `POST /v1/auth/google/session`; Customer → dashboard or auto-publish; Vendor → vendor/awaiting; new Google → Customer signup | CM-S06, CM-G04, CM-L01 | `lib/features/auth/` (shared with Vendor, split presentation) | Firebase ID token is not sent to domain routes after exchange (G2-A14 already). Cancel returns to origin and keeps Guest form. | open |
 | CM-A02 | Register Customer: display name, terms/privacy versions (`SH-FND-07`), `preferredLanguage`, optional email, `defaultRegionId?` | CM-A01 | `lib/features/auth/presentation/` customer register | `201` SessionBundle; duplicate mobile → `MOBILE_ALREADY_REGISTERED`. No `VendorProfile`. | open |
 | CM-A03 | E.164 mobile + OTP **proof** (`REGISTER_CUSTOMER` / later `CHANGE_MOBILE`): `SH-AUTH-01/02/03`. Not a login | CM-A02 | auth controllers | OTP verify does not issue a session by itself (matches current backend verify → `mobileVerified`). | open |
 | CM-A04 | Controller + widget tests: unbound, bound Customer, bound Vendor, suspended | CM-A03 | `test/features/` | Vendor login tests still pass or are updated to Google-only without restoring password as Customer login. | open |
@@ -290,15 +301,15 @@ Gate R. Flow-scoped controller is mandatory (`FR-CUS-015`, §6.2).
 
 | ID | Task | Depends on | Files (primary) | Acceptance | Status |
 |---|---|---|---|---|---|
-| CM-R01 | `RequestCreateController`: holds draft id, type, attributes, media keys; PATCH draft on step transitions; restore on back | CM-S07, CM-A04, CM-G03 | `lib/features/request_create/controller/` | Killing a step widget does not lose fields. | open |
-| CM-R02 | `CUS-S03` type tiles (`CU-02`, `SH-REQ-02`). Block entry when `canCreateRequest == false` (`SAM-GAP-2` via `GET /v1/me`) | CM-R01, CM-S14 | `…/presentation/` | Four types only. No start of a fifth live Request when cap hit. | open |
+| CM-R01 | `RequestCreateController`: holds type, attributes, media keys; **Guest: in-memory only** (`adr/0011`); signed-in: PATCH draft on step transitions; restore on back | CM-S07, CM-G06 | `lib/features/request_create/controller/` | Killing a step widget does not lose fields. Killing the **app** as Guest does. No `PATCH` without a token. | open |
+| CM-R02 | `CUS-S03` type tiles (`CU-02`, `SH-REQ-02`). Signed-in: block entry when `canCreateRequest == false` (`SAM-GAP-2` via `GET /v1/me`). Guest: always allow compose | CM-R01, CM-S14, CM-L01 | `…/presentation/` | Four types only. Cap is enforced at publish for Guest. | open |
 | CM-R03 | Shared create chrome (`CU-03`): category/region single pick, notes, gold-rate strip, keyboard avoiding | CM-R01, CM-S13, CM-S14 | `request_create` | Taxonomy from existing `KhApi.categories/regions`. | open |
 | CM-R04 | `CUS-S04` Find An Ornament (`CU-04`, `FR-CUS-006`–`009`) | CM-R03 | `request_create` | Direction fixed BUY. Budget mandatory. | open |
 | CM-R05 | `CUS-S05` Sell Old Gold (`CU-05`, `FR-CUS-010`) | CM-R03 | `request_create` | Direction fixed SELL. Indicative valuation suppressed if rate unavailable. | open |
 | CM-R06 | `CUS-S06` Gold Coins (`CU-06`, `FR-CUS-011`) | CM-R03 | `request_create` | Direction selectable. Quantity > 0. | open |
 | CM-R07 | `CUS-S07` Gold Bullion (`CU-07`, `FR-CUS-012/013`) | CM-R03, CM-S13 | `request_create` | Below floor → `BULLION_BELOW_MINIMUM` from server; no rate → cannot publish (compose allowed until publish). | open |
 | CM-R08 | `CUS-S08` image capture (`SH-MED-01/02/05`) via `MediaUploader` | CM-R04, CM-R05, CM-S10 | `request_create` | Max images from platform-config. Reorder = `mediaKeys[]` order. | open |
-| CM-R09 | `CUS-S09` review & publish (`CU-08/09`, `SH-AUTH-05`). Publish refused without `oauthBound`; banner binds then retries **same** idempotency key | CM-R08, CM-A03 | `request_create` | Draft PATCH vs publish POST distinct. `OAUTH_REQUIRED`, `MEDIA_NOT_READY`, `CONTACT_DETAILS_IN_TEXT`, `CONCURRENT_REQUEST_LIMIT` shown from server. | open |
+| CM-R09 | `CUS-S09` review & publish (`CU-08/09`, `SH-AUTH-05`). Guest Publish → CUS-S01 then **auto-publish** if Customer (`adr/0011`); Vendor from gate drops draft; cancel keeps form | CM-R08, CM-A01 | `request_create` | Draft PATCH vs publish POST distinct. Signed-in still uses same idempotency key after bind. `OAUTH_REQUIRED`, `MEDIA_NOT_READY`, `CONTACT_DETAILS_IN_TEXT`, `CONCURRENT_REQUEST_LIMIT` shown from server. | open |
 | CM-R10 | Create-flow controller tests + widget tests for cap, bullion floor, OAuth banner | CM-R09 | `test/features/request_create/` | | open |
 
 ### Track H — Request manage (`CUS-S02`, `CUS-S10`, `CUS-S17`)
@@ -387,7 +398,8 @@ Consume backend fields when present. Do not synthesise them on the client.
 | Track | IDs | Count | Screens / scope |
 |---|---|---|---|
 | S Shared packages | CM-S01 … CM-S17 | 17 | domain, api, l10n, DS, ui_domain, media, masking tests |
-| G Shell / guards | CM-G01 … CM-G05 | 5 | role gate, CustomerShell, router |
+| G Shell / guards | CM-G01 … CM-G06 | 6 | role gate, Guest session, CustomerShell, router |
+| L Guest Landing | CM-L01 | 1 | CUS-S23 |
 | A Auth | CM-A01 … CM-A04 | 4 | CUS-S01 |
 | R Create | CM-R01 … CM-R10 | 10 | CUS-S03–S09 |
 | H Manage | CM-H01 … CM-H04 | 4 | CUS-S02, S10, S17 |
@@ -399,10 +411,10 @@ Consume backend fields when present. Do not synthesise them on the client.
 | X Abuse | CM-X01 … CM-X02 | 2 | CUS-S22 |
 | Q Quality | CM-Q01 … CM-Q03 | 3 | goldens, walk-through, CI |
 | K Residuals | CM-K01 … CM-K02 | 2 | SAM-GAP-1, SAM-GAP-3 |
-| **Total** | **CM-S01 … CM-K02** | **62** | **22 Customer screens covered** |
+| **Total** | **CM-S01 … CM-K02 + CM-G06 + CM-L01** | **64** | **23 Customer screens covered** |
 | **Ticked 7 Sep (v0.5)** | done **9** · partial **0** · open **53** · blocked **0** | | Orchestrator: S06 mapped to `kh_domain` |
 
-Screen coverage: every `CUS-S01`…`CUS-S22` appears in exactly one feature track (A, R, H, O, C, V, N, P, X). Shared `SH-*` and packages are Track S. No `VEN-*` or `ADM-*` IDs in this register.
+Screen coverage: every `CUS-S01`…`CUS-S23` appears in exactly one feature track (L, A, R, H, O, C, V, N, P, X). Shared `SH-*` and packages are Track S. No `VEN-*` or `ADM-*` IDs in this register.
 
 ---
 
@@ -421,3 +433,4 @@ Do not pull in: Vendor feed/offers (`VEN-S05`…), Admin Portal, ARB/`gen_l10n` 
 | 0.3 | 7 Sep 2026 | Orchestrator: tick S03, S04 **done** after `kh_domain` files verified. S06 stays **partial**. |
 | 0.4 | 7 Sep 2026 | Orchestrator: tick S12 **done** (`KhAppShell` / nav / refresh). Wave 1 package agents complete. |
 | 0.5 | 7 Sep 2026 | Orchestrator: tick S06 **done** after `kh_api` dropped duplicate config DTOs and maps `PlatformConfig` / `GoldRateSnapshot` / `UserSettings`. |
+| 0.6 | 11 Sep 2026 | Guest-first (`adr/0011`): `CUS-S23`, `CM-L01`, `CM-G06`. Guards default to Guest Landing. Create compose without token; login at publish. |

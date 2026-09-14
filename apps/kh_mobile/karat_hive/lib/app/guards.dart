@@ -1,13 +1,15 @@
 import 'package:kh_domain/kh_domain.dart';
 
-import '../features/request_create/routes.dart';
 import 'session/session_controller.dart';
 
 /// Usability mirror of the server rules — never a security boundary
 /// (Architecture-Frontend §7.3, CP1-B02a).
+///
+/// Guest-first (`adr/0011`): SignedOut → [customerGuest]. Create compose
+/// (`/customer/requests/create*`) is allowed without a token. Private Customer
+/// tabs require login ([customerOnboarding]).
 abstract final class AppGuards {
   static const splash = '/splash';
-  static const guestLanding = '/guest';
   static const login = '/vendor/login';
   static const register = '/vendor/register';
   static const awaiting = '/awaiting';
@@ -19,6 +21,7 @@ abstract final class AppGuards {
   static const vendorProfileCategories = '/vendor/profile/categories-regions';
   static const vendorProfileDocuments = '/vendor/profile/documents';
 
+  static const customerGuest = '/customer/guest';
   static const customerOnboarding = '/customer/onboarding';
   static const customerRegister = '/customer/register';
   static const authComplete = '/auth/complete';
@@ -29,10 +32,13 @@ abstract final class AppGuards {
   static const customerProfile = '/customer/profile';
   static const customerBlocked = '/customer/blocked';
 
+  /// Create-wizard prefix (CUS-S03…S09). Guest may compose; publish gates login.
+  static const customerCreatePrefix = '/customer/requests/create';
+
   static const unauthRoutes = {
-    guestLanding,
     login,
     register,
+    customerGuest,
     customerOnboarding,
     customerRegister,
     authComplete,
@@ -42,76 +48,46 @@ abstract final class AppGuards {
 
   static const completerRoutes = {authComplete, customerRegister, register};
 
-  /// Exact Guest compose paths (GL-08).
-  static const guestCreateRoutes = {
-    RequestCreatePaths.type,
-    RequestCreatePaths.ornament,
-    RequestCreatePaths.sellGold,
-    RequestCreatePaths.coins,
-    RequestCreatePaths.bullion,
-    RequestCreatePaths.images,
-    RequestCreatePaths.review,
-  };
-
-  /// GL-15 steal doors only — other unauth (e.g. authComplete) → Dashboard is accepted.
-  static const pendingPublishStealDoors = {
-    splash,
-    customerOnboarding,
-    customerRegister,
-  };
-
-  static bool isGuestCreateLocation(String location) =>
-      guestCreateRoutes.contains(location);
-
   static bool isCustomerLocation(String location) =>
       location == authComplete || location.startsWith('/customer');
 
   static bool isVendorLocation(String location) =>
       location == awaiting || location.startsWith('/vendor');
 
-  /// Guard chain: not bootstrapped → splash; SignedOut → Guest (+ create);
-  /// unbound Google → Customer signup (Vendor register still allowed);
-  /// Customer → customer shell (pending-publish exception);
+  /// Guest compose paths reachable without a session (`adr/0011`).
+  static bool isGuestCompose(String location) =>
+      location == customerCreatePrefix ||
+      location.startsWith('$customerCreatePrefix/');
+
+  static bool isSignedOutAllowed(String location) =>
+      unauthRoutes.contains(location) || isGuestCompose(location);
+
+  /// Guard chain: not bootstrapped → splash; not authed → Guest Landing;
+  /// unbound Google → completer; Customer → customer shell;
   /// pending/rejected Vendor → awaiting; active Vendor → vendor home.
-  ///
-  /// Pending clear for Vendor is owned by the router session listener (GL-16),
-  /// not this redirect — keep redirect free of side effects.
-  static String? redirect(
-    SessionState session,
-    String location, {
-    bool pendingPublish = false,
-  }) {
+  static String? redirect(SessionState session, String location) {
     switch (session) {
       case SessionLoading():
         return location == splash ? null : splash;
       case SignedOut():
-        if (unauthRoutes.contains(location) ||
-            isGuestCreateLocation(location)) {
-          return null;
-        }
-        return guestLanding;
+        if (isSignedOutAllowed(location)) return null;
+        // Private Customer areas → Login (CUS-S01); everything else → Guest.
+        if (isCustomerLocation(location)) return customerOnboarding;
+        return customerGuest;
       case UnboundGoogle():
-        if (location == customerRegister || location == register) return null;
-        return customerRegister;
+        return completerRoutes.contains(location) ? null : authComplete;
       case AuthBlocked():
         return location == customerBlocked ? null : customerBlocked;
-      case SignedIn(:final user, :final isCustomer, :final isVendor):
-        if (isCustomer) {
-          return _customerRedirect(
-            session,
-            location,
-            pendingPublish: pendingPublish,
-          );
-        }
-        if (isVendor) {
-          if (location == splash) return homeFor(session);
+      case final SignedIn signedIn:
+        if (location == splash) return homeFor(signedIn);
+        if (signedIn.isCustomer) return _customerRedirect(signedIn, location);
+        if (signedIn.isVendor) {
           return _signedInRedirect(
-            user.vendor?.lifecycle ?? VendorLifecycle.unknown,
+            signedIn.user.vendor?.lifecycle ?? VendorLifecycle.unknown,
             location,
           );
         }
-        // Unknown / Admin (F23): Guest Landing, not onboarding.
-        return guestLanding;
+        return customerGuest;
     }
   }
 
@@ -123,24 +99,14 @@ abstract final class AppGuards {
       final lifecycle = session.vendorLifecycle;
       return lifecycle == VendorLifecycle.active ? home : awaiting;
     }
-    return guestLanding;
+    return customerGuest;
   }
 
-  static String? _customerRedirect(
-    SignedIn session,
-    String location, {
-    required bool pendingPublish,
-  }) {
+  static String? _customerRedirect(SignedIn session, String location) {
     if (session.isCustomerBlocked) {
       return location == customerBlocked ? null : customerBlocked;
     }
-    if (pendingPublish) {
-      if (isGuestCreateLocation(location)) return null;
-      if (pendingPublishStealDoors.contains(location)) {
-        return RequestCreatePaths.review;
-      }
-    }
-    if (location == splash) return homeFor(session);
+    // Guest landing / login / register → home. Create compose stays allowed.
     if (unauthRoutes.contains(location) || isVendorLocation(location)) {
       return customerHome;
     }
@@ -154,8 +120,7 @@ abstract final class AppGuards {
     }
     switch (lifecycle) {
       case VendorLifecycle.active:
-        return awaitingRoutes.contains(location) ||
-                unauthRoutes.contains(location)
+        return awaitingRoutes.contains(location) || unauthRoutes.contains(location)
             ? home
             : null;
       case VendorLifecycle.verified:

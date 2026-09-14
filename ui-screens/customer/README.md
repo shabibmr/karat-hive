@@ -10,7 +10,9 @@ Typical primary destinations:
 
 | Area | Screens |
 |---|---|
-| Home / Requests | CUS-S02, CUS-S10 |
+| Guest (no session) | CUS-S23 |
+| Login / signup | CUS-S01 |
+| Home / Requests | CUS-S02 (signed-in Dashboard), CUS-S10 |
 | Create | CUS-S03 → type-specific create → CUS-S08 → CUS-S09 |
 | Offers | CUS-S11, CUS-S12, CUS-S13, CUS-S14 |
 | Connections | CUS-S16, CUS-S15 |
@@ -20,9 +22,10 @@ Typical primary destinations:
 
 ## Auth gates
 
-1. **Registration / login** — UAE mobile + OTP (CUS-S01).
-2. **One-time OAuth** — required before first Request **publish** (not before draft composition). Profile and drafts may work without OAuth; publish is refused server-side (`BR-001`).
-3. Suspended / deactivated accounts cannot authenticate.
+1. **Cold start** — no live token → Guest Landing (`CUS-S23`). Live Customer token → Dashboard (`CUS-S02`). (`adr/0011`)
+2. **Login** — Google only (`adr/0010`), on CUS-S01. Same screen for corner Log in and publish gate. OTP proves a mobile number; it is not a login.
+3. **Publish** — Guest must log in; Customer login auto-publishes. Server still refuses publish without a bound Google session (`BR-001`).
+4. Suspended / deactivated accounts cannot authenticate (blocked screen, not Guest).
 
 ## Identity masking
 
@@ -30,4 +33,4 @@ Until Acceptance, Vendor identity on Offers is **masked** (label, Region, rating
 
 ## Inventory
 
-See [../README.md](../README.md) for the full CUS-S01…S22 table.
+See [../README.md](../README.md) for the full CUS-S01…S23 table.

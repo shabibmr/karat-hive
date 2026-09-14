@@ -12,10 +12,10 @@ Screen-level field inventory derived from `docs/Requirements-Spec-v1.3.md` (Appe
 
 | User | Platform | Screens | Folder |
 |---|---|---|---|
-| **Customer** | Flutter mobile — Customer mode | 22 | [customer/](customer/) |
+| **Customer** | Flutter mobile — Customer mode | 23 | [customer/](customer/) |
 | **Vendor** | Flutter mobile — Vendor mode | 22 | [vendor/](vendor/) |
 | **Platform Admin** | Flutter Web — Admin Portal (≥ 1280 px) | 23 | [admin/](admin/) |
-| **Total** | | **67** | |
+| **Total** | | **68** | |
 
 One mobile binary, two modes by account role (Customer **or** Vendor, not both). Admin is a separate build of the same Flutter codebase, targeting Web (SRS C-10).
 
@@ -49,12 +49,15 @@ Every screen file uses this template:
 
 ---
 
-## Customer — `CUS-S01` … `CUS-S22`
+## Customer — `CUS-S01` … `CUS-S23`
+
+Working launch rule is [`adr/0011`](../docs/adr/0011-guest-first-landing.md): cold start with no live session is **CUS-S23**, not CUS-S01. SRS Appendix C still lists 22 Customer screens until the next SRS bump.
 
 | ID | Screen | File |
 |---|---|---|
-| CUS-S01 | Onboarding — mobile entry, OTP, one-time OAuth | [customer/CUS-S01-onboarding.md](customer/CUS-S01-onboarding.md) |
-| CUS-S02 | Home — my Requests, quick-create entry | [customer/CUS-S02-home.md](customer/CUS-S02-home.md) |
+| CUS-S23 | Guest Landing — four services, how-it-works, Log in | [customer/CUS-S23-guest-landing.md](customer/CUS-S23-guest-landing.md) |
+| CUS-S01 | Login / Customer signup (Google; not cold start) | [customer/CUS-S01-onboarding.md](customer/CUS-S01-onboarding.md) |
+| CUS-S02 | Home — signed-in Dashboard, my Requests | [customer/CUS-S02-home.md](customer/CUS-S02-home.md) |
 | CUS-S03 | Request type selection | [customer/CUS-S03-request-type-selection.md](customer/CUS-S03-request-type-selection.md) |
 | CUS-S04 | Create Request — Find An Ornament | [customer/CUS-S04-create-find-ornament.md](customer/CUS-S04-create-find-ornament.md) |
 | CUS-S05 | Create Request — Sell Old Gold | [customer/CUS-S05-create-sell-old-gold.md](customer/CUS-S05-create-sell-old-gold.md) |

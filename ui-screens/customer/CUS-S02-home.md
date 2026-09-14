@@ -8,14 +8,15 @@
 
 ## Purpose
 
-Landing surface for the Customer’s live Requests and entry into create / offers / connections.
+Signed-in Customer Dashboard: live Requests and entry into create / offers / connections. Not Guest Landing (`CUS-S23`). Keep them different (`adr/0011`).
 
 ## Entry / exit
 
 | Direction | Path |
 |---|---|
-| Entry | After login; bottom-nav Home |
+| Entry | Live Customer token on launch; corner Log in as Customer (no draft); bottom-nav Home |
 | Exit | CUS-S03 create; CUS-S10 request detail; CUS-S11 offers; CUS-S16 connections |
+| Not an entry | No live token (that is CUS-S23) |
 
 ## Fields
 

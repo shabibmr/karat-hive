@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 
-class OffersListScreen extends StatelessWidget {
-  const OffersListScreen({super.key, required this.requestId});
+/// Renamed stubs — real screens live alongside this file.
+class OffersListStubScreen extends StatelessWidget {
+  const OffersListStubScreen({super.key, required this.requestId});
 
   final String requestId;
 
@@ -15,8 +16,8 @@ class OffersListScreen extends StatelessWidget {
   }
 }
 
-class OfferComparisonScreen extends StatelessWidget {
-  const OfferComparisonScreen({super.key, required this.requestId});
+class OfferComparisonStubScreen extends StatelessWidget {
+  const OfferComparisonStubScreen({super.key, required this.requestId});
 
   final String requestId;
 
@@ -29,8 +30,8 @@ class OfferComparisonScreen extends StatelessWidget {
   }
 }
 
-class OfferDetailScreen extends StatelessWidget {
-  const OfferDetailScreen({super.key, required this.offerId});
+class OfferDetailStubScreen extends StatelessWidget {
+  const OfferDetailStubScreen({super.key, required this.offerId});
 
   final String offerId;
 
@@ -43,8 +44,8 @@ class OfferDetailScreen extends StatelessWidget {
   }
 }
 
-class AcceptOfferScreen extends StatelessWidget {
-  const AcceptOfferScreen({super.key, required this.offerId});
+class AcceptOfferStubScreen extends StatelessWidget {
+  const AcceptOfferStubScreen({super.key, required this.offerId});
 
   final String offerId;
 

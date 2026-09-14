@@ -1,7 +1,6 @@
 # App launch / login flow — review findings
 
-Status: **discussion only** — no fixes yet.  
-Implementation: [`guest-launch-plan.md`](guest-launch-plan.md) · [`guest-launch-tasks.md`](guest-launch-tasks.md)  
+Status: **frozen consensus, captured 11 Sep 2026.** Working rule: [`docs/adr/0011-guest-first-landing.md`](../../../../../docs/adr/0011-guest-first-landing.md). Screen: [`ui-screens/customer/CUS-S23-guest-landing.md`](../../../../../ui-screens/customer/CUS-S23-guest-landing.md). Code not yet changed.  
 Scope: walk use cases one step at a time; record how it works now + suggestions.
 
 ---

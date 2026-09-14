@@ -5,9 +5,9 @@ import 'presentation/find_ornament_screen.dart';
 import 'presentation/request_image_capture_screen.dart';
 import 'presentation/request_review_publish_screen.dart';
 import 'presentation/request_type_screen.dart';
-import 'presentation/stubs.dart' hide RequestTypeScreen;
 
-/// Paths for the create flow (top-level GoRoutes — not under CustomerShell).
+/// Create-compose paths (CUS-S03…S09). Mounted under UnauthShell so Guest
+/// can compose without a token (`adr/0011`); signed-in Customers use the same.
 abstract final class RequestCreatePaths {
   static const type = '/customer/requests/create';
   static const ornament = '/customer/requests/create/ornament';
@@ -18,12 +18,12 @@ abstract final class RequestCreatePaths {
   static const review = '/customer/requests/create/review';
 
   static String composeFor(RequestType type) => switch (type) {
-    RequestType.findOrnament => ornament,
-    RequestType.sellOldGold => sellGold,
-    RequestType.goldCoin => coins,
-    RequestType.goldBullion => bullion,
-    RequestType.unknown => RequestCreatePaths.type,
-  };
+        RequestType.findOrnament => ornament,
+        RequestType.sellOldGold => sellGold,
+        RequestType.goldCoin => coins,
+        RequestType.goldBullion => bullion,
+        RequestType.unknown => RequestCreatePaths.type,
+      };
 }
 
 final List<GoRoute> requestCreateRoutes = [

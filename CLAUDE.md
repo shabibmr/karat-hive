@@ -19,7 +19,7 @@ npx --yes serve ui-mock                                  # static 67-screen prot
 
 Do not treat password/OTP credentials as a Checkpoint-1 gate.
 
-`ui-mock/` is a dependency-free HTML/CSS/JS prototype of all 67 screens. Screen partials load via `fetch`, so it **must be served over HTTP** — opening `index.html` from the filesystem shows a blank shell.
+`ui-mock/` is a dependency-free HTML/CSS/JS prototype of the original 67 screens (`CUS-S23` Guest Landing is not in the mock yet). Screen partials load via `fetch`, so it **must be served over HTTP** — opening `index.html` from the filesystem shows a blank shell.
 
 Navigation is hash-routed: `#/customer/CUS-S04`, `#/vendor/VEN-S09`, `#/admin/ADM-S07`. Login is a role chooser with no password. Adding a screen means adding the HTML partial under `ui-mock/screens/<role>/` **and** registering it in the `window.KH_NAV` route table in `ui-mock/js/nav.js` — a partial that is not in that table is unreachable.
 
@@ -32,7 +32,7 @@ Read in this order when you need to understand a decision. Later documents may n
 | `docs/Requirements-raw.txt` | **Sole source input.** Never edit. Every requirement traces back to a line number here |
 | `CONTEXT.md` | Ubiquitous language. Binding vocabulary, including the `_Avoid_` list under each term |
 | `docs/Requirements-Spec-v1.3.md` | **Authoritative SRS** (~2,850 lines). What the system must do |
-| `docs/adr/0001`–`0009` | Why the shape is this shape. Short, one decision each |
+| `docs/adr/0001`–`0011` | Why the shape is this shape. Short, one decision each. `0010` Google-only login; `0011` Guest-first launch |
 | `docs/Architecture-Backend.md`, `docs/Architecture-Frontend.md` | How it gets built. Derived from the SRS; cite it, never restate it |
 | `docs/API-Route-Inventory.md` | Pre-code HTTP catalogue (`[PROPOSED]`). Paths, schemas, errors. Superseded by generated OpenAPI (`NFR-030`) once code exists |
 | `docs/Physical-Data-Model.md` | Pre-code PostgreSQL schema (`[PROPOSED]`). Encoded in `backend/prisma/schema.prisma`. Assumes `AD-BE-05` |
@@ -42,7 +42,7 @@ Read in this order when you need to understand a decision. Later documents may n
 | `docs/Screen-API-Map.md` | Screen → endpoint coverage check (`[PROPOSED]`). Every screen's load / actions / empty-error state mapped to a route or `error.code`; gap register (`SAM-GAP-nn`) |
 | `docs/checkpoints/checkpoint-customer-mode-tasks.md` | Customer-mode Flutter tick list (`CM-*`). Does not override the SRS |
 | `docs/Async-Contract.md` | Pre-code outbox contract (`[PROPOSED]`). Event payloads, consumers, scheduled jobs, notification dispatch. Expands Architecture-Backend §11; decision prefix `AD-ASYNC-nn` |
-| `ui-screens/` | Field-level inventory of the 67 screens, plus `component-widgets.md` (shared `SH-*` widget catalogue) and `Karat_Hive_UI_Design_Context.md` (visual system) |
+| `ui-screens/` | Field-level inventory of the 68 screens (`CUS-S01`…`CUS-S23`, `VEN-*`, `ADM-*`), plus `component-widgets.md` (shared `SH-*` widget catalogue) and `Karat_Hive_UI_Design_Context.md` (visual system) |
 | `ui-mock/` | Interactive realisation of `ui-screens/` |
 | `docs/old/` | Superseded versions. Read-only history |
 
@@ -108,7 +108,7 @@ Do not silently resolve these by inference; they are recorded as open on purpose
 | **Admin data grid — build or buy** (`AD-FE-12`) | 14 Admin list screens |
 | **Object-storage data residency** (`NFR-020`) — Cloudflare R2 has no UAE-region guarantee | Production storage of KYC personal data; swappable behind the S3 adapter, so non-blocking |
 
-Resolved (see `docs/old/README.md` and Appendix D of the SRS): `C-10` — Admin Portal is the Flutter Web target (confirmed 1 Sep 2026); `C-13` — object storage is Cloudflare R2 + MinIO (`adr/0008`); **Supabase Data-API / RLS exposure** — locked down at the database 6 Sep 2026 (`adr/0009`, `AD-BE-15`).
+Resolved (see `docs/old/README.md` and Appendix D of the SRS): `C-10` — Admin Portal is the Flutter Web target (confirmed 1 Sep 2026); `C-13` — object storage is Cloudflare R2 + MinIO (`adr/0008`); **Supabase Data-API / RLS exposure** — locked down at the database 6 Sep 2026 (`adr/0009`, `AD-BE-15`). **Guest-first launch** — 11 Sep 2026 (`adr/0011`); SRS Appendix C still lists 22 Customer screens until the next SRS bump.
 
 ## Writing conventions
 

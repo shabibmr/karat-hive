@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,8 +11,7 @@ import '../controller/request_create_state.dart';
 import '../routes.dart';
 import 'widgets/create_flow_chrome.dart';
 
-/// CUS-S08 — attach reference photos. Required for Find-An-Ornament and
-/// Sell-Old-Gold; optional otherwise (`RequestCreateState.imagesRequired`).
+/// CUS-S08 — request images. Guest keeps files local until publish bind.
 class RequestImageCaptureScreen extends ConsumerStatefulWidget {
   const RequestImageCaptureScreen({super.key});
 
@@ -24,8 +26,28 @@ class _RequestImageCaptureScreenState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(requestCreateControllerProvider.notifier).prefetchImageIntent();
+      ref.read(requestCreateControllerProvider.notifier).ensureLoaded();
+      ref
+          .read(requestCreateControllerProvider.notifier)
+          .goTo(RequestCreateStep.images);
     });
+  }
+
+  Future<void> _pick() async {
+    final res = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['jpg', 'jpeg', 'png'],
+      allowMultiple: true,
+    );
+    if (res == null) return;
+    final controller = ref.read(requestCreateControllerProvider.notifier);
+    for (final f in res.files) {
+      final path = f.path;
+      if (path == null) continue;
+      final ext = path.split('.').last.toLowerCase();
+      final ct = ext == 'png' ? 'image/png' : 'image/jpeg';
+      await controller.addImage(File(path), ct);
+    }
   }
 
   @override
@@ -33,113 +55,154 @@ class _RequestImageCaptureScreenState
     final tokens = context.tokens;
     final state = ref.watch(requestCreateControllerProvider);
     final controller = ref.read(requestCreateControllerProvider.notifier);
-    final canAdd = state.media.length < state.maxImages;
-    final missingRequired = state.imagesRequired && state.mediaKeys.isEmpty;
+    final required = state.imagesRequired;
 
     return CreateFlowChrome(
       title: createCopy(context, 'create.imagesTitle', 'Photos'),
-      stepLabel: createCopy(context, 'create.stepImages', 'Add photos'),
+      stepLabel: createCopy(context, 'create.imagesStep', 'Step · Photos'),
       bottom: DraftActions(
-        busy: state.busy,
+        busy: state.busy || state.uploading,
+        continueLabel: createCopy(context, 'create.continue', 'Continue'),
         onSaveDraft: () => controller.saveDraft(),
         onContinue: () async {
-          if (missingRequired) return;
-          final ok = await controller.persistAndGo(RequestCreateStep.review);
-          if (ok && context.mounted) context.go(RequestCreatePaths.review);
+          if (required && state.media.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  createCopy(
+                    context,
+                    'create.imagesRequired',
+                    'Add at least one photo to continue.',
+                  ),
+                ),
+              ),
+            );
+            return;
+          }
+          final ok =
+              await controller.persistAndGo(RequestCreateStep.review);
+          if (ok && context.mounted) {
+            context.go(RequestCreatePaths.review);
+          }
         },
-        continueEnabled: !missingRequired,
       ),
       child: ListView(
         padding: EdgeInsets.all(tokens.space.md),
         children: [
           Text(
-            state.imagesRequired
-                ? createCopy(
-                    context,
-                    'create.imagesRequiredHint',
-                    'At least 1 photo of the actual item is required.',
-                  )
-                : createCopy(
-                    context,
-                    'create.imagesOptionalHint',
-                    'Photos are optional but help vendors respond faster.',
-                  ),
+            createCopy(
+              context,
+              'create.imagesHint',
+              'Add clear photos. You can reorder them; the first is the cover.',
+            ),
           ),
           SizedBox(height: tokens.space.md),
-          if (missingRequired)
-            Padding(
-              padding: EdgeInsets.only(bottom: tokens.space.md),
-              child: KhInlineError(
-                message: createCopy(
-                  context,
-                  'create.imagesRequiredError',
-                  'Add at least 1 photo to continue.',
-                ),
-              ),
-            ),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: tokens.space.sm,
+            runSpacing: tokens.space.sm,
             children: [
-              for (final slot in state.media)
-                _ImageSlotChip(
-                  slot: slot,
-                  onRetry: () => controller.retryImage(slot),
-                  onRemove: () => controller
-                      .removeMediaAt(state.media.indexOf(slot)),
+              for (var i = 0; i < state.media.length; i++)
+                _MediaTile(
+                  slot: state.media[i],
+                  index: i,
+                  onRemove: () => controller.removeMediaAt(i),
                 ),
-              if (canAdd)
-                ActionChip(
-                  key: const Key('request-image-add'),
-                  avatar: const Icon(Icons.add_a_photo_outlined, size: 18),
-                  label: Text(createCopy(context, 'create.addPhoto', 'Add photo')),
-                  onPressed: state.uploading ? null : controller.addImage,
+              if (state.media.length < state.maxImages)
+                OutlinedButton.icon(
+                  key: const Key('create-add-image'),
+                  onPressed: state.uploading ? null : _pick,
+                  icon: const Icon(Icons.add_a_photo_outlined),
+                  label: Text(
+                    createCopy(context, 'create.addPhoto', 'Add photo'),
+                  ),
                 ),
             ],
           ),
+          if (state.failure != null) ...[
+            SizedBox(height: tokens.space.md),
+            KhInlineError(
+              message: state.failure!.message ??
+                  createCopy(context, 'create.uploadFailed', 'Upload failed.'),
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _ImageSlotChip extends StatelessWidget {
-  const _ImageSlotChip({
+class _MediaTile extends StatelessWidget {
+  const _MediaTile({
     required this.slot,
-    required this.onRetry,
+    required this.index,
     required this.onRemove,
   });
 
   final MediaSlot slot;
-  final VoidCallback onRetry;
+  final int index;
   final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
-    if (slot.failure != null) {
-      return ActionChip(
-        key: Key('request-image-retry-${slot.key}'),
-        avatar: const Icon(Icons.error_outline, size: 18),
-        label: Text(createCopy(context, 'create.retryPhoto', 'Retry')),
-        onPressed: onRetry,
-      );
-    }
-    if (slot.uploading) {
-      return Chip(
-        key: Key('request-image-uploading-${slot.key}'),
-        avatar: const SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        label: Text(slot.localLabel ?? createCopy(context, 'create.uploading', 'Uploading…')),
-      );
-    }
-    return InputChip(
-      key: Key('request-image-${slot.key}'),
-      avatar: const Icon(Icons.check_circle, size: 18),
-      label: Text(slot.localLabel ?? slot.key.split('/').last),
-      onDeleted: onRemove,
+    return SizedBox(
+      width: 96,
+      child: Column(
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (slot.localPath != null)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        File(slot.localPath!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.broken_image_outlined),
+                      ),
+                    )
+                  else
+                    const Center(child: Icon(Icons.image_outlined)),
+                  if (slot.uploading)
+                    const ColoredBox(
+                      color: Color(0x66000000),
+                      child: Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                  PositionedDirectional(
+                    top: 0,
+                    end: 0,
+                    child: IconButton(
+                      key: Key('create-remove-image-$index'),
+                      iconSize: 18,
+                      onPressed: onRemove,
+                      icon: const Icon(Icons.close),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Text(
+            slot.localLabel ?? slot.key,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Unauthenticated shell: login / register only. No marketplace routes.
+/// Unauthenticated / guest shell (`adr/0011`).
+///
+/// Hosts Guest Landing, login/register, and the create-compose wizard
+/// (reachable without a token until Publish). No Customer marketplace tabs.
 class UnauthShell extends StatelessWidget {
   const UnauthShell({super.key, required this.child});
 

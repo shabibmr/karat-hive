@@ -11,6 +11,7 @@ import {
 import { z } from 'zod';
 import { Viewer } from '../../../edge/auth/viewer.decorator';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
+import { RevealsIdentity } from '../../../edge/masking/reveals-identity.decorator';
 import { zodBody, zodQuery } from '../../../edge/validation/zod-validation.pipe';
 import { ConnectionService } from '../application/connection.service';
 
@@ -33,6 +34,7 @@ const contactEventSchema = z.object({
 });
 
 @Controller('v1')
+@RevealsIdentity()
 export class ConnectionController {
   constructor(private readonly connectionService: ConnectionService) {}
 
