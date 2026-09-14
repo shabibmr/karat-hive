@@ -227,7 +227,7 @@ void main() {
       size: const Size(400, 160),
       builder: () => const SizedBox(
         width: 360,
-        child: KhImageGallery(imageUrls: []),
+        child: KhImageGallery(images: []),
       ),
     );
   });

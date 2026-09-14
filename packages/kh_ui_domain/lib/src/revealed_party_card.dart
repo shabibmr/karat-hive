@@ -11,15 +11,19 @@ class RevealedPartyCard extends StatelessWidget {
     super.key,
     required this.party,
     this.onCall,
+    this.onTalk,
     this.copyLabel,
     this.callLabel,
+    this.talkLabel,
     this.copiedMessage,
   });
 
   final RevealedParty party;
   final VoidCallback? onCall;
+  final VoidCallback? onTalk;
   final String? copyLabel;
   final String? callLabel;
+  final String? talkLabel;
   final String? copiedMessage;
 
   @override
@@ -44,46 +48,104 @@ class RevealedPartyCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              party.displayName,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            SizedBox(height: tokens.space.xs),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Expanded(
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: tokens.gold.withValues(alpha: 0.15),
                   child: Text(
-                    mobile,
-                    style: theme.textTheme.bodyLarge,
+                    party.displayName.isNotEmpty
+                        ? party.displayName.substring(0, 1).toUpperCase()
+                        : 'C',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: tokens.gold,
+                    ),
                   ),
                 ),
-                KhCopyControl(
-                  value: mobile,
-                  tooltip: copyLabel ?? l10n?.connectionCopyNumber ?? 'Copy number',
-                  copiedMessage:
-                      copiedMessage ?? l10n?.connectionCopied ?? 'Copied',
-                  compact: true,
-                ),
-                if (onCall != null)
-                  IconButton(
-                    key: const Key('revealed-party-call'),
-                    tooltip: callLabel ?? l10n?.connectionCall ?? 'Call',
-                    icon: Icon(Icons.phone_outlined, color: tokens.ink),
-                    onPressed: onCall,
+                SizedBox(width: tokens.space.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        party.displayName,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (regionName != null && regionName.isNotEmpty)
+                        Text(
+                          regionName,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: tokens.ink.withValues(alpha: 0.65),
+                          ),
+                        ),
+                    ],
                   ),
+                ),
               ],
             ),
-            if (regionName != null && regionName.isNotEmpty) ...[
-              SizedBox(height: tokens.space.xs),
-              Text(
-                regionName,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: tokens.ink.withValues(alpha: 0.7),
-                ),
+            SizedBox(height: tokens.space.md),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: tokens.space.sm,
+                vertical: tokens.space.xs,
               ),
-            ],
+              decoration: BoxDecoration(
+                color: tokens.ink.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(tokens.radius.sm),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.phone_iphone_outlined,
+                    size: 18,
+                    color: tokens.ink.withValues(alpha: 0.7),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      mobile,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  KhCopyControl(
+                    value: mobile,
+                    tooltip: copyLabel ?? l10n?.connectionCopyNumber ?? 'Copy number',
+                    copiedMessage:
+                        copiedMessage ?? l10n?.connectionCopied ?? 'Copied',
+                    compact: true,
+                  ),
+                  if (onTalk != null)
+                    IconButton(
+                      key: const Key('revealed-party-talk'),
+                      tooltip: talkLabel ?? 'WhatsApp',
+                      icon: const Icon(
+                        Icons.chat_bubble_outline,
+                        color: Color(0xFF25D366),
+                        size: 20,
+                      ),
+                      onPressed: onTalk,
+                    ),
+                  if (onCall != null)
+                    IconButton(
+                      key: const Key('revealed-party-call'),
+                      tooltip: callLabel ?? l10n?.connectionCall ?? 'Call',
+                      icon: Icon(
+                        Icons.phone_outlined,
+                        color: tokens.gold,
+                        size: 20,
+                      ),
+                      onPressed: onCall,
+                    ),
+                ],
+              ),
+            ),
             if (party.rating != null || party.dealCount > 0) ...[
               SizedBox(height: tokens.space.sm),
               TrustSignalBadge(

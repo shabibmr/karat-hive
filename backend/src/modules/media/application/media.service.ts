@@ -123,9 +123,12 @@ export class MediaService {
         { path: 'contentType', code: 'MISMATCH', message: 'Uploaded file type does not match.' },
       ]);
     }
-    if (typeof head.size === 'number' && head.size !== media.byteSize) {
+    // `byteSize` declared at intent time may be an upper-bound placeholder (a prefetched
+    // intent issued before the final, e.g. AVIF-converted, file size was known) rather than
+    // an exact prediction — only reject uploads that exceed what was declared/allowed.
+    if (typeof head.size === 'number' && head.size > media.byteSize) {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.UPLOAD_NOT_COMPLETED, [
-        { path: 'byteSize', code: 'MISMATCH', message: 'Uploaded file size does not match.' },
+        { path: 'byteSize', code: 'TOO_LARGE', message: 'Uploaded file exceeds declared size.' },
       ]);
     }
 
@@ -136,6 +139,8 @@ export class MediaService {
       const row = await this.repo.markState(tx, key, devKycReady ? 'READY' : 'PENDING_PROCESSING', {
         malwareScanState: devKycReady ? 'CLEAN' : 'PENDING',
         exifStripped: devKycReady,
+        // Persist the true uploaded size rather than the declared (possibly ceiling) byteSize.
+        ...(typeof head.size === 'number' ? { byteSize: head.size } : {}),
       });
       await enqueueOutbox(tx, {
         eventType: 'media.uploaded',

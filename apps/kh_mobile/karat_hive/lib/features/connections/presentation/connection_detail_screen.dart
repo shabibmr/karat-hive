@@ -21,10 +21,12 @@ class ConnectionDetailScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     ConnectionForVendor conn,
-    AppLocalizations? l10n,
-  ) async {
-    if (!conn.talk.canOpenWhatsApp) return;
-    final opened = await openExternalUrl(conn.talk.waUrl);
+    AppLocalizations? l10n, {
+    String? waUrl,
+  }) async {
+    final url = (waUrl ?? conn.talk.waUrl).trim();
+    if (url.isEmpty || !conn.talk.canOpenWhatsApp) return;
+    final opened = await openExternalUrl(url);
     if (opened) {
       await ref
           .read(connectionDetailProvider(connectionId).notifier)
@@ -131,6 +133,9 @@ class ConnectionDetailScreen extends ConsumerWidget {
               ],
               RevealedPartyCard(
                 party: conn.customer,
+                onTalk: (!closed && conn.talk.canOpenWhatsApp)
+                    ? () => _talk(context, ref, conn, l10n)
+                    : null,
                 onCall: (!closed && conn.talk.canCall)
                     ? () => _call(context, ref, conn)
                     : null,
@@ -139,7 +144,8 @@ class ConnectionDetailScreen extends ConsumerWidget {
               if (!closed)
                 TalkButton(
                   talk: conn.talk,
-                  onTalk: () => _talk(context, ref, conn, l10n),
+                  onTalk: (waUrl) =>
+                      _talk(context, ref, conn, l10n, waUrl: waUrl),
                   fallback: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [

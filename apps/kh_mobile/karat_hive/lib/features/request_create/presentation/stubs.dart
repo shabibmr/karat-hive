@@ -60,17 +60,3 @@ class CreateGoldBullionScreen extends StatelessWidget {
     );
   }
 }
-
-class RequestImageCaptureScreen extends StatelessWidget {
-  const RequestImageCaptureScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const KhScaffold(
-      title: 'Images',
-      body: Center(child: Text('CUS-S08')),
-    );
-  }
-}
-
-// RequestReviewPublishScreen lives in request_review_publish_screen.dart (GL-46).

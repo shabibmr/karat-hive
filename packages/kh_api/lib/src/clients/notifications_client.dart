@@ -36,6 +36,14 @@ class NotificationsClient {
     );
   }
 
+  Future<Result<int>> unreadCount() async {
+    final r = await _client.send('GET', '/v1/notifications/unread-count');
+    return r.when(
+      ok: (d) => Ok(d is Map ? (d['count'] as int? ?? 0) : (d as int? ?? 0)),
+      err: Err.new,
+    );
+  }
+
   Future<Result<void>> markAllRead() async {
     final r = await _client.send('POST', '/v1/notifications/read-all');
     return r.when(ok: (_) => const Ok(null), err: Err.new);

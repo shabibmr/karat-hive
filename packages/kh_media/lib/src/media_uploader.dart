@@ -34,19 +34,42 @@ class MediaUploader {
 
   Dio get _dio => _putClient ?? _api.client.dio;
 
-  /// Returns the media key on success.
+  /// Requests an upload intent ahead of picking a file, so the network
+  /// round-trip overlaps with on-device work instead of happening after it.
+  /// `byteSize` may be a declared ceiling (e.g. the purpose's `maxBytes`)
+  /// rather than the true final size — the backend accepts any upload at or
+  /// under what was declared.
+  Future<Result<UploadIntent>> prefetchIntent({
+    required MediaUploadPurpose purpose,
+    required String contentType,
+    required int byteSize,
+  }) =>
+      _api.uploadIntent(
+        purpose: purpose.wire,
+        contentType: contentType,
+        byteSize: byteSize,
+      );
+
+  /// Returns the media key on success. If [prefetchedIntent] is supplied and
+  /// still fits the real file (matching content type, declared size at least
+  /// the real byte size), it's reused instead of requesting a fresh intent.
   Future<Result<String>> upload(
     File file, {
     required MediaUploadPurpose purpose,
     required String contentType,
     void Function(double progress)? onProgress,
+    UploadIntent? prefetchedIntent,
   }) async {
     final length = await file.length();
-    final intent = await _api.uploadIntent(
-      purpose: purpose.wire,
-      contentType: contentType,
-      byteSize: length,
-    );
+    final canReusePrefetched =
+        prefetchedIntent != null && prefetchedIntent.maxBytes >= length;
+    final Result<UploadIntent> intent = canReusePrefetched
+        ? Ok(prefetchedIntent)
+        : await _api.uploadIntent(
+            purpose: purpose.wire,
+            contentType: contentType,
+            byteSize: length,
+          );
     return intent.when(
       ok: (i) async {
         final bytes = await file.readAsBytes();

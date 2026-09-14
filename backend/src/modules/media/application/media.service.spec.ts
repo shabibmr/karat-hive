@@ -76,9 +76,15 @@ describe('MediaService.complete (G2-P02)', () => {
     repo = {
       findByKey: vi.fn(),
       markState: vi.fn(),
+      create: vi.fn(),
     } as unknown as MediaRepository;
     storage = {
       headObject: vi.fn().mockResolvedValue({ exists: true, size: 12, contentType: 'image/jpeg' }),
+      createSignedUploadUrl: vi.fn().mockResolvedValue({
+        uploadUrl: 'https://storage.example/upload',
+        requiredHeaders: {},
+        expiresAt: new Date('2026-09-07T01:00:00Z'),
+      }),
     } as unknown as ObjectStorage;
     prisma = {
       $transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) =>
@@ -192,5 +198,88 @@ describe('MediaService.complete (G2-P02)', () => {
     await expect(
       build({}).complete(customerViewer, '22222222-2222-2222-2222-222222222222'),
     ).rejects.toMatchObject({ errorCode: ErrorCode.UPLOAD_NOT_COMPLETED });
+  });
+
+  it('accepts an upload smaller than the declared byteSize (prefetched-intent placeholder) and persists the real size', async () => {
+    const row = mediaRow({ byteSize: 5 * 1024 * 1024, contentType: 'image/avif' });
+    vi.mocked(repo.findByKey).mockResolvedValueOnce(row);
+    vi.mocked(storage.headObject).mockResolvedValueOnce({
+      exists: true,
+      size: 812_000,
+      contentType: 'image/avif',
+    });
+    const pending = { ...row, state: 'PENDING_PROCESSING' as const, byteSize: 812_000 };
+    vi.mocked(repo.markState).mockResolvedValueOnce(pending);
+
+    const result = await build({}).complete(customerViewer, row.key);
+
+    expect(result.state).toBe('PENDING_PROCESSING');
+    expect(repo.markState).toHaveBeenCalledWith(
+      expect.anything(),
+      row.key,
+      'PENDING_PROCESSING',
+      expect.objectContaining({ byteSize: 812_000 }),
+    );
+  });
+
+  it('rejects an upload larger than the declared byteSize', async () => {
+    const row = mediaRow({ byteSize: 1000 });
+    vi.mocked(repo.findByKey).mockResolvedValueOnce(row);
+    vi.mocked(storage.headObject).mockResolvedValueOnce({
+      exists: true,
+      size: 1001,
+      contentType: 'image/jpeg',
+    });
+
+    await expect(build({}).complete(customerViewer, row.key)).rejects.toMatchObject({
+      errorCode: ErrorCode.UPLOAD_NOT_COMPLETED,
+    });
+    expect(repo.markState).not.toHaveBeenCalled();
+  });
+
+  describe('createIntent — image/avif allow-list', () => {
+    it('accepts image/avif for REQUEST_IMAGE', async () => {
+      vi.mocked(repo.create).mockResolvedValueOnce(
+        mediaRow({ contentType: 'image/avif', byteSize: 5 * 1024 * 1024 }),
+      );
+
+      const intent = await build({}).createIntent(customerViewer, {
+        purpose: 'REQUEST_IMAGE',
+        contentType: 'image/avif',
+        byteSize: 5 * 1024 * 1024,
+      });
+
+      expect(intent.uploadUrl).toBe('https://storage.example/upload');
+    });
+
+    it('accepts image/avif for OFFER_IMAGE and KYC_DOCUMENT', async () => {
+      vi.mocked(repo.create).mockResolvedValue(mediaRow({ contentType: 'image/avif' }));
+
+      await expect(
+        build({}).createIntent(vendorViewer, {
+          purpose: 'OFFER_IMAGE',
+          contentType: 'image/avif',
+          byteSize: 1000,
+        }),
+      ).resolves.toBeDefined();
+      await expect(
+        build({}).createIntent(vendorViewer, {
+          purpose: 'KYC_DOCUMENT',
+          contentType: 'image/avif',
+          byteSize: 1000,
+        }),
+      ).resolves.toBeDefined();
+    });
+
+    it('still rejects image/avif for purposes not in scope (e.g. PROFILE_PHOTO)', async () => {
+      await expect(
+        build({}).createIntent(customerViewer, {
+          purpose: 'PROFILE_PHOTO',
+          contentType: 'image/avif',
+          byteSize: 1000,
+        }),
+      ).rejects.toMatchObject({ errorCode: ErrorCode.MEDIA_TYPE_REJECTED });
+      expect(repo.create).not.toHaveBeenCalled();
+    });
   });
 });

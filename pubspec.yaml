@@ -15,6 +15,7 @@ workspace:
   - packages/kh_design_system
   - packages/kh_l10n
   - packages/kh_ui_domain
+  - packages/kh_media
 
 dev_dependencies:
   melos: ^8.0.0

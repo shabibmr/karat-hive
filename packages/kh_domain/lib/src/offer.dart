@@ -34,7 +34,8 @@ enum OfferState {
 class OfferTerms {
   const OfferTerms({
     required this.offeredPrice,
-    required this.validityHours,
+    this.validityHours = 24,
+    this.weightGrams,
     this.makingCharges,
     this.ratePerGram,
     this.deliveryTimeframe,
@@ -44,6 +45,7 @@ class OfferTerms {
   });
 
   final String offeredPrice;
+  final String? weightGrams;
   final String? makingCharges;
   final String? ratePerGram;
   final String? deliveryTimeframe;
@@ -56,12 +58,13 @@ class OfferTerms {
     final nestedMedia = j['media'] as List?;
     return OfferTerms(
       offeredPrice: j['offeredPrice']?.toString() ?? '',
+      weightGrams: j['weightGrams']?.toString(),
       makingCharges: j['makingCharges']?.toString(),
       ratePerGram: j['ratePerGram']?.toString(),
       deliveryTimeframe: j['deliveryTimeframe'] as String?,
       warrantyTerms: j['warrantyTerms'] as String?,
       vendorNote: j['vendorNote'] as String?,
-      validityHours: (j['validityHours'] as num?)?.toInt() ?? 0,
+      validityHours: (j['validityHours'] as num?)?.toInt() ?? 24,
       media: media ??
           (nestedMedia ?? const [])
               .map((e) => MediaRef.fromJson(
@@ -185,7 +188,7 @@ class VendorRatingDetail {
   }
 }
 
-/// Server-enforced max revisions per Offer (`OFFER_REVISION_LIMIT`).
+/// Server-enforced max revisions per Offer (`OFFER_REVISION_LIMIT` / `FR-VEN-014`).
 const int kMaxOfferRevisions = 3;
 
 enum OfferDeclineReason {
@@ -276,6 +279,7 @@ class OfferForVendor {
     required this.expiresAt,
     required this.revisionCount,
     this.decidedAt,
+    this.viewedByCustomerAt,
     this.requestSummary,
     this.declineReason,
     this.awardedElsewhere = false,
@@ -289,6 +293,7 @@ class OfferForVendor {
   final DateTime submittedAt;
   final DateTime expiresAt;
   final DateTime? decidedAt;
+  final DateTime? viewedByCustomerAt;
   final int revisionCount;
   final OfferRequestSummary? requestSummary;
   final OfferDeclineReason? declineReason;
@@ -301,7 +306,24 @@ class OfferForVendor {
   int get revisionsRemaining =>
       (kMaxOfferRevisions - revisionCount).clamp(0, kMaxOfferRevisions);
 
-  bool get canRevise => state == OfferState.pending && revisionsRemaining > 0;
+  bool get isSeenByCustomer => viewedByCustomerAt != null;
+
+  bool canReviseAt(DateTime now) {
+    if (state != OfferState.pending) return false;
+    if (revisionCount >= kMaxOfferRevisions) return false;
+    if (isSeenByCustomer) return false;
+    final diff = now.toUtc().difference(submittedAt.toUtc());
+    if (diff.inMinutes >= 5 || diff.isNegative) return false;
+    return true;
+  }
+
+  bool get canRevise => canReviseAt(DateTime.now().toUtc());
+
+  Duration revisionTimeRemaining(DateTime now) {
+    final deadline = submittedAt.toUtc().add(const Duration(minutes: 5));
+    final diff = deadline.difference(now.toUtc());
+    return diff.isNegative ? Duration.zero : diff;
+  }
 
   bool get canWithdraw => state == OfferState.pending;
 
@@ -321,6 +343,7 @@ class OfferForVendor {
           _dt(j['submittedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       expiresAt: _dt(j['expiresAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       decidedAt: _dt(j['decidedAt']),
+      viewedByCustomerAt: _dt(j['viewedByCustomerAt']),
       revisionCount: (j['revisionCount'] as num?)?.toInt() ?? 0,
       requestSummary: summaryRaw is Map
           ? OfferRequestSummary.fromJson(_map(summaryRaw))
@@ -337,7 +360,8 @@ class OfferForVendor {
 class OfferTermsInput {
   const OfferTermsInput({
     required this.offeredPrice,
-    required this.validityHours,
+    this.validityHours = 24,
+    this.weightGrams,
     this.makingCharges,
     this.ratePerGram,
     this.deliveryTimeframe,
@@ -348,6 +372,7 @@ class OfferTermsInput {
 
   final String offeredPrice;
   final int validityHours;
+  final String? weightGrams;
   final String? makingCharges;
   final String? ratePerGram;
   final String? deliveryTimeframe;
@@ -358,6 +383,8 @@ class OfferTermsInput {
   Map<String, dynamic> toJson({bool includeMediaKeys = true}) => {
         'offeredPrice': offeredPrice,
         'validityHours': validityHours,
+        if (weightGrams != null && weightGrams!.isNotEmpty)
+          'weightGrams': weightGrams,
         if (makingCharges != null && makingCharges!.isNotEmpty)
           'makingCharges': makingCharges,
         if (ratePerGram != null && ratePerGram!.isNotEmpty)

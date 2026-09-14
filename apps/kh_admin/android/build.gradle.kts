@@ -38,6 +38,31 @@ subprojects {
                         }
                     }
                 }
+                try {
+                    val getCompileOptions = android.javaClass.getMethod("getCompileOptions")
+                    val compileOptions = getCompileOptions.invoke(android)
+                    if (compileOptions != null) {
+                        for (m in compileOptions.javaClass.methods) {
+                            if (m.name == "setSourceCompatibility" && m.parameterCount == 1) {
+                                m.invoke(compileOptions, JavaVersion.VERSION_17)
+                            }
+                            if (m.name == "setTargetCompatibility" && m.parameterCount == 1) {
+                                m.invoke(compileOptions, JavaVersion.VERSION_17)
+                            }
+                        }
+                    }
+                } catch (_: Exception) {}
+            }
+        }
+    }
+    tasks.withType<JavaCompile>().configureEach {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
+    }
+    if (project.name == "flutter_avif_android") {
+        tasks.configureEach {
+            if (name.contains("Kotlin")) {
+                enabled = false
             }
         }
     }

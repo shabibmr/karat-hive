@@ -63,6 +63,9 @@ class TalkPayload {
     return available && url.startsWith('tel:');
   }
 
+  /// Normalised E.164 phone number via [PhoneNumber] (Architecture-Frontend §10.3).
+  PhoneNumber get phoneNumber => PhoneNumber.parse(mobileNumber);
+
   static TalkPayload fromJson(Map<String, dynamic> j) {
     final mobile = (j['mobileNumber'] ?? j['phone'] ?? '') as String;
     return TalkPayload(

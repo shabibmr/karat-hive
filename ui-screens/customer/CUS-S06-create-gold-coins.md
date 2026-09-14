@@ -23,8 +23,6 @@ Compose a buy or sell Request for gold coins with denomination, quantity, and op
 |---|---|---|---|---|
 | Request type | Display | — | Gold Coin(s) | Locked |
 | Direction | Input | Yes | BUY / SELL | User-selected |
-| Category | Input | Yes | taxonomy | |
-| Region | Input | Yes | taxonomy | |
 | Coin denomination (g) | Input | Yes | e.g. 1, 2.5, 5, 10, 20, 50, 100 | |
 | Quantity | Input | Yes | positive integer | |
 | Total weight | System | — | denomination × quantity | Display only |

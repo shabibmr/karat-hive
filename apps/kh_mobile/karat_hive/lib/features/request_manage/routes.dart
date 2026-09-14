@@ -2,7 +2,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/guards.dart';
 import '../offers_customer/presentation/stubs.dart';
-import 'presentation/stubs.dart';
+import 'presentation/customer_home_screen.dart';
+import 'presentation/owner_request_detail_screen.dart';
+import 'presentation/request_history_screen.dart';
 
 GoRoute customerHomeRoute({List<RouteBase> routes = const []}) => GoRoute(
       path: AppGuards.customerHome,
@@ -13,11 +15,11 @@ GoRoute customerHomeRoute({List<RouteBase> routes = const []}) => GoRoute(
 final requestManageRoutes = [
   GoRoute(
     path: AppGuards.customerRequests,
-    builder: (_, __) => const RequestDetailScreen(requestId: ''),
+    builder: (_, __) => const CustomerHomeScreen(),
     routes: [
       GoRoute(
         path: ':requestId',
-        builder: (context, state) => RequestDetailScreen(
+        builder: (context, state) => OwnerRequestDetailScreen(
           requestId: state.pathParameters['requestId']!,
         ),
         routes: [

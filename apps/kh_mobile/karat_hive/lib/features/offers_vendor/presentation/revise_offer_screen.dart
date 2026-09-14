@@ -52,9 +52,24 @@ class ReviseOfferScreen extends ConsumerWidget {
           ListView(
             padding: EdgeInsets.all(tokens.space.md),
             children: [
-              Text(
-                l10n?.offerCurrentTerms ?? 'Current terms',
-                style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    l10n?.offerCurrentTerms ?? 'Current terms',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  KhStatusChip(
+                    key: const Key('offer-seen-status-chip'),
+                    label: offer.isSeenByCustomer
+                        ? 'Seen by Customer'
+                        : 'Not Seen Yet',
+                    tone: offer.isSeenByCustomer
+                        ? KhStatusTone.accent
+                        : KhStatusTone.neutral,
+                    compact: true,
+                  ),
+                ],
               ),
               SizedBox(height: tokens.space.sm),
               OfferTermsReadOnly(
@@ -62,13 +77,22 @@ class ReviseOfferScreen extends ConsumerWidget {
                 expiresAt: offer.expiresAt,
               ),
               SizedBox(height: tokens.space.md),
-              Text(
-                l10n?.offerRevisionsRemaining(offer.revisionsRemaining) ??
-                    '${offer.revisionsRemaining} revision(s) remaining',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              SizedBox(height: tokens.space.lg),
-              if (offer.canRevise) ...[
+              if (offer.canReviseAt(clock.now())) ...[
+                Builder(
+                  builder: (context) {
+                    final remaining = offer.revisionTimeRemaining(clock.now());
+                    final mins = remaining.inMinutes;
+                    final secs = remaining.inSeconds % 60;
+                    return Text(
+                      '1 revision allowed before customer views (closes in ${mins}m ${secs}s)',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: tokens.gold,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    );
+                  },
+                ),
+                SizedBox(height: tokens.space.lg),
                 Text(
                   l10n?.offerNewTerms ?? 'New terms',
                   style: Theme.of(context).textTheme.titleMedium,
@@ -84,6 +108,24 @@ class ReviseOfferScreen extends ConsumerWidget {
                       .read(reviseOfferControllerProvider(offerId).notifier)
                       .touch(),
                 ),
+              ] else ...[
+                Container(
+                  padding: EdgeInsets.all(tokens.space.md),
+                  decoration: BoxDecoration(
+                    color: tokens.ink.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(tokens.radius.md),
+                  ),
+                  child: Text(
+                    offer.isSeenByCustomer
+                        ? 'The customer has already viewed this offer. Revisions are no longer permitted.'
+                        : offer.revisionCount >= kMaxOfferRevisions
+                            ? 'Maximum revision limit reached (1 revision max).'
+                            : 'Revision window has expired (allowed within 5 minutes of response only).',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: tokens.ink.withValues(alpha: 0.7),
+                        ),
+                  ),
+                ),
               ],
               if (failure != null) ...[
                 SizedBox(height: tokens.space.md),
@@ -92,7 +134,7 @@ class ReviseOfferScreen extends ConsumerWidget {
                 ),
               ],
               SizedBox(height: tokens.space.lg),
-              if (offer.canRevise)
+              if (offer.canReviseAt(clock.now()))
                 KhButton(
                   key: const Key('revise-offer-button'),
                   label: submitting

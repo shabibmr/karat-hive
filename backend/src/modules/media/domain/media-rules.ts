@@ -12,17 +12,17 @@ const MIB = 1024 * 1024;
 export const MEDIA_CONSTRAINTS: Record<MediaPurpose, MediaConstraint> = {
   KYC_DOCUMENT: {
     bucket: 'KYC',
-    allowedContentTypes: ['application/pdf', 'image/jpeg', 'image/png'],
+    allowedContentTypes: ['application/pdf', 'image/jpeg', 'image/png', 'image/avif'],
     maxBytes: 10 * MIB,
   },
   REQUEST_IMAGE: {
     bucket: 'REQUEST_MEDIA',
-    allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'],
     maxBytes: 5 * MIB,
   },
   OFFER_IMAGE: {
     bucket: 'REQUEST_MEDIA',
-    allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'],
     maxBytes: 5 * MIB,
   },
   PROFILE_PHOTO: {

@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,13 +9,29 @@ import '../../../app/di.dart';
 import '../controller/submit_offer_controller.dart';
 
 /// VEN-S09 — Submit Offer against a matched Request.
-class SubmitOfferScreen extends ConsumerWidget {
+class SubmitOfferScreen extends ConsumerStatefulWidget {
   const SubmitOfferScreen({super.key, required this.requestId});
 
   final String requestId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SubmitOfferScreen> createState() => _SubmitOfferScreenState();
+}
+
+class _SubmitOfferScreenState extends ConsumerState<SubmitOfferScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(submitOfferControllerProvider(widget.requestId).notifier)
+          .prefetchImageIntent();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final requestId = widget.requestId;
     final state = ref.watch(submitOfferControllerProvider(requestId));
     final l10n = AppLocalizations.of(context);
     final tokens = context.tokens;
@@ -80,19 +93,9 @@ class SubmitOfferScreen extends ConsumerWidget {
                 mediaSlot: _OfferImagesSlot(
                   keys: uploadedKeys,
                   enabled: !submitting && draft.mediaKeys.length < 3,
-                  onAdd: () async {
-                    final res = await FilePicker.platform.pickFiles(
-                      type: FileType.custom,
-                      allowedExtensions: const ['jpg', 'jpeg', 'png'],
-                    );
-                    final path = res?.files.single.path;
-                    if (path == null) return;
-                    final ext = path.split('.').last.toLowerCase();
-                    final ct = ext == 'png' ? 'image/png' : 'image/jpeg';
-                    await ref
-                        .read(submitOfferControllerProvider(requestId).notifier)
-                        .addImage(File(path), ct);
-                  },
+                  onAdd: () => ref
+                      .read(submitOfferControllerProvider(requestId).notifier)
+                      .addImage(),
                   onRemove: (key) => ref
                       .read(submitOfferControllerProvider(requestId).notifier)
                       .removeImage(key),
@@ -142,8 +145,11 @@ class _OfferImagesSlot extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n?.offerImagesHint ?? 'Up to 3 supporting images (optional).',
-          style: Theme.of(context).textTheme.bodySmall,
+          'At least 1 image is required (up to 3 images).',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: tokens.ink.withValues(alpha: 0.8),
+              ),
         ),
         SizedBox(height: tokens.space.sm),
         Wrap(

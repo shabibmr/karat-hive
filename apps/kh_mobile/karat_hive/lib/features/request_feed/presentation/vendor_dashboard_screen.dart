@@ -94,7 +94,7 @@ class VendorDashboardScreen extends ConsumerWidget {
             ],
             SizedBox(height: tokens.space.sm),
 
-            // Panel 2: Pending Offers (CP-3)
+            // Panel 2: Pending Offers (Deep-link to VEN-S11 Pending tab)
             _ActionStatCard(
               label: l10n?.dashboardPendingOffers ?? 'Pending offers',
               value: d.pendingOffers,
@@ -105,13 +105,11 @@ class VendorDashboardScreen extends ConsumerWidget {
                       '${d.pendingOffersExpiringWithin24h} expiring within 24h')
                   : (l10n?.activeBidsAwaiting ??
                       'Active bids awaiting customer response'),
-              disabled: true,
-              disabledMessage: l10n?.offerManagementCp3 ??
-                  'Offer management opens in Check-Point 3',
+              onTap: () => context.push('/vendor/offers?tab=pending'),
             ),
             SizedBox(height: tokens.space.sm),
 
-            // Panel 3: Active Connections (CP-4)
+            // Panel 3: Active Connections (Deep-link to VEN-S12)
             _ActionStatCard(
               label: l10n?.dashboardActiveConnections ?? 'Active connections',
               value: d.activeConnections,
@@ -157,7 +155,7 @@ class VendorDashboardScreen extends ConsumerWidget {
             ),
             SizedBox(height: tokens.space.sm),
 
-            // Rating & Reviews tile
+            // Rating & Reviews tile (Links to VEN-S20)
             Card(
               elevation: 0,
               color: tokens.surface,
@@ -167,29 +165,31 @@ class VendorDashboardScreen extends ConsumerWidget {
               ),
               child: ListTile(
                 leading: Icon(Icons.star_outline, color: tokens.gold),
-                title: Text(l10n?.dashboardRating ?? 'Rating'),
+                title: Text(l10n?.dashboardRating ?? 'Rating & Reviews'),
                 subtitle: Text(
                   d.reviewCount == 0
                       ? (l10n?.dashboardNoReviews ?? 'No reviews yet')
-                      : '${d.ratingAverage ?? '—'} (${d.reviewCount})',
+                      : '${d.ratingAverage ?? '—'} (${d.reviewCount} reviews)',
                 ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/vendor/reviews'),
               ),
             ),
 
-            // Gold rates panel (hidden while flag is off per AD-API-09)
-            if (d.goldRates != null) ...[
-              SizedBox(height: tokens.space.sm),
-              Card(
-                elevation: 0,
-                color: tokens.surface,
-                child: ListTile(
-                  title: Text(
-                    l10n?.dashboardGoldRates ?? 'Reference gold rates',
-                  ),
-                  subtitle: Text(d.goldRates.toString()),
-                ),
-              ),
-            ],
+            // Gold rates panel (hidden per user review)
+            // if (d.goldRates != null) ...[
+            //   SizedBox(height: tokens.space.sm),
+            //   Card(
+            //     elevation: 0,
+            //     color: tokens.surface,
+            //     child: ListTile(
+            //       title: Text(
+            //         l10n?.dashboardGoldRates ?? 'Reference gold rates',
+            //       ),
+            //       subtitle: Text(d.goldRates.toString()),
+            //     ),
+            //   ),
+            // ],
 
             SizedBox(height: tokens.space.md),
             if (d.newRequests + d.pendingOffers + d.activeConnections == 0)

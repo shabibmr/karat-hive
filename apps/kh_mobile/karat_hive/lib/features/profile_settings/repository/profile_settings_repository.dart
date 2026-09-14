@@ -73,4 +73,30 @@ class ProfileSettingsRepository {
         currentPassword: currentPassword,
         newPassword: newPassword,
       );
+
+  // --- Customer Profile & Account Lifecycle (CUS-S20 / CUS-S21) ---
+
+  Future<Result<MeUser>> getMe() => _api.meClient.me();
+
+  Future<Result<MeUser>> patchCustomerProfile({
+    String? displayName,
+    String? preferredLanguage,
+    String? defaultRegionId,
+  }) =>
+      _api.meClient.patch(
+        displayName: displayName,
+        preferredLanguage: preferredLanguage,
+        defaultRegionId: defaultRegionId,
+      );
+
+  Future<Result<MeUser>> deactivateAccount() => _api.meClient.deactivate();
+
+  Future<Result<AccountDeletionRequest>> createDeletionRequest() =>
+      _api.meClient.createDeletionRequest();
+
+  Future<Result<AccountDeletionRequest>> confirmDeletionRequest(
+    String id, {
+    required String challengeId,
+  }) =>
+      _api.meClient.confirmDeletionRequest(id, challengeId: challengeId);
 }

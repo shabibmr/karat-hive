@@ -15,6 +15,25 @@ class VendorRegisterController extends Notifier<RegisterFormState> {
   void patch(RegisterFormState Function(RegisterFormState) update) =>
       state = update(state);
 
+  void nextWizardStep() {
+    if (state.wizardStep < 4) {
+      state = state.copyWith(wizardStep: state.wizardStep + 1, clearFailure: true);
+    }
+  }
+
+  void prevWizardStep() {
+    if (state.wizardStep > 1) {
+      state = state.copyWith(wizardStep: state.wizardStep - 1, clearFailure: true);
+    }
+  }
+
+  /// Direct registration submission (bypasses OTP verification for current development phase).
+  Future<void> submitDirect() async {
+    state = state.copyWith(busy: true, clearFailure: true);
+    final next = await _submit();
+    state = next;
+  }
+
   Future<void> sendOtp() async {
     state = state.copyWith(busy: true, clearFailure: true);
     final r = await _repo.requestOtp(state.mobileNumber, 'REGISTER_VENDOR');

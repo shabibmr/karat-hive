@@ -4,15 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
+import 'package:kh_media/kh_media.dart';
 
 import '../../../app/di.dart';
-import '../../../core/media/media_uploader.dart';
 
 class OnboardingRepository {
-  OnboardingRepository(this._api, {MediaUploader? media})
-      : _media = media ?? MediaUploader(_api);
+  OnboardingRepository(this._api, {MediaPickController? media})
+      : _media = media ??
+            MediaPickController(
+              uploader: MediaUploader(_api),
+              purpose: MediaUploadPurpose.kycDocument,
+            );
   final KhApi _api;
-  final MediaUploader _media;
+  final MediaPickController _media;
 
   Future<Result<List<TaxonomyNode>>> categories() => _api.categories();
   Future<Result<List<TaxonomyNode>>> regions() => _api.regions();
@@ -21,24 +25,43 @@ class OnboardingRepository {
   Future<Result<VendorDashboard>> dashboard() => _api.dashboard();
   Future<Result<VendorMe>> resubmit() => _api.resubmit();
 
+  /// Warms the upload-intent ahead of the vendor picking a document (called
+  /// from the screen's `initState`). Idempotent.
+  Future<void> prefetchKycDocumentIntent() => _media.prefetchIntent();
+
   /// intent → PUT bytes → complete. Returns the media key on success.
+  /// Images (jpeg/png) are converted to AVIF on-device first; other types
+  /// (PDFs) upload unmodified — PDF compression is a later pass. Cached
+  /// under [type] so each document slot can retry independently.
   Future<Result<String>> uploadKycDocument(
+    VendorDocumentType type,
     File file,
     String contentType, {
     void Function(double progress)? onProgress,
   }) =>
-      _media.upload(
-        file,
-        purpose: MediaUploadPurpose.kycDocument,
-        contentType: contentType,
-        onProgress: onProgress,
-      );
+      contentType.startsWith('image/')
+          ? _media.convertAndUpload(file, correlationId: type.wire, onProgress: onProgress)
+          : _media.uploadRaw(file, contentType, correlationId: type.wire, onProgress: onProgress);
 
   Future<Result<List<VendorDocument>>> attachDocument({
     required VendorDocumentType type,
     required String mediaKey,
+    String? expiryDate,
   }) =>
-      _api.attachDocument(documentType: type.wire, mediaKey: mediaKey);
+      _api.attachDocument(
+        documentType: type.wire,
+        mediaKey: mediaKey,
+        expiryDate: expiryDate,
+      );
+
+  Future<Result<VendorMe>> patchKycProfile({
+    required String legalBusinessName,
+    required String tradeLicenceNumber,
+  }) =>
+      _api.patchVendorProfile(
+        legalBusinessName: legalBusinessName,
+        tradeLicenceNumber: tradeLicenceNumber,
+      );
 }
 
 final onboardingRepositoryProvider =

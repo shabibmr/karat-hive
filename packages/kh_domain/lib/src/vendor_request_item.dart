@@ -42,7 +42,7 @@ Map<String, dynamic> _normalizeVendorRequestItemJson(Map<String, dynamic> json) 
     'hasResponded': json['hasResponded'] as bool? ?? false,
     'customer': customerJson,
     'media': mediaList
-        .whereType<Map>()
+        .whereType<Map<dynamic, dynamic>>()
         .map((m) => Map<String, dynamic>.from(m))
         .toList(growable: false),
   };

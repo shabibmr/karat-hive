@@ -141,6 +141,9 @@ class FindOrnamentScreen extends ConsumerWidget {
 class SellOldGoldScreen extends ConsumerWidget {
   const SellOldGoldScreen({super.key});
 
+  /// Indicative scrap valuation: hidden per review (preserved in code, not displayed).
+  static bool showIndicativeValuation = false;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
@@ -182,7 +185,7 @@ class SellOldGoldScreen extends ConsumerWidget {
             controller: controller,
             weightRequired: true,
           ),
-          if (value != null) ...[
+          if (showIndicativeValuation && value != null) ...[
             Text(
               createCopy(
                 context,

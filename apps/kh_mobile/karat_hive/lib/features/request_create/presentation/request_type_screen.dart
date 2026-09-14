@@ -63,121 +63,418 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
       );
     }
 
-    final types = <(RequestType, String, String, Key)>[
-      (
-        RequestType.findOrnament,
-        createCopy(context, 'create.type.ornament', 'Find An Ornament'),
-        createCopy(
+    final types = <_TypeCardData>[
+      _TypeCardData(
+        type: RequestType.findOrnament,
+        title: createCopy(context, 'create.type.ornament', 'Find An Ornament'),
+        tag: 'BUY · BESPOKE & CATALOGUE',
+        hint: createCopy(
           context,
           'create.type.ornamentHint',
-          'Buy jewellery. Direction is BUY. Budget and a reference photo are required.',
+          'Commission custom jewelry designs or match catalog pieces from verified UAE craftsmen.',
         ),
-        const Key('type-find-ornament'),
+        icon: Icons.diamond_outlined,
+        highlights: const ['Custom Designs', 'Target Budget', 'Reference Photos'],
+        key: const Key('type-find-ornament'),
       ),
-      (
-        RequestType.sellOldGold,
-        createCopy(context, 'create.type.sellGold', 'Sell Old Gold'),
-        createCopy(
+      _TypeCardData(
+        type: RequestType.sellOldGold,
+        title: createCopy(context, 'create.type.sellGold', 'Sell Old Gold'),
+        tag: 'SELL · INSTANT QUOTES',
+        hint: createCopy(
           context,
           'create.type.sellGoldHint',
-          'Sell jewellery you own. Direction is SELL. Photos must be of the actual item.',
+          'Monetize pre-owned, scrap, or broken gold with competitive buy-back bids from jewellers.',
         ),
-        const Key('type-sell-old-gold'),
+        icon: Icons.balance_rounded,
+        highlights: const ['Multiple Bids', 'Any Karat', 'Direct Settlement'],
+        key: const Key('type-sell-old-gold'),
       ),
-      (
-        RequestType.goldCoin,
-        createCopy(context, 'create.type.coins', 'Gold Coins'),
-        createCopy(
+      _TypeCardData(
+        type: RequestType.goldCoin,
+        title: createCopy(context, 'create.type.coins', 'Gold Coins'),
+        tag: 'BUY OR SELL · MINTED',
+        hint: createCopy(
           context,
           'create.type.coinsHint',
-          'Buy or sell coins. Choose direction, denomination, and quantity.',
+          'Trade Sovereigns, Krugerrands, and standard bullion coins at transparent market premiums.',
         ),
-        const Key('type-gold-coin'),
+        icon: Icons.monetization_on_outlined,
+        highlights: const ['Standard Weights', 'Sealed Packs', 'Live Spot Rates'],
+        key: const Key('type-gold-coin'),
       ),
-      (
-        RequestType.goldBullion,
-        createCopy(context, 'create.type.bullion', 'Gold Bullion'),
-        createCopy(
+      _TypeCardData(
+        type: RequestType.goldBullion,
+        title: createCopy(context, 'create.type.bullion', 'Gold Bullion'),
+        tag: 'BUY OR SELL · INVESTMENT',
+        hint: createCopy(
           context,
           'create.type.bullionHint',
-          'Buy or sell bars. A gold rate is required to publish. Minimum indicative value applies.',
+          'Institutional-grade investment bars from certified refiners with verified assay certification.',
         ),
-        const Key('type-gold-bullion'),
+        icon: Icons.crop_landscape_rounded,
+        highlights: const ['24K / 999.9', 'Assay Certified', 'AED 500+ Floor'],
+        key: const Key('type-gold-bullion'),
       ),
     ];
 
-    return KhScaffold(
-      title: createCopy(context, 'create.typeTitle', 'New Request'),
-      body: ListView(
-        padding: EdgeInsets.all(tokens.space.md),
-        children: [
-          Text(
-            createCopy(
-              context,
-              'create.typePrompt',
-              'Choose one Request type. You can change it until you publish.',
-            ),
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A1128),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0A1128),
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFFFDFBF7), size: 18),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/customer/home'),
+        ),
+        title: Text(
+          createCopy(context, 'create.typeTitle', 'New Request'),
+          style: const TextStyle(
+            color: Color(0xFFFDFBF7),
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
-          SizedBox(height: tokens.space.md),
-          for (final t in types) ...[
-            _TypeTile(
-              tileKey: t.$4,
-              title: t.$2,
-              hint: t.$3,
-              selected: state.requestType == t.$1,
-              onTap: () {
-                controller.selectType(t.$1);
-                context.go(RequestCreatePaths.composeFor(t.$1));
-              },
+        ),
+      ),
+      body: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.symmetric(
+            horizontal: tokens.space.md,
+            vertical: tokens.space.sm,
+          ),
+          children: [
+            // Hero Salon Header
+            Center(
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
+                        width: 1,
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.diamond, size: 12, color: Color(0xFFF1E5AC)),
+                        SizedBox(width: 8),
+                        Text(
+                          'KARAT HIVE SALON',
+                          style: TextStyle(
+                            color: Color(0xFFF1E5AC),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'What would you like to request?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Color(0xFFFDFBF7),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Broadcast your specifications directly to certified UAE jewellers with zero intermediaries.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFFB0B9D0),
+                        fontSize: 13.5,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
-            SizedBox(height: tokens.space.sm),
+
+            // 4 Showroom Facade Cards
+            for (final card in types) ...[
+              _TypeTile(
+                data: card,
+                selected: state.requestType == card.type,
+                onTap: () {
+                  controller.selectType(card.type);
+                  context.go(RequestCreatePaths.composeFor(card.type));
+                },
+              ),
+              SizedBox(height: tokens.space.md),
+            ],
+
+            // Trust Assurance Footer
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFF111A36).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                  width: 1,
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.verified_user_outlined, size: 15, color: Color(0xFFD4AF37)),
+                  SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      '100% Identity Masking  •  48h Window  •  Verified UAE Jewellers',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFFB0B9D0),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
           ],
-        ],
+        ),
       ),
     );
   }
 }
 
+class _TypeCardData {
+  const _TypeCardData({
+    required this.type,
+    required this.title,
+    required this.tag,
+    required this.hint,
+    required this.icon,
+    required this.highlights,
+    required this.key,
+  });
+
+  final RequestType type;
+  final String title;
+  final String tag;
+  final String hint;
+  final IconData icon;
+  final List<String> highlights;
+  final Key key;
+}
+
 class _TypeTile extends StatelessWidget {
   const _TypeTile({
-    required this.tileKey,
-    required this.title,
-    required this.hint,
+    required this.data,
     required this.selected,
     required this.onTap,
   });
 
-  final Key tileKey;
-  final String title;
-  final String hint;
+  final _TypeCardData data;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    return Material(
-      key: tileKey,
-      color: tokens.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        side: BorderSide(
-          color: selected ? tokens.gold : tokens.ink.withValues(alpha: 0.12),
-          width: selected ? 2 : 1,
-        ),
+    return Container(
+      key: data.key,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF000000).withValues(alpha: 0.35),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+          if (selected)
+            BoxShadow(
+              color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
+              blurRadius: 18,
+              spreadRadius: 1,
+            ),
+        ],
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: Theme.of(context).textTheme.titleMedium),
-              SizedBox(height: tokens.space.xs),
-              Text(hint, style: Theme.of(context).textTheme.bodyMedium),
-            ],
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          splashColor: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+          highlightColor: const Color(0xFFD4AF37).withValues(alpha: 0.08),
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: selected
+                    ? const [
+                        Color(0xFF1E2A54),
+                        Color(0xFF131D3B),
+                      ]
+                    : const [
+                        Color(0xFF151F3D),
+                        Color(0xFF0E152C),
+                      ],
+              ),
+              border: Border.all(
+                color: selected
+                    ? const Color(0xFFF1E5AC)
+                    : const Color(0xFFD4AF37).withValues(alpha: 0.28),
+                width: selected ? 1.8 : 1.0,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top row with Art Deco icon badge, Tag, and Forward Action
+                Row(
+                  children: [
+                    // Art Deco Icon Frame
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF263566),
+                            Color(0xFF111A36),
+                          ],
+                        ),
+                        border: Border.all(
+                          color: const Color(0xFFD4AF37).withValues(alpha: 0.45),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.18),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        data.icon,
+                        size: 22,
+                        color: const Color(0xFFF1E5AC),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Direction / Category Pill
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Text(
+                            data.tag,
+                            style: const TextStyle(
+                              color: Color(0xFFE3C65A),
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Chevron circle
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 13,
+                        color: Color(0xFFF1E5AC),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // Card Title
+                Text(
+                  data.title,
+                  style: const TextStyle(
+                    color: Color(0xFFFDFBF7),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.1,
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                // Description
+                Text(
+                  data.hint,
+                  style: const TextStyle(
+                    color: Color(0xFFC5CEE0),
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // Highlights Chips
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final h in data.highlights)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF080D1F).withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.18),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          h,
+                          style: const TextStyle(
+                            color: Color(0xFFEDE8DC),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

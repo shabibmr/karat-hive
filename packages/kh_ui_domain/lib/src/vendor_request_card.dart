@@ -46,138 +46,140 @@ class VendorRequestCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (item.media.isNotEmpty)
+              ClipRRect(
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(tokens.radius.md),
+                ),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Image.network(
+                    item.media.first.thumbnailUrl ??
+                        item.media.first.displayUrl ??
+                        '',
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: EdgeInsets.all(tokens.space.md),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (item.categoryName != null)
-                              _Tag(text: item.categoryName!, color: tokens.ink),
-                            if (item.regionName != null)
-                              _Tag(
-                                text: item.regionName!,
-                                color: tokens.ink.withValues(alpha: 0.7),
+                            Text(
+                              title,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
                               ),
-                            if (item.purityKarat != null)
-                              _Tag(
-                                text: '${item.purityKarat}K',
-                                color: tokens.gold,
-                              ),
-                            if (item.hasResponded)
-                              KhStatusChip(
-                                key: const Key('responded-marker'),
-                                label: l10n?.responded ?? 'Responded',
-                                tone: KhStatusTone.accent,
-                                compact: true,
-                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 4,
+                              children: [
+                                if (item.categoryName != null)
+                                  _Tag(text: item.categoryName!, color: tokens.ink),
+                                if (item.regionName != null)
+                                  _Tag(
+                                    text: item.regionName!,
+                                    color: tokens.ink.withValues(alpha: 0.7),
+                                  ),
+                                if (item.purityKarat != null)
+                                  _Tag(
+                                    text: '${item.purityKarat}K',
+                                    color: tokens.gold,
+                                  ),
+                                if (item.hasResponded)
+                                  KhStatusChip(
+                                    key: const Key('responded-marker'),
+                                    label: l10n?.responded ?? 'Responded',
+                                    tone: KhStatusTone.accent,
+                                    compact: true,
+                                  ),
+                              ],
+                            ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                  if (isUnread) ...[
-                    Container(
-                      width: 8,
-                      height: 8,
-                      margin: const EdgeInsets.only(top: 4, left: 4),
-                      decoration: BoxDecoration(
-                        color: tokens.gold,
-                        shape: BoxShape.circle,
                       ),
-                    ),
-                  ],
-                ],
-              ),
-              SizedBox(height: tokens.space.sm),
-
-              Row(
-                children: [
-                  if (item.weightGrams != null) ...[
-                    Icon(
-                      Icons.scale_outlined,
-                      size: 14,
-                      color: tokens.ink.withValues(alpha: 0.6),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${item.weightGrams}g',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: tokens.ink,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-                  if (item.budgetMin != null || item.budgetMax != null) ...[
-                    Icon(
-                      Icons.payments_outlined,
-                      size: 14,
-                      color: tokens.ink.withValues(alpha: 0.6),
-                    ),
-                    const SizedBox(width: 4),
-                    _BudgetLabel(item: item),
-                  ],
-                  const Spacer(),
-                  if (item.publishedAt != null)
-                    RelativeTimeLabel(at: item.publishedAt!),
-                ],
-              ),
-              SizedBox(height: tokens.space.sm),
-
-              MaskedPartyLabel(party: item.customer, compact: true),
-              SizedBox(height: tokens.space.sm),
-
-              const Divider(height: 1),
-              SizedBox(height: tokens.space.xs),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.local_offer_outlined,
-                        size: 14,
-                        color: tokens.ink.withValues(alpha: 0.6),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        l10n?.offerCountShort(item.offerCount) ??
-                            '${item.offerCount} ${item.offerCount == 1 ? 'offer' : 'offers'}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: tokens.ink.withValues(alpha: 0.7),
+                      if (isUnread) ...[
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(top: 4, left: 4),
+                          decoration: BoxDecoration(
+                            color: tokens.gold,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
+                  SizedBox(height: tokens.space.sm),
+
+                  Row(
+                    children: [
+                      if (item.weightGrams != null) ...[
+                        Icon(
+                          Icons.scale_outlined,
+                          size: 14,
+                          color: tokens.ink.withValues(alpha: 0.6),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${item.weightGrams}g',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: tokens.ink,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      if (item.budgetMin != null || item.budgetMax != null) ...[
+                        Icon(
+                          Icons.payments_outlined,
+                          size: 14,
+                          color: tokens.ink.withValues(alpha: 0.6),
+                        ),
+                        const SizedBox(width: 4),
+                        _BudgetLabel(item: item),
+                      ],
+                      const Spacer(),
+                      if (item.publishedAt != null)
+                        RelativeTimeLabel(at: item.publishedAt!),
+                    ],
+                  ),
+                  SizedBox(height: tokens.space.sm),
+
+                  MaskedPartyLabel(party: item.customer, compact: true),
+                  SizedBox(height: tokens.space.sm),
+
+                  const Divider(height: 1),
+                  SizedBox(height: tokens.space.xs),
+
                   if (item.expiresAt != null)
-                    ExpiryCountdown(expiresAt: item.expiresAt!),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ExpiryCountdown(expiresAt: item.expiresAt!),
+                    ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

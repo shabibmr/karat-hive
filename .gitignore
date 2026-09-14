@@ -1,5 +1,6 @@
 # Local Claude Code scratch scripts (disposable)
-.claude/scratch/
+.claude/
+.kotlin/
 
 # OS cruft
 .DS_Store

@@ -1,12 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
+import 'package:kh_media/kh_media.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../../../app/di.dart';
-import '../../../core/media/media_uploader.dart';
 import '../repository/offers_vendor_repository.dart';
 
 sealed class SubmitOfferState {
@@ -65,11 +64,25 @@ class SubmitOfferSucceeded extends SubmitOfferState {
 }
 
 class SubmitOfferController extends AutoDisposeFamilyNotifier<SubmitOfferState, String> {
+  late final MediaPickController _media;
+
   @override
   SubmitOfferState build(String requestId) {
+    _media = MediaPickController(
+      uploader: MediaUploader(ref.read(khApiProvider)),
+      purpose: MediaUploadPurpose.offerImage,
+    );
     Future.microtask(_load);
     return const SubmitOfferLoading();
   }
+
+  /// Called from the screen's `initState` so the upload-intent request
+  /// overlaps with the vendor reading the request, rather than happening
+  /// after they've already picked a photo. Idempotent (delegates to
+  /// [MediaPickController.prefetchIntent]) — safe to call more than once,
+  /// and deliberately not wired into [build] so plain controller tests
+  /// (no screen mounted) never trigger a real network call.
+  Future<void> prefetchImageIntent() => _media.prefetchIntent();
 
   OffersVendorRepository get _repo =>
       ref.read(offersVendorRepositoryProvider);
@@ -110,17 +123,18 @@ class SubmitOfferController extends AutoDisposeFamilyNotifier<SubmitOfferState, 
     }
   }
 
-  Future<void> addImage(File file, String contentType) async {
+  Future<void> addImage() async {
     final current = state;
     if (current is! SubmitOfferReady || current.submitting) return;
     if (current.draft.mediaKeys.length >= 3) return;
 
-    final uploader = MediaUploader(ref.read(khApiProvider));
-    final result = await uploader.upload(
-      file,
-      purpose: MediaUploadPurpose.offerImage,
-      contentType: contentType,
+    final slot = 'offer-image-${current.draft.mediaKeys.length}';
+    final result = await _media.pickImageConvertAndUpload(
+      correlationId: slot,
+      source: ImageSource.gallery,
     );
+    if (result == null) return; // user cancelled the picker
+
     final fail = result.failureOrNull;
     if (fail != null) {
       state = current.copyWith(failure: fail);
@@ -151,6 +165,15 @@ class SubmitOfferController extends AutoDisposeFamilyNotifier<SubmitOfferState, 
     if (price == null || price <= 0) {
       state = current.copyWith(
         failure: const ValidationFailure(message: 'Enter a valid offered price.'),
+      );
+      return;
+    }
+
+    if (current.draft.mediaKeys.isEmpty) {
+      state = current.copyWith(
+        failure: const ValidationFailure(
+          message: 'Please add at least 1 image to your offer.',
+        ),
       );
       return;
     }

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/auth/auth_broadcast.dart';
 import 'package:kh_admin/core/auth/auth_repository.dart';
 import 'package:kh_admin/core/auth/dev_auth.dart';
@@ -75,6 +76,7 @@ class SessionController extends StateNotifier<SessionState> {
 
   /// G2-A14: exchange Google ID token for a KH SessionBundle, then use KH tokens.
   Future<void> _syncFirebaseUser(User fbUser) async {
+    state = state.copyWith(status: SessionStatus.loading, clearError: true);
     try {
       final idToken = await fbUser.getIdToken();
       if (idToken == null || idToken.isEmpty) {
@@ -86,6 +88,17 @@ class SessionController extends StateNotifier<SessionState> {
         return;
       }
       final bundle = await _authRepository.googleSession(idToken);
+      if (bundle.user.userType != 'ADMIN') {
+        await _tokenStorage.clearTokens();
+        await _firebaseAuthService?.signOut();
+        state = state.copyWith(
+          status: SessionStatus.unauthenticated,
+          clearAdmin: true,
+          clearTokens: true,
+          errorMessage: 'Google account (${fbUser.email}) is not authorized as an Admin.',
+        );
+        return;
+      }
       await _tokenStorage.saveTokens(bundle.tokens);
       state = state.copyWith(
         status: SessionStatus.authenticated,
@@ -93,14 +106,27 @@ class SessionController extends StateNotifier<SessionState> {
         admin: bundle.user,
         clearError: true,
       );
-    } on Object catch (_) {
-      // Unbound Google identity — Admin must already exist; no auto-provision.
+    } on Object catch (e) {
+      // Unbound Google identity or API error — Admin must already exist; no auto-provision.
       await _tokenStorage.clearTokens();
+      await _firebaseAuthService?.signOut();
+      final emailStr = fbUser.email != null ? ' (${fbUser.email})' : '';
+      final errorStr = e.toString();
+      final String msg;
+      if (e is ApiException) {
+        msg = e.statusCode == 401
+            ? 'Google account$emailStr is not linked to an Admin user.'
+            : (e.message.isNotEmpty ? e.message : 'Authentication failed (${e.code})');
+      } else if (errorStr.contains('Failed to fetch') || errorStr.contains('NETWORK_ERROR')) {
+        msg = 'Unable to connect to the backend server. Please verify network/CORS configuration.';
+      } else {
+        msg = 'Google account$emailStr is not linked to an Admin user.';
+      }
       state = state.copyWith(
         status: SessionStatus.unauthenticated,
         clearAdmin: true,
         clearTokens: true,
-        errorMessage: 'Google account is not linked to an Admin user.',
+        errorMessage: msg,
       );
     }
   }
@@ -184,6 +210,25 @@ class SessionController extends StateNotifier<SessionState> {
   /// Form submission alias for [login] with email and password.
   Future<void> loginWithPassword(String email, String password) =>
       login(email, password);
+
+  /// Signs in with Google via popup and exchanges token for Karat Hive session.
+  Future<void> loginWithGoogle() async {
+    final authService = _firebaseAuthService;
+    if (authService == null) {
+      throw StateError('Firebase Auth is not initialized.');
+    }
+    state = state.copyWith(status: SessionStatus.loading, clearError: true);
+    final cred = await authService.signInWithGoogle();
+    if (cred == null || cred.user == null) {
+      // User closed or canceled Google popup
+      state = state.copyWith(status: SessionStatus.unauthenticated);
+      return;
+    }
+    await _syncFirebaseUser(cred.user!);
+    if (!state.isAuthenticated && state.errorMessage != null) {
+      throw Exception(state.errorMessage);
+    }
+  }
 
   /// Single-flight silent refresh when a 401 is encountered.
   Future<bool> silentRefresh() async {

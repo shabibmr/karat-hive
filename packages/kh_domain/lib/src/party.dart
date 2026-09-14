@@ -237,6 +237,7 @@ class PhoneNumber {
 
   static PhoneNumber parse(String raw) {
     var digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) return const PhoneNumber('');
     if (digits.startsWith('00')) {
       digits = digits.substring(2);
     }

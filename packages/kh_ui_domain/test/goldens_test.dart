@@ -213,7 +213,7 @@ void main() {
           available: true,
           callUrl: 'tel:+971501234567',
         ),
-        onTalk: () {},
+        onTalk: (_) {},
       ),
     );
   });

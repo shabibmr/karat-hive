@@ -13,14 +13,16 @@ LATEST_LOG="${BUILD_DIR}/run_chrome.log"
 TIMESTAMPED_LOG="${BUILD_DIR}/run_chrome_${TIMESTAMP}.log"
 
 BASE_HREF="${BASE_HREF:-/karat_hive/}"
-API_BASE="${KH_API_BASE_URL:-${KH_API_BASE:-https://algoray.cloud/kh_api}}"
+API_BASE="${KH_API_BASE_URL:-${KH_API_BASE:-https://algoray.cloud/kh_api/}}"
 FLAVOR="${KH_FLAVOR:-prod}"
+WEB_PORT="${WEB_PORT:-8082}"
 
 echo "============================================================"
 echo " Running karat_hive on Chrome"
 echo "============================================================"
 echo " App Directory : ${APP_DIR}"
 echo " Device        : chrome"
+echo " Web Port      : ${WEB_PORT} (http://localhost:${WEB_PORT})"
 echo " Base HREF     : ${BASE_HREF}"
 echo " API Base      : ${API_BASE}"
 echo " Flavor        : ${FLAVOR}"
@@ -32,6 +34,7 @@ cd "${APP_DIR}"
 
 # Run flutter on Chrome and stream output to both console and log
 flutter run -d chrome \
+  --web-port="${WEB_PORT}" \
   --base-href="${BASE_HREF}" \
   --dart-define="KH_API_BASE_URL=${API_BASE}" \
   --dart-define="KH_API_BASE=${API_BASE}" \

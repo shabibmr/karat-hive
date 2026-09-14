@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
 
 import '../../../app/session/session_controller.dart';
+import '../../../core/firebase/firebase.dart';
 import '../repository/auth_repository.dart';
 
 sealed class LoginState {
@@ -16,14 +17,13 @@ class LoginBusy extends LoginState {
   const LoginBusy();
 }
 
-class LoginOtpSent extends LoginState {
-  const LoginOtpSent(this.challengeId);
-  final String challengeId;
-}
-
 class LoginError extends LoginState {
   const LoginError(this.failure);
   final Failure failure;
+}
+
+class LoginNeedsRegistration extends LoginState {
+  const LoginNeedsRegistration();
 }
 
 class LoginAuthenticated extends LoginState {
@@ -35,41 +35,40 @@ class VendorLoginController extends AutoDisposeNotifier<LoginState> {
   LoginState build() => const LoginIdle();
 
   AuthRepository get _repo => ref.read(authRepositoryProvider);
+  FirebaseAuthService get _firebase => ref.read(firebaseAuthServiceProvider);
 
-  Future<void> sendOtp(String mobileNumber) async {
+  Future<void> signInWithGoogle() async {
     state = const LoginBusy();
-    final r = await _repo.requestOtp(mobileNumber, 'LOGIN');
-    state = r.when(
-      ok: (c) => LoginOtpSent(c.challengeId),
-      err: LoginError.new,
-    );
-  }
 
-  Future<void> verifyOtp(String challengeId, String code) async {
-    state = const LoginBusy();
-    final r = await _repo.verifyOtp(challengeId, code);
-    await r.when(
-      ok: (res) async {
-        if (res.session == null) {
-          state = const LoginError(ValidationFailure(message: 'That code is incorrect.'));
-          return;
-        }
-        await ref.read(sessionProvider.notifier).onAuthenticated(res.session!);
-        state = const LoginAuthenticated();
-      },
-      err: (f) async => state = LoginError(f),
-    );
-  }
+    try {
+      await _firebase.signInWithGoogle();
+    } catch (_) {
+      state = const LoginError(
+        NetworkFailure(message: 'Google Sign-In was cancelled or unavailable.'),
+      );
+      return;
+    }
 
-  Future<void> loginPassword(String email, String password) async {
-    state = const LoginBusy();
-    final r = await _repo.loginPassword(email, password);
-    await r.when(
+    final idToken = await _firebase.getIdToken(forceRefresh: true);
+    if (idToken == null || idToken.isEmpty) {
+      state = const LoginIdle();
+      return;
+    }
+
+    final result = await _repo.googleSession(idToken);
+    await result.when(
       ok: (bundle) async {
         await ref.read(sessionProvider.notifier).onAuthenticated(bundle);
         state = const LoginAuthenticated();
       },
-      err: (f) async => state = LoginError(f),
+      err: (failure) async {
+        if (failure is UnauthorisedFailure &&
+            (failure.code == null || failure.code == 'UNAUTHENTICATED')) {
+          state = const LoginNeedsRegistration();
+        } else {
+          state = LoginError(failure);
+        }
+      },
     );
   }
 }

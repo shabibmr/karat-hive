@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:kh_domain/kh_domain.dart';
 
 import 'presentation/find_ornament_screen.dart';
+import 'presentation/request_image_capture_screen.dart';
 import 'presentation/request_review_publish_screen.dart';
 import 'presentation/request_type_screen.dart';
 import 'presentation/stubs.dart' hide RequestTypeScreen;

@@ -1,13 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:karat_hive/app/di.dart';
 import 'package:karat_hive/features/auth/presentation/vendor_login_screen.dart';
 import 'package:karat_hive/features/auth/presentation/vendor_register_screen.dart';
 import 'package:karat_hive/features/onboarding/presentation/kyc_upload_screen.dart';
 import 'package:karat_hive/features/onboarding/repository/onboarding_repository.dart';
 import 'package:karat_hive/features/profile_settings/presentation/categories_regions_screen.dart';
+import 'package:kh_api/kh_api.dart';
+import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
+import 'package:mocktail/mocktail.dart';
+
+/// KYC upload prefetches an upload-intent on mount (fire-and-forget); stub
+/// [KhApi] so that never reaches the network in this layout-only test.
+class _StubKhApi extends Mock implements KhApi {}
+
+KhApi _stubApi() {
+  final api = _StubKhApi();
+  when(
+    () => api.uploadIntent(
+      purpose: any(named: 'purpose'),
+      contentType: any(named: 'contentType'),
+      byteSize: any(named: 'byteSize'),
+    ),
+  ).thenAnswer((_) async => const Err(NetworkFailure()));
+  return api;
+}
 
 /// The vendor app is mobile-first, but it still has to survive small phones,
 /// landscape, and tablet widths. `flutter_test` turns a RenderFlex overflow
@@ -59,6 +79,7 @@ Widget _host(Widget child) => ProviderScope(
       overrides: [
         categoriesProvider.overrideWith((ref) async => _categories),
         regionsProvider.overrideWith((ref) async => _regions),
+        khApiProvider.overrideWithValue(_stubApi()),
       ],
       child: MaterialApp(
         localizationsDelegates: KhStrings.delegates,

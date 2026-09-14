@@ -23,14 +23,12 @@ Compose a `SELL` Request for gold jewellery the Customer owns, soliciting purcha
 |---|---|---|---|---|
 | Request type | Display | — | Sell Old Gold | Locked |
 | Direction | Display | — | SELL | Fixed |
-| Category | Input | Yes | taxonomy | |
-| Region | Input | Yes | taxonomy | |
 | Ornament type | Input | Yes | same set as ornament | Spec |
 | Weight (g) | Input | Yes | 0.10–5000.00 | |
 | Weight is approximate | Input | No | boolean | |
 | Purity | Input | Yes | 24K…18K | |
 | Reference gold rate | Display / System | — | AED/g | |
-| Indicative valuation | System | — | AED | weight × rate; labelled estimate, not an offer |
+| Indicative valuation | System | — | AED | weight × rate; *Hidden per review (preserved)* |
 | Item condition | Input | No | excellent / good / fair / damaged | |
 | Has original invoice / hallmark cert | Input | No | boolean | |
 | Notes | Input | No | free text | |

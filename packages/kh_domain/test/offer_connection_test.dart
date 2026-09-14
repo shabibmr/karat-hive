@@ -72,7 +72,7 @@ void main() {
         'media': [
           {'id': 'm1', 'key': 'k1', 'displayOrder': 0},
         ],
-        'submittedAt': '2026-09-01T11:00:00.000Z',
+        'submittedAt': DateTime.now().toUtc().toIso8601String(),
         'expiresAt': '2026-09-01T23:00:00.000Z',
         'revisionCount': 1,
         'requestSummary': {

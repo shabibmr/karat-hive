@@ -1,0 +1,26 @@
+name: kh_media
+description: Karat Hive shared media pick / on-device AVIF convert / cache / upload pipeline.
+publish_to: none
+resolution: workspace
+version: 0.1.0
+
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.7.0
+  image_picker: ^1.1.2
+  flutter_avif: ^3.1.0
+  path_provider: ^2.1.4
+  kh_api:
+    path: ../kh_api
+  kh_core:
+    path: ../kh_core
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  mocktail: ^1.0.4

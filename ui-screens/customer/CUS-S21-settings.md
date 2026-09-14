@@ -28,7 +28,7 @@ Application preferences, legal links, account deactivation/deletion.
 | Privacy Policy link | Action | — | — | |
 | Support contact | Action | — | — | |
 | App version | Display | — | string | |
-| Biometric unlock | Input | No | on/off | |
+| Biometric unlock | Input | No | on/off | *Hidden per review (preserved)* |
 | Logout | Action | — | — | |
 | Deactivate account | Action | — | confirm | Closes PUBLISHED Requests; blocks login |
 | Request permanent deletion | Action | — | two-step confirm | Refused if Connection in last 30 days |

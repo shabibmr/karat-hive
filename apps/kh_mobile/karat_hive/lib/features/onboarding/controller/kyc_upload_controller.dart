@@ -21,49 +21,149 @@ class KycFileState {
   bool get done => mediaKey != null;
 }
 
-/// Per-document upload state machine (intent → PUT → complete → attach).
-/// Keep-alive so leaving VEN-S02 does not drop in-flight slots.
-class KycUploadController extends Notifier<Map<VendorDocumentType, KycFileState>> {
+class KycScreenState {
+  const KycScreenState({
+    this.legalBusinessName = '',
+    this.tradeLicenceNumber = '',
+    this.licenceExpiryDate = '',
+    this.documents = const {},
+    this.busy = false,
+    this.failure,
+  });
+
+  final String legalBusinessName;
+  final String tradeLicenceNumber;
+  final String licenceExpiryDate;
+  final Map<VendorDocumentType, KycFileState> documents;
+  final bool busy;
+  final Failure? failure;
+
+  bool get fieldsComplete =>
+      legalBusinessName.trim().isNotEmpty &&
+      tradeLicenceNumber.trim().isNotEmpty &&
+      licenceExpiryDate.trim().isNotEmpty;
+
+  bool get mandatoryDocsDone =>
+      mandatoryVendorDocuments.every((d) => documents[d]?.done ?? false);
+
+  bool get isReadyToSubmit => fieldsComplete && mandatoryDocsDone && !busy;
+
+  KycScreenState copyWith({
+    String? legalBusinessName,
+    String? tradeLicenceNumber,
+    String? licenceExpiryDate,
+    Map<VendorDocumentType, KycFileState>? documents,
+    bool? busy,
+    Failure? failure,
+    bool clearFailure = false,
+  }) =>
+      KycScreenState(
+        legalBusinessName: legalBusinessName ?? this.legalBusinessName,
+        tradeLicenceNumber: tradeLicenceNumber ?? this.tradeLicenceNumber,
+        licenceExpiryDate: licenceExpiryDate ?? this.licenceExpiryDate,
+        documents: documents ?? this.documents,
+        busy: busy ?? this.busy,
+        failure: clearFailure ? null : (failure ?? this.failure),
+      );
+}
+
+class KycUploadController extends Notifier<KycScreenState> {
   @override
-  Map<VendorDocumentType, KycFileState> build() => {
-        for (final d in mandatoryVendorDocuments) d: const KycFileState(),
-      };
+  KycScreenState build() => KycScreenState(
+        documents: {
+          for (final d in mandatoryVendorDocuments) d: const KycFileState(),
+        },
+      );
 
   OnboardingRepository get _repo => ref.read(onboardingRepositoryProvider);
 
-  Future<void> pickAndUpload(VendorDocumentType type, File file, String contentType) async {
-    state = {...state, type: const KycFileState(uploading: true)};
-    final uploaded = await _repo.uploadKycDocument(
-      file,
-      contentType,
-      onProgress: (p) {
-        final current = state[type];
-        state = {
-          ...state,
-          type: KycFileState(uploading: true, progress: p, failure: current?.failure),
-        };
-      },
-    );
-    await uploaded.when(
-      ok: (key) async {
-        final attached = await _repo.attachDocument(type: type, mediaKey: key);
-        state = {
-          ...state,
-          type: attached.when(
-            ok: (_) => KycFileState(mediaKey: key, progress: 1),
-            err: (f) => KycFileState(failure: f),
-          ),
-        };
-      },
-      err: (f) async => state = {...state, type: KycFileState(failure: f)},
+  /// Called from the screen's `initState` so the upload-intent request
+  /// overlaps with the vendor reading the KYC form, rather than happening
+  /// after they've already picked a document. Idempotent.
+  Future<void> prefetchDocumentIntent() => _repo.prefetchKycDocumentIntent();
+
+  void patchFields({
+    String? legalBusinessName,
+    String? tradeLicenceNumber,
+    String? licenceExpiryDate,
+  }) {
+    state = state.copyWith(
+      legalBusinessName: legalBusinessName,
+      tradeLicenceNumber: tradeLicenceNumber,
+      licenceExpiryDate: licenceExpiryDate,
+      clearFailure: true,
     );
   }
 
-  bool get allMandatoryDone =>
-      mandatoryVendorDocuments.every((d) => state[d]?.done ?? false);
+  Future<void> pickAndUpload(VendorDocumentType type, File file, String contentType) async {
+    final updatedDocs = {
+      ...state.documents,
+      type: const KycFileState(uploading: true),
+    };
+    state = state.copyWith(documents: updatedDocs);
+
+    final uploaded = await _repo.uploadKycDocument(
+      type,
+      file,
+      contentType,
+      onProgress: (p) {
+        final current = state.documents[type];
+        state = state.copyWith(
+          documents: {
+            ...state.documents,
+            type: KycFileState(uploading: true, progress: p, failure: current?.failure),
+          },
+        );
+      },
+    );
+
+    await uploaded.when(
+      ok: (key) async {
+        final attached = await _repo.attachDocument(
+          type: type,
+          mediaKey: key,
+        );
+        state = state.copyWith(
+          documents: {
+            ...state.documents,
+            type: attached.when(
+              ok: (_) => KycFileState(mediaKey: key, progress: 1),
+              err: (f) => KycFileState(failure: f),
+            ),
+          },
+        );
+      },
+      err: (f) async {
+        state = state.copyWith(
+          documents: {
+            ...state.documents,
+            type: KycFileState(failure: f),
+          },
+        );
+      },
+    );
+  }
+
+  Future<bool> submitKyc() async {
+    state = state.copyWith(busy: true, clearFailure: true);
+    final patchRes = await _repo.patchKycProfile(
+      legalBusinessName: state.legalBusinessName,
+      tradeLicenceNumber: state.tradeLicenceNumber,
+    );
+    return patchRes.when(
+      ok: (_) async {
+        state = state.copyWith(busy: false);
+        return true;
+      },
+      err: (f) {
+        state = state.copyWith(busy: false, failure: f);
+        return false;
+      },
+    );
+  }
 }
 
 final kycUploadControllerProvider =
-    NotifierProvider<KycUploadController, Map<VendorDocumentType, KycFileState>>(
+    NotifierProvider<KycUploadController, KycScreenState>(
   KycUploadController.new,
 );

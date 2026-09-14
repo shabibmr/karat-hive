@@ -5,7 +5,6 @@ import 'package:kh_admin/core/auth/dev_auth.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/error/api_error_messages.dart';
-import 'package:kh_admin/core/firebase/firebase.dart';
 import 'package:kh_admin/core/firebase/firebase_init.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 
@@ -90,15 +89,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      final authService = ref.read(firebaseAuthServiceProvider);
-      await authService.signInWithGoogle();
-      // On successful sign-in, SessionController's authStateChanges listener
-      // triggers _syncFirebaseUser -> authenticated, and RouterNotifier routes to /
-    } on Object catch (_) {
+      await ref.read(sessionControllerProvider.notifier).loginWithGoogle();
+      // On successful sign-in, SessionController transitions to authenticated,
+      // and RouterNotifier routes to AdminRoutes.dashboard.
+    } on Object catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = AppLocalizations.of(context)?.errorUnknown ??
-            'Google Sign-In failed. Please try again.';
+        _errorMessage = _resolveErrorMessage(e);
       });
     } finally {
       if (mounted) {
@@ -110,6 +107,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   String _resolveErrorMessage(Object error) {
+    if (error is Exception) {
+      final msg = error.toString().replaceFirst('Exception: ', '').trim();
+      if (msg.isNotEmpty && !msg.startsWith('Instance of')) {
+        return msg;
+      }
+    }
     final l10n = AppLocalizations.of(context);
     return resolveApiErrorMessage(error, l10n);
   }

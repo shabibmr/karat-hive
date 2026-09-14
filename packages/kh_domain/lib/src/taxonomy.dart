@@ -7,7 +7,7 @@ Map<String, dynamic> _normalizeTaxonomyNodeJson(Map<String, dynamic> json) {
   return {
     ...json,
     'children': ((json['children'] as List?) ?? const [])
-        .whereType<Map>()
+        .whereType<Map<dynamic, dynamic>>()
         .map((c) => Map<String, dynamic>.from(c))
         .toList(growable: false),
   };

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
-import 'package:kh_ui_domain/kh_ui_domain.dart';
-
+import 'package:kh_ui_domain/kh_ui_domain.dart' as uid;
 
 String createCopy(BuildContext context, String key, String fallback) {
   final value = KhStrings.of(context).s(key);
@@ -82,7 +81,7 @@ class KeyboardAvoidingView extends StatelessWidget {
   }
 }
 
-/// SH-DOM-01 — reference gold rate strip.
+/// SH-DOM-01 — thin l10n wrapper over package `uid.GoldRateStrip`.
 class GoldRateStrip extends StatelessWidget {
   const GoldRateStrip({super.key, required this.rates, this.karat});
 
@@ -91,63 +90,16 @@ class GoldRateStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    final snap = rates;
-    if (snap == null) return const SizedBox.shrink();
-    if (!snap.available) {
-      return Padding(
-        padding: EdgeInsets.all(tokens.space.md),
-        child: KhInlineError(
-          message: createCopy(
-            context,
-            'create.rateUnavailable',
-            'Reference gold rates are unavailable. You can still compose this Request.',
-          ),
-        ),
-      );
-    }
-    GoldRateRow? row;
-    if (karat != null) {
-      for (final r in snap.rates) {
-        if (r.karat == karat) row = r;
-      }
-    }
-    row ??= snap.rates.isEmpty ? null : snap.rates.first;
-    final amount = double.tryParse(row?.ratePerGramAed ?? '') ?? 0;
-    return Padding(
-      padding: EdgeInsetsDirectional.symmetric(
-        horizontal: tokens.space.md,
-        vertical: tokens.space.sm,
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: snap.stale ? tokens.warning : tokens.gold.withValues(alpha: 0.4),
-          ),
-          borderRadius: BorderRadius.circular(tokens.radius.sm),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.sm),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  createCopy(context, 'create.rateStrip', 'Reference gold rate'),
-                ),
-              ),
-              MoneyDisplay(amount: amount),
-              Text(createCopy(context, 'create.perGram', '/g')),
-              if (snap.stale) ...[
-                SizedBox(width: tokens.space.sm),
-                KhStatusChip(
-                  label: createCopy(context, 'create.stale', 'Stale'),
-                  tone: KhStatusTone.warning,
-                  compact: true,
-                ),
-              ],
-            ],
-          ),
-        ),
+    return uid.GoldRateStrip(
+      rates: rates,
+      karat: karat,
+      title: createCopy(context, 'create.rateStrip', 'Reference gold rate'),
+      perGramLabel: createCopy(context, 'create.perGram', '/g'),
+      staleLabel: createCopy(context, 'create.stale', 'Stale'),
+      unavailableMessage: createCopy(
+        context,
+        'create.rateUnavailable',
+        'Reference gold rates are unavailable. You can still compose this Request.',
       ),
     );
   }

@@ -9,7 +9,9 @@ import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../../../app/guards.dart';
+import '../../../app/platform/open_url.dart';
 import '../../../app/session/session_controller.dart';
+import '../../subscription/controller/subscription_controller.dart';
 import '../controller/vendor_me_controller.dart';
 import '../repository/onboarding_repository.dart';
 
@@ -120,14 +122,18 @@ class _AwaitingApprovalScreenState extends ConsumerState<AwaitingApprovalScreen>
       };
 
   List<Widget> _actions(BuildContext c, AppLocalizations? l10n, VendorMe v) {
-    return switch (v.lifecycle) {
-      VendorLifecycle.verified => [
+    final buttons = <Widget>[];
+
+    switch (v.lifecycle) {
+      case VendorLifecycle.verified:
+        buttons.add(
           KhButton(
             label: l10n?.onboardingCategoriesRegions ?? 'Categories & regions',
             onPressed: () => c.go(AppGuards.categories),
           ),
-        ],
-      VendorLifecycle.rejected => [
+        );
+      case VendorLifecycle.rejected:
+        buttons.addAll([
           KhButton(
             label: l10n?.onboardingUploadKyc ?? 'Upload documents',
             onPressed: () => c.go(AppGuards.kyc),
@@ -141,13 +147,29 @@ class _AwaitingApprovalScreenState extends ConsumerState<AwaitingApprovalScreen>
               await _refresh();
             },
           ),
-        ],
-      _ => [
+        ]);
+      default:
+        buttons.add(
           KhButton(
             label: l10n?.onboardingUploadKyc ?? 'Upload documents',
             onPressed: () => c.go(AppGuards.kyc),
           ),
-        ],
-    };
+        );
+    }
+
+    buttons.addAll([
+      const SizedBox(height: 12),
+      TextButton.icon(
+        onPressed: () async {
+          final config = ref.read(platformConfigProvider).valueOrNull;
+          final url = config?.supportContactUrl ?? 'https://karathive.ae/support';
+          await openExternalUrl(url);
+        },
+        icon: const Icon(Icons.help_outline, size: 18),
+        label: const Text('Contact Support'),
+      ),
+    ]);
+
+    return buttons;
   }
 }

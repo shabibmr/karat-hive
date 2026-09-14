@@ -21,6 +21,7 @@ import 'src/clients/subscriptions_client.dart';
 import 'src/clients/taxonomy_client.dart';
 import 'src/clients/vendor_client.dart';
 import 'src/dtos.dart';
+import 'src/request_draft_save.dart';
 
 export 'src/clients/abuse_client.dart';
 export 'src/clients/auth_client.dart';
@@ -40,6 +41,7 @@ export 'src/clients/subscriptions_client.dart';
 export 'src/clients/taxonomy_client.dart';
 export 'src/clients/vendor_client.dart';
 export 'src/dtos.dart';
+export 'src/request_draft_save.dart';
 
 /// Typed facade over [KhApiClient]. DTOs are mapped to `kh_domain` types here so
 /// generated shapes never reach controllers/presentation (Architecture-Frontend §9.1).
@@ -327,303 +329,193 @@ class KhApi {
   T _obj<T>(dynamic d, T Function(Map<String, dynamic>) f) =>
       f(d as Map<String, dynamic>);
 
-  // --- requests (CUS-S02..S10, S17) ---
-  Future<Result<CustomerRequestDto>> createRequest(RequestDraftInput input) async {
-    final r =
-        await _client.send('POST', '/v1/requests', body: input.toJson());
-    return r.when(
-      ok: (d) => Ok(_obj(d, CustomerRequestDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  // --- requests (CUS-S02..S10, S17) — domain-mapped (CM-S07) ---
+  Future<Result<RequestDraftSave>> createRequest(RequestDraftInput input) =>
+      requests.create(input);
 
-  Future<Result<Paged<CustomerRequestDto>>> listMyRequests({
+  Future<Result<PagedResult<RequestForCustomer>>> listMyRequests({
     List<String>? states,
     String? requestType,
     String? direction,
     String? q,
     int? limit,
     String? cursor,
-  }) async {
-    final r = await _client.sendList('GET', '/v1/me/requests', query: {
-      if (states != null && states.isNotEmpty) 'state': states.join(','),
-      if (requestType != null) 'requestType': requestType,
-      if (direction != null) 'direction': direction,
-      if (q != null) 'q': q,
-      if (limit != null) 'limit': limit,
-      if (cursor != null) 'cursor': cursor,
-    });
-    return r.when(
-      ok: (p) => Ok(Paged.from(p, CustomerRequestDto.fromJson)),
-      err: Err.new,
-    );
-  }
+    String? from,
+    String? to,
+  }) =>
+      requests.listMine(
+        state: states,
+        requestType: requestType,
+        direction: direction,
+        q: q,
+        limit: limit ?? 20,
+        cursor: cursor,
+        from: from,
+        to: to,
+      );
 
-  Future<Result<CustomerRequestDto>> getRequest(String id) async {
-    final r = await _client.send('GET', '/v1/requests/$id');
-    return r.when(
-      ok: (d) => Ok(_obj(d, CustomerRequestDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  /// Owner presenter for the signed-in Customer.
+  Future<Result<RequestForCustomer>> getMyRequest(String id) =>
+      requests.getMine(id);
 
-  Future<Result<CustomerRequestDto>> updateRequest(
+  Future<Result<RequestDraftSave>> updateRequest(
     String id,
     RequestDraftInput input,
-  ) async {
-    final r = await _client.send('PATCH', '/v1/requests/$id',
-        body: input.toJson());
-    return r.when(
-      ok: (d) => Ok(_obj(d, CustomerRequestDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  ) =>
+      requests.patch(id, input);
 
-  Future<Result<CustomerRequestDto>> publishRequest(String id) async {
-    final r = await _client.send('POST', '/v1/requests/$id/publish');
-    return r.when(
-      ok: (d) => Ok(_obj(d, CustomerRequestDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  Future<Result<RequestForCustomer>> publishRequest(
+    String id, {
+    String? idempotencyKey,
+  }) =>
+      requests.publish(id, idempotencyKey: idempotencyKey);
 
-  Future<Result<CustomerRequestDto>> cancelRequest(String id, {String? reason}) async {
-    final r = await _client.send('POST', '/v1/requests/$id/cancel',
-        body: {if (reason != null) 'reason': reason});
-    return r.when(
-      ok: (d) => Ok(_obj(d, CustomerRequestDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  Future<Result<RequestForCustomer>> cancelRequest(
+    String id, {
+    String? reason,
+  }) =>
+      requests.cancel(id, reason: reason);
 
-  Future<Result<CustomerRequestDto>> duplicateRequest(String id) async {
-    final r = await _client.send('POST', '/v1/requests/$id/duplicate');
-    return r.when(
-      ok: (d) => Ok(_obj(d, CustomerRequestDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  Future<Result<RequestForCustomer>> duplicateRequest(String id) =>
+      requests.duplicate(id);
 
-  // --- offers (CUS-S11..S14) ---
-  Future<Result<Paged<CustomerOfferDto>>> offersForRequest(
+  // --- offers (CUS-S11..S14) — domain-mapped (CM-S08) ---
+  /// Customer Offers on a Request. Vendor My-Offers uses [offers.listMyOffers].
+  Future<Result<PagedResult<OfferForCustomer>>> offersForRequest(
     String requestId, {
     String? sort,
-    double? minRating,
-    double? priceMin,
-    double? priceMax,
+    String? minRating,
+    String? priceMin,
+    String? priceMax,
     int? limit,
     String? cursor,
-  }) async {
-    final r = await _client
-        .sendList('GET', '/v1/requests/$requestId/offers', query: {
-      if (sort != null) 'sort': sort,
-      if (minRating != null) 'minRating': minRating,
-      if (priceMin != null) 'priceMin': priceMin,
-      if (priceMax != null) 'priceMax': priceMax,
-      if (limit != null) 'limit': limit,
-      if (cursor != null) 'cursor': cursor,
-    });
-    return r.when(
-      ok: (p) => Ok(Paged.from(p, CustomerOfferDto.fromJson)),
-      err: Err.new,
-    );
-  }
+    int? excludeExpiringWithinHours,
+  }) =>
+      offers.listForRequest(
+        requestId,
+        sort: sort,
+        minRating: minRating,
+        priceMin: priceMin,
+        priceMax: priceMax,
+        limit: limit ?? 20,
+        cursor: cursor,
+        excludeExpiringWithinHours: excludeExpiringWithinHours,
+      );
 
-  Future<Result<Paged<CustomerOfferDto>>> myOffers({
-    String? tab,
-    int? limit,
-    String? cursor,
-  }) async {
-    final r = await _client.sendList('GET', '/v1/me/offers', query: {
-      if (tab != null) 'tab': tab,
-      if (limit != null) 'limit': limit,
-      if (cursor != null) 'cursor': cursor,
-    });
-    return r.when(
-      ok: (p) => Ok(Paged.from(p, CustomerOfferDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  /// Customer Offer detail (`GET /v1/offers/{id}` as Customer).
+  /// Vendor detail remains [offers.getOffer] → [OfferForVendor].
+  Future<Result<OfferForCustomer>> getCustomerOffer(String id) =>
+      offers.get(id);
 
-  Future<Result<CustomerOfferDto>> getOffer(String id) async {
-    final r = await _client.send('GET', '/v1/offers/$id');
-    return r.when(
-      ok: (d) => Ok(_obj(d, CustomerOfferDto.fromJson)),
-      err: Err.new,
-    );
-  }
-
-  Future<Result<VendorRatingSummaryDto>> offerVendorRating(String id) async {
-    final r = await _client.send('GET', '/v1/offers/$id/vendor-rating');
-    return r.when(
-      ok: (d) => Ok(_obj(d, VendorRatingSummaryDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  Future<Result<VendorRatingDetail>> offerVendorRating(String id) =>
+      offers.vendorRating(id);
 
   Future<Result<void>> markOfferViewed(String id) async {
     final r = await _client.send('POST', '/v1/offers/$id/viewed');
     return r.when(ok: (_) => const Ok(null), err: Err.new);
   }
 
-  Future<Result<CustomerConnectionDto>> acceptOffer(String id) async {
-    final r = await _client.send('POST', '/v1/offers/$id/accept',
-        body: {'confirmation': 'REVEAL_AND_CONNECT'});
-    return r.when(
-      ok: (d) => Ok(_obj(d, CustomerConnectionDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  /// Accept body is always `{confirmation:"REVEAL_AND_CONNECT"}` (inventory).
+  Future<Result<AcceptOfferResult>> acceptOffer(String id) =>
+      offers.accept(id);
 
-  Future<Result<void>> declineOffer(String id, {String? reason}) async {
-    final r = await _client.send('POST', '/v1/offers/$id/decline',
-        body: {if (reason != null) 'reason': reason});
-    return r.when(ok: (_) => const Ok(null), err: Err.new);
-  }
+  Future<Result<OfferForCustomer>> declineOffer(
+    String id, {
+    String? reason,
+    String? note,
+  }) =>
+      offers.decline(id, reason: reason, note: note);
 
   // --- connections (CUS-S15, S16) ---
-  Future<Result<Paged<CustomerConnectionDto>>> listMyConnections({
+  Future<Result<PagedResult<ConnectionForCustomer>>> listMyConnections({
     String? state,
-    int? limit,
+    int limit = 20,
     String? cursor,
-  }) async {
-    final r = await _client.sendList('GET', '/v1/me/connections', query: {
-      if (state != null) 'state': state,
-      if (limit != null) 'limit': limit,
-      if (cursor != null) 'cursor': cursor,
-    });
-    return r.when(
-      ok: (p) => Ok(Paged.from(p, CustomerConnectionDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  }) =>
+      connections.listMineForCustomer(
+        state: state,
+        limit: limit,
+        cursor: cursor,
+      );
 
-  Future<Result<CustomerConnectionDto>> getConnection(String id) async {
-    final r = await _client.send('GET', '/v1/connections/$id');
-    return r.when(
-      ok: (d) => Ok(_obj(d, CustomerConnectionDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  Future<Result<ConnectionForCustomer>> getConnection(String id) =>
+      connections.getById(id);
 
-  Future<Result<CustomerConnectionDto>> closeConnection(String id, {String? reason}) async {
-    final r = await _client.send('POST', '/v1/connections/$id/close',
-        body: {if (reason != null) 'reason': reason});
-    return r.when(
-      ok: (d) => Ok(_obj(d, CustomerConnectionDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  Future<Result<ConnectionForCustomer>> closeConnection(
+    String id, {
+    String? reason,
+  }) =>
+      connections.closeForCustomer(id, reason: reason);
 
   Future<Result<void>> recordContactEvent(
     String connectionId, {
     required String channel, // WHATSAPP | PHONE
-  }) async {
-    final r = await _client.send(
-        'POST', '/v1/connections/$connectionId/contact-events',
-        body: {'channel': channel});
-    return r.when(ok: (_) => const Ok(null), err: Err.new);
-  }
+  }) =>
+      connections.recordContactEvent(
+        connectionId: connectionId,
+        channel: channel,
+      );
 
   // --- reviews (CUS-S18) ---
-  Future<Result<ReviewDto>> createReview(
+  Future<Result<Review>> createReview(
     String connectionId, {
     required int rating,
     String? comment,
-  }) async {
-    final r = await _client.send(
-        'POST', '/v1/connections/$connectionId/reviews',
-        body: {'rating': rating, if (comment != null) 'comment': comment});
-    return r.when(
-      ok: (d) => Ok(_obj(d, ReviewDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  }) =>
+      reviews.create(
+        connectionId: connectionId,
+        rating: rating,
+        comment: comment,
+      );
 
-  Future<Result<Paged<ReviewDto>>> listMyReviews({
+  Future<Result<PagedResult<Review>>> listMyReviews({
     String? role, // AUTHOR | SUBJECT
-    int? limit,
+    int limit = 20,
     String? cursor,
-  }) async {
-    final r = await _client.sendList('GET', '/v1/me/reviews', query: {
-      if (role != null) 'role': role,
-      if (limit != null) 'limit': limit,
-      if (cursor != null) 'cursor': cursor,
-    });
-    return r.when(
-      ok: (p) => Ok(Paged.from(p, ReviewDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  }) =>
+      reviews.list(
+        role: role,
+        limit: limit,
+        cursor: cursor,
+      );
 
-  Future<Result<ReviewDto>> updateReview(
+  Future<Result<Review>> updateReview(
     String id, {
     int? rating,
     String? comment,
-  }) async {
-    final r = await _client.send('PATCH', '/v1/reviews/$id', body: {
-      if (rating != null) 'rating': rating,
-      if (comment != null) 'comment': comment,
-    });
-    return r.when(
-      ok: (d) => Ok(_obj(d, ReviewDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  }) =>
+      reviews.patch(
+        id,
+        rating: rating,
+        comment: comment,
+      );
 
-  Future<Result<void>> withdrawReview(String id) async {
-    final r = await _client.send('POST', '/v1/reviews/$id/withdraw');
-    return r.when(ok: (_) => const Ok(null), err: Err.new);
-  }
+  Future<Result<Review>> withdrawReview(String id) => reviews.withdraw(id);
 
-  Future<Result<ReviewDto>> respondToReview(String id, String response) async {
-    final r = await _client.send('POST', '/v1/reviews/$id/response',
-        body: {'response': response});
-    return r.when(
-      ok: (d) => Ok(_obj(d, ReviewDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  Future<Result<Review>> respondToReview(String id, String response) =>
+      reviews.respond(id, response: response);
 
-  Future<Result<void>> flagReview(String id) async {
-    final r = await _client.send('POST', '/v1/reviews/$id/flag');
-    return r.when(ok: (_) => const Ok(null), err: Err.new);
-  }
+  Future<Result<void>> flagReview(String id) => reviews.flag(id);
 
   // --- notifications (CUS-S19) ---
-  Future<Result<Paged<NotificationDto>>> listNotifications({
+  Future<Result<PagedResult<AppNotification>>> listNotifications({
     bool? unread,
-    int? limit,
+    int limit = 20,
     String? cursor,
-  }) async {
-    final r = await _client.sendList('GET', '/v1/notifications', query: {
-      if (unread != null) 'unread': unread,
-      if (limit != null) 'limit': limit,
-      if (cursor != null) 'cursor': cursor,
-    });
-    return r.when(
-      ok: (p) => Ok(Paged.from(p, NotificationDto.fromJson)),
-      err: Err.new,
-    );
-  }
+  }) =>
+      notifications.list(
+        unread: unread,
+        limit: limit,
+        cursor: cursor,
+      );
 
-  Future<Result<int>> unreadNotificationCount() async {
-    final r = await _client.send('GET', '/v1/notifications/unread-count');
-    return r.when(
-      ok: (d) => Ok(d is Map ? (d['count'] as int? ?? 0) : (d as int? ?? 0)),
-      err: Err.new,
-    );
-  }
+  Future<Result<int>> unreadNotificationCount() => notifications.unreadCount();
 
-  Future<Result<void>> markNotificationRead(String id) async {
-    final r = await _client.send('POST', '/v1/notifications/$id/read');
-    return r.when(ok: (_) => const Ok(null), err: Err.new);
-  }
+  Future<Result<AppNotification>> markNotificationRead(String id) =>
+      notifications.markRead(id);
 
-  Future<Result<void>> markAllNotificationsRead() async {
-    final r = await _client.send('POST', '/v1/notifications/read-all');
-    return r.when(ok: (_) => const Ok(null), err: Err.new);
-  }
+  Future<Result<void>> markAllNotificationsRead() =>
+      notifications.markAllRead();
 
   // --- settings (CUS-S21) ---
   Future<Result<UserSettingsDto>> getSettings() async {
@@ -643,18 +535,20 @@ class KhApi {
   }
 
   // --- abuse (CUS-S22) ---
-  Future<Result<void>> reportAbuse({
-    required String entityType, // REQUEST|OFFER|CONNECTION|REVIEW|VENDOR|CUSTOMER
+  Future<Result<AbuseReport>> reportAbuse({
+    required dynamic entityType, // AbuseEntityType or String
     required String entityId,
     required String category,
     required String description,
-  }) async {
-    final r = await _client.send('POST', '/v1/abuse-reports', body: {
-      'entityType': entityType,
-      'entityId': entityId,
-      'category': category,
-      'description': description,
-    });
-    return r.when(ok: (_) => const Ok(null), err: Err.new);
+  }) {
+    final AbuseEntityType type = entityType is AbuseEntityType
+        ? entityType
+        : AbuseEntityType.parse(entityType.toString());
+    return abuse.submit(
+      entityType: type,
+      entityId: entityId,
+      category: category,
+      description: description,
+    );
   }
 }

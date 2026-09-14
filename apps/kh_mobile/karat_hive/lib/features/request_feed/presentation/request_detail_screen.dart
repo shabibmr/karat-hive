@@ -72,9 +72,12 @@ class RequestDetailScreen extends ConsumerWidget {
           };
           final isClosed = closedStates.contains(item.state.toUpperCase());
           final actionsDisabled = isExpired || isClosed;
-          final imageUrls = item.media
-              .map((m) => m.displayUrl ?? m.thumbnailUrl ?? '')
-              .where((url) => url.isNotEmpty)
+          final galleryImages = item.media
+              .map((m) => GalleryImage(
+                    url: m.displayUrl ?? m.thumbnailUrl ?? '',
+                    contentType: m.contentType,
+                  ))
+              .where((img) => img.url.isNotEmpty)
               .toList(growable: false);
 
           return Column(
@@ -84,8 +87,8 @@ class RequestDetailScreen extends ConsumerWidget {
                   padding: EdgeInsets.all(tokens.space.md),
                   children: [
                     // Media Gallery (SH-MED-03)
-                    if (imageUrls.isNotEmpty) ...[
-                      KhImageGallery(imageUrls: imageUrls),
+                    if (galleryImages.isNotEmpty) ...[
+                      KhImageGallery(images: galleryImages),
                       SizedBox(height: tokens.space.md),
                     ],
 
@@ -188,30 +191,7 @@ class RequestDetailScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      SizedBox(height: tokens.space.md),
                     ],
-
-                    // Offers summary (Competitor price blind - BR-008)
-                    Card(
-                      elevation: 0,
-                      color: tokens.surface,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(tokens.radius.md),
-                        side: BorderSide(color: tokens.ink.withValues(alpha: 0.12)),
-                      ),
-                      child: ListTile(
-                        leading: Icon(Icons.local_offer, color: tokens.gold),
-                        title: Text(
-                          l10n?.offersReceived(item.offerCount) ??
-                              '${item.offerCount} ${item.offerCount == 1 ? 'offer' : 'offers'} received',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        subtitle: Text(
-                          l10n?.competitorPricingHidden ??
-                              'Competitor pricing and terms are hidden per marketplace rules.',
-                        ),
-                      ),
-                    ),
                     SizedBox(height: tokens.space.lg),
                   ],
                 ),

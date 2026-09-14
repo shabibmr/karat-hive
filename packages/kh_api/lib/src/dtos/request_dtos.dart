@@ -169,6 +169,32 @@ class RequestDraftInput {
   final Map<String, dynamic>? gemstones;
   final List<String>? mediaKeys;
 
+  factory RequestDraftInput.fromJson(Map<String, dynamic> j) =>
+      RequestDraftInput(
+        requestType: j['requestType'] as String?,
+        direction: j['direction'] as String?,
+        categoryId: j['categoryId'] as String?,
+        regionId: j['regionId'] as String?,
+        notes: j['notes'] as String?,
+        weightGrams: j['weightGrams'],
+        weightIsApproximate: j['weightIsApproximate'] as bool?,
+        purityKarat: j['purityKarat'] as String?,
+        ornamentType: j['ornamentType'] as String?,
+        condition: j['condition'] as String?,
+        denominationGrams: j['denominationGrams'],
+        quantity: (j['quantity'] as num?)?.toInt(),
+        mintOrRefiner: j['mintOrRefiner'] as String?,
+        budgetMin: j['budgetMin'],
+        budgetMax: j['budgetMax'],
+        budgetIsFlexible: j['budgetIsFlexible'] as bool?,
+        gemstones: j['gemstones'] is Map
+            ? Map<String, dynamic>.from(j['gemstones'] as Map)
+            : null,
+        mediaKeys: (j['mediaKeys'] as List?)
+            ?.map((e) => e.toString())
+            .toList(growable: false),
+      );
+
   Map<String, dynamic> toJson() => {
         if (requestType != null) 'requestType': requestType,
         if (direction != null) 'direction': direction,

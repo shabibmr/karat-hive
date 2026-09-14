@@ -24,7 +24,7 @@ Map<String, dynamic> _normalizeVendorDashboardJson(Map<String, dynamic> json) {
   return {
     'newRequests': countOf('newRequests'),
     'newRequestPreview': previewRaw
-        .whereType<Map>()
+        .whereType<Map<dynamic, dynamic>>()
         .map((e) => Map<String, dynamic>.from(e))
         .toList(growable: false),
     'pendingOffers': countOf('pendingOffers'),

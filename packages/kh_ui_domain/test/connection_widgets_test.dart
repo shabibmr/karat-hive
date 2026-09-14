@@ -67,7 +67,7 @@ void main() {
       _host(
         TalkButton(
           talk: _talk(waUrl: '', available: true),
-          onTalk: () {},
+          onTalk: (_) {},
         ),
       ),
     );
@@ -77,20 +77,35 @@ void main() {
     expect(find.textContaining('wa.me'), findsNothing);
   });
 
-  testWidgets('SH-CON-02 Talk is enabled when waUrl is present', (tester) async {
-    var tapped = false;
+  testWidgets('SH-CON-02 Talk passes payload waUrl and never invents one',
+      (tester) async {
+    String? openedUrl;
+    const payloadUrl = 'https://wa.me/971501234567?text=Hello';
     await tester.pumpWidget(
       _host(
         TalkButton(
-          talk: _talk(),
-          onTalk: () => tapped = true,
+          talk: _talk(waUrl: payloadUrl),
+          onTalk: (url) => openedUrl = url,
         ),
       ),
     );
 
     expect(find.byKey(const Key('talk-button')), findsOneWidget);
     await tester.tap(find.byKey(const Key('talk-button')));
-    expect(tapped, isTrue);
+    expect(openedUrl, payloadUrl);
+  });
+
+  testWidgets('SH-CON-04 Close Connection button fires callback', (tester) async {
+    var closed = false;
+    await tester.pumpWidget(
+      _host(
+        CloseConnectionButton(onPressed: () => closed = true),
+      ),
+    );
+
+    expect(find.byKey(const Key('close-connection-button')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('close-connection-button')));
+    expect(closed, isTrue);
   });
 
   testWidgets('SH-CON-03 disables call when callUrl is absent', (tester) async {

@@ -23,8 +23,6 @@ Compose a `BUY` Request for a jewellery piece Vendors can source or match.
 |---|---|---|---|---|
 | Request type | Display | — | Find An Ornament | Locked |
 | Direction | Display | — | BUY | Fixed; not editable |
-| Category | Input | Yes | taxonomy pick | Matching |
-| Region | Input | Yes | taxonomy pick | Default from profile optional |
 | Ornament type | Input | Yes | ring, chain, bangle, necklace, earring, bracelet, pendant, other | |
 | Weight (g) | Input | Conditional | decimal 0.10–5000.00, 2 dp | Spec capture |
 | Weight is approximate | Input | No | boolean | Surfaced to Vendors |

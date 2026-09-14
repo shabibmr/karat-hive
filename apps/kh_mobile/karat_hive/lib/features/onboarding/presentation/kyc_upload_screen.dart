@@ -14,14 +14,27 @@ import '../../../app/session/session_controller.dart';
 import '../controller/kyc_upload_controller.dart';
 import '../controller/vendor_me_controller.dart';
 
-/// VEN-S02 — one SH-MED-04 tile per mandatory document.
-class KycUploadScreen extends ConsumerWidget {
+/// VEN-S02 — KYC verification: business licence details + document uploads.
+class KycUploadScreen extends ConsumerStatefulWidget {
   const KycUploadScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<KycUploadScreen> createState() => _KycUploadScreenState();
+}
+
+class _KycUploadScreenState extends ConsumerState<KycUploadScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(kycUploadControllerProvider.notifier).prefetchDocumentIntent();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final files = ref.watch(kycUploadControllerProvider);
+    final state = ref.watch(kycUploadControllerProvider);
     final controller = ref.read(kycUploadControllerProvider.notifier);
 
     Future<void> pick(VendorDocumentType type) async {
@@ -39,28 +52,83 @@ class KycUploadScreen extends ConsumerWidget {
     }
 
     return KhScaffold(
-      title: l10n?.onboardingUploadKyc ?? 'Upload documents',
+      title: 'Verify your business',
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (state.failure != null) ...[
+            KhInlineError(
+              message: state.failure!.message ?? 'Verification update failed.',
+            ),
+            const SizedBox(height: 12),
+          ],
           Text(
-            l10n?.onboardingKycUploadHint ??
-                'Upload your trade licence and Emirates ID for verification.',
+            'Enter your official business licence details and upload required documents.',
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
+
+          // SECTION 1: Legal & Licence Details
+          Text(
+            'Official Business Details',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 12),
+          KhTextField(
+            label: 'Registered company / Legal name *',
+            initialValue: state.legalBusinessName,
+            onChanged: (v) => controller.patchFields(legalBusinessName: v),
+          ),
+          KhTextField(
+            label: 'Trade licence number *',
+            initialValue: state.tradeLicenceNumber,
+            onChanged: (v) => controller.patchFields(tradeLicenceNumber: v),
+          ),
+          KhTextField(
+            label: 'Licence expiry date (YYYY-MM-DD) *',
+            initialValue: state.licenceExpiryDate,
+            readOnly: true,
+            onTap: () async {
+              final now = DateTime.now();
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: now.add(const Duration(days: 365)),
+                firstDate: now,
+                lastDate: now.add(const Duration(days: 365 * 10)),
+              );
+              if (picked != null) {
+                final formatted =
+                    '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                controller.patchFields(licenceExpiryDate: formatted);
+              }
+            },
+            onChanged: (v) => controller.patchFields(licenceExpiryDate: v),
+          ),
+          const SizedBox(height: 16),
+
+          // SECTION 2: Document Uploads
+          Text(
+            'Verification Documents',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 8),
           DocumentChecklist(
             present: {
               for (final type in mandatoryVendorDocuments)
-                if (files[type]?.done ?? false) type,
+                if (state.documents[type]?.done ?? false) type,
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           for (final type in mandatoryVendorDocuments)
             DocumentUploadTile(
               label: type.label,
-              state: _tileState(files[type]),
-              progress: files[type]?.progress ?? 0,
-              errorText: files[type]?.failure?.message,
+              state: _tileState(state.documents[type]),
+              progress: state.documents[type]?.progress ?? 0,
+              errorText: state.documents[type]?.failure?.message,
               onPick: () => pick(type),
               addLabel: l10n?.uploadActionAdd ?? 'Add',
               replaceLabel: l10n?.uploadActionReplace ?? 'Replace',
@@ -68,12 +136,16 @@ class KycUploadScreen extends ConsumerWidget {
             ),
           const SizedBox(height: 24),
           KhButton(
-            label: l10n?.commonDone ?? 'Done',
-            onPressed: controller.allMandatoryDone
+            label: 'Submit for Verification',
+            busy: state.busy,
+            onPressed: state.isReadyToSubmit
                 ? () async {
-                    ref.invalidate(vendorMeProvider);
-                    await ref.read(sessionProvider.notifier).refreshUser();
-                    if (context.mounted) context.go(AppGuards.awaiting);
+                    final ok = await controller.submitKyc();
+                    if (ok && context.mounted) {
+                      ref.invalidate(vendorMeProvider);
+                      await ref.read(sessionProvider.notifier).refreshUser();
+                      if (context.mounted) context.go(AppGuards.awaiting);
+                    }
                   }
                 : null,
           ),

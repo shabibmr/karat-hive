@@ -67,11 +67,16 @@ class KhApiClient {
   }
 
   /// GET/POST/PATCH/PUT/DELETE returning the unwrapped `data` payload or a [Failure].
+  ///
+  /// [headers] are merged onto the request before the interceptor chain. Use
+  /// this for caller-held `idempotency-key` values (Architecture-Frontend §9.4);
+  /// the chain uses `putIfAbsent` so a provided key is not replaced.
   Future<Result<dynamic>> send(
     String method,
     String path, {
     Object? body,
     Map<String, dynamic>? query,
+    Map<String, String>? headers,
     bool revealAuth = true,
     bool unwrapData = true,
   }) async {
@@ -80,7 +85,11 @@ class KhApiClient {
         path,
         data: body,
         queryParameters: query,
-        options: Options(method: method, extra: {'kh.revealAuth': revealAuth}),
+        options: Options(
+          method: method,
+          headers: headers,
+          extra: {'kh.revealAuth': revealAuth},
+        ),
       );
       return _mapResponse(response, unwrapData: unwrapData);
     } on DioException catch (e) {

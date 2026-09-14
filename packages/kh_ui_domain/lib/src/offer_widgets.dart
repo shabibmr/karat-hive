@@ -4,6 +4,7 @@ import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
 import 'expiry_countdown.dart';
+import 'masked_party_label.dart';
 import 'money_display.dart';
 
 KhStatusTone offerStateTone(OfferState state) => switch (state) {
@@ -28,10 +29,148 @@ String offerStateLabel(OfferState state, AppLocalizations? l10n) =>
       OfferState.unknown => l10n?.offerStateUnknown ?? 'Unknown',
     };
 
-/// SH-OFF-01 — Offer summary row for My Offers lists.
+/// View mode for [OfferSummaryCard] (SH-OFF-01).
+enum OfferSummaryCardView {
+  /// Customer Offers list (CUS-S11) — counterparty is [MaskedParty] Vendor.
+  customer,
+
+  /// Vendor My Offers (VEN-S11) — counterparty is masked Customer label.
+  vendor,
+}
+
+/// SH-OFF-01 — Offer summary row (Customer and Vendor variants).
+///
+/// Customer variant takes [OfferForCustomer] only — Vendor identity fields are
+/// unreachable ([MaskedParty] via [MaskedPartyLabel]).
 class OfferSummaryCard extends StatelessWidget {
+  /// Vendor My-Offers row (backward-compatible positional API).
   const OfferSummaryCard({
     super.key,
+    required OfferForVendor offer,
+    this.onTap,
+    this.connectionComingSoonLabel,
+    this.selected = false,
+  })  : view = OfferSummaryCardView.vendor,
+        vendorOffer = offer,
+        customerOffer = null;
+
+  const OfferSummaryCard.vendor({
+    super.key,
+    required OfferForVendor offer,
+    this.onTap,
+    this.connectionComingSoonLabel,
+    this.selected = false,
+  })  : view = OfferSummaryCardView.vendor,
+        vendorOffer = offer,
+        customerOffer = null;
+
+  /// Customer Offers-on-Request row (CUS-S11).
+  const OfferSummaryCard.customer({
+    super.key,
+    required OfferForCustomer offer,
+    this.onTap,
+    this.selected = false,
+  })  : view = OfferSummaryCardView.customer,
+        customerOffer = offer,
+        vendorOffer = null,
+        connectionComingSoonLabel = null;
+
+  final OfferSummaryCardView view;
+  final OfferForCustomer? customerOffer;
+  final OfferForVendor? vendorOffer;
+  final VoidCallback? onTap;
+  final String? connectionComingSoonLabel;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    if (view == OfferSummaryCardView.customer) {
+      return _CustomerOfferSummaryCard(
+        offer: customerOffer!,
+        onTap: onTap,
+        selected: selected,
+      );
+    }
+    return _VendorOfferSummaryCard(
+      offer: vendorOffer!,
+      onTap: onTap,
+      connectionComingSoonLabel: connectionComingSoonLabel,
+    );
+  }
+}
+
+class _CustomerOfferSummaryCard extends StatelessWidget {
+  const _CustomerOfferSummaryCard({
+    required this.offer,
+    this.onTap,
+    this.selected = false,
+  });
+
+  final OfferForCustomer offer;
+  final VoidCallback? onTap;
+  final bool selected;
+
+  /// Unread only when the wire key is present and the timestamp is null (SAM-GAP-1).
+  bool get _unread =>
+      offer.viewedByCustomerAtPresent && offer.viewedByCustomerAt == null;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final l10n = AppLocalizations.of(context);
+    final price = double.tryParse(offer.terms.offeredPrice) ?? 0;
+    final borderColor = selected
+        ? tokens.gold
+        : tokens.ink.withValues(alpha: 0.12);
+
+    return Card(
+      key: Key('offer-summary-${offer.id}'),
+      elevation: 0,
+      color: tokens.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        side: BorderSide(color: borderColor, width: selected ? 2 : 1),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        child: Padding(
+          padding: EdgeInsets.all(tokens.space.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: MaskedPartyLabel(party: offer.vendor),
+                  ),
+                  if (_unread) ...[
+                    const KhBadge(count: 1),
+                    SizedBox(width: tokens.space.xs),
+                  ],
+                  KhStatusChip(
+                    label: offerStateLabel(offer.state, l10n),
+                    tone: offerStateTone(offer.state),
+                    compact: true,
+                  ),
+                ],
+              ),
+              SizedBox(height: tokens.space.sm),
+              MoneyDisplay(amount: price, highlight: true),
+              if (offer.state == OfferState.pending) ...[
+                SizedBox(height: tokens.space.sm),
+                ExpiryCountdown(expiresAt: offer.expiresAt),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VendorOfferSummaryCard extends StatelessWidget {
+  const _VendorOfferSummaryCard({
     required this.offer,
     this.onTap,
     this.connectionComingSoonLabel,
@@ -68,6 +207,21 @@ class OfferSummaryCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (offer.terms.media.isNotEmpty) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(tokens.radius.sm),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Image.network(
+                      offer.terms.media.first.key,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+                SizedBox(height: tokens.space.sm),
+              ],
               Row(
                 children: [
                   Expanded(
@@ -100,7 +254,21 @@ class OfferSummaryCard extends StatelessWidget {
               ],
               if (offer.state == OfferState.pending) ...[
                 SizedBox(height: tokens.space.sm),
-                ExpiryCountdown(expiresAt: offer.expiresAt),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ExpiryCountdown(expiresAt: offer.expiresAt),
+                    KhStatusChip(
+                      label: offer.isSeenByCustomer
+                          ? 'Seen by Customer'
+                          : 'Not Seen Yet',
+                      tone: offer.isSeenByCustomer
+                          ? KhStatusTone.accent
+                          : KhStatusTone.neutral,
+                      compact: true,
+                    ),
+                  ],
+                ),
               ],
               if (offer.awardedElsewhere) ...[
                 SizedBox(height: tokens.space.sm),
@@ -134,6 +302,7 @@ class OfferSummaryCard extends StatelessWidget {
 class OfferTermsDraft {
   OfferTermsDraft({
     this.offeredPrice = '',
+    this.weightGrams = '',
     this.validityHours = 24,
     this.makingCharges = '',
     this.ratePerGram = '',
@@ -144,6 +313,7 @@ class OfferTermsDraft {
   }) : mediaKeys = List<String>.from(mediaKeys ?? const []);
 
   String offeredPrice;
+  String weightGrams;
   int validityHours;
   String makingCharges;
   String ratePerGram;
@@ -155,6 +325,7 @@ class OfferTermsDraft {
   OfferTermsInput toInput() => OfferTermsInput(
         offeredPrice: offeredPrice.trim(),
         validityHours: validityHours,
+        weightGrams: weightGrams.trim().isEmpty ? null : weightGrams.trim(),
         makingCharges: makingCharges.trim().isEmpty ? null : makingCharges.trim(),
         ratePerGram: ratePerGram.trim().isEmpty ? null : ratePerGram.trim(),
         deliveryTimeframe:
@@ -167,6 +338,7 @@ class OfferTermsDraft {
 
   factory OfferTermsDraft.fromTerms(OfferTerms terms) => OfferTermsDraft(
         offeredPrice: terms.offeredPrice,
+        weightGrams: terms.weightGrams ?? '',
         validityHours: terms.validityHours == 0 ? 24 : terms.validityHours,
         makingCharges: terms.makingCharges ?? '',
         ratePerGram: terms.ratePerGram ?? '',
@@ -256,11 +428,12 @@ class OfferTermsForm extends StatelessWidget {
   const OfferTermsForm({
     super.key,
     required this.draft,
-    required this.validityOptions,
+    this.validityOptions = const [24],
     required this.onChanged,
     this.requestExpiresAt,
     this.now,
     this.showMediaHint = true,
+    this.showValidityPicker = false,
     this.mediaSlot,
   });
 
@@ -270,6 +443,7 @@ class OfferTermsForm extends StatelessWidget {
   final DateTime? requestExpiresAt;
   final DateTime? now;
   final bool showMediaHint;
+  final bool showValidityPicker;
   final Widget? mediaSlot;
 
   @override
@@ -292,16 +466,30 @@ class OfferTermsForm extends StatelessWidget {
           },
         ),
         SizedBox(height: tokens.space.md),
-        OfferValidityPicker(
-          options: validityOptions,
-          value: draft.validityHours,
-          requestExpiresAt: requestExpiresAt,
-          now: now,
-          onChanged: (h) {
-            draft.validityHours = h;
+        KhNumericField(
+          key: const Key('offer-weight-field'),
+          label: 'Gold weight (grams, optional)',
+          unit: 'g',
+          initialValue: draft.weightGrams,
+          min: 0.01,
+          onChanged: (v) {
+            draft.weightGrams = v?.toStringAsFixed(2) ?? '';
             onChanged();
           },
         ),
+        if (showValidityPicker) ...[
+          SizedBox(height: tokens.space.md),
+          OfferValidityPicker(
+            options: validityOptions,
+            value: draft.validityHours,
+            requestExpiresAt: requestExpiresAt,
+            now: now,
+            onChanged: (h) {
+              draft.validityHours = h;
+              onChanged();
+            },
+          ),
+        ],
         SizedBox(height: tokens.space.md),
         KhNumericField(
           label: l10n?.offerMakingChargesLabel ?? 'Making charges (optional)',
@@ -368,7 +556,7 @@ class OfferTermsForm extends StatelessWidget {
   }
 }
 
-/// SH-OFF-04 — read-only terms snapshot.
+/// SH-OFF-04 — read-only terms snapshot (full attributes + images).
 class OfferTermsReadOnly extends StatelessWidget {
   const OfferTermsReadOnly({
     super.key,
@@ -425,6 +613,11 @@ class OfferTermsReadOnly extends StatelessWidget {
               l10n?.offerValidityHours(terms.validityHours) ??
                   '${terms.validityHours} hours',
             ),
+            if (terms.weightGrams != null && terms.weightGrams!.isNotEmpty)
+              row(
+                'Gold weight',
+                '${terms.weightGrams}g',
+              ),
             if (terms.makingCharges != null && terms.makingCharges!.isNotEmpty)
               row(
                 l10n?.offerMakingChargesLabel ?? 'Making charges',
@@ -448,6 +641,39 @@ class OfferTermsReadOnly extends StatelessWidget {
               ),
             if (terms.vendorNote != null && terms.vendorNote!.isNotEmpty)
               row(l10n?.offerNoteLabel ?? 'Note', terms.vendorNote!),
+            if (terms.media.isNotEmpty) ...[
+              SizedBox(height: tokens.space.sm),
+              SizedBox(
+                height: 72,
+                child: ListView.separated(
+                  key: const Key('offer-terms-media'),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: terms.media.length,
+                  separatorBuilder: (_, __) => SizedBox(width: tokens.space.xs),
+                  itemBuilder: (context, i) {
+                    final ref = terms.media[i];
+                    final url = ref.displayUrl ?? ref.thumbnailUrl ?? ref.key;
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(tokens.radius.sm),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Image.network(
+                          url,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => ColoredBox(
+                            color: tokens.ink.withValues(alpha: 0.06),
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: tokens.ink.withValues(alpha: 0.4),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
             if (expiresAt != null) ...[
               SizedBox(height: tokens.space.sm),
               ExpiryCountdown(expiresAt: expiresAt!),

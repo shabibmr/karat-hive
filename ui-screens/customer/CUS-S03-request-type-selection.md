@@ -8,7 +8,7 @@
 
 ## Purpose
 
-Choose exactly one Request Type before the type-specific create flow. Type cannot change after publish.
+The premier visual frontage of Karat Hive. A luxury digital salon facade presenting the 4 marketplace trading avenues with Art Deco metallic cards, direction indicators, and trust signals.
 
 ## Entry / exit
 
@@ -17,13 +17,17 @@ Choose exactly one Request Type before the type-specific create flow. Type canno
 | Entry | Home quick-create; create nav |
 | Exit | CUS-S04 / S05 / S06 / S07 by type |
 
-## Fields
+## Fields & Visual Elements
 
 | Field / UI element | Kind | Required | Type / options | Notes |
 |---|---|---|---|---|
-| Request type | Input | Yes | Find An Ornament · Sell Old Gold · Buy/Sell Gold Coin(s) · Buy/Sell Gold Bullion | Single select |
-| Type description | Display | — | copy per type | Helps choose correctly |
-| Continue | Action | — | — | Opens type-specific form |
+| Salon Hero Header | Display | — | Eyebrow + title + subhead | Art Deco diamond badge + luxury editorial copy |
+| Request type cards | Input | Yes | 4 bespoke cards | Bespoke Art Deco icon frames, dual borders, gradient background |
+| Direction / Category pill | Display | — | BUY · BESPOKE / SELL · INSTANT / etc. | Clear direction badge on each card |
+| Highlights chips | Display | — | Feature tags | e.g. [Custom Designs], [24K / 999.9], [Sealed Packs] |
+| Type description | Display | — | Refined copy per type | Detailed purpose and scope |
+| Trust assurance footer | Display | — | Shield badge row | 100% Identity Masking · 48h Window · Verified UAE Jewellers |
+| Continue / Card tap | Action | — | — | Selects type and opens type-specific flow |
 
 ## Validation & rules
 

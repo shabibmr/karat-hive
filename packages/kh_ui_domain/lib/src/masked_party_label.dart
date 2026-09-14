@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
@@ -99,7 +101,7 @@ class TrustSignalBadge extends StatelessWidget {
 /// SH-ID-01 — Masked Party Label (Visual expression of BR-006 / AD-FE-07).
 ///
 /// Accepts strictly [MaskedParty]. Contains no name, mobile, or address fields.
-/// Mistakes of leaking customer identity are unrepresentable by type design.
+/// Thick frosted glass badge with blurred characters obscures raw identification.
 class MaskedPartyLabel extends StatelessWidget {
   const MaskedPartyLabel({
     super.key,
@@ -122,11 +124,11 @@ class MaskedPartyLabel extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: compact ? 12 : 16,
-          backgroundColor: tokens.gold.withValues(alpha: 0.2),
+          backgroundColor: tokens.gold.withValues(alpha: 0.15),
           child: Icon(
-            Icons.person_outline,
-            size: compact ? 14 : 18,
-            color: tokens.ink,
+            Icons.lock_outline,
+            size: compact ? 13 : 16,
+            color: tokens.gold,
           ),
         ),
         SizedBox(width: tokens.space.xs),
@@ -138,14 +140,53 @@ class MaskedPartyLabel extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    pseudonym,
-                    style: TextStyle(
-                      fontSize: compact ? 12 : 14,
-                      fontWeight: FontWeight.w600,
-                      color: tokens.ink,
+                  // Thick frosted glass blurred badge
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: compact ? 6 : 8,
+                      vertical: compact ? 2 : 4,
                     ),
-                    overflow: TextOverflow.ellipsis,
+                    decoration: BoxDecoration(
+                      color: tokens.ink.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(tokens.radius.sm),
+                      border: Border.all(
+                        color: tokens.ink.withValues(alpha: 0.12),
+                        width: 1,
+                      ),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        ImageFiltered(
+                          imageFilter: ui.ImageFilter.blur(sigmaX: 4.5, sigmaY: 4.5),
+                          child: Text(
+                            'kH•9aXz7Q#m',
+                            style: TextStyle(
+                              fontSize: compact ? 11 : 13,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 2,
+                              color: tokens.ink,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: tokens.surface.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            pseudonym,
+                            style: TextStyle(
+                              fontSize: compact ? 11 : 12,
+                              fontWeight: FontWeight.w600,
+                              color: tokens.ink.withValues(alpha: 0.9),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   if (region != null && region.isNotEmpty) ...[
                     const SizedBox(width: 4),
@@ -153,6 +194,7 @@ class MaskedPartyLabel extends StatelessWidget {
                       '($region)',
                       style: TextStyle(
                         fontSize: compact ? 11 : 12,
+                        fontWeight: FontWeight.w500,
                         color: tokens.ink.withValues(alpha: 0.6),
                       ),
                     ),

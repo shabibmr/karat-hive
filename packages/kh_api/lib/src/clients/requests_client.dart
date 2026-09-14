@@ -1,6 +1,9 @@
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+import '../dtos.dart';
+import '../request_draft_save.dart';
+
 PagedResult<T> _paged<T>(
   dynamic raw,
   T Function(Map<String, dynamic>) parse,
@@ -79,6 +82,38 @@ class RequestsClient {
     );
   }
 
+  /// `POST /v1/requests` — creates a DRAFT. Preserves `meta.warnings`.
+  Future<Result<RequestDraftSave>> create(RequestDraftInput input) async {
+    final r = await _client.send(
+      'POST',
+      '/v1/requests',
+      body: input.toJson(),
+      unwrapData: false,
+    );
+    return r.when(
+      ok: (raw) => Ok(RequestDraftSave.fromEnvelope(raw)),
+      err: Err.new,
+    );
+  }
+
+  /// Full draft `PATCH /v1/requests/{id}` (any field while DRAFT).
+  Future<Result<RequestDraftSave>> patch(
+    String id,
+    RequestDraftInput input,
+  ) async {
+    final r = await _client.send(
+      'PATCH',
+      '/v1/requests/$id',
+      body: input.toJson(),
+      unwrapData: false,
+    );
+    return r.when(
+      ok: (raw) => Ok(RequestDraftSave.fromEnvelope(raw)),
+      err: Err.new,
+    );
+  }
+
+  /// Published / offers-received edit — notes, budget*, mediaKeys only.
   Future<Result<RequestForCustomer>> patchMine(
     String id, {
     String? notes,
@@ -100,12 +135,39 @@ class RequestsClient {
     );
   }
 
+  /// `POST /v1/requests/{id}/publish`. Pass [idempotencyKey] for OAuth-bind
+  /// retry so the interceptor does not mint a second key (§9.4).
+  Future<Result<RequestForCustomer>> publish(
+    String id, {
+    String? idempotencyKey,
+  }) async {
+    final r = await _client.send(
+      'POST',
+      '/v1/requests/$id/publish',
+      headers: idempotencyKey == null
+          ? null
+          : {'idempotency-key': idempotencyKey},
+    );
+    return r.when(
+      ok: (d) => Ok(RequestForCustomer.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
   Future<Result<RequestForCustomer>> cancel(String id, {String? reason}) async {
     final r = await _client.send(
       'POST',
       '/v1/requests/$id/cancel',
       body: {if (reason != null) 'reason': reason},
     );
+    return r.when(
+      ok: (d) => Ok(RequestForCustomer.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<RequestForCustomer>> duplicate(String id) async {
+    final r = await _client.send('POST', '/v1/requests/$id/duplicate');
     return r.when(
       ok: (d) => Ok(RequestForCustomer.fromJson(d as Map<String, dynamic>)),
       err: Err.new,

@@ -154,8 +154,33 @@ void main() {
     });
   });
 
+  Map<String, dynamic> customerRequestJson({
+    String id = 'req-1',
+    String state = 'DRAFT',
+    String? reference,
+    int? unreadOfferCount,
+    String? connectionId,
+  }) =>
+      {
+        'id': id,
+        if (reference != null) 'reference': reference,
+        'requestType': 'FIND_ORNAMENT',
+        'direction': 'BUY',
+        'state': state,
+        'category': {'id': 'cat-1', 'nameEn': 'Necklace', 'nameAr': 'عقد'},
+        'region': {'id': 'reg-dxb', 'nameEn': 'Dubai', 'nameAr': 'دبي'},
+        'weightIsApproximate': false,
+        'budgetIsFlexible': true,
+        'offerCount': 0,
+        if (unreadOfferCount != null) 'unreadOfferCount': unreadOfferCount,
+        if (connectionId != null) 'connectionId': connectionId,
+        'media': <dynamic>[],
+        'createdAt': '2026-09-07T01:00:00.000Z',
+        'updatedAt': '2026-09-07T01:00:00.000Z',
+      };
+
   group('RequestsClient', () {
-    test('getRequest fetches single request item', () async {
+    test('getRequest fetches Vendor request item', () async {
       final client = createClient((opts) async {
         expect(opts.path, '/v1/requests/req-detail-1');
         return jsonBody({
@@ -192,6 +217,151 @@ void main() {
       expect(item.requestType, 'CUSTOM_DESIGN');
       expect(item.media.length, 1);
       expect(item.media.first.key, 'req-images/1.jpg');
+    });
+
+    test('listMine maps RequestForCustomer pages', () async {
+      final client = createClient((opts) async {
+        expect(opts.method, 'GET');
+        expect(opts.path, '/v1/me/requests');
+        expect(opts.queryParameters['state'], 'PUBLISHED,OFFERS_RECEIVED');
+        return jsonBody({
+          'data': [
+            customerRequestJson(
+              id: 'req-live',
+              state: 'PUBLISHED',
+              reference: 'KH-RQ-2026-000001',
+              unreadOfferCount: 2,
+            ),
+          ],
+          'meta': {'nextCursor': 'c2', 'hasMore': true},
+        });
+      });
+
+      final res = await KhApi(client).requests.listMine(
+            state: const ['PUBLISHED', 'OFFERS_RECEIVED'],
+          );
+      expect(res.isOk, isTrue);
+      final page = res.unwrap();
+      expect(page.items, hasLength(1));
+      expect(page.items.first.reference, 'KH-RQ-2026-000001');
+      expect(page.items.first.unreadOfferCount, 2);
+      expect(page.nextCursor, 'c2');
+    });
+
+    test('create returns RequestDraftSave with warnings', () async {
+      final client = createClient((opts) async {
+        expect(opts.method, 'POST');
+        expect(opts.path, '/v1/requests');
+        expect(opts.data['requestType'], 'FIND_ORNAMENT');
+        return jsonBody({
+          'data': customerRequestJson(),
+          'meta': {
+            'warnings': [
+              {'code': 'CONTACT_DETAILS_IN_TEXT', 'message': 'Avoid phone numbers'},
+            ],
+          },
+        }, status: 201);
+      });
+
+      final res = await KhApi(client).requests.create(
+            const RequestDraftInput(
+              requestType: 'FIND_ORNAMENT',
+              direction: 'BUY',
+              categoryId: 'cat-1',
+              regionId: 'reg-dxb',
+            ),
+          );
+      expect(res.isOk, isTrue);
+      final save = res.unwrap();
+      expect(save.request.id, 'req-1');
+      expect(save.request.state, RequestState.draft);
+      expect(save.warnings, ['Avoid phone numbers']);
+    });
+
+    test('patch full draft body', () async {
+      final client = createClient((opts) async {
+        expect(opts.method, 'PATCH');
+        expect(opts.path, '/v1/requests/req-1');
+        expect(opts.data['notes'], 'Need 22K');
+        return jsonBody({'data': customerRequestJson()});
+      });
+
+      final res = await KhApi(client).requests.patch(
+            'req-1',
+            const RequestDraftInput(notes: 'Need 22K'),
+          );
+      expect(res.isOk, isTrue);
+      expect(res.unwrap().request.id, 'req-1');
+    });
+
+    test('publish sends caller-held idempotency-key', () async {
+      final client = createClient((opts) async {
+        expect(opts.method, 'POST');
+        expect(opts.path, '/v1/requests/req-1/publish');
+        expect(opts.headers['idempotency-key'], 'pub-key-1');
+        return jsonBody({
+          'data': customerRequestJson(
+            state: 'PUBLISHED',
+            reference: 'KH-RQ-2026-000002',
+          ),
+        });
+      });
+
+      final res = await KhApi(client).requests.publish(
+            'req-1',
+            idempotencyKey: 'pub-key-1',
+          );
+      expect(res.isOk, isTrue);
+      expect(res.unwrap().state, RequestState.published);
+      expect(res.unwrap().reference, 'KH-RQ-2026-000002');
+    });
+
+    test('cancel and duplicate map to RequestForCustomer', () async {
+      var call = 0;
+      final client = createClient((opts) async {
+        call++;
+        if (call == 1) {
+          expect(opts.path, '/v1/requests/req-1/cancel');
+          expect(opts.data['reason'], 'CHANGED_MIND');
+          return jsonBody({
+            'data': customerRequestJson(state: 'CANCELLED'),
+          });
+        }
+        expect(opts.path, '/v1/requests/req-1/duplicate');
+        return jsonBody({
+          'data': customerRequestJson(id: 'req-2'),
+        }, status: 201);
+      });
+
+      final api = KhApi(client);
+      final cancelled = await api.requests.cancel('req-1', reason: 'CHANGED_MIND');
+      expect(cancelled.unwrap().state, RequestState.cancelled);
+
+      final dup = await api.requests.duplicate('req-1');
+      expect(dup.unwrap().id, 'req-2');
+      expect(dup.unwrap().state, RequestState.draft);
+    });
+
+    test('facade createRequest / listMyRequests return domain types', () async {
+      final client = createClient((opts) async {
+        if (opts.method == 'POST') {
+          return jsonBody({'data': customerRequestJson()}, status: 201);
+        }
+        return jsonBody({
+          'data': [customerRequestJson(state: 'PUBLISHED')],
+          'meta': {'hasMore': false},
+        });
+      });
+
+      final api = KhApi(client);
+      final created = await api.createRequest(
+        const RequestDraftInput(requestType: 'FIND_ORNAMENT'),
+      );
+      expect(created, isA<Ok<RequestDraftSave>>());
+
+      final listed = await api.listMyRequests(states: const ['PUBLISHED']);
+      expect(listed, isA<Ok<PagedResult<RequestForCustomer>>>());
+      expect(listed.unwrap().items.first.state, RequestState.published);
     });
   });
 

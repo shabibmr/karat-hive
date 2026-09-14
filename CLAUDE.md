@@ -117,3 +117,13 @@ Resolved (see `docs/old/README.md` and Appendix D of the SRS): `C-10` — Admin 
 - SRS Appendix B claims **100 % coverage of every non-blank line** of `Requirements-raw.txt`, with a stated count. If the raw notes change, that count and the traceability rows must be recomputed — it is a factual claim, not boilerplate.
 - Use `CONTEXT.md` terminology exactly, including honouring the `_Avoid_` lists (a Request is never a "listing"; an Offer is never a "bid"; a Connection is never a "chat").
 - The architecture documents cite requirements rather than restating them. If you find yourself re-explaining a rule, link to it instead.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live as GitHub issues on `github.com/shabibmr/karat-hive`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Shared + per-surface: one shared `CONTEXT.md` (this repo's single domain glossary, read for every topic) plus optional surface-specific `CONTEXT.md` files under `backend/`, `apps/kh_mobile/karat_hive/`, `apps/kh_admin/` for implementation-only vocabulary — see `CONTEXT-MAP.md` and `docs/agents/domain.md`.

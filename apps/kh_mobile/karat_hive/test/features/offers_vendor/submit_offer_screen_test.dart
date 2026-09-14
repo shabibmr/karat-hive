@@ -6,11 +6,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:karat_hive/app/di.dart';
 import 'package:karat_hive/features/offers_vendor/presentation/submit_offer_screen.dart';
 import 'package:karat_hive/features/offers_vendor/repository/offers_vendor_repository.dart';
+import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
+import 'package:mocktail/mocktail.dart';
+
+/// The screen prefetches an upload-intent on mount (fire-and-forget); stub
+/// [KhApi] so that never reaches the network in widget tests.
+class _StubKhApi extends Mock implements KhApi {}
+
+KhApi _stubApi() {
+  final api = _StubKhApi();
+  when(
+    () => api.uploadIntent(
+      purpose: any(named: 'purpose'),
+      contentType: any(named: 'contentType'),
+      byteSize: any(named: 'byteSize'),
+    ),
+  ).thenAnswer((_) async => const Err(NetworkFailure()));
+  return api;
+}
 
 VendorRequestItem _testRequest({
   String id = 'req-offer-1',
@@ -141,6 +159,7 @@ Widget _host({
       serverClockProvider.overrideWithValue(
         ServerClock(nowProvider: () => now ?? DateTime.utc(2026, 9, 7, 12)),
       ),
+      khApiProvider.overrideWithValue(_stubApi()),
     ],
     child: MaterialApp(
       theme: khTheme(),
@@ -228,15 +247,10 @@ void main() {
       expect(repo.submitCalls, 0);
     });
 
-    testWidgets('submit API failure shows inline error on ready form',
+    testWidgets('submit with price but no image shows inline error',
         (tester) async {
       await setTallSurface(tester);
-      final repo = FakeOffersVendorRepository(
-        submitError: const ConflictFailure(
-          code: 'SUBSCRIPTION_REQUIRED',
-          message: 'Active subscription required.',
-        ),
-      );
+      final repo = FakeOffersVendorRepository();
 
       await tester.pumpWidget(_host(repo: repo));
       await tester.pumpAndSettle();
@@ -248,9 +262,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('inline-error')), findsOneWidget);
-      expect(find.text('Active subscription required.'), findsOneWidget);
-      expect(find.byKey(const Key('submit-offer-button')), findsOneWidget);
-      expect(repo.submitCalls, 1);
+      expect(find.text('Please add at least 1 image to your offer.'), findsOneWidget);
+      expect(repo.submitCalls, 0);
     });
   });
 }

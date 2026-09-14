@@ -127,8 +127,9 @@ class ConnectionSummaryRow extends StatelessWidget {
 
 /// SH-CON-02 — Talk (WhatsApp) button.
 ///
-/// Opens the server-supplied [TalkPayload.waUrl] via [onTalk]. Never builds a
-/// `wa.me` link from raw digits.
+/// Invokes [onTalk] with the server-supplied [TalkPayload.waUrl] only.
+/// Never builds a `wa.me` link from raw digits (C-03). The parent opens the
+/// URL and records the contact-event via repository / [KhApi].
 class TalkButton extends StatelessWidget {
   const TalkButton({
     super.key,
@@ -139,7 +140,9 @@ class TalkButton extends StatelessWidget {
   });
 
   final TalkPayload talk;
-  final VoidCallback onTalk;
+
+  /// Called with [TalkPayload.waUrl] when WhatsApp is available.
+  final ValueChanged<String> onTalk;
   final String? label;
   final Widget? fallback;
 
@@ -157,7 +160,7 @@ class TalkButton extends StatelessWidget {
     return KhButton(
       key: const Key('talk-button'),
       label: label ?? l10n?.connectionTalk ?? 'Talk',
-      onPressed: onTalk,
+      onPressed: () => onTalk(talk.waUrl),
     );
   }
 }

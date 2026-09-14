@@ -113,22 +113,6 @@ class CommonCreateFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TaxonomySinglePick(
-          label: createCopy(context, 'create.category', 'Category'),
-          nodes: state.categories,
-          value: state.categoryId,
-          locale: locale,
-          errorText: state.fieldError('categoryId'),
-          onChanged: controller.setCategory,
-        ),
-        TaxonomySinglePick(
-          label: createCopy(context, 'create.region', 'Region'),
-          nodes: state.regions,
-          value: state.regionId,
-          locale: locale,
-          errorText: state.fieldError('regionId'),
-          onChanged: controller.setRegion,
-        ),
         KhTextField(
           label: createCopy(
             context,

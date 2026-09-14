@@ -13,6 +13,23 @@ class MeClient {
     );
   }
 
+  Future<Result<MeUser>> patch({
+    String? displayName,
+    String? preferredLanguage,
+    String? defaultRegionId,
+  }) async {
+    final body = <String, dynamic>{
+      if (displayName != null) 'displayName': displayName,
+      if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
+      if (defaultRegionId != null) 'defaultRegionId': defaultRegionId,
+    };
+    final r = await _client.send('PATCH', '/v1/me', body: body);
+    return r.when(
+      ok: (d) => Ok(MeUser.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
   Future<Result<MeUser>> changeMobile(String challengeId) async {
     final r = await _client.send('POST', '/v1/me/mobile/change', body: {
       'challengeId': challengeId,

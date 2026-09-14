@@ -352,34 +352,98 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     return ok;
   }
 
-  Future<void> addImage(File file, String contentType) async {
-    if (state.media.length >= state.maxImages) return;
-    final label = file.path.split(Platform.pathSeparator).last;
-    final placeholderKey =
-        'pending-${file.path.hashCode}-${state.media.length}';
+  /// Warms the upload-intent as soon as the customer reaches the images
+  /// step (called from that step's `initState`). Idempotent.
+  Future<void> prefetchImageIntent() => _repo.prefetchRequestImageIntent();
 
-    // Guest: keep the File locally; upload only after SignedIn (GL-53 / GL-55).
-    if (ref.read(sessionProvider) is! SignedIn) {
+  /// Picks a photo (or accepts an explicit [file]), converts it on-device,
+  /// and uploads it. For guest sessions, local files are held until sign-in.
+  Future<void> addImage([File? file, String? contentType]) async {
+    if (state.media.length >= state.maxImages) return;
+
+    if (file != null) {
+      final label = file.path.split(Platform.pathSeparator).last;
+      final placeholderKey =
+          'pending-${file.path.hashCode}-${state.media.length}';
+      final type = contentType ?? 'image/jpeg';
+
+      // Guest: keep the File locally; upload only after SignedIn (GL-53 / GL-55).
+      if (ref.read(sessionProvider) is! SignedIn) {
+        state = state.copyWith(
+          media: [
+            ...state.media,
+            MediaSlot(
+              key: placeholderKey,
+              localLabel: label,
+              localFile: file,
+              contentType: type,
+            ),
+          ],
+          clearFailure: true,
+        );
+        return;
+      }
+
+      final placeholder = MediaSlot(
+        key: placeholderKey,
+        localLabel: label,
+        localFile: file,
+        contentType: type,
+        progress: 0,
+        uploading: true,
+      );
       state = state.copyWith(
-        media: [
-          ...state.media,
-          MediaSlot(
-            key: placeholderKey,
-            localLabel: label,
-            localFile: file,
-            contentType: contentType,
-          ),
-        ],
+        media: [...state.media, placeholder],
+        uploading: true,
         clearFailure: true,
+      );
+      final result = await _repo.uploadRequestImage(
+        file,
+        type,
+        onProgress: (p) {
+          state = state.copyWith(
+            media: [
+              for (final m in state.media)
+                if (m.key == placeholder.key) m.copyWith(progress: p) else m,
+            ],
+          );
+        },
+      );
+      result.when(
+        ok: (key) {
+          state = state.copyWith(
+            uploading: false,
+            media: [
+              for (final m in state.media)
+                if (m.key == placeholder.key)
+                  MediaSlot(key: key, localLabel: placeholder.localLabel)
+                else
+                  m,
+            ],
+          );
+        },
+        err: (f) {
+          state = state.copyWith(
+            uploading: false,
+            failure: f,
+            media: [
+              for (final m in state.media)
+                if (m.key == placeholder.key)
+                  m.copyWith(uploading: false, failure: f)
+                else
+                  m,
+            ],
+          );
+        },
       );
       return;
     }
 
+    final correlationId =
+        'pending-request-image-${DateTime.now().microsecondsSinceEpoch}';
     final placeholder = MediaSlot(
-      key: placeholderKey,
-      localLabel: label,
-      localFile: file,
-      contentType: contentType,
+      key: correlationId,
+      localLabel: 'Photo ${state.media.length + 1}',
       progress: 0,
       uploading: true,
     );
@@ -388,9 +452,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       uploading: true,
       clearFailure: true,
     );
-    final result = await _repo.uploadRequestImage(
-      file,
-      contentType,
+    final result = await _repo.pickAndUploadRequestImage(
+      correlationId,
       onProgress: (p) {
         state = state.copyWith(
           media: [
@@ -400,6 +463,14 @@ class RequestCreateController extends Notifier<RequestCreateState> {
         );
       },
     );
+    if (result == null) {
+      // User cancelled the picker — drop the placeholder, nothing to retry.
+      state = state.copyWith(
+        uploading: false,
+        media: [for (final m in state.media) if (m.key != placeholder.key) m],
+      );
+      return;
+    }
     result.when(
       ok: (key) {
         state = state.copyWith(
@@ -416,6 +487,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       err: (f) {
         state = state.copyWith(
           uploading: false,
+          failure: f,
           media: [
             for (final m in state.media)
               if (m.key == placeholder.key)
@@ -428,7 +500,11 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     );
   }
 
-  Future<void> retryImage(MediaSlot slot, File file, String contentType) async {
+  /// Resumes an interrupted upload for [slot] using the already-picked,
+  /// already-converted file cached under its correlation id — no re-pick,
+  /// no re-conversion. If nothing is cached (e.g. after an app restart),
+  /// surfaces a failure asking the customer to add the photo again.
+  Future<void> retryImage(MediaSlot slot) async {
     state = state.copyWith(
       media: [
         for (final m in state.media)
@@ -438,12 +514,57 @@ class RequestCreateController extends Notifier<RequestCreateState> {
             m,
       ],
     );
-    await addImage(file, contentType);
-    state = state.copyWith(
-      media: [
-        for (final m in state.media)
-          if (m.key == slot.key) ...[] else m,
-      ],
+    final result = await _repo.retryRequestImage(
+      slot.key,
+      onProgress: (p) {
+        state = state.copyWith(
+          media: [
+            for (final m in state.media)
+              if (m.key == slot.key) m.copyWith(progress: p) else m,
+          ],
+        );
+      },
+    );
+    if (result == null) {
+      state = state.copyWith(
+        media: [
+          for (final m in state.media)
+            if (m.key == slot.key)
+              m.copyWith(
+                uploading: false,
+                failure: const ValidationFailure(
+                  message: 'Please add the photo again.',
+                ),
+              )
+            else
+              m,
+        ],
+      );
+      return;
+    }
+    result.when(
+      ok: (key) {
+        state = state.copyWith(
+          media: [
+            for (final m in state.media)
+              if (m.key == slot.key)
+                MediaSlot(key: key, localLabel: slot.localLabel)
+              else
+                m,
+          ],
+        );
+      },
+      err: (f) {
+        state = state.copyWith(
+          media: [
+            for (final m in state.media)
+              if (m.key == slot.key)
+                m.copyWith(uploading: false, failure: f)
+              else
+                m,
+          ],
+        );
+      },
     );
   }
 

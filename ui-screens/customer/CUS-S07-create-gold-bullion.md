@@ -23,8 +23,6 @@ Compose a buy or sell Request for gold bullion bars, enforcing the AED 500 minim
 |---|---|---|---|---|
 | Request type | Display | — | Gold Bullion | Locked |
 | Direction | Input | Yes | BUY / SELL | |
-| Category | Input | Yes | taxonomy | |
-| Region | Input | Yes | taxonomy | |
 | Bar weight (g) | Input | Yes | decimal | |
 | Quantity | Input | Yes | positive integer | |
 | Total weight | System | — | bar × qty | |
