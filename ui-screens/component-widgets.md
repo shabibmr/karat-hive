@@ -83,7 +83,7 @@ Domain terms follow root `CONTEXT.md` (Request, Offer, Acceptance, Connection, T
 | `SH-AUTH-01` | **Mobile number field (UAE / E.164)** | country prefix fixed/configurable | CUS-S01, VEN-S01, VEN-S04 |
 | `SH-AUTH-02` | **OTP entry** | length, resend cooldown, expiry countdown | Customer + Vendor auth |
 | `SH-AUTH-03` | **OTP send / resend control** | rate-limit messaging | Auth flows |
-| `SH-AUTH-04` | **OAuth provider button row** | Google / Apple / configured; bound state | CUS-S01, CUS-S09 gate |
+| `SH-AUTH-04` | **OAuth provider button row** | Google / Apple / configured; bound state | CUS-S01, CUS-S09 gate, CUS-S23 Log in |
 | `SH-AUTH-05` | **OAuth required banner / gate** | blocks publish only | CUS-S09, create flow |
 | `SH-AUTH-06` | **Biometric unlock toggle / prompt** | Face ID / fingerprint | CUS-S01/S21; optional Vendor |
 | `SH-AUTH-07` | **Session lockout message** | duration, support | Auth failures |
@@ -304,6 +304,7 @@ Example: **Connection detail**
 
 | Screen | Shared widgets | Individual widgets |
 |---|---|---|
+| CUS-S23 | `SH-AUTH-04`, `SH-REQ-02`, `SH-FND-20` | Guest service cards + how-it-works |
 | CUS-S01 | `SH-AUTH-*`, `SH-FND-*` | — |
 | CUS-S03 | `SH-REQ-02` | `CU-02` |
 | CUS-S04…S07 | `SH-DOM-*`, `SH-TAX-*`, `SH-MED-*`, `SH-REQ-03…07` | `CU-03`…`CU-07` |

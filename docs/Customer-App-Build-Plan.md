@@ -3,17 +3,17 @@
 | | |
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
-| **Document** | Customer mobile app build order and task register (`CUS-S01`…`CUS-S22`) |
-| **Status** | Working plan — `[PROPOSED]`. Front-end analogue of [`Backend-Implementation-Plan.md`](Backend-Implementation-Plan.md). Checked against the `feat/customer-app` working tree on 8 September 2026. |
-| **Date** | 8 September 2026 |
-| **Does not override** | SRS v1.3 · [`Architecture-Frontend.md`](Architecture-Frontend.md) · [`Screen-API-Map.md`](Screen-API-Map.md) · [`adr/0010`](adr/0010-google-signin-only-login.md) |
+| **Document** | Customer mobile app build order and task register (`CUS-S01`…`CUS-S23`) |
+| **Status** | Working plan — `[PROPOSED]`. Front-end analogue of [`Backend-Implementation-Plan.md`](Backend-Implementation-Plan.md). Launch rule updated 11 September 2026 (`adr/0011`). |
+| **Date** | 11 September 2026 |
+| **Does not override** | SRS v1.3 · [`Architecture-Frontend.md`](Architecture-Frontend.md) · [`Screen-API-Map.md`](Screen-API-Map.md) · [`adr/0010`](adr/0010-google-signin-only-login.md) · [`adr/0011`](adr/0011-guest-first-landing.md) |
 | **Source of truth** | [`Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`Architecture-Frontend.md`](Architecture-Frontend.md) §4–§7, §10, §11 · [`ui-screens/`](../ui-screens/) · [`ui-screens/component-widgets.md`](../ui-screens/component-widgets.md) |
 | **Coverage inputs** | [`Screen-API-Map.md`](Screen-API-Map.md) §3 (`SAM-GAP-nn`) · [`Customer-App-Backend-Gaps.md`](Customer-App-Backend-Gaps.md) (`CBG-nn`) |
 | **Identifier prefix** | `CFE-nn` — Customer Front-End task. Stable, never reused. Distinct from `AD-FE-nn` (architecture decisions) and `ADM-FE-nnn` (Admin Checkpoint-1). |
 
 Build the **Customer half of the dual-mode `apps/kh_mobile` binary** (`C-08`, `C-10`; [Architecture-Frontend §4.3](Architecture-Frontend.md)). Vendor mode, the Admin Portal, and backend routes are out of scope here. Every task cites `FR-CUS-*` / `BR-*` / screen IDs rather than restating them.
 
-This file is the **order of work** (P0–P11) and the **`CFE-01`…`CFE-42` tick list**. It does not resolve `SAM-GAP` / `CBG` items — those carry their own sign-off.
+This file is the **order of work** (P0–P11) and the **`CFE-01`…`CFE-44` tick list**. It does not resolve `SAM-GAP` / `CBG` items — those carry their own sign-off.
 
 ---
 
@@ -44,8 +44,9 @@ Carried from [Architecture-Frontend §2.1, §3](Architecture-Frontend.md) and th
 - Riverpod + `go_router` + `freezed` (`AD-FE-03`–`AD-FE-05`). `presentation` never calls `kh_api` directly — always `controller` → `repository` (§5.2).
 - Masking is a **type**: `MaskedParty` has no identity fields; `RevealedParty` is constructible only from a Connection payload (`AD-FE-07`, §10; `BR-006`, `BR-007`, `NFR-013`).
 - Route guards are usability, never security — a bypassed guard must meet a server `403` (§7.3, `FR-SYS-003`).
-- OAuth gates exactly one action: publish (`BR-001`, `FR-CUS-014`). Banner on the `CUS-S09` publish action, not on the create-flow entry (§7.3, `SH-AUTH-05`).
+- Login/Google gates **publish** and private tabs (`BR-001`, `FR-CUS-014`, `adr/0011`). Banner / Login on the `CUS-S09` publish action, not on the create-flow entry (§7.3, `SH-AUTH-05`).
 - Google Sign-In is the only login (`adr/0010`); no `oauth/bind` step. Unbound Google token → `401 UNAUTHENTICATED`.
+- Cold start with no live session → Guest Landing (`CUS-S23`), not CUS-S01. Guest compose is in-memory; login-at-publish auto-publishes for Customer.
 - Countdowns derive from `meta.serverTime` offset, never `DateTime.now()` (`AD-FE-11`, §11.1; `C-07`).
 - No personal data written to disk; revealed-identity Connection cache is session-only (§9.5, §18.2).
 - `Money` / `Weight` / `Purity` / `PhoneNumber` are value objects; money is never string-interpolated (§8.3, §10.3; `C-01`, `C-02`, `BR-021`).
@@ -60,7 +61,7 @@ Vertical slices behind the foundation. Each phase is mergeable when its screens 
 ```mermaid
 flowchart TD
   P0[P0 foundation]
-  P1[P1 auth]
+  P1[P1 auth + Guest]
   P2[P2 request_create]
   P3[P3 request_manage]
   P4[P4 offers_customer]
@@ -95,9 +96,9 @@ flowchart TD
 
 | Phase | Feature folder ([Arch-FE §5](Architecture-Frontend.md)) | Screens | Depends on | Status |
 |---|---|---|---|---|
-| **P0** foundation | `app/`, `packages/kh_*` | shell host for `CUS-S02/S19/S20` | `CBG-01` (backend) | **In progress** |
-| **P1** auth | `features/auth` | `CUS-S01` | P0 | Not started |
-| **P2** request_create | `features/request_create` | `CUS-S03`–`CUS-S09` | P0, P1 | Not started |
+| **P0** foundation | `app/`, `packages/kh_*` | splash restore; Guest vs role shell; host for `CUS-S02/S19/S20` | `CBG-01` (backend) | **In progress** |
+| **P1** auth + Guest | `features/guest`, `features/auth` | `CUS-S23`, `CUS-S01` | P0 | Not started (Guest-first, `adr/0011`) |
+| **P2** request_create | `features/request_create` | `CUS-S03`–`CUS-S09` | P0 (compose); P1 (publish) | Not started |
 | **P3** request_manage | `features/request_manage` | `CUS-S02`, `CUS-S10`, `CUS-S17` | P0, P2 | Not started |
 | **P4** offers_customer | `features/offers_customer` | `CUS-S11`–`CUS-S14` | P3, `CBG-01` | Not started |
 | **P5** connections | `features/connections` | `CUS-S15`, `CUS-S16` | P4 | Not started |
@@ -121,7 +122,7 @@ Owns the packages and `app/` assembly every vertical imports. In progress now; l
 | CFE | Title | Feature folder | Key endpoints / contract | Depends | Status |
 |---|---|---|---|---|---|
 | CFE-01 | Role-aware session + `CustomerMe` (`SessionState` union, keep-alive provider, server-time offset seed) — §6.2, §7.2 | `app/session` | `POST /v1/auth/google/session`, `GET /v1/me` | — | **In progress** |
-| CFE-02 | Role gate `SH-SHELL-04` + Customer shell `SH-SHELL-01/02/03` (app bar, bottom nav, pull-to-refresh host) — §7.2 | `app/shells`, `app/guards` | — | CFE-01 | **In progress** |
+| CFE-02 | Role gate `SH-SHELL-04` + Customer shell `SH-SHELL-01/02/03` (app bar, bottom nav, pull-to-refresh host). `SignedOut` → `CUS-S23`, not onboarding (`adr/0011`) — §7.2 | `app/shells`, `app/guards` | — | CFE-01 | **In progress** |
 | CFE-03 | `kh_domain` Customer entities + masking types: `Party`/`MaskedParty`/`RevealedParty`, `Money`, `Weight`, `Purity`, `PhoneNumber`, `RequestReference`, four state enums with `unknown` case — §10 | `packages/kh_domain` | — | — | **In progress** |
 | CFE-04 | `kh_api` Customer client methods + interceptor chain (correlation, auth single-flight refresh, locale, idempotency, server-time, error→`Failure`) — §9.1, §9.2, §9.3 | `packages/kh_api`, `packages/kh_core` | envelope + `error.code` catalogue | CFE-03 | **In progress** |
 | CFE-05 | `kh_l10n` ARB + `gen_l10n` (EN/AR), RTL delegates, formatter entry points — §14 | `packages/kh_l10n` | — | — | **In progress** |
@@ -131,30 +132,31 @@ Owns the packages and `app/` assembly every vertical imports. In progress now; l
 
 **Backend dependency in this phase:** `CBG-01` — `unreadOfferCount` on `RequestForCustomer` (`GET /v1/me/requests` rows and `GET /v1/requests/{id}`). **Done** (built, uncommitted on `main`; `request.presenter.ts`). Consumed first at `CFE-19` and `CFE-22`.
 
-**Gate:** cold start → role gate → Customer shell with an empty `CUS-S02`; a forced Vendor/Admin session is redirected, not rendered.
+**Gate:** cold start → splash restore → Guest Landing (`CUS-S23`) or role shell. Live Customer → `CUS-S02`. Live Vendor → home/awaiting. No Guest flash when a session is valid.
 
 ---
 
-## P1 — auth (`CUS-S01`)
+## P1 — auth + Guest (`CUS-S23`, `CUS-S01`)
 
 | CFE | Title | Screens | Key endpoints | Depends | Source |
 |---|---|---|---|---|---|
-| CFE-09 | Onboarding — Google Sign-In (`SH-AUTH-04`), biometric unlock toggle (`SH-AUTH-06`), lockout message (`SH-AUTH-07`) | `CUS-S01` | `POST /v1/auth/google/session`, `POST /v1/auth/logout` | CFE-07 | `FR-CUS-002` |
-| CFE-10 | New-user completion — terms accept (`SH-FND-07`) + real mobile via OTP (`SH-AUTH-01/02/03`); `MOBILE_ALREADY_REGISTERED`, `OTP_*`, `ACCOUNT_SUSPENDED` | `CUS-S01` | `POST /v1/auth/otp/request`, `POST /v1/auth/otp/verify`, `POST /v1/auth/register/customer` | CFE-09 | `FR-CUS-002`, `adr/0010` |
-| CFE-11 | OAuth-required publish gate banner `SH-AUTH-05` — guard on the publish action only, not the flow entry | `CUS-S09` | `→ OAUTH_REQUIRED` on publish | CFE-09 | `BR-001`, `FR-CUS-014`, §7.3 |
+| CFE-44 | Guest Landing — four service cards, how-it-works, top-right Log in, footer Register as Jeweller | `CUS-S23` | *client* | CFE-02, CFE-07 | `adr/0011` |
+| CFE-09 | Login — Google Sign-In (`SH-AUTH-04`), biometric unlock toggle (`SH-AUTH-06`), lockout message (`SH-AUTH-07`). Same screen for corner Log in and publish gate | `CUS-S01` | `POST /v1/auth/google/session`, `POST /v1/auth/logout` | CFE-07, CFE-44 | `FR-CUS-002`, `adr/0010`, `adr/0011` |
+| CFE-10 | New-user completion — terms accept (`SH-FND-07`) + real mobile via OTP (`SH-AUTH-01/02/03`); `MOBILE_ALREADY_REGISTERED`, `OTP_*`, `ACCOUNT_SUSPENDED`. Guest/Publish completes as Customer; no role chooser | `CUS-S01` | `POST /v1/auth/otp/request`, `POST /v1/auth/otp/verify`, `POST /v1/auth/register/customer` | CFE-09 | `FR-CUS-002`, `adr/0010`, `adr/0011` |
+| CFE-11 | Publish-gate Login `SH-AUTH-05` — Guest Publish → CUS-S01 then auto-publish if Customer; dismiss keeps form; Vendor drops draft | `CUS-S09` | `POST /v1/auth/google/session` then `POST /v1/requests/{id}/publish` | CFE-09 | `BR-001`, `FR-CUS-014`, `adr/0011`, §7.3 |
 
-**Gate:** unbound Google token lands on the completion step; a completed Customer reaches the shell; biometric re-entry works on a warm start.
+**Gate:** no live token opens `CUS-S23`; Login cancel returns to origin; Customer from corner Log in → Dashboard; blocked users never land on Guest.
 
 ---
 
 ## P2 — request_create (`CUS-S03`…`CUS-S09`)
 
-Flow-scoped controller, not per-screen; back-navigation never loses input; persisted to the draft endpoint on step transitions (§6.2). Two-minute returning-user target (SRS §7.1).
+Flow-scoped controller, not per-screen; back-navigation never loses input. **Guest:** in-memory only (`adr/0011`). Signed-in: persist to the draft endpoint on step transitions (§6.2). Two-minute returning-user target (SRS §7.1).
 
 | CFE | Title | Screens | Key endpoints | Depends | Source |
 |---|---|---|---|---|---|
-| CFE-12 | Flow-scoped draft controller + wizard shell (`SH-SHELL-07`) | `CUS-S03`–`S09` | `POST /v1/requests`, `PATCH /v1/requests/{id}` | CFE-07 | `FR-CUS-015` |
-| CFE-13 | Type selection (`SH-REQ-02`) + entry gate on `liveRequestCount` / `canCreateRequest` (`SAM-GAP-2`) | `CUS-S03` | `GET /v1/platform-config`, `GET /v1/me` | CFE-12 | `FR-CUS-005` |
+| CFE-12 | Flow-scoped draft controller + wizard shell (`SH-SHELL-07`). Guest: no PATCH. Signed-in: `POST`/`PATCH` draft | `CUS-S03`–`S09` | `POST /v1/requests`, `PATCH /v1/requests/{id}` (signed-in only) | CFE-07, CFE-44 | `FR-CUS-015`, `adr/0011` |
+| CFE-13 | Type selection (`SH-REQ-02`). Signed-in entry gate on `liveRequestCount` / `canCreateRequest` (`SAM-GAP-2`). Guest always composes | `CUS-S03` | `GET /v1/platform-config`; signed-in `GET /v1/me` | CFE-12 | `FR-CUS-005`, `adr/0011` |
 | CFE-14 | Find An Ornament — direction/budget/ornament (`SH-REQ-03/04/05`), gold-rate strip `SH-DOM-01` | `CUS-S04` | `GET /v1/categories`, `/regions`, `/gold-rates`, `/platform-config` | CFE-13 | `FR-CUS-006` |
 | CFE-15 | Sell Old Gold + indicative valuation `SH-DOM-02` — suppressed when `gold-rates.available:false`; never infer staleness from a timestamp | `CUS-S05` | as `CUS-S04` | CFE-14 | `FR-CUS-010`, `FR-CUS-018`, `CBG-02` |
 | CFE-16 | Gold Coins — denomination + quantity, computed total weight (`SH-REQ-06`); `quantity ≤ 0 → VALIDATION_FAILED` | `CUS-S06` | as `CUS-S04` | CFE-14 | `FR-CUS-011` |
@@ -162,7 +164,7 @@ Flow-scoped controller, not per-screen; back-navigation never loses input; persi
 | CFE-18 | Image capture — client downscale/re-encode, resumable PUT with progress (`SH-MED-01/02/05`), per-file retry, upload survives navigation | `CUS-S08` | `POST /v1/media/upload-intent` → PUT storage → `POST /v1/media/{key}/complete`, `DELETE /v1/media/{key}` | CFE-12 | `FR-CUS-007`, `NFR-005`, §12 |
 | CFE-19 | Review & publish — owner Request card (`SH-REQ-01`), reference chip `SH-DOM-09`; `MEDIA_NOT_READY`, `CONTACT_DETAILS_IN_TEXT`, `CONCURRENT_REQUEST_LIMIT`, `REQUEST_NOT_PUBLISHABLE` | `CUS-S09` | `GET /v1/requests/{id}`, `POST /v1/requests/{id}/publish` | CFE-17, CFE-18, CFE-11 | `FR-CUS-014`, `BR-022` |
 
-**Gate:** each type publishes end-to-end; a killed app mid-flow resumes on the same step with draft intact; publish is refused without a Google binding and shows `SH-AUTH-05`.
+**Gate:** each type publishes end-to-end when signed in. Guest: killed app discards the form. Publish without a session opens Login then auto-publishes for Customer (`CFE-11`).
 
 ---
 
@@ -273,7 +275,7 @@ Promote the domain widgets the verticals built locally, add the `view: owner | v
 
 **Gate:** CI green on the `dev` flavour; the golden and masking suites fail the build on regression.
 
-> **Task count:** 43 tasks (`CFE-01`…`CFE-43`) across 12 phases (P0–P11). `CFE-06`/`CFE-08` sit in P0 but are not on the critical path to a first rendered shell.
+> **Task count:** 44 tasks (`CFE-01`…`CFE-44`) across 12 phases (P0–P11). `CFE-06`/`CFE-08` sit in P0 but are not on the critical path to a first rendered shell.
 
 ---
 
@@ -283,8 +285,8 @@ Once **P0 lands** (CFE-01…CFE-05, CFE-07 mergeable), the verticals are largely
 
 | Track | Tasks | Can start when | Independent of |
 |---|---|---|---|
-| Auth | CFE-09…CFE-11 | P0 | everything else |
-| Create flow | CFE-12…CFE-19 | P0 + CFE-11 (for the publish gate only) | offers, connections, reviews |
+| Guest + Auth | CFE-44, CFE-09…CFE-11 | P0 | offers, connections, reviews |
+| Create flow | CFE-12…CFE-19 | P0 + CFE-44 (compose); CFE-11 (publish gate) | offers, connections, reviews |
 | Manage | CFE-20…CFE-22 | CFE-19 (needs a published Request to list) | offers, connections |
 | Notifications | CFE-30…CFE-31 | P0 | all feature verticals |
 | Profile / settings | CFE-32…CFE-33 | P0 | all feature verticals |
@@ -335,7 +337,7 @@ Tracked in [`Customer-App-Backend-Gaps.md`](Customer-App-Backend-Gaps.md). Clien
 | ID | Decision | Status |
 |---|---|---|
 | `CFE-D01` | Task-ID prefix is **`CFE-nn`** (Customer Front-End). Distinct from `AD-FE-nn` (architecture decisions) and `ADM-FE-nnn` (Admin Checkpoint-1). Stable, never reused. | `[PROPOSED]` |
-| `CFE-D02` | Phase order is **foundation → auth → request_create → request_manage → offers_customer → connections → reviews → notifications → profile_settings → abuse → kh_ui_domain widgets → golden/CI/e2e**. Rationale: the create→manage→offers→connections→reviews chain is a hard data dependency; notifications, profile, and abuse hang off the foundation and the two launch-point screens. | `[PROPOSED]` |
+| `CFE-D02` | Phase order is **foundation → guest landing + auth → request_create → request_manage → offers_customer → connections → reviews → notifications → profile_settings → abuse → kh_ui_domain widgets → golden/CI/e2e**. Rationale: Guest compose does not wait on Login; publish and private tabs do (`adr/0011`). The create→manage→offers→connections→reviews chain is a hard data dependency once published. | `[PROPOSED]` |
 | `CFE-D03` | Domain widgets are built **locally inside each vertical first**, then promoted to `kh_ui_domain` in P10 with the `view: owner \| vendor` parameter (`SH-REQ-01`, [Arch-FE §4.3](Architecture-Frontend.md)). This trades a later refactor for unblocked parallel verticals; the alternative (build `kh_ui_domain` fully up front) serialises the whole client behind the widget package. | `[PROPOSED]` |
 | `CFE-D04` | Foundation splits into `CFE-01`…`CFE-08`; `CFE-06` (server-time clock) and `CFE-08` (paged list / caching) are off the critical path to a first rendered shell and may land after the auth vertical starts. | `[PROPOSED]` |
 | `CFE-D05` | This plan assumes the melos monorepo layout of [Arch-FE §5](Architecture-Frontend.md) (`AD-FE-02`, itself `[PROPOSED]`). The current tree has `apps/kh_mobile/karat_hive/`; if the flatten does not happen, feature-folder paths shift but the task list and order do not. | `[PROPOSED]` |
@@ -347,6 +349,7 @@ Tracked in [`Customer-App-Backend-Gaps.md`](Customer-App-Backend-Gaps.md). Clien
 | Version | Date | Change |
 |---|---|---|
 | 0.1 | 8 Sep 2026 | Initial Customer app build plan. P0–P11, `CFE-01`…`CFE-43`, derived from [`Architecture-Frontend.md`](Architecture-Frontend.md) §4–§11, [`Screen-API-Map.md`](Screen-API-Map.md) §3, [`Customer-App-Backend-Gaps.md`](Customer-App-Backend-Gaps.md), and the 22 `ui-screens/customer/` files. Foundation tasks marked **In progress** against the `feat/customer-app` working tree. |
+| 0.2 | 11 Sep 2026 | Guest-first (`adr/0011`): `CUS-S23`, `CFE-44`. P1 is auth + Guest. Create compose no longer waits on Login. Login-at-publish auto-publishes. |
 
 ---
 

@@ -1,23 +1,26 @@
-# CUS-S01 · Onboarding
+# CUS-S01 · Login / Customer signup
 
 | | |
 |---|---|
-| **User** | Customer |
+| **User** | Guest completing login, or Customer / Vendor returning |
 | **Platform** | Mobile — Customer mode |
-| **Requirements** | `FR-CUS-001`, `FR-CUS-002` |
+| **Requirements** | `FR-CUS-001`, `FR-CUS-002`, [`adr/0010`](../../docs/adr/0010-google-signin-only-login.md), [`adr/0011`](../../docs/adr/0011-guest-first-landing.md) |
 
 ## Purpose
 
-Register or sign in a Customer with UAE mobile OTP, capture basic profile, accept legal terms, and complete one-time OAuth before any Request can be published.
+One Login used by Guest Landing’s corner **Log in** and by the CUS-S09 publish gate. Google is the only login (`adr/0010`). New Google users from this door complete as Customer. OTP proves a mobile number; it is not a login. Cold start is **not** this screen — that is `CUS-S23`.
 
 ## Entry / exit
 
 | Direction | Path |
 |---|---|
-| Entry | Cold start, logout, session expiry |
-| Exit success (new) | Home (CUS-S02); OAuth may be deferred until first publish |
-| Exit success (returning) | Home (CUS-S02) |
+| Entry | CUS-S23 corner Log in; CUS-S09 publish while Guest; logout; session expiry then Log in |
+| Exit success (Customer, no draft) | Dashboard (CUS-S02) |
+| Exit success (Customer, from publish) | Resume in-memory form → auto-publish (`adr/0011`) |
+| Exit success (Vendor) | Vendor home / awaiting; drop any Customer draft |
+| Exit success (new Google) | Customer signup (name / mobile OTP proof / terms) then same resume rules |
 | Exit blocked | Suspended / deactivated account messages |
+| Exit cancel | Previous screen; keep in-memory Guest form |
 
 ## Fields
 
@@ -31,9 +34,9 @@ Register or sign in a Customer with UAE mobile OTP, capture basic profile, accep
 | Accept Terms of Service | Input | Yes | checkbox + version | Version id + timestamp stored |
 | Accept Privacy Policy | Input | Yes | checkbox + version | Same |
 | Create account / Continue | Action | — | — | Creates `ACTIVE` Customer and signs in |
-| OAuth provider (Google / Apple / configured) | Action | Conditional | provider button | **Once** before first Request publish (`BR-001`) |
-| OAuth binding status | Display | — | bound / not bound | Shown when gate is hit |
-| Login with mobile + OTP | Action | — | — | Returning Customer |
+| OAuth provider (Google) | Action | Yes | provider button | Only login (`adr/0010`). Same control for corner Log in and publish gate |
+| OAuth binding status | Display | — | bound / not bound | Shown when the publish gate is hit |
+| Login with mobile + OTP | — | — | — | **Not a login.** OTP is phone proof on Customer signup / mobile change |
 | Biometric unlock | Input | No | Face ID / fingerprint | Convenience over valid session |
 | Logout (from session) | Action | — | — | Server token invalidate |
 
@@ -43,7 +46,8 @@ Register or sign in a Customer with UAE mobile OTP, capture basic profile, accep
 - Duplicate mobile → redirect to login.
 - Suspended vs deactivated: distinct refusal messages.
 - Session persists 30 days inactivity; then re-auth.
-- Publish of Request refused without OAuth binding (server-side).
+- Publish of a Request is refused without a bound Google session (server-side, `BR-001`, `adr/0010`).
+- Guest/Publish path has no role chooser (`adr/0011`). Jeweller signup is the Guest Landing footer, not this screen.
 
 ## Empty / error / edge states
 
@@ -52,4 +56,4 @@ Register or sign in a Customer with UAE mobile OTP, capture basic profile, accep
 
 ## Related screens
 
-CUS-S02 Home · CUS-S09 (publish may re-prompt OAuth) · CUS-S21 Settings
+CUS-S23 Guest Landing · CUS-S02 Dashboard · CUS-S09 publish gate · CUS-S21 Settings

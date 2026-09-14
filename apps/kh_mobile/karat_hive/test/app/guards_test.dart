@@ -48,10 +48,14 @@ void main() {
       );
     });
 
-    test('SignedOut is confined to the unauth shell', () {
+    test('SignedOut lands on Guest Landing by default (adr/0011)', () {
+      expect(
+        AppGuards.redirect(const SignedOut(), AppGuards.splash),
+        AppGuards.customerGuest,
+      );
       expect(
         AppGuards.redirect(const SignedOut(), AppGuards.home),
-        AppGuards.customerOnboarding,
+        AppGuards.customerGuest,
       );
       expect(
         AppGuards.redirect(const SignedOut(), AppGuards.login),
@@ -61,22 +65,71 @@ void main() {
         AppGuards.redirect(const SignedOut(), AppGuards.register),
         isNull,
       );
+      expect(
+        AppGuards.redirect(const SignedOut(), AppGuards.customerGuest),
+        isNull,
+      );
     });
 
-    test('CUS-S01 onboarding is reachable pre-auth and gated otherwise', () {
-      // Unauthenticated: CUS-S01 loads directly (it is the pre-auth screen).
+    test('SignedOut may compose create paths without a token', () {
+      expect(
+        AppGuards.redirect(const SignedOut(), AppGuards.customerCreatePrefix),
+        isNull,
+      );
+      expect(
+        AppGuards.redirect(
+          const SignedOut(),
+          '${AppGuards.customerCreatePrefix}/ornament',
+        ),
+        isNull,
+      );
+      expect(
+        AppGuards.redirect(
+          const SignedOut(),
+          '${AppGuards.customerCreatePrefix}/review',
+        ),
+        isNull,
+      );
+    });
+
+    test('SignedOut private Customer tabs require login', () {
+      expect(
+        AppGuards.redirect(const SignedOut(), AppGuards.customerHome),
+        AppGuards.customerOnboarding,
+      );
+      expect(
+        AppGuards.redirect(const SignedOut(), AppGuards.customerRequests),
+        AppGuards.customerOnboarding,
+      );
+      expect(
+        AppGuards.redirect(const SignedOut(), AppGuards.customerConnections),
+        AppGuards.customerOnboarding,
+      );
+      expect(
+        AppGuards.redirect(const SignedOut(), AppGuards.customerAlerts),
+        AppGuards.customerOnboarding,
+      );
+      expect(
+        AppGuards.redirect(const SignedOut(), AppGuards.customerProfile),
+        AppGuards.customerOnboarding,
+      );
+    });
+
+    test('CUS-S01 login is reachable pre-auth; signed-in Customer leaves it', () {
       expect(
         AppGuards.redirect(const SignedOut(), AppGuards.customerOnboarding),
         isNull,
       );
-      // Still bootstrapping: everything waits on splash.
       expect(
         AppGuards.redirect(const SessionLoading(), AppGuards.customerOnboarding),
         AppGuards.splash,
       );
-      // A completed Customer visiting /welcome is sent into the shell.
       expect(
         AppGuards.redirect(_customer(), AppGuards.customerOnboarding),
+        AppGuards.customerHome,
+      );
+      expect(
+        AppGuards.redirect(_customer(), AppGuards.customerGuest),
         AppGuards.customerHome,
       );
     });
@@ -110,22 +163,23 @@ void main() {
 
     test('the role gate routes a Customer session to the Customer shell', () {
       final c = _customer();
-      // From splash, or from any vendor / unauth route, land on customer home.
       expect(AppGuards.redirect(c, AppGuards.splash), AppGuards.customerHome);
       expect(AppGuards.redirect(c, AppGuards.home), AppGuards.customerHome);
       expect(AppGuards.redirect(c, AppGuards.login), AppGuards.customerHome);
       expect(AppGuards.redirect(c, AppGuards.awaiting), AppGuards.customerHome);
-      // Customer routes are allowed as-is, including the parametric detail route.
       expect(AppGuards.redirect(c, AppGuards.customerHome), isNull);
       expect(AppGuards.redirect(c, AppGuards.customerAlerts), isNull);
       expect(AppGuards.redirect(c, AppGuards.customerProfile), isNull);
       expect(AppGuards.redirect(c, '/customer/requests/abc-123'), isNull);
+      // Signed-in Customer may still compose.
+      expect(AppGuards.redirect(c, AppGuards.customerCreatePrefix), isNull);
     });
 
     test('an ACTIVE Vendor is redirected off Customer routes', () {
       final active = _signedIn(VendorLifecycle.active);
       expect(AppGuards.redirect(active, AppGuards.customerHome), AppGuards.home);
       expect(AppGuards.redirect(active, '/customer/requests/abc'), AppGuards.home);
+      expect(AppGuards.redirect(active, AppGuards.customerGuest), AppGuards.home);
     });
 
     test('suspended / unknown are not treated as a Vendor session', () {

@@ -175,7 +175,7 @@ What follows is the short list of things the Customer app will actually hit that
 |---|---|---|---|
 | CBG-01 | Blocking | CUS-S02, CUS-S11 | S — one presenter aggregate + list query |
 | CBG-08 | Blocking-as-speced (client workaround exists) | CUS-S10 | S — populate `res.offers` from the loaded relation |
-| CBG-09 | Blocking — Accept flow `500`s | CUS-S14, CUS-S15, CUS-S16, CUS-S18 | XS — one `@RevealsIdentity()` decorator |
+| CBG-09 | **Done** — Accept/Connection routes reveal identity | CUS-S14, CUS-S15, CUS-S16, CUS-S18 | `@RevealsIdentity()` on `ConnectionController` |
 | CBG-10 | Blocking (test infra) | — | XS — two provider entries in `PlatformModule` |
 | CBG-02 | Verify / maybe build | CUS-S04–S07 | S |
 | CBG-03 | Verify | CUS-S11, CUS-S13 | XS |
@@ -200,5 +200,5 @@ parallel with the Flutter build.
 | CBG-06 | **Done** (uncommitted) — `test/integration/customer-google-roundtrip.spec.ts` (2 tests); needs CBG-10 to run in CI |
 | CBG-07 | **Done** (uncommitted) — `test/masking/offer-connection-customer-masking.integration.spec.ts` (4 tests; test 4 is an `it.fails` tripwire that flips green when CBG-09 lands); needs CBG-10 to run in CI |
 | CBG-08 | **Open** — raised 8 Sep 2026 |
-| CBG-09 | **Open** — raised 8 Sep 2026 · highest priority · one decorator |
+| CBG-09 | **Done** — `@RevealsIdentity()` on `ConnectionController` (class-level) |
 | CBG-10 | **Open** — raised 8 Sep 2026 · one module edit |

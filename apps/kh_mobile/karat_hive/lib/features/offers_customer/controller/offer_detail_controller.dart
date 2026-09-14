@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
@@ -49,40 +51,82 @@ class AcceptOfferUiState {
     this.phase = AcceptPhase.idle,
     this.failure,
     this.connectionId,
+    this.idempotencyKey,
   });
 
   final AcceptPhase phase;
   final Failure? failure;
   final String? connectionId;
+  final String? idempotencyKey;
 
+  /// Locked while in-flight, after success, or after timeout (check status).
   bool get confirmLocked =>
-      phase == AcceptPhase.submitting || phase == AcceptPhase.succeeded;
+      phase == AcceptPhase.submitting ||
+      phase == AcceptPhase.succeeded ||
+      phase == AcceptPhase.timedOut;
 }
 
-class AcceptOfferController extends AutoDisposeFamilyNotifier<AcceptOfferUiState, String> {
+class AcceptOfferController
+    extends AutoDisposeFamilyNotifier<AcceptOfferUiState, String> {
   @override
   AcceptOfferUiState build(String arg) => const AcceptOfferUiState();
 
+  String _ensureKey() {
+    final existing = state.idempotencyKey;
+    if (existing != null && existing.isNotEmpty) return existing;
+    final key = _uuid();
+    state = AcceptOfferUiState(
+      phase: state.phase,
+      failure: state.failure,
+      connectionId: state.connectionId,
+      idempotencyKey: key,
+    );
+    return key;
+  }
+
   Future<void> confirm() async {
     if (state.confirmLocked) return;
-    state = const AcceptOfferUiState(phase: AcceptPhase.submitting);
+    final key = _ensureKey();
+    state = AcceptOfferUiState(
+      phase: AcceptPhase.submitting,
+      idempotencyKey: key,
+    );
     final repo = ref.read(offersCustomerRepositoryProvider);
-    final res = await repo.accept(arg);
+    final res = await repo.accept(arg, idempotencyKey: key);
     res.when(
       ok: (result) {
         state = AcceptOfferUiState(
           phase: AcceptPhase.succeeded,
           connectionId: result.connection.id,
+          idempotencyKey: key,
         );
       },
       err: (f) {
         if (f is TimeoutFailure) {
-          state = AcceptOfferUiState(phase: AcceptPhase.timedOut, failure: f);
+          state = AcceptOfferUiState(
+            phase: AcceptPhase.timedOut,
+            failure: f,
+            idempotencyKey: key,
+          );
         } else {
-          state = AcceptOfferUiState(phase: AcceptPhase.failed, failure: f);
+          state = AcceptOfferUiState(
+            phase: AcceptPhase.failed,
+            failure: f,
+            idempotencyKey: key,
+          );
         }
       },
     );
+  }
+
+  static String _uuid() {
+    final rand = Random();
+    final bytes = List<int>.generate(16, (_) => rand.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-'
+        '${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 }
 

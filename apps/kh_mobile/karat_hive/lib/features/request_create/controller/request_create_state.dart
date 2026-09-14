@@ -9,6 +9,8 @@ class MediaSlot {
   const MediaSlot({
     required this.key,
     this.localLabel,
+    this.localPath,
+    this.contentType,
     this.progress = 1,
     this.uploading = false,
     this.failure,
@@ -16,21 +18,33 @@ class MediaSlot {
 
   final String key;
   final String? localLabel;
+  /// Absolute path for Guest-deferred upload (`adr/0011`).
+  final String? localPath;
+  final String? contentType;
   final double progress;
   final bool uploading;
   final Failure? failure;
 
+  bool get isLocalOnly =>
+      localPath != null &&
+      (key.startsWith('local:') || key.startsWith('pending-'));
+
   MediaSlot copyWith({
     String? key,
     String? localLabel,
+    String? localPath,
+    String? contentType,
     double? progress,
     bool? uploading,
     Failure? failure,
     bool clearFailure = false,
+    bool clearLocal = false,
   }) =>
       MediaSlot(
         key: key ?? this.key,
         localLabel: localLabel ?? this.localLabel,
+        localPath: clearLocal ? null : (localPath ?? this.localPath),
+        contentType: clearLocal ? null : (contentType ?? this.contentType),
         progress: progress ?? this.progress,
         uploading: uploading ?? this.uploading,
         failure: clearFailure ? null : (failure ?? this.failure),
@@ -80,6 +94,7 @@ class RequestCreateState {
     this.publishIdempotencyKey,
     this.published,
     this.uploading = false,
+    this.awaitingLoginToPublish = false,
   });
 
   final RequestCreateStep step;
@@ -123,6 +138,8 @@ class RequestCreateState {
   final String? publishIdempotencyKey;
   final RequestForCustomer? published;
   final bool uploading;
+  /// Guest tapped Publish — after Customer bind, auto-publish (`adr/0011`).
+  final bool awaitingLoginToPublish;
 
   bool get capBlocked => !canCreateRequest;
 
@@ -134,8 +151,14 @@ class RequestCreateState {
     return direction == Direction.sell;
   }
 
-  List<String> get mediaKeys =>
-      media.map((m) => m.key).where((k) => k.isNotEmpty).toList();
+  /// Server media keys only (excludes Guest-local / in-flight placeholders).
+  List<String> get mediaKeys => media
+      .where((m) =>
+          m.key.isNotEmpty &&
+          !m.key.startsWith('local:') &&
+          !m.key.startsWith('pending-'))
+      .map((m) => m.key)
+      .toList();
 
   int get maxImages => config?.maxRequestImages ?? 5;
 
@@ -183,6 +206,7 @@ class RequestCreateState {
     String? publishIdempotencyKey,
     RequestForCustomer? published,
     bool? uploading,
+    bool? awaitingLoginToPublish,
     bool clearType = false,
     bool clearDirection = false,
     bool clearFailure = false,
@@ -250,5 +274,7 @@ class RequestCreateState {
             publishIdempotencyKey ?? this.publishIdempotencyKey,
         published: clearPublished ? null : (published ?? this.published),
         uploading: uploading ?? this.uploading,
+        awaitingLoginToPublish:
+            awaitingLoginToPublish ?? this.awaitingLoginToPublish,
       );
 }

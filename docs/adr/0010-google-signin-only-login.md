@@ -12,4 +12,4 @@ Customer, Vendor, and Admin all sign in with Google only. The backend checks the
 
 **Considered options.** Keep OTP/password as login and use Google only as a publish check (`BR-001` as written). Rejected. Use Google as an extra login next to OTP/password. Rejected. Keep Admin on email + password + 2FA. Rejected — Product said Admins use Google only (6 September 2026).
 
-**Follow-up docs.** SRS `BR-001`, `FR-ADM-001`, `NFR-012` (password + 2FA), Architecture-Backend §14.1/§14.3, and the API list §8 still describe the old model. They need a later rewrite. Until then this ADR and [`Backend-Gap-Tasks.md`](../Backend-Gap-Tasks.md) G2-D01 / G2-D06 are the working rule for login.
+**Follow-up docs.** SRS `BR-001`, `FR-ADM-001`, `NFR-012` (password + 2FA), Architecture-Backend §14.1/§14.3, and the API list §8 still describe the old model. They need a later rewrite. Until then this ADR and [`Backend-Gap-Tasks.md`](../Backend-Gap-Tasks.md) G2-D01 / G2-D06 are the working rule for **how** login works. **When** login is required, and where a signed-out user lands, is [`adr/0011`](0011-guest-first-landing.md).

@@ -30,6 +30,10 @@ class ComposeScreenHost extends ConsumerWidget {
     final state = ref.watch(requestCreateControllerProvider);
     final controller = ref.read(requestCreateControllerProvider.notifier);
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.ensureLoaded();
+    });
+
     Future<void> saveDraft() async {
       await controller.saveDraft();
     }

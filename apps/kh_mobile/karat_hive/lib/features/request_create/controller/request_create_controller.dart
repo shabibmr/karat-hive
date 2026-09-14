@@ -69,23 +69,30 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     await loadLookups();
   }
 
+  bool get _isGuest => ref.read(sessionProvider) is! SignedIn;
+
   Future<void> loadLookups() async {
     state = state.copyWith(lookupsLoading: true, clearFailure: true);
     final configR = await _repo.platformConfig();
     final ratesR = await _repo.goldRates();
     final catR = await _repo.categories();
     final regR = await _repo.regions();
-    final meR = await _repo.me();
+
+    // Guest has no token — do not require GET /v1/me (`adr/0011`).
+    Result<MeUser>? meR;
+    if (!_isGuest) {
+      meR = await _repo.me();
+    }
 
     final fail = configR.failureOrNull ??
         catR.failureOrNull ??
         regR.failureOrNull ??
-        meR.failureOrNull;
+        meR?.failureOrNull;
     // Gold rates may be unavailable; compose still allowed except bullion publish.
     final rates = ratesR.valueOrNull ??
         const GoldRateSnapshot(available: false, stale: false);
 
-    final me = meR.valueOrNull;
+    final me = meR?.valueOrNull;
     state = state.copyWith(
       lookupsLoading: false,
       lookupsReady: fail == null,
@@ -204,8 +211,13 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   void goTo(RequestCreateStep step) => state = state.copyWith(step: step);
 
   /// Draft PATCH/POST — no mandatory-field validation (FR-CUS-015).
+  /// Guest: in-memory only — no HTTP (`adr/0011`).
   Future<bool> saveDraft() async {
     if (state.requestType == null) return false;
+    if (_isGuest) {
+      state = state.copyWith(busy: false, clearFailure: true);
+      return true;
+    }
     state = state.copyWith(busy: true, clearFailure: true, fieldErrors: const {});
     final body = draftBody();
     final Result<DraftSaveResult> result;
@@ -242,10 +254,29 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   }
 
   Future<void> addImage(File file, String contentType) async {
-    if (state.mediaKeys.length >= state.maxImages) return;
+    if (state.media.length >= state.maxImages) return;
+    final label = file.path.split(Platform.pathSeparator).last;
+
+    // Guest: keep bytes on device until after bind (`adr/0011`).
+    if (_isGuest) {
+      final slot = MediaSlot(
+        key: 'local:${file.path.hashCode}',
+        localLabel: label,
+        localPath: file.path,
+        contentType: contentType,
+      );
+      state = state.copyWith(
+        media: [...state.media, slot],
+        clearFailure: true,
+      );
+      return;
+    }
+
     final placeholder = MediaSlot(
       key: 'pending-${file.path.hashCode}',
-      localLabel: file.path.split(Platform.pathSeparator).last,
+      localLabel: label,
+      localPath: file.path,
+      contentType: contentType,
       progress: 0,
       uploading: true,
     );
@@ -316,7 +347,10 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   Future<void> removeMediaAt(int index) async {
     if (index < 0 || index >= state.media.length) return;
     final slot = state.media[index];
-    if (slot.key.isNotEmpty && !slot.key.startsWith('pending-')) {
+    if (slot.key.isNotEmpty &&
+        !slot.key.startsWith('pending-') &&
+        !slot.isLocalOnly &&
+        !_isGuest) {
       await _repo.deleteMedia(slot.key);
     }
     final next = [...state.media]..removeAt(index);
@@ -341,14 +375,36 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     return key;
   }
 
+  void markAwaitingLoginToPublish() {
+    state = state.copyWith(awaitingLoginToPublish: true);
+  }
+
+  void clearAwaitingLoginToPublish() {
+    state = state.copyWith(awaitingLoginToPublish: false);
+  }
+
+  /// Upload any Guest-local images, then create draft + publish.
   Future<bool> publish() async {
+    state = state.copyWith(busy: true, clearFailure: true, fieldErrors: const {});
+
+    final uploaded = await _uploadPendingLocalMedia();
+    if (!uploaded) {
+      state = state.copyWith(busy: false);
+      return false;
+    }
+
     if (state.draftId == null) {
       final created = await saveDraft();
-      if (!created) return false;
+      if (!created) {
+        state = state.copyWith(busy: false);
+        return false;
+      }
     }
     final id = state.draftId;
-    if (id == null) return false;
-    state = state.copyWith(busy: true, clearFailure: true, fieldErrors: const {});
+    if (id == null) {
+      state = state.copyWith(busy: false);
+      return false;
+    }
     final key = _ensurePublishKey();
     final result = await _repo.publish(id, idempotencyKey: key);
     return result.when(
@@ -357,6 +413,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           busy: false,
           published: req,
           step: RequestCreateStep.success,
+          awaitingLoginToPublish: false,
         );
         return true;
       },
@@ -371,6 +428,35 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     );
   }
 
+  Future<bool> _uploadPendingLocalMedia() async {
+    final pending = state.media.where((m) => m.isLocalOnly).toList();
+    if (pending.isEmpty) return true;
+    state = state.copyWith(uploading: true);
+    final next = [...state.media];
+    for (var i = 0; i < next.length; i++) {
+      final slot = next[i];
+      if (!slot.isLocalOnly || slot.localPath == null) continue;
+      final file = File(slot.localPath!);
+      final contentType = slot.contentType ?? 'image/jpeg';
+      next[i] = slot.copyWith(uploading: true, progress: 0, clearFailure: true);
+      state = state.copyWith(media: [...next]);
+      final result = await _repo.uploadRequestImage(file, contentType);
+      final fail = result.failureOrNull;
+      if (fail != null) {
+        next[i] = slot.copyWith(uploading: false, failure: fail);
+        state = state.copyWith(media: [...next], uploading: false, failure: fail);
+        return false;
+      }
+      next[i] = MediaSlot(
+        key: result.valueOrNull!,
+        localLabel: slot.localLabel,
+      );
+      state = state.copyWith(media: [...next]);
+    }
+    state = state.copyWith(media: next, uploading: false);
+    return true;
+  }
+
   /// Bind OAuth then retry publish with the **same** idempotency key.
   Future<bool> bindThenPublish(String identityToken) async {
     state = state.copyWith(busy: true, clearFailure: true);
@@ -381,6 +467,28 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       return false;
     }
     state = state.copyWith(oauthBound: true);
+    return publish();
+  }
+
+  /// After Guest → Login: Customer auto-publishes; Vendor drops the draft.
+  Future<bool> onSessionReadyForPublish() async {
+    final session = ref.read(sessionProvider);
+    if (session is! SignedIn) return false;
+    if (!state.awaitingLoginToPublish) return false;
+    if (session.isVendor) {
+      resetFlow();
+      return false;
+    }
+    if (!session.isCustomer) return false;
+    // Refresh oauth / cap from me.
+    final meR = await _repo.me();
+    final me = meR.valueOrNull;
+    if (me != null) {
+      state = state.copyWith(
+        oauthBound: me.oauthBound,
+        canCreateRequest: me.canCreateRequest ?? true,
+      );
+    }
     return publish();
   }
 

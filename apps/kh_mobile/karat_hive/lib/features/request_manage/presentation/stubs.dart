@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 
-class CustomerHomeScreen extends StatelessWidget {
-  const CustomerHomeScreen({super.key});
+/// Renamed stubs — real screens live alongside this file.
+class CustomerHomeStubScreen extends StatelessWidget {
+  const CustomerHomeStubScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,8 +14,8 @@ class CustomerHomeScreen extends StatelessWidget {
   }
 }
 
-class RequestDetailScreen extends StatelessWidget {
-  const RequestDetailScreen({super.key, required this.requestId});
+class OwnerRequestDetailStubScreen extends StatelessWidget {
+  const OwnerRequestDetailStubScreen({super.key, required this.requestId});
 
   final String requestId;
 
@@ -27,8 +28,8 @@ class RequestDetailScreen extends StatelessWidget {
   }
 }
 
-class RequestHistoryScreen extends StatelessWidget {
-  const RequestHistoryScreen({super.key});
+class RequestHistoryStubScreen extends StatelessWidget {
+  const RequestHistoryStubScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

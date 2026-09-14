@@ -4,10 +4,10 @@
 |---|---|
 | **Product** | Karat Hive — request-driven gold marketplace (UAE) |
 | **Document** | Screen-to-endpoint coverage map (pre-code completeness check) |
-| **Version** | 0.2 |
+| **Version** | 0.3 |
 | **Status** | Draft — `[PROPOSED]`. Read alongside `docs/API-Route-Inventory.md`. |
-| **Date** | 8 September 2026 |
-| **Source of truth** | [`ui-screens/`](../ui-screens/) (67 screen files) · [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) · [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) |
+| **Date** | 11 September 2026 |
+| **Source of truth** | [`ui-screens/`](../ui-screens/) (68 screen files; `CUS-S23` per [`adr/0011`](adr/0011-guest-first-landing.md)) · [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) · [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`docs/adr/0010`](adr/0010-google-signin-only-login.md) · [`docs/adr/0011`](adr/0011-guest-first-landing.md) |
 | **Identifier prefix** | `SAM-GAP-nn` — gaps found by *this* document. Stable, never reused. |
 
 ---
@@ -19,7 +19,7 @@ inventory is organised **by user journey**. Neither view, on its own, proves tha
 screen can be built: a screen needs a call for its **initial load**, a call for **each
 action**, and a defined response for **each empty / error state** it renders.
 
-This document is the join. Each of the 67 screens is mapped to:
+This document is the join. Each of the 68 screens is mapped to:
 
 - **Load / list** — what populates the screen on entry (`GET`s).
 - **Actions** — the endpoint behind every `Action`-kind field in the screen file.
@@ -49,19 +49,20 @@ Admin) and is not repeated per row.
 
 ---
 
-## 3. Mobile — Customer (`CUS-S01` … `CUS-S22`)
+## 3. Mobile — Customer (`CUS-S01` … `CUS-S23`)
 
 | Screen | Load / list | Actions | Empty / error |
 |---|---|---|---|
-| **CUS-S01** Onboarding | *client* (cold start) | `POST /v1/auth/google/session` (Firebase ID token → KH SessionBundle) · `POST /v1/auth/otp/request` · `POST /v1/auth/otp/verify` (prove real mobile) · `POST /v1/auth/register/customer` (completes a new Google user: terms + mobile) · `POST /v1/auth/logout` · biometric *client* | unbound Google token `→ 401 UNAUTHENTICATED` (backend does **not** auto-provision; `adr/0010`) · wrong/expired OTP `→ OTP_INVALID` / `OTP_EXPIRED` · `→ OTP_RATE_LIMITED` · duplicate number `→ MOBILE_ALREADY_REGISTERED` · `→ ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` |
+| **CUS-S23** Guest Landing | *client* (cold start, no live token — `adr/0011`) | service card *client* → CUS-S03…S07 · How this works *client* · Log in *client* → CUS-S01 · Register as Jeweller *client* → `VEN-S01` | no API. Cancel Google returns here |
+| **CUS-S01** Login / signup | *client* (from CUS-S23 or CUS-S09 publish gate; **not** cold-start default) | `POST /v1/auth/google/session` (Firebase ID token → KH SessionBundle) · `POST /v1/auth/otp/request` · `POST /v1/auth/otp/verify` (prove real mobile) · `POST /v1/auth/register/customer` (completes a new Google user: terms + mobile) · `POST /v1/auth/logout` · biometric *client* | unbound Google token `→ 401 UNAUTHENTICATED` (backend does **not** auto-provision; `adr/0010`) · wrong/expired OTP `→ OTP_INVALID` / `OTP_EXPIRED` · `→ OTP_RATE_LIMITED` · duplicate number `→ MOBILE_ALREADY_REGISTERED` · `→ ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` · Google cancel → previous screen, keep Guest form |
 | **CUS-S02** Home | `GET /v1/me/requests` (default active states) | quick-create *client* → CUS-S03 · open Request *client* → CUS-S10 · view Offers *client* → CUS-S11 | no Requests → `data: []` (empty state) · unread-offer badge ⚠️ `SAM-GAP-1` |
-| **CUS-S03** Request type selection | `GET /v1/platform-config` (`maxConcurrentLiveRequests`) | continue *client* | concurrent-limit block — client compares `GET /v1/me/requests` count vs config; hard stop is `→ CONCURRENT_REQUEST_LIMIT` at publish ⚠️ `SAM-GAP-2` |
+| **CUS-S03** Request type selection | `GET /v1/platform-config` (`maxConcurrentLiveRequests`). Guest: public config only; skip `GET /v1/me` | continue *client*. Guest allowed (`adr/0011`) | concurrent-limit block — signed-in client compares `GET /v1/me/requests` count vs config; Guest has no live Requests; hard stop is `→ CONCURRENT_REQUEST_LIMIT` at publish ⚠️ `SAM-GAP-2` |
 | **CUS-S04** Create — Find An Ornament | `GET /v1/categories` · `GET /v1/regions` · `GET /v1/gold-rates` · `GET /v1/platform-config` | `POST /v1/requests` (draft) · `PATCH /v1/requests/{id}` · save draft = `PATCH` · continue *client* → CUS-S09 | field errors `→ VALIDATION_FAILED` (`details[]`) · notes phone/email → `meta.warnings` on save · rate unavailable → `gold-rates.available:false` (compose still allowed) |
 | **CUS-S05** Create — Sell Old Gold | as CUS-S04 | as CUS-S04 | as CUS-S04; valuation suppressed when `gold-rates.available:false` |
 | **CUS-S06** Create — Gold Coins | as CUS-S04 | as CUS-S04 | `quantity ≤ 0` `→ VALIDATION_FAILED` |
 | **CUS-S07** Create — Gold Bullion | as CUS-S04 (rate **required**) | as CUS-S04 | below floor `→ BULLION_BELOW_MINIMUM` (returns threshold + computed value) · no rate `→ GOLD_RATE_UNAVAILABLE` · stale rate → `gold-rates.stale:true` |
 | **CUS-S08** Image capture | — | `POST /v1/media/upload-intent` → PUT to storage → `POST /v1/media/{key}/complete` · remove = `DELETE /v1/media/{key}` · reorder = `mediaKeys[]` order on `PATCH /v1/requests/{id}` | failed upload → retry client-side · `→ MEDIA_TYPE_REJECTED` · `→ UPLOAD_NOT_COMPLETED` · post-processing `→ MEDIA_QUARANTINED` |
-| **CUS-S09** Request review & publish | `GET /v1/requests/{id}` | `POST /v1/requests/{id}/publish` · save draft = `PATCH /v1/requests/{id}` · Google sign-in = `POST /v1/auth/google/session` (no separate bind step — `adr/0010`) | `→ OAUTH_REQUIRED` (publish refused when the Customer has no Google binding — `BR-001`, `FR-CUS-014`) · `→ MEDIA_NOT_READY` · `→ CONTACT_DETAILS_IN_TEXT` · `→ CONCURRENT_REQUEST_LIMIT` · `→ BULLION_BELOW_MINIMUM` · `→ GOLD_RATE_UNAVAILABLE` · validation summary `→ REQUEST_NOT_PUBLISHABLE` |
+| **CUS-S09** Request review & publish | `GET /v1/requests/{id}` when a server draft exists. Guest: in-memory form only (`adr/0011`) | `POST /v1/requests/{id}/publish` · save draft = `PATCH /v1/requests/{id}` (signed-in) · Google sign-in = `POST /v1/auth/google/session` (publish gate — `adr/0010`, `adr/0011`) then auto-publish if Customer | `→ OAUTH_REQUIRED` (publish refused when the Customer has no Google binding — `BR-001`, `FR-CUS-014`) · Guest cancel Login keeps form · Vendor from publish gate: drop draft, no publish · `→ MEDIA_NOT_READY` · `→ CONTACT_DETAILS_IN_TEXT` · `→ CONCURRENT_REQUEST_LIMIT` · `→ BULLION_BELOW_MINIMUM` · `→ GOLD_RATE_UNAVAILABLE` · validation summary `→ REQUEST_NOT_PUBLISHABLE` |
 | **CUS-S10** Request detail (my Request) | `GET /v1/requests/{id}` (owner presenter, offers nested) | `PATCH /v1/requests/{id}` (save edits) · `POST /v1/requests/{id}/cancel` · view Offers *client* → CUS-S11 · open Connection *client* → CUS-S15 ⚠️ `SAM-GAP-3` | structural edit `→ STRUCTURAL_FIELD_IMMUTABLE` · cancel after accept `→ REQUEST_NOT_CANCELLABLE` · zero Offers → empty state on nested `offers: []` |
 | **CUS-S11** Offers list | `GET /v1/requests/{id}/offers` (sort/filter query) | open Offer *client* → CUS-S13 · compare *client* → CUS-S12 · live update = client poll | no Offers → `data: []` + Request `expiresAt` · unread marker ⚠️ `SAM-GAP-1` |
 | **CUS-S12** Offer comparison | *client* composition over `GET /v1/requests/{id}/offers` | `POST /v1/offers/{id}/accept` · open detail *client* → CUS-S13 | must select 2–4 → *client* guard |
@@ -177,15 +178,15 @@ Severity: **H** blocks a screen · **M** screen degrades or needs a client worka
 
 ## 7. Coverage statement
 
-- **67 / 67 screens** have a defined load path and a defined endpoint (or explicit
-  *client* behaviour) for every `Action` field.
+- **68 / 68 screens** have a defined load path and a defined endpoint (or explicit
+  *client* behaviour) for every `Action` field. `CUS-S23` is client-only.
 - **13 gaps** (`SAM-GAP-1` … `13`). `SAM-GAP-3`, `4`, `5` are now resolved in the
   Checkpoint-1 backend and `SAM-GAP-9` in the screen files; `SAM-GAP-1` is tracked as
   `Customer-App-Backend-Gaps.md` CBG-01. Of the rest, `SAM-GAP-7` (High) is the only
   live contradiction. None require a new resource — all are additive fields, an
   auth-scope correction, one enum extension, or screen-file wording fixes.
 - **2 route-index hygiene items** — fixed in `API-Route-Inventory.md` (see above).
-- Every *Empty / error / edge state* row in the 67 screen files maps to either an empty
+- Every *Empty / error / edge state* row in the 68 screen files maps to either an empty
   collection (`data: []`, never `404`, per §3.2) or a named `error.code` in Route
   Inventory §5.
 
@@ -200,3 +201,4 @@ against the generated OpenAPI at first implementation (`NFR-030`).
 |---|---|---|
 | 0.1 | 1 Sep 2026 | Initial map of all 67 screens against API Route Inventory v0.1. 13 gaps recorded. |
 | 0.2 | 8 Sep 2026 | `CUS-S01` / `CUS-S09` auth flow reworked to the Google-session path per [`adr/0010`](adr/0010-google-signin-only-login.md): `POST /v1/auth/oauth/bind` removed (no separate bind step), `POST /v1/auth/google/session` + `POST /v1/auth/register/customer` cited, unbound token → `401 UNAUTHENTICATED`. `OAUTH_REQUIRED` on `CUS-S09` publish kept (`BR-001`, `FR-CUS-014`). `SAM-GAP-3` / `4` / `5` marked resolved in the Checkpoint-1 backend; `SAM-GAP-1` flagged open as `Customer-App-Backend-Gaps.md` CBG-01. |
+| 0.3 | 11 Sep 2026 | Guest-first launch per [`adr/0011`](adr/0011-guest-first-landing.md): add `CUS-S23` (client-only). `CUS-S01` is Login from Guest or publish gate, not cold start. `CUS-S03` Guest-reachable. `CUS-S09` in-memory Guest form + login-at-publish auto-publish. Coverage 68/68. |

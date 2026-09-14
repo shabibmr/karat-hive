@@ -111,4 +111,48 @@ class RequestsClient {
       err: Err.new,
     );
   }
+
+  /// `POST /v1/requests` — returns raw envelope when [unwrapData] is false so
+  /// callers can read `meta.warnings`.
+  Future<Result<dynamic>> create(
+    Map<String, dynamic> body, {
+    bool unwrapData = true,
+  }) =>
+      _client.send('POST', '/v1/requests', body: body, unwrapData: unwrapData);
+
+  Future<Result<dynamic>> patch(
+    String id,
+    Map<String, dynamic> body, {
+    bool unwrapData = true,
+  }) =>
+      _client.send(
+        'PATCH',
+        '/v1/requests/$id',
+        body: body,
+        unwrapData: unwrapData,
+      );
+
+  /// Publish with a caller-held idempotency key (Architecture-Frontend §9.4).
+  Future<Result<RequestForCustomer>> publish(
+    String id, {
+    required String idempotencyKey,
+  }) async {
+    final r = await _client.send(
+      'POST',
+      '/v1/requests/$id/publish',
+      headers: {'idempotency-key': idempotencyKey},
+    );
+    return r.when(
+      ok: (d) => Ok(RequestForCustomer.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  Future<Result<RequestForCustomer>> duplicate(String id) async {
+    final r = await _client.send('POST', '/v1/requests/$id/duplicate');
+    return r.when(
+      ok: (d) => Ok(RequestForCustomer.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
 }

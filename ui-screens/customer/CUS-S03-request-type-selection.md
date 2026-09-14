@@ -14,8 +14,9 @@ Choose exactly one Request Type before the type-specific create flow. Type canno
 
 | Direction | Path |
 |---|---|
-| Entry | Home quick-create; create nav |
+| Entry | CUS-S23 service card; Home quick-create; create nav |
 | Exit | CUS-S04 / S05 / S06 / S07 by type |
+| Guest | Allowed. No login until CUS-S09 Publish (`adr/0011`) |
 
 ## Fields
 

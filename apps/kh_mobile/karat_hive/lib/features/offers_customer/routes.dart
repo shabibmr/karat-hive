@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
-import 'presentation/stubs.dart';
+import 'presentation/accept_offer_screen.dart';
+import 'presentation/offer_detail_screen.dart';
 
 /// Offer detail / accept — list+compare nest under request_manage (CUS-S10).
 final offersCustomerRoutes = [
