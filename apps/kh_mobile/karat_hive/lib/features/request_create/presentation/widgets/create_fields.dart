@@ -26,7 +26,7 @@ class TaxonomySinglePick extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final leaves = taxonomyLeaves(nodes);
+    final leaves = nodes;
     return KhSelectField<String>(
       label: label,
       value: value,

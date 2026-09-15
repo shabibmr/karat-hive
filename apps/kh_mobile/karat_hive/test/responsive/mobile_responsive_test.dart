@@ -46,16 +46,9 @@ const List<({String name, Size size})> _viewports = [
 /// of the test.
 const _categories = [
   TaxonomyNode(
-    id: 'cat-ornaments',
-    nameEn: 'Find An Ornament',
-    nameAr: 'ابحث عن قطعة',
-    children: [
-      TaxonomyNode(
-        id: 'cat-necklaces',
-        nameEn: 'Bridal & Fine Necklaces',
-        nameAr: 'قلائد مجوهرات',
-      ),
-    ],
+    id: 'cat-necklaces',
+    nameEn: 'Bridal & Fine Necklaces',
+    nameAr: 'قلائد مجوهرات',
   ),
   TaxonomyNode(
     id: 'cat-old-gold',
@@ -65,14 +58,7 @@ const _categories = [
 ];
 
 const _regions = [
-  TaxonomyNode(
-    id: 'reg-dubai',
-    nameEn: 'Dubai',
-    nameAr: 'دبي',
-    children: [
-      TaxonomyNode(id: 'reg-deira', nameEn: 'Deira Gold Souk', nameAr: 'سوق الذهب'),
-    ],
-  ),
+  TaxonomyNode(id: 'reg-dubai', nameEn: 'Dubai', nameAr: 'دبي'),
 ];
 
 Widget _host(Widget child) => ProviderScope(

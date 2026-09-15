@@ -10,25 +10,11 @@ import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
 const _categories = [
-  TaxonomyNode(
-    id: 'cat-ornaments',
-    nameEn: 'Ornaments',
-    nameAr: 'زينة',
-    children: [
-      TaxonomyNode(id: 'cat-ring', nameEn: 'Rings', nameAr: 'خواتم'),
-    ],
-  ),
+  TaxonomyNode(id: 'cat-ring', nameEn: 'Rings', nameAr: 'خواتم'),
 ];
 
 const _regions = [
-  TaxonomyNode(
-    id: 'reg-dubai',
-    nameEn: 'Dubai',
-    nameAr: 'دبي',
-    children: [
-      TaxonomyNode(id: 'reg-dxb', nameEn: 'Deira', nameAr: 'ديرة'),
-    ],
-  ),
+  TaxonomyNode(id: 'reg-dxb', nameEn: 'Dubai', nameAr: 'دبي'),
 ];
 
 class _FakeRequestFeedRepository implements RequestFeedRepository {
