@@ -43,37 +43,34 @@ describe('admin taxonomy (minted JWT)', () => {
     expect(res.json.error.code).toBe('NOT_FOUND');
   });
 
-  it('admin creates root + child, rejects a third level, persists icon', async () => {
+  it('admin creates, updates, and lists a flat category, persisting icon', async () => {
     const admin = await insertAdmin(ctx.prisma);
     const token = await issueSession(ctx, admin);
 
-    const root = await inject(ctx.app, {
+    const created = await inject(ctx.app, {
       method: 'POST',
       url: '/v1/admin/categories',
       token,
       body: { nameEn: 'Jewellery', nameAr: 'مجوهرات', icon: 'diamond', displayOrder: 1 },
     });
-    expect(root.status).toBe(201);
-    expect(root.json.data.icon).toBe('diamond');
-    const rootId = root.json.data.id as string;
+    expect(created.status).toBe(201);
+    expect(created.json.data.icon).toBe('diamond');
+    expect(created.json.data.parentId).toBeUndefined();
+    expect(created.json.data.children).toBeUndefined();
+    const categoryId = created.json.data.id as string;
 
-    const child = await inject(ctx.app, {
-      method: 'POST',
-      url: '/v1/admin/categories',
+    const updated = await inject(ctx.app, {
+      method: 'PATCH',
+      url: `/v1/admin/categories/${categoryId}`,
       token,
-      body: { parentId: rootId, nameEn: 'Rings', nameAr: 'خواتم' },
+      body: { nameEn: 'Fine Jewellery' },
     });
-    expect(child.status).toBe(201);
-    const childId = child.json.data.id as string;
+    expect(updated.status).toBe(200);
+    expect(updated.json.data.nameEn).toBe('Fine Jewellery');
 
-    const grandchild = await inject(ctx.app, {
-      method: 'POST',
-      url: '/v1/admin/categories',
-      token,
-      body: { parentId: childId, nameEn: 'Too Deep', nameAr: 'عميق' },
-    });
-    expect(grandchild.status).toBe(422);
-    expect(grandchild.json.error.code).toBe('VALIDATION_FAILED');
+    const list = await inject(ctx.app, { method: 'GET', url: '/v1/admin/categories', token });
+    expect(list.status).toBe(200);
+    expect(list.json.data.some((c: { id: string }) => c.id === categoryId)).toBe(true);
   });
 
   it('deactivates an in-use category and keeps vendor associations', async () => {

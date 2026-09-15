@@ -8,7 +8,6 @@ export type TaxonomyKind = 'category' | 'region';
 export type CreateTaxonomyInput = {
   nameEn: string;
   nameAr: string;
-  parentId?: string | null;
   displayOrder?: number;
   isActive?: boolean;
   icon?: string;
@@ -17,7 +16,6 @@ export type CreateTaxonomyInput = {
 export type UpdateTaxonomyInput = {
   nameEn?: string;
   nameAr?: string;
-  parentId?: string | null;
   displayOrder?: number;
   isActive?: boolean;
   icon?: string;
@@ -67,48 +65,34 @@ export class TaxonomyRepository {
     return client.region.findUnique({ where: { id } });
   }
 
-  countChildren(kind: TaxonomyKind, id: string, tx?: DbTx): Promise<number> {
-    const client = tx ?? this.prisma;
-    return kind === 'category'
-      ? client.category.count({ where: { parentId: id } })
-      : client.region.count({ where: { parentId: id } });
-  }
-
   async countReferences(kind: TaxonomyKind, id: string, tx?: DbTx): Promise<number> {
     const client = tx ?? this.prisma;
     if (kind === 'category') {
-      const [requests, vendors, children] = await Promise.all([
+      const [requests, vendors] = await Promise.all([
         client.request.count({ where: { categoryId: id } }),
         client.vendorCategory.count({ where: { categoryId: id } }),
-        client.category.count({ where: { parentId: id } }),
       ]);
-      return requests + vendors + children;
+      return requests + vendors;
     }
-    const [requests, vendors, customers, children] = await Promise.all([
+    const [requests, vendors, customers] = await Promise.all([
       client.request.count({ where: { regionId: id } }),
       client.vendorRegion.count({ where: { regionId: id } }),
       client.customerProfile.count({ where: { defaultRegionId: id } }),
-      client.region.count({ where: { parentId: id } }),
     ]);
-    return requests + vendors + customers + children;
+    return requests + vendors + customers;
   }
 
   async createCategory(input: CreateTaxonomyInput, tx?: DbTx): Promise<Category> {
     const client = tx ?? this.prisma;
     const maxOrder =
       input.displayOrder ??
-      ((
-        await client.category.aggregate({
-          where: { parentId: input.parentId ?? null },
-          _max: { displayOrder: true },
-        })
-      )._max.displayOrder ?? -1) + 1;
+      ((await client.category.aggregate({ _max: { displayOrder: true } }))._max.displayOrder ??
+        -1) + 1;
 
     return client.category.create({
       data: {
         nameEn: input.nameEn,
         nameAr: input.nameAr,
-        parentId: input.parentId ?? null,
         displayOrder: maxOrder,
         isActive: input.isActive ?? true,
         ...(input.icon !== undefined ? { icon: input.icon } : {}),
@@ -120,18 +104,13 @@ export class TaxonomyRepository {
     const client = tx ?? this.prisma;
     const maxOrder =
       input.displayOrder ??
-      ((
-        await client.region.aggregate({
-          where: { parentId: input.parentId ?? null },
-          _max: { displayOrder: true },
-        })
-      )._max.displayOrder ?? -1) + 1;
+      ((await client.region.aggregate({ _max: { displayOrder: true } }))._max.displayOrder ??
+        -1) + 1;
 
     return client.region.create({
       data: {
         nameEn: input.nameEn,
         nameAr: input.nameAr,
-        parentId: input.parentId ?? null,
         displayOrder: maxOrder,
         isActive: input.isActive ?? true,
       },
@@ -149,7 +128,6 @@ export class TaxonomyRepository {
       data: {
         ...(input.nameEn !== undefined ? { nameEn: input.nameEn } : {}),
         ...(input.nameAr !== undefined ? { nameAr: input.nameAr } : {}),
-        ...(input.parentId !== undefined ? { parentId: input.parentId } : {}),
         ...(input.displayOrder !== undefined ? { displayOrder: input.displayOrder } : {}),
         ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
         ...(input.icon !== undefined ? { icon: input.icon } : {}),
@@ -164,7 +142,6 @@ export class TaxonomyRepository {
       data: {
         ...(input.nameEn !== undefined ? { nameEn: input.nameEn } : {}),
         ...(input.nameAr !== undefined ? { nameAr: input.nameAr } : {}),
-        ...(input.parentId !== undefined ? { parentId: input.parentId } : {}),
         ...(input.displayOrder !== undefined ? { displayOrder: input.displayOrder } : {}),
         ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
       },

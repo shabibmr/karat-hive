@@ -10,7 +10,6 @@ import { TaxonomyService } from '../application/taxonomy.service';
 import type { CategorySummary, RegionSummary, TaxonomyNode } from '../presenter/taxonomy.presenter';
 
 const createCategorySchema = z.object({
-  parentId: z.string().uuid().nullable().optional(),
   nameEn: z.string().trim().min(1, 'nameEn is required').max(100),
   nameAr: z.string().trim().min(1, 'nameAr is required').max(100),
   icon: z.string().max(100).optional(),
@@ -20,7 +19,6 @@ const createCategorySchema = z.object({
 
 const updateCategorySchema = z
   .object({
-    parentId: z.string().uuid().nullable().optional(),
     nameEn: z.string().trim().min(1, 'nameEn cannot be blank').max(100).optional(),
     nameAr: z.string().trim().min(1, 'nameAr cannot be blank').max(100).optional(),
     icon: z.string().max(100).optional(),
@@ -32,7 +30,6 @@ const updateCategorySchema = z
   });
 
 const createRegionSchema = z.object({
-  parentId: z.string().uuid().nullable().optional(),
   nameEn: z.string().trim().min(1, 'nameEn is required').max(100),
   nameAr: z.string().trim().min(1, 'nameAr is required').max(100),
   displayOrder: z.coerce.number().int().optional(),
@@ -41,7 +38,6 @@ const createRegionSchema = z.object({
 
 const updateRegionSchema = z
   .object({
-    parentId: z.string().uuid().nullable().optional(),
     nameEn: z.string().trim().min(1, 'nameEn cannot be blank').max(100).optional(),
     nameAr: z.string().trim().min(1, 'nameAr cannot be blank').max(100).optional(),
     displayOrder: z.coerce.number().int().optional(),

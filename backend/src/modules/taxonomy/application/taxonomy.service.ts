@@ -128,31 +128,12 @@ export class TaxonomyService {
       ]);
     }
 
-    if (input.parentId) {
-      const parent = await this.repo.findById(kind, input.parentId);
-      if (!parent) {
-        throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND, [
-          { path: 'parentId', code: 'NOT_FOUND', message: 'Specified parent node does not exist.' },
-        ]);
-      }
-      if (parent.parentId !== null) {
-        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.VALIDATION_FAILED, [
-          {
-            path: 'parentId',
-            code: 'HIERARCHY_DEPTH_EXCEEDED',
-            message: 'Hierarchy cannot exceed 2 levels. Cannot nest under a child node.',
-          },
-        ]);
-      }
-    }
-
     return withTx(this.prisma, async (tx) => {
       const created = await this.repo.create(
         kind,
         {
           nameEn,
           nameAr,
-          parentId: input.parentId ?? null,
           displayOrder: input.displayOrder,
           isActive: input.isActive ?? true,
           ...(kind === 'category' && input.icon !== undefined ? { icon: input.icon } : {}),
@@ -170,7 +151,6 @@ export class TaxonomyService {
           id: created.id,
           nameEn: created.nameEn,
           nameAr: created.nameAr,
-          parentId: created.parentId,
           displayOrder: created.displayOrder,
           isActive: created.isActive,
         },
@@ -216,39 +196,6 @@ export class TaxonomyService {
       input.nameAr = trimmed;
     }
 
-    if (input.parentId !== undefined && input.parentId !== null) {
-      if (input.parentId === id) {
-        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.VALIDATION_FAILED, [
-          { path: 'parentId', code: 'SELF_PARENT', message: 'A node cannot be its own parent.' },
-        ]);
-      }
-      const parent = await this.repo.findById(kind, input.parentId);
-      if (!parent) {
-        throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND, [
-          { path: 'parentId', code: 'NOT_FOUND', message: 'Specified parent node does not exist.' },
-        ]);
-      }
-      if (parent.parentId !== null) {
-        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.VALIDATION_FAILED, [
-          {
-            path: 'parentId',
-            code: 'HIERARCHY_DEPTH_EXCEEDED',
-            message: 'Hierarchy cannot exceed 2 levels. Cannot nest under a child node.',
-          },
-        ]);
-      }
-      const childrenCount = await this.repo.countChildren(kind, id);
-      if (childrenCount > 0) {
-        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.VALIDATION_FAILED, [
-          {
-            path: 'parentId',
-            code: 'HIERARCHY_DEPTH_EXCEEDED',
-            message: 'A node with existing children cannot become a child of another node.',
-          },
-        ]);
-      }
-    }
-
     return withTx(this.prisma, async (tx) => {
       const updated = await this.repo.update(kind, id, input, tx);
 
@@ -261,7 +208,6 @@ export class TaxonomyService {
           id: existing.id,
           nameEn: existing.nameEn,
           nameAr: existing.nameAr,
-          parentId: existing.parentId,
           displayOrder: existing.displayOrder,
           isActive: existing.isActive,
         },
@@ -269,7 +215,6 @@ export class TaxonomyService {
           id: updated.id,
           nameEn: updated.nameEn,
           nameAr: updated.nameAr,
-          parentId: updated.parentId,
           displayOrder: updated.displayOrder,
           isActive: updated.isActive,
         },
@@ -342,7 +287,6 @@ export class TaxonomyService {
           id: existing.id,
           nameEn: existing.nameEn,
           nameAr: existing.nameAr,
-          parentId: existing.parentId,
           displayOrder: existing.displayOrder,
           isActive: existing.isActive,
         },

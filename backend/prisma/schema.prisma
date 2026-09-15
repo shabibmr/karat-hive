@@ -548,7 +548,6 @@ model VendorTypeSubscription {
 
 model Category {
   id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  parentId     String?    @map("parent_id") @db.Uuid
   nameEn       String     @map("name_en") @db.VarChar(100)
   nameAr       String     @map("name_ar") @db.VarChar(100)
   icon         String?    @db.VarChar(100)
@@ -557,18 +556,15 @@ model Category {
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  parent       Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
-  children     Category[] @relation("CategoryTree")
   requests     Request[]
   vendors      VendorCategory[]
 
-  @@index([parentId, displayOrder])
+  @@index([displayOrder])
   @@map("category")
 }
 
 model Region {
   id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  parentId     String?    @map("parent_id") @db.Uuid
   nameEn       String     @map("name_en") @db.VarChar(100)
   nameAr       String     @map("name_ar") @db.VarChar(100)
   displayOrder Int        @map("display_order")
@@ -576,13 +572,11 @@ model Region {
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  parent       Region?    @relation("RegionTree", fields: [parentId], references: [id], onDelete: Restrict)
-  children     Region[]   @relation("RegionTree")
   requests     Request[]
   customers    CustomerProfile[]
   vendors      VendorRegion[]
 
-  @@index([parentId, displayOrder])
+  @@index([displayOrder])
   @@map("region")
 }
 

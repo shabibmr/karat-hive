@@ -62,7 +62,6 @@ describe('AdminTaxonomyController', () => {
       id: 'cat-1',
       nameEn: 'Jewellery',
       nameAr: 'مجوهرات',
-      parentId: null,
       isActive: true,
       displayOrder: 0,
     });
@@ -83,7 +82,6 @@ describe('AdminTaxonomyController', () => {
       id: 'cat-1',
       nameEn: 'Fine Jewellery',
       nameAr: 'مجوهرات',
-      parentId: null,
       isActive: true,
       displayOrder: 0,
     });
@@ -104,7 +102,6 @@ describe('AdminTaxonomyController', () => {
       id: 'cat-1',
       nameEn: 'Jewellery',
       nameAr: 'مجوهرات',
-      parentId: null,
       isActive: false,
       displayOrder: 0,
     });
@@ -133,7 +130,6 @@ describe('AdminTaxonomyController', () => {
       id: 'reg-1',
       nameEn: 'Dubai',
       nameAr: 'دبي',
-      parentId: null,
       isActive: true,
       displayOrder: 0,
     });
@@ -154,7 +150,6 @@ describe('AdminTaxonomyController', () => {
       id: 'reg-1',
       nameEn: 'Emirate of Dubai',
       nameAr: 'دبي',
-      parentId: null,
       isActive: true,
       displayOrder: 0,
     });
@@ -175,7 +170,6 @@ describe('AdminTaxonomyController', () => {
       id: 'reg-1',
       nameEn: 'Dubai',
       nameAr: 'دبي',
-      parentId: null,
       isActive: false,
       displayOrder: 0,
     });

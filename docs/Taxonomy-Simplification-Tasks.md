@@ -31,9 +31,9 @@ This file is the work list: IDs, order, files, acceptance. It does not restate r
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| `TAX-01` | Remove `parentId`/`parent`/`children` from `Category` and `Region` models; change composite index to `(displayOrder)` | `backend/prisma/schema.prisma` | `TAX-00a`, `TAX-00b` | open |
-| `TAX-02` | Write & run migration: drop `*_parent_id_fkey`, drop composite hierarchy indexes, create flat `display_order` indexes, drop `parent_id` columns | `backend/prisma/migrations/20260915120000_flatten_taxonomy/migration.sql` | `TAX-01` | open |
-| `TAX-03` | Flatten `CATEGORIES`/`REGIONS` arrays to 1-level lists; replace `seedTree()` with `seedFlat()` | `backend/prisma/seed/taxonomy.seed.ts` | `TAX-00a`, `TAX-00b`, `TAX-02` | open |
+| `TAX-01` | Remove `parentId`/`parent`/`children` from `Category` and `Region` models; change composite index to `(displayOrder)` | `backend/prisma/schema.prisma` | `TAX-00a`, `TAX-00b` | done |
+| `TAX-02` | Write & run migration: drop `*_parent_id_fkey`, drop composite hierarchy indexes, create flat `display_order` indexes, drop `parent_id` columns | `backend/prisma/migrations/20260915120000_flatten_taxonomy/migration.sql` | `TAX-01` | done — applied to Supabase dev project |
+| `TAX-03` | Flatten `CATEGORIES`/`REGIONS` arrays to 1-level lists; replace `seedTree()` with `seedFlat()` | `backend/prisma/seed/taxonomy.seed.ts` | `TAX-00a`, `TAX-00b`, `TAX-02` | done — retires pre-flattening rows via `isActive:false` instead of deleting them |
 
 **Verify:** `npx prisma migrate dev` and seed run cleanly against a scratch DB.
 
@@ -43,12 +43,12 @@ This file is the work list: IDs, order, files, acceptance. It does not restate r
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| `TAX-04` | Remove `parentId` from create/update inputs; drop `parentId` filtering from max-`displayOrder` aggregation; remove `countChildren()`; update `countReferences()` per kind | `repository/taxonomy.repository.ts` | `TAX-02` | open |
-| `TAX-05` | Remove `HIERARCHY_DEPTH_EXCEEDED`/`SELF_PARENT` validation and children-on-update check; simplify `listTree()` to flat sorted list; drop `parentId` from audit snapshots | `application/taxonomy.service.ts` | `TAX-04` | open |
-| `TAX-06` | Drop `parentId` from `CategorySummary`/`RegionSummary`; replace `toTree()` with `presentFlat()`; drop `children` from `TaxonomyNode` entirely (`TAX-00c`: no transition window) | `presenter/taxonomy.presenter.ts` | `TAX-05` | open |
-| `TAX-07` | Remove `parentId` from Zod schemas (`createCategorySchema`, `updateCategorySchema`, `createRegionSchema`, `updateRegionSchema`) | `controller/admin-taxonomy.controller.ts` | `TAX-06` | open |
-| `TAX-08` | Remove hierarchy-depth/self-parent unit tests; update payloads without `parentId` | `application/taxonomy.service.spec.ts`, `controller/admin-taxonomy.controller.spec.ts` | `TAX-07` | open |
-| `TAX-09` | Update/extend integration tests to verify flat CRUD | `backend/test/integration/admin-taxonomy.spec.ts` | `TAX-08` | open |
+| `TAX-04` | Remove `parentId` from create/update inputs; drop `parentId` filtering from max-`displayOrder` aggregation; remove `countChildren()`; update `countReferences()` per kind | `repository/taxonomy.repository.ts` | `TAX-02` | done |
+| `TAX-05` | Remove `HIERARCHY_DEPTH_EXCEEDED`/`SELF_PARENT` validation and children-on-update check; simplify `listTree()` to flat sorted list; drop `parentId` from audit snapshots | `application/taxonomy.service.ts` | `TAX-04` | done |
+| `TAX-06` | Drop `parentId` from `CategorySummary`/`RegionSummary`; replace `toTree()` with `presentFlat()`; drop `children` from `TaxonomyNode` entirely (`TAX-00c`: no transition window) | `presenter/taxonomy.presenter.ts` | `TAX-05` | done |
+| `TAX-07` | Remove `parentId` from Zod schemas (`createCategorySchema`, `updateCategorySchema`, `createRegionSchema`, `updateRegionSchema`) | `controller/admin-taxonomy.controller.ts` | `TAX-06` | done |
+| `TAX-08` | Remove hierarchy-depth/self-parent unit tests; update payloads without `parentId` | `application/taxonomy.service.spec.ts`, `controller/admin-taxonomy.controller.spec.ts` | `TAX-07` | done |
+| `TAX-09` | Update/extend integration tests to verify flat CRUD | `backend/test/integration/admin-taxonomy.spec.ts` | `TAX-08` | done |
 
 **Verify:** `cd backend && npm run test && npm run test:integration`
 

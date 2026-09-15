@@ -29,23 +29,10 @@ describe('TaxonomyService', () => {
 
   const clientInfo = { ip: '127.0.0.1', userAgent: 'vitest-agent' };
 
-  const mockRootCategory: Category = {
-    id: 'cat-root-1',
-    parentId: null,
+  const mockCategory: Category = {
+    id: 'cat-1',
     nameEn: 'Gold Jewellery',
     nameAr: 'مجوهرات ذهبية',
-    icon: null,
-    displayOrder: 0,
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  const mockChildCategory: Category = {
-    id: 'cat-child-1',
-    parentId: 'cat-root-1',
-    nameEn: 'Rings',
-    nameAr: 'خواتم',
     icon: null,
     displayOrder: 0,
     isActive: true,
@@ -65,7 +52,6 @@ describe('TaxonomyService', () => {
       findById: vi.fn(),
       findCategoryById: vi.fn(),
       findRegionById: vi.fn(),
-      countChildren: vi.fn(),
       countReferences: vi.fn(),
       create: vi.fn(),
       createCategory: vi.fn(),
@@ -89,8 +75,8 @@ describe('TaxonomyService', () => {
   });
 
   describe('create', () => {
-    it('creates a root category and records audit row', async () => {
-      vi.mocked(repo.create).mockResolvedValue(mockRootCategory);
+    it('creates a category and records audit row', async () => {
+      vi.mocked(repo.create).mockResolvedValue(mockCategory);
 
       const result = await service.createCategory(
         { nameEn: 'Gold Jewellery', nameAr: 'مجوهرات ذهبية' },
@@ -98,7 +84,7 @@ describe('TaxonomyService', () => {
         clientInfo,
       );
 
-      expect(result.id).toBe('cat-root-1');
+      expect(result.id).toBe('cat-1');
       expect(result.nameEn).toBe('Gold Jewellery');
       expect(audit.append).toHaveBeenCalledWith(
         expect.anything(),
@@ -110,57 +96,6 @@ describe('TaxonomyService', () => {
           afterValue: expect.objectContaining({ nameEn: 'Gold Jewellery' }),
         }),
       );
-    });
-
-    it('creates a child category under a root parent (2 levels)', async () => {
-      vi.mocked(repo.findById).mockResolvedValue(mockRootCategory);
-      vi.mocked(repo.create).mockResolvedValue(mockChildCategory);
-
-      const result = await service.createCategory(
-        { nameEn: 'Rings', nameAr: 'خواتم', parentId: 'cat-root-1' },
-        mockAdminViewer,
-        clientInfo,
-      );
-
-      expect(result.id).toBe('cat-child-1');
-      expect(result.parentId).toBe('cat-root-1');
-    });
-
-    it('rejects nesting under a node that already has a parent with 422 VALIDATION_FAILED', async () => {
-      // mockChildCategory already has parentId = 'cat-root-1'
-      vi.mocked(repo.findById).mockResolvedValue(mockChildCategory);
-
-      await expect(
-        service.createCategory(
-          { nameEn: 'Diamond Rings', nameAr: 'خواتم ألماس', parentId: 'cat-child-1' },
-          mockAdminViewer,
-          clientInfo,
-        ),
-      ).rejects.toMatchObject({
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-        errorCode: ErrorCode.VALIDATION_FAILED,
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            path: 'parentId',
-            code: 'HIERARCHY_DEPTH_EXCEEDED',
-          }),
-        ]),
-      });
-    });
-
-    it('rejects creating under a non-existent parent with 404 NOT_FOUND', async () => {
-      vi.mocked(repo.findById).mockResolvedValue(null);
-
-      await expect(
-        service.createCategory(
-          { nameEn: 'Rings', nameAr: 'خواتم', parentId: 'non-existent' },
-          mockAdminViewer,
-          clientInfo,
-        ),
-      ).rejects.toMatchObject({
-        status: HttpStatus.NOT_FOUND,
-        errorCode: ErrorCode.NOT_FOUND,
-      });
     });
 
     it('rejects blank nameEn or nameAr with 422 VALIDATION_FAILED', async () => {
@@ -182,14 +117,14 @@ describe('TaxonomyService', () => {
 
   describe('update', () => {
     it('updates a category name and records audit row with before and after', async () => {
-      vi.mocked(repo.findById).mockResolvedValue(mockRootCategory);
+      vi.mocked(repo.findById).mockResolvedValue(mockCategory);
       vi.mocked(repo.update).mockResolvedValue({
-        ...mockRootCategory,
+        ...mockCategory,
         nameEn: 'Fine Jewellery',
       });
 
       const result = await service.updateCategory(
-        'cat-root-1',
+        'cat-1',
         { nameEn: 'Fine Jewellery' },
         mockAdminViewer,
         clientInfo,
@@ -208,52 +143,11 @@ describe('TaxonomyService', () => {
       );
     });
 
-    it('rejects setting self as parent with 422 VALIDATION_FAILED', async () => {
-      vi.mocked(repo.findById).mockResolvedValue(mockRootCategory);
-
-      await expect(
-        service.updateCategory(
-          'cat-root-1',
-          { parentId: 'cat-root-1' },
-          mockAdminViewer,
-          clientInfo,
-        ),
-      ).rejects.toMatchObject({
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-        errorCode: ErrorCode.VALIDATION_FAILED,
-        details: expect.arrayContaining([
-          expect.objectContaining({ path: 'parentId', code: 'SELF_PARENT' }),
-        ]),
-      });
-    });
-
-    it('rejects nesting a category that already has children under another parent with 422', async () => {
-      vi.mocked(repo.findById)
-        .mockResolvedValueOnce(mockRootCategory) // existing check
-        .mockResolvedValueOnce({ ...mockRootCategory, id: 'cat-root-2' }); // target parent check
-      vi.mocked(repo.countChildren).mockResolvedValue(3); // has 3 children!
-
-      await expect(
-        service.updateCategory(
-          'cat-root-1',
-          { parentId: 'cat-root-2' },
-          mockAdminViewer,
-          clientInfo,
-        ),
-      ).rejects.toMatchObject({
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-        errorCode: ErrorCode.VALIDATION_FAILED,
-        details: expect.arrayContaining([
-          expect.objectContaining({ path: 'parentId', code: 'HIERARCHY_DEPTH_EXCEEDED' }),
-        ]),
-      });
-    });
-
     it('rejects blank nameEn on patch with 422 VALIDATION_FAILED', async () => {
-      vi.mocked(repo.findById).mockResolvedValue(mockRootCategory);
+      vi.mocked(repo.findById).mockResolvedValue(mockCategory);
 
       await expect(
-        service.updateCategory('cat-root-1', { nameEn: '   ' }, mockAdminViewer, clientInfo),
+        service.updateCategory('cat-1', { nameEn: '   ' }, mockAdminViewer, clientInfo),
       ).rejects.toMatchObject({
         status: HttpStatus.UNPROCESSABLE_ENTITY,
         errorCode: ErrorCode.VALIDATION_FAILED,
@@ -263,13 +157,13 @@ describe('TaxonomyService', () => {
 
   describe('deactivate', () => {
     it('deactivates category even when in-use, preserving associations, and audits action', async () => {
-      vi.mocked(repo.findById).mockResolvedValue(mockRootCategory);
+      vi.mocked(repo.findById).mockResolvedValue(mockCategory);
       vi.mocked(repo.deactivate).mockResolvedValue({
-        ...mockRootCategory,
+        ...mockCategory,
         isActive: false,
       });
 
-      const result = await service.deactivateCategory('cat-root-1', mockAdminViewer, clientInfo);
+      const result = await service.deactivateCategory('cat-1', mockAdminViewer, clientInfo);
 
       expect(result.isActive).toBe(false);
       expect(audit.append).toHaveBeenCalledWith(
@@ -298,11 +192,11 @@ describe('TaxonomyService', () => {
 
   describe('delete & TAXONOMY_IN_USE', () => {
     it('throws 409 TAXONOMY_IN_USE when attempting to delete a category referenced by requests or vendors', async () => {
-      vi.mocked(repo.findById).mockResolvedValue(mockRootCategory);
+      vi.mocked(repo.findById).mockResolvedValue(mockCategory);
       vi.mocked(repo.countReferences).mockResolvedValue(5); // 5 active references!
 
       await expect(
-        service.delete('category', 'cat-root-1', mockAdminViewer, clientInfo),
+        service.delete('category', 'cat-1', mockAdminViewer, clientInfo),
       ).rejects.toMatchObject({
         status: HttpStatus.CONFLICT,
         errorCode: ErrorCode.TAXONOMY_IN_USE,
@@ -310,19 +204,19 @@ describe('TaxonomyService', () => {
     });
 
     it('deletes category and emits audit entry when reference count is 0', async () => {
-      vi.mocked(repo.findById).mockResolvedValue(mockRootCategory);
+      vi.mocked(repo.findById).mockResolvedValue(mockCategory);
       vi.mocked(repo.countReferences).mockResolvedValue(0);
-      vi.mocked(repo.delete).mockResolvedValue(mockRootCategory);
+      vi.mocked(repo.delete).mockResolvedValue(mockCategory);
 
-      await service.delete('category', 'cat-root-1', mockAdminViewer, clientInfo);
+      await service.delete('category', 'cat-1', mockAdminViewer, clientInfo);
 
-      expect(repo.delete).toHaveBeenCalledWith('category', 'cat-root-1', expect.anything());
+      expect(repo.delete).toHaveBeenCalledWith('category', 'cat-1', expect.anything());
       expect(audit.append).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           action: 'CATEGORY_DELETE',
           entityType: 'category',
-          entityId: 'cat-root-1',
+          entityId: 'cat-1',
         }),
       );
     });
