@@ -27,7 +27,7 @@ class CustomerOnboardingScreen extends ConsumerWidget {
     return KhScaffold(
       title: l10n.guestLogIn,
       onBack: showBackToGuest
-          ? () => context.go(AppGuards.guestLanding)
+          ? () => context.go(AppGuards.customerGuest)
           : null,
       body: switch (state) {
         OnboardingNeedsCompletion(

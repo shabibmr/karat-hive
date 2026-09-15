@@ -16,6 +16,8 @@ class KhTextField extends StatelessWidget {
     this.suffixText,
     this.inputFormatters,
     this.maxLines = 1,
+    this.readOnly = false,
+    this.onTap,
   });
 
   final String label;
@@ -28,6 +30,8 @@ class KhTextField extends StatelessWidget {
   final String? suffixText;
   final List<TextInputFormatter>? inputFormatters;
   final int maxLines;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +46,8 @@ class KhTextField extends StatelessWidget {
         obscureText: obscure,
         inputFormatters: inputFormatters,
         maxLines: obscure ? 1 : maxLines,
+        readOnly: readOnly,
+        onTap: onTap,
         decoration: InputDecoration(
           labelText: label,
           errorText: errorText,
