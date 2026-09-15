@@ -18,6 +18,7 @@ class VendorRegisterScreen extends ConsumerWidget {
     final form = ref.watch(vendorRegisterControllerProvider);
     final controller = ref.read(vendorRegisterControllerProvider.notifier);
     final regions = ref.watch(regionsProvider);
+    final fieldErrors = form.failure?.fieldErrors ?? const {};
 
     return KhScaffold(
       title: 'Create your account',
@@ -51,6 +52,7 @@ class VendorRegisterScreen extends ConsumerWidget {
             KhTextField(
               label: 'Your name *',
               initialValue: form.contactPersonName,
+              errorText: fieldErrors['contactPersonName'],
               onChanged: (v) =>
                   controller.patch((s) => s.copyWith(contactPersonName: v)),
             ),
@@ -58,6 +60,7 @@ class VendorRegisterScreen extends ConsumerWidget {
               label: 'Mobile number *',
               initialValue: form.mobileNumber,
               keyboardType: TextInputType.phone,
+              errorText: fieldErrors['mobileNumber'],
               onChanged: (v) =>
                   controller.patch((s) => s.copyWith(mobileNumber: v)),
             ),
@@ -124,6 +127,7 @@ class VendorRegisterScreen extends ConsumerWidget {
             KhTextField(
               label: 'Store / Business name *',
               initialValue: form.tradingName,
+              errorText: fieldErrors['tradingName'],
               onChanged: (v) =>
                   controller.patch((s) => s.copyWith(tradingName: v)),
             ),
@@ -200,6 +204,16 @@ class VendorRegisterScreen extends ConsumerWidget {
                 message: l10n?.couldNotLoadRegions ?? 'Could not load regions.',
               ),
             ),
+            if (fieldErrors['regionId'] != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                fieldErrors['regionId']!,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontSize: 12,
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             KhButton(
               label: 'Next: Contact & Agreement',
@@ -238,6 +252,7 @@ class VendorRegisterScreen extends ConsumerWidget {
               label: 'Email address (optional)',
               initialValue: form.businessEmail,
               keyboardType: TextInputType.emailAddress,
+              errorText: fieldErrors['businessEmail'],
               onChanged: (v) =>
                   controller.patch((s) => s.copyWith(businessEmail: v)),
             ),

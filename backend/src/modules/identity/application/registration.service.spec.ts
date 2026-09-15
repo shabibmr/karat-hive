@@ -430,4 +430,24 @@ describe('RegistrationService - registerVendor (G2-A11 Google completer)', () =>
       errorCode: ErrorCode.VALIDATION_FAILED,
     });
   });
+
+  it('registers a vendor with typed mobileNumber when OTP and Firebase are both skipped', async () => {
+    // Mirrors what the zod schema's .default([]) produces when categoryIds/
+    // servedRegionIds are chosen later in the Categories & Regions step.
+    await service.registerVendor(
+      { ...vendorBody, categoryIds: [], servedRegionIds: [], mobileNumber: '+971501234567' },
+      { ip: '127.0.0.1' },
+    );
+
+    expect(firebaseTokens.verify).not.toHaveBeenCalled();
+    expect(otp.requireVerified).not.toHaveBeenCalled();
+    expect(users.createVendorUser).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ mobileNumber: '+971501234567' }),
+    );
+    expect(vendors.createProfile).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ categoryIds: [], servedRegionIds: [] }),
+    );
+  });
 });

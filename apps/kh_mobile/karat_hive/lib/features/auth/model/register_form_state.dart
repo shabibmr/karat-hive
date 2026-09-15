@@ -80,7 +80,9 @@ class RegisterFormState {
   }
 
   Map<String, dynamic> toRegisterBody() => {
-        'challengeId': challengeId,
+        if (challengeId != null) 'challengeId': challengeId,
+        // Temporary: typed mobile without OTP while SMS send is deferred.
+        'mobileNumber': mobileNumber,
         'legalBusinessName': legalBusinessName.isNotEmpty ? legalBusinessName : tradingName,
         'tradingName': tradingName,
         'website': website,

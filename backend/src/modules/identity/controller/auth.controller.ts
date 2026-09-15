@@ -53,6 +53,11 @@ const registerVendorSchema = z
   .object({
     challengeId: z.string().uuid().optional(),
     firebaseToken: z.string().min(1).optional(),
+    // Temporary: typed mobile without OTP while SMS send is deferred (mirrors registerCustomer).
+    mobileNumber: z
+      .string()
+      .regex(/^\+[1-9]\d{6,14}$/, 'Enter a valid mobile number in E.164 format.')
+      .optional(),
     legalBusinessName: z.string().min(1).max(200),
     tradingName: z.string().min(1).max(200),
     tradeLicenceNumber: z.string().min(1).max(50),
@@ -61,14 +66,16 @@ const registerVendorSchema = z
     contactPersonName: z.string().min(1).max(100),
     businessEmail: z.string().email().max(255),
     regionId: z.string().uuid(),
-    categoryIds: z.array(z.string().uuid()).min(1),
-    servedRegionIds: z.array(z.string().uuid()).min(1),
+    // Categories/served regions are chosen later in the Categories & Regions step, not at registration.
+    categoryIds: z.array(z.string().uuid()).default([]),
+    servedRegionIds: z.array(z.string().uuid()).default([]),
     termsVersion: z.string().min(1).max(32),
     privacyVersion: z.string().min(1).max(32),
   })
-  .refine((v) => v.challengeId !== undefined || v.firebaseToken !== undefined, {
-    message: 'Either challengeId or firebaseToken is required.',
-  });
+  .refine(
+    (v) => v.challengeId !== undefined || v.firebaseToken !== undefined || v.mobileNumber !== undefined,
+    { message: 'Either challengeId, firebaseToken, or mobileNumber is required.' },
+  );
 
 const refreshSchema = z.object({ refreshToken: z.string().min(1) });
 const logoutSchema = z.object({

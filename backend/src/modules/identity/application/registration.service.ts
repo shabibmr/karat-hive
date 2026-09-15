@@ -31,6 +31,8 @@ export type RegisterCustomerInput = {
 export type RegisterVendorInput = {
   challengeId?: string;
   firebaseToken?: string;
+  /** Temporary: accept typed mobile without OTP while SMS is deferred. */
+  mobileNumber?: string;
   legalBusinessName: string;
   tradingName: string;
   tradeLicenceNumber: string;
@@ -90,6 +92,11 @@ export class RegistrationService {
         }
         mobileNumber = claims.phoneNumber;
       }
+    }
+
+    // Temporary: allow typed mobile without OTP while SMS send is deferred.
+    if (!mobileNumber && input.mobileNumber) {
+      mobileNumber = input.mobileNumber;
     }
 
     if (!mobileNumber) {
