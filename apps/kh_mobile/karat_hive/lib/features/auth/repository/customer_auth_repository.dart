@@ -35,11 +35,13 @@ class CustomerAuthRepository {
       _api.otpVerify(challengeId: challengeId, code: code);
 
   /// Completes a new Google user: binds the Google identity (`firebaseToken`),
-  /// attaches the verified mobile (`challengeId`), records terms acceptance, and
-  /// returns a signed-in [SessionBundle].
+  /// attaches mobile (`challengeId` when OTP ran, or typed `mobileNumber` while
+  /// SMS is deferred), records terms acceptance, and returns a signed-in
+  /// [SessionBundle].
   Future<Result<SessionBundle>> registerCustomer({
     required String firebaseToken,
-    required String challengeId,
+    String? challengeId,
+    String? mobileNumber,
     required String displayName,
     String? email,
     String? preferredLanguage,
@@ -48,6 +50,7 @@ class CustomerAuthRepository {
       _api.registerCustomer(
         firebaseToken: firebaseToken,
         challengeId: challengeId,
+        mobileNumber: mobileNumber,
         displayName: displayName,
         email: email,
         preferredLanguage: preferredLanguage ?? 'en',

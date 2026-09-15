@@ -111,6 +111,7 @@ class KhApi {
   Future<Result<SessionBundle>> registerCustomer({
     String? challengeId,
     String? firebaseToken,
+    String? mobileNumber,
     required String displayName,
     String? email,
     required String preferredLanguage,
@@ -121,6 +122,7 @@ class KhApi {
     final r = await _client.send('POST', '/v1/auth/register/customer', body: {
       if (challengeId != null) 'challengeId': challengeId,
       if (firebaseToken != null) 'firebaseToken': firebaseToken,
+      if (mobileNumber != null) 'mobileNumber': mobileNumber,
       'displayName': displayName,
       if (email != null) 'email': email,
       'preferredLanguage': preferredLanguage,

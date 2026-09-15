@@ -69,13 +69,20 @@ void main() {
     expect(find.text('Finish setting up your account'), findsNothing);
   });
 
-  testWidgets('completion step: terms + mobile, then the code sub-step (CFE-10)',
+  testWidgets(
+      'completion step: terms + mobile, Continue registers without OTP (CFE-10)',
       (tester) async {
     final repo = _MockRepo();
-    when(() => repo.requestOtp(any())).thenAnswer(
-      (_) async =>
-          Ok(OtpChallenge(challengeId: 'c1', expiresAt: DateTime.utc(2030))),
-    );
+    final bundle = testCustomerBundle();
+    when(() => repo.registerCustomer(
+          firebaseToken: any(named: 'firebaseToken'),
+          challengeId: any(named: 'challengeId'),
+          mobileNumber: any(named: 'mobileNumber'),
+          displayName: any(named: 'displayName'),
+          email: any(named: 'email'),
+          preferredLanguage: any(named: 'preferredLanguage'),
+          defaultRegionId: any(named: 'defaultRegionId'),
+        )).thenAnswer((_) async => Ok(bundle));
     final session = RecordingSessionController();
 
     await tester.pumpWidget(_host([
@@ -92,16 +99,25 @@ void main() {
     expect(find.text('Finish setting up your account'), findsOneWidget);
     expect(find.byKey(const Key('accept-terms-checkbox')), findsOneWidget);
 
-    // Send code is disabled until name + mobile + terms are all present.
+    // Continue is disabled until name + mobile + terms are all present.
     await tester.enterText(find.byType(TextField).at(0), 'Layla');
     await tester.enterText(find.byType(TextField).at(1), '+971500000009');
     await tester.tap(find.byKey(const Key('accept-terms-checkbox')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Send code'));
+    await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('otp-input')), findsOneWidget);
-    expect(find.textContaining('+971500000009'), findsOneWidget);
+    expect(find.byKey(const Key('otp-input')), findsNothing);
+    verify(() => repo.registerCustomer(
+          firebaseToken: 'fb-token',
+          challengeId: null,
+          mobileNumber: '+971500000009',
+          displayName: 'Layla',
+          email: any(named: 'email'),
+          preferredLanguage: any(named: 'preferredLanguage'),
+          defaultRegionId: any(named: 'defaultRegionId'),
+        )).called(1);
+    expect(session.authenticated.single, bundle);
   });
 }

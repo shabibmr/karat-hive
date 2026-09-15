@@ -45,6 +45,38 @@ class CustomerCompletionController
   void backToDetails() =>
       state = state.copyWith(step: CompletionStep.details, clearFailure: true);
 
+  /// Temporary: register with typed mobile + Google token, skipping OTP while
+  /// SMS send is deferred (mirrors Vendor `submitDirect`).
+  Future<void> continueWithoutOtp() async {
+    if (!state.detailsComplete || state.busy) return;
+    state = state.copyWith(
+      busy: true,
+      step: CompletionStep.submitting,
+      clearFailure: true,
+    );
+
+    final register = await _repo.registerCustomer(
+      firebaseToken: state.firebaseIdToken,
+      mobileNumber: state.mobileNumber.trim(),
+      displayName: state.displayName.trim(),
+      email: state.email,
+    );
+
+    await register.when(
+      ok: (bundle) async {
+        await ref.read(sessionProvider.notifier).onAuthenticated(bundle);
+        state = state.copyWith(busy: false, step: CompletionStep.done);
+      },
+      err: (f) async {
+        state = state.copyWith(
+          busy: false,
+          step: CompletionStep.details,
+          failure: f,
+        );
+      },
+    );
+  }
+
   Future<void> sendCode() async {
     if (!state.detailsComplete || state.busy) return;
     state = state.copyWith(busy: true, clearFailure: true);

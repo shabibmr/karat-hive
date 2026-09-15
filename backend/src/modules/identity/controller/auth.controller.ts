@@ -33,6 +33,11 @@ const registerCustomerSchema = z
   .object({
     challengeId: z.string().uuid().optional(),
     firebaseToken: z.string().min(1).optional(),
+    // Temporary: typed mobile without OTP while SMS send is deferred.
+    mobileNumber: z
+      .string()
+      .regex(/^\+[1-9]\d{6,14}$/, 'Enter a valid mobile number in E.164 format.')
+      .optional(),
     displayName: z.string().min(1).max(100),
     email: z.string().email().max(255).optional(),
     preferredLanguage: z.enum(['en', 'ar']).optional(),

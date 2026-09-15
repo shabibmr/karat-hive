@@ -105,7 +105,8 @@ class _CustomerCompletionViewState
             onName: controller.setName,
             onMobile: controller.setMobile,
             onTerms: controller.setTermsAccepted,
-            onContinue: controller.sendCode,
+            // Temporary: skip OTP send while SMS is deferred.
+            onContinue: controller.continueWithoutOtp,
           ),
       ],
     );
@@ -187,7 +188,7 @@ class _DetailsStep extends StatelessWidget {
             ),
           ),
         KhButton(
-          label: l10n.authSendCode,
+          label: l10n.authContinue,
           busy: busy,
           onPressed: canContinue ? onContinue : null,
         ),

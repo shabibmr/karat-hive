@@ -18,6 +18,8 @@ import type { SessionBundle } from '../presenter/session.presenter';
 export type RegisterCustomerInput = {
   challengeId?: string;
   firebaseToken?: string;
+  /** Temporary: accept typed mobile without OTP while SMS is deferred. */
+  mobileNumber?: string;
   displayName: string;
   email?: string;
   preferredLanguage?: 'en' | 'ar';
@@ -186,6 +188,12 @@ export class RegistrationService {
         mobileNumber = claims.phoneNumber;
         mobileVerifiedAt = this.clock.now();
       }
+    }
+
+    // Temporary: allow typed mobile without OTP while SMS send is deferred.
+    if (!mobileNumber && input.mobileNumber) {
+      mobileNumber = input.mobileNumber;
+      mobileVerifiedAt = null;
     }
 
     if (!mobileNumber) {

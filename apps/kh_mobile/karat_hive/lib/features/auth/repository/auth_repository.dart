@@ -20,6 +20,7 @@ class AuthRepository {
   Future<Result<SessionBundle>> registerCustomer({
     String? challengeId,
     String? firebaseToken,
+    String? mobileNumber,
     required String displayName,
     String? email,
     required String preferredLanguage,
@@ -30,6 +31,7 @@ class AuthRepository {
       _api.registerCustomer(
         challengeId: challengeId,
         firebaseToken: firebaseToken,
+        mobileNumber: mobileNumber,
         displayName: displayName,
         email: email,
         preferredLanguage: preferredLanguage,

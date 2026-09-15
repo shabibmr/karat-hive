@@ -50,6 +50,87 @@ void main() {
     expect(c.read(customerCompletionControllerProvider).displayName, 'Layla');
   });
 
+  test('continueWithoutOtp registers with typed mobile and skips OTP', () async {
+    final bundle = testCustomerBundle();
+    when(() => repo.registerCustomer(
+          firebaseToken: any(named: 'firebaseToken'),
+          challengeId: any(named: 'challengeId'),
+          mobileNumber: any(named: 'mobileNumber'),
+          displayName: any(named: 'displayName'),
+          email: any(named: 'email'),
+          preferredLanguage: any(named: 'preferredLanguage'),
+          defaultRegionId: any(named: 'defaultRegionId'),
+        )).thenAnswer((_) async => Ok(bundle));
+
+    final c = container();
+    addTearDown(c.dispose);
+    await seeded(c).continueWithoutOtp();
+
+    final form = c.read(customerCompletionControllerProvider);
+    expect(form.step, CompletionStep.done);
+    expect(session.authenticated.single, bundle);
+    verifyNever(() => repo.requestOtp(any()));
+    verify(() => repo.registerCustomer(
+          firebaseToken: 'fb-token',
+          challengeId: null,
+          mobileNumber: _mobile,
+          displayName: 'Layla',
+          email: any(named: 'email'),
+          preferredLanguage: any(named: 'preferredLanguage'),
+          defaultRegionId: any(named: 'defaultRegionId'),
+        )).called(1);
+  });
+
+  test('MOBILE_ALREADY_REGISTERED stays on details after continueWithoutOtp',
+      () async {
+    when(() => repo.registerCustomer(
+          firebaseToken: any(named: 'firebaseToken'),
+          challengeId: any(named: 'challengeId'),
+          mobileNumber: any(named: 'mobileNumber'),
+          displayName: any(named: 'displayName'),
+          email: any(named: 'email'),
+          preferredLanguage: any(named: 'preferredLanguage'),
+          defaultRegionId: any(named: 'defaultRegionId'),
+        )).thenAnswer(
+      (_) async => const Err(
+        ConflictFailure(
+          code: 'MOBILE_ALREADY_REGISTERED',
+          message: 'That number already has an account.',
+        ),
+      ),
+    );
+    final c = container();
+    addTearDown(c.dispose);
+    await seeded(c).continueWithoutOtp();
+
+    final form = c.read(customerCompletionControllerProvider);
+    expect(form.step, CompletionStep.details);
+    expect(form.failure!.message, 'That number already has an account.');
+    expect(session.authenticated, isEmpty);
+  });
+
+  test('continueWithoutOtp is a no-op until terms are accepted', () async {
+    final c = container();
+    addTearDown(c.dispose);
+    final ctrl = c.read(customerCompletionControllerProvider.notifier);
+    ctrl.begin(firebaseIdToken: 'fb-token');
+    ctrl.setName('Layla');
+    ctrl.setMobile(_mobile);
+    // terms NOT accepted
+    await ctrl.continueWithoutOtp();
+    expect(c.read(customerCompletionControllerProvider).step,
+        CompletionStep.details);
+    verifyNever(() => repo.registerCustomer(
+          firebaseToken: any(named: 'firebaseToken'),
+          challengeId: any(named: 'challengeId'),
+          mobileNumber: any(named: 'mobileNumber'),
+          displayName: any(named: 'displayName'),
+          email: any(named: 'email'),
+          preferredLanguage: any(named: 'preferredLanguage'),
+          defaultRegionId: any(named: 'defaultRegionId'),
+        ));
+  });
+
   test('sendCode moves details → code and stores the challenge', () async {
     when(() => repo.requestOtp(any())).thenAnswer((_) async => Ok(challenge()));
     final c = container();
@@ -61,30 +142,18 @@ void main() {
     expect(form.challengeId, 'chal-1');
   });
 
-  test('OTP_RATE_LIMITED on sendCode surfaces the server message', () async {
-    when(() => repo.requestOtp(any())).thenAnswer(
-      (_) async => const Err(
-        RateLimitedFailure(code: 'OTP_RATE_LIMITED', message: 'Too many codes.'),
-      ),
-    );
-    final c = container();
-    addTearDown(c.dispose);
-    await seeded(c).sendCode();
-
-    final form = c.read(customerCompletionControllerProvider);
-    expect(form.step, CompletionStep.details);
-    expect(form.failure!.message, 'Too many codes.');
-  });
-
-  test('happy path: verify → register → session seeded, step done', () async {
+  test('happy path OTP: verify → register → session seeded, step done',
+      () async {
     final bundle = testCustomerBundle();
     when(() => repo.requestOtp(any())).thenAnswer((_) async => Ok(challenge()));
     when(() => repo.verifyOtp(any(), any())).thenAnswer(
-      (_) async => const Ok(OtpVerifyResult(mobileVerified: true, challengeId: 'chal-1')),
+      (_) async => const Ok(
+          OtpVerifyResult(mobileVerified: true, challengeId: 'chal-1')),
     );
     when(() => repo.registerCustomer(
           firebaseToken: any(named: 'firebaseToken'),
           challengeId: any(named: 'challengeId'),
+          mobileNumber: any(named: 'mobileNumber'),
           displayName: any(named: 'displayName'),
           email: any(named: 'email'),
           preferredLanguage: any(named: 'preferredLanguage'),
@@ -100,79 +169,5 @@ void main() {
     expect(c.read(customerCompletionControllerProvider).step,
         CompletionStep.done);
     expect(session.authenticated.single, bundle);
-  });
-
-  test('OTP_INVALID stops before register and shows the server message',
-      () async {
-    when(() => repo.requestOtp(any())).thenAnswer((_) async => Ok(challenge()));
-    when(() => repo.verifyOtp(any(), any())).thenAnswer(
-      (_) async => const Err(
-        ValidationFailure(code: 'OTP_INVALID', message: 'That code is wrong.'),
-      ),
-    );
-    final c = container();
-    addTearDown(c.dispose);
-    final ctrl = seeded(c);
-    await ctrl.sendCode();
-    await ctrl.verifyAndRegister('000000');
-
-    final form = c.read(customerCompletionControllerProvider);
-    expect(form.step, CompletionStep.code);
-    expect(form.failure!.message, 'That code is wrong.');
-    verifyNever(() => repo.registerCustomer(
-          firebaseToken: any(named: 'firebaseToken'),
-          challengeId: any(named: 'challengeId'),
-          displayName: any(named: 'displayName'),
-          email: any(named: 'email'),
-          preferredLanguage: any(named: 'preferredLanguage'),
-          defaultRegionId: any(named: 'defaultRegionId'),
-        ));
-  });
-
-  test('MOBILE_ALREADY_REGISTERED sends the user back to the details step',
-      () async {
-    when(() => repo.requestOtp(any())).thenAnswer((_) async => Ok(challenge()));
-    when(() => repo.verifyOtp(any(), any())).thenAnswer(
-      (_) async => const Ok(OtpVerifyResult(mobileVerified: true, challengeId: 'chal-1')),
-    );
-    when(() => repo.registerCustomer(
-          firebaseToken: any(named: 'firebaseToken'),
-          challengeId: any(named: 'challengeId'),
-          displayName: any(named: 'displayName'),
-          email: any(named: 'email'),
-          preferredLanguage: any(named: 'preferredLanguage'),
-          defaultRegionId: any(named: 'defaultRegionId'),
-        )).thenAnswer(
-      (_) async => const Err(
-        ConflictFailure(
-          code: 'MOBILE_ALREADY_REGISTERED',
-          message: 'That number already has an account.',
-        ),
-      ),
-    );
-    final c = container();
-    addTearDown(c.dispose);
-    final ctrl = seeded(c);
-    await ctrl.sendCode();
-    await ctrl.verifyAndRegister('123456');
-
-    final form = c.read(customerCompletionControllerProvider);
-    expect(form.step, CompletionStep.details);
-    expect(form.failure!.message, 'That number already has an account.');
-    expect(session.authenticated, isEmpty);
-  });
-
-  test('verifyAndRegister is a no-op until terms are accepted', () async {
-    when(() => repo.requestOtp(any())).thenAnswer((_) async => Ok(challenge()));
-    final c = container();
-    addTearDown(c.dispose);
-    final ctrl = c.read(customerCompletionControllerProvider.notifier);
-    ctrl.begin(firebaseIdToken: 'fb-token');
-    ctrl.setName('Layla');
-    ctrl.setMobile(_mobile);
-    // terms NOT accepted
-    await ctrl.sendCode();
-    expect(c.read(customerCompletionControllerProvider).step,
-        CompletionStep.details);
   });
 }

@@ -39,6 +39,7 @@ void main() {
     when(() => api.registerCustomer(
           challengeId: any(named: 'challengeId'),
           firebaseToken: any(named: 'firebaseToken'),
+          mobileNumber: any(named: 'mobileNumber'),
           displayName: any(named: 'displayName'),
           email: any(named: 'email'),
           preferredLanguage: any(named: 'preferredLanguage'),
@@ -57,6 +58,7 @@ void main() {
     verify(() => api.registerCustomer(
           challengeId: 'chal',
           firebaseToken: 'fb',
+          mobileNumber: null,
           displayName: 'Layla',
           email: null,
           preferredLanguage: 'en',

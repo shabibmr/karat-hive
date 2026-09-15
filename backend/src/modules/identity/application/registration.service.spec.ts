@@ -242,6 +242,37 @@ describe('RegistrationService - registerCustomer', () => {
       }),
     );
   });
+
+  it('registers with typed mobileNumber when OTP is skipped (no Firebase phone)', async () => {
+    vi.mocked(firebaseTokens.verify).mockResolvedValue({
+      uid: 'fb-user-888',
+      email: 'no-phone@example.com',
+      emailVerified: true,
+      name: 'Skip Otp',
+    });
+
+    const result = await service.registerCustomer(
+      {
+        firebaseToken: 'valid-firebase-jwt',
+        mobileNumber: '+971501112233',
+        displayName: 'Skip Otp',
+        termsVersion: '1.0',
+        privacyVersion: '1.0',
+      },
+      { ip: '127.0.0.1' },
+    );
+
+    expect(result).toBe(mockBundle);
+    expect(otp.requireVerified).not.toHaveBeenCalled();
+    expect(users.createCustomerUser).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        mobileNumber: '+971501112233',
+        mobileVerifiedAt: null,
+        email: 'no-phone@example.com',
+      }),
+    );
+  });
 });
 
 describe('RegistrationService - registerVendor (G2-A11 Google completer)', () => {
