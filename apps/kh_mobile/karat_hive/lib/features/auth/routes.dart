@@ -5,15 +5,10 @@ import 'presentation/account_blocked_screen.dart';
 import 'presentation/auth_completer_screen.dart';
 import 'presentation/customer_onboarding_screen.dart';
 import 'presentation/customer_register_screen.dart';
-import 'presentation/guest_landing_screen.dart';
 import 'presentation/vendor_login_screen.dart';
 import 'presentation/vendor_register_screen.dart';
 
 final authRoutes = [
-  GoRoute(
-    path: AppGuards.guestLanding,
-    builder: (_, __) => const GuestLandingScreen(),
-  ),
   GoRoute(
     path: AppGuards.customerOnboarding,
     builder: (_, __) => const CustomerOnboardingScreen(),

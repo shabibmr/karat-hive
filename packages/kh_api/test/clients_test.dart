@@ -263,7 +263,7 @@ void main() {
         }, status: 201);
       });
 
-      final res = await KhApi(client).requests.create(
+      final res = await KhApi(client).createRequest(
             const RequestDraftInput(
               requestType: 'FIND_ORNAMENT',
               direction: 'BUY',
@@ -286,7 +286,7 @@ void main() {
         return jsonBody({'data': customerRequestJson()});
       });
 
-      final res = await KhApi(client).requests.patch(
+      final res = await KhApi(client).updateRequest(
             'req-1',
             const RequestDraftInput(notes: 'Need 22K'),
           );

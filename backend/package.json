@@ -33,6 +33,7 @@
     "seed": "ts-node --transpile-only prisma/seed/index.ts"
   },
   "dependencies": {
+    "@fastify/cors": "^11.3.0",
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
     "@nestjs/platform-fastify": "^11.1.6",

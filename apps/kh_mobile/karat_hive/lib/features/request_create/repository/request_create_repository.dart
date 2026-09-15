@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
+import 'package:kh_media/kh_media.dart';
 
 import '../../../app/di.dart';
-import '../../../core/media/media_uploader.dart';
 
 class DraftSaveResult {
   const DraftSaveResult({required this.request, this.warnings = const []});
