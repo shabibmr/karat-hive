@@ -41,13 +41,22 @@ class _KycUploadScreenState extends ConsumerState<KycUploadScreen> {
       final res = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+        withData: true,
       );
-      final path = res?.files.single.path;
-      if (path == null) return;
-      final ext = path.split('.').last.toLowerCase();
+      final file = res?.files.single;
+      if (file == null) return;
+      final name = file.name;
+      final ext = name.split('.').last.toLowerCase();
       final ct = ext == 'pdf'
           ? 'application/pdf'
           : (ext == 'png' ? 'image/png' : 'image/jpeg');
+      final bytes = file.bytes;
+      if (bytes != null && bytes.isNotEmpty) {
+        await controller.pickAndUploadBytes(type, bytes, ct);
+        return;
+      }
+      final path = file.path;
+      if (path == null) return;
       await controller.pickAndUpload(type, File(path), ct);
     }
 

@@ -41,57 +41,121 @@ class TaxonomySinglePick extends StatelessWidget {
   }
 }
 
+/// Buy / Sell chooser for Coins & Bullion — one split container, not a TabBar.
 class DirectionControl extends StatelessWidget {
   const DirectionControl({
     super.key,
-    required this.fixed,
     required this.value,
     required this.onChanged,
   });
 
-  final bool fixed;
   final Direction? value;
   final ValueChanged<Direction> onChanged;
+
+  static const _buyFill = Color(0xFFC8A046);
+  static const _sellFill = Color(0xFF1A2744);
+  static const _idleBuy = Color(0x33C8A046);
+  static const _idleSell = Color(0x331A2744);
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final label = createCopy(context, 'create.direction', 'Direction');
-    if (fixed) {
-      final text = value == Direction.sell
-          ? createCopy(context, 'create.sell', 'SELL')
-          : createCopy(context, 'create.buy', 'BUY');
-      return Padding(
-        padding: EdgeInsets.only(bottom: tokens.space.md),
-        child: InputDecorator(
-          decoration: InputDecoration(labelText: label),
-          child: Text(text),
+    final selected = value ?? Direction.buy;
+    final buyOn = selected == Direction.buy;
+    final sellOn = selected == Direction.sell;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: tokens.space.lg),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(tokens.radius.lg),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(tokens.radius.lg),
+              child: SizedBox(
+                height: 52,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _DirectionHalf(
+                        key: const Key('direction-buy'),
+                        label: createCopy(context, 'create.buy', 'Buy'),
+                        selected: buyOn,
+                        fill: _buyFill,
+                        idle: _idleBuy,
+                        foreground: const Color(0xFF1C1B1A),
+                        onTap: () => onChanged(Direction.buy),
+                      ),
+                    ),
+                    Expanded(
+                      child: _DirectionHalf(
+                        key: const Key('direction-sell'),
+                        label: createCopy(context, 'create.sell', 'Sell'),
+                        selected: sellOn,
+                        fill: _sellFill,
+                        idle: _idleSell,
+                        foreground: Colors.white,
+                        onTap: () => onChanged(Direction.sell),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        RadioListTile<Direction>(
-          key: const Key('direction-buy'),
-          title: Text(createCopy(context, 'create.buy', 'BUY')),
-          value: Direction.buy,
-          groupValue: value,
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
+      ),
+    );
+  }
+}
+
+class _DirectionHalf extends StatelessWidget {
+  const _DirectionHalf({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.fill,
+    required this.idle,
+    required this.foreground,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final Color fill;
+  final Color idle;
+  final Color foreground;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? fill : idle,
+      child: InkWell(
+        onTap: onTap,
+        child: Center(
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 160),
+            style: (Theme.of(context).textTheme.titleMedium ?? const TextStyle())
+                .copyWith(
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+              color: selected ? foreground : const Color(0xFF5C5A57),
+              letterSpacing: 0.8,
+            ),
+            child: Text(label),
+          ),
         ),
-        RadioListTile<Direction>(
-          key: const Key('direction-sell'),
-          title: Text(createCopy(context, 'create.sell', 'SELL')),
-          value: Direction.sell,
-          groupValue: value,
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
-        ),
-      ],
+      ),
     );
   }
 }
@@ -135,17 +199,22 @@ class WeightPurityFields extends StatelessWidget {
     required this.controller,
     this.weightRequired = false,
     this.showWeight = true,
+    this.purityAsChips = false,
   });
 
   final RequestCreateState state;
   final RequestCreateController controller;
   final bool weightRequired;
   final bool showWeight;
+  final bool purityAsChips;
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final karats = state.config?.karatList ?? const ['24', '22', '21', '18'];
+    final purityError = state.fieldError('purityKarat');
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (showWeight) ...[
           KhNumericField(
@@ -165,29 +234,65 @@ class WeightPurityFields extends StatelessWidget {
               v?.toStringAsFixed(2),
             ),
           ),
-          SwitchListTile(
+          CheckboxListTile(
             contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
             title: Text(
               createCopy(context, 'create.weightApprox', 'Weight is approximate'),
             ),
             value: state.weightIsApproximate,
-            onChanged: controller.setWeightApproximate,
+            onChanged: (v) => controller.setWeightApproximate(v ?? false),
           ),
         ],
-        KhSelectField<Karat>(
-          label: createCopy(context, 'create.purity', 'Purity'),
-          value: state.purityKarat,
-          errorText: state.fieldError('purityKarat'),
-          searchable: false,
-          options: [
-            for (final raw in karats)
-              KhSelectOption(
-                value: karatFromConfig(raw),
-                label: karatFromConfig(raw).wire,
-              ),
+        if (purityAsChips) ...[
+          Text(
+            createCopy(context, 'create.purity', 'Purity'),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          SizedBox(height: tokens.space.sm),
+          Wrap(
+            spacing: tokens.space.sm,
+            runSpacing: tokens.space.sm,
+            children: [
+              for (final raw in karats)
+                Builder(
+                  builder: (context) {
+                    final karat = karatFromConfig(raw);
+                    final selected = state.purityKarat == karat;
+                    return ChoiceChip(
+                      key: Key('purity-chip-${karat.wire}'),
+                      label: Text(karat.wire),
+                      selected: selected,
+                      onSelected: (_) => controller.setPurity(karat),
+                    );
+                  },
+                ),
+            ],
+          ),
+          if (purityError != null) ...[
+            SizedBox(height: tokens.space.xs),
+            Text(
+              purityError,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+            ),
           ],
-          onChanged: controller.setPurity,
-        ),
+        ] else
+          KhSelectField<Karat>(
+            label: createCopy(context, 'create.purity', 'Purity'),
+            value: state.purityKarat,
+            errorText: purityError,
+            searchable: false,
+            options: [
+              for (final raw in karats)
+                KhSelectOption(
+                  value: karatFromConfig(raw),
+                  label: karatFromConfig(raw).wire,
+                ),
+            ],
+            onChanged: controller.setPurity,
+          ),
       ],
     );
   }
@@ -255,8 +360,9 @@ class BudgetEditor extends StatelessWidget {
           errorText: state.fieldError('budgetMax'),
           onChanged: (v) => controller.setBudgetMax(v?.toStringAsFixed(2)),
         ),
-        SwitchListTile(
+        CheckboxListTile(
           contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
           title: Text(
             createCopy(
               context,
@@ -265,7 +371,7 @@ class BudgetEditor extends StatelessWidget {
             ),
           ),
           value: state.budgetIsFlexible,
-          onChanged: controller.setBudgetFlexible,
+          onChanged: (v) => controller.setBudgetFlexible(v ?? false),
         ),
       ],
     );

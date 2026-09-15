@@ -167,10 +167,11 @@ class _RequestReviewPublishScreenState
             label: createCopy(context, 'create.field.type', 'Type'),
             value: type?.wire ?? '—',
           ),
-          _Row(
-            label: createCopy(context, 'create.field.direction', 'Direction'),
-            value: state.direction?.wire ?? '—',
-          ),
+          if (type == null || directionForType(type) == null)
+            _Row(
+              label: createCopy(context, 'create.field.direction', 'Direction'),
+              value: state.direction?.wire ?? '—',
+            ),
           if (state.weightGrams != null)
             _Row(
               label: createCopy(context, 'create.field.weight', 'Weight (g)'),

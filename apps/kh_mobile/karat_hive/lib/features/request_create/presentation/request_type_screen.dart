@@ -92,7 +92,7 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
       ),
       _TypeCardData(
         type: RequestType.goldCoin,
-        title: createCopy(context, 'create.type.coins', 'Gold Coins'),
+        title: createCopy(context, 'create.type.coins', 'Buy/Sell Gold Coins'),
         tag: 'BUY OR SELL · MINTED',
         hint: createCopy(
           context,
@@ -105,7 +105,7 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
       ),
       _TypeCardData(
         type: RequestType.goldBullion,
-        title: createCopy(context, 'create.type.bullion', 'Gold Bullion'),
+        title: createCopy(context, 'create.type.bullion', 'Buy/Sell Bullions'),
         tag: 'BUY OR SELL · INVESTMENT',
         hint: createCopy(
           context,

@@ -3,51 +3,89 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
-import 'package:kh_ui_domain/kh_ui_domain.dart' hide GoldRateStrip, BudgetEditor;
+import 'package:kh_ui_domain/kh_ui_domain.dart' hide BudgetEditor;
 
 import '../controller/request_create_controller.dart';
 import '../controller/request_create_state.dart';
 import '../routes.dart';
 import 'widgets/create_fields.dart';
 import 'widgets/create_flow_chrome.dart';
+import 'widgets/request_images_section.dart';
 
-class ComposeScreenHost extends ConsumerWidget {
+class ComposeScreenHost extends ConsumerStatefulWidget {
   const ComposeScreenHost({
     super.key,
     required this.title,
     required this.stepLabel,
     required this.fields,
+    this.combineImages = false,
   });
 
   final String title;
   final String stepLabel;
   final Widget fields;
+  /// Find Jewellery / Sell Gold: details + photos on one page → review.
+  final bool combineImages;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ComposeScreenHost> createState() => _ComposeScreenHostState();
+}
+
+class _ComposeScreenHostState extends ConsumerState<ComposeScreenHost> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(requestCreateControllerProvider.notifier).ensureLoaded();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final tokens = context.tokens;
     final locale = Localizations.localeOf(context).languageCode;
     final state = ref.watch(requestCreateControllerProvider);
     final controller = ref.read(requestCreateControllerProvider.notifier);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.ensureLoaded();
-    });
 
     Future<void> saveDraft() async {
       await controller.saveDraft();
     }
 
     return CreateFlowChrome(
-      title: title,
-      stepLabel: stepLabel,
-      rateStrip: GoldRateStrip(rates: state.rates, karat: state.purityKarat),
+      title: widget.title,
+      stepLabel: widget.stepLabel,
       bottom: DraftActions(
-        busy: state.busy,
+        busy: state.busy || state.uploading,
         onSaveDraft: saveDraft,
         onContinue: () async {
-          final ok = await controller.persistAndGo(RequestCreateStep.images);
-          if (ok && context.mounted) context.go(RequestCreatePaths.images);
+          if (widget.combineImages &&
+              state.imagesRequired &&
+              state.media.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  createCopy(
+                    context,
+                    'create.imagesRequired',
+                    'Add at least one photo to continue.',
+                  ),
+                ),
+              ),
+            );
+            return;
+          }
+          final next = widget.combineImages
+              ? RequestCreateStep.review
+              : RequestCreateStep.images;
+          final ok = await controller.persistAndGo(next);
+          if (ok && context.mounted) {
+            context.go(
+              widget.combineImages
+                  ? RequestCreatePaths.review
+                  : RequestCreatePaths.images,
+            );
+          }
         },
       ),
       child: ListView(
@@ -64,12 +102,17 @@ class ComposeScreenHost extends ConsumerWidget {
             KhInlineError(message: w),
             SizedBox(height: tokens.space.sm),
           ],
+          widget.fields,
+          if (widget.combineImages) ...[
+            SizedBox(height: tokens.space.lg),
+            const RequestImagesSection(),
+          ],
+          SizedBox(height: tokens.space.md),
           CommonCreateFields(
             state: state,
             controller: controller,
             locale: locale,
           ),
-          fields,
         ],
       ),
     );
@@ -87,14 +130,10 @@ class FindOrnamentScreen extends ConsumerWidget {
     return ComposeScreenHost(
       title: createCopy(context, 'create.type.ornament', 'Find An Ornament'),
       stepLabel: createCopy(context, 'create.stepCompose', 'Specify the piece'),
+      combineImages: true,
       fields: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DirectionControl(
-            fixed: true,
-            value: Direction.buy,
-            onChanged: controller.setDirection,
-          ),
           KhSelectField<OrnamentType>(
             label: createCopy(context, 'create.ornamentType', 'Ornament type'),
             value: state.ornamentType,
@@ -107,7 +146,11 @@ class FindOrnamentScreen extends ConsumerWidget {
             ],
             onChanged: controller.setOrnamentType,
           ),
-          WeightPurityFields(state: state, controller: controller),
+          WeightPurityFields(
+            state: state,
+            controller: controller,
+            purityAsChips: true,
+          ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
@@ -157,14 +200,10 @@ class SellOldGoldScreen extends ConsumerWidget {
     return ComposeScreenHost(
       title: createCopy(context, 'create.type.sellGold', 'Sell Old Gold'),
       stepLabel: createCopy(context, 'create.stepCompose', 'Specify the piece'),
+      combineImages: true,
       fields: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DirectionControl(
-            fixed: true,
-            value: Direction.sell,
-            onChanged: controller.setDirection,
-          ),
           KhInlineError(
             message: createCopy(
               context,
@@ -188,6 +227,7 @@ class SellOldGoldScreen extends ConsumerWidget {
             state: state,
             controller: controller,
             weightRequired: true,
+            purityAsChips: true,
           ),
           if (showIndicativeValuation && value != null) ...[
             Text(
@@ -245,13 +285,12 @@ class GoldCoinsScreen extends ConsumerWidget {
     const denoms = ['1', '2.5', '5', '10', '20', '50', '100'];
     final total = controller.totalWeightGrams();
     return ComposeScreenHost(
-      title: createCopy(context, 'create.type.coins', 'Gold Coins'),
+      title: createCopy(context, 'create.type.coins', 'Buy/Sell Gold Coins'),
       stepLabel: createCopy(context, 'create.stepCompose', 'Specify the piece'),
       fields: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DirectionControl(
-            fixed: false,
             value: state.direction,
             onChanged: controller.setDirection,
           ),
@@ -315,40 +354,24 @@ class GoldCoinsScreen extends ConsumerWidget {
   }
 }
 
-/// CUS-S07 — Gold Bullion (CU-07). Rate required to publish; compose allowed.
+/// CUS-S07 — Gold Bullion (CU-07).
 class GoldBullionScreen extends ConsumerWidget {
   const GoldBullionScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokens = context.tokens;
     final state = ref.watch(requestCreateControllerProvider);
     final controller = ref.read(requestCreateControllerProvider.notifier);
-    final value = controller.indicativeValueAed();
-    final floor = controller.bullionFloorAed();
-    final noRate = state.rates == null || state.rates?.available != true;
     return ComposeScreenHost(
-      title: createCopy(context, 'create.type.bullion', 'Gold Bullion'),
+      title: createCopy(context, 'create.type.bullion', 'Buy/Sell Bullions'),
       stepLabel: createCopy(context, 'create.stepCompose', 'Specify the piece'),
       fields: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DirectionControl(
-            fixed: false,
             value: state.direction,
             onChanged: controller.setDirection,
           ),
-          if (noRate)
-            Padding(
-              padding: EdgeInsets.only(bottom: tokens.space.md),
-              child: KhInlineError(
-                message: createCopy(
-                  context,
-                  'create.bullionNeedsRate',
-                  'A gold rate is required to publish bullion. You can still compose and save a draft.',
-                ),
-              ),
-            ),
           KhNumericField(
             label: createCopy(context, 'create.barWeight', 'Bar weight'),
             unit: 'g',
@@ -389,30 +412,6 @@ class GoldBullionScreen extends ConsumerWidget {
             value: state.hasAssayCertificate,
             onChanged: controller.setHasAssayCertificate,
           ),
-          if (value != null && floor != null) ...[
-            Text(
-              createCopy(
-                context,
-                'create.indicative',
-                'Indicative valuation (estimate, not an offer)',
-              ),
-            ),
-            Row(
-              children: [
-                Text('${createCopy(context, 'create.bullionFloor', 'Minimum')}: '),
-                MoneyDisplay(amount: floor),
-              ],
-            ),
-            if (value < floor)
-              KhInlineError(
-                message: createCopy(
-                  context,
-                  'create.bullionBelow',
-                  'Indicative value is below the platform minimum. Publish will be refused.',
-                ),
-              ),
-            SizedBox(height: tokens.space.md),
-          ],
           if (state.direction == Direction.buy)
             BudgetEditor(state: state, controller: controller),
         ],

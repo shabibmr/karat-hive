@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_avif/flutter_avif.dart' as avif;
 import 'package:path_provider/path_provider.dart';
@@ -9,6 +10,8 @@ import 'media_asset.dart';
 /// can inject a fake instead of exercising the native libavif binding.
 abstract class ImageConverter {
   Future<MediaAsset> convertToAvif(File source);
+
+  Future<MediaAsset> convertBytesToAvif(Uint8List bytes);
 }
 
 /// Encodes via `flutter_avif` (libavif) and writes the result to the app's
@@ -19,6 +22,11 @@ class AvifImageConverter implements ImageConverter {
   @override
   Future<MediaAsset> convertToAvif(File source) async {
     final bytes = await source.readAsBytes();
+    return convertBytesToAvif(Uint8List.fromList(bytes));
+  }
+
+  @override
+  Future<MediaAsset> convertBytesToAvif(Uint8List bytes) async {
     final avifBytes = await avif.encodeAvif(bytes);
     final dir = await getTemporaryDirectory();
     final outPath =

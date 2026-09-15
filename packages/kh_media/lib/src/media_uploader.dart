@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:kh_api/kh_api.dart';
@@ -60,7 +61,25 @@ class MediaUploader {
     void Function(double progress)? onProgress,
     UploadIntent? prefetchedIntent,
   }) async {
-    final length = await file.length();
+    final bytes = await file.readAsBytes();
+    return uploadBytes(
+      Uint8List.fromList(bytes),
+      purpose: purpose,
+      contentType: contentType,
+      onProgress: onProgress,
+      prefetchedIntent: prefetchedIntent,
+    );
+  }
+
+  /// Web-safe upload path — [FilePicker] on web has no filesystem path.
+  Future<Result<String>> uploadBytes(
+    Uint8List bytes, {
+    required MediaUploadPurpose purpose,
+    required String contentType,
+    void Function(double progress)? onProgress,
+    UploadIntent? prefetchedIntent,
+  }) async {
+    final length = bytes.length;
     final canReusePrefetched =
         prefetchedIntent != null && prefetchedIntent.maxBytes >= length;
     final Result<UploadIntent> intent = canReusePrefetched
@@ -72,7 +91,6 @@ class MediaUploader {
           );
     return intent.when(
       ok: (i) async {
-        final bytes = await file.readAsBytes();
         final res = await _dio.put<dynamic>(
           i.uploadUrl,
           data: Stream.fromIterable([bytes]),

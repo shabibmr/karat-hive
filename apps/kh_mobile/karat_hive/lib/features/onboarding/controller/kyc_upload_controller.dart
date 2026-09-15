@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
@@ -96,15 +97,24 @@ class KycUploadController extends Notifier<KycScreenState> {
   }
 
   Future<void> pickAndUpload(VendorDocumentType type, File file, String contentType) async {
+    final bytes = Uint8List.fromList(await file.readAsBytes());
+    await pickAndUploadBytes(type, bytes, contentType);
+  }
+
+  Future<void> pickAndUploadBytes(
+    VendorDocumentType type,
+    Uint8List bytes,
+    String contentType,
+  ) async {
     final updatedDocs = {
       ...state.documents,
       type: const KycFileState(uploading: true),
     };
     state = state.copyWith(documents: updatedDocs);
 
-    final uploaded = await _repo.uploadKycDocument(
+    final uploaded = await _repo.uploadKycDocumentBytes(
       type,
-      file,
+      bytes,
       contentType,
       onProgress: (p) {
         final current = state.documents[type];

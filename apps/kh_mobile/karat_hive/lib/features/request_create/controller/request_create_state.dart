@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
@@ -10,6 +12,7 @@ class MediaSlot {
     required this.key,
     this.localLabel,
     this.localPath,
+    this.localBytes,
     this.contentType,
     this.progress = 1,
     this.uploading = false,
@@ -18,21 +21,26 @@ class MediaSlot {
 
   final String key;
   final String? localLabel;
-  /// Absolute path for Guest-deferred upload (`adr/0011`).
+  /// Absolute path for Guest-deferred upload on IO platforms (`adr/0011`).
   final String? localPath;
+  /// In-memory bytes for web (FilePicker has no path) and guest deferral.
+  final Uint8List? localBytes;
   final String? contentType;
   final double progress;
   final bool uploading;
   final Failure? failure;
 
   bool get isLocalOnly =>
-      localPath != null &&
-      (key.startsWith('local:') || key.startsWith('pending-'));
+      (localPath != null || localBytes != null) &&
+      (key.startsWith('local:') ||
+          key.startsWith('pending:') ||
+          key.startsWith('pending-'));
 
   MediaSlot copyWith({
     String? key,
     String? localLabel,
     String? localPath,
+    Uint8List? localBytes,
     String? contentType,
     double? progress,
     bool? uploading,
@@ -44,6 +52,7 @@ class MediaSlot {
         key: key ?? this.key,
         localLabel: localLabel ?? this.localLabel,
         localPath: clearLocal ? null : (localPath ?? this.localPath),
+        localBytes: clearLocal ? null : (localBytes ?? this.localBytes),
         contentType: clearLocal ? null : (contentType ?? this.contentType),
         progress: progress ?? this.progress,
         uploading: uploading ?? this.uploading,
@@ -156,6 +165,7 @@ class RequestCreateState {
       .where((m) =>
           m.key.isNotEmpty &&
           !m.key.startsWith('local:') &&
+          !m.key.startsWith('pending:') &&
           !m.key.startsWith('pending-'))
       .map((m) => m.key)
       .toList();

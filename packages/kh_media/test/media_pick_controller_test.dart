@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,11 +20,21 @@ class _FakeImageConverter implements ImageConverter {
 
   @override
   Future<MediaAsset> convertToAvif(File source) async {
-    convertCalls++;
     final bytes = await source.readAsBytes();
-    final outPath = '${source.path}.avif';
+    return convertBytesToAvif(Uint8List.fromList(bytes));
+  }
+
+  @override
+  Future<MediaAsset> convertBytesToAvif(Uint8List bytes) async {
+    convertCalls++;
+    final outPath =
+        '${Directory.systemTemp.path}/kh_media_fake_${DateTime.now().microsecondsSinceEpoch}.avif';
     final outFile = await File(outPath).writeAsBytes(bytes);
-    return MediaAsset(file: outFile, contentType: 'image/avif', byteSize: bytes.length);
+    return MediaAsset(
+      file: outFile,
+      contentType: 'image/avif',
+      byteSize: bytes.length,
+    );
   }
 }
 

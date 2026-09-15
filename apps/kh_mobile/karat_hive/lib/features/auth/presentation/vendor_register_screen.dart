@@ -101,11 +101,16 @@ class VendorRegisterScreen extends ConsumerWidget {
                 final res = await FilePicker.platform.pickFiles(
                   type: FileType.image,
                   allowMultiple: false,
+                  withData: true,
                 );
-                final path = res?.files.single.path;
-                if (path != null) {
-                  controller.patch((s) => s.copyWith(logoPath: path));
-                }
+                final file = res?.files.single;
+                if (file == null) return;
+                // Web has no filesystem path — store the display name so UI
+                // still shows a selected logo. Native keeps the real path.
+                final marker = (file.path != null && file.path!.isNotEmpty)
+                    ? file.path!
+                    : (file.name.isNotEmpty ? file.name : 'logo');
+                controller.patch((s) => s.copyWith(logoPath: marker));
               },
               onRemoveLogo: () {
                 controller.patch((s) => s.copyWith(logoPath: ''));

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:image_picker/image_picker.dart';
 import 'package:kh_api/kh_api.dart';
@@ -83,7 +84,13 @@ class MediaPickController {
   }) async {
     final picked = await _imagePicker.pickImage(source: source);
     if (picked == null) return null;
-    return convertAndUpload(File(picked.path), correlationId: correlationId, onProgress: onProgress);
+    // Prefer bytes — on web `picked.path` is a blob URL, not a dart:io File.
+    final bytes = await picked.readAsBytes();
+    return convertBytesAndUpload(
+      Uint8List.fromList(bytes),
+      correlationId: correlationId,
+      onProgress: onProgress,
+    );
   }
 
   /// Converts an already-picked image file to AVIF, caches it under
@@ -94,6 +101,17 @@ class MediaPickController {
     void Function(double progress)? onProgress,
   }) async {
     final asset = await _imageConverter.convertToAvif(file);
+    await _cache.put(correlationId, asset);
+    return _upload(asset, correlationId: correlationId, onProgress: onProgress);
+  }
+
+  /// Web-safe: convert in-memory image bytes to AVIF and upload.
+  Future<Result<String>> convertBytesAndUpload(
+    Uint8List bytes, {
+    required String correlationId,
+    void Function(double progress)? onProgress,
+  }) async {
+    final asset = await _imageConverter.convertBytesToAvif(bytes);
     await _cache.put(correlationId, asset);
     return _upload(asset, correlationId: correlationId, onProgress: onProgress);
   }
@@ -111,6 +129,30 @@ class MediaPickController {
         correlationId: correlationId,
         onProgress: onProgress,
       );
+
+  /// Web-safe raw upload (e.g. KYC PDF from FilePicker bytes).
+  Future<Result<String>> uploadRawBytes(
+    Uint8List bytes,
+    String contentType, {
+    required String correlationId,
+    void Function(double progress)? onProgress,
+  }) async {
+    final prefetched = _prefetchedIntent;
+    final reusable = prefetched != null &&
+            contentType == _speculativeContentType(_purpose)
+        ? prefetched
+        : null;
+    _prefetchedIntent = null;
+    final result = await _uploader.uploadBytes(
+      bytes,
+      purpose: _purpose,
+      contentType: contentType,
+      onProgress: onProgress,
+      prefetchedIntent: reusable,
+    );
+    if (result.isOk) await _cache.evict(correlationId);
+    return result;
+  }
 
   /// Re-runs the upload against the cached, already-converted file for
   /// [correlationId], without re-picking or re-converting. Returns `null`

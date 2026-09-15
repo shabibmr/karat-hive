@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
@@ -74,7 +75,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   Future<void> loadLookups() async {
     state = state.copyWith(lookupsLoading: true, clearFailure: true);
     final configR = await _repo.platformConfig();
-    final ratesR = await _repo.goldRates();
     final catR = await _repo.categories();
     final regR = await _repo.regions();
 
@@ -88,9 +88,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
         catR.failureOrNull ??
         regR.failureOrNull ??
         meR?.failureOrNull;
-    // Gold rates may be unavailable; compose still allowed except bullion publish.
-    final rates = ratesR.valueOrNull ??
-        const GoldRateSnapshot(available: false, stale: false);
 
     final me = meR?.valueOrNull;
     state = state.copyWith(
@@ -98,7 +95,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       lookupsReady: fail == null,
       failure: fail,
       config: configR.valueOrNull,
-      rates: rates,
       categories: catR.valueOrNull ?? const [],
       regions: regR.valueOrNull ?? const [],
       canCreateRequest: me?.canCreateRequest ?? state.canCreateRequest,
@@ -111,10 +107,17 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     final prev = state.requestType;
     final reset = prev != null && prev != type;
     final fixed = directionForType(type);
+    final combinedDetailsAndImages = type == RequestType.findOrnament ||
+        type == RequestType.sellOldGold;
+    final buySellChoice = type == RequestType.goldCoin ||
+        type == RequestType.goldBullion;
     state = state.copyWith(
       requestType: type,
-      direction: fixed ?? (reset ? null : state.direction),
-      clearDirection: reset && fixed == null,
+      direction: fixed ??
+          (buySellChoice
+              ? (reset ? Direction.buy : (state.direction ?? Direction.buy))
+              : (reset ? null : state.direction)),
+      clearDirection: reset && fixed == null && !buySellChoice,
       clearWeight: reset,
       clearPurity: reset,
       clearOrnament: reset,
@@ -130,6 +133,12 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       purityKarat: type == RequestType.goldBullion && (reset || state.purityKarat == null)
           ? Karat.k24
           : (reset ? null : state.purityKarat),
+      weightIsApproximate: combinedDetailsAndImages
+          ? true
+          : (reset ? false : state.weightIsApproximate),
+      budgetIsFlexible: combinedDetailsAndImages
+          ? true
+          : (reset ? false : state.budgetIsFlexible),
       step: RequestCreateStep.compose,
       clearFailure: true,
       fieldErrors: const {},
@@ -253,16 +262,37 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     return ok;
   }
 
+  /// IO helper for tests / native callers that already have a [File].
   Future<void> addImage(File file, String contentType) async {
-    if (state.media.length >= state.maxImages) return;
-    final label = file.path.split(Platform.pathSeparator).last;
+    final bytes = await file.readAsBytes();
+    final label = file.path.split(RegExp(r'[/\\]')).last;
+    await addPickedImage(
+      bytes: Uint8List.fromList(bytes),
+      filename: label,
+      contentType: contentType,
+      path: file.path,
+    );
+  }
 
-    // Guest: keep bytes on device until after bind (`adr/0011`).
+  /// Prefer this from pickers — works on web where [PlatformFile.path] is null.
+  Future<void> addPickedImage({
+    required Uint8List bytes,
+    required String filename,
+    required String contentType,
+    String? path,
+  }) async {
+    if (state.media.length >= state.maxImages) return;
+    if (bytes.isEmpty) return;
+    final label = filename.trim().isEmpty ? 'photo.jpg' : filename;
+    final token = Object.hash(path ?? label, bytes.length);
+
+    // Guest: keep bytes until after bind (`adr/0011`).
     if (_isGuest) {
       final slot = MediaSlot(
-        key: 'local:${file.path.hashCode}',
+        key: 'local:$token',
         localLabel: label,
-        localPath: file.path,
+        localPath: path,
+        localBytes: bytes,
         contentType: contentType,
       );
       state = state.copyWith(
@@ -273,9 +303,10 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     }
 
     final placeholder = MediaSlot(
-      key: 'pending-${file.path.hashCode}',
+      key: 'pending:$token',
       localLabel: label,
-      localPath: file.path,
+      localPath: path,
+      localBytes: bytes,
       contentType: contentType,
       progress: 0,
       uploading: true,
@@ -285,8 +316,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       uploading: true,
       clearFailure: true,
     );
-    final result = await _repo.uploadRequestImage(
-      file,
+    final result = await _repo.uploadRequestImageBytes(
+      bytes,
       contentType,
       onProgress: (p) {
         state = state.copyWith(
@@ -325,30 +356,12 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     );
   }
 
-  Future<void> retryImage(MediaSlot slot, File file, String contentType) async {
-    state = state.copyWith(
-      media: [
-        for (final m in state.media)
-          if (m.key == slot.key)
-            m.copyWith(uploading: true, progress: 0, clearFailure: true)
-          else
-            m,
-      ],
-    );
-    await addImage(file, contentType);
-    state = state.copyWith(
-      media: [
-        for (final m in state.media)
-          if (m.key == slot.key) ...[] else m,
-      ],
-    );
-  }
-
   Future<void> removeMediaAt(int index) async {
     if (index < 0 || index >= state.media.length) return;
     final slot = state.media[index];
     if (slot.key.isNotEmpty &&
         !slot.key.startsWith('pending-') &&
+        !slot.key.startsWith('pending:') &&
         !slot.isLocalOnly &&
         !_isGuest) {
       await _repo.deleteMedia(slot.key);
@@ -435,12 +448,16 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     final next = [...state.media];
     for (var i = 0; i < next.length; i++) {
       final slot = next[i];
-      if (!slot.isLocalOnly || slot.localPath == null) continue;
-      final file = File(slot.localPath!);
+      if (!slot.isLocalOnly) continue;
       final contentType = slot.contentType ?? 'image/jpeg';
+      Uint8List? bytes = slot.localBytes;
+      if (bytes == null && slot.localPath != null) {
+        bytes = Uint8List.fromList(await File(slot.localPath!).readAsBytes());
+      }
+      if (bytes == null || bytes.isEmpty) continue;
       next[i] = slot.copyWith(uploading: true, progress: 0, clearFailure: true);
       state = state.copyWith(media: [...next]);
-      final result = await _repo.uploadRequestImage(file, contentType);
+      final result = await _repo.uploadRequestImageBytes(bytes, contentType);
       final fail = result.failureOrNull;
       if (fail != null) {
         next[i] = slot.copyWith(uploading: false, failure: fail);

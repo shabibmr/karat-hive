@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_api/kh_api.dart';
@@ -83,6 +84,18 @@ class RequestCreateRepository {
   }) =>
       _media.upload(
         file,
+        purpose: MediaUploadPurpose.requestImage,
+        contentType: contentType,
+        onProgress: onProgress,
+      );
+
+  Future<Result<String>> uploadRequestImageBytes(
+    Uint8List bytes,
+    String contentType, {
+    void Function(double progress)? onProgress,
+  }) =>
+      _media.uploadBytes(
+        bytes,
         purpose: MediaUploadPurpose.requestImage,
         contentType: contentType,
         onProgress: onProgress,

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_api/kh_api.dart';
@@ -42,6 +43,25 @@ class OnboardingRepository {
       contentType.startsWith('image/')
           ? _media.convertAndUpload(file, correlationId: type.wire, onProgress: onProgress)
           : _media.uploadRaw(file, contentType, correlationId: type.wire, onProgress: onProgress);
+
+  Future<Result<String>> uploadKycDocumentBytes(
+    VendorDocumentType type,
+    Uint8List bytes,
+    String contentType, {
+    void Function(double progress)? onProgress,
+  }) =>
+      contentType.startsWith('image/')
+          ? _media.convertBytesAndUpload(
+              bytes,
+              correlationId: type.wire,
+              onProgress: onProgress,
+            )
+          : _media.uploadRawBytes(
+              bytes,
+              contentType,
+              correlationId: type.wire,
+              onProgress: onProgress,
+            );
 
   Future<Result<List<VendorDocument>>> attachDocument({
     required VendorDocumentType type,

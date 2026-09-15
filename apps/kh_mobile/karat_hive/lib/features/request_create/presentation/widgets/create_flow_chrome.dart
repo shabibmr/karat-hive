@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
-import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
-import 'package:kh_ui_domain/kh_ui_domain.dart' as uid;
 
 String createCopy(BuildContext context, String key, String fallback) {
   final value = KhStrings.of(context).s(key);
@@ -16,7 +14,6 @@ class CreateFlowChrome extends StatelessWidget {
     required this.title,
     required this.stepLabel,
     required this.child,
-    this.rateStrip,
     this.bottom,
     this.onRefresh,
   });
@@ -24,7 +21,6 @@ class CreateFlowChrome extends StatelessWidget {
   final String title;
   final String stepLabel;
   final Widget child;
-  final Widget? rateStrip;
   final Widget? bottom;
   final Future<void> Function()? onRefresh;
 
@@ -48,7 +44,6 @@ class CreateFlowChrome extends StatelessWidget {
               child: Text(stepLabel, style: Theme.of(context).textTheme.labelLarge),
             ),
           ),
-          if (rateStrip != null) rateStrip!,
           Expanded(
             child: KeyboardAvoidingView(
               child: child,
@@ -81,30 +76,6 @@ class KeyboardAvoidingView extends StatelessWidget {
   }
 }
 
-/// SH-DOM-01 — thin l10n wrapper over package `uid.GoldRateStrip`.
-class GoldRateStrip extends StatelessWidget {
-  const GoldRateStrip({super.key, required this.rates, this.karat});
-
-  final GoldRateSnapshot? rates;
-  final Karat? karat;
-
-  @override
-  Widget build(BuildContext context) {
-    return uid.GoldRateStrip(
-      rates: rates,
-      karat: karat,
-      title: createCopy(context, 'create.rateStrip', 'Reference gold rate'),
-      perGramLabel: createCopy(context, 'create.perGram', '/g'),
-      staleLabel: createCopy(context, 'create.stale', 'Stale'),
-      unavailableMessage: createCopy(
-        context,
-        'create.rateUnavailable',
-        'Reference gold rates are unavailable. You can still compose this Request.',
-      ),
-    );
-  }
-}
-
 class DraftActions extends StatelessWidget {
   const DraftActions({
     super.key,
@@ -131,12 +102,21 @@ class DraftActions extends StatelessWidget {
           busy: busy,
           onPressed: continueEnabled && !busy ? onContinue : null,
         ),
-        SizedBox(height: tokens.space.sm),
-        KhButton(
-          secondary: true,
-          label: createCopy(context, 'create.saveDraft', 'Save draft'),
-          busy: busy,
-          onPressed: busy ? null : onSaveDraft,
+        // Temporarily hidden on all create screens — do not delete; restore by
+        // setting visible: true.
+        Visibility(
+          visible: false,
+          child: Column(
+            children: [
+              SizedBox(height: tokens.space.sm),
+              KhButton(
+                secondary: true,
+                label: createCopy(context, 'create.saveDraft', 'Save draft'),
+                busy: busy,
+                onPressed: busy ? null : onSaveDraft,
+              ),
+            ],
+          ),
         ),
       ],
     );

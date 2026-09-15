@@ -86,17 +86,10 @@ void main() {
     return container;
   }
 
-  void stubGuestLookups({Result<GoldRateSnapshot>? rates}) {
+  void stubGuestLookups() {
     when(
       () => repo.platformConfig(),
     ).thenAnswer((_) async => const Ok(PlatformConfig()));
-    when(() => repo.goldRates()).thenAnswer(
-      (_) async =>
-          rates ??
-          const Err(
-            ServerFailure(code: 'GOLD_RATE_UNAVAILABLE', message: 'n/a'),
-          ),
-    );
     when(() => repo.categories()).thenAnswer(
       (_) async => const Ok([
         TaxonomyNode(id: 'cat-1', nameEn: 'Rings', nameAr: 'خواتم'),
@@ -124,11 +117,7 @@ void main() {
     });
 
     test('lookupsReady without me when config/categories/regions ok', () async {
-      stubGuestLookups(
-        rates: const Err(
-          ServerFailure(code: 'GOLD_RATE_UNAVAILABLE', message: 'missing'),
-        ),
-      );
+      stubGuestLookups();
       final container = containerWith(const SignedOut());
       final ctrl = container.read(requestCreateControllerProvider.notifier);
 
@@ -139,8 +128,9 @@ void main() {
       expect(state.config, isNotNull);
       expect(state.categories, isNotEmpty);
       expect(state.regions, isNotEmpty);
-      expect(state.rates?.available, isFalse);
+      expect(state.rates, isNull);
       verifyNever(() => repo.me());
+      verifyNever(() => repo.goldRates());
     });
 
     test('guest capBlocked stays false', () async {
