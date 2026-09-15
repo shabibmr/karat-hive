@@ -242,7 +242,7 @@ void main() {
         },
       };
 
-      final res = await api.acceptOffer('off-1');
+      final res = await api.acceptOffer('off-1', idempotencyKey: 'idem-1');
 
       expect(lastRequest!.method, 'POST');
       expect(lastRequest!.path, '/v1/offers/off-1/accept');
@@ -264,7 +264,8 @@ void main() {
         },
       };
 
-      final res = await api.offers.accept('off-9');
+      final res =
+          await api.offers.accept('off-9', idempotencyKey: 'idem-9');
       expect(lastBody, {'confirmation': 'REVEAL_AND_CONNECT'});
       expect(res.isOk, isTrue);
       expect(

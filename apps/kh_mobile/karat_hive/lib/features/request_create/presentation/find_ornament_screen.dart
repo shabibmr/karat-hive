@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
-import 'package:kh_ui_domain/kh_ui_domain.dart';
+import 'package:kh_ui_domain/kh_ui_domain.dart' hide GoldRateStrip, BudgetEditor;
 
 import '../controller/request_create_controller.dart';
 import '../controller/request_create_state.dart';

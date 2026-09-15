@@ -53,9 +53,13 @@ class OfferDetailScreen extends ConsumerWidget {
           final offer = bundle.offer;
           final rating = bundle.rating;
           final pending = offer.state == OfferState.pending;
-          final imageUrls = offer.terms.media
-              .map((m) => m.displayUrl ?? m.thumbnailUrl ?? '')
-              .where((u) => u.isNotEmpty)
+          final galleryImages = offer.terms.media
+              .map((m) => GalleryImage(
+                    url: m.displayUrl ?? m.thumbnailUrl ?? '',
+                    contentType:
+                        m.contentType.isEmpty ? 'image/jpeg' : m.contentType,
+                  ))
+              .where((g) => g.url.isNotEmpty)
               .toList(growable: false);
 
           return ListView(
@@ -79,9 +83,9 @@ class OfferDetailScreen extends ConsumerWidget {
                 terms: offer.terms,
                 expiresAt: offer.expiresAt,
               ),
-              if (imageUrls.isNotEmpty) ...[
+              if (galleryImages.isNotEmpty) ...[
                 SizedBox(height: tokens.space.md),
-                KhImageGallery(imageUrls: imageUrls),
+                KhImageGallery(images: galleryImages),
               ],
               if (rating != null) ...[
                 SizedBox(height: tokens.space.lg),

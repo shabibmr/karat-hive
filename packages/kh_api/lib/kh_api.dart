@@ -330,8 +330,13 @@ class KhApi {
       f(d as Map<String, dynamic>);
 
   // --- requests (CUS-S02..S10, S17) — domain-mapped (CM-S07) ---
-  Future<Result<RequestDraftSave>> createRequest(RequestDraftInput input) =>
-      requests.create(input);
+  Future<Result<RequestDraftSave>> createRequest(RequestDraftInput input) async {
+    final r = await requests.create(input.toJson(), unwrapData: false);
+    return r.when(
+      ok: (raw) => Ok(RequestDraftSave.fromEnvelope(raw)),
+      err: Err.new,
+    );
+  }
 
   Future<Result<PagedResult<RequestForCustomer>>> listMyRequests({
     List<String>? states,
@@ -361,12 +366,17 @@ class KhApi {
   Future<Result<RequestDraftSave>> updateRequest(
     String id,
     RequestDraftInput input,
-  ) =>
-      requests.patch(id, input);
+  ) async {
+    final r = await requests.patch(id, input.toJson(), unwrapData: false);
+    return r.when(
+      ok: (raw) => Ok(RequestDraftSave.fromEnvelope(raw)),
+      err: Err.new,
+    );
+  }
 
   Future<Result<RequestForCustomer>> publishRequest(
     String id, {
-    String? idempotencyKey,
+    required String idempotencyKey,
   }) =>
       requests.publish(id, idempotencyKey: idempotencyKey);
 
@@ -416,8 +426,11 @@ class KhApi {
   }
 
   /// Accept body is always `{confirmation:"REVEAL_AND_CONNECT"}` (inventory).
-  Future<Result<AcceptOfferResult>> acceptOffer(String id) =>
-      offers.accept(id);
+  Future<Result<AcceptOfferResult>> acceptOffer(
+    String id, {
+    required String idempotencyKey,
+  }) =>
+      offers.accept(id, idempotencyKey: idempotencyKey);
 
   Future<Result<OfferForCustomer>> declineOffer(
     String id, {
