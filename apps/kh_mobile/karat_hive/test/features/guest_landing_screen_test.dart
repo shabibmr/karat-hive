@@ -31,12 +31,12 @@ Widget _app({required GoRouter router, List<Override> overrides = const []}) {
   );
 }
 
-GoRouter _landingRouter({String initialLocation = AppGuards.guestLanding}) {
+GoRouter _landingRouter({String initialLocation = AppGuards.customerGuest}) {
   return GoRouter(
     initialLocation: initialLocation,
     routes: [
       GoRoute(
-        path: AppGuards.guestLanding,
+        path: AppGuards.customerGuest,
         builder: (_, __) => const GuestLandingScreen(),
       ),
       GoRoute(
@@ -123,7 +123,7 @@ void main() {
     expect(find.byKey(const Key('guest-type-bullion')), findsOneWidget);
     expect(find.byKey(const Key('guest-login')), findsOneWidget);
     expect(find.byKey(const Key('guest-jeweller')), findsOneWidget);
-    expect(find.byKey(const Key('how-this-works')), findsNWidgets(4));
+    expect(find.byKey(const Key('how-this-works')), findsOneWidget);
 
     expect(find.byType(FilledButton), findsNothing);
     expect(find.text('Find jewellery'), findsOneWidget);
@@ -133,7 +133,7 @@ void main() {
     expect(find.text('Are you a jeweller? Register here.'), findsOneWidget);
   });
 
-  testWidgets('how-it-works expands under a card', (tester) async {
+  testWidgets('how-it-works expands', (tester) async {
     tester.view.physicalSize = const Size(800, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -148,10 +148,7 @@ void main() {
       findsNothing,
     );
 
-    final bullionCard = find.byKey(const Key('guest-type-bullion'));
-    await tester.tap(
-      find.descendant(of: bullionCard, matching: find.text('How this works')),
-    );
+    await tester.tap(find.text('How this works'));
     await tester.pumpAndSettle();
 
     expect(

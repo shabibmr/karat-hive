@@ -1637,7 +1637,7 @@ abstract class AppLocalizations {
   /// No description provided for @authCompleteProfileSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'One more step. Confirm your name and verify a mobile number so vendors can reach you on WhatsApp.'**
+  /// **'One more step. Confirm your name and mobile number so vendors can reach you on WhatsApp.'**
   String get authCompleteProfileSubtitle;
 
   /// No description provided for @authDisplayNameLabel.
@@ -1645,6 +1645,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your name'**
   String get authDisplayNameLabel;
+
+  /// No description provided for @authDisplayNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your name.'**
+  String get authDisplayNameRequired;
+
+  /// No description provided for @authMobileHint.
+  ///
+  /// In en, this message translates to:
+  /// **'+971 50 123 4567'**
+  String get authMobileHint;
+
+  /// No description provided for @authMobileHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Include country code (e.g. +971501234567)'**
+  String get authMobileHelper;
+
+  /// No description provided for @authMobileInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid mobile number with country code (e.g. +971501234567).'**
+  String get authMobileInvalid;
+
+  /// No description provided for @authMobileRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile number is required.'**
+  String get authMobileRequired;
 
   /// No description provided for @authOtpSentTo.
   ///

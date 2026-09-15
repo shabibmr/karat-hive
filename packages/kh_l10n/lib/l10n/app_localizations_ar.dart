@@ -898,10 +898,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authCompleteProfileSubtitle =>
-      'خطوة أخيرة. أكّد اسمك وتحقّق من رقم جوال حتى يتمكّن التجّار من التواصل معك عبر واتساب.';
+      'خطوة أخيرة. أكّد اسمك ورقم جوالك حتى يتمكّن التجّار من التواصل معك عبر واتساب.';
 
   @override
   String get authDisplayNameLabel => 'اسمك';
+
+  @override
+  String get authDisplayNameRequired => 'يرجى إدخال اسمك.';
+
+  @override
+  String get authMobileHint => '+971 50 123 4567';
+
+  @override
+  String get authMobileHelper => 'قم بتضمين رمز الدولة (مثال: +971501234567)';
+
+  @override
+  String get authMobileInvalid =>
+      'أدخل رقم جوال صحيح يتضمن رمز الدولة (مثال: +971501234567).';
+
+  @override
+  String get authMobileRequired => 'رقم الجوال مطلوب.';
 
   @override
   String authOtpSentTo(String mobile) {

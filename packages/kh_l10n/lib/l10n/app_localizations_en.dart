@@ -887,10 +887,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authCompleteProfileSubtitle =>
-      'One more step. Confirm your name and verify a mobile number so vendors can reach you on WhatsApp.';
+      'One more step. Confirm your name and mobile number so vendors can reach you on WhatsApp.';
 
   @override
   String get authDisplayNameLabel => 'Your name';
+
+  @override
+  String get authDisplayNameRequired => 'Please enter your name.';
+
+  @override
+  String get authMobileHint => '+971 50 123 4567';
+
+  @override
+  String get authMobileHelper => 'Include country code (e.g. +971501234567)';
+
+  @override
+  String get authMobileInvalid =>
+      'Enter a valid mobile number with country code (e.g. +971501234567).';
+
+  @override
+  String get authMobileRequired => 'Mobile number is required.';
 
   @override
   String authOtpSentTo(String mobile) {

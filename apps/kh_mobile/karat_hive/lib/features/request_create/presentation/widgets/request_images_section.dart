@@ -28,10 +28,10 @@ class RequestImagesSection extends ConsumerWidget {
     if (res == null) return;
     final controller = ref.read(requestCreateControllerProvider.notifier);
     for (final f in res.files) {
-      final bytes = f.bytes;
-      final path = f.path;
-      Uint8List? data = bytes;
-      if (data == null && path != null && !kIsWeb) {
+      // On web, PlatformFile.path throws — use bytes + name only.
+      final path = kIsWeb ? null : f.path;
+      Uint8List? data = f.bytes;
+      if (data == null && path != null) {
         data = Uint8List.fromList(await File(path).readAsBytes());
       }
       if (data == null || data.isEmpty) continue;
@@ -99,6 +99,60 @@ class RequestImagesSection extends ConsumerWidget {
   }
 }
 
+/// Read-only thumbnails for Review (CUS-S09). Prefers in-memory bytes.
+class RequestMediaGallery extends StatelessWidget {
+  const RequestMediaGallery({super.key, required this.media});
+
+  final List<MediaSlot> media;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    if (media.isEmpty) {
+      return Text(
+        createCopy(context, 'create.field.photosNone', 'No photos attached'),
+        style: Theme.of(context).textTheme.bodyMedium,
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          createCopy(context, 'create.field.photos', 'Photos'),
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        SizedBox(height: tokens.space.sm),
+        Wrap(
+          spacing: tokens.space.sm,
+          runSpacing: tokens.space.sm,
+          children: [
+            for (var i = 0; i < media.length; i++)
+              SizedBox(
+                key: Key('review-photo-$i'),
+                width: 96,
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: mediaSlotPreview(media[i]),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 class _MediaTile extends StatelessWidget {
   const _MediaTile({
     required this.slot,
@@ -126,7 +180,7 @@ class _MediaTile extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  _preview(context),
+                  mediaSlotPreview(slot),
                   if (slot.uploading)
                     const ColoredBox(
                       color: Color(0x66000000),
@@ -162,30 +216,25 @@ class _MediaTile extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _preview(BuildContext context) {
-    if (slot.localBytes != null && slot.localBytes!.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.memory(
-          slot.localBytes!,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) =>
-              const Icon(Icons.broken_image_outlined),
-        ),
-      );
-    }
-    if (!kIsWeb && slot.localPath != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.file(
-          File(slot.localPath!),
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) =>
-              const Icon(Icons.broken_image_outlined),
-        ),
-      );
-    }
-    return const Center(child: Icon(Icons.image_outlined));
+/// Shared thumbnail for compose tiles and Review gallery.
+Widget mediaSlotPreview(MediaSlot slot) {
+  if (slot.localBytes != null && slot.localBytes!.isNotEmpty) {
+    return Image.memory(
+      slot.localBytes!,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) =>
+          const Center(child: Icon(Icons.broken_image_outlined)),
+    );
   }
+  if (!kIsWeb && slot.localPath != null) {
+    return Image.file(
+      File(slot.localPath!),
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) =>
+          const Center(child: Icon(Icons.broken_image_outlined)),
+    );
+  }
+  return const Center(child: Icon(Icons.image_outlined));
 }

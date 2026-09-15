@@ -134,6 +134,51 @@ void main() {
       );
     });
 
+    test('UnboundGoogle from Guest/Publish → Customer signup, not role chooser',
+        () {
+      const unbound = UnboundGoogle(firebaseIdToken: 'fb-token');
+      expect(
+        AppGuards.redirect(unbound, AppGuards.customerOnboarding),
+        AppGuards.customerRegister,
+      );
+      expect(
+        AppGuards.redirect(unbound, AppGuards.customerGuest),
+        AppGuards.customerRegister,
+      );
+      expect(
+        AppGuards.redirect(unbound, AppGuards.customerCreatePrefix),
+        AppGuards.customerRegister,
+      );
+      expect(
+        AppGuards.redirect(
+          unbound,
+          '${AppGuards.customerCreatePrefix}/review',
+        ),
+        AppGuards.customerRegister,
+      );
+      expect(
+        AppGuards.redirect(unbound, AppGuards.splash),
+        AppGuards.customerRegister,
+      );
+      // GL-18: role chooser is not the default.
+      expect(
+        AppGuards.redirect(unbound, AppGuards.splash),
+        isNot(AppGuards.authComplete),
+      );
+      // Already on signup / vendor register — stay.
+      expect(
+        AppGuards.redirect(unbound, AppGuards.customerRegister),
+        isNull,
+      );
+      expect(AppGuards.redirect(unbound, AppGuards.register), isNull);
+      expect(AppGuards.redirect(unbound, AppGuards.authComplete), isNull);
+      // Vendor Login unbound → vendor register, not Customer signup.
+      expect(
+        AppGuards.redirect(unbound, AppGuards.login),
+        AppGuards.register,
+      );
+    });
+
     test('pendingVerification / rejected stay on awaiting or KYC', () {
       final pending = _signedIn(VendorLifecycle.pendingVerification);
       expect(AppGuards.redirect(pending, AppGuards.home), AppGuards.awaiting);

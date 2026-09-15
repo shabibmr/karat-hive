@@ -30,14 +30,21 @@ class CustomerCompletionForm {
 
   bool get detailsComplete =>
       displayName.trim().isNotEmpty &&
-      _looksLikeE164(mobileNumber) &&
+      looksLikeE164(mobileNumber) &&
       termsAccepted;
 
   bool get canSubmitCode =>
       termsAccepted && (challengeId?.isNotEmpty ?? false) && !busy;
 
-  static bool _looksLikeE164(String v) {
-    final t = v.trim();
+  bool get isDisplayNameValid => displayName.trim().isNotEmpty;
+
+  bool get isMobileValid => looksLikeE164(mobileNumber);
+
+  static String normalizeMobile(String v) =>
+      v.trim().replaceAll(RegExp(r'[\s\-()]'), '');
+
+  static bool looksLikeE164(String v) {
+    final t = normalizeMobile(v);
     return RegExp(r'^\+[1-9]\d{6,14}$').hasMatch(t);
   }
 

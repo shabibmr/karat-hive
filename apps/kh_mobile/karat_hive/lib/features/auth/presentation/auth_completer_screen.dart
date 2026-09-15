@@ -7,7 +7,8 @@ import 'package:kh_l10n/kh_l10n.dart';
 import '../../../app/guards.dart';
 import '../../../app/session/session_controller.dart';
 
-/// Unbound Google identity: choose Customer vs Vendor register (CM-G04).
+/// Legacy role chooser (CM-G04). Not used on Guest / Publish / Customer Login
+/// (`adr/0011`, GL-17/GL-45) — those go straight to Customer signup.
 class AuthCompleterScreen extends ConsumerWidget {
   const AuthCompleterScreen({super.key});
 

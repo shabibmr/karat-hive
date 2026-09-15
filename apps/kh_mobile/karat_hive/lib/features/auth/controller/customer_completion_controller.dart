@@ -57,7 +57,7 @@ class CustomerCompletionController
 
     final register = await _repo.registerCustomer(
       firebaseToken: state.firebaseIdToken,
-      mobileNumber: state.mobileNumber.trim(),
+      mobileNumber: CustomerCompletionForm.normalizeMobile(state.mobileNumber),
       displayName: state.displayName.trim(),
       email: state.email,
     );
@@ -80,7 +80,9 @@ class CustomerCompletionController
   Future<void> sendCode() async {
     if (!state.detailsComplete || state.busy) return;
     state = state.copyWith(busy: true, clearFailure: true);
-    final r = await _repo.requestOtp(state.mobileNumber.trim());
+    final r = await _repo.requestOtp(
+      CustomerCompletionForm.normalizeMobile(state.mobileNumber),
+    );
     state = r.when(
       ok: (challenge) => state.copyWith(
         busy: false,

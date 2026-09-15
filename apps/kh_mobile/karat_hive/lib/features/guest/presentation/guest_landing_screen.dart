@@ -6,6 +6,7 @@ import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
 import '../../../app/guards.dart';
+import '../../auth/presentation/widgets/how_this_works.dart';
 import '../../request_create/controller/request_create_controller.dart';
 import '../../request_create/routes.dart';
 
@@ -23,75 +24,143 @@ class GuestLandingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = KhStrings.of(context);
+    final l10n = AppLocalizations.of(context);
+    final tokens = context.tokens;
     final theme = Theme.of(context);
 
+    final services = [
+      _GuestServiceData(
+        type: RequestType.findOrnament,
+        tileKey: const Key('guest-type-ornament'),
+        serviceKey: const Key('guest-service-ornament'),
+        title: strings.s('guest.service.ornament'),
+        subtitle: 'Bespoke & catalog',
+        icon: Icons.diamond_outlined,
+      ),
+      _GuestServiceData(
+        type: RequestType.sellOldGold,
+        tileKey: const Key('guest-type-sell-gold'),
+        serviceKey: const Key('guest-service-sell-gold'),
+        title: strings.s('guest.service.sellGold'),
+        subtitle: 'Instant jeweller bids',
+        icon: Icons.balance_rounded,
+      ),
+      _GuestServiceData(
+        type: RequestType.goldCoin,
+        tileKey: const Key('guest-type-coins'),
+        serviceKey: const Key('guest-service-coins'),
+        title: strings.s('guest.service.coins'),
+        subtitle: 'Standard weights',
+        icon: Icons.monetization_on_outlined,
+      ),
+      _GuestServiceData(
+        type: RequestType.goldBullion,
+        tileKey: const Key('guest-type-bullion'),
+        serviceKey: const Key('guest-service-bullion'),
+        title: strings.s('guest.service.bullion'),
+        subtitle: '24K investment bars',
+        icon: Icons.crop_landscape_rounded,
+      ),
+    ];
+
     return KhScaffold(
+      key: const Key('guest-landing'),
       title: strings.s('guest.title'),
       actions: [
         TextButton(
-          key: const Key('guest-log-in'),
+          key: const Key('guest-login'),
           onPressed: () => context.go(AppGuards.customerOnboarding),
-          child: Text(strings.s('guest.logIn')),
+          child: Text(
+            strings.s('guest.logIn'),
+            key: const Key('guest-log-in'),
+          ),
         ),
       ],
       body: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(24, 16, 24, 32),
+        padding: EdgeInsets.fromLTRB(
+          tokens.space.md,
+          tokens.space.md,
+          tokens.space.md,
+          tokens.space.xl,
+        ),
         children: [
           Text(
             strings.s('guest.headline'),
-            style: theme.textTheme.headlineSmall,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: tokens.space.xs),
           Text(
             strings.s('guest.subhead'),
-            style: theme.textTheme.bodyMedium,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: tokens.ink.withValues(alpha: 0.65),
+            ),
           ),
-          const SizedBox(height: 24),
-          _ServiceCard(
-            key: const Key('guest-service-ornament'),
-            label: strings.s('guest.service.ornament'),
-            icon: Icons.diamond_outlined,
-            onTap: () => _openService(context, ref, RequestType.findOrnament),
-          ),
-          _ServiceCard(
-            key: const Key('guest-service-sell-gold'),
-            label: strings.s('guest.service.sellGold'),
-            icon: Icons.sell_outlined,
-            onTap: () => _openService(context, ref, RequestType.sellOldGold),
-          ),
-          _ServiceCard(
-            key: const Key('guest-service-coins'),
-            label: strings.s('guest.service.coins'),
-            icon: Icons.monetization_on_outlined,
-            onTap: () => _openService(context, ref, RequestType.goldCoin),
-          ),
-          _ServiceCard(
-            key: const Key('guest-service-bullion'),
-            label: strings.s('guest.service.bullion'),
-            icon: Icons.inventory_2_outlined,
-            onTap: () => _openService(context, ref, RequestType.goldBullion),
-          ),
-          const SizedBox(height: 8),
-          ExpansionTile(
-            key: const Key('guest-how-it-works'),
-            title: Text(strings.s('guest.howItWorks')),
-            childrenPadding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+          SizedBox(height: tokens.space.lg),
+
+          // 2x2 Grid of Request Types
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: tokens.space.sm,
+            mainAxisSpacing: tokens.space.sm,
+            childAspectRatio: 1.45,
             children: [
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  strings.s('guest.howItWorksBody'),
-                  style: theme.textTheme.bodyMedium,
+              for (final service in services)
+                _GuestServiceTile(
+                  data: service,
+                  onTap: () => _openService(context, ref, service.type),
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: tokens.space.lg),
+
+          // How this works
+          Material(
+            key: const Key('guest-how-it-works'),
+            color: tokens.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(tokens.radius.md),
+              side: BorderSide(
+                color: tokens.ink.withValues(alpha: 0.12),
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: tokens.space.sm),
+              child: HowThisWorks(
+                extras: [
+                  l10n?.guestHowItWorksOrnamentExtra ??
+                      'Budget and a reference photo help jewellers match what you want.',
+                  l10n?.guestHowItWorksSellGoldExtra ??
+                      'Photos must show the actual piece you are selling.',
+                  l10n?.guestHowItWorksCoinsExtra ??
+                      'Choose buy or sell, denomination, and quantity.',
+                  l10n?.guestHowItWorksBullionExtra ??
+                      'A minimum indicative value applies to bullion Requests.',
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: tokens.space.lg),
+
           Center(
             child: TextButton(
-              key: const Key('guest-jeweller-register'),
-              onPressed: () => context.go(AppGuards.register),
-              child: Text(strings.s('guest.jewellerFooter')),
+              key: const Key('guest-jeweller'),
+              onPressed: () {
+                // Mid-create -> Vendor signup drops the in-memory draft (GL-66).
+                ref.read(requestCreateControllerProvider.notifier).resetFlow();
+                context.go(AppGuards.register);
+              },
+              child: Text(
+                strings.s('guest.jewellerFooter'),
+                key: const Key('guest-jeweller-register'),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  decoration: TextDecoration.underline,
+                ),
+              ),
             ),
           ),
         ],
@@ -100,43 +169,89 @@ class GuestLandingScreen extends ConsumerWidget {
   }
 }
 
-class _ServiceCard extends StatelessWidget {
-  const _ServiceCard({
-    super.key,
-    required this.label,
+class _GuestServiceData {
+  const _GuestServiceData({
+    required this.type,
+    required this.tileKey,
+    required this.serviceKey,
+    required this.title,
+    required this.subtitle,
     required this.icon,
+  });
+
+  final RequestType type;
+  final Key tileKey;
+  final Key serviceKey;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+}
+
+class _GuestServiceTile extends StatelessWidget {
+  const _GuestServiceTile({
+    required this.data,
     required this.onTap,
   });
 
-  final String label;
-  final IconData icon;
+  final _GuestServiceData data;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 20, 16, 20),
-            child: Row(
-              children: [
-                Icon(icon, size: 28),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+    final tokens = context.tokens;
+    final theme = Theme.of(context);
+
+    return Material(
+      key: data.tileKey,
+      color: tokens.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        side: BorderSide(
+          color: tokens.ink.withValues(alpha: 0.12),
+        ),
+      ),
+      child: InkWell(
+        key: data.serviceKey,
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        child: Padding(
+          padding: EdgeInsets.all(tokens.space.sm),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: tokens.gold.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(tokens.radius.sm),
                 ),
-                const Icon(Icons.chevron_right),
-              ],
-            ),
+                child: Icon(data.icon, color: tokens.gold, size: 20),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    data.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    data.subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: tokens.ink.withValues(alpha: 0.55),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

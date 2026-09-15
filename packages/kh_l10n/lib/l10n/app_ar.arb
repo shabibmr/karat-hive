@@ -277,8 +277,13 @@
   "authLockoutTitle": "لا يمكنك تسجيل الدخول",
   "authLockoutHelp": "تواصل مع الدعم إذا كنت تعتقد أن هذا خطأ.",
   "authCompleteProfileTitle": "أكمل إعداد حسابك",
-  "authCompleteProfileSubtitle": "خطوة أخيرة. أكّد اسمك وتحقّق من رقم جوال حتى يتمكّن التجّار من التواصل معك عبر واتساب.",
+  "authCompleteProfileSubtitle": "خطوة أخيرة. أكّد اسمك ورقم جوالك حتى يتمكّن التجّار من التواصل معك عبر واتساب.",
   "authDisplayNameLabel": "اسمك",
+  "authDisplayNameRequired": "يرجى إدخال اسمك.",
+  "authMobileHint": "+971 50 123 4567",
+  "authMobileHelper": "قم بتضمين رمز الدولة (مثال: +971501234567)",
+  "authMobileInvalid": "أدخل رقم جوال صحيح يتضمن رمز الدولة (مثال: +971501234567).",
+  "authMobileRequired": "رقم الجوال مطلوب.",
   "authOtpSentTo": "أرسلنا رمزًا مكوّنًا من 6 أرقام إلى {mobile}",
   "@authOtpSentTo": {
     "placeholders": {

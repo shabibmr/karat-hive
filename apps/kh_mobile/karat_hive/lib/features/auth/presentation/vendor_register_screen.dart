@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -105,11 +106,13 @@ class VendorRegisterScreen extends ConsumerWidget {
                 );
                 final file = res?.files.single;
                 if (file == null) return;
-                // Web has no filesystem path — store the display name so UI
-                // still shows a selected logo. Native keeps the real path.
-                final marker = (file.path != null && file.path!.isNotEmpty)
-                    ? file.path!
-                    : (file.name.isNotEmpty ? file.name : 'logo');
+                // Web has no filesystem path (accessing .path throws) —
+                // store the display name so UI still shows a selected logo.
+                final nativePath = kIsWeb ? null : file.path;
+                final marker =
+                    (nativePath != null && nativePath.isNotEmpty)
+                        ? nativePath
+                        : (file.name.isNotEmpty ? file.name : 'logo');
                 controller.patch((s) => s.copyWith(logoPath: marker));
               },
               onRemoveLogo: () {
@@ -196,14 +199,6 @@ class VendorRegisterScreen extends ConsumerWidget {
               error: (_, __) => KhInlineError(
                 message: l10n?.couldNotLoadRegions ?? 'Could not load regions.',
               ),
-            ),
-            const SizedBox(height: 14),
-            KhTextField(
-              label: 'GPS Location / Google Maps Link (optional)',
-              initialValue: form.gpsCoordinates,
-              keyboardType: TextInputType.streetAddress,
-              onChanged: (v) =>
-                  controller.patch((s) => s.copyWith(gpsCoordinates: v)),
             ),
             const SizedBox(height: 24),
             KhButton(

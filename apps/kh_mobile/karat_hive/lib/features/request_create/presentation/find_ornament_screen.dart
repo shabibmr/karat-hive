@@ -102,11 +102,11 @@ class _ComposeScreenHostState extends ConsumerState<ComposeScreenHost> {
             KhInlineError(message: w),
             SizedBox(height: tokens.space.sm),
           ],
-          widget.fields,
           if (widget.combineImages) ...[
-            SizedBox(height: tokens.space.lg),
             const RequestImagesSection(),
+            SizedBox(height: tokens.space.lg),
           ],
+          widget.fields,
           SizedBox(height: tokens.space.md),
           CommonCreateFields(
             state: state,

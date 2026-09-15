@@ -1078,8 +1078,13 @@
   "authLockoutTitle": "You can't sign in",
   "authLockoutHelp": "Contact support if you think this is a mistake.",
   "authCompleteProfileTitle": "Finish setting up your account",
-  "authCompleteProfileSubtitle": "One more step. Confirm your name and verify a mobile number so vendors can reach you on WhatsApp.",
+  "authCompleteProfileSubtitle": "One more step. Confirm your name and mobile number so vendors can reach you on WhatsApp.",
   "authDisplayNameLabel": "Your name",
+  "authDisplayNameRequired": "Please enter your name.",
+  "authMobileHint": "+971 50 123 4567",
+  "authMobileHelper": "Include country code (e.g. +971501234567)",
+  "authMobileInvalid": "Enter a valid mobile number with country code (e.g. +971501234567).",
+  "authMobileRequired": "Mobile number is required.",
   "authOtpSentTo": "We sent a 6-digit code to {mobile}",
   "@authOtpSentTo": {
     "placeholders": {

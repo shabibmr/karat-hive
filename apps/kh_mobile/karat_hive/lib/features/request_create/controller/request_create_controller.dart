@@ -335,7 +335,14 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           media: [
             for (final m in state.media)
               if (m.key == placeholder.key)
-                MediaSlot(key: key, localLabel: placeholder.localLabel)
+                MediaSlot(
+                  key: key,
+                  localLabel: placeholder.localLabel,
+                  // Keep bytes/path so Review can show thumbnails.
+                  localPath: placeholder.localPath,
+                  localBytes: placeholder.localBytes,
+                  contentType: placeholder.contentType,
+                )
               else
                 m,
           ],
@@ -467,6 +474,10 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       next[i] = MediaSlot(
         key: result.valueOrNull!,
         localLabel: slot.localLabel,
+        // Keep bytes/path so Review can show thumbnails.
+        localPath: slot.localPath,
+        localBytes: bytes,
+        contentType: contentType,
       );
       state = state.copyWith(media: [...next]);
     }

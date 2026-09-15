@@ -12,6 +12,8 @@ class KhTextField extends StatelessWidget {
     this.keyboardType,
     this.obscure = false,
     this.errorText,
+    this.hintText,
+    this.helperText,
     this.initialValue,
     this.suffixText,
     this.inputFormatters,
@@ -26,6 +28,8 @@ class KhTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final bool obscure;
   final String? errorText;
+  final String? hintText;
+  final String? helperText;
   final String? initialValue;
   final String? suffixText;
   final List<TextInputFormatter>? inputFormatters;
@@ -50,6 +54,8 @@ class KhTextField extends StatelessWidget {
         onTap: onTap,
         decoration: InputDecoration(
           labelText: label,
+          hintText: hintText,
+          helperText: helperText,
           errorText: errorText,
           suffixText: suffixText,
           alignLabelWithHint: maxLines > 1,

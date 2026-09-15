@@ -37,7 +37,7 @@ Widget _host(List<Override> overrides) => ProviderScope(
     );
 
 void main() {
-  testWidgets('welcome view shows the Google button + biometric toggle (CFE-09)',
+  testWidgets('welcome view shows the Google button without biometric toggle',
       (tester) async {
     await tester.pumpWidget(_host([
       customerOnboardingControllerProvider
@@ -51,7 +51,7 @@ void main() {
     expect(find.text('Log in'), findsOneWidget);
     expect(find.byKey(const Key('customer-google-signin')), findsOneWidget);
     expect(find.text('Continue with Google'), findsOneWidget);
-    expect(find.byKey(const Key('biometric-unlock-toggle')), findsOneWidget);
+    expect(find.byKey(const Key('biometric-unlock-toggle')), findsNothing);
     expect(find.byKey(const Key('guest-type-ornament')), findsNothing);
   });
 
@@ -119,5 +119,122 @@ void main() {
           defaultRegionId: any(named: 'defaultRegionId'),
         )).called(1);
     expect(session.authenticated.single, bundle);
+  });
+
+  testWidgets(
+      'completion step: shows validation error when mobile lacks E.164 country code',
+      (tester) async {
+    final repo = _MockRepo();
+    final session = RecordingSessionController();
+
+    await tester.pumpWidget(_host([
+      customerOnboardingControllerProvider.overrideWith(
+        () => _FakeOnboarding(
+          const OnboardingNeedsCompletion(firebaseIdToken: 'fb-token'),
+        ),
+      ),
+      customerAuthRepositoryProvider.overrideWithValue(repo),
+      sessionProvider.overrideWith(() => session),
+    ]));
+    await tester.pumpAndSettle();
+
+    // Enter local number without country code
+    await tester.enterText(find.byKey(const Key('customer-completion-mobile')), '0501234567');
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Enter a valid mobile number with country code (e.g. +971501234567).'),
+      findsOneWidget,
+    );
+
+    // Continue button must be disabled (canContinue is false)
+    final continueButton = tester.widget<KhButton>(find.widgetWithText(KhButton, 'Continue'));
+    expect(continueButton.onPressed, isNull);
+  });
+
+  testWidgets(
+      'completion step: mobile with spaces is accepted and normalized on register',
+      (tester) async {
+    final repo = _MockRepo();
+    final bundle = testCustomerBundle();
+    when(() => repo.registerCustomer(
+          firebaseToken: any(named: 'firebaseToken'),
+          challengeId: any(named: 'challengeId'),
+          mobileNumber: any(named: 'mobileNumber'),
+          displayName: any(named: 'displayName'),
+          email: any(named: 'email'),
+          preferredLanguage: any(named: 'preferredLanguage'),
+          defaultRegionId: any(named: 'defaultRegionId'),
+        )).thenAnswer((_) async => Ok(bundle));
+    final session = RecordingSessionController();
+
+    await tester.pumpWidget(_host([
+      customerOnboardingControllerProvider.overrideWith(
+        () => _FakeOnboarding(
+          const OnboardingNeedsCompletion(firebaseIdToken: 'fb-token'),
+        ),
+      ),
+      customerAuthRepositoryProvider.overrideWithValue(repo),
+      sessionProvider.overrideWith(() => session),
+    ]));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('customer-completion-name')), 'Layla');
+    // Enter number with spaces
+    await tester.enterText(
+      find.byKey(const Key('customer-completion-mobile')),
+      '+971 50 000 0009',
+    );
+    await tester.tap(find.byKey(const Key('accept-terms-checkbox')));
+    await tester.pumpAndSettle();
+
+    // No error should be shown
+    expect(
+      find.text('Enter a valid mobile number with country code (e.g. +971501234567).'),
+      findsNothing,
+    );
+
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    verify(() => repo.registerCustomer(
+          firebaseToken: 'fb-token',
+          challengeId: null,
+          mobileNumber: '+971500000009',
+          displayName: 'Layla',
+          email: any(named: 'email'),
+          preferredLanguage: any(named: 'preferredLanguage'),
+          defaultRegionId: any(named: 'defaultRegionId'),
+        )).called(1);
+    expect(session.authenticated.single, bundle);
+  });
+
+  testWidgets(
+      'completion step: empty name shows validation error when terms accepted',
+      (tester) async {
+    final repo = _MockRepo();
+    final session = RecordingSessionController();
+
+    await tester.pumpWidget(_host([
+      customerOnboardingControllerProvider.overrideWith(
+        () => _FakeOnboarding(
+          const OnboardingNeedsCompletion(firebaseIdToken: 'fb-token'),
+        ),
+      ),
+      customerAuthRepositoryProvider.overrideWithValue(repo),
+      sessionProvider.overrideWith(() => session),
+    ]));
+    await tester.pumpAndSettle();
+
+    // Enter mobile and check terms, but leave name empty
+    await tester.enterText(find.byKey(const Key('customer-completion-name')), '');
+    await tester.enterText(
+      find.byKey(const Key('customer-completion-mobile')),
+      '+971500000009',
+    );
+    await tester.tap(find.byKey(const Key('accept-terms-checkbox')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Please enter your name.'), findsOneWidget);
   });
 }

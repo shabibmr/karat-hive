@@ -139,17 +139,37 @@ class _DetailsStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = KhL10n.of(context)!;
+    final trimmedName = name.text.trim();
+    final trimmedMobile = mobile.text.trim();
+
+    final showNameError = trimmedName.isEmpty &&
+        (termsAccepted || trimmedMobile.isNotEmpty);
+
+    final bool isMobileInvalid = trimmedMobile.isNotEmpty &&
+        !CustomerCompletionForm.looksLikeE164(trimmedMobile);
+    final bool showMobileRequired = trimmedMobile.isEmpty && termsAccepted;
+
+    final String? mobileError = isMobileInvalid
+        ? l10n.authMobileInvalid
+        : (showMobileRequired ? l10n.authMobileRequired : null);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         KhTextField(
+          key: const Key('customer-completion-name'),
           label: l10n.authDisplayNameLabel,
           controller: name,
+          errorText: showNameError ? l10n.authDisplayNameRequired : null,
           onChanged: onName,
         ),
         KhTextField(
+          key: const Key('customer-completion-mobile'),
           label: l10n.authMobile,
           controller: mobile,
+          hintText: l10n.authMobileHint,
+          helperText: mobileError == null ? l10n.authMobileHelper : null,
+          errorText: mobileError,
           keyboardType: TextInputType.phone,
           onChanged: onMobile,
         ),

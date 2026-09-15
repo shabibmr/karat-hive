@@ -63,8 +63,9 @@ abstract final class AppGuards {
       unauthRoutes.contains(location) || isGuestCompose(location);
 
   /// Guard chain: not bootstrapped → splash; not authed → Guest Landing;
-  /// unbound Google → completer; Customer → customer shell;
-  /// pending/rejected Vendor → awaiting; active Vendor → vendor home.
+  /// unbound Google → Customer signup (Guest/Publish) or Vendor register;
+  /// Customer → customer shell; pending/rejected Vendor → awaiting;
+  /// active Vendor → vendor home.
   static String? redirect(SessionState session, String location) {
     switch (session) {
       case SessionLoading():
@@ -75,7 +76,11 @@ abstract final class AppGuards {
         if (isCustomerLocation(location)) return customerOnboarding;
         return customerGuest;
       case UnboundGoogle():
-        return completerRoutes.contains(location) ? null : authComplete;
+        // Guest compose / Customer Login imply Customer (`adr/0011`, GL-17).
+        // No role chooser on this path. Vendor Login unbound → vendor register.
+        if (completerRoutes.contains(location)) return null;
+        if (location == login) return register;
+        return customerRegister;
       case AuthBlocked():
         return location == customerBlocked ? null : customerBlocked;
       case final SignedIn signedIn:

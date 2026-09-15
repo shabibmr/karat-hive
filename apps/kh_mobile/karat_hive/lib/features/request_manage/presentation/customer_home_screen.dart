@@ -6,11 +6,13 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
+import '../../request_create/controller/request_create_controller.dart';
+import '../../request_create/routes.dart';
 import '../controller/customer_home_controller.dart';
 import 'customer_copy.dart';
 import 'widgets/owner_request_card.dart';
 
-/// CUS-S02 — Home (my Requests).
+/// CUS-S02 — Home / Customer Dashboard (Services + My Requests).
 class CustomerHomeScreen extends ConsumerStatefulWidget {
   const CustomerHomeScreen({super.key});
 
@@ -47,6 +49,37 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     final tokens = context.tokens;
     final s = KhStrings.of(context);
 
+    final requestTypes = [
+      _RequestTypeTileData(
+        type: RequestType.findOrnament,
+        title: s.s('guest.service.ornament'),
+        subtitle: 'Bespoke & catalog',
+        icon: Icons.diamond_outlined,
+        key: const Key('customer-type-ornament'),
+      ),
+      _RequestTypeTileData(
+        type: RequestType.sellOldGold,
+        title: s.s('guest.service.sellGold'),
+        subtitle: 'Instant jeweller bids',
+        icon: Icons.balance_rounded,
+        key: const Key('customer-type-sell-gold'),
+      ),
+      _RequestTypeTileData(
+        type: RequestType.goldCoin,
+        title: s.s('guest.service.coins'),
+        subtitle: 'Standard weights',
+        icon: Icons.monetization_on_outlined,
+        key: const Key('customer-type-coins'),
+      ),
+      _RequestTypeTileData(
+        type: RequestType.goldBullion,
+        title: s.s('guest.service.bullion'),
+        subtitle: '24K investment bars',
+        icon: Icons.crop_landscape_rounded,
+        key: const Key('customer-type-bullion'),
+      ),
+    ];
+
     return Scaffold(
       key: const Key('customer-home-screen'),
       appBar: AppBar(
@@ -61,7 +94,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('quick-create'),
-        onPressed: () => context.push('/customer/create'),
+        onPressed: () => context.push(RequestCreatePaths.type),
         icon: const Icon(Icons.add),
         label: Text(s.s('cus.home.create')),
       ),
@@ -84,25 +117,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
               retryLabel: s.s('common.retry'),
             );
           }
-          if (state.isEmpty) {
-            return KhPullToRefresh(
-              onRefresh: controller.refresh,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  SizedBox(height: MediaQuery.sizeOf(context).height * 0.2),
-                  KhEmptyView(
-                    message: s.s('cus.home.empty'),
-                    icon: Icons.diamond_outlined,
-                  ),
-                ],
-              ),
-            );
-          }
 
           return KhPullToRefresh(
             onRefresh: controller.refresh,
-            child: ListView.builder(
+            child: ListView(
               controller: _scroll,
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(
@@ -111,19 +129,199 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                 tokens.space.md,
                 tokens.space.xl * 3,
               ),
-              itemCount: state.items.length,
-              itemBuilder: (context, i) {
-                final req = state.items[i];
-                return OwnerRequestCard(
-                  request: req,
-                  onOpen: () => context.push('/customer/requests/${req.id}'),
-                  onViewOffers: () =>
-                      context.push('/customer/requests/${req.id}/offers'),
-                );
-              },
+              children: [
+                // Top section: 2x2 Request Types Grid
+                _RequestTypesSection(
+                  title: s.s('guest.headline'),
+                  types: requestTypes,
+                  onSelect: (type) {
+                    ref
+                        .read(requestCreateControllerProvider.notifier)
+                        .selectType(type);
+                    context.push(RequestCreatePaths.composeFor(type));
+                  },
+                ),
+                SizedBox(height: tokens.space.lg),
+
+                // Section header: My Requests
+                KhSectionHeader(
+                  title: s.s('cus.home.title'),
+                ),
+                SizedBox(height: tokens.space.sm),
+
+                if (state.isEmpty)
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: tokens.space.xl),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.diamond_outlined,
+                            size: 40,
+                            color: tokens.ink.withValues(alpha: 0.35),
+                          ),
+                          SizedBox(height: tokens.space.sm),
+                          Text(
+                            s.s('cus.home.empty'),
+                            style:
+                                Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: tokens.ink.withValues(alpha: 0.65),
+                                    ),
+                          ),
+                          SizedBox(height: tokens.space.xs),
+                          Text(
+                            'Choose an option above to create your first request.',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: tokens.ink.withValues(alpha: 0.45),
+                                    ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  for (final req in state.items) ...[
+                    OwnerRequestCard(
+                      request: req,
+                      onOpen: () =>
+                          context.push('/customer/requests/${req.id}'),
+                      onViewOffers: () =>
+                          context.push('/customer/requests/${req.id}/offers'),
+                    ),
+                    SizedBox(height: tokens.space.sm),
+                  ],
+              ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _RequestTypeTileData {
+  const _RequestTypeTileData({
+    required this.type,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.key,
+  });
+
+  final RequestType type;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Key key;
+}
+
+class _RequestTypesSection extends StatelessWidget {
+  const _RequestTypesSection({
+    required this.title,
+    required this.types,
+    required this.onSelect,
+  });
+
+  final String title;
+  final List<_RequestTypeTileData> types;
+  final ValueChanged<RequestType> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        KhSectionHeader(title: title),
+        SizedBox(height: tokens.space.sm),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: tokens.space.sm,
+          mainAxisSpacing: tokens.space.sm,
+          childAspectRatio: 1.45,
+          children: [
+            for (final item in types)
+              _RequestTypeTile(
+                data: item,
+                onTap: () => onSelect(item.type),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _RequestTypeTile extends StatelessWidget {
+  const _RequestTypeTile({
+    required this.data,
+    required this.onTap,
+  });
+
+  final _RequestTypeTileData data;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final theme = Theme.of(context);
+
+    return Material(
+      key: data.key,
+      color: tokens.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        side: BorderSide(
+          color: tokens.ink.withValues(alpha: 0.12),
+        ),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        child: Padding(
+          padding: EdgeInsets.all(tokens.space.sm),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: tokens.gold.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(tokens.radius.sm),
+                ),
+                child: Icon(data.icon, color: tokens.gold, size: 20),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    data.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    data.subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: tokens.ink.withValues(alpha: 0.55),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

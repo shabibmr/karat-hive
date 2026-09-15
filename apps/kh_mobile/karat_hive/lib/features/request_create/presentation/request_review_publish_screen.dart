@@ -10,6 +10,7 @@ import '../../auth/presentation/oauth_publish_gate_banner.dart';
 import '../controller/request_create_controller.dart';
 import '../controller/request_create_state.dart';
 import 'widgets/create_flow_chrome.dart';
+import 'widgets/request_images_section.dart';
 
 /// CUS-S09 — review & publish. Guest Publish → login → auto-publish (`adr/0011`).
 class RequestReviewPublishScreen extends ConsumerStatefulWidget {
@@ -158,6 +159,8 @@ class _RequestReviewPublishScreenState
       child: ListView(
         padding: EdgeInsets.all(tokens.space.md),
         children: [
+          RequestMediaGallery(media: state.media),
+          SizedBox(height: tokens.space.lg),
           Text(
             createCopy(context, 'create.reviewSummary', 'Summary'),
             style: Theme.of(context).textTheme.titleMedium,
@@ -182,10 +185,6 @@ class _RequestReviewPublishScreenState
               label: createCopy(context, 'create.field.budget', 'Budget (AED)'),
               value: state.budgetMax!,
             ),
-          _Row(
-            label: createCopy(context, 'create.field.photos', 'Photos'),
-            value: '${state.media.length}',
-          ),
           if (state.notes.trim().isNotEmpty)
             _Row(
               label: createCopy(context, 'create.field.notes', 'Notes'),

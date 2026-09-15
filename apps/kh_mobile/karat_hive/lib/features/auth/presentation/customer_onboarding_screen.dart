@@ -68,8 +68,7 @@ class _WelcomeView extends StatelessWidget {
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 32),
-        // Corner Login keeps biometric; Publish overlay uses panel without it.
-        const GoogleContinuePanel(showBiometric: true),
+        const GoogleContinuePanel(),
       ],
     );
   }
