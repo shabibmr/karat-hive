@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/guards.dart';
 import 'presentation/business_profile_screen.dart';
 import 'presentation/categories_regions_screen.dart';
+import 'presentation/customer_profile_screen.dart';
 import 'presentation/settings_screen.dart';
 import 'presentation/stubs.dart';
 
