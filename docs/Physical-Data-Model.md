@@ -17,6 +17,8 @@ This is **not** OpenAPI and **not** Nest. Identity masking is a presenter concer
 
 **Checkpoint-1 follow-up.** `category.icon VARCHAR(100)` is in `prisma/migrations/20260906120000_category_icon`. Optional; omitted from JSON when null. Regions have no icon.
 
+**Taxonomy flattened.** `category` and `region` are single-level: `prisma/migrations/20260915120000_flatten_taxonomy` drops `parent_id` (and its self-referential FK) from both tables and replaces the composite `(parent_id, display_order)` index with `(display_order)`. See [`Taxonomy-Simplification-Plan.md`](Taxonomy-Simplification-Plan.md).
+
 ---
 
 ## 1. Conventions
@@ -238,6 +240,7 @@ This is enforced by a Supabase-side migration (`lock_down_data_api_public_schema
 
 | Version | Date | Change |
 |---|---|---|
+| 0.4 | 15 Sep 2026 | Taxonomy flattened to 1 level (`20260915120000_flatten_taxonomy`) — `category`/`region` drop `parent_id` + self-referential FK; index becomes `(display_order)` |
 | 0.1 | 1 Sep 2026 | Initial physical model against SRS v1.3, Architecture-Backend §12, API inventory 0.1 |
 | 0.2 | 1 Sep 2026 | T36 fold-in — SAM-GAP / Async-Contract §10 columns and partial indexes into `20260901120000_init` (see T36 status note above) |
 | 0.3 | 6 Sep 2026 | §10 added — RLS / Data-API lockdown for the managed Supabase environment (`AD-BE-15`, `adr/0009`) |

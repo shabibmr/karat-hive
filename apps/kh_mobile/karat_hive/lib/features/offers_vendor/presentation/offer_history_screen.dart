@@ -240,7 +240,7 @@ class _OfferHistoryScreenState extends ConsumerState<OfferHistoryScreen> {
               l10n?.couldNotLoadCategories ?? 'Could not load categories',
             ),
             data: (nodes) {
-              final leaves = _leaves(nodes).toList(growable: false);
+              final leaves = nodes;
               final anyCategory = l10n?.anyCategory ?? 'Any category';
               return DropdownButtonFormField<String?>(
                 key: ValueKey('offer-history-category-${filters.categoryId}'),
@@ -283,7 +283,7 @@ class _OfferHistoryScreenState extends ConsumerState<OfferHistoryScreen> {
               l10n?.couldNotLoadRegions ?? 'Could not load regions',
             ),
             data: (nodes) {
-              final leaves = _leaves(nodes).toList(growable: false);
+              final leaves = nodes;
               final anyRegion = l10n?.anyRegion ?? 'Any region';
               return DropdownButtonFormField<String?>(
                 key: ValueKey('offer-history-region-${filters.regionId}'),
@@ -387,16 +387,6 @@ class _OfferHistoryScreenState extends ConsumerState<OfferHistoryScreen> {
         ],
       ),
     );
-  }
-
-  static Iterable<TaxonomyNode> _leaves(List<TaxonomyNode> nodes) sync* {
-    for (final node in nodes) {
-      if (node.children.isEmpty) {
-        yield node;
-      } else {
-        yield* _leaves(node.children);
-      }
-    }
   }
 
   static String _requestTypeLabel(AppLocalizations? l10n, RequestType type) {

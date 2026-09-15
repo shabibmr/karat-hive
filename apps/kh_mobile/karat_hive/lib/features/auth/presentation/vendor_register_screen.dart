@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
-import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import '../../../app/guards.dart';
 import '../../onboarding/repository/onboarding_repository.dart';
@@ -179,7 +178,7 @@ class VendorRegisterScreen extends ConsumerWidget {
                 spacing: 8,
                 runSpacing: 6,
                 children: [
-                  for (final leaf in _leaves(nodes))
+                  for (final leaf in nodes)
                     ChoiceChip(
                       label: Text(leaf.nameEn),
                       selected: form.regionId == leaf.id,
@@ -311,16 +310,6 @@ class VendorRegisterScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  static Iterable<TaxonomyNode> _leaves(List<TaxonomyNode> nodes) sync* {
-    for (final n in nodes) {
-      if (n.children.isEmpty) {
-        yield n;
-      } else {
-        yield* _leaves(n.children);
-      }
-    }
   }
 }
 

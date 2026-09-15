@@ -142,17 +142,3 @@ class DraftActions extends StatelessWidget {
     );
   }
 }
-
-List<TaxonomyNode> taxonomyLeaves(List<TaxonomyNode> nodes) {
-  final leaves = <TaxonomyNode>[];
-  void walk(TaxonomyNode n) {
-    if (n.children.isEmpty) {
-      leaves.add(n);
-    } else {
-      n.children.forEach(walk);
-    }
-  }
-
-  nodes.forEach(walk);
-  return leaves;
-}
