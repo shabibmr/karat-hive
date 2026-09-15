@@ -66,13 +66,13 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
         key: const Key('taxonomy-success-toast'),
         content: Row(
           children: [
-            Icon(Icons.check_circle_outline, color: colors.sapphire900, size: 20),
+            Icon(Icons.check_circle_outline, color: colors.onAccent, size: 20),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 message,
                 style: TextStyle(
-                  color: colors.sapphire900,
+                  color: colors.onAccent,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -312,7 +312,7 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                       SizedBox(height: spacing.md),
                       Text(
                         'Failed to load ${widget.kind.displayName.toLowerCase()}',
-                        style: typography.title.copyWith(color: colors.cream100),
+                        style: typography.title.copyWith(color: colors.textPrimary),
                       ),
                       SizedBox(height: spacing.xs),
                       Text(

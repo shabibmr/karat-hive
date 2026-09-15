@@ -78,7 +78,7 @@ class ContractMismatchScreen extends StatelessWidget {
                     Text(
                       'Portal Upgrade Required',
                       style: typography.headline.copyWith(
-                        color: colors.cream100,
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                       textAlign: TextAlign.center,

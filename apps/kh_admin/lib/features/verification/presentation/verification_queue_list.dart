@@ -58,7 +58,7 @@ class VerificationQueueList extends StatelessWidget {
                   Text(
                     item.legalBusinessName,
                     style: typography.bodySmall.copyWith(
-                      color: isSelected ? colors.goldPrimary : colors.cream100,
+                      color: isSelected ? colors.goldPrimary : colors.textPrimary,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     ),
                   ),

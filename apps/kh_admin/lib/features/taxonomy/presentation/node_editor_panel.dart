@@ -160,14 +160,14 @@ class _NodeEditorPanelState extends State<NodeEditorPanel> {
           title: Text(
             l10n?.deactivateConfirmTitle(node.nameEn) ??
                 'Deactivate "${node.nameEn}"?',
-            style: typography.title.copyWith(color: colors.cream100),
+            style: typography.title.copyWith(color: colors.textPrimary),
           ),
           content: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: Text(
               l10n?.deactivateConfirmBody(node.nameEn) ??
                   'Are you sure you want to deactivate "${node.nameEn}"? Inactive nodes cannot be selected for new requests, but existing associations are preserved. This action can be reversed later.',
-              style: typography.bodySmall.copyWith(color: colors.cream200),
+              style: typography.bodySmall.copyWith(color: colors.textSecondary),
             ),
           ),
           actions: [
@@ -319,7 +319,7 @@ class _NodeEditorPanelState extends State<NodeEditorPanel> {
                         child: Text(
                           widget.errorMessage!,
                           style: typography.caption.copyWith(
-                            color: colors.cream100,
+                            color: colors.textPrimary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -396,7 +396,7 @@ class _NodeEditorPanelState extends State<NodeEditorPanel> {
                   decoration: const InputDecoration(
                     isDense: true,
                   ),
-                  dropdownColor: colors.sapphire800,
+                  dropdownColor: colors.backgroundElevated,
                   items: kTaxonomyIcons.map((iconName) {
                     return DropdownMenuItem<String>(
                       value: iconName,
@@ -452,7 +452,7 @@ class _NodeEditorPanelState extends State<NodeEditorPanel> {
               Container(
                 padding: EdgeInsets.all(spacing.sm),
                 decoration: BoxDecoration(
-                  color: colors.sapphire700.withValues(alpha: 0.5),
+                  color: colors.backgroundSurface.withValues(alpha: 0.5),
                   borderRadius: shapes.roundedSm,
                   border: Border.all(color: colors.borderSubtle),
                 ),
@@ -511,7 +511,7 @@ class _NodeEditorPanelState extends State<NodeEditorPanel> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            colors.sapphire900,
+                            colors.onAccent,
                           ),
                         ),
                       )

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/theme/theme_mode_controller.dart';
 import 'package:kh_admin/core/error/error_retry_widget.dart';
 import 'package:kh_admin/core/firebase/firebase_init.dart';
 import 'package:kh_admin/core/firebase/firebase_notification_service.dart';
@@ -99,11 +100,14 @@ class _KhAdminAppState extends ConsumerState<KhAdminApp> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       title: 'Karat Hive Admin Portal',
       debugShowCheckedModeBanner: false,
-      theme: buildKhAdminTheme(),
+      theme: buildKhAdminTheme(Brightness.light),
+      darkTheme: buildKhAdminTheme(Brightness.dark),
+      themeMode: themeMode,
       routerConfig: router,
       localizationsDelegates: const [
         AppLocalizations.delegate,

@@ -234,7 +234,7 @@ class _TaxonomyListViewState extends State<TaxonomyListView> {
             Icon(
               _resolveIconData(node.icon!),
               size: 16,
-              color: isSelected ? colors.goldPrimary : colors.cream200,
+              color: isSelected ? colors.goldPrimary : colors.textSecondary,
             ),
             SizedBox(width: spacing.xs),
           ],
@@ -276,7 +276,7 @@ class _TaxonomyListViewState extends State<TaxonomyListView> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
             decoration: BoxDecoration(
-              color: colors.sapphire700,
+              color: colors.backgroundSurface,
               borderRadius: shapes.roundedXs,
             ),
             child: Text(

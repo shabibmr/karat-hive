@@ -40,7 +40,7 @@ class RequestSpecificationsCard extends StatelessWidget {
                   vertical: kh.spacing.xxs,
                 ),
                 decoration: BoxDecoration(
-                  color: kh.colors.sapphire900,
+                  color: kh.colors.onAccent,
                   borderRadius: kh.shapes.roundedSm,
                 ),
                 child: Text(

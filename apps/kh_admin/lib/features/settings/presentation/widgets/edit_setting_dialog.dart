@@ -202,7 +202,7 @@ class _EditSettingDialogState extends ConsumerState<EditSettingDialog> {
           Expanded(
             child: Text(
               'Edit Platform Setting',
-              style: kh.typography.title.copyWith(color: kh.colors.cream100),
+              style: kh.typography.title.copyWith(color: kh.colors.textPrimary),
             ),
           ),
           KhStatusChip(

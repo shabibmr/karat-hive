@@ -63,13 +63,13 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
         key: const Key('verification-success-toast'),
         content: Row(
           children: [
-            Icon(Icons.check_circle_outline, color: colors.sapphire900, size: 20),
+            Icon(Icons.check_circle_outline, color: colors.onAccent, size: 20),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 'Decision recorded and vendor notified.',
                 style: TextStyle(
-                  color: colors.sapphire900,
+                  color: colors.onAccent,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -191,7 +191,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                       Text(
                         l10n?.verificationLoadErrorTitle ??
                             'Failed to load verification queue',
-                        style: typography.title.copyWith(color: colors.cream100),
+                        style: typography.title.copyWith(color: colors.textPrimary),
                       ),
                       SizedBox(height: spacing.xs),
                       Text(

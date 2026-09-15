@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 /// Admin design token colors matching Karat_Hive_UI_Design_Context.md §4.1.
 /// Sapphire/Gold/Cream palette with admin-density styling.
+///
+/// Semantic fields (`backgroundPrimary`, `textPrimary`, …) differ between
+/// [dark] and [light]; primitive palette constants keep the same hex values.
 @immutable
 class KhColors extends ThemeExtension<KhColors> {
   // Const color primitives
@@ -21,6 +24,8 @@ class KhColors extends ThemeExtension<KhColors> {
   static const Color cInfo = Color(0xFF6D9BCB);
   static const Color cDarkGold = Color(0xFF8F731B);
   static const Color cDeepGold = Color(0xFF9B7B20);
+  static const Color cWhite = Color(0xFFFFFFFF);
+  static const Color cInkSecondary = Color(0xFF3A4566);
 
   const KhColors({
     required this.sapphire900,
@@ -39,6 +44,15 @@ class KhColors extends ThemeExtension<KhColors> {
     required this.info,
     required this.darkGold,
     required this.deepGold,
+    required this.backgroundPrimary,
+    required this.backgroundElevated,
+    required this.backgroundSurface,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textMuted,
+    required this.borderSubtle,
+    required this.borderStandard,
+    required this.borderStrong,
   });
 
   // Primitive tokens
@@ -59,25 +73,28 @@ class KhColors extends ThemeExtension<KhColors> {
   final Color darkGold;
   final Color deepGold;
 
-  // Semantic token accessors
-  Color get backgroundPrimary => sapphire900;
-  Color get backgroundElevated => sapphire800;
-  Color get backgroundSurface => sapphire700;
-  Color get surface => backgroundElevated;
+  // Semantic tokens
+  final Color backgroundPrimary;
+  final Color backgroundElevated;
+  final Color backgroundSurface;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textMuted;
+  final Color borderSubtle;
+  final Color borderStandard;
+  final Color borderStrong;
 
-  Color get textPrimary => cream100;
-  Color get textSecondary => cream200;
-  Color get textMuted => mutedGold;
+  Color get surface => backgroundElevated;
 
   Color get goldPrimary => gold400;
   Color get accentPrimary => gold400;
   Color get accentHighlight => gold200;
   Color get accentSpecular => gold100;
 
-  Color get borderSubtle => gold400.withValues(alpha: 0.18);
-  Color get borderStandard => gold400.withValues(alpha: 0.35);
-  Color get borderStrong => gold200.withValues(alpha: 0.65);
   Color get border => borderSubtle;
+
+  /// Dark ink for text/icons on gold primary buttons (same in both themes).
+  Color get onAccent => sapphire900;
 
   LinearGradient get goldMetallicGradient => LinearGradient(
         colors: [
@@ -106,6 +123,44 @@ class KhColors extends ThemeExtension<KhColors> {
     info: cInfo,
     darkGold: cDarkGold,
     deepGold: cDeepGold,
+    backgroundPrimary: cSapphire900,
+    backgroundElevated: cSapphire800,
+    backgroundSurface: cSapphire700,
+    textPrimary: cCream100,
+    textSecondary: cCream200,
+    textMuted: cMutedGold,
+    borderSubtle: Color(0x2ED4AF37), // gold400 @ 18%
+    borderStandard: Color(0x59D4AF37), // gold400 @ 35%
+    borderStrong: Color(0xA6F1E5AC), // gold200 @ 65%
+  );
+
+  /// Cream canvas with sapphire ink — default admin look.
+  static const light = KhColors(
+    sapphire900: cSapphire900,
+    sapphire800: cSapphire800,
+    sapphire700: cSapphire700,
+    gold400: cGold400,
+    gold300: cGold300,
+    gold200: cGold200,
+    gold100: cGold100,
+    cream100: cCream100,
+    cream200: cCream200,
+    mutedGold: cMutedGold,
+    success: cSuccess,
+    warning: cWarning,
+    error: cError,
+    info: cInfo,
+    darkGold: cDarkGold,
+    deepGold: cDeepGold,
+    backgroundPrimary: cCream100,
+    backgroundElevated: cWhite,
+    backgroundSurface: cCream200,
+    textPrimary: cSapphire900,
+    textSecondary: cInkSecondary,
+    textMuted: cMutedGold,
+    borderSubtle: Color(0x2E0A1128), // sapphire900 @ 18%
+    borderStandard: Color(0x590A1128), // sapphire900 @ 35%
+    borderStrong: Color(0xA60A1128), // sapphire900 @ 65%
   );
 
   @override
@@ -126,6 +181,15 @@ class KhColors extends ThemeExtension<KhColors> {
     Color? info,
     Color? darkGold,
     Color? deepGold,
+    Color? backgroundPrimary,
+    Color? backgroundElevated,
+    Color? backgroundSurface,
+    Color? textPrimary,
+    Color? textSecondary,
+    Color? textMuted,
+    Color? borderSubtle,
+    Color? borderStandard,
+    Color? borderStrong,
   }) {
     return KhColors(
       sapphire900: sapphire900 ?? this.sapphire900,
@@ -144,6 +208,15 @@ class KhColors extends ThemeExtension<KhColors> {
       info: info ?? this.info,
       darkGold: darkGold ?? this.darkGold,
       deepGold: deepGold ?? this.deepGold,
+      backgroundPrimary: backgroundPrimary ?? this.backgroundPrimary,
+      backgroundElevated: backgroundElevated ?? this.backgroundElevated,
+      backgroundSurface: backgroundSurface ?? this.backgroundSurface,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textSecondary: textSecondary ?? this.textSecondary,
+      textMuted: textMuted ?? this.textMuted,
+      borderSubtle: borderSubtle ?? this.borderSubtle,
+      borderStandard: borderStandard ?? this.borderStandard,
+      borderStrong: borderStrong ?? this.borderStrong,
     );
   }
 
@@ -167,6 +240,18 @@ class KhColors extends ThemeExtension<KhColors> {
       info: Color.lerp(info, other.info, t)!,
       darkGold: Color.lerp(darkGold, other.darkGold, t)!,
       deepGold: Color.lerp(deepGold, other.deepGold, t)!,
+      backgroundPrimary:
+          Color.lerp(backgroundPrimary, other.backgroundPrimary, t)!,
+      backgroundElevated:
+          Color.lerp(backgroundElevated, other.backgroundElevated, t)!,
+      backgroundSurface:
+          Color.lerp(backgroundSurface, other.backgroundSurface, t)!,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
+      textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
+      textMuted: Color.lerp(textMuted, other.textMuted, t)!,
+      borderSubtle: Color.lerp(borderSubtle, other.borderSubtle, t)!,
+      borderStandard: Color.lerp(borderStandard, other.borderStandard, t)!,
+      borderStrong: Color.lerp(borderStrong, other.borderStrong, t)!,
     );
   }
 }

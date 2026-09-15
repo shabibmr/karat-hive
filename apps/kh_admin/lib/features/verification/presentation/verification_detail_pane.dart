@@ -111,7 +111,7 @@ class _VerificationDetailPaneState
               SizedBox(height: spacing.md),
               Text(
                 'No Vendor Selected',
-                style: typography.title.copyWith(color: colors.cream100),
+                style: typography.title.copyWith(color: colors.textPrimary),
               ),
               SizedBox(height: spacing.xs),
               Text(
@@ -149,7 +149,7 @@ class _VerificationDetailPaneState
               SizedBox(height: spacing.sm),
               Text(
                 'Failed to load vendor details',
-                style: typography.title.copyWith(color: colors.cream100),
+                style: typography.title.copyWith(color: colors.textPrimary),
               ),
               SizedBox(height: spacing.xs),
               Text(
@@ -201,7 +201,7 @@ class _VerificationDetailPaneState
                           Text(
                             detail.legalBusinessName,
                             style: typography.title.copyWith(
-                              color: colors.cream100,
+                              color: colors.textPrimary,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -245,7 +245,7 @@ class _VerificationDetailPaneState
               Container(
                 padding: EdgeInsets.all(spacing.lg),
                 decoration: BoxDecoration(
-                  color: colors.sapphire900.withValues(alpha: 0.5),
+                  color: colors.backgroundPrimary.withValues(alpha: 0.5),
                   border: Border(top: BorderSide(color: colors.borderSubtle)),
                   borderRadius: BorderRadius.vertical(
                     bottom: Radius.circular(shapes.roundedMd.bottomLeft.x),
@@ -261,7 +261,7 @@ class _VerificationDetailPaneState
                     OutlinedButton.icon(
                       key: const Key('verification-request-info-button'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: colors.cream100,
+                        foregroundColor: colors.textPrimary,
                         side: BorderSide(color: colors.borderStandard),
                       ),
                       onPressed: () => _onRequestInfoTapped(detail),
@@ -322,7 +322,7 @@ class _VerificationDetailPaneState
     return Container(
       padding: EdgeInsets.all(spacing.md),
       decoration: BoxDecoration(
-        color: colors.sapphire700.withValues(alpha: 0.3),
+        color: colors.backgroundSurface.withValues(alpha: 0.3),
         borderRadius: shapes.roundedSm,
         border: Border.all(color: colors.borderSubtle),
       ),
@@ -405,7 +405,7 @@ class _VerificationDetailPaneState
     return Container(
       padding: EdgeInsets.all(spacing.md),
       decoration: BoxDecoration(
-        color: colors.sapphire700.withValues(alpha: 0.3),
+        color: colors.backgroundSurface.withValues(alpha: 0.3),
         borderRadius: shapes.roundedSm,
         border: Border.all(color: colors.borderSubtle),
       ),
@@ -443,7 +443,7 @@ class _VerificationDetailPaneState
                   Expanded(
                     child: Text(
                       docErrorMessage,
-                      style: typography.caption.copyWith(color: colors.cream100),
+                      style: typography.caption.copyWith(color: colors.textPrimary),
                     ),
                   ),
                 ],
@@ -473,7 +473,7 @@ class _VerificationDetailPaneState
                   key: Key('document-row-${doc.id}'),
                   padding: EdgeInsets.all(spacing.sm),
                   decoration: BoxDecoration(
-                    color: colors.sapphire800,
+                    color: colors.backgroundElevated,
                     borderRadius: shapes.roundedSm,
                     border: Border.all(
                       color: isLastOpened
@@ -498,7 +498,7 @@ class _VerificationDetailPaneState
                             Text(
                               _formatDocType(l10n, doc.documentType),
                               style: typography.bodySmall.copyWith(
-                                color: colors.cream100,
+                                color: colors.textPrimary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -557,7 +557,7 @@ class _VerificationDetailPaneState
               key: const Key('verification-document-viewer'),
               padding: EdgeInsets.all(spacing.sm),
               decoration: BoxDecoration(
-                color: colors.sapphire900,
+                color: colors.backgroundPrimary,
                 borderRadius: shapes.roundedSm,
                 border: Border.all(color: colors.borderSubtle),
               ),
@@ -616,7 +616,7 @@ class _ProfileRow extends StatelessWidget {
             child: Text(
               value,
               style: typography.bodySmall.copyWith(
-                color: colors.cream100,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),

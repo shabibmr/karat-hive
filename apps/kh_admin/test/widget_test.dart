@@ -171,12 +171,19 @@ void main() {
   });
 
   test('Design tokens expose sapphire/gold/cream palette correctly', () {
-    const colors = KhColors.dark;
-    expect(colors.sapphire900.toARGB32(), 0xFF0A1128);
-    expect(colors.gold400.toARGB32(), 0xFFD4AF37);
-    expect(colors.cream100.toARGB32(), 0xFFFDFBF7);
-    expect(colors.goldPrimary.toARGB32(), 0xFFD4AF37);
-    expect(colors.backgroundPrimary.toARGB32(), 0xFF0A1128);
+    const dark = KhColors.dark;
+    expect(dark.sapphire900.toARGB32(), 0xFF0A1128);
+    expect(dark.gold400.toARGB32(), 0xFFD4AF37);
+    expect(dark.cream100.toARGB32(), 0xFFFDFBF7);
+    expect(dark.goldPrimary.toARGB32(), 0xFFD4AF37);
+    expect(dark.backgroundPrimary.toARGB32(), 0xFF0A1128);
+    expect(dark.textPrimary.toARGB32(), 0xFFFDFBF7);
+
+    const light = KhColors.light;
+    expect(light.backgroundPrimary.toARGB32(), 0xFFFDFBF7);
+    expect(light.backgroundElevated.toARGB32(), 0xFFFFFFFF);
+    expect(light.textPrimary.toARGB32(), 0xFF0A1128);
+    expect(light.goldPrimary.toARGB32(), 0xFFD4AF37);
   });
 
   testWidgets(
@@ -253,6 +260,9 @@ class _AuthenticatedSessionController extends StateNotifier<SessionState>
 
   @override
   Future<void> loginWithPassword(String email, String password) async {}
+
+  @override
+  Future<void> loginWithGoogle() async {}
 
   @override
   Future<void> logout({bool broadcast = true}) async {

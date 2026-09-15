@@ -130,7 +130,7 @@ class _ApproveVerificationDialogState
           Expanded(
             child: Text(
               l10n?.approveConfirmTitle ?? 'Approve Verification',
-              style: typography.title.copyWith(color: colors.cream100),
+              style: typography.title.copyWith(color: colors.textPrimary),
             ),
           ),
         ],
@@ -148,7 +148,7 @@ class _ApproveVerificationDialogState
                     ? 'Approve verification for "${widget.vendorName}". Approval advances vendor toward ACTIVE marketplace status. Audit rationale is required.'
                     : (l10n?.approveConfirmBody ??
                         'This will mark the vendor as VERIFIED and may advance them to ACTIVE if categories and regions are already declared. The decision is audit-logged.'),
-                style: typography.bodySmall.copyWith(color: colors.cream200),
+                style: typography.bodySmall.copyWith(color: colors.textSecondary),
               ),
               if (_errorMessage != null) ...[
                 SizedBox(height: spacing.md),
@@ -291,7 +291,7 @@ class _RejectVerificationDialogState
           Expanded(
             child: Text(
               l10n?.rejectConfirmTitle ?? 'Reject Verification',
-              style: typography.title.copyWith(color: colors.cream100),
+              style: typography.title.copyWith(color: colors.textPrimary),
             ),
           ),
         ],
@@ -309,7 +309,7 @@ class _RejectVerificationDialogState
                     ? 'Reject verification for "${widget.vendorName}". The vendor will be notified and may resubmit. Both internal rationale and vendor message are required.'
                     : (l10n?.rejectConfirmBody ??
                         'The vendor will be notified with your rationale and may resubmit documents. This decision is audit-logged.'),
-                style: typography.bodySmall.copyWith(color: colors.cream200),
+                style: typography.bodySmall.copyWith(color: colors.textSecondary),
               ),
               if (_errorMessage != null) ...[
                 SizedBox(height: spacing.md),
@@ -465,7 +465,7 @@ class _RequestInfoDialogState extends ConsumerState<RequestInfoDialog> {
           Expanded(
             child: Text(
               l10n?.requestInfoConfirmTitle ?? 'Request More Information',
-              style: typography.title.copyWith(color: colors.cream100),
+              style: typography.title.copyWith(color: colors.textPrimary),
             ),
           ),
         ],
@@ -483,7 +483,7 @@ class _RequestInfoDialogState extends ConsumerState<RequestInfoDialog> {
                     ? 'Request more information from "${widget.vendorName}". The vendor will remain in the queue while reviewing your request.'
                     : (l10n?.requestInfoConfirmBody ??
                         'The vendor will remain in the verification queue and see your message in their awaiting-approval shell.'),
-                style: typography.bodySmall.copyWith(color: colors.cream200),
+                style: typography.bodySmall.copyWith(color: colors.textSecondary),
               ),
               if (_errorMessage != null) ...[
                 SizedBox(height: spacing.md),
@@ -524,7 +524,7 @@ class _RequestInfoDialogState extends ConsumerState<RequestInfoDialog> {
           key: const Key('confirm-request-info-button'),
           style: ElevatedButton.styleFrom(
             backgroundColor: colors.gold400,
-            foregroundColor: colors.sapphire900,
+            foregroundColor: colors.onAccent,
           ),
           onPressed: _isSubmitting ? null : _submit,
           child: _isSubmitting
@@ -567,7 +567,7 @@ class _DialogErrorBanner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: typography.caption.copyWith(color: colors.cream100),
+              style: typography.caption.copyWith(color: colors.textPrimary),
             ),
           ),
         ],

@@ -73,7 +73,7 @@ class PlatformSettingsEmptyState extends StatelessWidget {
           SizedBox(height: kh.spacing.sm),
           Text(
             'No matching platform settings found',
-            style: kh.typography.headline.copyWith(color: kh.colors.cream100),
+            style: kh.typography.headline.copyWith(color: kh.colors.textPrimary),
           ),
           SizedBox(height: kh.spacing.xxs),
           Text(

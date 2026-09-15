@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:kh_admin/core/auth/dev_auth.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/theme/theme_mode_controller.dart';
 import 'package:kh_admin/core/router/admin_routes.dart';
 
 /// Navigation item definition.
@@ -224,7 +225,7 @@ class KhAdminScaffold extends ConsumerWidget {
   }
 }
 
-class _AdminTopBar extends StatelessWidget {
+class _AdminTopBar extends ConsumerWidget {
   const _AdminTopBar({
     required this.displayName,
     required this.onLogout,
@@ -241,11 +242,12 @@ class _AdminTopBar extends StatelessWidget {
   final bool showDevBadge;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.kh.colors;
     final typography = context.kh.typography;
     final spacing = context.kh.spacing;
     final shapes = context.kh.shapes;
+    final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
 
     // A phone cannot hold brand + badges + profile name + sign out on one
     // line, so the decorative pieces drop out first. The bar spans the full
@@ -332,6 +334,18 @@ class _AdminTopBar extends StatelessWidget {
             ),
           ],
           const Spacer(),
+          IconButton(
+            key: const Key('theme-mode-toggle'),
+            icon: Icon(
+              isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              size: 20,
+              color: colors.textSecondary,
+            ),
+            tooltip: isDark ? 'Switch to light theme' : 'Switch to dark theme',
+            onPressed: () =>
+                ref.read(themeModeProvider.notifier).toggle(),
+          ),
+          SizedBox(width: isCompact ? spacing.xxs : spacing.xs),
           // Admin Profile chip
           Container(
             padding: EdgeInsets.symmetric(
@@ -399,7 +413,12 @@ class _AdminTopBar extends StatelessWidget {
                         foregroundColor: colors.cream100,
                       ),
                       onPressed: () => Navigator.of(ctx).pop(true),
-                      child: Text('Sign Out', style: typography.bodySmall),
+                      child: Text(
+                        'Sign Out',
+                        style: typography.bodySmall.copyWith(
+                          color: colors.cream100,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -541,11 +560,11 @@ class _NavItemTile extends StatelessWidget {
 
     final iconColor = isSelected
         ? colors.goldPrimary
-        : (item.isLive ? colors.cream200 : colors.textMuted);
+        : (item.isLive ? colors.textSecondary : colors.textMuted);
 
     final textColor = isSelected
         ? colors.goldPrimary
-        : (item.isLive ? colors.cream100 : colors.textMuted);
+        : (item.isLive ? colors.textPrimary : colors.textMuted);
 
     return InkWell(
       onTap: onTap,

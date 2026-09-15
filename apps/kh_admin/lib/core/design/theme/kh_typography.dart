@@ -25,59 +25,82 @@ class KhTypography extends ThemeExtension<KhTypography> {
   final TextStyle label;
   final TextStyle caption;
 
-  static const standard = KhTypography(
-    displayL: TextStyle(
-      fontSize: 28,
-      fontWeight: FontWeight.w600,
-      letterSpacing: -0.5,
-      color: KhColors.cCream100,
-      height: 1.25,
-    ),
-    headline: TextStyle(
-      fontSize: 22,
-      fontWeight: FontWeight.w600,
-      letterSpacing: -0.25,
-      color: KhColors.cCream100,
-      height: 1.3,
-    ),
-    title: TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.w600,
-      color: KhColors.cCream100,
-      height: 1.35,
-    ),
-    subtitle: TextStyle(
-      fontSize: 15,
-      fontWeight: FontWeight.w500,
-      color: KhColors.cCream200,
-      height: 1.4,
-    ),
-    body: TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w400,
-      color: KhColors.cCream100,
-      height: 1.45,
-    ),
-    bodySmall: TextStyle(
-      fontSize: 12,
-      fontWeight: FontWeight.w400,
-      color: KhColors.cCream200,
-      height: 1.4,
-    ),
-    label: TextStyle(
-      fontSize: 12,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.5,
-      color: KhColors.cCream200,
-      height: 1.2,
-    ),
-    caption: TextStyle(
-      fontSize: 11,
-      fontWeight: FontWeight.w400,
-      color: KhColors.cMutedGold,
-      height: 1.25,
-    ),
+  static KhTypography _build({
+    required Color primary,
+    required Color secondary,
+    required Color muted,
+  }) {
+    return KhTypography(
+      displayL: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.5,
+        color: primary,
+        height: 1.25,
+      ),
+      headline: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.25,
+        color: primary,
+        height: 1.3,
+      ),
+      title: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: primary,
+        height: 1.35,
+      ),
+      subtitle: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        color: secondary,
+        height: 1.4,
+      ),
+      body: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: primary,
+        height: 1.45,
+      ),
+      bodySmall: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: secondary,
+        height: 1.4,
+      ),
+      label: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+        color: secondary,
+        height: 1.2,
+      ),
+      caption: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w400,
+        color: muted,
+        height: 1.25,
+      ),
+    );
+  }
+
+  /// Cream-ink styles for dark sapphire surfaces.
+  static final dark = _build(
+    primary: KhColors.cCream100,
+    secondary: KhColors.cCream200,
+    muted: KhColors.cMutedGold,
   );
+
+  /// Sapphire-ink styles for cream surfaces (default).
+  static final light = _build(
+    primary: KhColors.cSapphire900,
+    secondary: KhColors.cInkSecondary,
+    muted: KhColors.cMutedGold,
+  );
+
+  /// Alias kept for existing call sites; prefers dark canvas styles.
+  static KhTypography get standard => dark;
 
   @override
   KhTypography copyWith({

@@ -31,7 +31,7 @@ void main() {
       );
 
       final text = tester.widget<Text>(find.text('PENDING'));
-      expect(text.style?.color, KhColors.dark.warning);
+      expect(text.style?.color, KhColors.light.warning);
     });
   });
 

@@ -95,12 +95,12 @@ void main() {
 
       final decoration = container.decoration as BoxDecoration?;
       expect(decoration, isNotNull);
-      expect(decoration!.color, KhColors.dark.surface);
+      expect(decoration!.color, KhColors.light.surface);
       expect(decoration.borderRadius, KhShapes.standard.roundedLg);
 
       final border = decoration.border as Border?;
       expect(border, isNotNull);
-      expect(border!.top.color, KhColors.dark.border);
+      expect(border!.top.color, KhColors.light.border);
       expect(border.top.width, KhShapes.standard.cardBorderWidth);
     });
 

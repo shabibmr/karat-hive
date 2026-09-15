@@ -34,10 +34,10 @@ void main() {
       expect(find.text('Fatima Al-Zahra'), findsOneWidget);
 
       final labelText = tester.widget<Text>(find.text('Customer Name'));
-      expect(labelText.style?.color, KhColors.dark.textSecondary);
+      expect(labelText.style?.color, KhColors.light.textSecondary);
 
       final valueText = tester.widget<Text>(find.text('Fatima Al-Zahra'));
-      expect(valueText.style?.color, KhColors.dark.textPrimary);
+      expect(valueText.style?.color, KhColors.light.textPrimary);
     });
 
     testWidgets('renders valueWidget when provided', (tester) async {

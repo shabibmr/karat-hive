@@ -25,6 +25,9 @@ class _MockSessionController extends StateNotifier<SessionState>
   Future<void> loginWithPassword(String email, String password) async {}
 
   @override
+  Future<void> loginWithGoogle() async {}
+
+  @override
   Future<void> logout({bool broadcast = true}) async {
     logoutCalled = true;
     logoutCallCount++;

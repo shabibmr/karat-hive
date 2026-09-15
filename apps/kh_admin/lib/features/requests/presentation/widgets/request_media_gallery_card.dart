@@ -62,7 +62,7 @@ class RequestMediaGalleryCard extends StatelessWidget {
                           height: 100.0,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: kh.colors.sapphire900,
+                            color: kh.colors.backgroundPrimary,
                             borderRadius: kh.shapes.roundedSm,
                           ),
                           child: Icon(

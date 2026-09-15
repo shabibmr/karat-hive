@@ -20,9 +20,16 @@ class KhThemeExtension extends ThemeExtension<KhThemeExtension> {
   final KhSpacing spacing;
   final KhShapes shapes;
 
-  static const dark = KhThemeExtension(
+  static final dark = KhThemeExtension(
     colors: KhColors.dark,
-    typography: KhTypography.standard,
+    typography: KhTypography.dark,
+    spacing: KhSpacing.admin,
+    shapes: KhShapes.standard,
+  );
+
+  static final light = KhThemeExtension(
+    colors: KhColors.light,
+    typography: KhTypography.light,
     spacing: KhSpacing.admin,
     shapes: KhShapes.standard,
   );
@@ -57,42 +64,60 @@ class KhThemeExtension extends ThemeExtension<KhThemeExtension> {
 /// Convenience extension on [BuildContext] to access Karat Hive design tokens.
 extension KhThemeContext on BuildContext {
   KhThemeExtension get kh =>
-      Theme.of(this).extension<KhThemeExtension>() ?? KhThemeExtension.dark;
+      Theme.of(this).extension<KhThemeExtension>() ?? KhThemeExtension.light;
 }
 
 /// Builds the Karat Hive Admin Portal Material 3 theme.
-ThemeData buildKhAdminTheme() {
-  const colors = KhColors.dark;
-  const typography = KhTypography.standard;
+///
+/// Defaults to [Brightness.light]. Pass [Brightness.dark] for the sapphire canvas.
+ThemeData buildKhAdminTheme([Brightness brightness = Brightness.light]) {
+  final isDark = brightness == Brightness.dark;
+  final colors = isDark ? KhColors.dark : KhColors.light;
+  final typography = isDark ? KhTypography.dark : KhTypography.light;
   const shapes = KhShapes.standard;
   const spacing = KhSpacing.admin;
+  final extension = isDark ? KhThemeExtension.dark : KhThemeExtension.light;
 
-  final baseTheme = ThemeData.dark(useMaterial3: true);
+  final baseTheme = isDark
+      ? ThemeData.dark(useMaterial3: true)
+      : ThemeData.light(useMaterial3: true);
 
   return baseTheme.copyWith(
-    scaffoldBackgroundColor: colors.sapphire900,
-    canvasColor: colors.sapphire900,
-    cardColor: colors.sapphire800,
+    brightness: brightness,
+    scaffoldBackgroundColor: colors.backgroundPrimary,
+    canvasColor: colors.backgroundPrimary,
+    cardColor: colors.backgroundElevated,
     dividerColor: colors.borderSubtle,
-    colorScheme: ColorScheme.dark(
-      primary: colors.gold400,
-      onPrimary: colors.sapphire900,
-      secondary: colors.gold300,
-      onSecondary: colors.sapphire900,
-      surface: colors.sapphire800,
-      onSurface: colors.cream100,
-      error: colors.error,
-      onError: colors.cream100,
-    ),
+    colorScheme: isDark
+        ? ColorScheme.dark(
+            primary: colors.gold400,
+            onPrimary: colors.onAccent,
+            secondary: colors.gold300,
+            onSecondary: colors.onAccent,
+            surface: colors.backgroundElevated,
+            onSurface: colors.textPrimary,
+            error: colors.error,
+            onError: colors.cream100,
+          )
+        : ColorScheme.light(
+            primary: colors.gold400,
+            onPrimary: colors.onAccent,
+            secondary: colors.gold300,
+            onSecondary: colors.onAccent,
+            surface: colors.backgroundElevated,
+            onSurface: colors.textPrimary,
+            error: colors.error,
+            onError: colors.cream100,
+          ),
     appBarTheme: AppBarTheme(
-      backgroundColor: colors.sapphire800,
-      foregroundColor: colors.cream100,
+      backgroundColor: colors.backgroundElevated,
+      foregroundColor: colors.textPrimary,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: typography.title,
     ),
     cardTheme: CardThemeData(
-      color: colors.sapphire800,
+      color: colors.backgroundElevated,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: shapes.roundedMd,
@@ -104,13 +129,13 @@ ThemeData buildKhAdminTheme() {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: colors.sapphire800,
+      fillColor: colors.backgroundElevated,
       contentPadding: EdgeInsets.symmetric(
         horizontal: spacing.md,
         vertical: spacing.sm,
       ),
-      labelStyle: typography.bodySmall.copyWith(color: colors.cream200),
-      hintStyle: typography.bodySmall.copyWith(color: colors.mutedGold),
+      labelStyle: typography.bodySmall.copyWith(color: colors.textSecondary),
+      hintStyle: typography.bodySmall.copyWith(color: colors.textMuted),
       border: OutlineInputBorder(
         borderRadius: shapes.roundedSm,
         borderSide: BorderSide(color: colors.borderSubtle),
@@ -141,7 +166,7 @@ ThemeData buildKhAdminTheme() {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: colors.gold400,
-        foregroundColor: colors.sapphire900,
+        foregroundColor: colors.onAccent,
         textStyle: typography.body.copyWith(fontWeight: FontWeight.w600),
         shape: RoundedRectangleBorder(
           borderRadius: shapes.roundedSm,
@@ -178,10 +203,18 @@ ThemeData buildKhAdminTheme() {
         ),
       ),
     ),
-    extensions: const [
-      KhThemeExtension.dark,
-      KhColors.dark,
-      KhTypography.standard,
+    dialogTheme: DialogThemeData(
+      backgroundColor: colors.backgroundElevated,
+      titleTextStyle: typography.title,
+      contentTextStyle: typography.body,
+    ),
+    drawerTheme: DrawerThemeData(
+      backgroundColor: colors.backgroundElevated,
+    ),
+    extensions: [
+      extension,
+      colors,
+      typography,
       KhSpacing.admin,
       KhShapes.standard,
     ],

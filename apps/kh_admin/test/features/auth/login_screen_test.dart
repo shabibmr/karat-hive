@@ -19,6 +19,7 @@ class _MockSessionController extends StateNotifier<SessionState>
   String? submittedEmail;
   String? submittedPassword;
   Object? errorToThrow;
+  bool loginWithGoogleCalled = false;
 
   @override
   Future<void> init() async {}
@@ -36,6 +37,15 @@ class _MockSessionController extends StateNotifier<SessionState>
   @override
   Future<void> loginWithPassword(String email, String password) =>
       login(email, password);
+
+  @override
+  Future<void> loginWithGoogle() async {
+    loginWithGoogleCalled = true;
+    if (errorToThrow != null) {
+      throw errorToThrow!;
+    }
+    state = state.copyWith(status: SessionStatus.authenticated);
+  }
 
   @override
   Future<void> logout({bool broadcast = true}) async {
@@ -259,4 +269,35 @@ void main() {
     );
     expect(button.onPressed, isNull);
   });
+
+  testWidgets('invokes loginWithGoogle when Google Sign-In button is tapped',
+      (tester) async {
+    await tester.pumpWidget(createLoginScreenWidget(devAutoLogin: false));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('login-google-button')));
+    await tester.pumpAndSettle();
+
+    expect(mockSessionController.loginWithGoogleCalled, isTrue);
+  });
+
+  testWidgets('renders error banner when loginWithGoogle fails',
+      (tester) async {
+    mockSessionController.errorToThrow =
+        Exception('Google sign-in popup closed by user');
+
+    await tester.pumpWidget(createLoginScreenWidget(devAutoLogin: false));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('login-google-button')));
+    await tester.pumpAndSettle();
+
+    expect(mockSessionController.loginWithGoogleCalled, isTrue);
+    expect(find.byKey(const Key('login-error-banner')), findsOneWidget);
+    expect(
+      find.textContaining('Google sign-in popup closed by user'),
+      findsOneWidget,
+    );
+  });
 }
+

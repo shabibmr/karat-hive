@@ -32,10 +32,10 @@ void main() {
 
       final icon = tester.widget<Icon>(find.byType(Icon));
       expect(icon.icon, Icons.check_circle_outline);
-      expect(icon.color, KhColors.dark.success);
+      expect(icon.color, KhColors.light.success);
 
       final text = tester.widget<Text>(find.text('Done'));
-      expect(text.style?.color, KhColors.dark.success);
+      expect(text.style?.color, KhColors.light.success);
       expect(text.style?.fontWeight, FontWeight.w600);
     });
 
@@ -46,7 +46,7 @@ void main() {
 
       final icon = tester.widget<Icon>(find.byType(Icon));
       expect(icon.icon, Icons.error_outline);
-      expect(icon.color, KhColors.dark.error);
+      expect(icon.color, KhColors.light.error);
     });
 
     testWidgets('hides the dismiss button when onDismiss is null', (tester) async {

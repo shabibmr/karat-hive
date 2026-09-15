@@ -63,7 +63,7 @@ class RequestDetailHeader extends StatelessWidget {
                       vertical: kh.spacing.xxs,
                     ),
                     decoration: BoxDecoration(
-                      color: kh.colors.sapphire800,
+                      color: kh.colors.backgroundElevated,
                       borderRadius: kh.shapes.roundedSm,
                       border: Border.all(color: kh.colors.borderSubtle),
                     ),

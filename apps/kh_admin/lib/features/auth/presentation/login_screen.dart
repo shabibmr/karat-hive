@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:dio/dio.dart';
+import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/auth/dev_auth.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
@@ -107,6 +109,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   String _resolveErrorMessage(Object error) {
+    if (error is ApiException || error is DioException) {
+      final l10n = AppLocalizations.of(context);
+      return resolveApiErrorMessage(error, l10n);
+    }
     if (error is Exception) {
       final msg = error.toString().replaceFirst('Exception: ', '').trim();
       if (msg.isNotEmpty && !msg.startsWith('Instance of')) {
@@ -192,7 +198,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 width: 64,
                                 height: 64,
                                 decoration: BoxDecoration(
-                                  color: colors.sapphire700,
+                                  color: colors.backgroundSurface,
                                   shape: BoxShape.circle,
                                   border: Border.all(
                                     color: colors.gold400.withValues(alpha: 0.4),
@@ -266,7 +272,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       child: Text(
                                         displayError,
                                         style: typography.bodySmall.copyWith(
-                                          color: colors.cream100,
+                                          color: colors.textPrimary,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -386,7 +392,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
                                           valueColor: AlwaysStoppedAnimation<Color>(
-                                            colors.sapphire900,
+                                            colors.onAccent,
                                           ),
                                         ),
                                       )
