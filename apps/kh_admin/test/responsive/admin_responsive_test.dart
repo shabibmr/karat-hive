@@ -35,16 +35,13 @@ class _FakeTaxonomyRepository extends TaxonomyRepository {
       nameEn: 'Bridal & Fine Necklaces',
       nameAr: 'قلائد مجوهرات',
       displayOrder: 1,
-      children: [
-        TaxonomyNode(
-          id: 'cat-rings',
-          parentId: 'cat-jewellery',
-          nameEn: 'Rings & Diamond Bands',
-          nameAr: 'خواتم وألماس',
-          displayOrder: 1,
-          isActive: false,
-        ),
-      ],
+    ),
+    TaxonomyNode(
+      id: 'cat-rings',
+      nameEn: 'Rings & Diamond Bands',
+      nameAr: 'خواتم وألماس',
+      displayOrder: 2,
+      isActive: false,
     ),
   ];
 

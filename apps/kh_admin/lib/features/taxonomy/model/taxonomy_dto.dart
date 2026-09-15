@@ -7,7 +7,6 @@ part 'taxonomy_dto.g.dart';
 @freezed
 class CreateTaxonomyDto with _$CreateTaxonomyDto {
   const factory CreateTaxonomyDto({
-    String? parentId,
     required String nameEn,
     required String nameAr,
     String? icon,
@@ -23,7 +22,6 @@ class CreateTaxonomyDto with _$CreateTaxonomyDto {
 @freezed
 class UpdateTaxonomyDto with _$UpdateTaxonomyDto {
   const factory UpdateTaxonomyDto({
-    String? parentId,
     String? nameEn,
     String? nameAr,
     String? icon,

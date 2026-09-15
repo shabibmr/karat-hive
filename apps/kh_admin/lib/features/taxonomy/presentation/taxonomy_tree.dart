@@ -7,12 +7,12 @@ import 'package:kh_admin/l10n/app_localizations.dart';
 import 'package:kh_admin/features/taxonomy/model/taxonomy_kind.dart';
 import 'package:kh_admin/features/taxonomy/model/taxonomy_node.dart';
 
-/// 2-Level Expandable Taxonomy Tree View (SH-ADM-14).
-/// Renders hierarchical category and region trees with expand/collapse,
+/// Flat Taxonomy List View (SH-ADM-14).
+/// Renders a flat, single-level list of category or region nodes,
 /// dimmed inactive rows with explicit "Inactive" text badges (accessibility §40/§56),
 /// show/hide inactive filtering, and URL query param synchronization.
-class TaxonomyTree extends StatefulWidget {
-  const TaxonomyTree({
+class TaxonomyListView extends StatefulWidget {
+  const TaxonomyListView({
     super.key,
     required this.nodes,
     required this.kind,
@@ -30,79 +30,22 @@ class TaxonomyTree extends StatefulWidget {
   final VoidCallback? onToggleShowInactive;
 
   @override
-  State<TaxonomyTree> createState() => _TaxonomyTreeState();
+  State<TaxonomyListView> createState() => _TaxonomyListViewState();
 }
 
-class _TaxonomyTreeState extends State<TaxonomyTree> {
-  final Set<String> _expandedNodeIds = {};
+class _TaxonomyListViewState extends State<TaxonomyListView> {
   String _searchFilter = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _expandAllRoots();
-  }
-
-  @override
-  void didUpdateWidget(covariant TaxonomyTree oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.nodes != widget.nodes) {
-      _expandAllRoots();
-    }
-  }
-
-  void _expandAllRoots() {
-    for (final node in widget.nodes) {
-      _expandedNodeIds.add(node.id);
-    }
-  }
-
-  void _toggleExpanded(String nodeId) {
-    setState(() {
-      if (_expandedNodeIds.contains(nodeId)) {
-        _expandedNodeIds.remove(nodeId);
-      } else {
-        _expandedNodeIds.add(nodeId);
-      }
-    });
-  }
 
   List<TaxonomyNode> _filterNodes(List<TaxonomyNode> rawNodes) {
     final query = _searchFilter.trim().toLowerCase();
 
-    return rawNodes.where((parent) {
-      if (!widget.showInactive && !parent.isActive) {
+    return rawNodes.where((node) {
+      if (!widget.showInactive && !node.isActive) {
         return false;
       }
-
-      final parentMatches = query.isEmpty ||
-          parent.nameEn.toLowerCase().contains(query) ||
-          parent.nameAr.toLowerCase().contains(query);
-
-      final matchingChildren = parent.children.where((child) {
-        if (!widget.showInactive && !child.isActive) {
-          return false;
-        }
-        if (query.isEmpty) return true;
-        return child.nameEn.toLowerCase().contains(query) ||
-            child.nameAr.toLowerCase().contains(query);
-      }).toList();
-
-      return parentMatches || matchingChildren.isNotEmpty;
-    }).map((parent) {
-      final filteredChildren = parent.children.where((child) {
-        if (!widget.showInactive && !child.isActive) {
-          return false;
-        }
-        if (query.isEmpty) return true;
-        final parentMatches = parent.nameEn.toLowerCase().contains(query) ||
-            parent.nameAr.toLowerCase().contains(query);
-        return parentMatches ||
-            child.nameEn.toLowerCase().contains(query) ||
-            child.nameAr.toLowerCase().contains(query);
-      }).toList();
-
-      return parent.copyWith(children: filteredChildren);
+      if (query.isEmpty) return true;
+      return node.nameEn.toLowerCase().contains(query) ||
+          node.nameAr.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -224,7 +167,7 @@ class _TaxonomyTreeState extends State<TaxonomyTree> {
 
           Divider(height: 1, color: colors.borderSubtle),
 
-          // Tree List
+          // Flat List
           Expanded(
             child: displayNodes.isEmpty
                 ? Center(
@@ -243,30 +186,7 @@ class _TaxonomyTreeState extends State<TaxonomyTree> {
                     padding: EdgeInsets.symmetric(vertical: spacing.xs),
                     itemCount: displayNodes.length,
                     itemBuilder: (context, index) {
-                      final rootNode = displayNodes[index];
-                      final isExpanded = _expandedNodeIds.contains(rootNode.id);
-                      final hasChildren = rootNode.children.isNotEmpty;
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildRow(
-                            node: rootNode,
-                            level: 0,
-                            hasChildren: hasChildren,
-                            isExpanded: isExpanded,
-                          ),
-                          if (isExpanded && hasChildren)
-                            ...rootNode.children.map(
-                              (child) => _buildRow(
-                                node: child,
-                                level: 1,
-                                hasChildren: false,
-                                isExpanded: false,
-                              ),
-                            ),
-                        ],
-                      );
+                      return _buildRow(node: displayNodes[index]);
                     },
                   ),
           ),
@@ -275,12 +195,7 @@ class _TaxonomyTreeState extends State<TaxonomyTree> {
     );
   }
 
-  Widget _buildRow({
-    required TaxonomyNode node,
-    required int level,
-    required bool hasChildren,
-    required bool isExpanded,
-  }) {
+  Widget _buildRow({required TaxonomyNode node}) {
     final colors = context.kh.colors;
     final typography = context.kh.typography;
     final spacing = context.kh.spacing;
@@ -297,7 +212,7 @@ class _TaxonomyTreeState extends State<TaxonomyTree> {
         vertical: 1,
       ),
       padding: EdgeInsets.only(
-        left: level == 0 ? spacing.sm : spacing.treeIndent + spacing.sm,
+        left: spacing.sm,
         right: spacing.md,
         top: spacing.xs,
         bottom: spacing.xs,
@@ -314,38 +229,6 @@ class _TaxonomyTreeState extends State<TaxonomyTree> {
       ),
       child: Row(
         children: [
-          // Expand/collapse chevron or level bullet
-          if (level == 0)
-            InkWell(
-              borderRadius: shapes.roundedXs,
-              onTap: hasChildren ? () => _toggleExpanded(node.id) : null,
-              child: Padding(
-                padding: EdgeInsets.all(spacing.xxs),
-                child: Icon(
-                  hasChildren
-                      ? (isExpanded
-                          ? Icons.keyboard_arrow_down
-                          : Icons.keyboard_arrow_right)
-                      : Icons.fiber_manual_record,
-                  size: hasChildren ? 18 : 8,
-                  color: hasChildren
-                      ? (isSelected ? colors.goldPrimary : colors.textSecondary)
-                      : colors.textMuted.withValues(alpha: 0.4),
-                ),
-              ),
-            )
-          else
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: spacing.xs),
-              child: Icon(
-                Icons.subdirectory_arrow_right,
-                size: 14,
-                color: colors.textMuted,
-              ),
-            ),
-
-          SizedBox(width: spacing.xs),
-
           // Category/Region Icon (if present)
           if (node.icon != null && node.icon!.isNotEmpty) ...[
             Icon(
@@ -364,12 +247,9 @@ class _TaxonomyTreeState extends State<TaxonomyTree> {
                   child: Text(
                     node.nameEn,
                     overflow: TextOverflow.ellipsis,
-                    style: (level == 0
-                            ? typography.subtitle
-                            : typography.bodySmall)
-                        .copyWith(
+                    style: typography.subtitle.copyWith(
                       color: isSelected ? colors.goldPrimary : colors.textPrimary,
-                      fontWeight: level == 0 ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),

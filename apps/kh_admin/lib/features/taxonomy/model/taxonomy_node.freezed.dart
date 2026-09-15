@@ -22,13 +22,11 @@ TaxonomyNode _$TaxonomyNodeFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$TaxonomyNode {
   String get id => throw _privateConstructorUsedError;
-  String? get parentId => throw _privateConstructorUsedError;
   String get nameEn => throw _privateConstructorUsedError;
   String get nameAr => throw _privateConstructorUsedError;
   String? get icon => throw _privateConstructorUsedError;
   int get displayOrder => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
-  List<TaxonomyNode> get children => throw _privateConstructorUsedError;
 
   /// Serializes this TaxonomyNode to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -49,13 +47,11 @@ abstract class $TaxonomyNodeCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    String? parentId,
     String nameEn,
     String nameAr,
     String? icon,
     int displayOrder,
     bool isActive,
-    List<TaxonomyNode> children,
   });
 }
 
@@ -75,13 +71,11 @@ class _$TaxonomyNodeCopyWithImpl<$Res, $Val extends TaxonomyNode>
   @override
   $Res call({
     Object? id = null,
-    Object? parentId = freezed,
     Object? nameEn = null,
     Object? nameAr = null,
     Object? icon = freezed,
     Object? displayOrder = null,
     Object? isActive = null,
-    Object? children = null,
   }) {
     return _then(
       _value.copyWith(
@@ -89,10 +83,6 @@ class _$TaxonomyNodeCopyWithImpl<$Res, $Val extends TaxonomyNode>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
-            parentId: freezed == parentId
-                ? _value.parentId
-                : parentId // ignore: cast_nullable_to_non_nullable
-                      as String?,
             nameEn: null == nameEn
                 ? _value.nameEn
                 : nameEn // ignore: cast_nullable_to_non_nullable
@@ -113,10 +103,6 @@ class _$TaxonomyNodeCopyWithImpl<$Res, $Val extends TaxonomyNode>
                 ? _value.isActive
                 : isActive // ignore: cast_nullable_to_non_nullable
                       as bool,
-            children: null == children
-                ? _value.children
-                : children // ignore: cast_nullable_to_non_nullable
-                      as List<TaxonomyNode>,
           )
           as $Val,
     );
@@ -134,13 +120,11 @@ abstract class _$$TaxonomyNodeImplCopyWith<$Res>
   @useResult
   $Res call({
     String id,
-    String? parentId,
     String nameEn,
     String nameAr,
     String? icon,
     int displayOrder,
     bool isActive,
-    List<TaxonomyNode> children,
   });
 }
 
@@ -159,13 +143,11 @@ class __$$TaxonomyNodeImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? parentId = freezed,
     Object? nameEn = null,
     Object? nameAr = null,
     Object? icon = freezed,
     Object? displayOrder = null,
     Object? isActive = null,
-    Object? children = null,
   }) {
     return _then(
       _$TaxonomyNodeImpl(
@@ -173,10 +155,6 @@ class __$$TaxonomyNodeImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
-        parentId: freezed == parentId
-            ? _value.parentId
-            : parentId // ignore: cast_nullable_to_non_nullable
-                  as String?,
         nameEn: null == nameEn
             ? _value.nameEn
             : nameEn // ignore: cast_nullable_to_non_nullable
@@ -197,10 +175,6 @@ class __$$TaxonomyNodeImplCopyWithImpl<$Res>
             ? _value.isActive
             : isActive // ignore: cast_nullable_to_non_nullable
                   as bool,
-        children: null == children
-            ? _value._children
-            : children // ignore: cast_nullable_to_non_nullable
-                  as List<TaxonomyNode>,
       ),
     );
   }
@@ -211,22 +185,18 @@ class __$$TaxonomyNodeImplCopyWithImpl<$Res>
 class _$TaxonomyNodeImpl implements _TaxonomyNode {
   const _$TaxonomyNodeImpl({
     required this.id,
-    this.parentId,
     required this.nameEn,
     required this.nameAr,
     this.icon,
     this.displayOrder = 0,
     this.isActive = true,
-    final List<TaxonomyNode> children = const <TaxonomyNode>[],
-  }) : _children = children;
+  });
 
   factory _$TaxonomyNodeImpl.fromJson(Map<String, dynamic> json) =>
       _$$TaxonomyNodeImplFromJson(json);
 
   @override
   final String id;
-  @override
-  final String? parentId;
   @override
   final String nameEn;
   @override
@@ -239,18 +209,10 @@ class _$TaxonomyNodeImpl implements _TaxonomyNode {
   @override
   @JsonKey()
   final bool isActive;
-  final List<TaxonomyNode> _children;
-  @override
-  @JsonKey()
-  List<TaxonomyNode> get children {
-    if (_children is EqualUnmodifiableListView) return _children;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_children);
-  }
 
   @override
   String toString() {
-    return 'TaxonomyNode(id: $id, parentId: $parentId, nameEn: $nameEn, nameAr: $nameAr, icon: $icon, displayOrder: $displayOrder, isActive: $isActive, children: $children)';
+    return 'TaxonomyNode(id: $id, nameEn: $nameEn, nameAr: $nameAr, icon: $icon, displayOrder: $displayOrder, isActive: $isActive)';
   }
 
   @override
@@ -259,31 +221,19 @@ class _$TaxonomyNodeImpl implements _TaxonomyNode {
         (other.runtimeType == runtimeType &&
             other is _$TaxonomyNodeImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.parentId, parentId) ||
-                other.parentId == parentId) &&
             (identical(other.nameEn, nameEn) || other.nameEn == nameEn) &&
             (identical(other.nameAr, nameAr) || other.nameAr == nameAr) &&
             (identical(other.icon, icon) || other.icon == icon) &&
             (identical(other.displayOrder, displayOrder) ||
                 other.displayOrder == displayOrder) &&
             (identical(other.isActive, isActive) ||
-                other.isActive == isActive) &&
-            const DeepCollectionEquality().equals(other._children, _children));
+                other.isActive == isActive));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    parentId,
-    nameEn,
-    nameAr,
-    icon,
-    displayOrder,
-    isActive,
-    const DeepCollectionEquality().hash(_children),
-  );
+  int get hashCode =>
+      Object.hash(runtimeType, id, nameEn, nameAr, icon, displayOrder, isActive);
 
   /// Create a copy of TaxonomyNode
   /// with the given fields replaced by the non-null parameter values.
@@ -302,13 +252,11 @@ class _$TaxonomyNodeImpl implements _TaxonomyNode {
 abstract class _TaxonomyNode implements TaxonomyNode {
   const factory _TaxonomyNode({
     required final String id,
-    final String? parentId,
     required final String nameEn,
     required final String nameAr,
     final String? icon,
     final int displayOrder,
     final bool isActive,
-    final List<TaxonomyNode> children,
   }) = _$TaxonomyNodeImpl;
 
   factory _TaxonomyNode.fromJson(Map<String, dynamic> json) =
@@ -316,8 +264,6 @@ abstract class _TaxonomyNode implements TaxonomyNode {
 
   @override
   String get id;
-  @override
-  String? get parentId;
   @override
   String get nameEn;
   @override
@@ -328,8 +274,6 @@ abstract class _TaxonomyNode implements TaxonomyNode {
   int get displayOrder;
   @override
   bool get isActive;
-  @override
-  List<TaxonomyNode> get children;
 
   /// Create a copy of TaxonomyNode
   /// with the given fields replaced by the non-null parameter values.

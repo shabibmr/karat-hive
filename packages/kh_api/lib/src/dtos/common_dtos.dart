@@ -26,7 +26,6 @@ class CategorySummaryDto {
     required this.id,
     required this.nameEn,
     required this.nameAr,
-    this.parentId,
     required this.isActive,
     required this.displayOrder,
     this.icon,
@@ -35,7 +34,6 @@ class CategorySummaryDto {
   final String id;
   final String nameEn;
   final String nameAr;
-  final String? parentId;
   final bool isActive;
   final int displayOrder;
   final String? icon;
@@ -44,7 +42,6 @@ class CategorySummaryDto {
         id: j['id'] as String,
         nameEn: j['nameEn'] as String? ?? '',
         nameAr: j['nameAr'] as String? ?? '',
-        parentId: j['parentId'] as String?,
         isActive: j['isActive'] as bool? ?? true,
         displayOrder: j['displayOrder'] as int? ?? 0,
         icon: j['icon'] as String?,
@@ -57,7 +54,6 @@ class RegionSummaryDto {
     required this.id,
     required this.nameEn,
     required this.nameAr,
-    this.parentId,
     required this.isActive,
     required this.displayOrder,
   });
@@ -65,7 +61,6 @@ class RegionSummaryDto {
   final String id;
   final String nameEn;
   final String nameAr;
-  final String? parentId;
   final bool isActive;
   final int displayOrder;
 
@@ -73,7 +68,6 @@ class RegionSummaryDto {
         id: j['id'] as String,
         nameEn: j['nameEn'] as String? ?? '',
         nameAr: j['nameAr'] as String? ?? '',
-        parentId: j['parentId'] as String?,
         isActive: j['isActive'] as bool? ?? true,
         displayOrder: j['displayOrder'] as int? ?? 0,
       );

@@ -21,7 +21,6 @@ CreateTaxonomyDto _$CreateTaxonomyDtoFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CreateTaxonomyDto {
-  String? get parentId => throw _privateConstructorUsedError;
   String get nameEn => throw _privateConstructorUsedError;
   String get nameAr => throw _privateConstructorUsedError;
   String? get icon => throw _privateConstructorUsedError;
@@ -46,7 +45,6 @@ abstract class $CreateTaxonomyDtoCopyWith<$Res> {
   ) = _$CreateTaxonomyDtoCopyWithImpl<$Res, CreateTaxonomyDto>;
   @useResult
   $Res call({
-    String? parentId,
     String nameEn,
     String nameAr,
     String? icon,
@@ -70,7 +68,6 @@ class _$CreateTaxonomyDtoCopyWithImpl<$Res, $Val extends CreateTaxonomyDto>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? parentId = freezed,
     Object? nameEn = null,
     Object? nameAr = null,
     Object? icon = freezed,
@@ -79,10 +76,6 @@ class _$CreateTaxonomyDtoCopyWithImpl<$Res, $Val extends CreateTaxonomyDto>
   }) {
     return _then(
       _value.copyWith(
-            parentId: freezed == parentId
-                ? _value.parentId
-                : parentId // ignore: cast_nullable_to_non_nullable
-                      as String?,
             nameEn: null == nameEn
                 ? _value.nameEn
                 : nameEn // ignore: cast_nullable_to_non_nullable
@@ -119,7 +112,6 @@ abstract class _$$CreateTaxonomyDtoImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    String? parentId,
     String nameEn,
     String nameAr,
     String? icon,
@@ -142,7 +134,6 @@ class __$$CreateTaxonomyDtoImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? parentId = freezed,
     Object? nameEn = null,
     Object? nameAr = null,
     Object? icon = freezed,
@@ -151,10 +142,6 @@ class __$$CreateTaxonomyDtoImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$CreateTaxonomyDtoImpl(
-        parentId: freezed == parentId
-            ? _value.parentId
-            : parentId // ignore: cast_nullable_to_non_nullable
-                  as String?,
         nameEn: null == nameEn
             ? _value.nameEn
             : nameEn // ignore: cast_nullable_to_non_nullable
@@ -184,7 +171,6 @@ class __$$CreateTaxonomyDtoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CreateTaxonomyDtoImpl implements _CreateTaxonomyDto {
   const _$CreateTaxonomyDtoImpl({
-    this.parentId,
     required this.nameEn,
     required this.nameAr,
     this.icon,
@@ -195,8 +181,6 @@ class _$CreateTaxonomyDtoImpl implements _CreateTaxonomyDto {
   factory _$CreateTaxonomyDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreateTaxonomyDtoImplFromJson(json);
 
-  @override
-  final String? parentId;
   @override
   final String nameEn;
   @override
@@ -212,7 +196,7 @@ class _$CreateTaxonomyDtoImpl implements _CreateTaxonomyDto {
 
   @override
   String toString() {
-    return 'CreateTaxonomyDto(parentId: $parentId, nameEn: $nameEn, nameAr: $nameAr, icon: $icon, displayOrder: $displayOrder, isActive: $isActive)';
+    return 'CreateTaxonomyDto(nameEn: $nameEn, nameAr: $nameAr, icon: $icon, displayOrder: $displayOrder, isActive: $isActive)';
   }
 
   @override
@@ -220,8 +204,6 @@ class _$CreateTaxonomyDtoImpl implements _CreateTaxonomyDto {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CreateTaxonomyDtoImpl &&
-            (identical(other.parentId, parentId) ||
-                other.parentId == parentId) &&
             (identical(other.nameEn, nameEn) || other.nameEn == nameEn) &&
             (identical(other.nameAr, nameAr) || other.nameAr == nameAr) &&
             (identical(other.icon, icon) || other.icon == icon) &&
@@ -235,7 +217,6 @@ class _$CreateTaxonomyDtoImpl implements _CreateTaxonomyDto {
   @override
   int get hashCode => Object.hash(
     runtimeType,
-    parentId,
     nameEn,
     nameAr,
     icon,
@@ -262,7 +243,6 @@ class _$CreateTaxonomyDtoImpl implements _CreateTaxonomyDto {
 
 abstract class _CreateTaxonomyDto implements CreateTaxonomyDto {
   const factory _CreateTaxonomyDto({
-    final String? parentId,
     required final String nameEn,
     required final String nameAr,
     final String? icon,
@@ -273,8 +253,6 @@ abstract class _CreateTaxonomyDto implements CreateTaxonomyDto {
   factory _CreateTaxonomyDto.fromJson(Map<String, dynamic> json) =
       _$CreateTaxonomyDtoImpl.fromJson;
 
-  @override
-  String? get parentId;
   @override
   String get nameEn;
   @override
@@ -300,7 +278,6 @@ UpdateTaxonomyDto _$UpdateTaxonomyDtoFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$UpdateTaxonomyDto {
-  String? get parentId => throw _privateConstructorUsedError;
   String? get nameEn => throw _privateConstructorUsedError;
   String? get nameAr => throw _privateConstructorUsedError;
   String? get icon => throw _privateConstructorUsedError;
@@ -325,7 +302,6 @@ abstract class $UpdateTaxonomyDtoCopyWith<$Res> {
   ) = _$UpdateTaxonomyDtoCopyWithImpl<$Res, UpdateTaxonomyDto>;
   @useResult
   $Res call({
-    String? parentId,
     String? nameEn,
     String? nameAr,
     String? icon,
@@ -349,7 +325,6 @@ class _$UpdateTaxonomyDtoCopyWithImpl<$Res, $Val extends UpdateTaxonomyDto>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? parentId = freezed,
     Object? nameEn = freezed,
     Object? nameAr = freezed,
     Object? icon = freezed,
@@ -358,10 +333,6 @@ class _$UpdateTaxonomyDtoCopyWithImpl<$Res, $Val extends UpdateTaxonomyDto>
   }) {
     return _then(
       _value.copyWith(
-            parentId: freezed == parentId
-                ? _value.parentId
-                : parentId // ignore: cast_nullable_to_non_nullable
-                      as String?,
             nameEn: freezed == nameEn
                 ? _value.nameEn
                 : nameEn // ignore: cast_nullable_to_non_nullable
@@ -398,7 +369,6 @@ abstract class _$$UpdateTaxonomyDtoImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    String? parentId,
     String? nameEn,
     String? nameAr,
     String? icon,
@@ -421,7 +391,6 @@ class __$$UpdateTaxonomyDtoImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? parentId = freezed,
     Object? nameEn = freezed,
     Object? nameAr = freezed,
     Object? icon = freezed,
@@ -430,10 +399,6 @@ class __$$UpdateTaxonomyDtoImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$UpdateTaxonomyDtoImpl(
-        parentId: freezed == parentId
-            ? _value.parentId
-            : parentId // ignore: cast_nullable_to_non_nullable
-                  as String?,
         nameEn: freezed == nameEn
             ? _value.nameEn
             : nameEn // ignore: cast_nullable_to_non_nullable
@@ -463,7 +428,6 @@ class __$$UpdateTaxonomyDtoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$UpdateTaxonomyDtoImpl implements _UpdateTaxonomyDto {
   const _$UpdateTaxonomyDtoImpl({
-    this.parentId,
     this.nameEn,
     this.nameAr,
     this.icon,
@@ -474,8 +438,6 @@ class _$UpdateTaxonomyDtoImpl implements _UpdateTaxonomyDto {
   factory _$UpdateTaxonomyDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$UpdateTaxonomyDtoImplFromJson(json);
 
-  @override
-  final String? parentId;
   @override
   final String? nameEn;
   @override
@@ -489,7 +451,7 @@ class _$UpdateTaxonomyDtoImpl implements _UpdateTaxonomyDto {
 
   @override
   String toString() {
-    return 'UpdateTaxonomyDto(parentId: $parentId, nameEn: $nameEn, nameAr: $nameAr, icon: $icon, displayOrder: $displayOrder, isActive: $isActive)';
+    return 'UpdateTaxonomyDto(nameEn: $nameEn, nameAr: $nameAr, icon: $icon, displayOrder: $displayOrder, isActive: $isActive)';
   }
 
   @override
@@ -497,8 +459,6 @@ class _$UpdateTaxonomyDtoImpl implements _UpdateTaxonomyDto {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$UpdateTaxonomyDtoImpl &&
-            (identical(other.parentId, parentId) ||
-                other.parentId == parentId) &&
             (identical(other.nameEn, nameEn) || other.nameEn == nameEn) &&
             (identical(other.nameAr, nameAr) || other.nameAr == nameAr) &&
             (identical(other.icon, icon) || other.icon == icon) &&
@@ -512,7 +472,6 @@ class _$UpdateTaxonomyDtoImpl implements _UpdateTaxonomyDto {
   @override
   int get hashCode => Object.hash(
     runtimeType,
-    parentId,
     nameEn,
     nameAr,
     icon,
@@ -539,7 +498,6 @@ class _$UpdateTaxonomyDtoImpl implements _UpdateTaxonomyDto {
 
 abstract class _UpdateTaxonomyDto implements UpdateTaxonomyDto {
   const factory _UpdateTaxonomyDto({
-    final String? parentId,
     final String? nameEn,
     final String? nameAr,
     final String? icon,
@@ -550,8 +508,6 @@ abstract class _UpdateTaxonomyDto implements UpdateTaxonomyDto {
   factory _UpdateTaxonomyDto.fromJson(Map<String, dynamic> json) =
       _$UpdateTaxonomyDtoImpl.fromJson;
 
-  @override
-  String? get parentId;
   @override
   String? get nameEn;
   @override

@@ -53,7 +53,6 @@ class RegionSummary {
     required this.id,
     required this.nameEn,
     required this.nameAr,
-    this.parentId,
     this.isActive = true,
     this.displayOrder = 0,
   });
@@ -62,14 +61,12 @@ class RegionSummary {
       : id = name,
         nameEn = name,
         nameAr = name,
-        parentId = null,
         isActive = true,
         displayOrder = 0;
 
   final String id;
   final String nameEn;
   final String nameAr;
-  final String? parentId;
   final bool isActive;
   final int displayOrder;
 
@@ -81,7 +78,6 @@ class RegionSummary {
         id: j['id'] as String? ?? '',
         nameEn: j['nameEn'] as String? ?? '',
         nameAr: j['nameAr'] as String? ?? '',
-        parentId: j['parentId'] as String?,
         isActive: j['isActive'] as bool? ?? true,
         displayOrder: j['displayOrder'] as int? ?? 0,
       );
@@ -105,7 +101,6 @@ class CategorySummary {
     required this.id,
     required this.nameEn,
     required this.nameAr,
-    this.parentId,
     this.isActive = true,
     this.displayOrder = 0,
     this.icon,
@@ -114,7 +109,6 @@ class CategorySummary {
   final String id;
   final String nameEn;
   final String nameAr;
-  final String? parentId;
   final bool isActive;
   final int displayOrder;
   final String? icon;
@@ -125,7 +119,6 @@ class CategorySummary {
         id: j['id'] as String? ?? '',
         nameEn: j['nameEn'] as String? ?? '',
         nameAr: j['nameAr'] as String? ?? '',
-        parentId: j['parentId'] as String?,
         isActive: j['isActive'] as bool? ?? true,
         displayOrder: j['displayOrder'] as int? ?? 0,
         icon: j['icon'] as String?,

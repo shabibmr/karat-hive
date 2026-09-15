@@ -11,11 +11,6 @@ _TaxonomyNode _$TaxonomyNodeFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       nameEn: json['nameEn'] as String,
       nameAr: json['nameAr'] as String,
-      children:
-          (json['children'] as List<dynamic>?)
-              ?.map((e) => TaxonomyNode.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const <TaxonomyNode>[],
     );
 
 Map<String, dynamic> _$TaxonomyNodeToJson(_TaxonomyNode instance) =>
@@ -23,5 +18,4 @@ Map<String, dynamic> _$TaxonomyNodeToJson(_TaxonomyNode instance) =>
       'id': instance.id,
       'nameEn': instance.nameEn,
       'nameAr': instance.nameAr,
-      'children': instance.children,
     };

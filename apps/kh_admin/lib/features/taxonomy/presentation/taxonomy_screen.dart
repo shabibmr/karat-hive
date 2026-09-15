@@ -15,7 +15,7 @@ import 'package:kh_admin/features/taxonomy/presentation/node_editor_panel.dart';
 import 'package:kh_admin/features/taxonomy/presentation/taxonomy_tree.dart';
 
 /// Taxonomy Management Screen unifying ADM-S14 (Categories) and ADM-S15 (Regions).
-/// Integrates 2-level expandable tree, responsive node editor panel,
+/// Integrates a flat, single-level list, responsive node editor panel,
 /// empty states (SH-FND-12), validation/error banners (SH-FND-13),
 /// and toast notifications (SH-FND-17).
 class TaxonomyScreen extends ConsumerStatefulWidget {
@@ -52,19 +52,6 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
     if (id == null || id.isEmpty) return null;
     for (final node in nodes) {
       if (node.id == id) return node;
-      for (final child in node.children) {
-        if (child.id == id) return child;
-      }
-    }
-    return null;
-  }
-
-  TaxonomyNode? _findParentOf(List<TaxonomyNode> nodes, String? childId) {
-    if (childId == null || childId.isEmpty) return null;
-    for (final parent in nodes) {
-      for (final child in parent.children) {
-        if (child.id == childId) return parent;
-      }
     }
     return null;
   }
@@ -248,12 +235,12 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
         : (l10n?.regionsEyebrow ?? 'Geographic Taxonomy');
     final title = isCategory
         ? (l10n?.categoriesTitle ?? 'Product Categories')
-        : (l10n?.regionsTitle ?? 'UAE Regions & Souk Zones');
+        : (l10n?.regionsTitle ?? 'UAE Regions');
     final subtitle = isCategory
         ? (l10n?.categoriesSubtitle ??
-            'Manage two-level product category taxonomy for requests and vendor specialisations.')
+            'Manage the flat list of product categories for requests and vendor specialisations.')
         : (l10n?.regionsSubtitle ??
-            'Manage geographic matching taxonomy (emirates and areas) for marketplace routing.');
+            'Manage the flat list of Emirates used for marketplace matching and routing.');
 
     return Padding(
       padding: EdgeInsets.all(spacing.lg),
@@ -285,7 +272,7 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                     context.updateTaxonomyQuery(clearSelected: true);
                     setState(() {
                       _localSelectedId = null;
-                      _editorMode = EditorMode.createRoot;
+                      _editorMode = EditorMode.create;
                       _panelErrorMessage = null;
                     });
                   },
@@ -347,11 +334,11 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                 ),
               ),
               data: (nodes) {
-                // Empty state (SH-FND-12). Create-root must still mount the editor.
-                if (nodes.isEmpty && _editorMode == EditorMode.createRoot) {
+                // Empty state (SH-FND-12). Create must still mount the editor.
+                if (nodes.isEmpty && _editorMode == EditorMode.create) {
                   return NodeEditorPanel(
                     kind: widget.kind,
-                    mode: EditorMode.createRoot,
+                    mode: EditorMode.create,
                     isSubmitting: _isSubmitting,
                     errorMessage: _panelErrorMessage,
                     onSave: _handleSave,
@@ -399,9 +386,9 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                           Text(
                             isCategory
                                 ? (l10n?.emptyCategoriesBody ??
-                                    'No product categories have been configured yet. Create a root category to start building the taxonomy.')
+                                    'No product categories have been configured yet. Create a category to start building the taxonomy.')
                                 : (l10n?.emptyRegionsBody ??
-                                    'No regions have been configured yet. Create a root emirate or region to begin.'),
+                                    'No regions have been configured yet. Create a region to begin.'),
                             textAlign: TextAlign.center,
                             style: typography.bodySmall
                                 .copyWith(color: colors.textSecondary),
@@ -411,7 +398,7 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                             key: const Key('empty-state-cta-button'),
                             onPressed: () {
                               setState(() {
-                                _editorMode = EditorMode.createRoot;
+                                _editorMode = EditorMode.create;
                               });
                             },
                             child: Text(
@@ -427,13 +414,12 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                 }
 
                 final selectedNode = _findNodeById(nodes, query.selectedId);
-                final parentNode = _findParentOf(nodes, query.selectedId);
 
                 return LayoutBuilder(
                   builder: (context, constraints) {
                     final isDesktop = constraints.maxWidth >= 900;
 
-                    final treeWidget = TaxonomyTree(
+                    final treeWidget = TaxonomyListView(
                       nodes: nodes,
                       kind: widget.kind,
                       selectedId: query.selectedId,
@@ -455,7 +441,6 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                     final editorWidget = NodeEditorPanel(
                       kind: widget.kind,
                       selectedNode: selectedNode,
-                      parentNode: parentNode,
                       mode: _editorMode,
                       isSubmitting: _isSubmitting,
                       errorMessage: _panelErrorMessage,
@@ -465,12 +450,6 @@ class _TaxonomyScreenState extends ConsumerState<TaxonomyScreen> {
                       onCancelCreate: () {
                         setState(() {
                           _editorMode = EditorMode.edit;
-                          _panelErrorMessage = null;
-                        });
-                      },
-                      onRequestCreateChild: () {
-                        setState(() {
-                          _editorMode = EditorMode.createChild;
                           _panelErrorMessage = null;
                         });
                       },

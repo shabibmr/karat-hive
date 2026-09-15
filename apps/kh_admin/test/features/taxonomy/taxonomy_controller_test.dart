@@ -17,16 +17,6 @@ class _MockTaxonomyRepository extends TaxonomyRepository {
       nameAr: 'مجوهرات',
       displayOrder: 1,
       isActive: true,
-      children: [
-        TaxonomyNode(
-          id: 'cat-1-1',
-          parentId: 'cat-1',
-          nameEn: 'Rings',
-          nameAr: 'خواتم',
-          displayOrder: 1,
-          isActive: true,
-        ),
-      ],
     ),
     const TaxonomyNode(
       id: 'cat-2',
@@ -44,16 +34,6 @@ class _MockTaxonomyRepository extends TaxonomyRepository {
       nameAr: 'دبي',
       displayOrder: 1,
       isActive: true,
-      children: [
-        TaxonomyNode(
-          id: 'reg-1-1',
-          parentId: 'reg-1',
-          nameEn: 'Deira Gold Souk',
-          nameAr: 'سوق الذهب ديرة',
-          displayOrder: 1,
-          isActive: true,
-        ),
-      ],
     ),
   ];
 
@@ -80,24 +60,13 @@ class _MockTaxonomyRepository extends TaxonomyRepository {
     lastCreatedName = dto.nameEn;
     final newNode = TaxonomyNode(
       id: 'cat-created-1',
-      parentId: dto.parentId,
       nameEn: dto.nameEn,
       nameAr: dto.nameAr,
       icon: dto.icon,
       displayOrder: dto.displayOrder,
       isActive: dto.isActive,
-      children: const [],
     );
-    if (dto.parentId == null) {
-      categories = [...categories, newNode];
-    } else {
-      categories = categories.map((c) {
-        if (c.id == dto.parentId) {
-          return c.copyWith(children: [...c.children, newNode]);
-        }
-        return c;
-      }).toList();
-    }
+    categories = [...categories, newNode];
     return newNode;
   }
 
@@ -154,26 +123,23 @@ void main() {
     container.dispose();
   });
 
-  test('TaxonomyController loads category tree on build', () async {
+  test('TaxonomyController loads flat category list on build', () async {
     final state =
         await container.read(taxonomyControllerProvider(TaxonomyKind.category).future);
 
     expect(state.length, 2);
     expect(state.first.nameEn, 'Jewellery');
-    expect(state.first.children.length, 1);
-    expect(state.first.children.first.nameEn, 'Rings');
   });
 
-  test('TaxonomyController loads region tree on build', () async {
+  test('TaxonomyController loads flat region list on build', () async {
     final state =
         await container.read(taxonomyControllerProvider(TaxonomyKind.region).future);
 
     expect(state.length, 1);
     expect(state.first.nameEn, 'Dubai');
-    expect(state.first.children.first.nameEn, 'Deira Gold Souk');
   });
 
-  test('TaxonomyController creates root node with optimistic update and invalidation',
+  test('TaxonomyController creates node with optimistic update and invalidation',
       () async {
     // Prime initial read
     await container.read(taxonomyControllerProvider(TaxonomyKind.category).future);
@@ -196,30 +162,6 @@ void main() {
         .read(taxonomyControllerProvider(TaxonomyKind.category))
         .value!;
     expect(updatedState.any((n) => n.nameEn == 'Watches'), isTrue);
-  });
-
-  test('TaxonomyController creates child node nested under parent', () async {
-    await container.read(taxonomyControllerProvider(TaxonomyKind.category).future);
-
-    const dto = CreateTaxonomyDto(
-      parentId: 'cat-1',
-      nameEn: 'Necklaces',
-      nameAr: 'قلائد',
-      displayOrder: 2,
-      isActive: true,
-    );
-
-    final controller =
-        container.read(taxonomyControllerProvider(TaxonomyKind.category).notifier);
-    final created = await controller.createNode(dto);
-
-    expect(created.parentId, 'cat-1');
-
-    final updatedState = container
-        .read(taxonomyControllerProvider(TaxonomyKind.category))
-        .value!;
-    final parent = updatedState.firstWhere((n) => n.id == 'cat-1');
-    expect(parent.children.any((c) => c.nameEn == 'Necklaces'), isTrue);
   });
 
   test('TaxonomyController updates existing node and refreshes', () async {

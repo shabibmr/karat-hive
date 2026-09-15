@@ -347,7 +347,7 @@ abstract class AppLocalizations {
   /// No description provided for @categoriesSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage two-level product category taxonomy for requests and vendor specialisations.'**
+  /// **'Manage product category taxonomy for requests and vendor specialisations.'**
   String get categoriesSubtitle;
 
   /// No description provided for @regionsEyebrow.
@@ -359,13 +359,13 @@ abstract class AppLocalizations {
   /// No description provided for @regionsTitle.
   ///
   /// In en, this message translates to:
-  /// **'UAE Regions & Souk Zones'**
+  /// **'UAE Regions'**
   String get regionsTitle;
 
   /// No description provided for @regionsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage geographic matching taxonomy (emirates and areas) for marketplace routing.'**
+  /// **'Manage geographic matching taxonomy (emirates) for marketplace routing.'**
   String get regionsSubtitle;
 
   /// No description provided for @showInactive.
@@ -392,18 +392,6 @@ abstract class AppLocalizations {
   /// **'+ Add Region'**
   String get addRootRegion;
 
-  /// No description provided for @addChildCategory.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Subcategory'**
-  String get addChildCategory;
-
-  /// No description provided for @addChildRegion.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Area'**
-  String get addChildRegion;
-
   /// No description provided for @editCategory.
   ///
   /// In en, this message translates to:
@@ -419,26 +407,14 @@ abstract class AppLocalizations {
   /// No description provided for @createRootCategory.
   ///
   /// In en, this message translates to:
-  /// **'New Root Category'**
+  /// **'New Category'**
   String get createRootCategory;
 
   /// No description provided for @createRootRegion.
   ///
   /// In en, this message translates to:
-  /// **'New Root Region'**
+  /// **'New Region'**
   String get createRootRegion;
-
-  /// No description provided for @newChildCategory.
-  ///
-  /// In en, this message translates to:
-  /// **'New Subcategory'**
-  String get newChildCategory;
-
-  /// No description provided for @newChildRegion.
-  ///
-  /// In en, this message translates to:
-  /// **'New Area'**
-  String get newChildRegion;
 
   /// No description provided for @nameEnLabel.
   ///
@@ -551,7 +527,7 @@ abstract class AppLocalizations {
   /// No description provided for @emptyCategoriesBody.
   ///
   /// In en, this message translates to:
-  /// **'No product categories have been configured yet. Create a root category to start building the taxonomy.'**
+  /// **'No product categories have been configured yet. Add a category to start building the taxonomy.'**
   String get emptyCategoriesBody;
 
   /// No description provided for @emptyRegionsTitle.
@@ -563,7 +539,7 @@ abstract class AppLocalizations {
   /// No description provided for @emptyRegionsBody.
   ///
   /// In en, this message translates to:
-  /// **'No regions have been configured yet. Create a root emirate or region to begin.'**
+  /// **'No regions have been configured yet. Add a region to begin.'**
   String get emptyRegionsBody;
 
   /// No description provided for @toastCategoryCreated.
@@ -602,16 +578,10 @@ abstract class AppLocalizations {
   /// **'Region deactivated successfully.'**
   String get toastRegionDeactivated;
 
-  /// No description provided for @levelLimitReached.
-  ///
-  /// In en, this message translates to:
-  /// **'Maximum hierarchy depth reached (2 levels). Cannot add children to this node.'**
-  String get levelLimitReached;
-
   /// No description provided for @selectNodeToEdit.
   ///
   /// In en, this message translates to:
-  /// **'Select a node from the tree to edit or create a child, or create a new root node.'**
+  /// **'Select an item from the list to edit, or create a new one.'**
   String get selectNodeToEdit;
 
   /// No description provided for @vendorsEyebrow.
