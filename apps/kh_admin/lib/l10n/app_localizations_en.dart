@@ -139,17 +139,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get categoriesSubtitle =>
-      'Manage two-level product category taxonomy for requests and vendor specialisations.';
+      'Manage product category taxonomy for requests and vendor specialisations.';
 
   @override
   String get regionsEyebrow => 'Geographic Taxonomy';
 
   @override
-  String get regionsTitle => 'UAE Regions & Souk Zones';
+  String get regionsTitle => 'UAE Regions';
 
   @override
   String get regionsSubtitle =>
-      'Manage geographic matching taxonomy (emirates and areas) for marketplace routing.';
+      'Manage geographic matching taxonomy (emirates) for marketplace routing.';
 
   @override
   String get showInactive => 'Show Inactive';
@@ -164,28 +164,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addRootRegion => '+ Add Region';
 
   @override
-  String get addChildCategory => 'Add Subcategory';
-
-  @override
-  String get addChildRegion => 'Add Area';
-
-  @override
   String get editCategory => 'Edit Category';
 
   @override
   String get editRegion => 'Edit Region';
 
   @override
-  String get createRootCategory => 'New Root Category';
+  String get createRootCategory => 'New Category';
 
   @override
-  String get createRootRegion => 'New Root Region';
-
-  @override
-  String get newChildCategory => 'New Subcategory';
-
-  @override
-  String get newChildRegion => 'New Area';
+  String get createRootRegion => 'New Region';
 
   @override
   String get nameEnLabel => 'Name (English)';
@@ -248,14 +236,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emptyCategoriesBody =>
-      'No product categories have been configured yet. Create a root category to start building the taxonomy.';
+      'No product categories have been configured yet. Add a category to start building the taxonomy.';
 
   @override
   String get emptyRegionsTitle => 'No Regions Found';
 
   @override
   String get emptyRegionsBody =>
-      'No regions have been configured yet. Create a root emirate or region to begin.';
+      'No regions have been configured yet. Add a region to begin.';
 
   @override
   String get toastCategoryCreated => 'Category created successfully.';
@@ -276,12 +264,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get toastRegionDeactivated => 'Region deactivated successfully.';
 
   @override
-  String get levelLimitReached =>
-      'Maximum hierarchy depth reached (2 levels). Cannot add children to this node.';
-
-  @override
   String get selectNodeToEdit =>
-      'Select a node from the tree to edit or create a child, or create a new root node.';
+      'Select an item from the list to edit, or create a new one.';
 
   @override
   String get vendorsEyebrow => 'Vendor Management';

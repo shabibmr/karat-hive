@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TaxonomyNode {
 
- String get id; String get nameEn; String get nameAr; List<TaxonomyNode> get children;
+ String get id; String get nameEn; String get nameAr;
 /// Create a copy of TaxonomyNode
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TaxonomyNodeCopyWith<TaxonomyNode> get copyWith => _$TaxonomyNodeCopyWithImpl<T
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TaxonomyNode&&(identical(other.id, id) || other.id == id)&&(identical(other.nameEn, nameEn) || other.nameEn == nameEn)&&(identical(other.nameAr, nameAr) || other.nameAr == nameAr)&&const DeepCollectionEquality().equals(other.children, children));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TaxonomyNode&&(identical(other.id, id) || other.id == id)&&(identical(other.nameEn, nameEn) || other.nameEn == nameEn)&&(identical(other.nameAr, nameAr) || other.nameAr == nameAr));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,nameEn,nameAr,const DeepCollectionEquality().hash(children));
+int get hashCode => Object.hash(runtimeType,id,nameEn,nameAr);
 
 @override
 String toString() {
-  return 'TaxonomyNode(id: $id, nameEn: $nameEn, nameAr: $nameAr, children: $children)';
+  return 'TaxonomyNode(id: $id, nameEn: $nameEn, nameAr: $nameAr)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TaxonomyNodeCopyWith<$Res>  {
   factory $TaxonomyNodeCopyWith(TaxonomyNode value, $Res Function(TaxonomyNode) _then) = _$TaxonomyNodeCopyWithImpl;
 @useResult
 $Res call({
- String id, String nameEn, String nameAr, List<TaxonomyNode> children
+ String id, String nameEn, String nameAr
 });
 
 
@@ -65,13 +65,12 @@ class _$TaxonomyNodeCopyWithImpl<$Res>
 
 /// Create a copy of TaxonomyNode
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? nameEn = null,Object? nameAr = null,Object? children = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? nameEn = null,Object? nameAr = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,nameEn: null == nameEn ? _self.nameEn : nameEn // ignore: cast_nullable_to_non_nullable
 as String,nameAr: null == nameAr ? _self.nameAr : nameAr // ignore: cast_nullable_to_non_nullable
-as String,children: null == children ? _self.children : children // ignore: cast_nullable_to_non_nullable
-as List<TaxonomyNode>,
+as String,
   ));
 }
 
@@ -156,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String nameEn,  String nameAr,  List<TaxonomyNode> children)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String nameEn,  String nameAr)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TaxonomyNode() when $default != null:
-return $default(_that.id,_that.nameEn,_that.nameAr,_that.children);case _:
+return $default(_that.id,_that.nameEn,_that.nameAr);case _:
   return orElse();
 
 }
@@ -177,10 +176,10 @@ return $default(_that.id,_that.nameEn,_that.nameAr,_that.children);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String nameEn,  String nameAr,  List<TaxonomyNode> children)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String nameEn,  String nameAr)  $default,) {final _that = this;
 switch (_that) {
 case _TaxonomyNode():
-return $default(_that.id,_that.nameEn,_that.nameAr,_that.children);case _:
+return $default(_that.id,_that.nameEn,_that.nameAr);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +196,10 @@ return $default(_that.id,_that.nameEn,_that.nameAr,_that.children);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String nameEn,  String nameAr,  List<TaxonomyNode> children)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String nameEn,  String nameAr)?  $default,) {final _that = this;
 switch (_that) {
 case _TaxonomyNode() when $default != null:
-return $default(_that.id,_that.nameEn,_that.nameAr,_that.children);case _:
+return $default(_that.id,_that.nameEn,_that.nameAr);case _:
   return null;
 
 }
@@ -212,19 +211,12 @@ return $default(_that.id,_that.nameEn,_that.nameAr,_that.children);case _:
 @JsonSerializable()
 
 class _TaxonomyNode extends TaxonomyNode {
-  const _TaxonomyNode({required this.id, required this.nameEn, required this.nameAr, final  List<TaxonomyNode> children = const <TaxonomyNode>[]}): _children = children,super._();
+  const _TaxonomyNode({required this.id, required this.nameEn, required this.nameAr}): super._();
   factory _TaxonomyNode.fromJson(Map<String, dynamic> json) => _$TaxonomyNodeFromJson(json);
 
 @override final  String id;
 @override final  String nameEn;
 @override final  String nameAr;
- final  List<TaxonomyNode> _children;
-@override@JsonKey() List<TaxonomyNode> get children {
-  if (_children is EqualUnmodifiableListView) return _children;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_children);
-}
-
 
 /// Create a copy of TaxonomyNode
 /// with the given fields replaced by the non-null parameter values.
@@ -239,16 +231,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TaxonomyNode&&(identical(other.id, id) || other.id == id)&&(identical(other.nameEn, nameEn) || other.nameEn == nameEn)&&(identical(other.nameAr, nameAr) || other.nameAr == nameAr)&&const DeepCollectionEquality().equals(other._children, _children));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TaxonomyNode&&(identical(other.id, id) || other.id == id)&&(identical(other.nameEn, nameEn) || other.nameEn == nameEn)&&(identical(other.nameAr, nameAr) || other.nameAr == nameAr));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,nameEn,nameAr,const DeepCollectionEquality().hash(_children));
+int get hashCode => Object.hash(runtimeType,id,nameEn,nameAr);
 
 @override
 String toString() {
-  return 'TaxonomyNode(id: $id, nameEn: $nameEn, nameAr: $nameAr, children: $children)';
+  return 'TaxonomyNode(id: $id, nameEn: $nameEn, nameAr: $nameAr)';
 }
 
 
@@ -259,7 +251,7 @@ abstract mixin class _$TaxonomyNodeCopyWith<$Res> implements $TaxonomyNodeCopyWi
   factory _$TaxonomyNodeCopyWith(_TaxonomyNode value, $Res Function(_TaxonomyNode) _then) = __$TaxonomyNodeCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String nameEn, String nameAr, List<TaxonomyNode> children
+ String id, String nameEn, String nameAr
 });
 
 
@@ -276,13 +268,12 @@ class __$TaxonomyNodeCopyWithImpl<$Res>
 
 /// Create a copy of TaxonomyNode
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? nameEn = null,Object? nameAr = null,Object? children = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? nameEn = null,Object? nameAr = null,}) {
   return _then(_TaxonomyNode(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,nameEn: null == nameEn ? _self.nameEn : nameEn // ignore: cast_nullable_to_non_nullable
 as String,nameAr: null == nameAr ? _self.nameAr : nameAr // ignore: cast_nullable_to_non_nullable
-as String,children: null == children ? _self._children : children // ignore: cast_nullable_to_non_nullable
-as List<TaxonomyNode>,
+as String,
   ));
 }
 

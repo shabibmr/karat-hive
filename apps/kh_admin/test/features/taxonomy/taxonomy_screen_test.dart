@@ -21,16 +21,13 @@ class _FakeTaxonomyRepository extends TaxonomyRepository {
       nameAr: 'مجوهرات',
       displayOrder: 1,
       isActive: true,
-      children: [
-        TaxonomyNode(
-          id: 'cat-rings',
-          parentId: 'cat-jewellery',
-          nameEn: 'Rings',
-          nameAr: 'خواتم',
-          displayOrder: 1,
-          isActive: false, // Inactive child for testing
-        ),
-      ],
+    ),
+    const TaxonomyNode(
+      id: 'cat-rings',
+      nameEn: 'Rings',
+      nameAr: 'خواتم',
+      displayOrder: 2,
+      isActive: false, // Inactive node for testing
     ),
   ];
 
@@ -64,7 +61,6 @@ class _FakeTaxonomyRepository extends TaxonomyRepository {
   Future<TaxonomyNode> createCategory(CreateTaxonomyDto dto) async {
     final newNode = TaxonomyNode(
       id: 'cat-new-2',
-      parentId: dto.parentId,
       nameEn: dto.nameEn,
       nameAr: dto.nameAr,
       displayOrder: dto.displayOrder,

@@ -139,17 +139,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get categoriesSubtitle =>
-      'إدارة تصنيف فئات المنتجات المكون من مستويين للطلبات وتخصصات التجار.';
+      'إدارة تصنيف فئات المنتجات للطلبات وتخصصات التجار.';
 
   @override
   String get regionsEyebrow => 'التصنيف الجغرافي';
 
   @override
-  String get regionsTitle => 'مناطق الإمارات وأسواق الذهب';
+  String get regionsTitle => 'مناطق الإمارات';
 
   @override
   String get regionsSubtitle =>
-      'إدارة التصنيف الجغرافي (الإمارات والمناطق) لتوجيه الطلبات عبر المنصة.';
+      'إدارة التصنيف الجغرافي (الإمارات) لتوجيه الطلبات عبر المنصة.';
 
   @override
   String get showInactive => 'عرض غير النشط';
@@ -164,28 +164,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addRootRegion => '+ إضافة منطقة';
 
   @override
-  String get addChildCategory => 'إضافة فئة فرعية';
-
-  @override
-  String get addChildRegion => 'إضافة منطقة فرعية';
-
-  @override
   String get editCategory => 'تعديل الفئة';
 
   @override
   String get editRegion => 'تعديل المنطقة';
 
   @override
-  String get createRootCategory => 'فئة رئيسية جديدة';
+  String get createRootCategory => 'فئة جديدة';
 
   @override
-  String get createRootRegion => 'منطقة رئيسية جديدة';
-
-  @override
-  String get newChildCategory => 'فئة فرعية جديدة';
-
-  @override
-  String get newChildRegion => 'منطقة فرعية جديدة';
+  String get createRootRegion => 'منطقة جديدة';
 
   @override
   String get nameEnLabel => 'الاسم (بالإنجليزية)';
@@ -250,14 +238,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get emptyCategoriesBody =>
-      'لم يتم إعداد فئات منتجات بعد. قم بإنشاء فئة رئيسية للبدء في بناء هيكل التصنيف.';
+      'لم يتم إعداد فئات منتجات بعد. أضف فئة للبدء في بناء هيكل التصنيف.';
 
   @override
   String get emptyRegionsTitle => 'لم يتم العثور على مناطق';
 
   @override
   String get emptyRegionsBody =>
-      'لم يتم إعداد مناطق بعد. قم بإنشاء إمارة أو منطقة رئيسية للبدء.';
+      'لم يتم إعداد مناطق بعد. أضف إمارة أو منطقة للبدء.';
 
   @override
   String get toastCategoryCreated => 'تم إنشاء الفئة بنجاح.';
@@ -278,12 +266,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get toastRegionDeactivated => 'تم تعطيل المنطقة بنجاح.';
 
   @override
-  String get levelLimitReached =>
-      'تم الوصول إلى الحد الأقصى للتسلسل الهرمي (مستويان). لا يمكن إضافة عناصر فرعية لهذا العنصر.';
-
-  @override
   String get selectNodeToEdit =>
-      'حدد عنصراً من شجرة التصنيف لتعديله أو إضافة عنصر فرعي، أو قم بإنشاء عنصر رئيسي جديد.';
+      'حدد عنصراً من القائمة لتعديله، أو أنشئ عنصراً جديداً.';
 
   @override
   String get vendorsEyebrow => 'إدارة التجار';

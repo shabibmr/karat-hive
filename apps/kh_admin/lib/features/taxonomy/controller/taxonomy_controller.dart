@@ -33,15 +33,13 @@ class TaxonomyController
     if (state.hasValue) {
       final optimisticNode = TaxonomyNode(
         id: 'optimistic-${DateTime.now().millisecondsSinceEpoch}',
-        parentId: dto.parentId,
         nameEn: dto.nameEn,
         nameAr: dto.nameAr,
         icon: dto.icon,
         displayOrder: dto.displayOrder,
         isActive: dto.isActive,
-        children: const [],
       );
-      state = AsyncValue.data(_insertIntoTree(state.value!, optimisticNode));
+      state = AsyncValue.data(_insertIntoList(state.value!, optimisticNode));
     }
 
     try {
@@ -65,9 +63,8 @@ class TaxonomyController
     // Optimistic in-place update
     if (state.hasValue) {
       state = AsyncValue.data(
-        _updateInTree(state.value!, id, (node) {
+        _updateInList(state.value!, id, (node) {
           return node.copyWith(
-            parentId: dto.parentId ?? node.parentId,
             nameEn: dto.nameEn ?? node.nameEn,
             nameAr: dto.nameAr ?? node.nameAr,
             icon: dto.icon ?? node.icon,
@@ -97,7 +94,7 @@ class TaxonomyController
     // Optimistic deactivation
     if (state.hasValue) {
       state = AsyncValue.data(
-        _updateInTree(state.value!, id, (node) {
+        _updateInList(state.value!, id, (node) {
           return node.copyWith(isActive: false);
         }),
       );
@@ -114,55 +111,34 @@ class TaxonomyController
     }
   }
 
-  /// Helper to insert a node into the hierarchical tree.
-  static List<TaxonomyNode> _insertIntoTree(
-    List<TaxonomyNode> tree,
+  /// Helper to insert a node into the flat list, keeping it sorted.
+  static List<TaxonomyNode> _insertIntoList(
+    List<TaxonomyNode> list,
     TaxonomyNode newNode,
   ) {
-    if (newNode.parentId == null) {
-      final updated = [...tree, newNode];
-      _sortTree(updated);
-      return updated;
-    }
-
-    final updated = tree.map((node) {
-      if (node.id == newNode.parentId) {
-        final children = [...node.children, newNode];
-        _sortTree(children);
-        return node.copyWith(children: children);
-      }
-      if (node.children.isNotEmpty) {
-        return node.copyWith(
-          children: _insertIntoTree(node.children, newNode),
-        );
-      }
-      return node;
-    }).toList();
-
+    final updated = [...list, newNode];
+    _sortList(updated);
     return updated;
   }
 
-  /// Helper to update a node in the hierarchical tree.
-  static List<TaxonomyNode> _updateInTree(
-    List<TaxonomyNode> tree,
+  /// Helper to update a node in the flat list.
+  static List<TaxonomyNode> _updateInList(
+    List<TaxonomyNode> list,
     String targetId,
     TaxonomyNode Function(TaxonomyNode) updateFn,
   ) {
-    return tree.map((node) {
+    final updated = list.map((node) {
       if (node.id == targetId) {
         return updateFn(node);
       }
-      if (node.children.isNotEmpty) {
-        return node.copyWith(
-          children: _updateInTree(node.children, targetId, updateFn),
-        );
-      }
       return node;
     }).toList();
+    _sortList(updated);
+    return updated;
   }
 
   /// Sorts nodes by displayOrder asc, then nameEn asc.
-  static void _sortTree(List<TaxonomyNode> nodes) {
+  static void _sortList(List<TaxonomyNode> nodes) {
     nodes.sort((a, b) {
       final orderCmp = a.displayOrder.compareTo(b.displayOrder);
       if (orderCmp != 0) return orderCmp;

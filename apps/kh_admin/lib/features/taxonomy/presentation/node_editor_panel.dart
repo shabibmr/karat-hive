@@ -24,8 +24,7 @@ const List<String> kTaxonomyIcons = [
 /// Editor panel modes.
 enum EditorMode {
   edit,
-  createRoot,
-  createChild,
+  create,
 }
 
 /// Node Editor Panel Widget (SH-ADM-08).
@@ -40,26 +39,22 @@ class NodeEditorPanel extends StatefulWidget {
     super.key,
     required this.kind,
     this.selectedNode,
-    this.parentNode,
     this.mode = EditorMode.edit,
     required this.onSave,
     required this.onCreate,
     required this.onDeactivate,
     this.onCancelCreate,
-    this.onRequestCreateChild,
     this.isSubmitting = false,
     this.errorMessage,
   });
 
   final TaxonomyKind kind;
   final TaxonomyNode? selectedNode;
-  final TaxonomyNode? parentNode;
   final EditorMode mode;
   final Future<void> Function(String id, UpdateTaxonomyDto dto) onSave;
   final Future<void> Function(CreateTaxonomyDto dto) onCreate;
   final Future<void> Function(String id) onDeactivate;
   final VoidCallback? onCancelCreate;
-  final VoidCallback? onRequestCreateChild;
   final bool isSubmitting;
   final String? errorMessage;
 
@@ -88,8 +83,7 @@ class _NodeEditorPanelState extends State<NodeEditorPanel> {
   void didUpdateWidget(covariant NodeEditorPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedNode != widget.selectedNode ||
-        oldWidget.mode != widget.mode ||
-        oldWidget.parentNode != widget.parentNode) {
+        oldWidget.mode != widget.mode) {
       _initFromNode();
     }
   }
@@ -138,12 +132,7 @@ class _NodeEditorPanelState extends State<NodeEditorPanel> {
       );
       await widget.onSave(widget.selectedNode!.id, dto);
     } else {
-      final parentId = widget.mode == EditorMode.createChild
-          ? widget.parentNode?.id ?? widget.selectedNode?.id
-          : null;
-
       final dto = CreateTaxonomyDto(
-        parentId: parentId,
         nameEn: nameEn,
         nameAr: nameAr,
         icon: widget.kind == TaxonomyKind.category ? _selectedIcon : null,
@@ -221,20 +210,12 @@ class _NodeEditorPanelState extends State<NodeEditorPanel> {
 
     final isCategory = widget.kind == TaxonomyKind.category;
     final isEditing = widget.mode == EditorMode.edit && widget.selectedNode != null;
-    final isCreatingChild = widget.mode == EditorMode.createChild;
-    final isRootNode = widget.selectedNode?.parentId == null;
-    final canCreateChild = isEditing && isRootNode;
 
     String panelTitle;
-    if (widget.mode == EditorMode.createRoot) {
+    if (widget.mode == EditorMode.create) {
       panelTitle = isCategory
-          ? (l10n?.createRootCategory ?? 'New Root Category')
-          : (l10n?.createRootRegion ?? 'New Root Region');
-    } else if (isCreatingChild) {
-      final parentName = widget.parentNode?.nameEn ?? widget.selectedNode?.nameEn ?? '';
-      panelTitle = isCategory
-          ? '${l10n?.newChildCategory ?? "New Subcategory"} ($parentName)'
-          : '${l10n?.newChildRegion ?? "New Area"} ($parentName)';
+          ? (l10n?.createRootCategory ?? 'New Category')
+          : (l10n?.createRootRegion ?? 'New Region');
     } else if (isEditing) {
       panelTitle = isCategory
           ? (l10n?.editCategory ?? 'Edit Category')
@@ -314,14 +295,6 @@ class _NodeEditorPanelState extends State<NodeEditorPanel> {
                     ),
                 ],
               ),
-
-              if (isEditing && !isRootNode) ...[
-                SizedBox(height: spacing.xxs),
-                Text(
-                  'Child of: ${widget.parentNode?.nameEn ?? "Parent Node"}',
-                  style: typography.caption.copyWith(color: colors.textMuted),
-                ),
-              ],
 
               SizedBox(height: spacing.md),
               Divider(height: 1, color: colors.borderSubtle),
@@ -549,39 +522,8 @@ class _NodeEditorPanelState extends State<NodeEditorPanel> {
                       ),
               ),
 
-              // Secondary Actions (Create Child & Deactivate)
+              // Secondary Actions (Deactivate)
               if (isEditing) ...[
-                SizedBox(height: spacing.md),
-
-                // Add Child Button (only if top-level node)
-                if (canCreateChild)
-                  OutlinedButton.icon(
-                    key: const Key('node-create-child-button'),
-                    onPressed: widget.isSubmitting
-                        ? null
-                        : widget.onRequestCreateChild,
-                    icon: const Icon(Icons.add_circle_outline, size: 16),
-                    label: Text(
-                      isCategory
-                          ? (l10n?.addChildCategory ?? 'Add Subcategory')
-                          : (l10n?.addChildRegion ?? 'Add Area'),
-                    ),
-                  )
-                else if (!isRootNode)
-                  Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: spacing.xs),
-                      child: Text(
-                        l10n?.levelLimitReached ??
-                            'Maximum hierarchy depth reached (2 levels).',
-                        style: typography.caption.copyWith(
-                          color: colors.textMuted,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                  ),
-
                 SizedBox(height: spacing.md),
                 Divider(height: 1, color: colors.borderSubtle),
                 SizedBox(height: spacing.md),

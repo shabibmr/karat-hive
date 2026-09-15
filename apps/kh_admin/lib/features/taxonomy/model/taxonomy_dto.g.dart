@@ -9,7 +9,6 @@ part of 'taxonomy_dto.dart';
 _$CreateTaxonomyDtoImpl _$$CreateTaxonomyDtoImplFromJson(
   Map<String, dynamic> json,
 ) => _$CreateTaxonomyDtoImpl(
-  parentId: json['parentId'] as String?,
   nameEn: json['nameEn'] as String,
   nameAr: json['nameAr'] as String,
   icon: json['icon'] as String?,
@@ -20,7 +19,6 @@ _$CreateTaxonomyDtoImpl _$$CreateTaxonomyDtoImplFromJson(
 Map<String, dynamic> _$$CreateTaxonomyDtoImplToJson(
   _$CreateTaxonomyDtoImpl instance,
 ) => <String, dynamic>{
-  'parentId': instance.parentId,
   'nameEn': instance.nameEn,
   'nameAr': instance.nameAr,
   'icon': instance.icon,
@@ -31,7 +29,6 @@ Map<String, dynamic> _$$CreateTaxonomyDtoImplToJson(
 _$UpdateTaxonomyDtoImpl _$$UpdateTaxonomyDtoImplFromJson(
   Map<String, dynamic> json,
 ) => _$UpdateTaxonomyDtoImpl(
-  parentId: json['parentId'] as String?,
   nameEn: json['nameEn'] as String?,
   nameAr: json['nameAr'] as String?,
   icon: json['icon'] as String?,
@@ -42,7 +39,6 @@ _$UpdateTaxonomyDtoImpl _$$UpdateTaxonomyDtoImplFromJson(
 Map<String, dynamic> _$$UpdateTaxonomyDtoImplToJson(
   _$UpdateTaxonomyDtoImpl instance,
 ) => <String, dynamic>{
-  'parentId': instance.parentId,
   'nameEn': instance.nameEn,
   'nameAr': instance.nameAr,
   'icon': instance.icon,

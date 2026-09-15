@@ -74,16 +74,7 @@ class CategoryRegionPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final leaves = <TaxonomyNode>[];
-    void walk(TaxonomyNode n) {
-      if (n.children.isEmpty) {
-        leaves.add(n);
-      } else {
-        n.children.forEach(walk);
-      }
-    }
-
-    nodes.forEach(walk);
+    final leaves = nodes;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
