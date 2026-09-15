@@ -8,7 +8,7 @@ Work here is almost always *authoring or revising documents*. Treat consistency 
 
 ## Runnable surfaces
 
-Checkpoint-1 vendor onboarding and admin taxonomy are on `main`. Google Sign-In is on the Flutter clients; the backend still issues its own JWTs (Firebase ID-token acceptance is a later slice).
+Checkpoint-1 vendor onboarding and admin taxonomy are on `main`. Taxonomy (`Category`, `Region`) was flattened to a single level in the `20260915120000_flatten_taxonomy` migration — no `parentId`/depth, sorted only by `display_order`. Google Sign-In is on the Flutter clients; the backend accepts Firebase ID tokens (`identity/application/firebase-token.service.ts`, verified against Google's JWKS) and mints its own session JWTs from them.
 
 ```bash
 cd backend && npm run start:dev                          # API :3000
@@ -17,7 +17,7 @@ cd apps/kh_admin && flutter run -d chrome --dart-define=KH_API_BASE=https://algo
 npx --yes serve ui-mock                                  # static 67-screen prototype (HTTP only)
 ```
 
-Do not treat password/OTP credentials as a Checkpoint-1 gate.
+Do not treat password/OTP credentials as a Checkpoint-1 gate. OTP is now optional/deferred for both Customer and Vendor registration — the backend accepts a self-reported `mobileNumber` with no `challengeId` (`mobileVerifiedAt` stays null); this is explicitly a temporary development-phase bypass in code comments, not a permanent design decision.
 
 `ui-mock/` is a dependency-free HTML/CSS/JS prototype of the original 67 screens (`CUS-S23` Guest Landing is not in the mock yet). Screen partials load via `fetch`, so it **must be served over HTTP** — opening `index.html` from the filesystem shows a blank shell.
 
@@ -85,6 +85,7 @@ These are load-bearing. Any document or future code that weakens one is wrong, r
 6. **WhatsApp is an outbound `wa.me` deep link only** (`C-03`, SRS §7.2). No Business API, no callback, no conversation content — the platform is technically incapable of reading it (`NFR-017`).
 7. **Settlement happens off-platform** (`BR-015`). The platform brokers introductions and has no authoritative knowledge of whether a deal closed.
 8. **Units:** AED, grams, karat/fineness. Timestamps stored UTC, displayed Gulf Standard Time (`BR-021`, `C-01`, `C-02`).
+9. **Taxonomy is flat, not hierarchical.** `Category` and `Region` are single-level lists — no `parentId`, no depth. Sort order is `display_order` only (`docs/Physical-Data-Model.md`, migration `20260915120000_flatten_taxonomy`). Do not reintroduce parent/child taxonomy without a new ADR.
 
 ## Fixed technology stack
 
