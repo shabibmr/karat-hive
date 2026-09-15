@@ -27,6 +27,14 @@ async function bootstrap(): Promise<void> {
   );
   app.enableShutdownHooks();
 
+  // Flutter Web (kh_admin, kh_mobile) runs on an unpredictable localhost port
+  // in dev, and on algoray.cloud in prod — neither sends cookies, so a wide
+  // origin allowlist carries no CSRF risk.
+  app.enableCors({
+    origin: [/^https?:\/\/localhost(:\d+)?$/, /^https?:\/\/127\.0\.0\.1(:\d+)?$/, /^https:\/\/algoray\.cloud$/],
+    credentials: false,
+  });
+
   if (env.NODE_ENV === 'production') {
     await app.get(PrismaService).assertReady();
   }
