@@ -23,6 +23,8 @@ async function seedGoogleAdmin(prisma: PrismaClient, config: GoogleAdminConfig):
     update: {
       userType: 'ADMIN',
       accountState: 'ACTIVE',
+      emailVerifiedAt: new Date(),
+      mobileNumber: config.mobileNumber,
     },
     create: {
       email: config.email,

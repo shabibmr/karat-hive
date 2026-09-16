@@ -230,6 +230,28 @@ class SessionController extends StateNotifier<SessionState> {
     }
   }
 
+  /// Web GIS path: Google ID token → Firebase credential → KH session.
+  Future<void> loginWithGoogleIdToken(String idToken) async {
+    final authService = _firebaseAuthService;
+    if (authService == null) {
+      throw StateError('Firebase Auth is not initialized.');
+    }
+    state = state.copyWith(status: SessionStatus.loading, clearError: true);
+    final cred = await authService.signInWithGoogleIdToken(idToken);
+    final user = cred.user;
+    if (user == null) {
+      state = state.copyWith(
+        status: SessionStatus.unauthenticated,
+        errorMessage: 'Google Sign-In did not return a Firebase user.',
+      );
+      throw Exception(state.errorMessage);
+    }
+    await _syncFirebaseUser(user);
+    if (!state.isAuthenticated && state.errorMessage != null) {
+      throw Exception(state.errorMessage);
+    }
+  }
+
   /// Single-flight silent refresh when a 401 is encountered.
   Future<bool> silentRefresh() async {
     if (_refreshCompleter != null) {

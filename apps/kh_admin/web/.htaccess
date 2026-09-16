@@ -1,0 +1,7 @@
+# Survives Flutter web builds (copied from web/ → build/web).
+# Requires Apache AllowOverride FileInfo; the durable setting also lives in the
+# algoray.cloud vhost Directory block for /hive_admin.
+# Google Sign-In popup: https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#cross_origin_opener_policy
+<IfModule mod_headers.c>
+  Header always set Cross-Origin-Opener-Policy "same-origin-allow-popups"
+</IfModule>

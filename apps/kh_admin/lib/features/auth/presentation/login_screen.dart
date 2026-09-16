@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +9,7 @@ import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/error/api_error_messages.dart';
 import 'package:kh_admin/core/firebase/firebase_init.dart';
+import 'package:kh_admin/features/auth/presentation/google_sign_in_button.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 
 /// Admin Login Screen (ADM-S01)
@@ -94,6 +96,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await ref.read(sessionControllerProvider.notifier).loginWithGoogle();
       // On successful sign-in, SessionController transitions to authenticated,
       // and RouterNotifier routes to AdminRoutes.dashboard.
+    } on Object catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = _resolveErrorMessage(e);
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
+  /// Web GIS button callback — no Firebase popup / COOP `window.closed`.
+  Future<void> _handleGoogleIdToken(String idToken) async {
+    final firebaseInit = ref.read(firebaseInitStateProvider);
+    final isProdMode = !ref.read(devAuthConfigProvider).autoLogin;
+    if (isProdMode && firebaseInit.isFailed) {
+      setState(() {
+        _errorMessage =
+            'Authentication service unavailable: Firebase initialization failed.';
+      });
+      return;
+    }
+
+    setState(() {
+      _errorMessage = null;
+      _isSubmitting = true;
+    });
+
+    try {
+      await ref
+          .read(sessionControllerProvider.notifier)
+          .loginWithGoogleIdToken(idToken);
     } on Object catch (e) {
       if (!mounted) return;
       setState(() {
@@ -416,15 +453,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               SizedBox(height: spacing.md),
                             ],
-                            OutlinedButton.icon(
-                              key: const Key('login-google-button'),
-                              onPressed: (_isSubmitting || isGoogleSignInBlocked) ? null : _handleGoogleSignIn,
-                              icon: const Icon(Icons.account_circle_outlined, size: 20),
-                              label: const Text('Sign in with Google'),
-                              style: OutlinedButton.styleFrom(
-                                minimumSize: Size(double.infinity, spacing.buttonHeight + 8),
-                                side: BorderSide(color: colors.borderStandard),
-                                foregroundColor: colors.textPrimary,
+                            GoogleSignInButton(
+                              enabled: !_isSubmitting && !isGoogleSignInBlocked,
+                              onWebCredential: kIsWeb ? _handleGoogleIdToken : null,
+                              fallback: OutlinedButton.icon(
+                                key: const Key('login-google-button'),
+                                onPressed: (_isSubmitting || isGoogleSignInBlocked)
+                                    ? null
+                                    : _handleGoogleSignIn,
+                                icon: const Icon(Icons.account_circle_outlined, size: 20),
+                                label: const Text('Sign in with Google'),
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize:
+                                      Size(double.infinity, spacing.buttonHeight + 8),
+                                  side: BorderSide(color: colors.borderStandard),
+                                  foregroundColor: colors.textPrimary,
+                                ),
                               ),
                             ),
                           ],

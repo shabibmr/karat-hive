@@ -28,11 +28,28 @@ async function bootstrap(): Promise<void> {
   app.enableShutdownHooks();
 
   // Flutter Web (kh_admin, kh_mobile) runs on an unpredictable localhost port
-  // in dev, and on algoray.cloud in prod — neither sends cookies, so a wide
-  // origin allowlist carries no CSRF risk.
+  // in dev, and on algoray.cloud (and subdomains) in prod — neither sends
+  // cookies, so a wide origin allowlist carries no CSRF risk.
+  // Methods must include PATCH/PUT/DELETE: admin taxonomy + settings use PATCH.
+  // Nest/Fastify otherwise defaults to GET,HEAD,POST and browsers reject those
+  // preflights as CORS failures.
   app.enableCors({
-    origin: [/^https?:\/\/localhost(:\d+)?$/, /^https?:\/\/127\.0\.0\.1(:\d+)?$/, /^https:\/\/algoray\.cloud$/],
+    origin: [
+      /^https?:\/\/localhost(:\d+)?$/,
+      /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
+      /^https:\/\/([a-z0-9-]+\.)?algoray\.cloud$/,
+    ],
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'X-Request-Id',
+      'Idempotency-Key',
+    ],
+    exposedHeaders: ['X-Request-Id'],
     credentials: false,
+    maxAge: 86_400,
   });
 
   if (env.NODE_ENV === 'production') {

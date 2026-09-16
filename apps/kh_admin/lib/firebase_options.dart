@@ -51,7 +51,10 @@ class DefaultFirebaseOptions {
     appId: '1:132845397292:web:6c3366285921395f6c3889',
     messagingSenderId: '132845397292',
     projectId: 'karat-hive-app',
-    authDomain: 'karat-hive-app.firebaseapp.com',
+    // Same origin as the Admin Portal so Firebase auth helpers avoid
+    // cross-site storage / COOP popup breakage. Apache proxies /__/auth/
+    // to karat-hive-app.firebaseapp.com (Firebase redirect best practices).
+    authDomain: 'algoray.cloud',
     storageBucket: 'karat-hive-app.firebasestorage.app',
   );
 

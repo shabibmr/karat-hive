@@ -62,7 +62,26 @@ class FirebaseAuthService {
     }
   }
 
+  /// Exchanges a Google ID token for a Firebase session (no popup).
+  ///
+  /// Used by the web GIS button path so Chrome COOP cannot strand
+  /// `signInWithPopup` after the user picks an account.
+  Future<UserCredential> signInWithGoogleIdToken(String idToken) async {
+    final auth = _auth;
+    if (auth == null) {
+      throw StateError('Firebase Auth is not initialized.');
+    }
+    if (idToken.isEmpty) {
+      throw StateError('Google ID token is empty.');
+    }
+    final credential = GoogleAuthProvider.credential(idToken: idToken);
+    return auth.signInWithCredential(credential);
+  }
+
   /// Signs in with Google using GoogleSignIn.instance and Firebase Auth.
+  ///
+  /// On web prefer [signInWithGoogleIdToken] via the GIS button — popup mode
+  /// is kept only as a last-resort fallback (COOP often breaks it in Chrome).
   Future<UserCredential?> signInWithGoogle() async {
     final auth = _auth;
     if (auth == null) {
@@ -80,9 +99,10 @@ class FirebaseAuthService {
       await _ensureGoogleSignInInitialized();
       final account = await gsi.authenticate();
       final idToken = account.authentication.idToken;
-
-      final credential = GoogleAuthProvider.credential(idToken: idToken);
-      return await auth.signInWithCredential(credential);
+      if (idToken == null || idToken.isEmpty) {
+        throw StateError('Google Sign-In returned an empty ID token.');
+      }
+      return await signInWithGoogleIdToken(idToken);
     } on FirebaseAuthException catch (e, st) {
       if (e.code == 'popup-closed-by-user' || e.code == 'cancelled') {
         return null;
