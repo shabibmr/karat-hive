@@ -46,6 +46,11 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
   String _initialLegalBusinessName = '';
   String _initialTradeLicenceNumber = '';
   String _initialRegisteredAddress = '';
+  String _initialTradingName = '';
+  String _initialDescription = '';
+  String _initialContactPerson = '';
+  String _initialBusinessEmail = '';
+  Map<String, BusinessDayHours> _initialHours = {};
 
   String? _boundProfileId;
   var _seeded = false;
@@ -92,6 +97,10 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
     _initialLegalBusinessName = vendor.legalBusinessName;
     _initialTradeLicenceNumber = vendor.tradeLicenceNumber;
     _initialRegisteredAddress = vendor.registeredAddress;
+    _initialTradingName = _tradingName.text;
+    _initialDescription = _description.text;
+    _initialContactPerson = _contactPerson.text;
+    _initialBusinessEmail = _businessEmail.text;
     for (final (key, _) in _kWeekdays) {
       final day = vendor.businessHours[key];
       if (day == null) continue;
@@ -99,19 +108,51 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
       _closeCtrls[key]!.text = day.close.isEmpty ? '22:00' : day.close;
       _closed[key] = day.closed;
     }
+    _initialHours = _hoursPayload();
+  }
+
+  /// True once any field differs from the last server-confirmed/seeded
+  /// value — drives the discard-changes confirmation on back navigation.
+  bool get _isDirty {
+    if (_tradingName.text != _initialTradingName) return true;
+    if (_description.text != _initialDescription) return true;
+    if (_contactPerson.text != _initialContactPerson) return true;
+    if (_businessEmail.text != _initialBusinessEmail) return true;
+    if (_legalBusinessName.text.trim() != _initialLegalBusinessName) {
+      return true;
+    }
+    if (_tradeLicenceNumber.text.trim() != _initialTradeLicenceNumber) {
+      return true;
+    }
+    if (_registeredAddress.text.trim() != _initialRegisteredAddress) {
+      return true;
+    }
+    final hours = _hoursPayload();
+    for (final (key, _) in _kWeekdays) {
+      final initial = _initialHours[key];
+      final current = hours[key]!;
+      if (initial == null) continue;
+      if (initial.open != current.open ||
+          initial.close != current.close ||
+          initial.closed != current.closed) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Map<String, BusinessDayHours> _hoursPayload() => {
-        for (final (key, _) in _kWeekdays)
-          key: BusinessDayHours(
-            open: _openCtrls[key]!.text.trim(),
-            close: _closeCtrls[key]!.text.trim(),
-            closed: _closed[key] ?? false,
-          ),
-      };
+    for (final (key, _) in _kWeekdays)
+      key: BusinessDayHours(
+        open: _openCtrls[key]!.text.trim(),
+        close: _closeCtrls[key]!.text.trim(),
+        closed: _closed[key] ?? false,
+      ),
+  };
 
   Future<void> _save() async {
-    final legalChanged = _legalBusinessName.text.trim() != _initialLegalBusinessName ||
+    final legalChanged =
+        _legalBusinessName.text.trim() != _initialLegalBusinessName ||
         _tradeLicenceNumber.text.trim() != _initialTradeLicenceNumber ||
         _registeredAddress.text.trim() != _initialRegisteredAddress;
 
@@ -128,7 +169,9 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
       if (!mounted || confirmed != true) return;
     }
 
-    final ok = await ref.read(businessProfileSaveProvider.notifier).saveSafeEdits(
+    final ok = await ref
+        .read(businessProfileSaveProvider.notifier)
+        .saveSafeEdits(
           tradingName: _tradingName.text,
           description: _description.text,
           contactPersonName: _contactPerson.text,
@@ -138,9 +181,9 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
     if (!mounted) return;
     if (ok) {
       _seeded = false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile saved.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Profile saved.')));
     }
   }
 
@@ -166,156 +209,172 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
       });
     }
 
-    return KhScaffold(
-      title: 'Business profile',
-      onRefresh: () async {
-        _seeded = false;
-        ref.invalidate(vendorProfileProvider);
-      },
-      body: async.when(
-        loading: () => const KhLoadingView(),
-        error: (_, __) => KhErrorView(
-          message: 'Could not load your profile.',
-          onRetry: () => ref.invalidate(vendorProfileProvider),
-        ),
-        data: (vendor) {
-          return SingleChildScrollView(
-            key: const Key('business-profile-header'),
-            padding: EdgeInsets.all(tokens.space.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-              VendorStatusCard(
-                lifecycle: vendor.lifecycle,
-                tradingName: vendor.tradingName,
-                lifecycleLabel: _lifecycleLabel(l10n, vendor.lifecycle),
-                verificationMessage: vendor.verificationMessage,
-              ),
-              if (vendor.verifiedAt != null) ...[
-                SizedBox(height: tokens.space.sm),
-                _VerifiedAtRow(verifiedAt: vendor.verifiedAt!),
-              ],
-              SizedBox(height: tokens.space.md),
-              _TotalsRow(
-                offersSubmitted: vendor.offersSubmittedCount,
-                connections: vendor.connectionCount,
-              ),
-              SizedBox(height: tokens.space.md),
-              KhSectionHeader(
-                title: l10n?.dashboardRating ?? 'Rating',
-              ),
-              SizedBox(height: tokens.space.sm),
-              RatingSummaryView(
-                summary: vendor.rating ??
-                    const RatingSummary(
-                      average: 0,
-                      count: 0,
-                      limitedHistory: true,
-                    ),
-                showDistribution: (vendor.rating?.count ?? 0) > 0,
-              ),
-              SizedBox(height: tokens.space.md),
-              const KhSectionHeader(title: 'Public preview'),
-              SizedBox(height: tokens.space.xs),
-              Text(
-                'What Customers see before Acceptance.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: tokens.ink.withValues(alpha: 0.65),
-                    ),
-              ),
-              SizedBox(height: tokens.space.sm),
-              _MaskedPublicPreviewCard(vendor: vendor),
-              SizedBox(height: tokens.space.lg),
-              const KhSectionHeader(title: 'Showroom & branding'),
-              SizedBox(height: tokens.space.sm),
-              KhTextField(
-                key: const Key('business-profile-trading-name'),
-                label: 'Trading name',
-                controller: _tradingName,
-              ),
-              KhTextField(
-                key: const Key('business-profile-description'),
-                label: 'Business description',
-                controller: _description,
-                maxLines: 3,
-              ),
-              SizedBox(height: tokens.space.md),
-              const _BrandingMediaSection(),
-              SizedBox(height: tokens.space.md),
-              const KhSectionHeader(title: 'Business hours'),
-              SizedBox(height: tokens.space.xs),
-              Text(
-                'Times use 24-hour HH:MM (Gulf Standard Time).',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: tokens.ink.withValues(alpha: 0.65),
-                    ),
-              ),
-              SizedBox(height: tokens.space.sm),
-              _BusinessHoursEditor(
-                closed: _closed,
-                openCtrls: _openCtrls,
-                closeCtrls: _closeCtrls,
-                onClosedChanged: (key, value) =>
-                    setState(() => _closed[key] = value),
-              ),
-              SizedBox(height: tokens.space.md),
-              const KhSectionHeader(title: 'Contact'),
-              SizedBox(height: tokens.space.sm),
-              KhTextField(
-                key: const Key('business-profile-contact-person'),
-                label: 'Contact person',
-                controller: _contactPerson,
-              ),
-              KhTextField(
-                key: const Key('business-profile-business-email'),
-                label: 'Business email',
-                controller: _businessEmail,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              SizedBox(height: tokens.space.md),
-              const KhSectionHeader(title: 'Legal identity (BR-004)'),
-              SizedBox(height: tokens.space.xs),
-              Text(
-                'Changes to legal identity require administrator re-verification.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: tokens.ink.withValues(alpha: 0.65),
-                    ),
-              ),
-              SizedBox(height: tokens.space.sm),
-              KhTextField(
-                key: const Key('business-profile-legal-name'),
-                label: 'Legal business name',
-                controller: _legalBusinessName,
-              ),
-              KhTextField(
-                key: const Key('business-profile-trade-licence'),
-                label: 'Trade licence number',
-                controller: _tradeLicenceNumber,
-              ),
-              KhTextField(
-                key: const Key('business-profile-registered-address'),
-                label: 'Registered address',
-                controller: _registeredAddress,
-                maxLines: 2,
-              ),
-              SizedBox(height: tokens.space.md),
-              if (save.failure != null) ...[
-                KhInlineError(
-                  message: save.failure!.message ?? 'Could not save profile.',
-                ),
-                SizedBox(height: tokens.space.md),
-              ],
-              KhButton(
-                key: const Key('business-profile-save'),
-                label: 'Save',
-                busy: save.busy,
-                onPressed: save.busy ? null : _save,
-              ),
-              SizedBox(height: tokens.space.lg),
-            ],
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        _tradingName,
+        _description,
+        _contactPerson,
+        _businessEmail,
+        _legalBusinessName,
+        _tradeLicenceNumber,
+        _registeredAddress,
+        ..._openCtrls.values,
+        ..._closeCtrls.values,
+      ]),
+      builder: (context, _) => KhDiscardGuard(
+        isDirty: _isDirty,
+        child: KhScaffold(
+          title: 'Business profile',
+          onRefresh: () async {
+            _seeded = false;
+            ref.invalidate(vendorProfileProvider);
+          },
+          body: async.when(
+            loading: () => const KhLoadingView(),
+            error: (_, __) => KhErrorView(
+              message: 'Could not load your profile.',
+              onRetry: () => ref.invalidate(vendorProfileProvider),
             ),
-          );
-        },
+            data: (vendor) {
+              return SingleChildScrollView(
+                key: const Key('business-profile-header'),
+                padding: EdgeInsets.all(tokens.space.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    VendorStatusCard(
+                      lifecycle: vendor.lifecycle,
+                      tradingName: vendor.tradingName,
+                      lifecycleLabel: _lifecycleLabel(l10n, vendor.lifecycle),
+                      verificationMessage: vendor.verificationMessage,
+                    ),
+                    if (vendor.verifiedAt != null) ...[
+                      SizedBox(height: tokens.space.sm),
+                      _VerifiedAtRow(verifiedAt: vendor.verifiedAt!),
+                    ],
+                    SizedBox(height: tokens.space.md),
+                    _TotalsRow(
+                      offersSubmitted: vendor.offersSubmittedCount,
+                      connections: vendor.connectionCount,
+                    ),
+                    SizedBox(height: tokens.space.md),
+                    KhSectionHeader(title: l10n?.dashboardRating ?? 'Rating'),
+                    SizedBox(height: tokens.space.sm),
+                    RatingSummaryView(
+                      summary:
+                          vendor.rating ??
+                          const RatingSummary(
+                            average: 0,
+                            count: 0,
+                            limitedHistory: true,
+                          ),
+                      showDistribution: (vendor.rating?.count ?? 0) > 0,
+                    ),
+                    SizedBox(height: tokens.space.md),
+                    const KhSectionHeader(title: 'Public preview'),
+                    SizedBox(height: tokens.space.xs),
+                    Text(
+                      'What Customers see before Acceptance.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: tokens.ink.withValues(alpha: 0.65),
+                      ),
+                    ),
+                    SizedBox(height: tokens.space.sm),
+                    _MaskedPublicPreviewCard(vendor: vendor),
+                    SizedBox(height: tokens.space.lg),
+                    const KhSectionHeader(title: 'Showroom & branding'),
+                    SizedBox(height: tokens.space.sm),
+                    KhTextField(
+                      key: const Key('business-profile-trading-name'),
+                      label: 'Trading name',
+                      controller: _tradingName,
+                    ),
+                    KhTextField(
+                      key: const Key('business-profile-description'),
+                      label: 'Business description',
+                      controller: _description,
+                      maxLines: 3,
+                    ),
+                    SizedBox(height: tokens.space.md),
+                    const _BrandingMediaSection(),
+                    SizedBox(height: tokens.space.md),
+                    const KhSectionHeader(title: 'Business hours'),
+                    SizedBox(height: tokens.space.xs),
+                    Text(
+                      'Times use 24-hour HH:MM (Gulf Standard Time).',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: tokens.ink.withValues(alpha: 0.65),
+                      ),
+                    ),
+                    SizedBox(height: tokens.space.sm),
+                    _BusinessHoursEditor(
+                      closed: _closed,
+                      openCtrls: _openCtrls,
+                      closeCtrls: _closeCtrls,
+                      onClosedChanged: (key, value) =>
+                          setState(() => _closed[key] = value),
+                    ),
+                    SizedBox(height: tokens.space.md),
+                    const KhSectionHeader(title: 'Contact'),
+                    SizedBox(height: tokens.space.sm),
+                    KhTextField(
+                      key: const Key('business-profile-contact-person'),
+                      label: 'Contact person',
+                      controller: _contactPerson,
+                    ),
+                    KhTextField(
+                      key: const Key('business-profile-business-email'),
+                      label: 'Business email',
+                      controller: _businessEmail,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    SizedBox(height: tokens.space.md),
+                    const KhSectionHeader(title: 'Legal identity (BR-004)'),
+                    SizedBox(height: tokens.space.xs),
+                    Text(
+                      'Changes to legal identity require administrator re-verification.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: tokens.ink.withValues(alpha: 0.65),
+                      ),
+                    ),
+                    SizedBox(height: tokens.space.sm),
+                    KhTextField(
+                      key: const Key('business-profile-legal-name'),
+                      label: 'Legal business name',
+                      controller: _legalBusinessName,
+                    ),
+                    KhTextField(
+                      key: const Key('business-profile-trade-licence'),
+                      label: 'Trade licence number',
+                      controller: _tradeLicenceNumber,
+                    ),
+                    KhTextField(
+                      key: const Key('business-profile-registered-address'),
+                      label: 'Registered address',
+                      controller: _registeredAddress,
+                      maxLines: 2,
+                    ),
+                    SizedBox(height: tokens.space.md),
+                    if (save.failure != null) ...[
+                      KhInlineError(
+                        message:
+                            save.failure!.message ?? 'Could not save profile.',
+                      ),
+                      SizedBox(height: tokens.space.md),
+                    ],
+                    KhButton(
+                      key: const Key('business-profile-save'),
+                      label: 'Save',
+                      busy: save.busy,
+                      onPressed: save.busy ? null : _save,
+                    ),
+                    SizedBox(height: tokens.space.lg),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -417,18 +476,15 @@ class _VerifiedAtRow extends StatelessWidget {
     return Text(
       key: const Key('business-profile-verified-at'),
       'Verified on $date',
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: tokens.ink.withValues(alpha: 0.7),
-          ),
+      style: Theme.of(
+        context,
+      ).textTheme.bodySmall?.copyWith(color: tokens.ink.withValues(alpha: 0.7)),
     );
   }
 }
 
 class _TotalsRow extends StatelessWidget {
-  const _TotalsRow({
-    required this.offersSubmitted,
-    required this.connections,
-  });
+  const _TotalsRow({required this.offersSubmitted, required this.connections});
 
   final int offersSubmitted;
   final int connections;
@@ -441,17 +497,11 @@ class _TotalsRow extends StatelessWidget {
       key: const Key('business-profile-totals'),
       children: [
         Expanded(
-          child: _StatTile(
-            label: 'Offers submitted',
-            value: offersSubmitted,
-          ),
+          child: _StatTile(label: 'Offers submitted', value: offersSubmitted),
         ),
         SizedBox(width: tokens.space.sm),
         Expanded(
-          child: _StatTile(
-            label: 'Connections',
-            value: connections,
-          ),
+          child: _StatTile(label: 'Connections', value: connections),
         ),
       ],
     );
@@ -513,7 +563,8 @@ class _MaskedPublicPreviewCard extends StatelessWidget {
     final preview = vendor.maskedPreview;
     if (preview != null) return preview;
 
-    final verified = vendor.lifecycle == VendorLifecycle.active ||
+    final verified =
+        vendor.lifecycle == VendorLifecycle.active ||
         vendor.lifecycle == VendorLifecycle.verified;
     return MaskedParty(
       role: UserRole.vendor,
@@ -614,4 +665,3 @@ class _BrandingMediaSection extends StatelessWidget {
     );
   }
 }
-

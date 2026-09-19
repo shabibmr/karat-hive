@@ -21,6 +21,7 @@ class ReviseOfferReady extends ReviseOfferState {
     this.submitting = false,
     this.withdrawing = false,
     this.failure,
+    this.touched = false,
   });
 
   final OfferForVendor offer;
@@ -29,6 +30,9 @@ class ReviseOfferReady extends ReviseOfferState {
   final bool submitting;
   final bool withdrawing;
   final Failure? failure;
+  /// True once the vendor has edited a term field — drives the
+  /// discard-changes confirmation on back navigation.
+  final bool touched;
 
   ReviseOfferReady copyWith({
     OfferForVendor? offer,
@@ -38,6 +42,7 @@ class ReviseOfferReady extends ReviseOfferState {
     bool? withdrawing,
     Failure? failure,
     bool clearFailure = false,
+    bool? touched,
   }) {
     return ReviseOfferReady(
       offer: offer ?? this.offer,
@@ -46,6 +51,7 @@ class ReviseOfferReady extends ReviseOfferState {
       submitting: submitting ?? this.submitting,
       withdrawing: withdrawing ?? this.withdrawing,
       failure: clearFailure ? null : (failure ?? this.failure),
+      touched: touched ?? this.touched,
     );
   }
 }
@@ -98,7 +104,7 @@ class ReviseOfferController
   void touch() {
     final current = state;
     if (current is ReviseOfferReady) {
-      state = current.copyWith(clearFailure: true);
+      state = current.copyWith(clearFailure: true, touched: true);
     }
   }
 

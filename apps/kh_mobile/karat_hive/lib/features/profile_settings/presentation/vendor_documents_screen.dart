@@ -31,7 +31,10 @@ class VendorDocumentsScreen extends ConsumerWidget {
     return doc.verified ? ' · Verified' : ' · Pending review';
   }
 
-  UploadTileState _tileState(VendorDocumentType type, VendorDocumentsState state) {
+  UploadTileState _tileState(
+    VendorDocumentType type,
+    VendorDocumentsState state,
+  ) {
     final pending = state.pending[type];
     if (pending?.uploading ?? false) return UploadTileState.uploading;
     if (pending?.failure != null) return UploadTileState.failed;
@@ -83,7 +86,9 @@ class VendorDocumentsScreen extends ConsumerWidget {
     );
     if (confirmed != true || !context.mounted) return;
 
-    final ok = await ref.read(vendorDocumentsControllerProvider.notifier).resubmit();
+    final ok = await ref
+        .read(vendorDocumentsControllerProvider.notifier)
+        .resubmit();
     if (!ok || !context.mounted) return;
     ref.invalidate(vendorMeProvider);
     await ref.read(sessionProvider.notifier).refreshUser();
@@ -95,47 +100,51 @@ class VendorDocumentsScreen extends ConsumerWidget {
     final state = ref.watch(vendorDocumentsControllerProvider);
 
     if (state.loading) {
-      return const KhScaffold(
-        title: 'Documents',
-        body: KhLoadingView(),
-      );
+      return const KhScaffold(title: 'Documents', body: KhLoadingView());
     }
 
-    return KhScaffold(
-      key: screenKey,
-      title: 'Documents',
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(
-            'Review your verification documents and submit replacements if requested by the admin team.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          if (state.failure != null) ...[
-            KhInlineError(
-              message: state.failure!.message ?? 'Could not load documents.',
+    final isDirty = state.pending.values.any((p) => p.done || p.uploading);
+
+    return KhDiscardGuard(
+      isDirty: isDirty,
+      child: KhScaffold(
+        key: screenKey,
+        title: 'Documents',
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(
+              'Review your verification documents and submit replacements if requested by the admin team.',
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 12),
-          ],
-          for (final type in mandatoryVendorDocuments)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: DocumentUploadTile(
-                label: '${type.label}${_statusSuffix(type, state)}',
-                state: _tileState(type, state),
-                progress: state.pending[type]?.progress ?? 0,
-                errorText: state.pending[type]?.failure?.message,
-                onPick: () => _pick(context, ref, type),
+            const SizedBox(height: 16),
+            if (state.failure != null) ...[
+              KhInlineError(
+                message: state.failure!.message ?? 'Could not load documents.',
               ),
+              const SizedBox(height: 12),
+            ],
+            for (final type in mandatoryVendorDocuments)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: DocumentUploadTile(
+                  label: '${type.label}${_statusSuffix(type, state)}',
+                  state: _tileState(type, state),
+                  progress: state.pending[type]?.progress ?? 0,
+                  errorText: state.pending[type]?.failure?.message,
+                  onPick: () => _pick(context, ref, type),
+                ),
+              ),
+            const SizedBox(height: 16),
+            KhButton(
+              label: 'Submit for Re-verification',
+              busy: state.busy,
+              onPressed: state.canResubmit
+                  ? () => _onResubmit(context, ref)
+                  : null,
             ),
-          const SizedBox(height: 16),
-          KhButton(
-            label: 'Submit for Re-verification',
-            busy: state.busy,
-            onPressed: state.canResubmit ? () => _onResubmit(context, ref) : null,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -24,6 +24,7 @@ class SubmitOfferReady extends SubmitOfferState {
     this.submitting = false,
     this.failure,
     this.uploadedKeys = const [],
+    this.touched = false,
   });
 
   final VendorRequestItem request;
@@ -32,6 +33,9 @@ class SubmitOfferReady extends SubmitOfferState {
   final bool submitting;
   final Failure? failure;
   final List<String> uploadedKeys;
+  /// True once the vendor has edited a field or added/removed a photo —
+  /// drives the discard-changes confirmation on back navigation.
+  final bool touched;
 
   SubmitOfferReady copyWith({
     VendorRequestItem? request,
@@ -41,6 +45,7 @@ class SubmitOfferReady extends SubmitOfferState {
     Failure? failure,
     bool clearFailure = false,
     List<String>? uploadedKeys,
+    bool? touched,
   }) {
     return SubmitOfferReady(
       request: request ?? this.request,
@@ -49,6 +54,7 @@ class SubmitOfferReady extends SubmitOfferState {
       submitting: submitting ?? this.submitting,
       failure: clearFailure ? null : (failure ?? this.failure),
       uploadedKeys: uploadedKeys ?? this.uploadedKeys,
+      touched: touched ?? this.touched,
     );
   }
 }
@@ -118,7 +124,7 @@ class SubmitOfferController extends AutoDisposeFamilyNotifier<SubmitOfferState, 
   void touch() {
     final current = state;
     if (current is SubmitOfferReady) {
-      state = current.copyWith(clearFailure: true);
+      state = current.copyWith(clearFailure: true, touched: true);
     }
   }
 
@@ -144,6 +150,7 @@ class SubmitOfferController extends AutoDisposeFamilyNotifier<SubmitOfferState, 
     state = current.copyWith(
       uploadedKeys: [...current.uploadedKeys, key],
       clearFailure: true,
+      touched: true,
     );
   }
 
@@ -153,6 +160,7 @@ class SubmitOfferController extends AutoDisposeFamilyNotifier<SubmitOfferState, 
     current.draft.mediaKeys.remove(key);
     state = current.copyWith(
       uploadedKeys: current.uploadedKeys.where((k) => k != key).toList(),
+      touched: true,
     );
   }
 

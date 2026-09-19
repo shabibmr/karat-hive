@@ -65,105 +65,115 @@ class _KycUploadScreenState extends ConsumerState<KycUploadScreen> {
       await controller.pickAndUpload(type, File(path), ct);
     }
 
-    return KhScaffold(
-      title: 'Verify your business',
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (state.failure != null) ...[
-            KhInlineError(
-              message: state.failure!.message ?? 'Verification update failed.',
+    final isDirty =
+        state.legalBusinessName.trim().isNotEmpty ||
+        state.tradeLicenceNumber.trim().isNotEmpty ||
+        state.licenceExpiryDate.trim().isNotEmpty ||
+        state.documents.values.any((d) => d.mediaKey != null || d.uploading);
+
+    return KhDiscardGuard(
+      isDirty: isDirty,
+      child: KhScaffold(
+        title: 'Verify your business',
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (state.failure != null) ...[
+              KhInlineError(
+                message:
+                    state.failure!.message ?? 'Verification update failed.',
+              ),
+              const SizedBox(height: 12),
+            ],
+            Text(
+              'Enter your official business licence details and upload required documents.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+
+            // SECTION 1: Legal & Licence Details
+            Text(
+              'Official Business Details',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-          ],
-          Text(
-            'Enter your official business licence details and upload required documents.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-
-          // SECTION 1: Legal & Licence Details
-          Text(
-            'Official Business Details',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 12),
-          KhTextField(
-            label: 'Registered company / Legal name *',
-            initialValue: state.legalBusinessName,
-            onChanged: (v) => controller.patchFields(legalBusinessName: v),
-          ),
-          KhTextField(
-            label: 'Trade licence number *',
-            initialValue: state.tradeLicenceNumber,
-            onChanged: (v) => controller.patchFields(tradeLicenceNumber: v),
-          ),
-          KhTextField(
-            label: 'Licence expiry date (YYYY-MM-DD) *',
-            initialValue: state.licenceExpiryDate,
-            readOnly: true,
-            onTap: () async {
-              final now = DateTime.now();
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: now.add(const Duration(days: 365)),
-                firstDate: now,
-                lastDate: now.add(const Duration(days: 365 * 10)),
-              );
-              if (picked != null) {
-                final formatted =
-                    '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
-                controller.patchFields(licenceExpiryDate: formatted);
-              }
-            },
-            onChanged: (v) => controller.patchFields(licenceExpiryDate: v),
-          ),
-          const SizedBox(height: 16),
-
-          // SECTION 2: Document Uploads
-          Text(
-            'Verification Documents',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 8),
-          DocumentChecklist(
-            present: {
-              for (final type in mandatoryVendorDocuments)
-                if (state.documents[type]?.done ?? false) type,
-            },
-          ),
-          const SizedBox(height: 12),
-          for (final type in mandatoryVendorDocuments)
-            DocumentUploadTile(
-              label: type.label,
-              state: _tileState(state.documents[type]),
-              progress: state.documents[type]?.progress ?? 0,
-              errorText: state.documents[type]?.failure?.message,
-              onPick: () => pick(type),
-              addLabel: l10n?.uploadActionAdd ?? 'Add',
-              replaceLabel: l10n?.uploadActionReplace ?? 'Replace',
-              retryLabel: l10n?.uploadActionRetry ?? 'Retry',
+            KhTextField(
+              label: 'Registered company / Legal name *',
+              initialValue: state.legalBusinessName,
+              onChanged: (v) => controller.patchFields(legalBusinessName: v),
             ),
-          const SizedBox(height: 24),
-          KhButton(
-            label: 'Submit for Verification',
-            busy: state.busy,
-            onPressed: state.isReadyToSubmit
-                ? () async {
-                    final ok = await controller.submitKyc();
-                    if (ok && context.mounted) {
-                      ref.invalidate(vendorMeProvider);
-                      await ref.read(sessionProvider.notifier).refreshUser();
-                      if (context.mounted) context.go(AppGuards.awaiting);
+            KhTextField(
+              label: 'Trade licence number *',
+              initialValue: state.tradeLicenceNumber,
+              onChanged: (v) => controller.patchFields(tradeLicenceNumber: v),
+            ),
+            KhTextField(
+              label: 'Licence expiry date (YYYY-MM-DD) *',
+              initialValue: state.licenceExpiryDate,
+              readOnly: true,
+              onTap: () async {
+                final now = DateTime.now();
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: now.add(const Duration(days: 365)),
+                  firstDate: now,
+                  lastDate: now.add(const Duration(days: 365 * 10)),
+                );
+                if (picked != null) {
+                  final formatted =
+                      '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                  controller.patchFields(licenceExpiryDate: formatted);
+                }
+              },
+              onChanged: (v) => controller.patchFields(licenceExpiryDate: v),
+            ),
+            const SizedBox(height: 16),
+
+            // SECTION 2: Document Uploads
+            Text(
+              'Verification Documents',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            DocumentChecklist(
+              present: {
+                for (final type in mandatoryVendorDocuments)
+                  if (state.documents[type]?.done ?? false) type,
+              },
+            ),
+            const SizedBox(height: 12),
+            for (final type in mandatoryVendorDocuments)
+              DocumentUploadTile(
+                label: type.label,
+                state: _tileState(state.documents[type]),
+                progress: state.documents[type]?.progress ?? 0,
+                errorText: state.documents[type]?.failure?.message,
+                onPick: () => pick(type),
+                addLabel: l10n?.uploadActionAdd ?? 'Add',
+                replaceLabel: l10n?.uploadActionReplace ?? 'Replace',
+                retryLabel: l10n?.uploadActionRetry ?? 'Retry',
+              ),
+            const SizedBox(height: 24),
+            KhButton(
+              label: 'Submit for Verification',
+              busy: state.busy,
+              onPressed: state.isReadyToSubmit
+                  ? () async {
+                      final ok = await controller.submitKyc();
+                      if (ok && context.mounted) {
+                        ref.invalidate(vendorMeProvider);
+                        await ref.read(sessionProvider.notifier).refreshUser();
+                        if (context.mounted) context.go(AppGuards.awaiting);
+                      }
                     }
-                  }
-                : null,
-          ),
-        ],
+                  : null,
+            ),
+          ],
+        ),
       ),
     );
   }

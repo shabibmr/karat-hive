@@ -13,6 +13,8 @@ class CategoriesRegionsState {
     this.awayMode = false,
     this.busy = false,
     this.failure,
+    this.savedCategoryIds = const {},
+    this.savedRegionIds = const {},
   });
 
   final Set<String> categoryIds;
@@ -21,7 +23,20 @@ class CategoriesRegionsState {
   final bool busy;
   final Failure? failure;
 
+  /// Last server-confirmed selection — compared against [categoryIds] and
+  /// [regionIds] to drive the discard-changes confirmation on back
+  /// navigation. `awayMode` isn't included: it saves immediately on toggle.
+  final Set<String> savedCategoryIds;
+  final Set<String> savedRegionIds;
+
   bool get canSave => categoryIds.isNotEmpty && regionIds.isNotEmpty && !busy;
+
+  bool get isDirty =>
+      !_setEquals(categoryIds, savedCategoryIds) ||
+      !_setEquals(regionIds, savedRegionIds);
+
+  static bool _setEquals(Set<String> a, Set<String> b) =>
+      a.length == b.length && a.containsAll(b);
 
   CategoriesRegionsState copyWith({
     Set<String>? categoryIds,
@@ -30,14 +45,17 @@ class CategoriesRegionsState {
     bool? busy,
     Failure? failure,
     bool clearFailure = false,
-  }) =>
-      CategoriesRegionsState(
-        categoryIds: categoryIds ?? this.categoryIds,
-        regionIds: regionIds ?? this.regionIds,
-        awayMode: awayMode ?? this.awayMode,
-        busy: busy ?? this.busy,
-        failure: clearFailure ? null : (failure ?? this.failure),
-      );
+    Set<String>? savedCategoryIds,
+    Set<String>? savedRegionIds,
+  }) => CategoriesRegionsState(
+    categoryIds: categoryIds ?? this.categoryIds,
+    regionIds: regionIds ?? this.regionIds,
+    awayMode: awayMode ?? this.awayMode,
+    busy: busy ?? this.busy,
+    failure: clearFailure ? null : (failure ?? this.failure),
+    savedCategoryIds: savedCategoryIds ?? this.savedCategoryIds,
+    savedRegionIds: savedRegionIds ?? this.savedRegionIds,
+  );
 }
 
 class CategoriesRegionsController
@@ -51,6 +69,8 @@ class CategoriesRegionsController
             categoryIds: me.categoryIds.toSet(),
             regionIds: me.regionIds.toSet(),
             awayMode: me.awayMode,
+            savedCategoryIds: me.categoryIds.toSet(),
+            savedRegionIds: me.regionIds.toSet(),
           );
         }
       });
@@ -62,6 +82,8 @@ class CategoriesRegionsController
         categoryIds: me.categoryIds.toSet(),
         regionIds: me.regionIds.toSet(),
         awayMode: me.awayMode,
+        savedCategoryIds: me.categoryIds.toSet(),
+        savedRegionIds: me.regionIds.toSet(),
       );
     }
     return const CategoriesRegionsState();
@@ -71,14 +93,14 @@ class CategoriesRegionsController
       ref.read(profileSettingsRepositoryProvider);
 
   void toggleCategory(String id) => state = state.copyWith(
-        categoryIds: _toggle(state.categoryIds, id),
-        clearFailure: true,
-      );
+    categoryIds: _toggle(state.categoryIds, id),
+    clearFailure: true,
+  );
 
   void toggleRegion(String id) => state = state.copyWith(
-        regionIds: _toggle(state.regionIds, id),
-        clearFailure: true,
-      );
+    regionIds: _toggle(state.regionIds, id),
+    clearFailure: true,
+  );
 
   Future<void> setAwayMode(bool value) async {
     state = state.copyWith(awayMode: value, busy: true, clearFailure: true);
@@ -103,7 +125,11 @@ class CategoriesRegionsController
     ref.invalidate(vendorMeProvider);
     ref.invalidate(vendorProfileProvider);
     await ref.read(sessionProvider.notifier).refreshUser();
-    state = state.copyWith(busy: false);
+    state = state.copyWith(
+      busy: false,
+      savedCategoryIds: state.categoryIds,
+      savedRegionIds: state.regionIds,
+    );
     return true;
   }
 
@@ -114,7 +140,8 @@ class CategoriesRegionsController
   }
 }
 
-final categoriesRegionsControllerProvider = AutoDisposeNotifierProvider<
-    CategoriesRegionsController, CategoriesRegionsState>(
-  CategoriesRegionsController.new,
-);
+final categoriesRegionsControllerProvider =
+    AutoDisposeNotifierProvider<
+      CategoriesRegionsController,
+      CategoriesRegionsState
+    >(CategoriesRegionsController.new);
