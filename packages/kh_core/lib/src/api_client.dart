@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'clock.dart';
 import 'failure.dart';
@@ -39,8 +40,8 @@ class KhApiClient {
         dio = dio ?? Dio() {
     this.dio.options
       ..baseUrl = baseUrl
-      ..connectTimeout = const Duration(seconds: 10)
-      ..receiveTimeout = const Duration(seconds: 20)
+      ..connectTimeout = const Duration(seconds: 30)
+      ..receiveTimeout = const Duration(seconds: 60)
       ..validateStatus = (_) => true;
     this.dio.interceptors.add(_ChainInterceptor(this));
   }
@@ -140,6 +141,7 @@ class KhApiClient {
   }
 
   Failure _mapEnvelopeError(int status, dynamic data) {
+    debugPrint('[KhApiClient] HTTP $status error: $data');
     String? code;
     String? message;
     final fieldErrors = <String, String>{};
@@ -166,6 +168,7 @@ class KhApiClient {
   }
 
   Failure _mapDioError(DioException e) {
+    debugPrint('[KhApiClient] DioException (${e.type}): ${e.message}, status=${e.response?.statusCode}, body=${e.response?.data}');
     return switch (e.type) {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
@@ -222,11 +225,32 @@ class _ChainInterceptor extends Interceptor {
   }
 
   @override
-  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
+  Future<void> onResponse(
+    Response<dynamic> response,
+    ResponseInterceptorHandler handler,
+  ) async {
     final data = response.data;
     if (data is Map && data['meta'] is Map && data['meta']['serverTime'] != null) {
       final t = DateTime.tryParse(data['meta']['serverTime'].toString());
       if (t != null) _client.serverClock.syncFrom(t.toUtc());
+    }
+    final alreadyRetried = response.requestOptions.extra['kh.retried'] == true;
+    if (response.statusCode == 401 && !alreadyRetried) {
+      final ok = await _client._tryRefresh();
+      if (ok) {
+        final opts = response.requestOptions;
+        opts.extra['kh.retried'] = true;
+        final token = await _client.getActiveToken();
+        if (token != null && token.isNotEmpty) {
+          opts.headers['authorization'] = 'Bearer $token';
+        }
+        try {
+          final retry = await _client.dio.fetch<dynamic>(opts);
+          return handler.resolve(retry);
+        } on DioException catch (e) {
+          return handler.reject(e);
+        }
+      }
     }
     handler.next(response);
   }

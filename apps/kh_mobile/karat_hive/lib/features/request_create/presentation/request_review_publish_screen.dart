@@ -239,6 +239,16 @@ class _RequestReviewPublishScreenState
               label: createCopy(context, 'create.field.direction', 'Direction'),
               value: state.direction?.wire ?? '—',
             ),
+          if (state.ornamentType != null)
+            _Row(
+              label: createCopy(context, 'create.ornamentType', 'Ornament type'),
+              value: ornamentWire(state.ornamentType!),
+            ),
+          if (state.purityKarat != null)
+            _Row(
+              label: createCopy(context, 'create.purity', 'Purity'),
+              value: state.purityKarat!.wire,
+            ),
           if (state.weightGrams != null)
             _Row(
               label: createCopy(context, 'create.field.weight', 'Weight (g)'),

@@ -22,8 +22,8 @@ class MediaUploader {
   MediaUploader(
     this._api, {
     Dio? putClient,
-    this.pollInterval = const Duration(seconds: 1),
-    this.maxPolls = 15,
+    this.pollInterval = const Duration(seconds: 2),
+    this.maxPolls = 30,
     Future<void> Function(Duration duration)? sleep,
   })  : _putClient = putClient,
         _sleep = sleep ?? Future<void>.delayed;
