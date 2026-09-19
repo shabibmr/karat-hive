@@ -1,130 +1,41 @@
-# CLAUDE.md
+# Karat Hive
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Request-driven gold marketplace for the UAE. Customers publish Requests; Vendors submit Offers; accepting an Offer reveals identities and opens a Connection.
 
-**The repository for Karat Hive**, a request-driven gold marketplace for the UAE. Application code includes the Node.js monolith backend (`backend/`, NestJS 11 + Fastify + Prisma + Vitest) and the Flutter Web Admin Portal (`apps/kh_admin/`, Flutter 3.12+). Specification documents and the static HTML prototype (`ui-mock/`) remain companion references.
+Three deployables over **one PostgreSQL database**:
 
-Work here is almost always *authoring or revising documents*. Treat consistency across documents as the primary correctness criterion, the way you would treat a passing test suite elsewhere.
-
-## Runnable surfaces
-
-Checkpoint-1 vendor onboarding and admin taxonomy are on `main`. Taxonomy (`Category`, `Region`) was flattened to a single level in the `20260915120000_flatten_taxonomy` migration — no `parentId`/depth, sorted only by `display_order`. Google Sign-In is on the Flutter clients; the backend accepts Firebase ID tokens (`identity/application/firebase-token.service.ts`, verified against Google's JWKS) and mints its own session JWTs from them.
-
-```bash
-cd backend && npm run start:dev                          # API :3000
-cd apps/kh_mobile/karat_hive && flutter run --dart-define-from-file=config/dev.json
-cd apps/kh_admin && flutter run -d chrome --dart-define=KH_API_BASE=https://algoray.cloud/kh_api
-npx --yes serve ui-mock                                  # static 67-screen prototype (HTTP only)
-```
-
-Do not treat password/OTP credentials as a Checkpoint-1 gate. OTP is now optional/deferred for both Customer and Vendor registration — the backend accepts a self-reported `mobileNumber` with no `challengeId` (`mobileVerifiedAt` stays null); this is explicitly a temporary development-phase bypass in code comments, not a permanent design decision.
-
-`ui-mock/` is a dependency-free HTML/CSS/JS prototype of the original 67 screens (`CUS-S23` Guest Landing is not in the mock yet). Screen partials load via `fetch`, so it **must be served over HTTP** — opening `index.html` from the filesystem shows a blank shell.
-
-Navigation is hash-routed: `#/customer/CUS-S04`, `#/vendor/VEN-S09`, `#/admin/ADM-S07`. Login is a role chooser with no password. Adding a screen means adding the HTML partial under `ui-mock/screens/<role>/` **and** registering it in the `window.KH_NAV` route table in `ui-mock/js/nav.js` — a partial that is not in that table is unreachable.
-
-## Document authority chain
-
-Read in this order when you need to understand a decision. Later documents may not contradict earlier ones.
-
-| Document | Role |
-|---|---|
-| `docs/Requirements-raw.txt` | **Sole source input.** Never edit. Every requirement traces back to a line number here |
-| `CONTEXT.md` | Ubiquitous language. Binding vocabulary, including the `_Avoid_` list under each term |
-| `docs/Requirements-Spec-v1.3.md` | **Authoritative SRS** (~2,850 lines). What the system must do |
-| `docs/adr/0001`–`0011` | Why the shape is this shape. Short, one decision each. `0010` Google-only login; `0011` Guest-first launch |
-| `docs/Architecture-Backend.md`, `docs/Architecture-Frontend.md` | How it gets built. Derived from the SRS; cite it, never restate it |
-| `docs/API-Route-Inventory.md` | Pre-code HTTP catalogue (`[PROPOSED]`). Paths, schemas, errors. Superseded by generated OpenAPI (`NFR-030`) once code exists |
-| `docs/Physical-Data-Model.md` | Pre-code PostgreSQL schema (`[PROPOSED]`). Encoded in `backend/prisma/schema.prisma`. Assumes `AD-BE-05` |
-| `docs/Backend-Implementation-Plan.md` | Backend build order P0–P12 and task list T01–T44. Does not override the SRS |
-| `docs/Backend-Gap-Fix-Plan.md` | P0/P1 review-gap fixes (F01–F17). Does not override the SRS |
-| `docs/Spec-Document-Sequence.md` | Remaining specs after the API inventory — ordered, no duplicates of the catalogue |
-| `docs/Screen-API-Map.md` | Screen → endpoint coverage check (`[PROPOSED]`). Every screen's load / actions / empty-error state mapped to a route or `error.code`; gap register (`SAM-GAP-nn`) |
-| `docs/checkpoints/checkpoint-customer-mode-tasks.md` | Customer-mode Flutter tick list (`CM-*`). Does not override the SRS |
-| `docs/Async-Contract.md` | Pre-code outbox contract (`[PROPOSED]`). Event payloads, consumers, scheduled jobs, notification dispatch. Expands Architecture-Backend §11; decision prefix `AD-ASYNC-nn` |
-| `ui-screens/` | Field-level inventory of the 68 screens (`CUS-S01`…`CUS-S23`, `VEN-*`, `ADM-*`), plus `component-widgets.md` (shared `SH-*` widget catalogue) and `Karat_Hive_UI_Design_Context.md` (visual system) |
-| `ui-mock/` | Interactive realisation of `ui-screens/` |
-| `docs/old/` | Superseded versions. Read-only history |
-
-**Versioning habit:** substantive SRS revisions are superseded, not edited in place — the old file moves to `docs/old/`, a new `-vN.N` file becomes authoritative, and `docs/old/README.md` plus every inbound reference is updated. Check `grep -rl "Requirements-Spec-v1\.2"` style before declaring a version bump complete.
-
-## Identifier systems
-
-These appear in every document and are the connective tissue between them. Identifiers are stable and **never reused**.
-
-| Prefix | Meaning | Defined in |
+| Path | What | Toolchain |
 |---|---|---|
-| `FR-CUS/VEN/ADM/SYS-nnn` | Functional requirement by actor; `SYS` = no human actor | SRS §4 |
-| `BR-nnn` | Business rule — prevails over any conflicting FR | SRS §5.1 |
-| `NFR-nnn` | Non-functional requirement | SRS §8 |
-| `C-nn` | Design/implementation constraint | SRS §2.5 |
-| `CUS-Snn` / `VEN-Snn` / `ADM-Snn` | Screen | SRS Appendix C, `ui-screens/` |
-| `SH-*` | Shared UI component | `ui-screens/component-widgets.md` |
-| `AD-BE-nn` / `AD-FE-nn` | Architecture decision | the two architecture documents |
-| `AD-API-nn` | HTTP catalogue decision | `docs/API-Route-Inventory.md` |
-| `AD-ASYNC-nn` | Async / outbox contract decision | `docs/Async-Contract.md` |
-| `SAM-GAP-nn` | Screen-vs-API coverage gap | `docs/Screen-API-Map.md` |
+| `backend/` | NestJS monolith — HTTP API + workers in one binary | Node 20, npm |
+| `apps/kh_mobile/karat_hive/` | Dual-mode Customer/Vendor app | Flutter (in workspace) |
+| `apps/kh_admin/` | Admin Portal, Flutter Web | Flutter (**outside** workspace) |
+| `packages/kh_*` | Shared Dart packages | Flutter (in workspace) |
 
-**Never cite an ID without verifying it exists and means what you think.** IDs are close together numerically and easy to transpose — `FR-CUS-006` is a Request type, `FR-CUS-007` is image upload.
+## Dead references
 
-### Status tags
+`docs/` was deleted on branch `chore/remove-all-docs`. Code comments, `README.md` files and commit messages still cite `docs/Architecture-Backend.md`, `docs/Screen-API-Map.md`, ADR numbers and requirement IDs (`FR-VEN-003`, `NFR-022`, `AD-BE-07`, `CP2-F05`, `CUS-S11`, `SH-DOM-08`, …). **Nothing in the repo resolves them.** Read them as provenance markers, not as findable sources — the code is the only specification. Ask the user rather than guessing what an ID meant.
 
-- **`[ASSUMED]`** (SRS) — inferred by the spec author, not stated by the business. Every one needs Product Owner confirmation; they are indexed in SRS Appendix B.3. When adding an inferred requirement, tag it rather than leaving a gap.
-- **`[PROPOSED]`** (architecture docs) — a decision this document makes that the SRS does not fix. Needs Technical Lead sign-off; must be registered in the document's §3 decision register.
-- **`[BLOCKED]`** — waits on an external decision. Must also appear in that document's open-decisions section.
+## Cross-cutting invariants
 
-## Domain invariants
+These hold on both sides of the wire; breaking one on either side breaks the other.
 
-These are load-bearing. Any document or future code that weakens one is wrong, regardless of what else it improves.
+- **Response envelope** — every success body is `{ data, meta: { requestId, serverTime, nextCursor } }`; every error is an error envelope with a stable `ErrorCode`. Clients unwrap `data`.
+- **Cursor pagination** — lists page by opaque `meta.nextCursor`, never by offset.
+- **Identity masking** — Customer and Vendor identities stay masked until a Connection exists. The backend enforces this at the edge (`MaskingInterceptor`); DTOs model it by *shape* (`MaskedParty` vs `RevealedParty`), not by nulled fields.
+- **Bilingual, bidirectional** — `en` + `ar` with full RTL. User-facing copy lives in ARB files; an analyzer plugin fails the build on hard-coded strings in widgets.
+- **Responsive everywhere** — `kh_admin` is desktop-first, `kh_mobile` mobile-first, and both must render at every viewport. Each app has a `test/responsive/` suite; check narrow *and* wide before calling a screen done.
+- **Server time** — clients trust `meta.serverTime` over the device clock for expiry countdowns.
 
-1. **Identity masking until Acceptance** (`BR-006`, `FR-SYS-003`, `NFR-013`). Masked fields are **absent from API payloads** — not null, not empty, not hidden by the client. Enforced server-side. Reveal is scoped to the single Connection that produced it (`BR-007`); it never generalises to other Requests.
-2. **Acceptance is atomic and irreversible** (`BR-011`–`BR-013`, `FR-SYS-006`, `FR-SYS-007`). Accepting one Offer rejects all competitors, creates exactly one Connection, and reveals both identities, in one transaction.
-3. **Requests hard-expire at 48 hours** (`C-07`). No Customer extension. Warning at T−6 h.
-4. **A Vendor needs three things to act**: verification state `VERIFIED`, account state `ACTIVE`, **and** an active Type Subscription for that Request type (`BR-002`, `FR-VEN-031`). Verification alone is not enough.
-5. **A Vendor never learns a competing Vendor's identity, price, or terms** — before, during or after (`BR-008`). Only the Offer count.
-6. **WhatsApp is an outbound `wa.me` deep link only** (`C-03`, SRS §7.2). No Business API, no callback, no conversation content — the platform is technically incapable of reading it (`NFR-017`).
-7. **Settlement happens off-platform** (`BR-015`). The platform brokers introductions and has no authoritative knowledge of whether a deal closed.
-8. **Units:** AED, grams, karat/fineness. Timestamps stored UTC, displayed Gulf Standard Time (`BR-021`, `C-01`, `C-02`).
-9. **Taxonomy is flat, not hierarchical.** `Category` and `Region` are single-level lists — no `parentId`, no depth. Sort order is `display_order` only (`docs/Physical-Data-Model.md`, migration `20260915120000_flatten_taxonomy`). Do not reintroduce parent/child taxonomy without a new ADR.
+## Flutter workspace
 
-## Fixed technology stack
+Root `pubspec.yaml` is a Dart pub workspace **and** holds the Melos config inline (there is no `melos.yaml`). `melos run analyze | test | gen | gen-l10n` covers `apps/kh_mobile/karat_hive` and all `packages/kh_*`.
 
-Prescribed by the source material (`Requirements-raw.txt` L96–L103), not an open engineering choice — constraints `C-10`–`C-13`, reasoned in `adr/0006`, `adr/0007`, `adr/0008` and `adr/0009`.
+`apps/kh_admin` is excluded from the workspace and resolves by path with its own `pubspec.lock`. Melos scripts skip it — run `flutter analyze` / `flutter test` from inside `apps/kh_admin/` as well, the way CI does.
 
-- **Flutter** for all three surfaces — one dual-mode mobile binary (Customer *or* Vendor by account role), plus Flutter Web for the Admin Portal (`C-10`, confirmed)
-- **Node.js monolith** — single deployable, no service decomposition, **no message broker**
-- **PostgreSQL** — single system of record, **no secondary datastore** for cache, search or queue
-- **Managed Postgres** — Supabase for non-production (`adr/0009`, `AD-BE-15`); the backend connects directly as `postgres`. The bundled PostgREST **Data API is locked down** — RLS deny-all on every `public` table, `anon`/`authenticated` grants revoked. No Supabase Auth / Realtime / Edge. Do not add Supabase client SDKs or RLS policies
-- **Object storage** — Cloudflare R2 (S3-compatible), MinIO for local/CI (`C-13`, `adr/0008`)
+Analyzer plugins may only be declared in the **workspace-root** `analysis_options.yaml`; nested packages `include:` `tooling/analysis_options.yaml` instead. Declaring a plugin in a nested file silently does nothing.
 
-`C-11` and `C-12` bite: with no broker and no Redis, asynchronous work uses a PostgreSQL transactional outbox and rate limiting uses PostgreSQL token buckets (backend architecture §11, §13.6). Do not propose Redis, Kafka or Elasticsearch without explicitly framing it as an exception to `C-12`.
+Use `dart analyze` (not `flutter analyze`) inside the workspace so the root plugin loads.
 
-## Live open decisions
+## Directory-local guidance
 
-Do not silently resolve these by inference; they are recorded as open on purpose.
-
-| Item | Blocks |
-|---|---|
-| **Yahoo Finance redistribution terms** | Displaying reference gold rates to end users |
-| **Admin data grid — build or buy** (`AD-FE-12`) | 14 Admin list screens |
-| **Object-storage data residency** (`NFR-020`) — Cloudflare R2 has no UAE-region guarantee | Production storage of KYC personal data; swappable behind the S3 adapter, so non-blocking |
-
-Resolved (see `docs/old/README.md` and Appendix D of the SRS): `C-10` — Admin Portal is the Flutter Web target (confirmed 1 Sep 2026); `C-13` — object storage is Cloudflare R2 + MinIO (`adr/0008`); **Supabase Data-API / RLS exposure** — locked down at the database 6 Sep 2026 (`adr/0009`, `AD-BE-15`). **Guest-first launch** — 11 Sep 2026 (`adr/0011`); SRS Appendix C still lists 22 Customer screens until the next SRS bump.
-
-## Writing conventions
-
-- Tables over prose lists; mermaid for diagrams (`flowchart`, `stateDiagram-v2`, `erDiagram`, `sequenceDiagram`). Mermaid renders natively — do not add a JS library.
-- Every requirement carries a **Source** line citing either a raw-notes line number or `[ASSUMED]`.
-- SRS Appendix B claims **100 % coverage of every non-blank line** of `Requirements-raw.txt`, with a stated count. If the raw notes change, that count and the traceability rows must be recomputed — it is a factual claim, not boilerplate.
-- Use `CONTEXT.md` terminology exactly, including honouring the `_Avoid_` lists (a Request is never a "listing"; an Offer is never a "bid"; a Connection is never a "chat").
-- The architecture documents cite requirements rather than restating them. If you find yourself re-explaining a rule, link to it instead.
-
-## Agent skills
-
-### Issue tracker
-
-Issues live as GitHub issues on `github.com/shabibmr/karat-hive`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
-
-### Domain docs
-
-Shared + per-surface: one shared `CONTEXT.md` (this repo's single domain glossary, read for every topic) plus optional surface-specific `CONTEXT.md` files under `backend/`, `apps/kh_mobile/karat_hive/`, `apps/kh_admin/` for implementation-only vocabulary — see `CONTEXT-MAP.md` and `docs/agents/domain.md`.
+Each deployable and package has its own `CLAUDE.md` with conventions that apply only there.
