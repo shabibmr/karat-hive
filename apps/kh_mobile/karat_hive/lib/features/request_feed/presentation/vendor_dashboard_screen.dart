@@ -223,8 +223,6 @@ class _ActionStatCard extends StatelessWidget {
     required this.icon,
     this.subtitle,
     this.badgeColor,
-    this.disabled = false,
-    this.disabledMessage,
     this.onTap,
   });
 
@@ -233,9 +231,9 @@ class _ActionStatCard extends StatelessWidget {
   final IconData icon;
   final String? subtitle;
   final Color? badgeColor;
-  final bool disabled;
-  final String? disabledMessage;
   final VoidCallback? onTap;
+
+  bool get disabled => onTap == null;
 
   @override
   Widget build(BuildContext context) {
@@ -254,15 +252,7 @@ class _ActionStatCard extends StatelessWidget {
         ),
       ),
       child: InkWell(
-        onTap: disabled
-            ? () {
-                if (disabledMessage != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(disabledMessage!)),
-                  );
-                }
-              }
-            : onTap,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(tokens.radius.md),
         child: Padding(
           padding: EdgeInsets.all(tokens.space.md),

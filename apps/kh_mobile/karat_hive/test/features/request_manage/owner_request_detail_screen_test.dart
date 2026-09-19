@@ -57,6 +57,7 @@ class _FakeRequestManageRepository implements RequestManageRepository {
 RequestForCustomer _testRequest({
   String id = 'req-101',
   String reference = 'REQ-2026-0101',
+  RequestState state = RequestState.published,
   int offerCount = 0,
   String? connectionId,
 }) {
@@ -65,7 +66,7 @@ RequestForCustomer _testRequest({
     reference: reference,
     requestType: RequestType.findOrnament,
     direction: Direction.buy,
-    state: RequestState.published,
+    state: state,
     category: const CategorySummary(id: 'cat-ring', nameEn: 'Rings', nameAr: 'خواتم'),
     region: const RegionSummary(id: 'reg-dxb', nameEn: 'Dubai', nameAr: 'دبي'),
     weightIsApproximate: false,
@@ -223,6 +224,19 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('This Request already has an accepted Offer.'), findsOneWidget);
+    });
+
+    testWidgets('shows Review & Publish and Edit Details buttons when state is DRAFT',
+        (tester) async {
+      final repo = _FakeRequestManageRepository(
+        request: _testRequest(state: RequestState.draft),
+      );
+
+      await _pump(tester, repo: repo, requestId: 'req-101');
+
+      expect(find.byKey(const Key('resume-publish-draft')), findsOneWidget);
+      expect(find.byKey(const Key('edit-draft-details')), findsOneWidget);
+      expect(find.text('View offers'), findsNothing);
     });
   });
 }

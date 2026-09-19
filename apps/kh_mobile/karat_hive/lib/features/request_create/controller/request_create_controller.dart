@@ -319,6 +319,40 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     );
   }
 
+  /// Loads an existing saved draft into the creation flow so the customer
+  /// can review, complete missing fields, and publish it.
+  void loadFromRequest(RequestForCustomer req) {
+    state = state.copyWith(
+      draftId: req.id,
+      requestType: req.requestType,
+      direction: req.direction,
+      categoryId: req.category.id,
+      regionId: req.region.id,
+      notes: req.notes ?? '',
+      weightGrams: req.weightGrams,
+      weightIsApproximate: req.weightIsApproximate,
+      purityKarat: req.purityKarat,
+      ornamentType: req.ornamentType,
+      condition: req.condition,
+      denominationGrams: req.denominationGrams,
+      quantity: req.quantity,
+      mintOrRefiner: req.mintOrRefiner,
+      budgetMin: req.budgetMin,
+      budgetMax: req.budgetMax,
+      budgetIsFlexible: req.budgetIsFlexible,
+      media: [
+        for (final m in req.media)
+          MediaSlot(
+            key: m.key,
+            contentType: m.contentType,
+          ),
+      ],
+      step: RequestCreateStep.compose,
+      clearFailure: true,
+      fieldErrors: const {},
+    );
+  }
+
   void setDirection(Direction value) {
     if (state.requestType == RequestType.findOrnament ||
         state.requestType == RequestType.sellOldGold) {

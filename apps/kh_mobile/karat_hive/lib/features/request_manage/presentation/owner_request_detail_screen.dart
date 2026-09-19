@@ -8,6 +8,8 @@ import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../controller/owner_request_detail_controller.dart';
+import '../../request_create/controller/request_create_controller.dart';
+import '../../request_create/routes.dart';
 import 'customer_copy.dart';
 
 /// CUS-S10 — owner Request detail (CU-10).
@@ -150,81 +152,114 @@ class _OwnerRequestDetailScreenState
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              if (req.offerCount == 0) ...[
-                SizedBox(height: tokens.space.sm),
-                Text(
-                  s.s('cus.s10.zeroOffers'),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: tokens.ink.withValues(alpha: 0.65),
-                  ),
+              if (req.state == RequestState.draft) ...[
+                SizedBox(height: tokens.space.lg),
+                KhButton(
+                  key: const Key('resume-publish-draft'),
+                  label: 'Review & Publish',
+                  onPressed: () {
+                    ref
+                        .read(requestCreateControllerProvider.notifier)
+                        .loadFromRequest(req);
+                    context.push(RequestCreatePaths.review);
+                  },
                 ),
-              ],
-              SizedBox(height: tokens.space.md),
-              KhButton(
-                label: s.s('cus.s10.viewOffers'),
-                onPressed: () =>
-                    context.push('/customer/requests/${req.id}/offers'),
-              ),
-              if (req.connectionId != null &&
-                  req.connectionId!.isNotEmpty) ...[
                 SizedBox(height: tokens.space.sm),
                 KhButton(
-                  label: s.s('cus.s10.openConnection'),
+                  key: const Key('edit-draft-details'),
+                  label: 'Edit Details',
                   secondary: true,
-                  onPressed: () =>
-                      context.push('/customer/connections/${req.connectionId}'),
-                ),
-              ],
-              SizedBox(height: tokens.space.xl),
-              KhTextField(
-                label: s.s('cus.s10.editNotes'),
-                controller: _notes,
-              ),
-              KhTextField(
-                label: s.s('cus.s10.budgetMin'),
-                controller: _budgetMin,
-                keyboardType: TextInputType.number,
-              ),
-              KhTextField(
-                label: s.s('cus.s10.budgetMax'),
-                controller: _budgetMax,
-                keyboardType: TextInputType.number,
-              ),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(s.s('cus.s10.budgetFlexible')),
-                value: _flexible,
-                onChanged: (v) => setState(() => _flexible = v),
-              ),
-              if (detail.actionError != null) ...[
-                KhInlineError(
-                  message: customerFailureMessage(
-                    detail.actionError!,
-                    s,
-                    'cus.home.error',
-                  ),
+                  onPressed: () {
+                    ref
+                        .read(requestCreateControllerProvider.notifier)
+                        .loadFromRequest(req);
+                    context.push(RequestCreatePaths.composeFor(req.requestType));
+                  },
                 ),
                 SizedBox(height: tokens.space.md),
-              ],
-              KhButton(
-                label: s.s('cus.s10.saveEdits'),
-                busy: detail.saving,
-                onPressed: () => ref
-                    .read(ownerRequestDetailProvider(widget.requestId).notifier)
-                    .save(
-                      notes: _notes.text,
-                      budgetMin: _budgetMin.text,
-                      budgetMax: _budgetMax.text,
-                      budgetIsFlexible: _flexible,
+                KhButton(
+                  label: s.s('cus.s10.cancelRequest'),
+                  destructive: true,
+                  busy: detail.cancelling,
+                  onPressed: () => _confirmCancel(s),
+                ),
+              ] else ...[
+                if (req.offerCount == 0) ...[
+                  SizedBox(height: tokens.space.sm),
+                  Text(
+                    s.s('cus.s10.zeroOffers'),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: tokens.ink.withValues(alpha: 0.65),
                     ),
-              ),
-              SizedBox(height: tokens.space.md),
-              KhButton(
-                label: s.s('cus.s10.cancelRequest'),
-                destructive: true,
-                busy: detail.cancelling,
-                onPressed: () => _confirmCancel(s),
-              ),
+                  ),
+                ],
+                SizedBox(height: tokens.space.md),
+                KhButton(
+                  label: s.s('cus.s10.viewOffers'),
+                  onPressed: () =>
+                      context.push('/customer/requests/${req.id}/offers'),
+                ),
+                if (req.connectionId != null &&
+                    req.connectionId!.isNotEmpty) ...[
+                  SizedBox(height: tokens.space.sm),
+                  KhButton(
+                    label: s.s('cus.s10.openConnection'),
+                    secondary: true,
+                    onPressed: () =>
+                        context.push('/customer/connections/${req.connectionId}'),
+                  ),
+                ],
+                SizedBox(height: tokens.space.xl),
+                KhTextField(
+                  label: s.s('cus.s10.editNotes'),
+                  controller: _notes,
+                ),
+                KhTextField(
+                  label: s.s('cus.s10.budgetMin'),
+                  controller: _budgetMin,
+                  keyboardType: TextInputType.number,
+                ),
+                KhTextField(
+                  label: s.s('cus.s10.budgetMax'),
+                  controller: _budgetMax,
+                  keyboardType: TextInputType.number,
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(s.s('cus.s10.budgetFlexible')),
+                  value: _flexible,
+                  onChanged: (v) => setState(() => _flexible = v),
+                ),
+                if (detail.actionError != null) ...[
+                  KhInlineError(
+                    message: customerFailureMessage(
+                      detail.actionError!,
+                      s,
+                      'cus.home.error',
+                    ),
+                  ),
+                  SizedBox(height: tokens.space.md),
+                ],
+                KhButton(
+                  label: s.s('cus.s10.saveEdits'),
+                  busy: detail.saving,
+                  onPressed: () => ref
+                      .read(ownerRequestDetailProvider(widget.requestId).notifier)
+                      .save(
+                        notes: _notes.text,
+                        budgetMin: _budgetMin.text,
+                        budgetMax: _budgetMax.text,
+                        budgetIsFlexible: _flexible,
+                      ),
+                ),
+                SizedBox(height: tokens.space.md),
+                KhButton(
+                  label: s.s('cus.s10.cancelRequest'),
+                  destructive: true,
+                  busy: detail.cancelling,
+                  onPressed: () => _confirmCancel(s),
+                ),
+              ],
             ],
           );
         },
