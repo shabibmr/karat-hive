@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -7,6 +8,7 @@ import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
 import '../../../app/session/session_controller.dart';
+import '../pending_publish_intent.dart';
 import '../repository/request_create_repository.dart';
 import 'request_create_state.dart';
 
@@ -47,6 +49,10 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   RequestCreateRepository get _repo =>
       ref.read(requestCreateRepositoryProvider);
 
+  /// One-shot guard for [reconcilePendingPublish] — a manual [publish] retry
+  /// after a failed auto-publish attempt is unaffected by this.
+  bool _reconcileAttempted = false;
+
   @override
   RequestCreateState build() {
     final session = ref.read(sessionProvider);
@@ -58,11 +64,176 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       oauthBound = session.user.oauthBound;
       defaultRegion = session.user.customer?.defaultRegion?.id;
     }
-    return RequestCreateState(
+    final initial = RequestCreateState(
       canCreateRequest: canCreate,
       oauthBound: oauthBound,
       regionId: defaultRegion,
     );
+    unawaited(_restorePendingDraft());
+    return initial;
+  }
+
+  /// Cold-boot restore (GL-59): if a Guest force-quit mid-draft, rehydrate
+  /// the wizard from the on-disk snapshot so a still-pending publish intent
+  /// can complete once the user signs in. Best-effort only — any platform
+  /// or IO error (e.g. no `path_provider` plugin in a plain unit test)
+  /// leaves the fresh in-memory state untouched.
+  Future<void> _restorePendingDraft() async {
+    try {
+      final store = ref.read(pendingPublishDraftStoreProvider);
+      final snapshot = await store.load();
+      if (snapshot == null) return;
+      if (snapshot.isExpired) {
+        await store.clear();
+        return;
+      }
+      if (state.requestType != null) return;
+      state = _applyPersistedFields(state, snapshot.fields, snapshot.mediaKeys);
+      ref.read(pendingPublishIntentProvider.notifier).setPending();
+    } catch (_) {
+      // Best-effort restore only.
+    }
+  }
+
+  /// Persist the current draft locally (GL-57): called when a Guest reaches
+  /// review, and again right before the sign-in overlay opens, so the draft
+  /// survives a cold app restart while auth is pending.
+  Future<void> persistPendingDraft() async {
+    if (state.requestType == null) return;
+    try {
+      await ref.read(pendingPublishDraftStoreProvider).save(
+            PendingPublishDraftSnapshot(
+              fields: _persistedFields(),
+              mediaKeys: state.mediaKeys,
+              expiresAt: DateTime.now().add(const Duration(days: 7)),
+            ),
+          );
+    } catch (_) {
+      // Best-effort only.
+    }
+  }
+
+  Future<void> _clearPersistedDraft() async {
+    try {
+      await ref.read(pendingPublishDraftStoreProvider).clear();
+    } catch (_) {
+      // Best-effort only.
+    }
+  }
+
+  Map<String, dynamic> _persistedFields() => {
+        if (state.requestType != null) 'requestType': state.requestType!.wire,
+        if (state.direction != null) 'direction': state.direction!.wire,
+        if (state.categoryId != null) 'categoryId': state.categoryId,
+        if (state.regionId != null) 'regionId': state.regionId,
+        'notes': state.notes,
+        if (state.weightGrams != null) 'weightGrams': state.weightGrams,
+        'weightIsApproximate': state.weightIsApproximate,
+        if (state.purityKarat != null) 'purityKarat': state.purityKarat!.wire,
+        if (state.ornamentType != null)
+          'ornamentType': state.ornamentType!.wire,
+        if (state.condition != null) 'condition': state.condition!.wire,
+        if (state.denominationGrams != null)
+          'denominationGrams': state.denominationGrams,
+        if (state.quantity != null) 'quantity': state.quantity,
+        if (state.mintOrRefiner != null) 'mintOrRefiner': state.mintOrRefiner,
+        'budgetMode': state.budgetMode.name,
+        if (state.budgetMin != null) 'budgetMin': state.budgetMin,
+        if (state.budgetMax != null) 'budgetMax': state.budgetMax,
+        'budgetIsFlexible': state.budgetIsFlexible,
+        'gemstonesPresent': state.gemstonesPresent,
+        if (state.gemstoneType != null) 'gemstoneType': state.gemstoneType,
+        if (state.gemstoneCount != null) 'gemstoneCount': state.gemstoneCount,
+        'hasInvoice': state.hasInvoice,
+        if (state.packagingSealed != null)
+          'packagingSealed': state.packagingSealed,
+        'hasAssayCertificate': state.hasAssayCertificate,
+        if (state.draftId != null) 'draftId': state.draftId,
+        if (state.publishIdempotencyKey != null)
+          'publishIdempotencyKey': state.publishIdempotencyKey,
+      };
+
+  RequestCreateState _applyPersistedFields(
+    RequestCreateState base,
+    Map<String, dynamic> f,
+    List<String> mediaKeys,
+  ) {
+    return base.copyWith(
+      requestType: f['requestType'] == null
+          ? null
+          : RequestType.parse(f['requestType'] as String?),
+      direction: f['direction'] == null
+          ? null
+          : Direction.parse(f['direction'] as String?),
+      categoryId: f['categoryId'] as String?,
+      regionId: f['regionId'] as String?,
+      notes: f['notes'] as String? ?? '',
+      weightGrams: f['weightGrams'] as String?,
+      weightIsApproximate: f['weightIsApproximate'] as bool? ?? false,
+      purityKarat:
+          f['purityKarat'] == null ? null : Karat.parse(f['purityKarat'] as String?),
+      ornamentType: f['ornamentType'] == null
+          ? null
+          : OrnamentType.parse(f['ornamentType'] as String?),
+      condition: f['condition'] == null
+          ? null
+          : ItemCondition.parse(f['condition'] as String?),
+      denominationGrams: f['denominationGrams'] as String?,
+      quantity: f['quantity'] as int?,
+      mintOrRefiner: f['mintOrRefiner'] as String?,
+      budgetMode:
+          BudgetMode.values.byName(f['budgetMode'] as String? ?? 'maxOnly'),
+      budgetMin: f['budgetMin'] as String?,
+      budgetMax: f['budgetMax'] as String?,
+      budgetIsFlexible: f['budgetIsFlexible'] as bool? ?? false,
+      gemstonesPresent: f['gemstonesPresent'] as bool? ?? false,
+      gemstoneType: f['gemstoneType'] as String?,
+      gemstoneCount: f['gemstoneCount'] as int?,
+      hasInvoice: f['hasInvoice'] as bool? ?? false,
+      packagingSealed: f['packagingSealed'] as bool?,
+      hasAssayCertificate: f['hasAssayCertificate'] as bool? ?? false,
+      draftId: f['draftId'] as String?,
+      publishIdempotencyKey: f['publishIdempotencyKey'] as String?,
+      media: [for (final k in mediaKeys) MediaSlot(key: k)],
+    );
+  }
+
+  /// Opportunistic reconciliation for the Guest → Login → auto-publish
+  /// pipeline (GL-57…GL-63). Safe to call on every session-state change: a
+  /// no-op unless [pendingPublishIntentProvider] is set, and it only
+  /// attempts the publish pipeline once per pending intent — a manual retry
+  /// via [publish] after a failure still works.
+  Future<bool> reconcilePendingPublish() async {
+    final pending = ref.read(pendingPublishIntentProvider);
+    if (!pending) return false;
+    final session = ref.read(sessionProvider);
+    if (session is! SignedIn) return false;
+
+    if (session.isVendor) {
+      ref.read(pendingPublishIntentProvider.notifier).clearPending();
+      resetFlow();
+      _reconcileAttempted = false;
+      unawaited(_clearPersistedDraft());
+      return false;
+    }
+    if (!session.isCustomer) return false;
+    if (_reconcileAttempted) return false;
+    _reconcileAttempted = true;
+
+    final meR = await _repo.me();
+    final me = meR.valueOrNull;
+    if (me != null) {
+      state = state.copyWith(
+        oauthBound: me.oauthBound,
+        canCreateRequest: me.canCreateRequest ?? true,
+      );
+    }
+    final ok = await publish();
+    if (ok) {
+      ref.read(pendingPublishIntentProvider.notifier).clearPending();
+      unawaited(_clearPersistedDraft());
+    }
+    return ok;
   }
 
   Future<void> ensureLoaded() async {
@@ -435,6 +606,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           step: RequestCreateStep.success,
           awaitingLoginToPublish: false,
         );
+        unawaited(_clearPersistedDraft());
         return true;
       },
       err: (f) {

@@ -37,7 +37,6 @@ abstract final class AppGuards {
 
   static const unauthRoutes = {
     login,
-    register,
     customerGuest,
     customerOnboarding,
     customerRegister,
@@ -72,8 +71,10 @@ abstract final class AppGuards {
         return location == splash ? null : splash;
       case SignedOut():
         if (isSignedOutAllowed(location)) return null;
-        // Private Customer areas → Login (CUS-S01); everything else → Guest.
+        // Private Customer areas → Login (CUS-S01); Vendor register requires
+        // Google sign-in first (ADR-0010) → Vendor Login; everything else → Guest.
         if (isCustomerLocation(location)) return customerOnboarding;
+        if (location == register) return login;
         return customerGuest;
       case UnboundGoogle():
         // Guest compose / Customer Login imply Customer (`adr/0011`, GL-17).
@@ -125,7 +126,9 @@ abstract final class AppGuards {
     }
     switch (lifecycle) {
       case VendorLifecycle.active:
-        return awaitingRoutes.contains(location) || unauthRoutes.contains(location)
+        return awaitingRoutes.contains(location) ||
+                unauthRoutes.contains(location) ||
+                location == register
             ? home
             : null;
       case VendorLifecycle.verified:

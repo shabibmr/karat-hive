@@ -1,4 +1,9 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'party.dart';
+
+part 'review.freezed.dart';
+part 'review.g.dart';
 
 enum ReviewState {
   pendingModeration,
@@ -16,68 +21,92 @@ enum ReviewState {
         'WITHDRAWN' => withdrawn,
         _ => unknown,
       };
+
+  String get wire => switch (this) {
+        pendingModeration => 'PENDING_MODERATION',
+        published => 'PUBLISHED',
+        rejected => 'REJECTED',
+        redacted => 'REDACTED',
+        withdrawn => 'WITHDRAWN',
+        unknown => 'UNKNOWN',
+      };
 }
 
-class ReviewVendorResponse {
-  const ReviewVendorResponse({required this.text, required this.state});
+class _ReviewStateConverter implements JsonConverter<ReviewState, String?> {
+  const _ReviewStateConverter();
 
-  final String text;
-  final ReviewState state;
+  @override
+  ReviewState fromJson(String? json) => ReviewState.parse(json);
 
-  static ReviewVendorResponse fromJson(Map<String, dynamic> j) =>
-      ReviewVendorResponse(
-        text: j['text'] as String? ?? '',
-        state: ReviewState.parse(j['state'] as String?),
-      );
+  @override
+  String toJson(ReviewState object) => object.wire;
 }
 
-class Review {
-  const Review({
-    required this.id,
-    required this.connectionId,
-    required this.authorType,
-    required this.rating,
-    required this.state,
-    required this.editableUntil,
-    required this.createdAt,
-    this.comment,
-    this.vendorResponse,
-    this.publishedAt,
-    this.authorDisplayName,
-  });
+class _PartyRoleConverter implements JsonConverter<PartyRole, String?> {
+  const _PartyRoleConverter();
 
-  final String id;
-  final String connectionId;
-  final PartyRole authorType;
-  final int rating;
-  final String? comment;
-  final ReviewState state;
-  final ReviewVendorResponse? vendorResponse;
-  final DateTime editableUntil;
-  final DateTime createdAt;
-  final DateTime? publishedAt;
-  final String? authorDisplayName;
+  @override
+  PartyRole fromJson(String? json) => PartyRole.parse(json);
 
-  static Review fromJson(Map<String, dynamic> j) {
-    final vr = j['vendorResponse'];
-    return Review(
-      id: j['id'] as String,
-      connectionId: j['connectionId'] as String,
-      authorType: PartyRole.parse(j['authorType'] as String?),
-      rating: (j['rating'] as num?)?.toInt() ?? 0,
-      comment: j['comment'] as String?,
-      state: ReviewState.parse(j['state'] as String?),
-      vendorResponse: vr is Map
-          ? ReviewVendorResponse.fromJson(Map<String, dynamic>.from(vr))
-          : null,
-      editableUntil: DateTime.tryParse(j['editableUntil'] as String? ?? '') ??
-          DateTime.fromMillisecondsSinceEpoch(0),
-      createdAt: DateTime.tryParse(j['createdAt'] as String? ?? '') ??
-          DateTime.fromMillisecondsSinceEpoch(0),
-      publishedAt: j['publishedAt'] is String
-          ? DateTime.tryParse(j['publishedAt'] as String)
-          : null,
-      authorDisplayName: j['authorDisplayName'] as String?,
-    );
-  }
+  @override
+  String toJson(PartyRole object) => object.wire;
+}
+
+Map<String, dynamic> _normalizeReviewVendorResponseJson(
+        Map<String, dynamic> json) =>
+    {
+      'text': json['text'] as String? ?? '',
+      'state': json['state']?.toString(),
+    };
+
+@freezed
+abstract class ReviewVendorResponse with _$ReviewVendorResponse {
+  const factory ReviewVendorResponse({
+    required String text,
+    @_ReviewStateConverter() required ReviewState state,
+  }) = _ReviewVendorResponse;
+
+  factory ReviewVendorResponse.fromJson(Map<String, dynamic> json) =>
+      _$ReviewVendorResponseFromJson(_normalizeReviewVendorResponseJson(json));
+}
+
+Map<String, dynamic> _normalizeReviewJson(Map<String, dynamic> json) {
+  final vr = json['vendorResponse'];
+  return {
+    ...json,
+    'authorType': json['authorType']?.toString(),
+    'rating': (json['rating'] as num?)?.toInt() ?? 0,
+    'state': json['state']?.toString(),
+    'vendorResponse':
+        vr is Map ? Map<String, dynamic>.from(vr) : null,
+    'editableUntil': (DateTime.tryParse(json['editableUntil'] as String? ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0))
+        .toIso8601String(),
+    'createdAt': (DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0))
+        .toIso8601String(),
+    'publishedAt': json['publishedAt'] is String
+        ? (DateTime.tryParse(json['publishedAt'] as String)?.toIso8601String())
+        : null,
+  };
+}
+
+@freezed
+abstract class Review with _$Review {
+  const factory Review({
+    required String id,
+    required String connectionId,
+    @_PartyRoleConverter() required PartyRole authorType,
+    required int rating,
+    @_ReviewStateConverter() required ReviewState state,
+    required DateTime editableUntil,
+    required DateTime createdAt,
+    String? comment,
+    ReviewVendorResponse? vendorResponse,
+    DateTime? publishedAt,
+    String? authorDisplayName,
+  }) = _Review;
+
+  factory Review.fromJson(Map<String, dynamic> json) =>
+      _$ReviewFromJson(_normalizeReviewJson(json));
 }

@@ -1,4 +1,9 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'request.dart';
+
+part 'gold_rate.freezed.dart';
+part 'gold_rate.g.dart';
 
 enum GoldRateSource {
   feed,
@@ -10,66 +15,89 @@ enum GoldRateSource {
         'MANUAL_OVERRIDE' => manualOverride,
         _ => unknown,
       };
+
+  String get wire => switch (this) {
+        feed => 'FEED',
+        manualOverride => 'MANUAL_OVERRIDE',
+        unknown => 'UNKNOWN',
+      };
 }
 
-class GoldRateRow {
-  const GoldRateRow({required this.karat, required this.ratePerGramAed});
+class _GoldRateSourceConverter
+    implements JsonConverter<GoldRateSource, String?> {
+  const _GoldRateSourceConverter();
 
-  final Karat karat;
-  final String ratePerGramAed;
+  @override
+  GoldRateSource fromJson(String? json) => GoldRateSource.parse(json);
+
+  @override
+  String toJson(GoldRateSource object) => object.wire;
 }
 
-class GoldRateSnapshot {
-  const GoldRateSnapshot({
-    required this.available,
-    required this.stale,
-    this.source = GoldRateSource.unknown,
-    this.sourceTimestamp,
-    this.ingestedAt,
-    this.staleAfter,
-    this.rates = const [],
-    this.disclaimer,
-    this.reason,
-  });
+class _KaratConverter implements JsonConverter<Karat, String?> {
+  const _KaratConverter();
 
-  final bool available;
-  final bool stale;
-  final GoldRateSource source;
-  final DateTime? sourceTimestamp;
-  final DateTime? ingestedAt;
-  final DateTime? staleAfter;
-  final List<GoldRateRow> rates;
-  final String? disclaimer;
-  final String? reason;
+  @override
+  Karat fromJson(String? json) => Karat.parse(json);
 
-  static GoldRateSnapshot fromJson(Map<String, dynamic> j) {
-    final ratesRaw = j['rates'] as List? ?? const [];
-    return GoldRateSnapshot(
-      available: j['available'] as bool? ?? false,
-      stale: j['stale'] as bool? ?? false,
-      source: GoldRateSource.parse(j['source'] as String?),
-      sourceTimestamp: j['sourceTimestamp'] is String
-          ? DateTime.tryParse(j['sourceTimestamp'] as String)
-          : null,
-      ingestedAt: j['ingestedAt'] is String
-          ? DateTime.tryParse(j['ingestedAt'] as String)
-          : null,
-      staleAfter: j['staleAfter'] is String
-          ? DateTime.tryParse(j['staleAfter'] as String)
-          : null,
-      rates: ratesRaw
-          .map((e) {
-            final m = e is Map<String, dynamic>
-                ? e
-                : Map<String, dynamic>.from(e as Map);
-            return GoldRateRow(
-              karat: Karat.parse(m['karat'] as String?),
-              ratePerGramAed: m['ratePerGramAed']?.toString() ?? '',
-            );
-          })
-          .toList(growable: false),
-      disclaimer: j['disclaimer'] as String?,
-      reason: j['reason'] as String?,
-    );
-  }
+  @override
+  String toJson(Karat object) => object.wire;
+}
+
+Map<String, dynamic> _normalizeGoldRateRowJson(Map<String, dynamic> json) => {
+      'karat': json['karat']?.toString(),
+      'ratePerGramAed': json['ratePerGramAed']?.toString() ?? '',
+    };
+
+@freezed
+abstract class GoldRateRow with _$GoldRateRow {
+  const factory GoldRateRow({
+    @_KaratConverter() required Karat karat,
+    required String ratePerGramAed,
+  }) = _GoldRateRow;
+
+  factory GoldRateRow.fromJson(Map<String, dynamic> json) =>
+      _$GoldRateRowFromJson(_normalizeGoldRateRowJson(json));
+}
+
+DateTime? _dt(Object? raw) {
+  if (raw is String && raw.isNotEmpty) return DateTime.tryParse(raw);
+  return null;
+}
+
+Map<String, dynamic> _normalizeGoldRateSnapshotJson(
+    Map<String, dynamic> json) {
+  final ratesRaw = json['rates'] as List? ?? const [];
+  return {
+    ...json,
+    'available': json['available'] as bool? ?? false,
+    'stale': json['stale'] as bool? ?? false,
+    'source': json['source']?.toString(),
+    'sourceTimestamp': _dt(json['sourceTimestamp'])?.toIso8601String(),
+    'ingestedAt': _dt(json['ingestedAt'])?.toIso8601String(),
+    'staleAfter': _dt(json['staleAfter'])?.toIso8601String(),
+    'rates': ratesRaw
+        .map((e) => e is Map<String, dynamic>
+            ? e
+            : Map<String, dynamic>.from(e as Map))
+        .toList(growable: false),
+  };
+}
+
+@freezed
+abstract class GoldRateSnapshot with _$GoldRateSnapshot {
+  const factory GoldRateSnapshot({
+    required bool available,
+    required bool stale,
+    @_GoldRateSourceConverter() @Default(GoldRateSource.unknown) GoldRateSource source,
+    DateTime? sourceTimestamp,
+    DateTime? ingestedAt,
+    DateTime? staleAfter,
+    @Default(<GoldRateRow>[]) List<GoldRateRow> rates,
+    String? disclaimer,
+    String? reason,
+  }) = _GoldRateSnapshot;
+
+  factory GoldRateSnapshot.fromJson(Map<String, dynamic> json) =>
+      _$GoldRateSnapshotFromJson(_normalizeGoldRateSnapshotJson(json));
 }

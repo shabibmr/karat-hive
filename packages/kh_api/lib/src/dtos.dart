@@ -128,30 +128,24 @@ abstract class UploadIntent with _$UploadIntent {
       _$UploadIntentFromJson(_normalizeUploadIntentJson(json));
 }
 
+Map<String, dynamic> _normalizeAuthSessionJson(Map<String, dynamic> json) => {
+      ...json,
+      'id': json['id'] as String,
+      'isCurrent': json['isCurrent'] as bool? ?? false,
+    };
+
 /// `GET /v1/auth/sessions` item — backend `SessionFamilyView`.
-class AuthSessionDto {
-  const AuthSessionDto({
-    required this.id,
-    this.deviceLabel,
-    this.lastIp,
-    required this.lastUsedAt,
-    required this.createdAt,
-    this.isCurrent = false,
-  });
+@freezed
+abstract class AuthSessionDto with _$AuthSessionDto {
+  const factory AuthSessionDto({
+    required String id,
+    String? deviceLabel,
+    String? lastIp,
+    required DateTime lastUsedAt,
+    required DateTime createdAt,
+    @Default(false) bool isCurrent,
+  }) = _AuthSessionDto;
 
-  final String id;
-  final String? deviceLabel;
-  final String? lastIp;
-  final DateTime lastUsedAt;
-  final DateTime createdAt;
-  final bool isCurrent;
-
-  static AuthSessionDto fromJson(Map<String, dynamic> j) => AuthSessionDto(
-        id: j['id'] as String,
-        deviceLabel: j['deviceLabel'] as String?,
-        lastIp: j['lastIp'] as String?,
-        lastUsedAt: DateTime.parse(j['lastUsedAt'] as String),
-        createdAt: DateTime.parse(j['createdAt'] as String),
-        isCurrent: j['isCurrent'] as bool? ?? false,
-      );
+  factory AuthSessionDto.fromJson(Map<String, dynamic> json) =>
+      _$AuthSessionDtoFromJson(_normalizeAuthSessionJson(json));
 }

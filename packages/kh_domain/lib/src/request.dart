@@ -1,4 +1,9 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'party.dart';
+
+part 'request.freezed.dart';
+part 'request.g.dart';
 
 enum RequestType {
   findOrnament,
@@ -124,6 +129,18 @@ enum OrnamentType {
         'OTHER' => other,
         _ => unknown,
       };
+
+  String get wire => switch (this) {
+        ring => 'RING',
+        chain => 'CHAIN',
+        bangle => 'BANGLE',
+        necklace => 'NECKLACE',
+        earring => 'EARRING',
+        bracelet => 'BRACELET',
+        pendant => 'PENDANT',
+        other => 'OTHER',
+        unknown => 'UNKNOWN',
+      };
 }
 
 enum ItemCondition {
@@ -139,6 +156,14 @@ enum ItemCondition {
         'USED' => used,
         'DAMAGED' => damaged,
         _ => unknown,
+      };
+
+  String get wire => switch (this) {
+        brandNew => 'NEW',
+        likeNew => 'LIKE_NEW',
+        used => 'USED',
+        damaged => 'DAMAGED',
+        unknown => 'UNKNOWN',
       };
 }
 
@@ -162,6 +187,17 @@ enum MediaPurpose {
         'EXPORT_ARTEFACT' => exportArtefact,
         _ => unknown,
       };
+
+  String get wire => switch (this) {
+        requestImage => 'REQUEST_IMAGE',
+        offerImage => 'OFFER_IMAGE',
+        profilePhoto => 'PROFILE_PHOTO',
+        vendorLogo => 'VENDOR_LOGO',
+        vendorShopPhoto => 'VENDOR_SHOP_PHOTO',
+        kycDocument => 'KYC_DOCUMENT',
+        exportArtefact => 'EXPORT_ARTEFACT',
+        unknown => 'UNKNOWN',
+      };
 }
 
 enum MediaState {
@@ -180,42 +216,65 @@ enum MediaState {
         'FAILED' => failed,
         _ => unknown,
       };
+
+  String get wire => switch (this) {
+        pendingUpload => 'PENDING_UPLOAD',
+        pendingProcessing => 'PENDING_PROCESSING',
+        ready => 'READY',
+        quarantined => 'QUARANTINED',
+        failed => 'FAILED',
+        unknown => 'UNKNOWN',
+      };
 }
 
-class MediaRef {
-  const MediaRef({
-    required this.id,
-    required this.key,
-    required this.state,
-    required this.purpose,
-    required this.contentType,
-    required this.byteSize,
-    required this.displayOrder,
-    this.thumbnailUrl,
-    this.displayUrl,
-  });
+class _MediaStateConverter implements JsonConverter<MediaState, String?> {
+  const _MediaStateConverter();
 
-  final String id;
-  final String key;
-  final MediaState state;
-  final MediaPurpose purpose;
-  final String contentType;
-  final int byteSize;
-  final int displayOrder;
-  final String? thumbnailUrl;
-  final String? displayUrl;
+  @override
+  MediaState fromJson(String? json) => MediaState.parse(json);
 
-  static MediaRef fromJson(Map<String, dynamic> j) => MediaRef(
-        id: j['id'] as String? ?? '',
-        key: j['key'] as String? ?? '',
-        state: MediaState.parse(j['state'] as String?),
-        purpose: MediaPurpose.parse(j['purpose'] as String?),
-        contentType: j['contentType'] as String? ?? '',
-        byteSize: (j['byteSize'] as num?)?.toInt() ?? 0,
-        displayOrder: (j['displayOrder'] as num?)?.toInt() ?? 0,
-        thumbnailUrl: j['thumbnailUrl'] as String?,
-        displayUrl: j['displayUrl'] as String?,
-      );
+  @override
+  String toJson(MediaState object) => object.wire;
+}
+
+class _MediaPurposeConverter implements JsonConverter<MediaPurpose, String?> {
+  const _MediaPurposeConverter();
+
+  @override
+  MediaPurpose fromJson(String? json) => MediaPurpose.parse(json);
+
+  @override
+  String toJson(MediaPurpose object) => object.wire;
+}
+
+Map<String, dynamic> _normalizeMediaRefJson(Map<String, dynamic> json) => {
+      'id': json['id'] as String? ?? '',
+      'key': json['key'] as String? ?? '',
+      'state': json['state']?.toString(),
+      'purpose': json['purpose']?.toString(),
+      'contentType': json['contentType'] as String? ?? '',
+      'byteSize': (json['byteSize'] as num?)?.toInt() ?? 0,
+      'displayOrder': (json['displayOrder'] as num?)?.toInt() ?? 0,
+      'thumbnailUrl': json['thumbnailUrl'] as String?,
+      'displayUrl': json['displayUrl'] as String?,
+    };
+
+@freezed
+abstract class MediaRef with _$MediaRef {
+  const factory MediaRef({
+    required String id,
+    required String key,
+    @_MediaStateConverter() required MediaState state,
+    @_MediaPurposeConverter() required MediaPurpose purpose,
+    required String contentType,
+    required int byteSize,
+    required int displayOrder,
+    String? thumbnailUrl,
+    String? displayUrl,
+  }) = _MediaRef;
+
+  factory MediaRef.fromJson(Map<String, dynamic> json) =>
+      _$MediaRefFromJson(_normalizeMediaRefJson(json));
 }
 
 DateTime? _dt(Object? raw) {
@@ -229,117 +288,143 @@ Map<String, dynamic> _map(Object? raw) {
   return const {};
 }
 
+class _RequestTypeConverter implements JsonConverter<RequestType, String?> {
+  const _RequestTypeConverter();
+
+  @override
+  RequestType fromJson(String? json) => RequestType.parse(json);
+
+  @override
+  String toJson(RequestType object) => object.wire;
+}
+
+class _DirectionConverter implements JsonConverter<Direction, String?> {
+  const _DirectionConverter();
+
+  @override
+  Direction fromJson(String? json) => Direction.parse(json);
+
+  @override
+  String toJson(Direction object) => object.wire;
+}
+
+class _RequestStateConverter implements JsonConverter<RequestState, String?> {
+  const _RequestStateConverter();
+
+  @override
+  RequestState fromJson(String? json) => RequestState.parse(json);
+
+  @override
+  String toJson(RequestState object) => object.wire;
+}
+
+class _NullableKaratConverter implements JsonConverter<Karat?, String?> {
+  const _NullableKaratConverter();
+
+  @override
+  Karat? fromJson(String? json) => json == null ? null : Karat.parse(json);
+
+  @override
+  String? toJson(Karat? object) => object?.wire;
+}
+
+class _NullableOrnamentTypeConverter
+    implements JsonConverter<OrnamentType?, String?> {
+  const _NullableOrnamentTypeConverter();
+
+  @override
+  OrnamentType? fromJson(String? json) =>
+      json == null ? null : OrnamentType.parse(json);
+
+  @override
+  String? toJson(OrnamentType? object) => object?.wire;
+}
+
+class _NullableItemConditionConverter
+    implements JsonConverter<ItemCondition?, String?> {
+  const _NullableItemConditionConverter();
+
+  @override
+  ItemCondition? fromJson(String? json) =>
+      json == null ? null : ItemCondition.parse(json);
+
+  @override
+  String? toJson(ItemCondition? object) => object?.wire;
+}
+
+Map<String, dynamic> _normalizeRequestForCustomerJson(
+    Map<String, dynamic> json) {
+  final mediaRaw = json['media'] as List? ?? const [];
+  return {
+    ...json,
+    'requestType': json['requestType']?.toString(),
+    'direction': json['direction']?.toString(),
+    'state': json['state']?.toString(),
+    'category': _map(json['category']),
+    'region': _map(json['region']),
+    'weightGrams': json['weightGrams']?.toString(),
+    'weightIsApproximate': json['weightIsApproximate'] as bool? ?? false,
+    'purityKarat': json['purityKarat']?.toString(),
+    'ornamentType': json['ornamentType']?.toString(),
+    'condition': json['condition']?.toString(),
+    'denominationGrams': json['denominationGrams']?.toString(),
+    'budgetMin': json['budgetMin']?.toString(),
+    'budgetMax': json['budgetMax']?.toString(),
+    'budgetIsFlexible': json['budgetIsFlexible'] as bool? ?? false,
+    'indicativeValue': json['indicativeValue']?.toString(),
+    'publishedAt': _dt(json['publishedAt'])?.toIso8601String(),
+    'expiresAt': _dt(json['expiresAt'])?.toIso8601String(),
+    'offerCount': (json['offerCount'] as num?)?.toInt() ?? 0,
+    'media': mediaRaw.map((e) => _map(e)).toList(growable: false),
+    'createdAt':
+        (_dt(json['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+            .toIso8601String(),
+    'updatedAt':
+        (_dt(json['updatedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+            .toIso8601String(),
+  };
+}
+
 /// Owner presenter (`RequestForCustomer`). No Vendor identity fields.
-class RequestForCustomer {
-  const RequestForCustomer({
-    required this.id,
-    required this.requestType,
-    required this.direction,
-    required this.state,
-    required this.category,
-    required this.region,
-    required this.weightIsApproximate,
-    required this.budgetIsFlexible,
-    required this.offerCount,
-    required this.media,
-    required this.createdAt,
-    required this.updatedAt,
-    this.reference,
-    this.notes,
-    this.weightGrams,
-    this.purityKarat,
-    this.ornamentType,
-    this.condition,
-    this.denominationGrams,
-    this.quantity,
-    this.mintOrRefiner,
-    this.budgetMin,
-    this.budgetMax,
-    this.indicativeValue,
-    this.publishedAt,
-    this.expiresAt,
-    this.cancellationReason,
-    this.acceptedOfferId,
-    this.unreadOfferCount,
-    this.connectionId,
-  });
+@freezed
+abstract class RequestForCustomer with _$RequestForCustomer {
+  const factory RequestForCustomer({
+    required String id,
+    @_RequestTypeConverter() required RequestType requestType,
+    @_DirectionConverter() required Direction direction,
+    @_RequestStateConverter() required RequestState state,
+    required CategorySummary category,
+    required RegionSummary region,
+    required bool weightIsApproximate,
+    required bool budgetIsFlexible,
+    required int offerCount,
+    required List<MediaRef> media,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    String? reference,
+    String? notes,
+    String? weightGrams,
+    @_NullableKaratConverter() Karat? purityKarat,
+    @_NullableOrnamentTypeConverter() OrnamentType? ornamentType,
+    @_NullableItemConditionConverter() ItemCondition? condition,
+    String? denominationGrams,
+    int? quantity,
+    String? mintOrRefiner,
+    String? budgetMin,
+    String? budgetMax,
+    String? indicativeValue,
+    DateTime? publishedAt,
+    DateTime? expiresAt,
+    String? cancellationReason,
+    String? acceptedOfferId,
 
-  final String id;
-  final String? reference;
-  final RequestType requestType;
-  final Direction direction;
-  final RequestState state;
-  final CategorySummary category;
-  final RegionSummary region;
-  final String? notes;
-  final String? weightGrams;
-  final bool weightIsApproximate;
-  final Karat? purityKarat;
-  final OrnamentType? ornamentType;
-  final ItemCondition? condition;
-  final String? denominationGrams;
-  final int? quantity;
-  final String? mintOrRefiner;
-  final String? budgetMin;
-  final String? budgetMax;
-  final bool budgetIsFlexible;
-  final String? indicativeValue;
-  final DateTime? publishedAt;
-  final DateTime? expiresAt;
-  final int offerCount;
-  final List<MediaRef> media;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final String? cancellationReason;
-  final String? acceptedOfferId;
+    /// Absent on the wire → UI hides the unread marker (CM-K01 / SAM-GAP-1).
+    int? unreadOfferCount,
 
-  /// Absent on the wire → UI hides the unread marker (CM-K01 / SAM-GAP-1).
-  final int? unreadOfferCount;
+    /// Absent unless ACCEPTED and the Connection join is present (SAM-GAP-3).
+    String? connectionId,
+  }) = _RequestForCustomer;
 
-  /// Absent unless ACCEPTED and the Connection join is present (SAM-GAP-3).
-  final String? connectionId;
-
-  static RequestForCustomer fromJson(Map<String, dynamic> j) {
-    final mediaRaw = j['media'] as List? ?? const [];
-    return RequestForCustomer(
-      id: j['id'] as String,
-      reference: j['reference'] as String?,
-      requestType: RequestType.parse(j['requestType'] as String?),
-      direction: Direction.parse(j['direction'] as String?),
-      state: RequestState.parse(j['state'] as String?),
-      category: CategorySummary.fromJson(_map(j['category'])),
-      region: RegionSummary.fromJson(_map(j['region'])),
-      notes: j['notes'] as String?,
-      weightGrams: j['weightGrams']?.toString(),
-      weightIsApproximate: j['weightIsApproximate'] as bool? ?? false,
-      purityKarat: j['purityKarat'] == null
-          ? null
-          : Karat.parse(j['purityKarat'] as String?),
-      ornamentType: j['ornamentType'] == null
-          ? null
-          : OrnamentType.parse(j['ornamentType'] as String?),
-      condition: j['condition'] == null
-          ? null
-          : ItemCondition.parse(j['condition'] as String?),
-      denominationGrams: j['denominationGrams']?.toString(),
-      quantity: (j['quantity'] as num?)?.toInt(),
-      mintOrRefiner: j['mintOrRefiner'] as String?,
-      budgetMin: j['budgetMin']?.toString(),
-      budgetMax: j['budgetMax']?.toString(),
-      budgetIsFlexible: j['budgetIsFlexible'] as bool? ?? false,
-      indicativeValue: j['indicativeValue']?.toString(),
-      publishedAt: _dt(j['publishedAt']),
-      expiresAt: _dt(j['expiresAt']),
-      offerCount: (j['offerCount'] as num?)?.toInt() ?? 0,
-      media: mediaRaw
-          .map((e) => MediaRef.fromJson(_map(e)))
-          .toList(growable: false),
-      createdAt: _dt(j['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
-      updatedAt: _dt(j['updatedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
-      cancellationReason: j['cancellationReason'] as String?,
-      acceptedOfferId: j['acceptedOfferId'] as String?,
-      unreadOfferCount: (j['unreadOfferCount'] as num?)?.toInt(),
-      connectionId: j['connectionId'] as String?,
-    );
-  }
+  factory RequestForCustomer.fromJson(Map<String, dynamic> json) =>
+      _$RequestForCustomerFromJson(_normalizeRequestForCustomerJson(json));
 }

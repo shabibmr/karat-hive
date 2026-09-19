@@ -61,9 +61,10 @@ void main() {
         AppGuards.redirect(const SignedOut(), AppGuards.login),
         isNull,
       );
+      // Vendor register requires Google sign-in first (ADR-0010).
       expect(
         AppGuards.redirect(const SignedOut(), AppGuards.register),
-        isNull,
+        AppGuards.login,
       );
       expect(
         AppGuards.redirect(const SignedOut(), AppGuards.customerGuest),

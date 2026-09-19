@@ -97,15 +97,6 @@ class VendorLoginScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           Center(
             child: TextButton(
-              onPressed: () => context.go(AppGuards.register),
-              child: Text(
-                l10n?.authRegister ?? 'Register new vendor business',
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: TextButton(
               onPressed: () => context.go(AppGuards.customerOnboarding),
               child: const Text('Looking to buy or sell gold? Switch to Customer'),
             ),

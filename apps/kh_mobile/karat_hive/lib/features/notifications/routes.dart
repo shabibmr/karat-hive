@@ -1,14 +1,14 @@
 import 'package:go_router/go_router.dart';
 
 import '../../app/guards.dart';
-import 'presentation/stubs.dart';
+import 'presentation/customer_notification_centre_screen.dart';
 import 'presentation/vendor_notification_centre_screen.dart';
 
 /// Customer alerts tab root (CUS-S19) — path `/customer/alerts`.
 final notificationsRoutes = [
   GoRoute(
     path: AppGuards.customerAlerts,
-    builder: (_, __) => const NotificationCentreScreen(),
+    builder: (_, __) => const CustomerNotificationCentreScreen(),
   ),
 ];
 

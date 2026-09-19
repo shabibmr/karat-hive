@@ -65,3 +65,23 @@ Map<String, dynamic> _$UploadIntentToJson(_UploadIntent instance) =>
       'requiredHeaders': instance.requiredHeaders,
       'maxBytes': instance.maxBytes,
     };
+
+_AuthSessionDto _$AuthSessionDtoFromJson(Map<String, dynamic> json) =>
+    _AuthSessionDto(
+      id: json['id'] as String,
+      deviceLabel: json['deviceLabel'] as String?,
+      lastIp: json['lastIp'] as String?,
+      lastUsedAt: DateTime.parse(json['lastUsedAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      isCurrent: json['isCurrent'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$AuthSessionDtoToJson(_AuthSessionDto instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'deviceLabel': instance.deviceLabel,
+      'lastIp': instance.lastIp,
+      'lastUsedAt': instance.lastUsedAt.toIso8601String(),
+      'createdAt': instance.createdAt.toIso8601String(),
+      'isCurrent': instance.isCurrent,
+    };

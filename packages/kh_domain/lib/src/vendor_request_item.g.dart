@@ -66,6 +66,6 @@ Map<String, dynamic> _$VendorRequestItemToJson(_VendorRequestItem instance) =>
       'offerCount': instance.offerCount,
       'viewedAt': instance.viewedAt?.toIso8601String(),
       'hasResponded': instance.hasResponded,
-      'customer': instance.customer,
-      'media': instance.media,
+      'customer': instance.customer.toJson(),
+      'media': instance.media.map((e) => e.toJson()).toList(),
     };

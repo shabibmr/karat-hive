@@ -2,6 +2,11 @@
 /// read identity (AD-FE-07, BR-006, NFR-013).
 library;
 
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'party.freezed.dart';
+part 'party.g.dart';
+
 enum UserRole {
   customer,
   vendor,
@@ -48,39 +53,38 @@ enum AccountState {
       };
 }
 
-class RegionSummary {
-  const RegionSummary({
-    required this.id,
-    required this.nameEn,
-    required this.nameAr,
-    this.isActive = true,
-    this.displayOrder = 0,
-  });
+Map<String, dynamic> _normalizeRegionSummaryJson(Map<String, dynamic> json) => {
+      'id': json['id'] as String? ?? '',
+      'nameEn': json['nameEn'] as String? ?? '',
+      'nameAr': json['nameAr'] as String? ?? '',
+      'isActive': json['isActive'] as bool? ?? true,
+      'displayOrder': json['displayOrder'] as int? ?? 0,
+    };
 
-  const RegionSummary.named(String name)
-      : id = name,
-        nameEn = name,
-        nameAr = name,
-        isActive = true,
-        displayOrder = 0;
+@freezed
+abstract class RegionSummary with _$RegionSummary {
+  const RegionSummary._();
 
-  final String id;
-  final String nameEn;
-  final String nameAr;
-  final bool isActive;
-  final int displayOrder;
+  const factory RegionSummary({
+    required String id,
+    required String nameEn,
+    required String nameAr,
+    @Default(true) bool isActive,
+    @Default(0) int displayOrder,
+  }) = _RegionSummary;
+
+  factory RegionSummary.named(String name) => RegionSummary(
+        id: name,
+        nameEn: name,
+        nameAr: name,
+      );
+
+  factory RegionSummary.fromJson(Map<String, dynamic> json) =>
+      _$RegionSummaryFromJson(_normalizeRegionSummaryJson(json));
 
   String name(String locale) => locale == 'ar' ? nameAr : nameEn;
 
   bool get isNotEmpty => id.isNotEmpty || nameEn.isNotEmpty;
-
-  static RegionSummary fromJson(Map<String, dynamic> j) => RegionSummary(
-        id: j['id'] as String? ?? '',
-        nameEn: j['nameEn'] as String? ?? '',
-        nameAr: j['nameAr'] as String? ?? '',
-        isActive: j['isActive'] as bool? ?? true,
-        displayOrder: j['displayOrder'] as int? ?? 0,
-      );
 
   static RegionSummary? tryParse(Object? raw) {
     if (raw is RegionSummary) return raw;
@@ -96,33 +100,32 @@ class RegionSummary {
   String toString() => nameEn;
 }
 
-class CategorySummary {
-  const CategorySummary({
-    required this.id,
-    required this.nameEn,
-    required this.nameAr,
-    this.isActive = true,
-    this.displayOrder = 0,
-    this.icon,
-  });
+Map<String, dynamic> _normalizeCategorySummaryJson(Map<String, dynamic> json) => {
+      'id': json['id'] as String? ?? '',
+      'nameEn': json['nameEn'] as String? ?? '',
+      'nameAr': json['nameAr'] as String? ?? '',
+      'isActive': json['isActive'] as bool? ?? true,
+      'displayOrder': json['displayOrder'] as int? ?? 0,
+      'icon': json['icon'] as String?,
+    };
 
-  final String id;
-  final String nameEn;
-  final String nameAr;
-  final bool isActive;
-  final int displayOrder;
-  final String? icon;
+@freezed
+abstract class CategorySummary with _$CategorySummary {
+  const CategorySummary._();
+
+  const factory CategorySummary({
+    required String id,
+    required String nameEn,
+    required String nameAr,
+    @Default(true) bool isActive,
+    @Default(0) int displayOrder,
+    String? icon,
+  }) = _CategorySummary;
+
+  factory CategorySummary.fromJson(Map<String, dynamic> json) =>
+      _$CategorySummaryFromJson(_normalizeCategorySummaryJson(json));
 
   String name(String locale) => locale == 'ar' ? nameAr : nameEn;
-
-  static CategorySummary fromJson(Map<String, dynamic> j) => CategorySummary(
-        id: j['id'] as String? ?? '',
-        nameEn: j['nameEn'] as String? ?? '',
-        nameAr: j['nameAr'] as String? ?? '',
-        isActive: j['isActive'] as bool? ?? true,
-        displayOrder: j['displayOrder'] as int? ?? 0,
-        icon: j['icon'] as String?,
-      );
 
   static CategorySummary? tryParse(Object? raw) {
     if (raw is CategorySummary) return raw;

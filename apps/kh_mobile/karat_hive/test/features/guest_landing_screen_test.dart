@@ -44,8 +44,8 @@ GoRouter _landingRouter({String initialLocation = AppGuards.customerGuest}) {
         builder: (_, __) => const Scaffold(body: Text('login-stub')),
       ),
       GoRoute(
-        path: AppGuards.register,
-        builder: (_, __) => const Scaffold(body: Text('register-stub')),
+        path: AppGuards.login,
+        builder: (_, __) => const Scaffold(body: Text('vendor-login-stub')),
       ),
       GoRoute(
         path: RequestCreatePaths.ornament,
@@ -169,7 +169,7 @@ void main() {
     expect(router.state.uri.path, AppGuards.customerOnboarding);
   });
 
-  testWidgets('jeweller footer navigates to vendor register stub', (
+  testWidgets('jeweller footer navigates to vendor login stub', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(800, 1400);
@@ -185,11 +185,11 @@ void main() {
     await tester.tap(find.byKey(const Key('guest-jeweller')));
     await tester.pumpAndSettle();
 
-    expect(find.text('register-stub'), findsOneWidget);
-    expect(router.state.uri.path, AppGuards.register);
+    expect(find.text('vendor-login-stub'), findsOneWidget);
+    expect(router.state.uri.path, AppGuards.login);
   });
 
-  testWidgets('jeweller mid-create drops draft then opens vendor register', (
+  testWidgets('jeweller mid-create drops draft then opens vendor login', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(800, 1400);
@@ -242,8 +242,8 @@ void main() {
     expect(after.requestType, isNull);
     expect(after.notes, isEmpty);
     expect(after.weightGrams, isNull);
-    expect(find.text('register-stub'), findsOneWidget);
-    expect(router.state.uri.path, AppGuards.register);
+    expect(find.text('vendor-login-stub'), findsOneWidget);
+    expect(router.state.uri.path, AppGuards.login);
   });
 
   testWidgets('ornament card sets RequestType and opens compose path', (

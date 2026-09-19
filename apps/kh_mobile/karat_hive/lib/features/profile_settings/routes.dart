@@ -4,8 +4,9 @@ import '../../app/guards.dart';
 import 'presentation/business_profile_screen.dart';
 import 'presentation/categories_regions_screen.dart';
 import 'presentation/customer_profile_screen.dart';
+import 'presentation/customer_settings_screen.dart';
 import 'presentation/settings_screen.dart';
-import 'presentation/stubs.dart';
+import 'presentation/vendor_documents_screen.dart';
 
 /// Customer profile tab (CUS-S20) + nested settings (CUS-S21).
 final profileSettingsRoutes = [
@@ -45,7 +46,7 @@ final vendorProfileSettingsRoutes = [
       ),
       GoRoute(
         path: 'documents',
-        builder: (_, __) => const VendorProfileDocumentsStub(),
+        builder: (_, __) => const VendorDocumentsScreen(),
       ),
     ],
   ),

@@ -7,6 +7,7 @@ import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
 import '../../request_create/controller/request_create_controller.dart';
+import '../../request_create/pending_publish_intent.dart';
 import '../../request_create/routes.dart';
 import '../controller/customer_home_controller.dart';
 import 'customer_copy.dart';
@@ -130,6 +131,15 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                 tokens.space.xl * 3,
               ),
               children: [
+                if (ref.watch(pendingPublishIntentProvider)) ...[
+                  _RetryPublicationBanner(
+                    key: const Key('retry-publication-banner'),
+                    onRetry: () => ref
+                        .read(requestCreateControllerProvider.notifier)
+                        .reconcilePendingPublish(),
+                  ),
+                  SizedBox(height: tokens.space.lg),
+                ],
                 // Top section: 2x2 Request Types Grid
                 _RequestTypesSection(
                   title: s.s('guest.headline'),
@@ -195,6 +205,38 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// GL-58: surfaced when a pending guest publish couldn't auto-complete
+/// (e.g. offline at the time) so the user can retry it manually.
+class _RetryPublicationBanner extends StatelessWidget {
+  const _RetryPublicationBanner({super.key, required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(tokens.space.md),
+        child: Row(
+          children: [
+            Icon(Icons.cloud_upload_outlined, color: tokens.gold),
+            SizedBox(width: tokens.space.sm),
+            Expanded(
+              child: Text(
+                'Your request could not be published yet.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+            SizedBox(width: tokens.space.sm),
+            KhButton(label: 'Retry', onPressed: onRetry),
+          ],
+        ),
       ),
     );
   }

@@ -1,7 +1,12 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'offer.dart';
 import 'party.dart';
 import 'request.dart';
 import 'review.dart';
+
+part 'connection.freezed.dart';
+part 'connection.g.dart';
 
 enum ConnectionState {
   active,
@@ -33,22 +38,72 @@ enum ClosedBy {
         'ADMIN' => admin,
         _ => unknown,
       };
+
+  String get wire => switch (this) {
+        customer => 'CUSTOMER',
+        vendor => 'VENDOR',
+        admin => 'ADMIN',
+        unknown => 'UNKNOWN',
+      };
 }
 
-class TalkPayload {
-  const TalkPayload({
-    required this.waUrl,
-    required this.mobileNumber,
-    required this.available,
-    this.prefilledMessage = '',
-    this.callUrl = '',
-  });
+class _ConnectionStateConverter
+    implements JsonConverter<ConnectionState, String?> {
+  const _ConnectionStateConverter();
 
-  final String waUrl;
-  final String mobileNumber;
-  final String prefilledMessage;
-  final bool available;
-  final String callUrl;
+  @override
+  ConnectionState fromJson(String? json) => ConnectionState.parse(json);
+
+  @override
+  String toJson(ConnectionState object) => object.wire;
+}
+
+class _NullableClosedByConverter implements JsonConverter<ClosedBy?, String?> {
+  const _NullableClosedByConverter();
+
+  @override
+  ClosedBy? fromJson(String? json) => json == null ? null : ClosedBy.parse(json);
+
+  @override
+  String? toJson(ClosedBy? object) => object?.wire;
+}
+
+Map<String, dynamic> _map(Object? raw) {
+  if (raw is Map<String, dynamic>) return raw;
+  if (raw is Map) return Map<String, dynamic>.from(raw);
+  return const {};
+}
+
+DateTime? _dt(Object? raw) {
+  if (raw is String && raw.isNotEmpty) return DateTime.tryParse(raw);
+  return null;
+}
+
+Map<String, dynamic> _normalizeTalkPayloadJson(Map<String, dynamic> json) {
+  final mobile = (json['mobileNumber'] ?? json['phone'] ?? '') as String;
+  return {
+    'waUrl': json['waUrl'] as String? ?? '',
+    'mobileNumber': mobile,
+    'prefilledMessage': json['prefilledMessage'] as String? ?? '',
+    'available': json['available'] as bool? ?? false,
+    'callUrl': json['callUrl'] as String? ?? '',
+  };
+}
+
+@freezed
+abstract class TalkPayload with _$TalkPayload {
+  const TalkPayload._();
+
+  const factory TalkPayload({
+    required String waUrl,
+    required String mobileNumber,
+    required bool available,
+    @Default('') String prefilledMessage,
+    @Default('') String callUrl,
+  }) = _TalkPayload;
+
+  factory TalkPayload.fromJson(Map<String, dynamic> json) =>
+      _$TalkPayloadFromJson(_normalizeTalkPayloadJson(json));
 
   /// True when the server supplied a usable `wa.me` URL. Widgets must not
   /// invent a URL from [mobileNumber] (C-03).
@@ -65,212 +120,202 @@ class TalkPayload {
 
   /// Normalised E.164 phone number via [PhoneNumber] (Architecture-Frontend §10.3).
   PhoneNumber get phoneNumber => PhoneNumber.parse(mobileNumber);
-
-  static TalkPayload fromJson(Map<String, dynamic> j) {
-    final mobile = (j['mobileNumber'] ?? j['phone'] ?? '') as String;
-    return TalkPayload(
-      waUrl: j['waUrl'] as String? ?? '',
-      mobileNumber: mobile,
-      prefilledMessage: j['prefilledMessage'] as String? ?? '',
-      available: j['available'] as bool? ?? false,
-      callUrl: j['callUrl'] as String? ?? '',
-    );
-  }
 }
 
-class ConnectionRequestSnapshot {
-  const ConnectionRequestSnapshot({
-    required this.id,
-    required this.requestType,
-    required this.direction,
-    this.reference,
-    this.category,
-    this.region,
-  });
+Map<String, dynamic> _normalizeConnectionRequestSnapshotJson(
+        Map<String, dynamic> json) =>
+    {
+      'id': json['id'] as String? ?? '',
+      'reference': json['reference'] as String?,
+      'requestType': json['requestType']?.toString(),
+      'direction': json['direction']?.toString(),
+      'category': CategorySummary.tryParse(json['category'])?.toJson(),
+      'region': RegionSummary.tryParse(json['region'])?.toJson(),
+    };
 
-  final String id;
-  final String? reference;
-  final RequestType requestType;
-  final Direction direction;
-  final CategorySummary? category;
-  final RegionSummary? region;
+class _RequestTypeConverter implements JsonConverter<RequestType, String?> {
+  const _RequestTypeConverter();
 
-  static ConnectionRequestSnapshot fromJson(Map<String, dynamic> j) =>
-      ConnectionRequestSnapshot(
-        id: j['id'] as String? ?? '',
-        reference: j['reference'] as String?,
-        requestType: RequestType.parse(j['requestType'] as String?),
-        direction: Direction.parse(j['direction'] as String?),
-        category: CategorySummary.tryParse(j['category']),
-        region: RegionSummary.tryParse(j['region']),
-      );
+  @override
+  RequestType fromJson(String? json) => RequestType.parse(json);
+
+  @override
+  String toJson(RequestType object) => object.wire;
 }
 
-class ConnectionAcceptedOffer {
-  const ConnectionAcceptedOffer({
-    required this.id,
-    required this.terms,
-    this.submittedAt,
-  });
+class _DirectionConverter implements JsonConverter<Direction, String?> {
+  const _DirectionConverter();
 
-  final String id;
-  final OfferTerms terms;
-  final DateTime? submittedAt;
+  @override
+  Direction fromJson(String? json) => Direction.parse(json);
 
-  static ConnectionAcceptedOffer fromJson(Map<String, dynamic> j) {
-    final nested = j['terms'];
-    final termsJson = nested is Map
-        ? Map<String, dynamic>.from(nested)
-        : j;
-    return ConnectionAcceptedOffer(
-      id: j['id'] as String? ?? '',
-      terms: OfferTerms.fromJson(termsJson),
-      submittedAt: j['submittedAt'] is String
-          ? DateTime.tryParse(j['submittedAt'] as String)
-          : null,
-    );
-  }
+  @override
+  String toJson(Direction object) => object.wire;
 }
 
-DateTime? _dt(Object? raw) {
-  if (raw is String && raw.isNotEmpty) return DateTime.tryParse(raw);
-  return null;
+@freezed
+abstract class ConnectionRequestSnapshot with _$ConnectionRequestSnapshot {
+  const factory ConnectionRequestSnapshot({
+    required String id,
+    @_RequestTypeConverter() required RequestType requestType,
+    @_DirectionConverter() required Direction direction,
+    String? reference,
+    CategorySummary? category,
+    RegionSummary? region,
+  }) = _ConnectionRequestSnapshot;
+
+  factory ConnectionRequestSnapshot.fromJson(Map<String, dynamic> json) =>
+      _$ConnectionRequestSnapshotFromJson(
+          _normalizeConnectionRequestSnapshotJson(json));
 }
 
-Map<String, dynamic> _map(Object? raw) {
-  if (raw is Map<String, dynamic>) return raw;
-  if (raw is Map) return Map<String, dynamic>.from(raw);
-  return const {};
+OfferTerms _connectionOfferTermsFromJson(Object? raw) =>
+    OfferTerms.fromJson(_map(raw));
+
+Map<String, dynamic> _connectionOfferTermsToJson(OfferTerms terms) =>
+    terms.toJson();
+
+Map<String, dynamic> _normalizeConnectionAcceptedOfferJson(
+    Map<String, dynamic> json) {
+  final nested = json['terms'];
+  final termsJson = nested is Map ? Map<String, dynamic>.from(nested) : json;
+  return {
+    'id': json['id'] as String? ?? '',
+    'terms': termsJson,
+    'submittedAt': json['submittedAt'] is String
+        ? (DateTime.tryParse(json['submittedAt'] as String)?.toIso8601String())
+        : null,
+  };
+}
+
+@freezed
+abstract class ConnectionAcceptedOffer with _$ConnectionAcceptedOffer {
+  const factory ConnectionAcceptedOffer({
+    required String id,
+    @JsonKey(
+      fromJson: _connectionOfferTermsFromJson,
+      toJson: _connectionOfferTermsToJson,
+    )
+    required OfferTerms terms,
+    DateTime? submittedAt,
+  }) = _ConnectionAcceptedOffer;
+
+  factory ConnectionAcceptedOffer.fromJson(Map<String, dynamic> json) =>
+      _$ConnectionAcceptedOfferFromJson(
+          _normalizeConnectionAcceptedOfferJson(json));
+}
+
+RevealedParty _vendorPartyFromJson(Object? raw) =>
+    RevealedParty.fromVendorJson(_map(raw));
+
+RevealedParty _customerPartyFromJson(Object? raw) =>
+    RevealedParty.fromCustomerJson(_map(raw));
+
+Map<String, dynamic> _normalizeConnectionForCustomerJson(
+    Map<String, dynamic> json) {
+  final accepted = json['acceptedOffer'] ?? json['offer'];
+  return {
+    ...json,
+    'state': json['state']?.toString(),
+    'identityRevealedAt':
+        (_dt(json['identityRevealedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+            .toIso8601String(),
+    'request':
+        json['request'] == null ? null : _map(json['request']),
+    'acceptedOffer': accepted == null ? null : _map(accepted),
+    'closedAt': _dt(json['closedAt'])?.toIso8601String(),
+    'closedBy': json['closedBy']?.toString(),
+    'createdAt': _dt(json['createdAt'])?.toIso8601String(),
+    'myReview': json['myReview'] is Map
+        ? Map<String, dynamic>.from(json['myReview'] as Map)
+        : null,
+  };
 }
 
 /// Customer Connection presenter — the only place revealed Vendor fields exist (BR-007).
-class ConnectionForCustomer {
-  const ConnectionForCustomer({
-    required this.id,
-    required this.state,
-    required this.vendor,
-    required this.talk,
-    required this.identityRevealedAt,
-    this.request,
-    this.acceptedOffer,
-    this.closedAt,
-    this.closedBy,
-    this.offerId,
-    this.requestId,
-    this.createdAt,
-    this.myReview,
-  });
+@freezed
+abstract class ConnectionForCustomer with _$ConnectionForCustomer {
+  const factory ConnectionForCustomer({
+    required String id,
+    @_ConnectionStateConverter() required ConnectionState state,
+    @JsonKey(fromJson: _vendorPartyFromJson) required RevealedParty vendor,
+    required TalkPayload talk,
+    required DateTime identityRevealedAt,
+    ConnectionRequestSnapshot? request,
+    ConnectionAcceptedOffer? acceptedOffer,
+    DateTime? closedAt,
+    @_NullableClosedByConverter() ClosedBy? closedBy,
+    String? offerId,
+    String? requestId,
+    DateTime? createdAt,
+    Review? myReview,
+  }) = _ConnectionForCustomer;
 
-  final String id;
-  final ConnectionState state;
-  final RevealedParty vendor;
-  final TalkPayload talk;
-  final DateTime identityRevealedAt;
-  final ConnectionRequestSnapshot? request;
-  final ConnectionAcceptedOffer? acceptedOffer;
-  final DateTime? closedAt;
-  final ClosedBy? closedBy;
-  final String? offerId;
-  final String? requestId;
-  final DateTime? createdAt;
-  final Review? myReview;
-
-  static ConnectionForCustomer fromJson(Map<String, dynamic> j) {
-    final accepted = j['acceptedOffer'] ?? j['offer'];
-    return ConnectionForCustomer(
-      id: j['id'] as String,
-      state: ConnectionState.parse(j['state'] as String?),
-      vendor: RevealedParty.fromVendorJson(_map(j['vendor'])),
-      talk: TalkPayload.fromJson(_map(j['talk'])),
-      identityRevealedAt:
-          _dt(j['identityRevealedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
-      request: j['request'] == null
-          ? null
-          : ConnectionRequestSnapshot.fromJson(_map(j['request'])),
-      acceptedOffer: accepted == null
-          ? null
-          : ConnectionAcceptedOffer.fromJson(_map(accepted)),
-      closedAt: _dt(j['closedAt']),
-      closedBy: j['closedBy'] == null ? null : ClosedBy.parse(j['closedBy'] as String?),
-      offerId: j['offerId'] as String?,
-      requestId: j['requestId'] as String?,
-      createdAt: _dt(j['createdAt']),
-      myReview: j['myReview'] is Map
-          ? Review.fromJson(Map<String, dynamic>.from(j['myReview'] as Map))
-          : null,
-    );
-  }
+  factory ConnectionForCustomer.fromJson(Map<String, dynamic> json) =>
+      _$ConnectionForCustomerFromJson(
+          _normalizeConnectionForCustomerJson(json));
 }
 
+Map<String, dynamic> _normalizeAcceptOfferResultJson(
+        Map<String, dynamic> json) =>
+    {
+      'offer': _map(json['offer']),
+      'connection': _map(json['connection']),
+    };
+
 /// `POST /v1/offers/{id}/accept` success body.
-class AcceptOfferResult {
-  const AcceptOfferResult({required this.offer, required this.connection});
+@freezed
+abstract class AcceptOfferResult with _$AcceptOfferResult {
+  const factory AcceptOfferResult({
+    required OfferForCustomer offer,
+    required ConnectionForCustomer connection,
+  }) = _AcceptOfferResult;
 
-  final OfferForCustomer offer;
-  final ConnectionForCustomer connection;
+  factory AcceptOfferResult.fromJson(Map<String, dynamic> json) =>
+      _$AcceptOfferResultFromJson(_normalizeAcceptOfferResultJson(json));
+}
 
-  static AcceptOfferResult fromJson(Map<String, dynamic> j) {
-    return AcceptOfferResult(
-      offer: OfferForCustomer.fromJson(_map(j['offer'])),
-      connection: ConnectionForCustomer.fromJson(_map(j['connection'])),
-    );
-  }
+Map<String, dynamic> _normalizeConnectionForVendorJson(
+    Map<String, dynamic> json) {
+  final accepted = json['acceptedOffer'] ?? json['offer'];
+  return {
+    ...json,
+    'state': json['state']?.toString(),
+    'identityRevealedAt':
+        (_dt(json['identityRevealedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+            .toIso8601String(),
+    'request':
+        json['request'] == null ? null : _map(json['request']),
+    'acceptedOffer': accepted == null ? null : _map(accepted),
+    'closedAt': _dt(json['closedAt'])?.toIso8601String(),
+    'closedBy': json['closedBy']?.toString(),
+    'createdAt': _dt(json['createdAt'])?.toIso8601String(),
+  };
 }
 
 /// Vendor Connection presenter — the only place revealed Customer fields exist
 /// (BR-007). Must never carry a competing Vendor's identity or price (BR-008).
-class ConnectionForVendor {
-  const ConnectionForVendor({
-    required this.id,
-    required this.state,
-    required this.customer,
-    required this.talk,
-    required this.identityRevealedAt,
-    this.request,
-    this.acceptedOffer,
-    this.closedAt,
-    this.closedBy,
-    this.offerId,
-    this.requestId,
-    this.createdAt,
-  });
+@freezed
+abstract class ConnectionForVendor with _$ConnectionForVendor {
+  const ConnectionForVendor._();
 
-  final String id;
-  final ConnectionState state;
-  final RevealedParty customer;
-  final TalkPayload talk;
-  final DateTime identityRevealedAt;
-  final ConnectionRequestSnapshot? request;
-  final ConnectionAcceptedOffer? acceptedOffer;
-  final DateTime? closedAt;
-  final ClosedBy? closedBy;
-  final String? offerId;
-  final String? requestId;
-  final DateTime? createdAt;
+  const factory ConnectionForVendor({
+    required String id,
+    @_ConnectionStateConverter() required ConnectionState state,
+    @JsonKey(fromJson: _customerPartyFromJson) required RevealedParty customer,
+    required TalkPayload talk,
+    required DateTime identityRevealedAt,
+    ConnectionRequestSnapshot? request,
+    ConnectionAcceptedOffer? acceptedOffer,
+    DateTime? closedAt,
+    @_NullableClosedByConverter() ClosedBy? closedBy,
+    String? offerId,
+    String? requestId,
+    DateTime? createdAt,
+  }) = _ConnectionForVendor;
+
+  factory ConnectionForVendor.fromJson(Map<String, dynamic> json) =>
+      _$ConnectionForVendorFromJson(_normalizeConnectionForVendorJson(json));
 
   DateTime get connectedAt => createdAt ?? identityRevealedAt;
-
-  static ConnectionForVendor fromJson(Map<String, dynamic> j) {
-    final accepted = j['acceptedOffer'] ?? j['offer'];
-    return ConnectionForVendor(
-      id: j['id'] as String,
-      state: ConnectionState.parse(j['state'] as String?),
-      customer: RevealedParty.fromCustomerJson(_map(j['customer'])),
-      talk: TalkPayload.fromJson(_map(j['talk'])),
-      identityRevealedAt:
-          _dt(j['identityRevealedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
-      request: j['request'] == null
-          ? null
-          : ConnectionRequestSnapshot.fromJson(_map(j['request'])),
-      acceptedOffer: accepted == null
-          ? null
-          : ConnectionAcceptedOffer.fromJson(_map(accepted)),
-      closedAt: _dt(j['closedAt']),
-      closedBy:
-          j['closedBy'] == null ? null : ClosedBy.parse(j['closedBy'] as String?),
-      offerId: j['offerId'] as String?,
-      requestId: j['requestId'] as String?,
-      createdAt: _dt(j['createdAt']),
-    );
-  }
 }

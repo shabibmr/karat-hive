@@ -86,6 +86,32 @@ class SettingsController extends AutoDisposeNotifier<AsyncValue<UserSettings?>> 
             currentPassword: currentPassword,
             newPassword: newPassword,
           );
+
+  // --- Customer account lifecycle (CUS-S21) ---
+
+  Future<Result<MeUser>> deactivateAccount() =>
+      ref.read(profileSettingsRepositoryProvider).deactivateAccount();
+
+  Future<Result<AccountDeletionRequest>> createDeletionRequest() =>
+      ref.read(profileSettingsRepositoryProvider).createDeletionRequest();
+
+  Future<Result<OtpVerifyResult>> verifyDeletionOtp({
+    required String challengeId,
+    required String code,
+  }) =>
+      ref.read(profileSettingsRepositoryProvider).verifyDeletionOtp(
+            challengeId: challengeId,
+            code: code,
+          );
+
+  Future<Result<AccountDeletionRequest>> confirmDeletionRequest(
+    String id, {
+    required String challengeId,
+  }) =>
+      ref.read(profileSettingsRepositoryProvider).confirmDeletionRequest(
+            id,
+            challengeId: challengeId,
+          );
 }
 
 final settingsControllerProvider = AutoDisposeNotifierProvider<

@@ -1,3 +1,8 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'abuse.freezed.dart';
+part 'abuse.g.dart';
+
 /// Inventory `AbuseEntityType` plus live `VENDOR` / `CUSTOMER` (`SAM-GAP-4` built).
 enum AbuseEntityType {
   request,
@@ -37,22 +42,38 @@ enum AbuseReportState {
         'OPEN' => open,
         _ => unknown,
       };
+
+  String get wire => switch (this) {
+        open => 'OPEN',
+        unknown => 'UNKNOWN',
+      };
 }
 
-class AbuseReport {
-  const AbuseReport({
-    required this.id,
-    required this.state,
-    required this.acknowledged,
-  });
+class _AbuseReportStateConverter
+    implements JsonConverter<AbuseReportState, String?> {
+  const _AbuseReportStateConverter();
 
-  final String id;
-  final AbuseReportState state;
-  final bool acknowledged;
+  @override
+  AbuseReportState fromJson(String? json) => AbuseReportState.parse(json);
 
-  static AbuseReport fromJson(Map<String, dynamic> j) => AbuseReport(
-        id: j['id'] as String,
-        state: AbuseReportState.parse(j['state'] as String?),
-        acknowledged: j['acknowledged'] as bool? ?? false,
-      );
+  @override
+  String toJson(AbuseReportState object) => object.wire;
+}
+
+Map<String, dynamic> _normalizeAbuseReportJson(Map<String, dynamic> json) => {
+      'id': json['id'] as String,
+      'state': json['state']?.toString(),
+      'acknowledged': json['acknowledged'] as bool? ?? false,
+    };
+
+@freezed
+abstract class AbuseReport with _$AbuseReport {
+  const factory AbuseReport({
+    required String id,
+    @_AbuseReportStateConverter() required AbuseReportState state,
+    required bool acknowledged,
+  }) = _AbuseReport;
+
+  factory AbuseReport.fromJson(Map<String, dynamic> json) =>
+      _$AbuseReportFromJson(_normalizeAbuseReportJson(json));
 }

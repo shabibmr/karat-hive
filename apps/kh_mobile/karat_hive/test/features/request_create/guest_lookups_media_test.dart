@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -61,6 +62,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(File('fallback.bin'));
+    registerFallbackValue(Uint8List(0));
   });
 
   setUp(() async {
@@ -155,7 +157,7 @@ void main() {
   });
 
   group('GL-53…GL-55 guest media', () {
-    test('guest addImage stores local File and does not upload', () async {
+    test('guest addImage stores local bytes and does not upload', () async {
       final container = containerWith(const SignedOut());
       final ctrl = container.read(requestCreateControllerProvider.notifier);
 
@@ -163,12 +165,12 @@ void main() {
 
       final state = container.read(requestCreateControllerProvider);
       expect(state.media, hasLength(1));
-      expect(state.media.single.isLocalPending, isTrue);
-      expect(state.media.single.localFile?.path, imageFile.path);
+      expect(state.media.single.isLocalOnly, isTrue);
+      expect(state.media.single.localPath, imageFile.path);
       expect(state.media.single.contentType, 'image/jpeg');
       expect(state.uploading, isFalse);
       verifyNever(
-        () => repo.uploadRequestImage(
+        () => repo.uploadRequestImageBytes(
           any(),
           any(),
           onProgress: any(named: 'onProgress'),
@@ -188,7 +190,7 @@ void main() {
     });
 
     test(
-      'uploadPendingLocalMedia then saveDraft uploads before draft',
+      'publish uploads pending local media before creating the draft',
       () async {
         final sessionCtrl = _MutableSessionController(const SignedOut());
         final container = ProviderContainer(
@@ -206,13 +208,10 @@ void main() {
         sessionCtrl.setSession(SignedIn(_customer()));
 
         final order = <String>[];
-        when(
-          () => repo.uploadRequestImage(
-            any(),
-            any(),
-            onProgress: any(named: 'onProgress'),
-          ),
-        ).thenAnswer((_) async {
+        // Signed-in publish uploads any still-local media via the plain
+        // (bytes, contentType) overload — no onProgress passed.
+        when(() => repo.uploadRequestImageBytes(any(), any()))
+            .thenAnswer((_) async {
           order.add('upload');
           return const Ok('media-key-1');
         });
@@ -220,23 +219,22 @@ void main() {
           order.add('draft');
           return Ok(DraftSaveResult(request: _draftRequest()));
         });
+        when(
+          () => repo.publish(any(),
+              idempotencyKey: any(named: 'idempotencyKey')),
+        ).thenAnswer((_) async {
+          order.add('publish');
+          return Ok(_draftRequest());
+        });
 
-        final uploaded = await ctrl.uploadPendingLocalMedia();
-        expect(uploaded, isTrue);
+        final published = await ctrl.publish();
+
+        expect(published, isTrue);
+        expect(order, ['upload', 'draft', 'publish']);
         expect(container.read(requestCreateControllerProvider).mediaKeys, [
           'media-key-1',
         ]);
-
-        final saved = await ctrl.saveDraft();
-        expect(saved, isTrue);
-        expect(order, ['upload', 'draft']);
-        verify(
-          () => repo.uploadRequestImage(
-            any(),
-            any(),
-            onProgress: any(named: 'onProgress'),
-          ),
-        ).called(1);
+        verify(() => repo.uploadRequestImageBytes(any(), any())).called(1);
         verify(() => repo.createDraft(any())).called(1);
       },
     );

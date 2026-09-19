@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,22 +13,30 @@ class _MockRepo extends Mock implements OnboardingRepository {}
 void main() {
   late _MockRepo repo;
 
-  setUp(() {
-    repo = _MockRepo();
-    registerFallbackValue(File('x'));
+  setUpAll(() {
+    registerFallbackValue(VendorDocumentType.tradeLicence);
+    registerFallbackValue(Uint8List(0));
   });
 
-  test('allMandatoryDone is false until both slots succeed', () {
+  setUp(() {
+    repo = _MockRepo();
+  });
+
+  test('mandatoryDocsDone is false until both slots succeed', () {
     final c = ProviderContainer(
       overrides: [onboardingRepositoryProvider.overrideWithValue(repo)],
     );
     addTearDown(c.dispose);
-    expect(c.read(kycUploadControllerProvider.notifier).allMandatoryDone, isFalse);
+    expect(
+      c.read(kycUploadControllerProvider).mandatoryDocsDone,
+      isFalse,
+    );
   });
 
   test('failed upload isolates error on that slot', () async {
     when(
-      () => repo.uploadKycDocument(
+      () => repo.uploadKycDocumentBytes(
+        any(),
         any(),
         any(),
         onProgress: any(named: 'onProgress'),
@@ -40,13 +48,15 @@ void main() {
     );
     addTearDown(c.dispose);
 
-    await c.read(kycUploadControllerProvider.notifier).pickAndUpload(
+    await c.read(kycUploadControllerProvider.notifier).pickAndUploadBytes(
           VendorDocumentType.tradeLicence,
-          File('licence.pdf'),
+          Uint8List.fromList([1, 2, 3]),
           'application/pdf',
         );
 
-    final slot = c.read(kycUploadControllerProvider)[VendorDocumentType.tradeLicence];
+    final slot = c
+        .read(kycUploadControllerProvider)
+        .documents[VendorDocumentType.tradeLicence];
     expect(slot?.failure, isA<ServerFailure>());
     expect(slot?.done, isFalse);
   });

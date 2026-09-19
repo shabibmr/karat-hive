@@ -1,79 +1,68 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'settings_dtos.freezed.dart';
+part 'settings_dtos.g.dart';
+
+Map<String, dynamic> _normalizeUserSettingsJson(Map<String, dynamic> json) => {
+      ...json,
+      'preferredLanguage': json['preferredLanguage'] as String? ?? 'en',
+      'notifications': ((json['notifications'] as Map?) ?? const {})
+          .map((k, v) => MapEntry(k.toString(), v)),
+    };
+
 /// `settings.service.ts` `UserSettingsResponse` — `GET /v1/me/settings`
 /// (`CUS-S21`).
-class UserSettingsDto {
-  const UserSettingsDto({
-    required this.preferredLanguage,
-    this.defaultRegionId,
-    this.quietHours,
-    this.defaultFilterPresetId,
-    this.notifications = const {},
-  });
+@freezed
+abstract class UserSettingsDto with _$UserSettingsDto {
+  const factory UserSettingsDto({
+    required String preferredLanguage, // en | ar
+    String? defaultRegionId,
+    QuietHoursDto? quietHours,
+    String? defaultFilterPresetId,
+    @Default(<String, NotificationChannelPrefsDto>{})
+    Map<String, NotificationChannelPrefsDto> notifications,
+  }) = _UserSettingsDto;
 
-  final String preferredLanguage; // en | ar
-  final String? defaultRegionId;
-  final QuietHoursDto? quietHours;
-  final String? defaultFilterPresetId;
-  final Map<String, NotificationChannelPrefsDto> notifications;
-
-  static UserSettingsDto fromJson(Map<String, dynamic> j) => UserSettingsDto(
-        preferredLanguage: j['preferredLanguage'] as String? ?? 'en',
-        defaultRegionId: j['defaultRegionId'] as String?,
-        quietHours: j['quietHours'] == null
-            ? null
-            : QuietHoursDto.fromJson(j['quietHours'] as Map<String, dynamic>),
-        defaultFilterPresetId: j['defaultFilterPresetId'] as String?,
-        notifications: ((j['notifications'] as Map?) ?? const {}).map(
-          (k, v) => MapEntry(
-            k.toString(),
-            NotificationChannelPrefsDto.fromJson(v as Map<String, dynamic>),
-          ),
-        ),
-      );
+  factory UserSettingsDto.fromJson(Map<String, dynamic> json) =>
+      _$UserSettingsDtoFromJson(_normalizeUserSettingsJson(json));
 }
 
-class QuietHoursDto {
-  const QuietHoursDto({
-    required this.start,
-    required this.end,
-    this.timezone = 'Asia/Dubai',
-  });
+Map<String, dynamic> _normalizeQuietHoursJson(Map<String, dynamic> json) => {
+      'start': json['start'] as String? ?? '',
+      'end': json['end'] as String? ?? '',
+      'timezone': json['timezone'] as String? ?? 'Asia/Dubai',
+    };
 
-  final String start;
-  final String end;
-  final String timezone;
+@freezed
+abstract class QuietHoursDto with _$QuietHoursDto {
+  const factory QuietHoursDto({
+    required String start,
+    required String end,
+    // Never sent back to the server — outbound payloads are start/end only.
+    @Default('Asia/Dubai') @JsonKey(includeToJson: false) String timezone,
+  }) = _QuietHoursDto;
 
-  static QuietHoursDto fromJson(Map<String, dynamic> j) => QuietHoursDto(
-        start: j['start'] as String? ?? '',
-        end: j['end'] as String? ?? '',
-        timezone: j['timezone'] as String? ?? 'Asia/Dubai',
-      );
-
-  Map<String, dynamic> toJson() => {'start': start, 'end': end};
+  factory QuietHoursDto.fromJson(Map<String, dynamic> json) =>
+      _$QuietHoursDtoFromJson(_normalizeQuietHoursJson(json));
 }
 
-class NotificationChannelPrefsDto {
-  const NotificationChannelPrefsDto({
-    this.inApp = true,
-    this.push = true,
-    this.email = false,
-  });
+@freezed
+abstract class NotificationChannelPrefsDto with _$NotificationChannelPrefsDto {
+  const factory NotificationChannelPrefsDto({
+    @Default(true) bool inApp,
+    @Default(true) bool push,
+    @Default(false) bool email,
+  }) = _NotificationChannelPrefsDto;
 
-  final bool inApp;
-  final bool push;
-  final bool email;
-
-  static NotificationChannelPrefsDto fromJson(Map<String, dynamic> j) =>
-      NotificationChannelPrefsDto(
-        inApp: j['inApp'] as bool? ?? true,
-        push: j['push'] as bool? ?? true,
-        email: j['email'] as bool? ?? false,
-      );
-
-  Map<String, dynamic> toJson() =>
-      {'inApp': inApp, 'push': push, 'email': email};
+  factory NotificationChannelPrefsDto.fromJson(Map<String, dynamic> json) =>
+      _$NotificationChannelPrefsDtoFromJson(json);
 }
 
-/// `PATCH /v1/me/settings` body — mirrors `patchSettingsSchema`.
+/// `PATCH /v1/me/settings` body — mirrors `patchSettingsSchema`. Left as a
+/// plain class (not freezed): its [toJson] has sentinel-null semantics
+/// (`clearDefaultRegion`/`clearQuietHours` force an explicit `null` while an
+/// absent value is omitted entirely) that don't map onto declarative
+/// `@JsonKey`/`includeIfNull` annotations.
 class UserSettingsPatch {
   const UserSettingsPatch({
     this.preferredLanguage,
@@ -105,69 +94,60 @@ class UserSettingsPatch {
       };
 }
 
+int _platformConfigInt(dynamic v, int d) =>
+    v is num ? v.toInt() : int.tryParse('$v') ?? d;
+
+Map<String, dynamic> _normalizePlatformConfigJson(Map<String, dynamic> json) => {
+      'requestLifetimeHours': _platformConfigInt(json['requestLifetimeHours'], 48),
+      'offerValidityHours':
+          ((json['offerValidityHours'] as List?) ?? const [12, 24, 48])
+              .map((e) => _platformConfigInt(e, 0))
+              .toList(growable: false),
+      'defaultOfferValidityHours':
+          _platformConfigInt(json['defaultOfferValidityHours'], 24),
+      'bullionMinimumAed': (json['bullionMinimumAed'] ?? '0').toString(),
+      'maxConcurrentLiveRequests':
+          _platformConfigInt(json['maxConcurrentLiveRequests'], 10),
+      'maxRequestImages': _platformConfigInt(json['maxRequestImages'], 5),
+      'maxOfferImages': _platformConfigInt(json['maxOfferImages'], 3),
+      'maxImageBytes': _platformConfigInt(json['maxImageBytes'], 5242880),
+      'acceptedImageTypes': ((json['acceptedImageTypes'] as List?) ?? const [])
+          .map((e) => e.toString())
+          .toList(growable: false),
+      'karatList': ((json['karatList'] as List?) ?? const [])
+          .map((e) => e.toString())
+          .toList(growable: false),
+      'maxOfferRevisions': _platformConfigInt(json['maxOfferRevisions'], 3),
+      'requestExpiryWarningHours':
+          _platformConfigInt(json['requestExpiryWarningHours'], 6),
+      'termsUrl': json['termsUrl'] as String? ?? '',
+      'privacyUrl': json['privacyUrl'] as String? ?? '',
+      'supportContactUrl': json['supportContactUrl'] as String? ?? '',
+      'subscriptionContactUrl': json['subscriptionContactUrl'] as String? ?? '',
+    };
+
 /// `settings.service.ts` `PlatformConfigResponse` — `GET /v1/platform-config`.
-class PlatformConfigDto {
-  const PlatformConfigDto({
-    required this.requestLifetimeHours,
-    required this.offerValidityHours,
-    required this.defaultOfferValidityHours,
-    required this.bullionMinimumAed,
-    required this.maxConcurrentLiveRequests,
-    required this.maxRequestImages,
-    required this.maxOfferImages,
-    required this.maxImageBytes,
-    required this.acceptedImageTypes,
-    required this.karatList,
-    required this.maxOfferRevisions,
-    required this.requestExpiryWarningHours,
-    required this.termsUrl,
-    required this.privacyUrl,
-    required this.supportContactUrl,
-    required this.subscriptionContactUrl,
-  });
+@freezed
+abstract class PlatformConfigDto with _$PlatformConfigDto {
+  const factory PlatformConfigDto({
+    required int requestLifetimeHours,
+    required List<int> offerValidityHours,
+    required int defaultOfferValidityHours,
+    required String bullionMinimumAed,
+    required int maxConcurrentLiveRequests,
+    required int maxRequestImages,
+    required int maxOfferImages,
+    required int maxImageBytes,
+    required List<String> acceptedImageTypes,
+    required List<String> karatList,
+    required int maxOfferRevisions,
+    required int requestExpiryWarningHours,
+    required String termsUrl,
+    required String privacyUrl,
+    required String supportContactUrl,
+    required String subscriptionContactUrl,
+  }) = _PlatformConfigDto;
 
-  final int requestLifetimeHours;
-  final List<int> offerValidityHours;
-  final int defaultOfferValidityHours;
-  final String bullionMinimumAed;
-  final int maxConcurrentLiveRequests;
-  final int maxRequestImages;
-  final int maxOfferImages;
-  final int maxImageBytes;
-  final List<String> acceptedImageTypes;
-  final List<String> karatList;
-  final int maxOfferRevisions;
-  final int requestExpiryWarningHours;
-  final String termsUrl;
-  final String privacyUrl;
-  final String supportContactUrl;
-  final String subscriptionContactUrl;
-
-  static int _i(dynamic v, int d) =>
-      v is num ? v.toInt() : int.tryParse('$v') ?? d;
-
-  static PlatformConfigDto fromJson(Map<String, dynamic> j) => PlatformConfigDto(
-        requestLifetimeHours: _i(j['requestLifetimeHours'], 48),
-        offerValidityHours: ((j['offerValidityHours'] as List?) ?? const [12, 24, 48])
-            .map((e) => _i(e, 0))
-            .toList(growable: false),
-        defaultOfferValidityHours: _i(j['defaultOfferValidityHours'], 24),
-        bullionMinimumAed: (j['bullionMinimumAed'] ?? '0').toString(),
-        maxConcurrentLiveRequests: _i(j['maxConcurrentLiveRequests'], 10),
-        maxRequestImages: _i(j['maxRequestImages'], 5),
-        maxOfferImages: _i(j['maxOfferImages'], 3),
-        maxImageBytes: _i(j['maxImageBytes'], 5242880),
-        acceptedImageTypes: ((j['acceptedImageTypes'] as List?) ?? const [])
-            .map((e) => e.toString())
-            .toList(growable: false),
-        karatList: ((j['karatList'] as List?) ?? const [])
-            .map((e) => e.toString())
-            .toList(growable: false),
-        maxOfferRevisions: _i(j['maxOfferRevisions'], 3),
-        requestExpiryWarningHours: _i(j['requestExpiryWarningHours'], 6),
-        termsUrl: j['termsUrl'] as String? ?? '',
-        privacyUrl: j['privacyUrl'] as String? ?? '',
-        supportContactUrl: j['supportContactUrl'] as String? ?? '',
-        subscriptionContactUrl: j['subscriptionContactUrl'] as String? ?? '',
-      );
+  factory PlatformConfigDto.fromJson(Map<String, dynamic> json) =>
+      _$PlatformConfigDtoFromJson(_normalizePlatformConfigJson(json));
 }

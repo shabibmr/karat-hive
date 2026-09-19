@@ -1,82 +1,90 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'party.dart';
 import 'vendor_lifecycle.dart';
 
-class CustomerMe {
-  const CustomerMe({
-    required this.displayName,
-    required this.reviewCount,
-    required this.connectionCount,
-    this.photoUrl,
-    this.defaultRegion,
-    this.rating,
-    this.liveRequestCount,
-    this.canCreateRequest,
-    this.lifetimeRequestCount,
-  });
+part 'session.freezed.dart';
+part 'session.g.dart';
 
-  final String displayName;
-  final String? photoUrl;
-  final RegionSummary? defaultRegion;
-  final RatingSummary? rating;
-  final int reviewCount;
-  final int connectionCount;
-  final int? liveRequestCount;
-  final bool? canCreateRequest;
-  final int? lifetimeRequestCount;
+/// `defaultRegion` serializes as just the region id, matching the pre-freezed
+/// manual `toJson` (the wire never round-trips a full nested region object
+/// back for this field).
+class _DefaultRegionConverter
+    implements JsonConverter<RegionSummary?, Object?> {
+  const _DefaultRegionConverter();
 
-  static CustomerMe fromJson(Map<String, dynamic> j) => CustomerMe(
-        displayName: j['displayName'] as String? ?? '',
-        photoUrl: j['photoUrl'] as String?,
-        defaultRegion: RegionSummary.tryParse(j['defaultRegion']),
-        rating: RatingSummary.tryParse(j['rating']),
-        reviewCount: (j['reviewCount'] as num?)?.toInt() ?? 0,
-        connectionCount: (j['connectionCount'] as num?)?.toInt() ?? 0,
-        liveRequestCount: (j['liveRequestCount'] as num?)?.toInt(),
-        canCreateRequest: j['canCreateRequest'] as bool?,
-        lifetimeRequestCount: (j['lifetimeRequestCount'] as num?)?.toInt(),
-      );
+  @override
+  RegionSummary? fromJson(Object? json) => RegionSummary.tryParse(json);
 
-  Map<String, dynamic> toJson() => {
-        'displayName': displayName,
-        if (photoUrl != null) 'photoUrl': photoUrl,
-        if (defaultRegion != null) 'defaultRegion': defaultRegion!.id,
-        if (rating != null) 'rating': rating!.toJson(),
-        'reviewCount': reviewCount,
-        'connectionCount': connectionCount,
-        if (liveRequestCount != null) 'liveRequestCount': liveRequestCount,
-        if (canCreateRequest != null) 'canCreateRequest': canCreateRequest,
-        if (lifetimeRequestCount != null)
-          'lifetimeRequestCount': lifetimeRequestCount,
-      };
+  @override
+  Object? toJson(RegionSummary? object) => object?.id;
+}
+
+class _NullableRatingSummaryConverter
+    implements JsonConverter<RatingSummary?, Object?> {
+  const _NullableRatingSummaryConverter();
+
+  @override
+  RatingSummary? fromJson(Object? json) => RatingSummary.tryParse(json);
+
+  @override
+  Object? toJson(RatingSummary? object) => object?.toJson();
+}
+
+Map<String, dynamic> _normalizeCustomerMeJson(Map<String, dynamic> json) => {
+      'displayName': json['displayName'] as String? ?? '',
+      'photoUrl': json['photoUrl'] as String?,
+      'defaultRegion': json['defaultRegion'],
+      'rating': json['rating'],
+      'reviewCount': (json['reviewCount'] as num?)?.toInt() ?? 0,
+      'connectionCount': (json['connectionCount'] as num?)?.toInt() ?? 0,
+      'liveRequestCount': (json['liveRequestCount'] as num?)?.toInt(),
+      'canCreateRequest': json['canCreateRequest'] as bool?,
+      'lifetimeRequestCount': (json['lifetimeRequestCount'] as num?)?.toInt(),
+    };
+
+@freezed
+abstract class CustomerMe with _$CustomerMe {
+  const factory CustomerMe({
+    required String displayName,
+    required int reviewCount,
+    required int connectionCount,
+    String? photoUrl,
+    @_DefaultRegionConverter() RegionSummary? defaultRegion,
+    @_NullableRatingSummaryConverter() RatingSummary? rating,
+    int? liveRequestCount,
+    bool? canCreateRequest,
+    int? lifetimeRequestCount,
+  }) = _CustomerMe;
+
+  factory CustomerMe.fromJson(Map<String, dynamic> json) =>
+      _$CustomerMeFromJson(_normalizeCustomerMeJson(json));
 }
 
 /// One weekday entry in `VendorMe.businessHours` / availability PATCH.
-class BusinessDayHours {
-  const BusinessDayHours({
-    required this.open,
-    required this.close,
-    this.closed = false,
-  });
+Map<String, dynamic> _normalizeBusinessDayHoursJson(
+        Map<String, dynamic> json) =>
+    {
+      'open': json['open'] as String? ?? '',
+      'close': json['close'] as String? ?? '',
+      'closed': json['closed'] as bool? ?? false,
+    };
 
-  final String open;
-  final String close;
-  final bool closed;
+@freezed
+abstract class BusinessDayHours with _$BusinessDayHours {
+  const factory BusinessDayHours({
+    required String open,
+    required String close,
+    @Default(false) bool closed,
+  }) = _BusinessDayHours;
+
+  factory BusinessDayHours.fromJson(Map<String, dynamic> json) =>
+      _$BusinessDayHoursFromJson(_normalizeBusinessDayHoursJson(json));
 
   static BusinessDayHours? tryParse(Object? raw) {
     if (raw is! Map) return null;
-    final m = Map<String, dynamic>.from(raw);
-    return BusinessDayHours(
-      open: m['open'] as String? ?? '',
-      close: m['close'] as String? ?? '',
-      closed: m['closed'] as bool? ?? false,
-    );
+    return BusinessDayHours.fromJson(Map<String, dynamic>.from(raw));
   }
-
-  Map<String, dynamic> toJson() => {
-        'open': open,
-        'close': close,
-        'closed': closed,
-      };
 }
 
 class VendorMe {

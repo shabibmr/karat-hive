@@ -151,7 +151,8 @@ class GuestLandingScreen extends ConsumerWidget {
               onPressed: () {
                 // Mid-create -> Vendor signup drops the in-memory draft (GL-66).
                 ref.read(requestCreateControllerProvider.notifier).resetFlow();
-                context.go(AppGuards.register);
+                // Vendor register requires Google sign-in first (ADR-0010).
+                context.go(AppGuards.login);
               },
               child: Text(
                 strings.s('guest.jewellerFooter'),

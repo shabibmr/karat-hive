@@ -1,119 +1,93 @@
-class AccountDeletionRequest {
-  const AccountDeletionRequest({
-    required this.id,
-    required this.state,
-    required this.createdAt,
-    this.challengeId,
-    this.expiresAt,
-    this.retryAfterSeconds,
-  });
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  final String id;
-  final String state;
-  final DateTime createdAt;
-  final String? challengeId;
-  final DateTime? expiresAt;
-  final int? retryAfterSeconds;
+part 'settings.freezed.dart';
+part 'settings.g.dart';
 
-  static AccountDeletionRequest fromJson(Map<String, dynamic> j) =>
-      AccountDeletionRequest(
-        id: j['id'] as String,
-        state: j['state'] as String? ?? 'QUEUED',
-        createdAt: DateTime.tryParse(j['createdAt'] as String? ?? '') ??
-            DateTime.fromMillisecondsSinceEpoch(0),
-        challengeId: j['challengeId'] as String?,
-        expiresAt: j['expiresAt'] is String
-            ? DateTime.tryParse(j['expiresAt'] as String)
-            : null,
-        retryAfterSeconds: (j['retryAfterSeconds'] as num?)?.toInt(),
-      );
+Map<String, dynamic> _normalizeAccountDeletionRequestJson(
+        Map<String, dynamic> json) =>
+    {
+      'id': json['id'] as String,
+      'state': json['state'] as String? ?? 'QUEUED',
+      'createdAt': (DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+              DateTime.fromMillisecondsSinceEpoch(0))
+          .toIso8601String(),
+      'challengeId': json['challengeId'] as String?,
+      'expiresAt': json['expiresAt'] is String
+          ? (DateTime.tryParse(json['expiresAt'] as String)?.toIso8601String())
+          : null,
+      'retryAfterSeconds': (json['retryAfterSeconds'] as num?)?.toInt(),
+    };
+
+@freezed
+abstract class AccountDeletionRequest with _$AccountDeletionRequest {
+  const factory AccountDeletionRequest({
+    required String id,
+    required String state,
+    required DateTime createdAt,
+    String? challengeId,
+    DateTime? expiresAt,
+    int? retryAfterSeconds,
+  }) = _AccountDeletionRequest;
+
+  factory AccountDeletionRequest.fromJson(Map<String, dynamic> json) =>
+      _$AccountDeletionRequestFromJson(
+          _normalizeAccountDeletionRequestJson(json));
 }
 
-class QuietHours {
-  const QuietHours({
-    required this.start,
-    required this.end,
-    this.timezone = 'Asia/Dubai',
-  });
+@freezed
+abstract class QuietHours with _$QuietHours {
+  const factory QuietHours({
+    required String start,
+    required String end,
+    @Default('Asia/Dubai') String timezone,
+  }) = _QuietHours;
 
-  final String start;
-  final String end;
-  final String timezone;
-
-  static QuietHours fromJson(Map<String, dynamic> j) => QuietHours(
-        start: j['start'] as String? ?? '',
-        end: j['end'] as String? ?? '',
-        timezone: j['timezone'] as String? ?? 'Asia/Dubai',
-      );
-
-  Map<String, dynamic> toJson() => {
-        'start': start,
-        'end': end,
-        'timezone': timezone,
-      };
+  factory QuietHours.fromJson(Map<String, dynamic> json) =>
+      _$QuietHoursFromJson(json);
 }
 
-class NotificationChannelPref {
-  const NotificationChannelPref({
-    required this.inApp,
-    required this.push,
-    required this.email,
-  });
+@freezed
+abstract class NotificationChannelPref with _$NotificationChannelPref {
+  const factory NotificationChannelPref({
+    required bool inApp,
+    required bool push,
+    required bool email,
+  }) = _NotificationChannelPref;
 
-  final bool inApp;
-  final bool push;
-  final bool email;
-
-  static NotificationChannelPref fromJson(Map<String, dynamic> j) =>
-      NotificationChannelPref(
-        inApp: j['inApp'] as bool? ?? false,
-        push: j['push'] as bool? ?? false,
-        email: j['email'] as bool? ?? false,
-      );
-
-  Map<String, dynamic> toJson() => {
-        'inApp': inApp,
-        'push': push,
-        'email': email,
-      };
+  factory NotificationChannelPref.fromJson(Map<String, dynamic> json) =>
+      _$NotificationChannelPrefFromJson(json);
 }
 
-class UserSettings {
-  const UserSettings({
-    required this.preferredLanguage,
-    required this.notifications,
-    this.defaultRegionId,
-    this.quietHours,
-    this.defaultFilterPresetId,
-  });
-
-  final String preferredLanguage;
-  final String? defaultRegionId;
-  final QuietHours? quietHours;
-  final String? defaultFilterPresetId;
-  final Map<String, NotificationChannelPref> notifications;
-
-  static UserSettings fromJson(Map<String, dynamic> j) {
-    final ntf = <String, NotificationChannelPref>{};
-    final raw = j['notifications'];
-    if (raw is Map) {
-      for (final e in raw.entries) {
-        if (e.value is Map) {
-          ntf[e.key.toString()] = NotificationChannelPref.fromJson(
-            Map<String, dynamic>.from(e.value as Map),
-          );
-        }
+Map<String, dynamic> _normalizeUserSettingsJson(Map<String, dynamic> json) {
+  final ntf = <String, dynamic>{};
+  final raw = json['notifications'];
+  if (raw is Map) {
+    for (final e in raw.entries) {
+      if (e.value is Map) {
+        ntf[e.key.toString()] = Map<String, dynamic>.from(e.value as Map);
       }
     }
-    final qh = j['quietHours'];
-    return UserSettings(
-      preferredLanguage: j['preferredLanguage'] as String? ?? 'en',
-      defaultRegionId: j['defaultRegionId'] as String?,
-      quietHours: qh is Map
-          ? QuietHours.fromJson(Map<String, dynamic>.from(qh))
-          : null,
-      defaultFilterPresetId: j['defaultFilterPresetId'] as String?,
-      notifications: ntf,
-    );
   }
+  final qh = json['quietHours'];
+  return {
+    'preferredLanguage': json['preferredLanguage'] as String? ?? 'en',
+    'defaultRegionId': json['defaultRegionId'] as String?,
+    'quietHours': qh is Map ? Map<String, dynamic>.from(qh) : null,
+    'defaultFilterPresetId': json['defaultFilterPresetId'] as String?,
+    'notifications': ntf,
+  };
+}
+
+@freezed
+abstract class UserSettings with _$UserSettings {
+  const factory UserSettings({
+    required String preferredLanguage,
+    required Map<String, NotificationChannelPref> notifications,
+    String? defaultRegionId,
+    QuietHours? quietHours,
+    String? defaultFilterPresetId,
+  }) = _UserSettings;
+
+  factory UserSettings.fromJson(Map<String, dynamic> json) =>
+      _$UserSettingsFromJson(_normalizeUserSettingsJson(json));
 }

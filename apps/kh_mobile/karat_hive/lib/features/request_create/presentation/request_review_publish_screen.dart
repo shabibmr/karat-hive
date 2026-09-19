@@ -7,8 +7,10 @@ import '../../../app/guards.dart';
 import '../../../app/session/session_controller.dart';
 import '../../auth/controller/publish_gate.dart';
 import '../../auth/presentation/oauth_publish_gate_banner.dart';
+import '../../auth/presentation/widgets/google_continue_panel.dart';
 import '../controller/request_create_controller.dart';
 import '../controller/request_create_state.dart';
+import '../pending_publish_intent.dart';
 import 'widgets/create_flow_chrome.dart';
 import 'widgets/request_images_section.dart';
 
@@ -34,6 +36,12 @@ class _RequestReviewPublishScreenState
           .read(requestCreateControllerProvider.notifier)
           .goTo(RequestCreateStep.review);
       _maybeAutoPublishAfterLogin();
+      // Guest reaching review (GL-57): snapshot the draft so it survives a
+      // cold restart while a sign-in is pending.
+      if (ref.read(sessionProvider) is! SignedIn) {
+        ref.read(requestCreateControllerProvider.notifier).persistPendingDraft();
+      }
+      _maybeReconcilePendingOverlayIntent();
     });
   }
 
@@ -60,13 +68,62 @@ class _RequestReviewPublishScreenState
     }
   }
 
+  bool _overlaySheetOpen = false;
+
+  Future<void> _showGuestSignInOverlay() async {
+    _overlaySheetOpen = true;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(ctx).viewInsets.bottom + 16,
+        ),
+        child: GoogleContinuePanel(
+          onDismiss: () => Navigator.of(ctx).pop(),
+        ),
+      ),
+    );
+    _overlaySheetOpen = false;
+  }
+
+  /// GL-57…GL-60: reconcile a pending overlay-driven publish intent once the
+  /// Guest signs in, closing the overlay (if still open) and routing to the
+  /// newly-published Request's detail screen.
+  Future<void> _maybeReconcilePendingOverlayIntent() async {
+    if (!ref.read(pendingPublishIntentProvider)) return;
+    final session = ref.read(sessionProvider);
+    if (session is! SignedIn) return;
+
+    if (_overlaySheetOpen && mounted && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+
+    final ok = await ref
+        .read(requestCreateControllerProvider.notifier)
+        .reconcilePendingPublish();
+    if (!mounted) return;
+    if (ok) {
+      final published = ref.read(requestCreateControllerProvider).published;
+      if (published != null) {
+        context.go('${AppGuards.customerRequests}/${published.id}');
+      } else {
+        context.go(AppGuards.customerHome);
+      }
+    }
+  }
+
   Future<void> _onPublish() async {
     final session = ref.read(sessionProvider);
     final controller = ref.read(requestCreateControllerProvider.notifier);
 
     if (session is! SignedIn) {
-      controller.markAwaitingLoginToPublish();
-      if (mounted) context.go(AppGuards.customerOnboarding);
+      await controller.persistPendingDraft();
+      ref.read(pendingPublishIntentProvider.notifier).setPending();
+      await _showGuestSignInOverlay();
       return;
     }
 
@@ -106,6 +163,9 @@ class _RequestReviewPublishScreenState
           state.awaitingLoginToPublish &&
           !_handledReturn) {
         _maybeAutoPublishAfterLogin();
+      }
+      if (next is SignedIn && ref.read(pendingPublishIntentProvider)) {
+        _maybeReconcilePendingOverlayIntent();
       }
     });
 
@@ -185,11 +245,16 @@ class _RequestReviewPublishScreenState
               label: createCopy(context, 'create.field.budget', 'Budget (AED)'),
               value: state.budgetMax!,
             ),
-          if (state.notes.trim().isNotEmpty)
-            _Row(
-              label: createCopy(context, 'create.field.notes', 'Notes'),
-              value: state.notes.trim(),
-            ),
+          SizedBox(height: tokens.space.sm),
+          KhTextField(
+            key: const Key('review-notes-field'),
+            label: createCopy(context, 'create.field.notes', 'Notes'),
+            initialValue: state.notes,
+            maxLines: 3,
+            onChanged: (v) => ref
+                .read(requestCreateControllerProvider.notifier)
+                .setNotes(v),
+          ),
           SizedBox(height: tokens.space.md),
           Text(
             createCopy(

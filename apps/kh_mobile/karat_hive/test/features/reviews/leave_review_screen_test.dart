@@ -138,4 +138,68 @@ void main() {
     expect(find.byKey(const Key('leave-review-already-reviewed')), findsOneWidget);
     expect(find.text('Feedback Already Submitted'), findsOneWidget);
   });
+
+  testWidgets('CUS-S18 renders star input, comment, and submits review',
+      (tester) async {
+    final mockRepo = _MockReviewsRepository();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          reviewsRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+        child: MaterialApp(
+          theme: khTheme(),
+          home: const LeaveReviewScreen(
+            connectionId: 'conn-202',
+            vendorLabel: 'Al Futtaim Jewellery',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('leave-review-screen-customer')), findsOneWidget);
+    expect(find.text('Al Futtaim Jewellery'), findsOneWidget);
+    expect(find.text('Connection ID: conn-202'), findsOneWidget);
+    expect(find.byKey(const Key('star-rating-input')), findsOneWidget);
+    expect(find.byKey(const Key('review-comment-field')), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('review-comment-field-input')),
+      'Great service and fair pricing.',
+    );
+
+    await tester.tap(find.byKey(const Key('leave-review-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(mockRepo.lastConnectionId, 'conn-202');
+    expect(mockRepo.lastRating, 5);
+    expect(mockRepo.lastComment, 'Great service and fair pricing.');
+    expect(find.byKey(const Key('leave-review-submitted')), findsOneWidget);
+  });
+
+  testWidgets('CUS-S18 shows already-reviewed card when REVIEW_ALREADY_EXISTS',
+      (tester) async {
+    final mockRepo = _MockReviewsRepository()..returnAlreadyExists = true;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          reviewsRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+        child: MaterialApp(
+          theme: khTheme(),
+          home: const LeaveReviewScreen(
+            connectionId: 'conn-202',
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('leave-review-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('leave-review-already-reviewed')), findsOneWidget);
+    expect(find.text('Review Already Submitted'), findsOneWidget);
+  });
 }

@@ -1,37 +1,36 @@
-/// `notification.presenter.ts` `NotificationView`. Backs `CUS-S19`.
-class NotificationDto {
-  const NotificationDto({
-    required this.id,
-    required this.type,
-    required this.title,
-    required this.body,
-    required this.deepLink,
-    required this.isCritical,
-    this.readAt,
-    required this.createdAt,
-  });
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  final String id;
-  final String type;
-  final String title;
-  final String body;
-  final String deepLink;
-  final bool isCritical;
-  final DateTime? readAt;
-  final DateTime createdAt;
+part 'notification_dtos.freezed.dart';
+part 'notification_dtos.g.dart';
+
+Map<String, dynamic> _normalizeNotificationJson(Map<String, dynamic> json) => {
+      ...json,
+      'id': json['id'] as String,
+      'type': json['type'] as String? ?? '',
+      'title': json['title'] as String? ?? '',
+      'body': json['body'] as String? ?? '',
+      'deepLink': json['deepLink'] as String? ?? '',
+      'isCritical': json['isCritical'] as bool? ?? false,
+    };
+
+/// `notification.presenter.ts` `NotificationView`. Backs `CUS-S19`.
+@freezed
+abstract class NotificationDto with _$NotificationDto {
+  const NotificationDto._();
+
+  const factory NotificationDto({
+    required String id,
+    required String type,
+    required String title,
+    required String body,
+    required String deepLink,
+    required bool isCritical,
+    DateTime? readAt,
+    required DateTime createdAt,
+  }) = _NotificationDto;
+
+  factory NotificationDto.fromJson(Map<String, dynamic> json) =>
+      _$NotificationDtoFromJson(_normalizeNotificationJson(json));
 
   bool get isUnread => readAt == null;
-
-  static NotificationDto fromJson(Map<String, dynamic> j) => NotificationDto(
-        id: j['id'] as String,
-        type: j['type'] as String? ?? '',
-        title: j['title'] as String? ?? '',
-        body: j['body'] as String? ?? '',
-        deepLink: j['deepLink'] as String? ?? '',
-        isCritical: j['isCritical'] as bool? ?? false,
-        readAt: j['readAt'] == null
-            ? null
-            : DateTime.parse(j['readAt'] as String),
-        createdAt: DateTime.parse(j['createdAt'] as String),
-      );
 }

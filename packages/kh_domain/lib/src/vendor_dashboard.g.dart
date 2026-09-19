@@ -38,7 +38,9 @@ _VendorDashboard _$VendorDashboardFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$VendorDashboardToJson(_VendorDashboard instance) =>
     <String, dynamic>{
       'newRequests': instance.newRequests,
-      'newRequestPreview': instance.newRequestPreview,
+      'newRequestPreview': instance.newRequestPreview
+          .map((e) => e.toJson())
+          .toList(),
       'pendingOffers': instance.pendingOffers,
       'pendingOffersExpiringWithin24h': instance.pendingOffersExpiringWithin24h,
       'activeConnections': instance.activeConnections,
@@ -46,5 +48,5 @@ Map<String, dynamic> _$VendorDashboardToJson(_VendorDashboard instance) =>
       'ratingAverage': instance.ratingAverage,
       'reviewCount': instance.reviewCount,
       'goldRates': instance.goldRates,
-      'subscriptions': instance.subscriptions,
+      'subscriptions': instance.subscriptions.map((e) => e.toJson()).toList(),
     };

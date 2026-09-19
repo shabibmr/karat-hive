@@ -36,6 +36,28 @@ MeUser testVendorUser({VendorMe? vendor}) {
   );
 }
 
+CustomerMe testCustomerMe({
+  String displayName = 'Amina',
+  int reviewCount = 0,
+  int connectionCount = 0,
+}) {
+  return CustomerMe(
+    displayName: displayName,
+    reviewCount: reviewCount,
+    connectionCount: connectionCount,
+  );
+}
+
+MeUser testCustomerUser({CustomerMe? customer}) {
+  return MeUser(
+    userId: 'u2',
+    userType: 'CUSTOMER',
+    mobileNumber: '+971500000002',
+    preferredLanguage: 'en',
+    customer: customer ?? testCustomerMe(),
+  );
+}
+
 /// Avoids Firebase in widget/controller tests. Do not call [signOut] unless
 /// the test is prepared for the Firebase Auth path.
 class FakeSessionController extends SessionController {

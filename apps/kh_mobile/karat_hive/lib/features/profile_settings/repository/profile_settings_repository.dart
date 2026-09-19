@@ -99,4 +99,13 @@ class ProfileSettingsRepository {
     required String challengeId,
   }) =>
       _api.meClient.confirmDeletionRequest(id, challengeId: challengeId);
+
+  /// Verifies the OTP challenge issued by [createDeletionRequest] before it
+  /// can be confirmed (`me.service.ts` requires an `otp.requireVerified`
+  /// challenge, purpose `CHANGE_MOBILE`, ahead of `confirmDeletionRequest`).
+  Future<Result<OtpVerifyResult>> verifyDeletionOtp({
+    required String challengeId,
+    required String code,
+  }) =>
+      _api.otpVerify(challengeId: challengeId, code: code);
 }

@@ -1,219 +1,107 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'common_dtos.dart';
 import 'offer_dtos.dart';
+
+part 'request_dtos.freezed.dart';
+part 'request_dtos.g.dart';
+
+Map<String, dynamic> _normalizeCustomerRequestJson(Map<String, dynamic> json) => {
+      ...json,
+      'id': json['id'] as String,
+      'requestType': json['requestType'] as String? ?? '',
+      'direction': json['direction'] as String? ?? '',
+      'state': json['state'] as String? ?? '',
+      'category': (json['category'] as Map<String, dynamic>?) ?? const {},
+      'region': (json['region'] as Map<String, dynamic>?) ?? const {},
+      'weightGrams': json['weightGrams']?.toString(),
+      'weightIsApproximate': json['weightIsApproximate'] as bool? ?? false,
+      'denominationGrams': json['denominationGrams']?.toString(),
+      'budgetMin': json['budgetMin']?.toString(),
+      'budgetMax': json['budgetMax']?.toString(),
+      'budgetIsFlexible': json['budgetIsFlexible'] as bool? ?? false,
+      'indicativeValue': json['indicativeValue']?.toString(),
+      'offerCount': json['offerCount'] as int? ?? 0,
+      'media': (json['media'] as List?) ?? const [],
+      'gemstones': json['gemstones'] as Map<String, dynamic>?,
+    };
 
 /// `request.presenter.ts` `RequestForCustomer` (= `RequestBaseDto` + customer
 /// extras). Backs `CUS-S02`, `CUS-S10`, `CUS-S17`.
 ///
 /// `unreadOfferCount` is `SAM-GAP-1` / `CBG-01` — see the backend-gap list;
 /// it is nullable here until the presenter aggregate lands.
-class CustomerRequestDto {
-  const CustomerRequestDto({
-    required this.id,
-    this.reference,
-    required this.requestType,
-    required this.direction,
-    required this.state,
-    required this.category,
-    required this.region,
-    this.notes,
-    this.weightGrams,
-    required this.weightIsApproximate,
-    this.purityKarat,
-    this.ornamentType,
-    this.condition,
-    this.denominationGrams,
-    this.quantity,
-    this.mintOrRefiner,
-    this.budgetMin,
-    this.budgetMax,
-    required this.budgetIsFlexible,
-    this.indicativeValue,
-    this.publishedAt,
-    this.expiresAt,
-    required this.offerCount,
-    this.unreadOfferCount,
-    this.media = const [],
-    required this.createdAt,
-    required this.updatedAt,
-    this.gemstones,
-    this.cancellationReason,
-    this.acceptedOfferId,
-    this.connectionId,
-    this.offers,
-  });
+@freezed
+abstract class CustomerRequestDto with _$CustomerRequestDto {
+  const factory CustomerRequestDto({
+    required String id,
+    String? reference,
+    required String requestType,
+    required String direction,
+    required String state,
+    required CategorySummaryDto category,
+    required RegionSummaryDto region,
+    String? notes,
+    String? weightGrams,
+    required bool weightIsApproximate,
+    String? purityKarat,
+    String? ornamentType,
+    String? condition,
+    String? denominationGrams,
+    int? quantity,
+    String? mintOrRefiner,
+    String? budgetMin,
+    String? budgetMax,
+    required bool budgetIsFlexible,
+    String? indicativeValue,
+    DateTime? publishedAt,
+    DateTime? expiresAt,
+    required int offerCount,
+    int? unreadOfferCount,
+    @Default(<MediaRefDto>[]) List<MediaRefDto> media,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    Map<String, dynamic>? gemstones,
+    String? cancellationReason,
+    String? acceptedOfferId,
+    // Deep-link target for `CUS-S10` → `CUS-S15` when `state == ACCEPTED` (`SAM-GAP-3`).
+    String? connectionId,
+    // Nested only on `GET /v1/requests/:id` (owner presenter).
+    List<CustomerOfferDto>? offers,
+  }) = _CustomerRequestDto;
 
-  final String id;
-  final String? reference;
-  final String requestType;
-  final String direction;
-  final String state;
-  final CategorySummaryDto category;
-  final RegionSummaryDto region;
-  final String? notes;
-  final String? weightGrams;
-  final bool weightIsApproximate;
-  final String? purityKarat;
-  final String? ornamentType;
-  final String? condition;
-  final String? denominationGrams;
-  final int? quantity;
-  final String? mintOrRefiner;
-  final String? budgetMin;
-  final String? budgetMax;
-  final bool budgetIsFlexible;
-  final String? indicativeValue;
-  final DateTime? publishedAt;
-  final DateTime? expiresAt;
-  final int offerCount;
-  final int? unreadOfferCount;
-  final List<MediaRefDto> media;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final Map<String, dynamic>? gemstones;
-  final String? cancellationReason;
-  final String? acceptedOfferId;
-
-  /// Deep-link target for `CUS-S10` → `CUS-S15` when `state == ACCEPTED`
-  /// (`SAM-GAP-3`).
-  final String? connectionId;
-
-  /// Nested only on `GET /v1/requests/:id` (owner presenter).
-  final List<CustomerOfferDto>? offers;
-
-  static DateTime? _d(dynamic v) =>
-      v == null ? null : DateTime.parse(v as String);
-
-  static CustomerRequestDto fromJson(Map<String, dynamic> j) => CustomerRequestDto(
-        id: j['id'] as String,
-        reference: j['reference'] as String?,
-        requestType: j['requestType'] as String? ?? '',
-        direction: j['direction'] as String? ?? '',
-        state: j['state'] as String? ?? '',
-        category: CategorySummaryDto.fromJson(
-            (j['category'] as Map<String, dynamic>?) ?? const {}),
-        region: RegionSummaryDto.fromJson(
-            (j['region'] as Map<String, dynamic>?) ?? const {}),
-        notes: j['notes'] as String?,
-        weightGrams: j['weightGrams']?.toString(),
-        weightIsApproximate: j['weightIsApproximate'] as bool? ?? false,
-        purityKarat: j['purityKarat'] as String?,
-        ornamentType: j['ornamentType'] as String?,
-        condition: j['condition'] as String?,
-        denominationGrams: j['denominationGrams']?.toString(),
-        quantity: j['quantity'] as int?,
-        mintOrRefiner: j['mintOrRefiner'] as String?,
-        budgetMin: j['budgetMin']?.toString(),
-        budgetMax: j['budgetMax']?.toString(),
-        budgetIsFlexible: j['budgetIsFlexible'] as bool? ?? false,
-        indicativeValue: j['indicativeValue']?.toString(),
-        publishedAt: _d(j['publishedAt']),
-        expiresAt: _d(j['expiresAt']),
-        offerCount: j['offerCount'] as int? ?? 0,
-        unreadOfferCount: j['unreadOfferCount'] as int?,
-        media: mediaListFromJson(j['media']),
-        createdAt: DateTime.parse(j['createdAt'] as String),
-        updatedAt: DateTime.parse(j['updatedAt'] as String),
-        gemstones: j['gemstones'] as Map<String, dynamic>?,
-        cancellationReason: j['cancellationReason'] as String?,
-        acceptedOfferId: j['acceptedOfferId'] as String?,
-        connectionId: j['connectionId'] as String?,
-        offers: j['offers'] == null
-            ? null
-            : ((j['offers'] as List)
-                .map((e) => CustomerOfferDto.fromJson(e as Map<String, dynamic>))
-                .toList(growable: false)),
-      );
+  factory CustomerRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$CustomerRequestDtoFromJson(_normalizeCustomerRequestJson(json));
 }
 
 /// Request-create / update payload — mirrors `createRequestSchema` in
 /// `request.controller.ts`. All fields optional; the backend validates per
-/// `requestType`.
-class RequestDraftInput {
-  const RequestDraftInput({
-    this.requestType,
-    this.direction,
-    this.categoryId,
-    this.regionId,
-    this.notes,
-    this.weightGrams,
-    this.weightIsApproximate,
-    this.purityKarat,
-    this.ornamentType,
-    this.condition,
-    this.denominationGrams,
-    this.quantity,
-    this.mintOrRefiner,
-    this.budgetMin,
-    this.budgetMax,
-    this.budgetIsFlexible,
-    this.gemstones,
-    this.mediaKeys,
-  });
+/// `requestType`. Omits null fields on [toJson] (`@JsonKey(includeIfNull:
+/// false)` on every field) to match the original hand-written
+/// partial-payload behaviour.
+@freezed
+abstract class RequestDraftInput with _$RequestDraftInput {
+  const factory RequestDraftInput({
+    @JsonKey(includeIfNull: false) String? requestType,
+    @JsonKey(includeIfNull: false) String? direction,
+    @JsonKey(includeIfNull: false) String? categoryId,
+    @JsonKey(includeIfNull: false) String? regionId,
+    @JsonKey(includeIfNull: false) String? notes,
+    @JsonKey(includeIfNull: false) Object? weightGrams,
+    @JsonKey(includeIfNull: false) bool? weightIsApproximate,
+    @JsonKey(includeIfNull: false) String? purityKarat,
+    @JsonKey(includeIfNull: false) String? ornamentType,
+    @JsonKey(includeIfNull: false) String? condition,
+    @JsonKey(includeIfNull: false) Object? denominationGrams,
+    @JsonKey(includeIfNull: false) int? quantity,
+    @JsonKey(includeIfNull: false) String? mintOrRefiner,
+    @JsonKey(includeIfNull: false) Object? budgetMin,
+    @JsonKey(includeIfNull: false) Object? budgetMax,
+    @JsonKey(includeIfNull: false) bool? budgetIsFlexible,
+    @JsonKey(includeIfNull: false) Map<String, dynamic>? gemstones,
+    @JsonKey(includeIfNull: false) List<String>? mediaKeys,
+  }) = _RequestDraftInput;
 
-  final String? requestType;
-  final String? direction;
-  final String? categoryId;
-  final String? regionId;
-  final String? notes;
-  final Object? weightGrams;
-  final bool? weightIsApproximate;
-  final String? purityKarat;
-  final String? ornamentType;
-  final String? condition;
-  final Object? denominationGrams;
-  final int? quantity;
-  final String? mintOrRefiner;
-  final Object? budgetMin;
-  final Object? budgetMax;
-  final bool? budgetIsFlexible;
-  final Map<String, dynamic>? gemstones;
-  final List<String>? mediaKeys;
-
-  factory RequestDraftInput.fromJson(Map<String, dynamic> j) =>
-      RequestDraftInput(
-        requestType: j['requestType'] as String?,
-        direction: j['direction'] as String?,
-        categoryId: j['categoryId'] as String?,
-        regionId: j['regionId'] as String?,
-        notes: j['notes'] as String?,
-        weightGrams: j['weightGrams'],
-        weightIsApproximate: j['weightIsApproximate'] as bool?,
-        purityKarat: j['purityKarat'] as String?,
-        ornamentType: j['ornamentType'] as String?,
-        condition: j['condition'] as String?,
-        denominationGrams: j['denominationGrams'],
-        quantity: (j['quantity'] as num?)?.toInt(),
-        mintOrRefiner: j['mintOrRefiner'] as String?,
-        budgetMin: j['budgetMin'],
-        budgetMax: j['budgetMax'],
-        budgetIsFlexible: j['budgetIsFlexible'] as bool?,
-        gemstones: j['gemstones'] is Map
-            ? Map<String, dynamic>.from(j['gemstones'] as Map)
-            : null,
-        mediaKeys: (j['mediaKeys'] as List?)
-            ?.map((e) => e.toString())
-            .toList(growable: false),
-      );
-
-  Map<String, dynamic> toJson() => {
-        if (requestType != null) 'requestType': requestType,
-        if (direction != null) 'direction': direction,
-        if (categoryId != null) 'categoryId': categoryId,
-        if (regionId != null) 'regionId': regionId,
-        if (notes != null) 'notes': notes,
-        if (weightGrams != null) 'weightGrams': weightGrams,
-        if (weightIsApproximate != null)
-          'weightIsApproximate': weightIsApproximate,
-        if (purityKarat != null) 'purityKarat': purityKarat,
-        if (ornamentType != null) 'ornamentType': ornamentType,
-        if (condition != null) 'condition': condition,
-        if (denominationGrams != null) 'denominationGrams': denominationGrams,
-        if (quantity != null) 'quantity': quantity,
-        if (mintOrRefiner != null) 'mintOrRefiner': mintOrRefiner,
-        if (budgetMin != null) 'budgetMin': budgetMin,
-        if (budgetMax != null) 'budgetMax': budgetMax,
-        if (budgetIsFlexible != null) 'budgetIsFlexible': budgetIsFlexible,
-        if (gemstones != null) 'gemstones': gemstones,
-        if (mediaKeys != null) 'mediaKeys': mediaKeys,
-      };
+  factory RequestDraftInput.fromJson(Map<String, dynamic> json) =>
+      _$RequestDraftInputFromJson(json);
 }

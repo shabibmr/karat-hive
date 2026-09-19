@@ -1,5 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'party.dart';
 import 'request.dart';
+
+part 'offer.freezed.dart';
+part 'offer.g.dart';
 
 enum OfferState {
   pending,
@@ -31,55 +36,14 @@ enum OfferState {
       };
 }
 
-class OfferTerms {
-  const OfferTerms({
-    required this.offeredPrice,
-    this.validityHours = 24,
-    this.weightGrams,
-    this.makingCharges,
-    this.ratePerGram,
-    this.deliveryTimeframe,
-    this.warrantyTerms,
-    this.vendorNote,
-    this.media = const [],
-  });
+class _OfferStateConverter implements JsonConverter<OfferState, String?> {
+  const _OfferStateConverter();
 
-  final String offeredPrice;
-  final String? weightGrams;
-  final String? makingCharges;
-  final String? ratePerGram;
-  final String? deliveryTimeframe;
-  final String? warrantyTerms;
-  final String? vendorNote;
-  final int validityHours;
-  final List<MediaRef> media;
+  @override
+  OfferState fromJson(String? json) => OfferState.parse(json);
 
-  static OfferTerms fromJson(Map<String, dynamic> j, {List<MediaRef>? media}) {
-    final nestedMedia = j['media'] as List?;
-    return OfferTerms(
-      offeredPrice: j['offeredPrice']?.toString() ?? '',
-      weightGrams: j['weightGrams']?.toString(),
-      makingCharges: j['makingCharges']?.toString(),
-      ratePerGram: j['ratePerGram']?.toString(),
-      deliveryTimeframe: j['deliveryTimeframe'] as String?,
-      warrantyTerms: j['warrantyTerms'] as String?,
-      vendorNote: j['vendorNote'] as String?,
-      validityHours: (j['validityHours'] as num?)?.toInt() ?? 24,
-      media: media ??
-          (nestedMedia ?? const [])
-              .map((e) => MediaRef.fromJson(
-                    e is Map<String, dynamic>
-                        ? e
-                        : Map<String, dynamic>.from(e as Map),
-                  ))
-              .toList(growable: false),
-    );
-  }
-}
-
-DateTime? _dt(Object? raw) {
-  if (raw is String && raw.isNotEmpty) return DateTime.tryParse(raw);
-  return null;
+  @override
+  String toJson(OfferState object) => object.wire;
 }
 
 Map<String, dynamic> _map(Object? raw) {
@@ -88,104 +52,166 @@ Map<String, dynamic> _map(Object? raw) {
   return const {};
 }
 
+DateTime? _dt(Object? raw) {
+  if (raw is String && raw.isNotEmpty) return DateTime.tryParse(raw);
+  return null;
+}
+
+OfferTerms _offerTermsFromJson(Object? raw) => OfferTerms.fromJson(_map(raw));
+
+Map<String, dynamic> _offerTermsToJson(OfferTerms terms) => terms.toJson();
+
+Map<String, dynamic> _normalizeOfferTermsJson(Map<String, dynamic> json) {
+  final nestedMedia = json['media'] as List?;
+  return {
+    'offeredPrice': json['offeredPrice']?.toString() ?? '',
+    'weightGrams': json['weightGrams']?.toString(),
+    'makingCharges': json['makingCharges']?.toString(),
+    'ratePerGram': json['ratePerGram']?.toString(),
+    'deliveryTimeframe': json['deliveryTimeframe'] as String?,
+    'warrantyTerms': json['warrantyTerms'] as String?,
+    'vendorNote': json['vendorNote'] as String?,
+    'validityHours': (json['validityHours'] as num?)?.toInt() ?? 24,
+    'media': (nestedMedia ?? const [])
+        .map((e) => e is Map<String, dynamic> ? e : Map<String, dynamic>.from(e as Map))
+        .toList(growable: false),
+  };
+}
+
+@freezed
+abstract class OfferTerms with _$OfferTerms {
+  const factory OfferTerms({
+    required String offeredPrice,
+    @Default(24) int validityHours,
+    String? weightGrams,
+    String? makingCharges,
+    String? ratePerGram,
+    String? deliveryTimeframe,
+    String? warrantyTerms,
+    String? vendorNote,
+    @Default(<MediaRef>[]) List<MediaRef> media,
+  }) = _OfferTerms;
+
+  factory OfferTerms.fromJson(Map<String, dynamic> json) =>
+      _$OfferTermsFromJson(_normalizeOfferTermsJson(json));
+}
+
+/// Parses [json] into [OfferTerms]; [media], when supplied, overrides any
+/// nested `media` in [json] — matches the pre-freezed manual constructor's
+/// override behaviour used when the parent Offer has already parsed a shared
+/// media list.
+OfferTerms _offerTermsFromJsonWithMedia(
+  Map<String, dynamic> json, {
+  List<MediaRef>? media,
+}) {
+  final parsed = OfferTerms.fromJson(json);
+  return media != null ? parsed.copyWith(media: media) : parsed;
+}
+
+Map<String, dynamic> _normalizeOfferForCustomerJson(Map<String, dynamic> json) {
+  final mediaRaw = json['media'] as List?;
+  final media = (mediaRaw ?? const [])
+      .map((e) => MediaRef.fromJson(_map(e)))
+      .toList(growable: false);
+  return {
+    ...json,
+    'state': json['state']?.toString(),
+    'terms': _offerTermsFromJsonWithMedia(_map(json['terms']), media: media).toJson(),
+    'vendor': MaskedParty.fromJson(_map(json['vendor']), role: PartyRole.vendor).toJson(),
+    'submittedAt':
+        (_dt(json['submittedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+            .toIso8601String(),
+    'expiresAt': (_dt(json['expiresAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+        .toIso8601String(),
+    'decidedAt': _dt(json['decidedAt'])?.toIso8601String(),
+    'revisionCount': (json['revisionCount'] as num?)?.toInt() ?? 0,
+    'viewedByCustomerAt': _dt(json['viewedByCustomerAt'])?.toIso8601String(),
+    'viewedByCustomerAtPresent': json.containsKey('viewedByCustomerAt'),
+  };
+}
+
 /// Customer Offer presenter. Counterparty is [MaskedParty] only (BR-006).
-class OfferForCustomer {
-  const OfferForCustomer({
-    required this.id,
-    required this.requestId,
-    required this.state,
-    required this.terms,
-    required this.vendor,
-    required this.submittedAt,
-    required this.expiresAt,
-    required this.revisionCount,
-    this.decidedAt,
-    this.viewedByCustomerAt,
-    this.viewedByCustomerAtPresent = false,
-  });
+@freezed
+abstract class OfferForCustomer with _$OfferForCustomer {
+  const factory OfferForCustomer({
+    required String id,
+    required String requestId,
+    @_OfferStateConverter() required OfferState state,
+    @JsonKey(fromJson: _offerTermsFromJson, toJson: _offerTermsToJson)
+    required OfferTerms terms,
+    required MaskedParty vendor,
+    required DateTime submittedAt,
+    required DateTime expiresAt,
+    required int revisionCount,
+    DateTime? decidedAt,
+    DateTime? viewedByCustomerAt,
 
-  final String id;
-  final String requestId;
-  final OfferState state;
-  final OfferTerms terms;
-  final MaskedParty vendor;
-  final DateTime submittedAt;
-  final DateTime expiresAt;
-  final DateTime? decidedAt;
-  final int revisionCount;
-  final DateTime? viewedByCustomerAt;
+    /// Wire included `viewedByCustomerAt` (SAM-GAP-1). Absent → UI hides unread.
+    @Default(false) bool viewedByCustomerAtPresent,
+  }) = _OfferForCustomer;
 
-  /// Wire included `viewedByCustomerAt` (SAM-GAP-1). Absent → UI hides unread.
-  final bool viewedByCustomerAtPresent;
-
-  static OfferForCustomer fromJson(Map<String, dynamic> j) {
-    final mediaRaw = j['media'] as List?;
-    final media = (mediaRaw ?? const [])
-        .map((e) => MediaRef.fromJson(_map(e)))
-        .toList(growable: false);
-    return OfferForCustomer(
-      id: j['id'] as String,
-      requestId: j['requestId'] as String,
-      state: OfferState.parse(j['state'] as String?),
-      terms: OfferTerms.fromJson(_map(j['terms']), media: media),
-      vendor: MaskedParty.fromJson(_map(j['vendor']), role: PartyRole.vendor),
-      submittedAt: _dt(j['submittedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
-      expiresAt: _dt(j['expiresAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
-      decidedAt: _dt(j['decidedAt']),
-      revisionCount: (j['revisionCount'] as num?)?.toInt() ?? 0,
-      viewedByCustomerAt: _dt(j['viewedByCustomerAt']),
-      viewedByCustomerAtPresent: j.containsKey('viewedByCustomerAt'),
-    );
-  }
+  factory OfferForCustomer.fromJson(Map<String, dynamic> json) =>
+      _$OfferForCustomerFromJson(_normalizeOfferForCustomerJson(json));
 }
 
 /// Pre-accept Vendor rating sheet (`FR-CUS-031`). No business identity.
-class ReviewExcerpt {
-  const ReviewExcerpt({
-    required this.abbreviatedName,
-    required this.rating,
-    this.comment,
-  });
+Map<String, dynamic> _normalizeReviewExcerptJson(Map<String, dynamic> json) => {
+      'abbreviatedName': (json['abbreviatedName'] ??
+              json['authorDisplayName'] ??
+              json['reviewer'] ??
+              '') as String,
+      'rating': (json['rating'] as num?)?.toInt() ?? 0,
+      'comment': json['comment'] as String?,
+    };
 
-  final String abbreviatedName;
-  final int rating;
-  final String? comment;
+@freezed
+abstract class ReviewExcerpt with _$ReviewExcerpt {
+  const factory ReviewExcerpt({
+    required String abbreviatedName,
+    required int rating,
+    String? comment,
+  }) = _ReviewExcerpt;
 
-  static ReviewExcerpt fromJson(Map<String, dynamic> j) => ReviewExcerpt(
-        abbreviatedName: (j['abbreviatedName'] ??
-                j['authorDisplayName'] ??
-                j['reviewer'] ??
-                '') as String,
-        rating: (j['rating'] as num?)?.toInt() ?? 0,
-        comment: j['comment'] as String?,
-      );
+  factory ReviewExcerpt.fromJson(Map<String, dynamic> json) =>
+      _$ReviewExcerptFromJson(_normalizeReviewExcerptJson(json));
 }
 
-class VendorRatingDetail {
-  const VendorRatingDetail({
-    required this.summary,
-    this.excerpts = const [],
-  });
+RatingSummary _ratingSummaryFromJson(Object? raw) =>
+    RatingSummary.fromJson(raw) ?? const RatingSummary.score(0);
 
-  final RatingSummary summary;
-  final List<ReviewExcerpt> excerpts;
+Map<String, dynamic> _ratingSummaryToJson(RatingSummary summary) =>
+    summary.toJson();
+
+Map<String, dynamic> _normalizeVendorRatingDetailJson(
+    Map<String, dynamic> json) {
+  final excerptsRaw = json['excerpts'] ?? json['reviews'] ?? json['recentReviews'];
+  final excerpts = <Map<String, dynamic>>[];
+  if (excerptsRaw is List) {
+    for (final e in excerptsRaw.take(10)) {
+      excerpts.add(_map(e));
+    }
+  }
+  final summaryJson = json['summary'] ?? json['rating'] ?? json;
+  return {
+    'summary': summaryJson,
+    'excerpts': excerpts,
+  };
+}
+
+@freezed
+abstract class VendorRatingDetail with _$VendorRatingDetail {
+  const VendorRatingDetail._();
+
+  const factory VendorRatingDetail({
+    @JsonKey(fromJson: _ratingSummaryFromJson, toJson: _ratingSummaryToJson)
+    required RatingSummary summary,
+    @Default(<ReviewExcerpt>[]) List<ReviewExcerpt> excerpts,
+  }) = _VendorRatingDetail;
+
+  factory VendorRatingDetail.fromJson(Map<String, dynamic> json) =>
+      _$VendorRatingDetailFromJson(_normalizeVendorRatingDetailJson(json));
 
   bool get limitedHistory => summary.limitedHistory;
-
-  static VendorRatingDetail fromJson(Map<String, dynamic> j) {
-    final excerptsRaw = j['excerpts'] ?? j['reviews'] ?? j['recentReviews'];
-    final excerpts = <ReviewExcerpt>[];
-    if (excerptsRaw is List) {
-      for (final e in excerptsRaw.take(10)) {
-        excerpts.add(ReviewExcerpt.fromJson(_map(e)));
-      }
-    }
-    final summaryJson = j['summary'] ?? j['rating'] ?? j;
-    return VendorRatingDetail(
-      summary: RatingSummary.fromJson(summaryJson) ?? const RatingSummary.score(0),
-      excerpts: excerpts,
-    );
-  }
 }
 
 /// Server-enforced max revisions per Offer (`OFFER_REVISION_LIMIT` / `FR-VEN-014`).
@@ -215,93 +241,134 @@ enum OfferDeclineReason {
       };
 }
 
+class _NullableOfferDeclineReasonConverter
+    implements JsonConverter<OfferDeclineReason?, String?> {
+  const _NullableOfferDeclineReasonConverter();
+
+  @override
+  OfferDeclineReason? fromJson(String? json) =>
+      json == null ? null : OfferDeclineReason.parse(json);
+
+  @override
+  String? toJson(OfferDeclineReason? object) => object?.wire;
+}
+
+class _RequestTypeConverter implements JsonConverter<RequestType, String?> {
+  const _RequestTypeConverter();
+
+  @override
+  RequestType fromJson(String? json) => RequestType.parse(json);
+
+  @override
+  String toJson(RequestType object) => object.wire;
+}
+
+class _DirectionConverter implements JsonConverter<Direction, String?> {
+  const _DirectionConverter();
+
+  @override
+  Direction fromJson(String? json) => Direction.parse(json);
+
+  @override
+  String toJson(Direction object) => object.wire;
+}
+
 /// Parent Request summary on a Vendor Offer (masked Customer label only).
-class OfferRequestSummary {
-  const OfferRequestSummary({
-    required this.id,
-    required this.requestType,
-    required this.direction,
-    required this.customerLabel,
-    this.reference,
-    this.categoryId,
-    this.categoryName,
-    this.regionId,
-    this.regionName,
-    this.purityKarat,
-    this.weightGrams,
-    this.budgetMax,
-    this.expiresAt,
-  });
+Map<String, dynamic> _normalizeOfferRequestSummaryJson(
+    Map<String, dynamic> json) {
+  final category = _map(json['category']);
+  final region = _map(json['region']);
+  return {
+    'id': json['id'] as String? ?? '',
+    'reference': json['reference'] as String?,
+    'requestType': json['requestType']?.toString(),
+    'direction': json['direction']?.toString(),
+    'customerLabel': json['customerLabel'] as String? ?? 'Customer',
+    'categoryId': category['id'] as String? ?? json['categoryId'] as String?,
+    'categoryName':
+        category['nameEn'] as String? ?? json['categoryName'] as String?,
+    'regionId': region['id'] as String? ?? json['regionId'] as String?,
+    'regionName': region['nameEn'] as String? ?? json['regionName'] as String?,
+    'purityKarat': json['purityKarat']?.toString(),
+    'weightGrams': json['weightGrams']?.toString(),
+    'budgetMax': json['budgetMax']?.toString(),
+    'expiresAt': _dt(json['expiresAt'])?.toIso8601String(),
+  };
+}
 
-  final String id;
-  final String? reference;
-  final RequestType requestType;
-  final Direction direction;
-  final String customerLabel;
-  final String? categoryId;
-  final String? categoryName;
-  final String? regionId;
-  final String? regionName;
-  final String? purityKarat;
-  final String? weightGrams;
-  final String? budgetMax;
-  final DateTime? expiresAt;
+@freezed
+abstract class OfferRequestSummary with _$OfferRequestSummary {
+  const factory OfferRequestSummary({
+    required String id,
+    @_RequestTypeConverter() required RequestType requestType,
+    @_DirectionConverter() required Direction direction,
+    required String customerLabel,
+    String? reference,
+    String? categoryId,
+    String? categoryName,
+    String? regionId,
+    String? regionName,
+    String? purityKarat,
+    String? weightGrams,
+    String? budgetMax,
+    DateTime? expiresAt,
+  }) = _OfferRequestSummary;
 
-  static OfferRequestSummary fromJson(Map<String, dynamic> j) {
-    final category = _map(j['category']);
-    final region = _map(j['region']);
-    return OfferRequestSummary(
-      id: j['id'] as String? ?? '',
-      reference: j['reference'] as String?,
-      requestType: RequestType.parse(j['requestType'] as String?),
-      direction: Direction.parse(j['direction'] as String?),
-      customerLabel: j['customerLabel'] as String? ?? 'Customer',
-      categoryId: category['id'] as String? ?? j['categoryId'] as String?,
-      categoryName: category['nameEn'] as String? ?? j['categoryName'] as String?,
-      regionId: region['id'] as String? ?? j['regionId'] as String?,
-      regionName: region['nameEn'] as String? ?? j['regionName'] as String?,
-      purityKarat: j['purityKarat']?.toString(),
-      weightGrams: j['weightGrams']?.toString(),
-      budgetMax: j['budgetMax']?.toString(),
-      expiresAt: _dt(j['expiresAt']),
-    );
-  }
+  factory OfferRequestSummary.fromJson(Map<String, dynamic> json) =>
+      _$OfferRequestSummaryFromJson(_normalizeOfferRequestSummaryJson(json));
+}
+
+Map<String, dynamic> _normalizeOfferForVendorJson(Map<String, dynamic> json) {
+  final mediaRaw = json['media'] as List?;
+  final media = (mediaRaw ?? const [])
+      .map((e) => MediaRef.fromJson(_map(e)))
+      .toList(growable: false);
+  final summaryRaw = json['requestSummary'];
+  return {
+    ...json,
+    'state': json['state']?.toString(),
+    'terms': _offerTermsFromJsonWithMedia(_map(json['terms']), media: media).toJson(),
+    'submittedAt':
+        (_dt(json['submittedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+            .toIso8601String(),
+    'expiresAt': (_dt(json['expiresAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+        .toIso8601String(),
+    'decidedAt': _dt(json['decidedAt'])?.toIso8601String(),
+    'viewedByCustomerAt': _dt(json['viewedByCustomerAt'])?.toIso8601String(),
+    'revisionCount': (json['revisionCount'] as num?)?.toInt() ?? 0,
+    'requestSummary': summaryRaw is Map ? _map(summaryRaw) : null,
+    'declineReason': json['declineReason'] as String?,
+    'awardedElsewhere': json['awardedElsewhere'] as bool? ?? false,
+  };
 }
 
 /// Vendor's own Offer presenter. Never carries competitor price/identity (BR-008).
-class OfferForVendor {
-  const OfferForVendor({
-    required this.id,
-    required this.requestId,
-    required this.state,
-    required this.terms,
-    required this.submittedAt,
-    required this.expiresAt,
-    required this.revisionCount,
-    this.decidedAt,
-    this.viewedByCustomerAt,
-    this.requestSummary,
-    this.declineReason,
-    this.awardedElsewhere = false,
-    this.connectionId,
-  });
+@freezed
+abstract class OfferForVendor with _$OfferForVendor {
+  const OfferForVendor._();
 
-  final String id;
-  final String requestId;
-  final OfferState state;
-  final OfferTerms terms;
-  final DateTime submittedAt;
-  final DateTime expiresAt;
-  final DateTime? decidedAt;
-  final DateTime? viewedByCustomerAt;
-  final int revisionCount;
-  final OfferRequestSummary? requestSummary;
-  final OfferDeclineReason? declineReason;
-  final bool awardedElsewhere;
+  const factory OfferForVendor({
+    required String id,
+    required String requestId,
+    @_OfferStateConverter() required OfferState state,
+    @JsonKey(fromJson: _offerTermsFromJson, toJson: _offerTermsToJson)
+    required OfferTerms terms,
+    required DateTime submittedAt,
+    required DateTime expiresAt,
+    required int revisionCount,
+    DateTime? decidedAt,
+    DateTime? viewedByCustomerAt,
+    OfferRequestSummary? requestSummary,
+    @_NullableOfferDeclineReasonConverter() OfferDeclineReason? declineReason,
+    @Default(false) bool awardedElsewhere,
 
-  /// Present when this Offer produced a Connection. Absent → UI keeps the
-  /// disabled copy rather than inventing a path (CP4-B05).
-  final String? connectionId;
+    /// Present when this Offer produced a Connection. Absent → UI keeps the
+    /// disabled copy rather than inventing a path (CP4-B05).
+    String? connectionId,
+  }) = _OfferForVendor;
+
+  factory OfferForVendor.fromJson(Map<String, dynamic> json) =>
+      _$OfferForVendorFromJson(_normalizeOfferForVendorJson(json));
 
   int get revisionsRemaining =>
       (kMaxOfferRevisions - revisionCount).clamp(0, kMaxOfferRevisions);
@@ -326,59 +393,24 @@ class OfferForVendor {
   }
 
   bool get canWithdraw => state == OfferState.pending;
-
-  static OfferForVendor fromJson(Map<String, dynamic> j) {
-    final mediaRaw = j['media'] as List?;
-    final media = (mediaRaw ?? const [])
-        .map((e) => MediaRef.fromJson(_map(e)))
-        .toList(growable: false);
-    final summaryRaw = j['requestSummary'];
-    final declineRaw = j['declineReason'] as String?;
-    return OfferForVendor(
-      id: j['id'] as String,
-      requestId: j['requestId'] as String,
-      state: OfferState.parse(j['state'] as String?),
-      terms: OfferTerms.fromJson(_map(j['terms']), media: media),
-      submittedAt:
-          _dt(j['submittedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
-      expiresAt: _dt(j['expiresAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
-      decidedAt: _dt(j['decidedAt']),
-      viewedByCustomerAt: _dt(j['viewedByCustomerAt']),
-      revisionCount: (j['revisionCount'] as num?)?.toInt() ?? 0,
-      requestSummary: summaryRaw is Map
-          ? OfferRequestSummary.fromJson(_map(summaryRaw))
-          : null,
-      declineReason:
-          declineRaw == null ? null : OfferDeclineReason.parse(declineRaw),
-      awardedElsewhere: j['awardedElsewhere'] as bool? ?? false,
-      connectionId: j['connectionId'] as String?,
-    );
-  }
 }
 
 /// Body for submit / revise Offer.
-class OfferTermsInput {
-  const OfferTermsInput({
-    required this.offeredPrice,
-    this.validityHours = 24,
-    this.weightGrams,
-    this.makingCharges,
-    this.ratePerGram,
-    this.deliveryTimeframe,
-    this.warrantyTerms,
-    this.vendorNote,
-    this.mediaKeys = const [],
-  });
+@freezed
+abstract class OfferTermsInput with _$OfferTermsInput {
+  const OfferTermsInput._();
 
-  final String offeredPrice;
-  final int validityHours;
-  final String? weightGrams;
-  final String? makingCharges;
-  final String? ratePerGram;
-  final String? deliveryTimeframe;
-  final String? warrantyTerms;
-  final String? vendorNote;
-  final List<String> mediaKeys;
+  const factory OfferTermsInput({
+    required String offeredPrice,
+    @Default(24) int validityHours,
+    String? weightGrams,
+    String? makingCharges,
+    String? ratePerGram,
+    String? deliveryTimeframe,
+    String? warrantyTerms,
+    String? vendorNote,
+    @Default(<String>[]) List<String> mediaKeys,
+  }) = _OfferTermsInput;
 
   Map<String, dynamic> toJson({bool includeMediaKeys = true}) => {
         'offeredPrice': offeredPrice,
