@@ -38,6 +38,16 @@ class FlavorConfig {
   bool get isStaging => flavor == AppFlavor.staging;
   bool get isProd => flavor == AppFlavor.prod;
 
+  FlavorConfig copyWith({
+    AppFlavor? flavor,
+    String? apiBaseUrl,
+  }) {
+    return FlavorConfig(
+      flavor: flavor ?? this.flavor,
+      apiBaseUrl: apiBaseUrl ?? this.apiBaseUrl,
+    );
+  }
+
   /// TR-S4-16 (ADM-INS-82): Prod flavor refuses a non-HTTPS base.
   void validate() {
     if (isProd) {
@@ -55,7 +65,7 @@ class FlavorConfig {
 const String _kFlavorString = String.fromEnvironment('KH_FLAVOR', defaultValue: 'dev');
 
 /// Global flavor config provider overridable per build or test.
-final flavorConfigProvider = Provider<FlavorConfig>((ref) {
+final flavorConfigProvider = StateProvider<FlavorConfig>((ref) {
   final flavor = AppFlavor.fromString(_kFlavorString);
   final config = FlavorConfig(
     flavor: flavor,

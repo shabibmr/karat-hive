@@ -52,6 +52,8 @@ class FirebaseAuthService {
         clientId: kIsWeb
             ? '132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com'
             : null,
+        serverClientId:
+            '132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com',
       );
       _googleSignInInitialized = true;
     }

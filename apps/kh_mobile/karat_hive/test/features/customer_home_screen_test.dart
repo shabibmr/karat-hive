@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:karat_hive/features/request_create/controller/request_create_controller.dart';
+import 'package:karat_hive/features/request_create/pending_publish_intent.dart';
 import 'package:karat_hive/features/request_manage/presentation/customer_home_screen.dart';
 import 'package:karat_hive/features/request_manage/repository/request_manage_repository.dart';
 import 'package:kh_core/kh_core.dart';
@@ -51,6 +52,11 @@ Widget _host(List<Override> overrides, {GoRouter? router}) => ProviderScope(
         supportedLocales: KhStrings.supportedLocales,
       ),
     );
+
+class _PendingPublishIntentTrue extends PendingPublishIntent {
+  @override
+  bool build() => true;
+}
 
 void main() {
   late _MockRepo repo;
@@ -156,5 +162,51 @@ void main() {
       container.read(requestCreateControllerProvider).requestType,
       RequestType.sellOldGold,
     );
+  });
+
+  testWidgets(
+      'renders _RetryPublicationBanner without layout overflow when publish is pending',
+      (tester) async {
+    when(() => repo.listMine(
+          cursor: any(named: 'cursor'),
+          limit: any(named: 'limit'),
+          state: any(named: 'state'),
+          requestType: any(named: 'requestType'),
+          direction: any(named: 'direction'),
+          q: any(named: 'q'),
+          from: any(named: 'from'),
+          to: any(named: 'to'),
+        )).thenAnswer(
+      (_) async => const Ok(
+        PagedResult<RequestForCustomer>(items: [], nextCursor: null),
+      ),
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        requestManageRepositoryProvider.overrideWithValue(repo),
+        pendingPublishIntentProvider.overrideWith(_PendingPublishIntentTrue.new),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(
+          theme: khTheme(),
+          routerConfig: _testRouter(),
+          localizationsDelegates: const [
+            ...KhStrings.delegates,
+            AppLocalizations.delegate,
+          ],
+          supportedLocales: KhStrings.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Your request could not be published yet.'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
   });
 }

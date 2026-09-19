@@ -2,7 +2,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_admin/core/firebase/firebase_notification_service.dart';
+import 'package:kh_admin/core/firebase/firestore_config_service.dart';
 import 'package:kh_admin/core/log/kh_logger.dart';
+import 'package:kh_admin/core/platform/flavor.dart';
 import 'package:kh_admin/firebase_options.dart';
 
 enum FirebaseInitStatus {
@@ -44,11 +46,36 @@ Future<void> initializeFirebaseNonBlocking(
     );
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     notifier.state = const FirebaseInitState(status: FirebaseInitStatus.initialized);
+
+    // Sync remote API Base URL from Firestore
+    await _syncRemoteEnvironmentConfig(ref, logger);
   } on Object catch (e, st) {
     logger.error('Firebase initialization failed (failing closed): $e', e, st);
     notifier.state = FirebaseInitState(
       status: FirebaseInitStatus.failed,
       error: e,
     );
+  }
+}
+
+Future<void> _syncRemoteEnvironmentConfig(
+  WidgetRef ref,
+  KhLogger logger,
+) async {
+  try {
+    final currentConfig = ref.read(flavorConfigProvider);
+    final configService = FirestoreConfigService();
+    final remoteUrl = await configService.fetchRemoteApiBaseUrl(
+      currentConfig.flavor,
+      logger: logger,
+    );
+    if (remoteUrl != null && remoteUrl.isNotEmpty) {
+      final updated = currentConfig.copyWith(apiBaseUrl: remoteUrl);
+      updated.validate();
+      ref.read(flavorConfigProvider.notifier).state = updated;
+      logger.info('[FirebaseInit] Synced API base URL from Firestore: $remoteUrl');
+    }
+  } on Object catch (e, st) {
+    logger.warning('[FirebaseInit] Failed to sync remote API base URL, using fallback: $e', e, st);
   }
 }

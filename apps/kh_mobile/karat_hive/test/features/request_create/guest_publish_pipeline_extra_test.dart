@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,6 +67,12 @@ void main() {
   late _MockRepo repo;
   late Directory tempDir;
 
+  setUpAll(() {
+    registerFallbackValue(File('fallback.bin'));
+    registerFallbackValue(<String, dynamic>{});
+    registerFallbackValue(Uint8List(0));
+  });
+
   setUp(() {
     repo = _MockRepo();
     tempDir = Directory.systemTemp.createTempSync('kh_pending_draft_test');
@@ -83,12 +90,36 @@ void main() {
         onProgress: any(named: 'onProgress'),
       ),
     ).thenAnswer((_) async => const Ok('media-key-1'));
+    when(
+      () => repo.uploadRequestImageBytes(
+        any(),
+        any(),
+      ),
+    ).thenAnswer((_) async => const Ok('media-key-1'));
+    when(
+      () => repo.uploadRequestImageBytes(
+        any(),
+        any(),
+        onProgress: any(named: 'onProgress'),
+      ),
+    ).thenAnswer((_) async => const Ok('media-key-1'));
     when(() => repo.createDraft(any())).thenAnswer(
+      (_) async => Ok(DraftSaveResult(request: _request(state: 'DRAFT'))),
+    );
+    when(() => repo.patchDraft(any(), any())).thenAnswer(
       (_) async => Ok(DraftSaveResult(request: _request(state: 'DRAFT'))),
     );
     when(() => repo.publish(any(), idempotencyKey: any(named: 'idempotencyKey')))
         .thenAnswer((_) async => Ok(_request(state: 'PUBLISHED')));
     when(() => repo.me()).thenAnswer((_) async => Ok(_customer()));
+    when(() => repo.platformConfig()).thenAnswer(
+      (_) async => const Ok(PlatformConfig(requestLifetimeHours: 48)),
+    );
+    when(() => repo.categories()).thenAnswer((_) async => const Ok([]));
+    when(() => repo.regions()).thenAnswer((_) async => const Ok([]));
+    when(() => repo.goldRates()).thenAnswer(
+      (_) async => const Ok(GoldRateSnapshot(rates: [], available: false, stale: false)),
+    );
   }
 
   group('GL-59 cold-boot restore', () {

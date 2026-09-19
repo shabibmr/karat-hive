@@ -7,6 +7,16 @@ class Env {
   final Flavor flavor;
   final String apiBaseUrl;
 
+  Env copyWith({
+    Flavor? flavor,
+    String? apiBaseUrl,
+  }) {
+    return Env(
+      flavor: flavor ?? this.flavor,
+      apiBaseUrl: apiBaseUrl ?? this.apiBaseUrl,
+    );
+  }
+
   static Env fromDefines() {
     const flavorName = String.fromEnvironment('KH_FLAVOR', defaultValue: 'dev');
     const baseUrl = String.fromEnvironment(

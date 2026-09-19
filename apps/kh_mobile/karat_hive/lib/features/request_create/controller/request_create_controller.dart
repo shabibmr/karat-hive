@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
@@ -220,14 +221,16 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     if (_reconcileAttempted) return false;
     _reconcileAttempted = true;
 
-    final meR = await _repo.me();
-    final me = meR.valueOrNull;
-    if (me != null) {
-      state = state.copyWith(
-        oauthBound: me.oauthBound,
-        canCreateRequest: me.canCreateRequest ?? true,
-      );
-    }
+    try {
+      final meR = await _repo.me();
+      final me = meR.valueOrNull;
+      if (me != null) {
+        state = state.copyWith(
+          oauthBound: me.oauthBound,
+          canCreateRequest: me.canCreateRequest ?? true,
+        );
+      }
+    } catch (_) {}
     final ok = await publish();
     if (ok) {
       ref.read(pendingPublishIntentProvider.notifier).clearPending();
@@ -584,18 +587,17 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       return false;
     }
 
-    if (state.draftId == null) {
-      final created = await saveDraft();
-      if (!created) {
-        state = state.copyWith(busy: false);
-        return false;
-      }
+    final saved = await saveDraft();
+    if (!saved) {
+      state = state.copyWith(busy: false);
+      return false;
     }
     final id = state.draftId;
     if (id == null) {
       state = state.copyWith(busy: false);
       return false;
     }
+    state = state.copyWith(busy: true);
     final key = _ensurePublishKey();
     final result = await _repo.publish(id, idempotencyKey: key);
     return result.when(
@@ -630,28 +632,39 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       if (!slot.isLocalOnly) continue;
       final contentType = slot.contentType ?? 'image/jpeg';
       Uint8List? bytes = slot.localBytes;
-      if (bytes == null && slot.localPath != null) {
-        bytes = Uint8List.fromList(await File(slot.localPath!).readAsBytes());
+      if (bytes == null && !kIsWeb && slot.localPath != null) {
+        try {
+          bytes = Uint8List.fromList(await File(slot.localPath!).readAsBytes());
+        } catch (_) {
+          bytes = null;
+        }
       }
       if (bytes == null || bytes.isEmpty) continue;
       next[i] = slot.copyWith(uploading: true, progress: 0, clearFailure: true);
       state = state.copyWith(media: [...next]);
-      final result = await _repo.uploadRequestImageBytes(bytes, contentType);
-      final fail = result.failureOrNull;
-      if (fail != null) {
+      try {
+        final result = await _repo.uploadRequestImageBytes(bytes, contentType);
+        final fail = result.failureOrNull;
+        if (fail != null) {
+          next[i] = slot.copyWith(uploading: false, failure: fail);
+          state = state.copyWith(media: [...next], uploading: false, failure: fail);
+          return false;
+        }
+        next[i] = MediaSlot(
+          key: result.valueOrNull!,
+          localLabel: slot.localLabel,
+          // Keep bytes/path so Review can show thumbnails.
+          localPath: slot.localPath,
+          localBytes: bytes,
+          contentType: contentType,
+        );
+        state = state.copyWith(media: [...next]);
+      } catch (e) {
+        final fail = ServerFailure(message: e.toString());
         next[i] = slot.copyWith(uploading: false, failure: fail);
         state = state.copyWith(media: [...next], uploading: false, failure: fail);
         return false;
       }
-      next[i] = MediaSlot(
-        key: result.valueOrNull!,
-        localLabel: slot.localLabel,
-        // Keep bytes/path so Review can show thumbnails.
-        localPath: slot.localPath,
-        localBytes: bytes,
-        contentType: contentType,
-      );
-      state = state.copyWith(media: [...next]);
     }
     state = state.copyWith(media: next, uploading: false);
     return true;
@@ -681,14 +694,16 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     }
     if (!session.isCustomer) return false;
     // Refresh oauth / cap from me.
-    final meR = await _repo.me();
-    final me = meR.valueOrNull;
-    if (me != null) {
-      state = state.copyWith(
-        oauthBound: me.oauthBound,
-        canCreateRequest: me.canCreateRequest ?? true,
-      );
-    }
+    try {
+      final meR = await _repo.me();
+      final me = meR.valueOrNull;
+      if (me != null) {
+        state = state.copyWith(
+          oauthBound: me.oauthBound,
+          canCreateRequest: me.canCreateRequest ?? true,
+        );
+      }
+    } catch (_) {}
     return publish();
   }
 

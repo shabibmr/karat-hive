@@ -234,7 +234,11 @@ class _RetryPublicationBanner extends StatelessWidget {
               ),
             ),
             SizedBox(width: tokens.space.sm),
-            KhButton(label: 'Retry', onPressed: onRetry),
+            KhButton(
+              label: 'Retry',
+              width: null,
+              onPressed: onRetry,
+            ),
           ],
         ),
       ),

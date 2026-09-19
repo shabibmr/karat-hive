@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../tokens.dart';
+import 'package:kh_design_system/src/tokens.dart';
 
 class KhButton extends StatelessWidget {
   const KhButton({
@@ -10,6 +10,7 @@ class KhButton extends StatelessWidget {
     this.busy = false,
     this.secondary = false,
     this.destructive = false,
+    this.width = double.infinity,
   });
 
   final String label;
@@ -17,6 +18,7 @@ class KhButton extends StatelessWidget {
   final bool busy;
   final bool secondary;
   final bool destructive;
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
@@ -34,15 +36,17 @@ class KhButton extends StatelessWidget {
       backgroundColor: tokens.danger,
       foregroundColor: tokens.surface,
     );
+    final button = secondary
+        ? OutlinedButton(onPressed: onTap, child: child)
+        : FilledButton(
+            onPressed: onTap,
+            style: destructive ? destructiveStyle : null,
+            child: child,
+          );
+    if (width == null) return button;
     return SizedBox(
-      width: double.infinity,
-      child: secondary
-          ? OutlinedButton(onPressed: onTap, child: child)
-          : FilledButton(
-              onPressed: onTap,
-              style: destructive ? destructiveStyle : null,
-              child: child,
-            ),
+      width: width,
+      child: button,
     );
   }
 }

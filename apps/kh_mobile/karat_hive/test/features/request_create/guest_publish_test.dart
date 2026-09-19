@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -70,6 +71,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(File('fallback.bin'));
     registerFallbackValue(<String, dynamic>{});
+    registerFallbackValue(Uint8List(0));
   });
 
   setUp(() async {
@@ -106,7 +108,30 @@ void main() {
       order?.add('upload');
       return const Ok('media-key-1');
     });
+    when(
+      () => repo.uploadRequestImageBytes(
+        any(),
+        any(),
+      ),
+    ).thenAnswer((_) async {
+      order?.add('upload');
+      return const Ok('media-key-1');
+    });
+    when(
+      () => repo.uploadRequestImageBytes(
+        any(),
+        any(),
+        onProgress: any(named: 'onProgress'),
+      ),
+    ).thenAnswer((_) async {
+      order?.add('upload');
+      return const Ok('media-key-1');
+    });
     when(() => repo.createDraft(any())).thenAnswer((_) async {
+      order?.add('draft');
+      return Ok(DraftSaveResult(request: _request(state: 'DRAFT')));
+    });
+    when(() => repo.patchDraft(any(), any())).thenAnswer((_) async {
       order?.add('draft');
       return Ok(DraftSaveResult(request: _request(state: 'DRAFT')));
     });
@@ -115,6 +140,7 @@ void main() {
           order?.add('publish');
           return Ok(_request(state: 'PUBLISHED'));
         });
+    when(() => repo.me()).thenAnswer((_) async => Ok(_customer()));
   }
 
   group('GL-57…GL-60 auto-publish pipeline', () {
@@ -161,6 +187,13 @@ void main() {
           onProgress: any(named: 'onProgress'),
         ),
       ).thenAnswer((_) async => const Ok('media-key-1'));
+      when(
+        () => repo.uploadRequestImageBytes(
+          any(),
+          any(),
+        ),
+      ).thenAnswer((_) async => const Ok('media-key-1'));
+      when(() => repo.me()).thenAnswer((_) async => Ok(_customer()));
       when(() => repo.createDraft(any())).thenAnswer(
         (_) async => Ok(DraftSaveResult(request: _request(state: 'DRAFT'))),
       );

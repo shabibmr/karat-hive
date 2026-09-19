@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +9,7 @@ import 'package:karat_hive/features/request_create/controller/request_create_con
 import 'package:karat_hive/features/request_create/pending_publish_intent.dart';
 import 'package:karat_hive/features/request_create/presentation/request_review_publish_screen.dart';
 import 'package:karat_hive/features/request_create/repository/request_create_repository.dart';
+import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
@@ -28,6 +31,14 @@ void main() {
 
   setUp(() {
     repo = _MockRepo();
+    when(() => repo.platformConfig()).thenAnswer(
+      (_) async => const Ok(PlatformConfig(requestLifetimeHours: 48)),
+    );
+    when(() => repo.categories()).thenAnswer((_) async => const Ok([]));
+    when(() => repo.regions()).thenAnswer((_) async => const Ok([]));
+    when(() => repo.goldRates()).thenAnswer(
+      (_) async => const Ok(GoldRateSnapshot(rates: [], available: false, stale: false)),
+    );
   });
 
   test('guest publish() does not call createDraft (GL-46)', () async {
@@ -58,6 +69,15 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    final tempDir = Directory.systemTemp.createTempSync('kh_test_overlay_');
+    addTearDown(() {
+      if (tempDir.existsSync()) {
+        try {
+          tempDir.deleteSync(recursive: true);
+        } catch (_) {}
+      }
+    });
+
     final container = ProviderContainer(
       overrides: [
         requestCreateRepositoryProvider.overrideWithValue(repo),
@@ -66,6 +86,9 @@ void main() {
         ),
         customerOnboardingControllerProvider.overrideWith(
           () => _FakeOnboarding(const OnboardingIdle()),
+        ),
+        pendingPublishDraftStoreProvider.overrideWithValue(
+          PendingPublishDraftStore(baseDir: tempDir),
         ),
       ],
     );

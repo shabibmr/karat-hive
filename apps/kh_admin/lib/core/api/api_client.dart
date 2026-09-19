@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_admin/core/auth/token_storage.dart';
 import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/api/server_time_provider.dart';
+import 'package:kh_admin/core/platform/flavor.dart';
 
 /// Default base URL read from `--dart-define=KH_API_BASE`, defaulting to `https://algoray.cloud/kh_api`.
 const String khApiBase = String.fromEnvironment(
@@ -73,6 +74,11 @@ class ApiClient {
     _latestServerTime = serverTime;
     _staticLatestServerTime = serverTime;
     _onServerTime?.call(serverTime);
+  }
+
+  /// Updates the base URL on the underlying Dio instance.
+  void updateBaseUrl(String newBaseUrl) {
+    _dio.options.baseUrl = newBaseUrl;
   }
 
   /// Performs a GET request and unwraps the `{ data }` payload.
@@ -340,7 +346,9 @@ final contractMismatchProvider = StateProvider<bool>((ref) => false);
 /// server timestamp sync, and 426 contract mismatch notifier.
 final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
+  final flavorConfig = ref.watch(flavorConfigProvider);
   return ApiClient(
+    baseUrl: flavorConfig.apiBaseUrl,
     // G2-A14: domain calls use the Karat Hive access token only.
     tokenGetter: () => tokenStorage.getAccessToken(),
     onServerTime: (serverTime) {

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
 
@@ -33,7 +34,16 @@ class MediaUploader {
   final int maxPolls;
   final Future<void> Function(Duration duration) _sleep;
 
-  Dio get _dio => _putClient ?? _api.client.dio;
+  Dio? _defaultPutClient;
+  Dio get _dio =>
+      _putClient ??
+      (_defaultPutClient ??= Dio(
+        BaseOptions(
+          validateStatus: (_) => true,
+          connectTimeout: const Duration(seconds: 30),
+          sendTimeout: const Duration(minutes: 2),
+        ),
+      ));
 
   /// Requests an upload intent ahead of picking a file, so the network
   /// round-trip overlaps with on-device work instead of happening after it.
@@ -91,20 +101,30 @@ class MediaUploader {
           );
     return intent.when(
       ok: (i) async {
-        final res = await _dio.put<dynamic>(
-          i.uploadUrl,
-          data: Stream.fromIterable([bytes]),
-          options: Options(
-            headers: {...i.requiredHeaders, 'content-length': length},
-            contentType: contentType,
-          ),
-          onSendProgress: length == 0
-              ? null
-              : (sent, total) {
-                  final t = total > 0 ? total : length;
-                  onProgress?.call((sent / t).clamp(0, 1));
-                },
-        );
+        final Response<dynamic> res;
+        try {
+          res = await _dio.put<dynamic>(
+            i.uploadUrl,
+            data: bytes,
+            options: Options(
+              headers: {
+                ...i.requiredHeaders,
+                if (!kIsWeb) 'content-length': length,
+              },
+              contentType: contentType,
+            ),
+            onSendProgress: length == 0
+                ? null
+                : (sent, total) {
+                    final t = total > 0 ? total : length;
+                    onProgress?.call((sent / t).clamp(0, 1));
+                  },
+          );
+        } on DioException catch (e) {
+          return Err<String>(ServerFailure(message: e.message ?? 'Upload failed. Try again.'));
+        } catch (e) {
+          return Err<String>(ServerFailure(message: e.toString()));
+        }
         if ((res.statusCode ?? 0) >= 300) {
           return const Err<String>(ServerFailure(message: 'Upload failed. Try again.'));
         }
@@ -112,11 +132,23 @@ class MediaUploader {
         final done = await _api.completeUpload(i.key);
         final fail = done.failureOrNull;
         if (fail != null) return Err<String>(fail);
-        if (done.valueOrNull != 'READY') {
+        var currentState = done.valueOrNull;
+        if (currentState != 'READY') {
           for (var n = 0; n < maxPolls; n++) {
             await _sleep(pollInterval);
             final again = await _api.completeUpload(i.key);
-            if (again.valueOrNull == 'READY') break;
+            final againFail = again.failureOrNull;
+            if (againFail != null) return Err<String>(againFail);
+            currentState = again.valueOrNull;
+            if (currentState == 'READY') break;
+            if (currentState == 'QUARANTINED') {
+              return const Err<String>(
+                ValidationFailure(
+                  code: 'MEDIA_QUARANTINED',
+                  message: 'That file failed a safety check and cannot be used.',
+                ),
+              );
+            }
           }
         }
         return Ok<String>(i.key);

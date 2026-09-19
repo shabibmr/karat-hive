@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -39,7 +41,9 @@ class _RequestReviewPublishScreenState
       // Guest reaching review (GL-57): snapshot the draft so it survives a
       // cold restart while a sign-in is pending.
       if (ref.read(sessionProvider) is! SignedIn) {
-        ref.read(requestCreateControllerProvider.notifier).persistPendingDraft();
+        unawaited(
+          ref.read(requestCreateControllerProvider.notifier).persistPendingDraft(),
+        );
       }
       _maybeReconcilePendingOverlayIntent();
     });
@@ -121,8 +125,8 @@ class _RequestReviewPublishScreenState
     final controller = ref.read(requestCreateControllerProvider.notifier);
 
     if (session is! SignedIn) {
-      await controller.persistPendingDraft();
       ref.read(pendingPublishIntentProvider.notifier).setPending();
+      unawaited(controller.persistPendingDraft());
       await _showGuestSignInOverlay();
       return;
     }
