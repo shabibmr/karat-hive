@@ -62,6 +62,9 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   /// Shared so sign-in flush and [publish] cannot double-upload the same slot.
   Future<bool>? _flushInFlight;
 
+  /// Shared so [build] and tests cannot overlap cold-boot restore.
+  Future<void>? _restoreInFlight;
+
   @override
   RequestCreateState build() {
     ref.listen<SessionState>(sessionProvider, (prev, next) {
@@ -89,12 +92,22 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     return initial;
   }
 
+  /// Completes when the fire-and-forget restore from [build] finishes.
+  Future<void> waitForPendingDraftRestore() async {
+    final inFlight = _restoreInFlight;
+    if (inFlight != null) await inFlight;
+  }
+
   /// Cold-boot restore (GL-59): if a Guest force-quit mid-draft, rehydrate
   /// the wizard from the on-disk snapshot so a still-pending publish intent
   /// can complete once the user signs in. Best-effort only — any platform
   /// or IO error (e.g. no `path_provider` plugin in a plain unit test)
   /// leaves the fresh in-memory state untouched.
-  Future<void> _restorePendingDraft() async {
+  Future<void> _restorePendingDraft() {
+    return _restoreInFlight ??= _runPendingDraftRestore();
+  }
+
+  Future<void> _runPendingDraftRestore() async {
     try {
       final store = ref.read(pendingPublishDraftStoreProvider);
       final snapshot = await store.load();

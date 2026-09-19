@@ -81,7 +81,9 @@ void main() {
   });
 
   tearDown(() {
-    if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
+    try {
+      if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
+    } catch (_) {}
   });
 
   void stubHappyPublish() {
@@ -161,8 +163,7 @@ void main() {
       addTearDown(containerB.dispose);
 
       final ctrlB = containerB.read(requestCreateControllerProvider.notifier);
-      // Let the fire-and-forget restore kicked off from build() complete.
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await ctrlB.waitForPendingDraftRestore();
 
       expect(
         containerB.read(requestCreateControllerProvider).notes,
