@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 
+import '../../../app/guards.dart';
 import '../controller/request_create_controller.dart';
 import '../controller/request_create_state.dart';
 import '../routes.dart';
@@ -44,10 +45,24 @@ class _RequestImageCaptureScreenState
       stepLabel: createCopy(context, 'create.imagesStep', 'Step · Photos'),
       bottom: DraftActions(
         busy: state.busy || state.uploading,
+        continueEnabled: !required || controller.canContinuePhotos,
         continueLabel: createCopy(context, 'create.continue', 'Continue'),
-        onSaveDraft: () => controller.saveDraft(),
+        onSaveDraft: () async {
+          final ok = await controller.saveDraft();
+          if (ok && context.mounted) {
+            controller.resetFlow();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  createCopy(context, 'create.draftSaved', 'Draft saved'),
+                ),
+              ),
+            );
+            context.go(AppGuards.customerRequests);
+          }
+        },
         onContinue: () async {
-          if (required && state.media.isEmpty) {
+          if (required && !controller.canContinuePhotos) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(

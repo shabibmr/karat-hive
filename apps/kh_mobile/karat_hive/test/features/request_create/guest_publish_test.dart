@@ -12,6 +12,7 @@ import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/fake_image_converter.dart';
 import '../../helpers/fake_session.dart';
 
 class _MockRepo extends Mock implements RequestCreateRepository {}
@@ -90,6 +91,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         requestCreateRepositoryProvider.overrideWithValue(repo),
+        requestImageConverterProvider.overrideWithValue(FakeImageConverter()),
         sessionProvider.overrideWith(() => _MutableSessionController(session)),
       ],
     );
@@ -152,6 +154,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           requestCreateRepositoryProvider.overrideWithValue(repo),
+          requestImageConverterProvider.overrideWithValue(FakeImageConverter()),
           sessionProvider.overrideWith(() => sessionCtrl),
         ],
       );
@@ -213,6 +216,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           requestCreateRepositoryProvider.overrideWithValue(repo),
+          requestImageConverterProvider.overrideWithValue(FakeImageConverter()),
           sessionProvider.overrideWith(() => sessionCtrl),
         ],
       );
@@ -330,6 +334,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           requestCreateRepositoryProvider.overrideWithValue(repo),
+          requestImageConverterProvider.overrideWithValue(FakeImageConverter()),
           sessionProvider.overrideWith(() => sessionCtrl),
         ],
       );

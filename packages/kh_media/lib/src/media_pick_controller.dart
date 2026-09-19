@@ -112,7 +112,9 @@ class MediaPickController {
     void Function(double progress)? onProgress,
   }) async {
     final asset = await _imageConverter.convertBytesToAvif(bytes);
-    await _cache.put(correlationId, asset);
+    if (asset.file != null) {
+      await _cache.put(correlationId, asset);
+    }
     return _upload(asset, correlationId: correlationId, onProgress: onProgress);
   }
 
@@ -179,8 +181,9 @@ class MediaPickController {
         : null;
     // Consumed either way: a stale/mismatched intent shouldn't be retried later.
     _prefetchedIntent = null;
-    final result = await _uploader.upload(
-      asset.file,
+    final payload = await asset.readBytes();
+    final result = await _uploader.uploadBytes(
+      payload,
       purpose: _purpose,
       contentType: asset.contentType,
       onProgress: onProgress,

@@ -7,11 +7,16 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
+import 'package:kh_media/kh_media.dart';
 
 import '../../../app/session/session_controller.dart';
 import '../pending_publish_intent.dart';
 import '../repository/request_create_repository.dart';
 import 'request_create_state.dart';
+
+final requestImageConverterProvider = Provider<ImageConverter>(
+  (ref) => const AvifImageConverter(),
+);
 
 Direction? directionForType(RequestType type) => switch (type) {
       RequestType.findOrnament => Direction.buy,
@@ -54,8 +59,18 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   /// after a failed auto-publish attempt is unaffected by this.
   bool _reconcileAttempted = false;
 
+  /// Shared so sign-in flush and [publish] cannot double-upload the same slot.
+  Future<bool>? _flushInFlight;
+
   @override
   RequestCreateState build() {
+    ref.listen<SessionState>(sessionProvider, (prev, next) {
+      if (next is! SignedIn || !next.isCustomer) return;
+      final wasCustomer = prev is SignedIn && prev.isCustomer;
+      if (wasCustomer) return;
+      if (!state.media.any((m) => m.isLocalOnly)) return;
+      unawaited(_uploadPendingLocalMedia());
+    });
     final session = ref.read(sessionProvider);
     var canCreate = true;
     var oauthBound = false;
@@ -245,6 +260,13 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   }
 
   bool get _isGuest => ref.read(sessionProvider) is! SignedIn;
+
+  /// Guest: local AVIF is enough. Signed-in: every slot must have a READY key.
+  bool get canContinuePhotos {
+    if (!state.photosAttachedReady) return false;
+    if (_isGuest) return true;
+    return state.mediaKeysReady;
+  }
 
   Future<void> loadLookups() async {
     state = state.copyWith(lookupsLoading: true, clearFailure: true);
@@ -494,14 +516,29 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     final label = filename.trim().isEmpty ? 'photo.jpg' : filename;
     final token = Object.hash(path ?? label, bytes.length);
 
-    // Guest: keep bytes until after bind (`adr/0011`).
+    final converted = await _convertToAvif(bytes);
+    if (converted == null) {
+      final slot = MediaSlot(
+        key: _isGuest ? 'local:$token' : 'pending:$token',
+        localLabel: label,
+        localPath: path,
+        localBytes: bytes,
+        contentType: 'image/avif',
+        failure: const ServerFailure(message: 'Could not convert that photo. Try another.'),
+      );
+      state = state.copyWith(media: [...state.media, slot]);
+      return;
+    }
+
+    // Guest: keep converted AVIF until after bind (`adr/0011`).
     if (_isGuest) {
       final slot = MediaSlot(
         key: 'local:$token',
         localLabel: label,
         localPath: path,
         localBytes: bytes,
-        contentType: contentType,
+        uploadBytes: converted,
+        contentType: 'image/avif',
       );
       state = state.copyWith(
         media: [...state.media, slot],
@@ -515,7 +552,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       localLabel: label,
       localPath: path,
       localBytes: bytes,
-      contentType: contentType,
+      uploadBytes: converted,
+      contentType: 'image/avif',
       progress: 0,
       uploading: true,
     );
@@ -524,51 +562,60 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       uploading: true,
       clearFailure: true,
     );
-    final result = await _repo.uploadRequestImageBytes(
-      bytes,
-      contentType,
-      onProgress: (p) {
-        state = state.copyWith(
-          media: [
-            for (final m in state.media)
-              if (m.key == placeholder.key) m.copyWith(progress: p) else m,
-          ],
-        );
-      },
+    await _uploadConvertedSlot(placeholder.key);
+  }
+
+  Future<void> retryFailedMediaAt(int index) async {
+    if (index < 0 || index >= state.media.length) return;
+    final slot = state.media[index];
+    if (slot.failure == null) return;
+    final source = slot.localBytes;
+    if (source == null || source.isEmpty) return;
+
+    Uint8List? converted = slot.uploadBytes;
+    if (converted == null || converted.isEmpty) {
+      converted = await _convertToAvif(source);
+    }
+    if (converted == null) {
+      state = state.copyWith(
+        media: [
+          for (var i = 0; i < state.media.length; i++)
+            if (i == index)
+              slot.copyWith(
+                failure: const ServerFailure(
+                  message: 'Could not convert that photo. Try another.',
+                ),
+              )
+            else
+              state.media[i],
+        ],
+      );
+      return;
+    }
+
+    final retryKey = slot.key.startsWith('pending:') || slot.key.startsWith('local:')
+        ? slot.key
+        : 'pending:${Object.hash(slot.key, converted.length)}';
+    final next = MediaSlot(
+      key: _isGuest ? (slot.key.startsWith('local:') ? slot.key : 'local:$retryKey') : retryKey,
+      localLabel: slot.localLabel,
+      localPath: slot.localPath,
+      localBytes: slot.localBytes,
+      uploadBytes: converted,
+      contentType: 'image/avif',
+      progress: 0,
+      uploading: !_isGuest,
     );
-    result.when(
-      ok: (key) {
-        state = state.copyWith(
-          uploading: false,
-          media: [
-            for (final m in state.media)
-              if (m.key == placeholder.key)
-                MediaSlot(
-                  key: key,
-                  localLabel: placeholder.localLabel,
-                  // Keep bytes/path so Review can show thumbnails.
-                  localPath: placeholder.localPath,
-                  localBytes: placeholder.localBytes,
-                  contentType: placeholder.contentType,
-                )
-              else
-                m,
-          ],
-        );
-      },
-      err: (f) {
-        state = state.copyWith(
-          uploading: false,
-          media: [
-            for (final m in state.media)
-              if (m.key == placeholder.key)
-                m.copyWith(uploading: false, failure: f)
-              else
-                m,
-          ],
-        );
-      },
+    state = state.copyWith(
+      media: [
+        for (var i = 0; i < state.media.length; i++)
+          if (i == index) next else state.media[i],
+      ],
+      uploading: !_isGuest,
+      clearFailure: true,
     );
+    if (_isGuest) return;
+    await _uploadConvertedSlot(next.key);
   }
 
   Future<void> removeMediaAt(int index) async {
@@ -611,14 +658,26 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     state = state.copyWith(awaitingLoginToPublish: false);
   }
 
-  /// Upload any Guest-local images, then create draft + publish.
+  /// Create/patch draft + publish. Upload only leftover local slots.
   Future<bool> publish() async {
     state = state.copyWith(busy: true, clearFailure: true, fieldErrors: const {});
 
-    final uploaded = await _uploadPendingLocalMedia();
-    if (!uploaded) {
-      state = state.copyWith(busy: false);
+    if (state.media.any((m) => m.uploading)) {
+      state = state.copyWith(
+        busy: false,
+        failure: const ValidationFailure(
+          message: 'Wait for photos to finish uploading.',
+        ),
+      );
       return false;
+    }
+
+    if (state.media.any((m) => m.isLocalOnly)) {
+      final uploaded = await _uploadPendingLocalMedia();
+      if (!uploaded) {
+        state = state.copyWith(busy: false);
+        return false;
+      }
     }
 
     final saved = await saveDraft();
@@ -656,52 +715,159 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     );
   }
 
+  /// Flush guest-local AVIF slots (also used after sign-in). Safe to call twice.
+  Future<bool> flushPendingLocalMedia() => _uploadPendingLocalMedia();
+
   Future<bool> _uploadPendingLocalMedia() async {
-    final pending = state.media.where((m) => m.isLocalOnly).toList();
-    if (pending.isEmpty) return true;
+    final inFlight = _flushInFlight;
+    if (inFlight != null) return inFlight;
+    final future = _flushLocalMedia();
+    _flushInFlight = future;
+    try {
+      return await future;
+    } finally {
+      _flushInFlight = null;
+    }
+  }
+
+  Future<bool> _flushLocalMedia() async {
+    if (!state.media.any((m) => m.isLocalOnly)) return true;
     state = state.copyWith(uploading: true);
-    final next = [...state.media];
-    for (var i = 0; i < next.length; i++) {
-      final slot = next[i];
+    for (var i = 0; i < state.media.length; i++) {
+      final slot = state.media[i];
       if (!slot.isLocalOnly) continue;
-      final contentType = slot.contentType ?? 'image/jpeg';
-      Uint8List? bytes = slot.localBytes;
-      if (bytes == null && !kIsWeb && slot.localPath != null) {
-        try {
-          bytes = Uint8List.fromList(await File(slot.localPath!).readAsBytes());
-        } catch (_) {
-          bytes = null;
+      final key = slot.key;
+      Uint8List? avif = slot.uploadBytes;
+      if (avif == null || avif.isEmpty) {
+        Uint8List? source = slot.localBytes;
+        if (source == null && !kIsWeb && slot.localPath != null) {
+          try {
+            source = Uint8List.fromList(await File(slot.localPath!).readAsBytes());
+          } catch (_) {
+            source = null;
+          }
         }
-      }
-      if (bytes == null || bytes.isEmpty) continue;
-      next[i] = slot.copyWith(uploading: true, progress: 0, clearFailure: true);
-      state = state.copyWith(media: [...next]);
-      try {
-        final result = await _repo.uploadRequestImageBytes(bytes, contentType);
-        final fail = result.failureOrNull;
-        if (fail != null) {
-          next[i] = slot.copyWith(uploading: false, failure: fail);
-          state = state.copyWith(media: [...next], uploading: false, failure: fail);
+        if (source == null || source.isEmpty) continue;
+        avif = await _convertToAvif(source);
+        if (avif == null) {
+          state = state.copyWith(
+            uploading: false,
+            failure: const ServerFailure(
+              message: 'Could not convert that photo. Try another.',
+            ),
+            media: [
+              for (final m in state.media)
+                if (m.key == key)
+                  m.copyWith(
+                    uploading: false,
+                    failure: const ServerFailure(
+                      message: 'Could not convert that photo. Try another.',
+                    ),
+                  )
+                else
+                  m,
+            ],
+          );
           return false;
         }
-        next[i] = MediaSlot(
-          key: result.valueOrNull!,
-          localLabel: slot.localLabel,
-          // Keep bytes/path so Review can show thumbnails.
-          localPath: slot.localPath,
-          localBytes: bytes,
-          contentType: contentType,
+        state = state.copyWith(
+          media: [
+            for (final m in state.media)
+              if (m.key == key)
+                m.copyWith(uploadBytes: avif, contentType: 'image/avif')
+              else
+                m,
+          ],
         );
-        state = state.copyWith(media: [...next]);
-      } catch (e) {
-        final fail = ServerFailure(message: e.toString());
-        next[i] = slot.copyWith(uploading: false, failure: fail);
-        state = state.copyWith(media: [...next], uploading: false, failure: fail);
-        return false;
+      }
+      final ok = await _uploadConvertedSlot(key);
+      if (!ok) return false;
+    }
+    state = state.copyWith(uploading: false);
+    return true;
+  }
+
+  Future<Uint8List?> _convertToAvif(Uint8List bytes) async {
+    try {
+      final asset =
+          await ref.read(requestImageConverterProvider).convertBytesToAvif(bytes);
+      return asset.readBytes();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> _uploadConvertedSlot(String placeholderKey) async {
+    MediaSlot? slot;
+    for (final m in state.media) {
+      if (m.key == placeholderKey) {
+        slot = m;
+        break;
       }
     }
-    state = state.copyWith(media: next, uploading: false);
+    if (slot == null) return false;
+    final uploadSlot = slot;
+    final avif = uploadSlot.uploadBytes;
+    if (avif == null || avif.isEmpty) return false;
+    final result = await _repo.uploadRequestImageBytes(
+      avif,
+      'image/avif',
+      onProgress: (p) {
+        state = state.copyWith(
+          media: [
+            for (final m in state.media)
+              if (m.key == placeholderKey) m.copyWith(progress: p) else m,
+          ],
+        );
+      },
+    );
+    final fail = result.failureOrNull;
+    if (fail != null) {
+      state = state.copyWith(
+        uploading: false,
+        failure: fail,
+        media: [
+          for (final m in state.media)
+            if (m.key == placeholderKey)
+              m.copyWith(uploading: false, failure: fail)
+            else
+              m,
+        ],
+      );
+      return false;
+    }
+    state = state.copyWith(
+      uploading: state.media.any((m) => m.key != placeholderKey && m.uploading),
+      media: [
+        for (final m in state.media)
+          if (m.key == placeholderKey)
+            MediaSlot(
+              key: result.valueOrNull!,
+              localLabel: uploadSlot.localLabel,
+              localPath: uploadSlot.localPath,
+              localBytes: uploadSlot.localBytes,
+              uploadBytes: avif,
+              contentType: 'image/avif',
+            )
+          else
+            m,
+      ],
+    );
+    await _syncDraftMediaKeys();
     return true;
+  }
+
+  Future<void> _syncDraftMediaKeys() async {
+    final id = state.draftId;
+    if (id == null || _isGuest) return;
+    if (state.mediaKeys.isEmpty) return;
+    final result = await _repo.patchDraft(id, draftBody());
+    result.when(
+      ok: (saved) {
+        state = state.copyWith(warnings: saved.warnings);
+      },
+      err: (_) {},
+    );
   }
 
   /// Bind OAuth then retry publish with the **same** idempotency key.

@@ -33,7 +33,7 @@ void main() {
     final got = await cache.get('slot-1');
 
     expect(got, isNotNull);
-    expect(got!.file.path, f.path);
+    expect(got!.file?.path, f.path);
     expect(got.contentType, 'image/avif');
     expect(got.byteSize, 3);
   });

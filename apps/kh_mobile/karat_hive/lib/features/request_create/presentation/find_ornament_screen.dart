@@ -5,6 +5,7 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart' hide BudgetEditor;
 
+import '../../../app/guards.dart';
 import '../controller/request_create_controller.dart';
 import '../controller/request_create_state.dart';
 import '../routes.dart';
@@ -49,7 +50,18 @@ class _ComposeScreenHostState extends ConsumerState<ComposeScreenHost> {
     final controller = ref.read(requestCreateControllerProvider.notifier);
 
     Future<void> saveDraft() async {
-      await controller.saveDraft();
+      final ok = await controller.saveDraft();
+      if (ok && context.mounted) {
+        controller.resetFlow();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              createCopy(context, 'create.draftSaved', 'Draft saved'),
+            ),
+          ),
+        );
+        context.go(AppGuards.customerRequests);
+      }
     }
 
     return CreateFlowChrome(
@@ -57,11 +69,12 @@ class _ComposeScreenHostState extends ConsumerState<ComposeScreenHost> {
       stepLabel: widget.stepLabel,
       bottom: DraftActions(
         busy: state.busy || state.uploading,
+        continueEnabled: !widget.combineImages || controller.canContinuePhotos,
         onSaveDraft: saveDraft,
         onContinue: () async {
           if (widget.combineImages &&
               state.imagesRequired &&
-              state.media.isEmpty) {
+              !controller.canContinuePhotos) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(

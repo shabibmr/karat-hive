@@ -102,21 +102,13 @@ class DraftActions extends StatelessWidget {
           busy: busy,
           onPressed: continueEnabled && !busy ? onContinue : null,
         ),
-        // Temporarily hidden on all create screens — do not delete; restore by
-        // setting visible: true.
-        Visibility(
-          visible: false,
-          child: Column(
-            children: [
-              SizedBox(height: tokens.space.sm),
-              KhButton(
-                secondary: true,
-                label: createCopy(context, 'create.saveDraft', 'Save draft'),
-                busy: busy,
-                onPressed: busy ? null : onSaveDraft,
-              ),
-            ],
-          ),
+        SizedBox(height: tokens.space.sm),
+        KhButton(
+          key: const Key('create-save-draft'),
+          secondary: true,
+          label: createCopy(context, 'create.saveDraft', 'Save draft'),
+          busy: busy,
+          onPressed: busy ? null : onSaveDraft,
         ),
       ],
     );

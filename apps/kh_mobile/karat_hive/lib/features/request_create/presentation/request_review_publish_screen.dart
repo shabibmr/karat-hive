@@ -150,10 +150,37 @@ class _RequestReviewPublishScreenState
     }
   }
 
+  Future<void> _onSaveDraft() async {
+    final session = ref.read(sessionProvider);
+    final controller = ref.read(requestCreateControllerProvider.notifier);
+
+    if (session is! SignedIn) {
+      ref.read(pendingPublishIntentProvider.notifier).setPending();
+      unawaited(controller.persistPendingDraft());
+      await _showGuestSignInOverlay();
+      return;
+    }
+
+    final ok = await controller.saveDraft();
+    if (!mounted) return;
+    if (ok) {
+      controller.resetFlow();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            createCopy(context, 'create.draftSaved', 'Draft saved'),
+          ),
+        ),
+      );
+      context.go(AppGuards.customerRequests);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final state = ref.watch(requestCreateControllerProvider);
+    final controller = ref.read(requestCreateControllerProvider.notifier);
     final session = ref.watch(sessionProvider);
     final gate = ref.watch(publishGateProvider);
     final showOauthBanner = session is SignedIn &&
@@ -216,7 +243,19 @@ class _RequestReviewPublishScreenState
             key: const Key('create-publish'),
             label: createCopy(context, 'create.publish', 'Publish'),
             busy: state.busy || state.uploading,
-            onPressed: state.busy || state.uploading ? null : _onPublish,
+            onPressed: state.busy ||
+                    state.uploading ||
+                    (session is SignedIn && !controller.canContinuePhotos)
+                ? null
+                : _onPublish,
+          ),
+          SizedBox(height: tokens.space.sm),
+          KhButton(
+            key: const Key('create-save-draft'),
+            label: createCopy(context, 'create.saveDraft', 'Save draft'),
+            secondary: true,
+            busy: state.busy || state.uploading,
+            onPressed: state.busy || state.uploading ? null : _onSaveDraft,
           ),
         ],
       ),

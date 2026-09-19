@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_avif/flutter_avif.dart' as avif;
 import 'package:path_provider/path_provider.dart';
 
@@ -14,8 +15,8 @@ abstract class ImageConverter {
   Future<MediaAsset> convertBytesToAvif(Uint8List bytes);
 }
 
-/// Encodes via `flutter_avif` (libavif) and writes the result to the app's
-/// temp directory so it can be picked up again for cache/retry.
+/// Encodes via `flutter_avif` (libavif) on every platform, including web.
+/// Native also writes a temp file so [PendingUploadCache] can retry.
 class AvifImageConverter implements ImageConverter {
   const AvifImageConverter();
 
@@ -28,12 +29,20 @@ class AvifImageConverter implements ImageConverter {
   @override
   Future<MediaAsset> convertBytesToAvif(Uint8List bytes) async {
     final avifBytes = await avif.encodeAvif(bytes);
+    if (kIsWeb) {
+      return MediaAsset(
+        bytes: avifBytes,
+        contentType: 'image/avif',
+        byteSize: avifBytes.length,
+      );
+    }
     final dir = await getTemporaryDirectory();
     final outPath =
         '${dir.path}/kh_media_${DateTime.now().microsecondsSinceEpoch}.avif';
     final outFile = await File(outPath).writeAsBytes(avifBytes, flush: true);
     return MediaAsset(
       file: outFile,
+      bytes: avifBytes,
       contentType: 'image/avif',
       byteSize: avifBytes.length,
     );

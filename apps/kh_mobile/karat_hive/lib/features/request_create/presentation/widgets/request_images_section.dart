@@ -82,6 +82,9 @@ class RequestImagesSection extends ConsumerWidget {
                 slot: state.media[i],
                 index: i,
                 onRemove: () => controller.removeMediaAt(i),
+                onRetry: state.media[i].failure == null
+                    ? null
+                    : () => controller.retryFailedMediaAt(i),
               ),
             if (state.media.length < state.maxImages)
               OutlinedButton.icon(
@@ -158,11 +161,13 @@ class _MediaTile extends StatelessWidget {
     required this.slot,
     required this.index,
     required this.onRemove,
+    this.onRetry,
   });
 
   final MediaSlot slot;
   final int index;
   final VoidCallback onRemove;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -189,6 +194,18 @@ class _MediaTile extends StatelessWidget {
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    )
+                  else if (slot.failure != null)
+                    ColoredBox(
+                      color: const Color(0x99000000),
+                      child: Center(
+                        child: IconButton(
+                          key: Key('create-retry-image-$index'),
+                          tooltip: slot.failure?.message ?? 'Retry',
+                          onPressed: onRetry,
+                          icon: const Icon(Icons.refresh, color: Colors.white),
                         ),
                       ),
                     ),

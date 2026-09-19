@@ -48,9 +48,11 @@ class PendingUploadCache {
   }
 
   Future<void> put(String correlationId, MediaAsset asset) async {
+    final file = asset.file;
+    if (file == null) return;
     final manifest = await _readManifest();
     manifest[correlationId] = {
-      'path': asset.file.path,
+      'path': file.path,
       'contentType': asset.contentType,
       'byteSize': asset.byteSize,
     };

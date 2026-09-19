@@ -13,6 +13,7 @@ class MediaSlot {
     this.localLabel,
     this.localPath,
     this.localBytes,
+    this.uploadBytes,
     this.contentType,
     this.progress = 1,
     this.uploading = false,
@@ -23,8 +24,10 @@ class MediaSlot {
   final String? localLabel;
   /// Absolute path for Guest-deferred upload on IO platforms (`adr/0011`).
   final String? localPath;
-  /// In-memory bytes for web (FilePicker has no path) and guest deferral.
+  /// Original pick bytes for thumbnails (`Image.memory` cannot decode AVIF).
   final Uint8List? localBytes;
+  /// Converted AVIF bytes ready to upload.
+  final Uint8List? uploadBytes;
   final String? contentType;
   final double progress;
   final bool uploading;
@@ -41,6 +44,7 @@ class MediaSlot {
     String? localLabel,
     String? localPath,
     Uint8List? localBytes,
+    Uint8List? uploadBytes,
     String? contentType,
     double? progress,
     bool? uploading,
@@ -53,6 +57,7 @@ class MediaSlot {
         localLabel: localLabel ?? this.localLabel,
         localPath: clearLocal ? null : (localPath ?? this.localPath),
         localBytes: clearLocal ? null : (localBytes ?? this.localBytes),
+        uploadBytes: clearLocal ? null : (uploadBytes ?? this.uploadBytes),
         contentType: clearLocal ? null : (contentType ?? this.contentType),
         progress: progress ?? this.progress,
         uploading: uploading ?? this.uploading,
@@ -169,6 +174,27 @@ class RequestCreateState {
           !m.key.startsWith('pending-'))
       .map((m) => m.key)
       .toList();
+
+  bool get hasFailedMedia => media.any((m) => m.failure != null);
+
+  bool get mediaInFlight =>
+      uploading || media.any((m) => m.uploading);
+
+  /// Guest: photos attached, none failed/in-flight (local AVIF is OK).
+  /// Signed-in publish uses [mediaKeysReady] instead.
+  bool get photosAttachedReady {
+    if (mediaInFlight || hasFailedMedia) return false;
+    if (imagesRequired && media.isEmpty) return false;
+    return true;
+  }
+
+  /// Signed-in: every slot has a READY server key.
+  bool get mediaKeysReady {
+    if (!photosAttachedReady) return false;
+    if (media.any((m) => m.isLocalOnly)) return false;
+    if (imagesRequired && mediaKeys.isEmpty) return false;
+    return true;
+  }
 
   int get maxImages => config?.maxRequestImages ?? 5;
 

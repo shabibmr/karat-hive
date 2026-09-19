@@ -10,6 +10,7 @@ import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/fake_image_converter.dart';
 import '../../helpers/fake_session.dart';
 
 class _MockRepo extends Mock implements RequestCreateRepository {}
@@ -81,6 +82,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         requestCreateRepositoryProvider.overrideWithValue(repo),
+        requestImageConverterProvider.overrideWithValue(FakeImageConverter()),
         sessionProvider.overrideWith(() => FakeSessionController(session)),
       ],
     );
@@ -167,7 +169,8 @@ void main() {
       expect(state.media, hasLength(1));
       expect(state.media.single.isLocalOnly, isTrue);
       expect(state.media.single.localPath, imageFile.path);
-      expect(state.media.single.contentType, 'image/jpeg');
+      expect(state.media.single.contentType, 'image/avif');
+      expect(state.media.single.uploadBytes, isNotNull);
       expect(state.uploading, isFalse);
       verifyNever(
         () => repo.uploadRequestImageBytes(
@@ -176,6 +179,7 @@ void main() {
           onProgress: any(named: 'onProgress'),
         ),
       );
+      verifyNever(() => repo.uploadRequestImageBytes(any(), any()));
     });
 
     test('guest removeMediaAt is local only', () async {
@@ -196,6 +200,7 @@ void main() {
         final container = ProviderContainer(
           overrides: [
             requestCreateRepositoryProvider.overrideWithValue(repo),
+            requestImageConverterProvider.overrideWithValue(FakeImageConverter()),
             sessionProvider.overrideWith(() => sessionCtrl),
           ],
         );
@@ -205,16 +210,18 @@ void main() {
         await ctrl.addImage(imageFile, 'image/jpeg');
         ctrl.selectType(RequestType.findOrnament);
 
-        sessionCtrl.setSession(SignedIn(_customer()));
-
         final order = <String>[];
-        // Signed-in publish uploads any still-local media via the plain
-        // (bytes, contentType) overload — no onProgress passed.
-        when(() => repo.uploadRequestImageBytes(any(), any()))
-            .thenAnswer((_) async {
+        when(
+          () => repo.uploadRequestImageBytes(
+            any(),
+            any(),
+            onProgress: any(named: 'onProgress'),
+          ),
+        ).thenAnswer((_) async {
           order.add('upload');
           return const Ok('media-key-1');
         });
+        sessionCtrl.setSession(SignedIn(_customer()));
         when(() => repo.createDraft(any())).thenAnswer((_) async {
           order.add('draft');
           return Ok(DraftSaveResult(request: _draftRequest()));
@@ -234,7 +241,13 @@ void main() {
         expect(container.read(requestCreateControllerProvider).mediaKeys, [
           'media-key-1',
         ]);
-        verify(() => repo.uploadRequestImageBytes(any(), any())).called(1);
+        verify(
+          () => repo.uploadRequestImageBytes(
+            any(),
+            any(),
+            onProgress: any(named: 'onProgress'),
+          ),
+        ).called(1);
         verify(() => repo.createDraft(any())).called(1);
       },
     );

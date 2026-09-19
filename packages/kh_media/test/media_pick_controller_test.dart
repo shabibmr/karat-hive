@@ -32,6 +32,7 @@ class _FakeImageConverter implements ImageConverter {
     final outFile = await File(outPath).writeAsBytes(bytes);
     return MediaAsset(
       file: outFile,
+      bytes: bytes,
       contentType: 'image/avif',
       byteSize: bytes.length,
     );
