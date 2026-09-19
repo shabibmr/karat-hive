@@ -197,4 +197,59 @@ export class MediaService {
     }
     return media;
   }
+
+  async resolveMediaUrlOrStream(
+    key: string,
+  ): Promise<
+    | { type: 'redirect'; url: string }
+    | { type: 'stream'; buffer: Buffer; contentType: string }
+  > {
+    let media = await this.repo.findByKey(key);
+    let isThumbnail = false;
+    if (!media && this.prisma.media?.findFirst) {
+      media = await this.prisma.media.findFirst({ where: { thumbnailKey: key } });
+      if (media) isThumbnail = true;
+    }
+    if (!media) {
+      throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+    }
+    if (media.state === 'QUARANTINED') {
+      throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.MEDIA_QUARANTINED);
+    }
+    if (media.state === 'PENDING_UPLOAD' || media.state === 'FAILED') {
+      throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+    }
+
+    let vendorProfileId: string | undefined;
+    if (media.purpose === 'KYC_DOCUMENT' && media.uploadedByUserId && this.prisma.vendorProfile?.findUnique) {
+      const vp = await this.prisma.vendorProfile.findUnique({
+        where: { userId: media.uploadedByUserId },
+        select: { id: true },
+      });
+      vendorProfileId = vp?.id;
+    }
+
+    let objectKey = storagePath({
+      purpose: media.purpose,
+      key: media.key,
+      vendorProfileId,
+      ownerUserId: media.uploadedByUserId ?? 'unknown',
+    });
+    if (isThumbnail) {
+      objectKey = `${objectKey}.thumb`;
+    }
+
+    const bucket = physicalBucketName(media.bucket, this.env.SUPABASE_STORAGE_BUCKET_KYC);
+
+    const signed = await this.storage.createSignedDownloadUrl(bucket, objectKey, 3600);
+    if (signed.url.startsWith('http://') || signed.url.startsWith('https://')) {
+      return { type: 'redirect', url: signed.url };
+    }
+
+    const buffer = await this.storage.getObject(bucket, objectKey);
+    if (!buffer) {
+      throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+    }
+    return { type: 'stream', buffer, contentType: media.contentType };
+  }
 }

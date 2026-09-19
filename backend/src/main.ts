@@ -14,6 +14,7 @@ import { NotificationService } from './modules/notifications';
 import { ReviewService } from './modules/reviews';
 import { AdminService } from './modules/admin';
 import { GoldRateService } from './modules/gold-rate';
+import { corsConfig } from './edge/cors.config';
 
 async function bootstrap(): Promise<void> {
   loadDotenvFile();
@@ -33,24 +34,7 @@ async function bootstrap(): Promise<void> {
   // Methods must include PATCH/PUT/DELETE: admin taxonomy + settings use PATCH.
   // Nest/Fastify otherwise defaults to GET,HEAD,POST and browsers reject those
   // preflights as CORS failures.
-  app.enableCors({
-    origin: [
-      /^https?:\/\/localhost(:\d+)?$/,
-      /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
-      /^https:\/\/([a-z0-9-]+\.)?algoray\.cloud$/,
-    ],
-    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'Accept',
-      'X-Request-Id',
-      'Idempotency-Key',
-    ],
-    exposedHeaders: ['X-Request-Id'],
-    credentials: false,
-    maxAge: 86_400,
-  });
+  app.enableCors(corsConfig);
 
   if (env.NODE_ENV === 'production') {
     await app.get(PrismaService).assertReady();

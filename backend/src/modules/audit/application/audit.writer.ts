@@ -11,6 +11,7 @@ export type AuditAppendInput = {
   afterValue?: Prisma.InputJsonValue | null;
   ipAddress?: string | null;
   userAgent?: string | null;
+  occurredAt?: Date;
 };
 
 @Injectable()
@@ -26,6 +27,7 @@ export class AuditWriter {
         afterValue: input.afterValue ?? undefined,
         ipAddress: input.ipAddress ?? null,
         userAgent: input.userAgent ?? null,
+        occurredAt: input.occurredAt ?? undefined,
       },
     });
   }

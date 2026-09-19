@@ -10,6 +10,9 @@ class AuthRepository {
   final ApiClient _apiClient;
 
   /// Logs in an admin using email and password.
+  ///
+  /// Deprecated: Karat Hive uses Google Sign-In exclusively per ADR-0010.
+  @Deprecated('Use googleSession per ADR-0010 (Google Sign-In Only)')
   Future<SessionBundle> login(String email, String password) async {
     final res = await _apiClient.post(
       '/v1/auth/login/password',

@@ -85,11 +85,15 @@ describe('MediaService.complete (G2-P02)', () => {
         requiredHeaders: {},
         expiresAt: new Date('2026-09-07T01:00:00Z'),
       }),
+      createSignedDownloadUrl: vi.fn(),
+      getObject: vi.fn(),
     } as unknown as ObjectStorage;
     prisma = {
       $transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({ outboxEvent: { create: outboxCreate } }),
       ),
+      media: { findFirst: vi.fn().mockResolvedValue(null) },
+      vendorProfile: { findUnique: vi.fn().mockResolvedValue(null) },
     } as unknown as PrismaService;
     audit = { append: vi.fn() } as unknown as AuditWriter;
   });
@@ -280,6 +284,62 @@ describe('MediaService.complete (G2-P02)', () => {
         }),
       ).rejects.toMatchObject({ errorCode: ErrorCode.MEDIA_TYPE_REJECTED });
       expect(repo.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resolveMediaUrlOrStream (ADM-API-GAP-04)', () => {
+    it('returns redirect when signed download url is an http/https url', async () => {
+      vi.mocked(repo.findByKey).mockResolvedValue(
+        mediaRow({ key: 'img-1', state: 'READY', purpose: 'REQUEST_IMAGE', uploadedByUserId: 'user-1' }),
+      );
+      vi.mocked(storage.createSignedDownloadUrl).mockResolvedValue({
+        url: 'https://storage.supabase.co/object/sign/req.jpg',
+        expiresAt: new Date(),
+      });
+
+      const svc = build({});
+      const result = await svc.resolveMediaUrlOrStream('img-1');
+      expect(result).toEqual({
+        type: 'redirect',
+        url: 'https://storage.supabase.co/object/sign/req.jpg',
+      });
+    });
+
+    it('returns stream buffer when signed download url is local disk storage', async () => {
+      vi.mocked(repo.findByKey).mockResolvedValue(
+        mediaRow({ key: 'img-2', state: 'READY', purpose: 'REQUEST_IMAGE', uploadedByUserId: 'user-1' }),
+      );
+      vi.mocked(storage.createSignedDownloadUrl).mockResolvedValue({
+        url: 'local://request-media/req.jpg',
+        expiresAt: new Date(),
+      });
+      vi.mocked(storage.getObject).mockResolvedValue(Buffer.from('fake-image-bytes'));
+
+      const svc = build({});
+      const result = await svc.resolveMediaUrlOrStream('img-2');
+      expect(result).toEqual({
+        type: 'stream',
+        buffer: Buffer.from('fake-image-bytes'),
+        contentType: 'image/jpeg',
+      });
+    });
+
+    it('throws 404 if media is missing', async () => {
+      vi.mocked(repo.findByKey).mockResolvedValue(null);
+      const svc = build({});
+      await expect(svc.resolveMediaUrlOrStream('non-existent')).rejects.toMatchObject({
+        errorCode: ErrorCode.NOT_FOUND,
+      });
+    });
+
+    it('throws FORBIDDEN if media is quarantined', async () => {
+      vi.mocked(repo.findByKey).mockResolvedValue(
+        mediaRow({ key: 'img-q', state: 'QUARANTINED' }),
+      );
+      const svc = build({});
+      await expect(svc.resolveMediaUrlOrStream('img-q')).rejects.toMatchObject({
+        errorCode: ErrorCode.MEDIA_QUARANTINED,
+      });
     });
   });
 });

@@ -10,7 +10,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import type { AbuseReportState, ExportFormat, Prisma, RequestState, UserAccountState, VendorVerificationState } from '@prisma/client';
+import type { AbuseReportState, AuthorType, ExportFormat, Prisma, RequestState, ReviewState, UserAccountState, VendorVerificationState } from '@prisma/client';
 import type { FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { Viewer } from '../../../edge/auth/viewer.decorator';
@@ -108,9 +108,19 @@ const createAnnouncementSchema = z.object({
 
 const createExportSchema = z.object({
   reportName: z.string().trim().min(1).max(64),
-  format: z.enum(['CSV', 'XLSX', 'PNG']),
+  format: z.preprocess(
+    (val) => (typeof val === 'string' ? val.toUpperCase() : val),
+    z.enum(['CSV', 'XLSX', 'PNG']),
+  ),
   filters: z.record(z.unknown()).default({}),
   purpose: z.string().trim().min(1).max(200),
+});
+
+const createAuditLogSchema = z.object({
+  action: z.string().trim().min(1).max(100),
+  entityType: z.string().trim().min(1).max(100),
+  occurredAt: z.coerce.date().optional(),
+  metadata: z.record(z.unknown()).optional(),
 });
 
 @RevealsIdentity()
@@ -128,8 +138,11 @@ export class AdminController {
 
   // --- Dashboard ---
   @Get('dashboard')
-  async getDashboard() {
-    const data = await this.service.getDashboard();
+  async getDashboard(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const data = await this.service.getDashboard({ from, to });
     return { data };
   }
 
@@ -353,6 +366,7 @@ export class AdminController {
   // --- Offers ---
   @Get('offers')
   async listOffers(
+    @Query('q') q?: string,
     @Query('state') state?: string,
     @Query('vendorId') vendorId?: string,
     @Query('requestType') requestType?: string,
@@ -366,6 +380,7 @@ export class AdminController {
     @Query('cursor') cursor?: string,
   ) {
     const data = await this.service.listOffers({
+      q,
       state,
       vendorId,
       requestType,
@@ -421,10 +436,16 @@ export class AdminController {
   // --- Review Moderation ---
   @Get('reviews')
   async listReviews(
+    @Query('state') state?: ReviewState,
+    @Query('authorType') authorType?: AuthorType,
+    @Query('q') q?: string,
     @Query('limit') limit?: string,
     @Query('cursor') cursor?: string,
   ) {
-    const data = await this.service.listRequests({
+    const data = await this.service.listReviews({
+      state,
+      authorType,
+      q,
       limit: limit ? Number.parseInt(limit, 10) : undefined,
       cursor,
     });
@@ -464,11 +485,13 @@ export class AdminController {
   @Get('abuse-reports')
   async listAbuseReports(
     @Query('state') state?: AbuseReportState,
+    @Query('status') status?: AbuseReportState,
     @Query('limit') limit?: string,
     @Query('cursor') cursor?: string,
   ) {
+    const effectiveState = state ?? status;
     const data = await this.service.listAbuseReports({
-      state,
+      state: effectiveState,
       limit: limit ? Number.parseInt(limit, 10) : undefined,
       cursor,
     });
@@ -553,6 +576,15 @@ export class AdminController {
       ip,
     });
     return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
+  }
+
+  @Post('audit-log')
+  async recordAuditLog(
+    @Viewer() viewer: ViewerContext,
+    @Body(zodBody(createAuditLogSchema)) body: z.infer<typeof createAuditLogSchema>,
+  ) {
+    await this.service.recordAuditLog(body, viewer.userId);
+    return { data: { recorded: true } };
   }
 
   // --- Admin Notes ---
@@ -669,8 +701,9 @@ export class AdminController {
     @Query('to') to?: string,
     @Query('regionId') regionId?: string,
     @Query('categoryId') categoryId?: string,
+    @Query('groupBy') groupBy?: string,
   ) {
-    const data = await this.service.getReport(name, { from, to, regionId, categoryId });
+    const data = await this.service.getReport(name, { from, to, regionId, categoryId, groupBy });
     return { data };
   }
 

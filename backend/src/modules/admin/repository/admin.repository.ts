@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import type {
   AbuseReportState,
+  AuthorType,
   ConnectionState,
   Direction,
   ExportFormat,
   OfferState,
   RequestState,
   RequestType,
+  ReviewState,
   UserAccountState,
   VendorVerificationState,
 } from '@prisma/client';
@@ -19,7 +21,17 @@ import { buildRequestStateTransitions } from '../presenter/admin-requests.presen
 export class AdminRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getDashboardStats() {
+  async getDashboardStats(options?: { from?: string; to?: string }) {
+    const fromDate = options?.from ? new Date(options.from) : undefined;
+    const toDate = options?.to ? new Date(options.to) : undefined;
+    const dateFilter: Prisma.DateTimeFilter | undefined =
+      fromDate || toDate
+        ? {
+            ...(fromDate ? { gte: fromDate } : {}),
+            ...(toDate ? { lte: toDate } : {}),
+          }
+        : undefined;
+
     const [
       totalCustomers,
       totalVendors,
@@ -28,16 +40,42 @@ export class AdminRepository {
       activeOffers,
       activeConnections,
     ] = await Promise.all([
-      this.prisma.user.count({ where: { userType: 'CUSTOMER' } }),
-      this.prisma.user.count({ where: { userType: 'VENDOR' } }),
+      this.prisma.user.count({
+        where: {
+          userType: 'CUSTOMER',
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
+      }),
+      this.prisma.user.count({
+        where: {
+          userType: 'VENDOR',
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
+      }),
       this.prisma.vendorProfile.count({
-        where: { verificationState: 'PENDING_VERIFICATION' },
+        where: {
+          verificationState: 'PENDING_VERIFICATION',
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
       }),
       this.prisma.request.count({
-        where: { state: { in: ['PUBLISHED', 'OFFERS_RECEIVED'] } },
+        where: {
+          state: { in: ['PUBLISHED', 'OFFERS_RECEIVED'] },
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
       }),
-      this.prisma.offer.count({ where: { state: 'PENDING' } }),
-      this.prisma.connection.count({ where: { state: 'ACTIVE' } }),
+      this.prisma.offer.count({
+        where: {
+          state: 'PENDING',
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
+      }),
+      this.prisma.connection.count({
+        where: {
+          state: 'ACTIVE',
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
+      }),
     ]);
 
     return {
@@ -450,6 +488,7 @@ export class AdminRepository {
 
   // --- Offers ---
   async listOffers(options: {
+    q?: string;
     state?: string;
     vendorId?: string;
     requestType?: string;
@@ -473,6 +512,34 @@ export class AdminRepository {
           }
         : undefined;
     const createdAt = parseInclusiveDayRange(options.dateFrom, options.dateTo);
+    const qFilter: Prisma.OfferWhereInput | undefined =
+      options.q && options.q.trim()
+        ? {
+            OR: [
+              { vendorNote: { contains: options.q.trim(), mode: 'insensitive' } },
+              {
+                vendorProfile: {
+                  tradingName: { contains: options.q.trim(), mode: 'insensitive' },
+                },
+              },
+              {
+                vendorProfile: {
+                  legalBusinessName: { contains: options.q.trim(), mode: 'insensitive' },
+                },
+              },
+              {
+                request: {
+                  notes: { contains: options.q.trim(), mode: 'insensitive' },
+                },
+              },
+              {
+                request: {
+                  reference: { contains: options.q.trim(), mode: 'insensitive' },
+                },
+              },
+            ],
+          }
+        : undefined;
     const items = await this.prisma.offer.findMany({
       where: {
         ...(options.state ? { state: options.state as OfferState } : {}),
@@ -482,6 +549,7 @@ export class AdminRepository {
           : {}),
         ...(offeredPrice ? { offeredPrice } : {}),
         ...(createdAt ? { createdAt } : {}),
+        ...(qFilter ? qFilter : {}),
       },
       take: limit + 1,
       ...(options.cursor ? { cursor: { id: options.cursor }, skip: 1 } : {}),
@@ -609,6 +677,113 @@ export class AdminRepository {
         closedAt: new Date(),
       },
     });
+  }
+
+  // --- Reviews ---
+  async listReviews(options: {
+    state?: ReviewState;
+    authorType?: AuthorType;
+    q?: string;
+    limit?: number;
+    cursor?: string;
+  }) {
+    const limit = Math.min(options.limit ?? 50, 100);
+    const where: Prisma.ReviewWhereInput = {
+      ...(options.state ? { state: options.state } : {}),
+      ...(options.authorType ? { authorType: options.authorType } : {}),
+      ...(options.q && options.q.trim()
+        ? {
+            OR: [
+              { comment: { contains: options.q.trim(), mode: 'insensitive' } },
+              { author: { email: { contains: options.q.trim(), mode: 'insensitive' } } },
+              {
+                author: {
+                  customerProfile: {
+                    displayName: { contains: options.q.trim(), mode: 'insensitive' },
+                  },
+                },
+              },
+              {
+                author: {
+                  vendorProfile: {
+                    tradingName: { contains: options.q.trim(), mode: 'insensitive' },
+                  },
+                },
+              },
+              { subject: { email: { contains: options.q.trim(), mode: 'insensitive' } } },
+              {
+                subject: {
+                  customerProfile: {
+                    displayName: { contains: options.q.trim(), mode: 'insensitive' },
+                  },
+                },
+              },
+              {
+                subject: {
+                  vendorProfile: {
+                    tradingName: { contains: options.q.trim(), mode: 'insensitive' },
+                  },
+                },
+              },
+              {
+                connection: {
+                  request: {
+                    reference: { contains: options.q.trim(), mode: 'insensitive' },
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+
+    const items = await this.prisma.review.findMany({
+      where,
+      take: limit + 1,
+      ...(options.cursor ? { cursor: { id: options.cursor }, skip: 1 } : {}),
+      orderBy: { createdAt: 'desc' },
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+            userType: true,
+            customerProfile: { select: { displayName: true } },
+            vendorProfile: { select: { tradingName: true } },
+          },
+        },
+        subject: {
+          select: {
+            id: true,
+            email: true,
+            userType: true,
+            customerProfile: { select: { displayName: true } },
+            vendorProfile: { select: { tradingName: true } },
+          },
+        },
+        connection: {
+          select: {
+            id: true,
+            requestId: true,
+            offerId: true,
+            request: {
+              select: {
+                id: true,
+                reference: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    let nextCursor: string | undefined;
+    if (items.length > limit) {
+      const nextItem = items.pop();
+      nextCursor = nextItem?.id;
+    }
+
+    return { items, nextCursor };
   }
 
   // --- Abuse Reports ---
@@ -913,7 +1088,13 @@ export class AdminRepository {
   // --- Reports & Exports ---
   async getReportData(
     name: string,
-    filters: { from?: string; to?: string; regionId?: string; categoryId?: string },
+    filters: {
+      from?: string;
+      to?: string;
+      regionId?: string;
+      categoryId?: string;
+      groupBy?: string;
+    },
   ) {
     const fromDate = filters.from ? new Date(filters.from) : new Date(Date.now() - 30 * 86400 * 1000);
     const toDate = filters.to ? new Date(filters.to) : new Date();
@@ -941,11 +1122,62 @@ export class AdminRepository {
         _count: { state: true },
         where: { createdAt: { gte: fromDate, lte: toDate } },
       });
+
+      const groupBy =
+        filters.groupBy === 'week' || filters.groupBy === 'month' ? filters.groupBy : 'day';
+      let series: Array<{ date: string; status: string; count: number }> = [];
+
+      try {
+        if (typeof this.prisma.$queryRaw === 'function') {
+          const truncUnit = Prisma.raw(
+            groupBy === 'month' ? `'month'` : groupBy === 'week' ? `'week'` : `'day'`,
+          );
+          const rawSeries = await this.prisma.$queryRaw<
+            Array<{ bucket: Date; state: string; count: bigint | number }>
+          >(Prisma.sql`
+            SELECT date_trunc(${truncUnit}, created_at) AS bucket, state, COUNT(*)::int AS count
+            FROM request
+            WHERE created_at >= ${fromDate} AND created_at <= ${toDate}
+            GROUP BY 1, 2
+            ORDER BY 1 ASC
+          `);
+          series = rawSeries.map((r) => ({
+            date:
+              r.bucket instanceof Date
+                ? r.bucket.toISOString().slice(0, 10)
+                : String(r.bucket).slice(0, 10),
+            status: r.state,
+            count: Number(r.count),
+          }));
+        }
+      } catch {
+        // Fallback in case $queryRaw is unavailable or mocked
+        const requests = await this.prisma.request.findMany({
+          where: { createdAt: { gte: fromDate, lte: toDate } },
+          select: { createdAt: true, state: true },
+          orderBy: { createdAt: 'asc' },
+        });
+        const map = new Map<string, number>();
+        for (const req of requests) {
+          const d = req.createdAt;
+          const key =
+            groupBy === 'month'
+              ? d.toISOString().slice(0, 7)
+              : d.toISOString().slice(0, 10);
+          const groupKey = `${key}__${req.state}`;
+          map.set(groupKey, (map.get(groupKey) ?? 0) + 1);
+        }
+        series = Array.from(map.entries()).map(([k, count]) => {
+          const parts = k.split('__');
+          return { date: parts[0] ?? '', status: parts[1] ?? '', count };
+        });
+      }
+
       return {
         name,
         generatedAt: new Date().toISOString(),
         rows: countsByState.map((c) => ({ state: c.state, count: c._count.state })),
-        series: [],
+        series,
       };
     }
 

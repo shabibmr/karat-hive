@@ -173,7 +173,7 @@ export function presentCategory(c: Category): CategorySummary {
     id: c.id,
     nameEn: c.nameEn,
     nameAr: c.nameAr,
-    parentId: c.parentId ?? undefined,
+    parentId: undefined,
     isActive: c.isActive,
     displayOrder: c.displayOrder,
     icon: c.icon ?? undefined,
@@ -185,7 +185,7 @@ export function presentRegion(r: Region): RegionSummary {
     id: r.id,
     nameEn: r.nameEn,
     nameAr: r.nameAr,
-    parentId: r.parentId ?? undefined,
+    parentId: undefined,
     isActive: r.isActive,
     displayOrder: r.displayOrder,
   };

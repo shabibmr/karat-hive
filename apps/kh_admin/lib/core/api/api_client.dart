@@ -34,8 +34,10 @@ class ApiClient {
         _onServerTime = onServerTime,
         _onContractMismatch = onContractMismatch,
         _dio = dio ?? Dio() {
+    final cleanBaseUrl =
+        baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
     _dio.options = BaseOptions(
-      baseUrl: baseUrl,
+      baseUrl: cleanBaseUrl,
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 25),
       sendTimeout: const Duration(seconds: 15),
@@ -78,7 +80,8 @@ class ApiClient {
 
   /// Updates the base URL on the underlying Dio instance.
   void updateBaseUrl(String newBaseUrl) {
-    _dio.options.baseUrl = newBaseUrl;
+    _dio.options.baseUrl =
+        newBaseUrl.endsWith('/') ? newBaseUrl.substring(0, newBaseUrl.length - 1) : newBaseUrl;
   }
 
   /// Performs a GET request and unwraps the `{ data }` payload.

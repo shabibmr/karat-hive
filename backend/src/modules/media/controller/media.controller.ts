@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, HttpCode, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Res } from '@nestjs/common';
+import type { FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { Viewer } from '../../../edge/auth/viewer.decorator';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
@@ -23,6 +24,21 @@ const uploadIntentSchema = z.object({
 @Controller('v1/media')
 export class MediaController {
   constructor(private readonly media: MediaService) {}
+
+  @Get(':key')
+  async getMedia(
+    @Param('key') key: string,
+    @Res() reply: FastifyReply,
+  ) {
+    const result = await this.media.resolveMediaUrlOrStream(key);
+    if (result.type === 'redirect') {
+      return reply.redirect(result.url, 307);
+    }
+    return reply
+      .header('Content-Type', result.contentType)
+      .header('Cache-Control', 'public, max-age=3600')
+      .send(result.buffer);
+  }
 
   @Post('upload-intent')
   createIntent(

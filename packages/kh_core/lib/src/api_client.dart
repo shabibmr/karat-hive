@@ -38,8 +38,10 @@ class KhApiClient {
         _tokenGetter = tokenGetter,
         _onTokenRefresh = onTokenRefresh,
         dio = dio ?? Dio() {
+    final cleanBaseUrl =
+        baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
     this.dio.options
-      ..baseUrl = baseUrl
+      ..baseUrl = cleanBaseUrl
       ..connectTimeout = const Duration(seconds: 30)
       ..receiveTimeout = const Duration(seconds: 60)
       ..validateStatus = (_) => true;

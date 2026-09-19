@@ -73,16 +73,19 @@ class TaxonomyRepository {
 
   /// Creates a new Region node.
   Future<TaxonomyNode> createRegion(CreateTaxonomyDto dto) async {
+    final payload = dto.toJson()..remove('icon');
     final response = await _apiClient.post(
       '/v1/admin/regions',
-      data: dto.toJson(),
+      data: payload,
     );
     return TaxonomyNode.fromJson(unwrapEntity(response));
   }
 
   /// Updates an existing Region node.
   Future<TaxonomyNode> updateRegion(String id, UpdateTaxonomyDto dto) async {
-    final payload = dto.toJson()..removeWhere((_, v) => v == null);
+    final payload = dto.toJson()
+      ..remove('icon')
+      ..removeWhere((_, v) => v == null);
     final response = await _apiClient.patch(
       '/v1/admin/regions/$id',
       data: payload,

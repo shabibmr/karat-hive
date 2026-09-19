@@ -1,9 +1,11 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type {
   AbuseReportState,
+  AuthorType,
   ExportFormat,
   Prisma,
   RequestState,
+  ReviewState,
   UserAccountState,
   VendorVerificationState,
 } from '@prisma/client';
@@ -33,8 +35,8 @@ export class AdminService {
     @Inject(ENV) private readonly env: Env,
   ) {}
 
-  async getDashboard() {
-    return this.repo.getDashboardStats();
+  async getDashboard(query?: { from?: string; to?: string }) {
+    return this.repo.getDashboardStats(query);
   }
 
   // --- Customers ---
@@ -343,6 +345,7 @@ export class AdminService {
 
   // --- Offers ---
   async listOffers(query: {
+    q?: string;
     state?: string;
     vendorId?: string;
     requestType?: string;
@@ -420,6 +423,16 @@ export class AdminService {
   }
 
   // --- Review Moderation ---
+  async listReviews(query: {
+    state?: ReviewState;
+    authorType?: AuthorType;
+    q?: string;
+    limit?: number;
+    cursor?: string;
+  }) {
+    return this.repo.listReviews(query);
+  }
+
   async approveReview(id: string, adminUserId: string) {
     return this.reviews.approveReviewByAdmin(id, adminUserId);
   }
@@ -589,6 +602,25 @@ export class AdminService {
     return this.repo.listAuditLogs(query);
   }
 
+  async recordAuditLog(
+    dto: {
+      action: string;
+      entityType: string;
+      occurredAt?: Date;
+      metadata?: Record<string, unknown>;
+    },
+    adminUserId: string,
+  ) {
+    await this.audit.append(this.prisma, {
+      actorUserId: adminUserId,
+      action: dto.action,
+      entityType: dto.entityType,
+      afterValue: (dto.metadata as Prisma.InputJsonValue) ?? undefined,
+      occurredAt: dto.occurredAt,
+    });
+    return { recorded: true };
+  }
+
   // --- Admin Notes ---
   async createAdminNote(
     collection: string,
@@ -746,7 +778,13 @@ export class AdminService {
   // --- Reports & Exports ---
   async getReport(
     name: string,
-    filters: { from?: string; to?: string; regionId?: string; categoryId?: string },
+    filters: {
+      from?: string;
+      to?: string;
+      regionId?: string;
+      categoryId?: string;
+      groupBy?: string;
+    },
   ) {
     return this.repo.getReportData(name, filters);
   }

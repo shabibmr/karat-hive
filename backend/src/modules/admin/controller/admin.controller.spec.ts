@@ -104,4 +104,88 @@ describe('AdminController', () => {
     );
     expect(reply.send).toHaveBeenCalledWith(expect.any(Buffer));
   });
+
+  it('listReviews calls service.listReviews with query parameters (ADM-API-GAP-01)', async () => {
+    service.listReviews = vi.fn().mockResolvedValue({
+      items: [{ id: 'rev-1', rating: 5 }],
+      nextCursor: 'rev-2',
+    });
+
+    const res = await controller.listReviews('PENDING_MODERATION', 'CUSTOMER', 'keyword', '20', 'cursor-1');
+
+    expect(service.listReviews).toHaveBeenCalledWith({
+      state: 'PENDING_MODERATION',
+      authorType: 'CUSTOMER',
+      q: 'keyword',
+      limit: 20,
+      cursor: 'cursor-1',
+    });
+    expect(res).toEqual({
+      data: [{ id: 'rev-1', rating: 5 }],
+      meta: { nextCursor: 'rev-2' },
+    });
+  });
+
+  it('recordAuditLog records customer list access and returns recorded: true (ADM-API-GAP-02)', async () => {
+    service.recordAuditLog = vi.fn().mockResolvedValue({ recorded: true });
+
+    const res = await controller.recordAuditLog(mockAdminViewer, {
+      action: 'CUSTOMER_LIST_VIEWED',
+      entityType: 'customer_list',
+      occurredAt: new Date('2026-09-20T02:00:00Z'),
+    });
+
+    expect(service.recordAuditLog).toHaveBeenCalledWith(
+      {
+        action: 'CUSTOMER_LIST_VIEWED',
+        entityType: 'customer_list',
+        occurredAt: new Date('2026-09-20T02:00:00Z'),
+      },
+      'admin-user-1',
+    );
+    expect(res).toEqual({ data: { recorded: true } });
+  });
+
+  it('listAbuseReports accepts status as an alias for state (ADM-API-GAP-07)', async () => {
+    service.listAbuseReports = vi.fn().mockResolvedValue({
+      items: [{ id: 'ab-1' }],
+      nextCursor: null,
+    });
+
+    const res = await controller.listAbuseReports(undefined, 'OPEN', '10', undefined);
+
+    expect(service.listAbuseReports).toHaveBeenCalledWith({
+      state: 'OPEN',
+      limit: 10,
+      cursor: undefined,
+    });
+    expect(res).toEqual({ data: [{ id: 'ab-1' }], meta: { nextCursor: null } });
+  });
+
+  it('getDashboard forwards from and to query params (ADM-API-GAP-08)', async () => {
+    service.getDashboard = vi.fn().mockResolvedValue({ totalCustomers: 5 });
+
+    const res = await controller.getDashboard('2026-09-01', '2026-09-20');
+
+    expect(service.getDashboard).toHaveBeenCalledWith({
+      from: '2026-09-01',
+      to: '2026-09-20',
+    });
+    expect(res).toEqual({ data: { totalCustomers: 5 } });
+  });
+
+  it('getReport forwards groupBy parameter (ADM-API-GAP-09)', async () => {
+    service.getReport = vi.fn().mockResolvedValue({ name: 'request-volume', series: [] });
+
+    const res = await controller.getReport('request-volume', '2026-09-01', '2026-09-20', undefined, undefined, 'week');
+
+    expect(service.getReport).toHaveBeenCalledWith('request-volume', {
+      from: '2026-09-01',
+      to: '2026-09-20',
+      regionId: undefined,
+      categoryId: undefined,
+      groupBy: 'week',
+    });
+    expect(res).toEqual({ data: { name: 'request-volume', series: [] } });
+  });
 });
