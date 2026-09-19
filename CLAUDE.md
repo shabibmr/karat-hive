@@ -23,6 +23,74 @@ Do not treat password/OTP credentials as a Checkpoint-1 gate. OTP is now optiona
 
 Navigation is hash-routed: `#/customer/CUS-S04`, `#/vendor/VEN-S09`, `#/admin/ADM-S07`. Login is a role chooser with no password. Adding a screen means adding the HTML partial under `ui-mock/screens/<role>/` **and** registering it in the `window.KH_NAV` route table in `ui-mock/js/nav.js` — a partial that is not in that table is unreachable.
 
+## Commands
+
+Backend (`backend/`, from that directory):
+
+```bash
+npm run start:dev                 # API :3000, watch mode
+npm run test                      # vitest unit + masking + concurrency specs
+npm run test -- request.service   # single file, by name filter
+npm run test:integration          # separate config, needs a live DB (see below)
+npm run lint                      # eslint src, enforces the module-boundary rules below
+npm run prisma:migrate            # apply pending Prisma migrations
+npm run prisma:generate           # regenerate the Prisma client after a schema change
+npm run seed                      # prisma/seed/index.ts
+npm run openapi:generate          # regenerate the OpenAPI doc from zod schemas (NFR-030)
+```
+
+Flutter apps (`kh_mobile/karat_hive` and `kh_admin`), from the repo root via Melos, or per-app:
+
+```bash
+dart run melos analyze            # dart analyze across the workspace — NOT flutter analyze (hardcoded_strings_lint)
+dart run melos gen                # build_runner build across the workspace (codegen, e.g. Riverpod/freezed)
+cd apps/kh_mobile/karat_hive && flutter test                       # full suite
+cd apps/kh_mobile/karat_hive && flutter test test/features/requests/request_create_test.dart   # single file
+cd apps/kh_admin && flutter test
+```
+
+`kh_admin` is a stock Flutter project outside the Melos/Dart-pub workspace (`melos.yaml` comment); it does not resolve `kh_*` packages via the workspace and is built/tested independently of `kh_mobile`. `kh_mobile` and its `packages/kh_*` libraries are Melos workspace members — `dart run melos exec` and `dart run melos gen` reach them but not `kh_admin`.
+
+## Applications and shared packages
+
+Three deployables, one Postgres database, no other datastore:
+
+| App | Path | Role(s) served | Target |
+|---|---|---|---|
+| Backend | `backend/` | all — single API for every client | Node/NestJS, deployed as API + worker processes from one build |
+| `kh_mobile` | `apps/kh_mobile/karat_hive/` | Customer or Vendor, by account role (dual-mode binary) | iOS, Android |
+| `kh_admin` | `apps/kh_admin/` | Platform Admin | Flutter Web |
+
+`kh_mobile` and `kh_admin` never import each other (`docs/Architecture-Frontend.md` §4–§5). Shared Flutter code lives in `packages/kh_core`, `kh_domain`, `kh_api`, `kh_design_system`, `kh_ui_domain`, `kh_l10n`, `kh_media` — consumed by `kh_mobile` via the Melos workspace; `kh_admin` depends on them by path but is not itself a workspace member.
+
+**Backend module layout** (`backend/src/modules/<name>/`): `domain/` (pure logic — state machines, validators), `application/` (services), `repository/` (Prisma access), `controller/`, `presenter/`, and a single `index.ts` that is the module's only allowed import surface for other modules (`module-public` in the boundaries config below). Cross-cutting code lives outside `modules/`: `edge/` (auth, masking, rate-limit, idempotency, request envelope, validation — the HTTP-facing concerns) and `platform/` (Prisma client, outbox dispatcher, scheduler, adapters/ports). `eslint-plugin-boundaries` (`backend/eslint.config.mjs`) enforces the allowed dependency directions (`module → module/shared/platform/edge/config`, `edge → edge/shared/platform/config/module-public`, `platform → platform/shared/config`, `shared → shared` only) and that other modules can only reach a module through its `index.ts` — treat a lint failure here as a layering violation, not a rule to suppress.
+
+**Flutter feature layout**: both apps organize `lib/features/<name>/` per bounded concern (e.g. `kh_mobile`: `auth`, `request_create`, `request_feed`, `offers_customer`, `offers_vendor`, `connections`, `subscription`, `reviews`, `abuse`, `notifications`; `kh_admin`: `verification`, `vendors`, `customers`, `requests`, `offers`, `connections`, `moderation`, `taxonomy`, `settings`, `admin_users`, `reports`, `audit`, `announcements`). Routing is `go_router`, state is `flutter_riverpod` in both apps.
+
+## Roles and the four services
+
+Four actors (`CONTEXT.md`): **Guest** (unauthenticated, browses and composes but cannot publish), **Customer** (creates Requests, one-time external identity binding before first publish), **Vendor** (needs `VERIFIED` + `ACTIVE` + an active Type Subscription for the Request type — verification alone is insufficient, `BR-002`), **Platform Admin** (back-office, via `kh_admin`). `kh_mobile` is one binary that renders as Customer or Vendor by account role; a person cannot hold both roles on one account.
+
+The marketplace mediates exactly **four Request Types** (`CONTEXT.md`, immutable per Request once published, and the unit of Vendor subscription entitlement): **Find An Ornament** (buy, fixed direction), **Sell Old Gold** (sell, fixed direction), **Buy/Sell Gold Coin(s)** (direction chosen by Customer), **Buy/Sell Gold Bullion** (direction chosen by Customer).
+
+## The 48-hour Request lifecycle
+
+A published Request hard-expires 48 hours after publication — no Customer extension, ever (`C-07`, `FR-SYS-005`). A T−6h warning notification fires before expiry. Offer validity (Vendor-chosen at submission, options up to 12h/24h/48h, default 24h) can never extend past the parent Request's hard expiry.
+
+```
+DRAFT → PUBLISHED → OFFERS_RECEIVED → ACCEPTED → CLOSED
+  ↓         ↓              ↓
+CANCELLED EXPIRED (48h)  EXPIRED (48h)
+          REMOVED (admin) CANCELLED / REMOVED
+```
+
+Key transitions and invariants (SRS §5.2, `docs/Physical-Data-Model.md`):
+- `PUBLISHED` → `OFFERS_RECEIVED` on the first Offer; back to `PUBLISHED` if the last pending Offer expires with none accepted.
+- **Acceptance is atomic and irreversible** (`BR-011`–`BR-013`): one Customer action accepts exactly one Offer, rejects every other pending Offer on that Request, creates exactly one Connection, and reveals both parties' identities — all in a single transaction.
+- Before acceptance, identity fields are **absent** from API payloads for both parties (`BR-006`, masked in `edge/masking`), not null or client-hidden.
+- A Connection survives Request closure as a read-only record; "Talk" only opens a `wa.me` deep link — the platform never sees conversation content (`C-03`) and has no authoritative knowledge that a deal actually closed (`BR-015`, settlement is off-platform).
+- With no message broker or Redis (`C-11`/`C-12`), expiry, warning notifications, and other async effects run off a PostgreSQL transactional outbox (`backend/src/platform/outbox/`) plus a scheduler (`backend/src/platform/scheduler/`), not queue workers.
+
 ## Document authority chain
 
 Read in this order when you need to understand a decision. Later documents may not contradict earlier ones.
