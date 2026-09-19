@@ -249,6 +249,16 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     if (_reconcileAttempted) return false;
     _reconcileAttempted = true;
 
+    await _refreshMeState();
+    final ok = await publish();
+    if (ok) {
+      ref.read(pendingPublishIntentProvider.notifier).clearPending();
+      unawaited(_clearPersistedDraft());
+    }
+    return ok;
+  }
+
+  Future<void> _refreshMeState() async {
     try {
       final meR = await _repo.me();
       final me = meR.valueOrNull;
@@ -258,13 +268,9 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           canCreateRequest: me.canCreateRequest ?? true,
         );
       }
-    } catch (_) {}
-    final ok = await publish();
-    if (ok) {
-      ref.read(pendingPublishIntentProvider.notifier).clearPending();
-      unawaited(_clearPersistedDraft());
+    } catch (_) {
+      // Best-effort profile refresh; proceed with existing state if offline.
     }
-    return ok;
   }
 
   Future<void> ensureLoaded() async {
@@ -320,12 +326,34 @@ class RequestCreateController extends Notifier<RequestCreateState> {
         type == RequestType.sellOldGold;
     final buySellChoice = type == RequestType.goldCoin ||
         type == RequestType.goldBullion;
+
+    final Direction? resolvedDirection;
+    if (fixed != null) {
+      resolvedDirection = fixed;
+    } else if (buySellChoice) {
+      resolvedDirection = reset ? Direction.buy : (state.direction ?? Direction.buy);
+    } else {
+      resolvedDirection = reset ? null : state.direction;
+    }
+
+    final Karat? resolvedPurity;
+    if (type == RequestType.goldBullion && (reset || state.purityKarat == null)) {
+      resolvedPurity = Karat.k24;
+    } else {
+      resolvedPurity = reset ? null : state.purityKarat;
+    }
+
+    final bool resolvedWeightApproximate = combinedDetailsAndImages
+        ? true
+        : (reset ? false : state.weightIsApproximate);
+
+    final bool resolvedBudgetFlexible = combinedDetailsAndImages
+        ? true
+        : (reset ? false : state.budgetIsFlexible);
+
     state = state.copyWith(
       requestType: type,
-      direction: fixed ??
-          (buySellChoice
-              ? (reset ? Direction.buy : (state.direction ?? Direction.buy))
-              : (reset ? null : state.direction)),
+      direction: resolvedDirection,
       clearDirection: reset && fixed == null && !buySellChoice,
       clearWeight: reset,
       clearPurity: reset,
@@ -339,15 +367,9 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       gemstonesPresent: reset ? false : state.gemstonesPresent,
       clearGemstoneType: reset,
       gemstoneCount: reset ? null : state.gemstoneCount,
-      purityKarat: type == RequestType.goldBullion && (reset || state.purityKarat == null)
-          ? Karat.k24
-          : (reset ? null : state.purityKarat),
-      weightIsApproximate: combinedDetailsAndImages
-          ? true
-          : (reset ? false : state.weightIsApproximate),
-      budgetIsFlexible: combinedDetailsAndImages
-          ? true
-          : (reset ? false : state.budgetIsFlexible),
+      purityKarat: resolvedPurity,
+      weightIsApproximate: resolvedWeightApproximate,
+      budgetIsFlexible: resolvedBudgetFlexible,
       step: RequestCreateStep.compose,
       clearFailure: true,
       fieldErrors: const {},
@@ -906,17 +928,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       return false;
     }
     if (!session.isCustomer) return false;
-    // Refresh oauth / cap from me.
-    try {
-      final meR = await _repo.me();
-      final me = meR.valueOrNull;
-      if (me != null) {
-        state = state.copyWith(
-          oauthBound: me.oauthBound,
-          canCreateRequest: me.canCreateRequest ?? true,
-        );
-      }
-    } catch (_) {}
+    await _refreshMeState();
     return publish();
   }
 

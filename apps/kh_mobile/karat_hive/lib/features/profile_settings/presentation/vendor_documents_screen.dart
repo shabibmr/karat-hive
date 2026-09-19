@@ -54,9 +54,11 @@ class VendorDocumentsScreen extends ConsumerWidget {
     final file = res?.files.single;
     if (file == null) return;
     final ext = file.name.split('.').last.toLowerCase();
-    final contentType = ext == 'pdf'
-        ? 'application/pdf'
-        : (ext == 'png' ? 'image/png' : 'image/jpeg');
+    final contentType = switch (ext) {
+      'pdf' => 'application/pdf',
+      'png' => 'image/png',
+      _ => 'image/jpeg',
+    };
     final controller = ref.read(vendorDocumentsControllerProvider.notifier);
     final bytes = file.bytes;
     if (bytes != null && bytes.isNotEmpty) {

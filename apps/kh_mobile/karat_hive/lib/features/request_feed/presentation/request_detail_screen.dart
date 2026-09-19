@@ -72,6 +72,11 @@ class RequestDetailScreen extends ConsumerWidget {
           };
           final isClosed = closedStates.contains(item.state.toUpperCase());
           final actionsDisabled = isExpired || isClosed;
+          final actionLabel = switch ((isExpired, isClosed)) {
+            (true, _) => l10n?.requestExpired ?? 'Request Expired',
+            (_, true) => l10n?.requestClosed ?? 'Request Closed',
+            _ => l10n?.makeAnOffer ?? 'Make an Offer',
+          };
           final galleryImages = item.media
               .map((m) => GalleryImage(
                     url: m.displayUrl ?? m.thumbnailUrl ?? '',
@@ -212,11 +217,7 @@ class RequestDetailScreen extends ConsumerWidget {
                 ),
                 child: SafeArea(
                   child: KhButton(
-                    label: isExpired
-                        ? (l10n?.requestExpired ?? 'Request Expired')
-                        : isClosed
-                            ? (l10n?.requestClosed ?? 'Request Closed')
-                            : (l10n?.makeAnOffer ?? 'Make an Offer'),
+                    label: actionLabel,
                     onPressed: actionsDisabled
                         ? null
                         : () => context.push('/vendor/requests/$requestId/offer'),

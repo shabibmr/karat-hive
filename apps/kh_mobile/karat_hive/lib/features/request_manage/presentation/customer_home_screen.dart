@@ -108,9 +108,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           if (state.isInitialError) {
             return KhErrorView(
               message: customerFailureMessage(
-                state.error is Failure
-                    ? state.error as Failure
-                    : ServerFailure(message: state.error?.toString()),
+                state.error,
                 s,
                 'cus.home.error',
               ),

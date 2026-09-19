@@ -102,15 +102,9 @@ class RequestCreateRepository {
       );
 
   Result<DraftSaveResult> _mapDraftSave(dynamic raw) {
-    final map = raw is Map<String, dynamic>
-        ? raw
-        : raw is Map
-            ? Map<String, dynamic>.from(raw)
-            : <String, dynamic>{};
+    final map = _asMap(raw);
     final data = map.containsKey('data') ? map['data'] : map;
-    final meta = map['meta'] is Map
-        ? Map<String, dynamic>.from(map['meta'] as Map)
-        : const <String, dynamic>{};
+    final meta = _asMap(map['meta']);
     return Ok(
       DraftSaveResult(
         request: RequestForCustomer.fromJson(_asMap(data)),

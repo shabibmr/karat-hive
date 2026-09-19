@@ -112,10 +112,14 @@ class VendorRegisterScreen extends ConsumerWidget {
                 // Web has no filesystem path (accessing .path throws) —
                 // store the display name so UI still shows a selected logo.
                 final nativePath = kIsWeb ? null : file.path;
-                final marker =
-                    (nativePath != null && nativePath.isNotEmpty)
-                        ? nativePath
-                        : (file.name.isNotEmpty ? file.name : 'logo');
+                final String marker;
+                if (nativePath != null && nativePath.isNotEmpty) {
+                  marker = nativePath;
+                } else if (file.name.isNotEmpty) {
+                  marker = file.name;
+                } else {
+                  marker = 'logo';
+                }
                 controller.patch((s) => s.copyWith(logoPath: marker));
               },
               onRemoveLogo: () {

@@ -48,9 +48,11 @@ class _KycUploadScreenState extends ConsumerState<KycUploadScreen> {
       if (file == null) return;
       final name = file.name;
       final ext = name.split('.').last.toLowerCase();
-      final ct = ext == 'pdf'
-          ? 'application/pdf'
-          : (ext == 'png' ? 'image/png' : 'image/jpeg');
+      final ct = switch (ext) {
+        'pdf' => 'application/pdf',
+        'png' => 'image/png',
+        _ => 'image/jpeg',
+      };
       final bytes = file.bytes;
       if (bytes != null && bytes.isNotEmpty) {
         await controller.pickAndUploadBytes(type, bytes, ct);

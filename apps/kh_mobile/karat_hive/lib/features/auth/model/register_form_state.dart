@@ -93,7 +93,9 @@ class RegisterFormState {
         'businessEmail': businessEmail.isNotEmpty ? businessEmail : '${tradingName.toLowerCase().replaceAll(RegExp(r'\s+'), '')}@karathive.ae',
         'regionId': regionId,
         'categoryIds': categoryIds,
-        'servedRegionIds': servedRegionIds.isNotEmpty ? servedRegionIds : (regionId != null ? [regionId!] : <String>[]),
+        'servedRegionIds': servedRegionIds.isNotEmpty
+            ? servedRegionIds
+            : [if (regionId != null) regionId!],
         'termsVersion': '1.0',
         'privacyVersion': '1.0',
       };

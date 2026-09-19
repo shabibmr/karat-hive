@@ -183,6 +183,12 @@ class _SubscriptionCard extends StatelessWidget {
       _ => Icons.category_outlined,
     };
 
+    final borderColor = switch ((isActive, isGrace)) {
+      (true, _) => tokens.success.withValues(alpha: 0.4),
+      (_, true) => tokens.gold,
+      _ => tokens.ink.withValues(alpha: 0.12),
+    };
+
     return Card(
       elevation: 0,
       margin: EdgeInsets.only(bottom: tokens.space.sm),
@@ -190,11 +196,7 @@ class _SubscriptionCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(tokens.radius.md),
         side: BorderSide(
-          color: isActive
-              ? tokens.success.withValues(alpha: 0.4)
-              : isGrace
-                  ? tokens.gold
-                  : tokens.ink.withValues(alpha: 0.12),
+          color: borderColor,
           width: isActive || isGrace ? 1.5 : 1.0,
         ),
       ),

@@ -117,11 +117,7 @@ class ReviseOfferScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(tokens.radius.md),
                   ),
                   child: Text(
-                    offer.isSeenByCustomer
-                        ? 'The customer has already viewed this offer. Revisions are no longer permitted.'
-                        : offer.revisionCount >= kMaxOfferRevisions
-                            ? 'Maximum revision limit reached (1 revision max).'
-                            : 'Revision window has expired (allowed within 5 minutes of response only).',
+                    _ineligibilityReason(offer),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: tokens.ink.withValues(alpha: 0.7),
                         ),
@@ -181,5 +177,15 @@ class ReviseOfferScreen extends ConsumerWidget {
           ),
       },
     );
+  }
+
+  String _ineligibilityReason(OfferForVendor offer) {
+    if (offer.isSeenByCustomer) {
+      return 'The customer has already viewed this offer. Revisions are no longer permitted.';
+    }
+    if (offer.revisionCount >= kMaxOfferRevisions) {
+      return 'Maximum revision limit reached (1 revision max).';
+    }
+    return 'Revision window has expired (allowed within 5 minutes of response only).';
   }
 }

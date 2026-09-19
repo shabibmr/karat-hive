@@ -149,9 +149,14 @@ class _DetailsStep extends StatelessWidget {
         !CustomerCompletionForm.looksLikeE164(trimmedMobile);
     final bool showMobileRequired = trimmedMobile.isEmpty && termsAccepted;
 
-    final String? mobileError = isMobileInvalid
-        ? l10n.authMobileInvalid
-        : (showMobileRequired ? l10n.authMobileRequired : null);
+    final String? mobileError;
+    if (isMobileInvalid) {
+      mobileError = l10n.authMobileInvalid;
+    } else if (showMobileRequired) {
+      mobileError = l10n.authMobileRequired;
+    } else {
+      mobileError = null;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

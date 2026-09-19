@@ -3,9 +3,14 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
-String customerFailureMessage(Failure failure, KhStrings s, String fallbackKey) {
-  final msg = failure.message?.trim();
-  if (msg != null && msg.isNotEmpty) return msg;
+String customerFailureMessage(Object? error, KhStrings s, String fallbackKey) {
+  if (error is Failure) {
+    final msg = error.message?.trim();
+    if (msg != null && msg.isNotEmpty) return msg;
+  } else if (error != null) {
+    final str = error.toString().trim();
+    if (str.isNotEmpty && !str.startsWith('Instance of')) return str;
+  }
   return s.s(fallbackKey);
 }
 

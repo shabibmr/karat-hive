@@ -105,9 +105,8 @@ class SubmitOfferController extends AutoDisposeFamilyNotifier<SubmitOfferState, 
 
     final config = configResult.valueOrNull!;
     final options = config.offerValidityHours;
-    final defaultHours = options.contains(24)
-        ? 24
-        : (options.isNotEmpty ? options.first : 24);
+    final defaultHours =
+        options.contains(24) ? 24 : (options.firstOrNull ?? 24);
 
     state = SubmitOfferReady(
       request: requestResult.valueOrNull!,
