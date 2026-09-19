@@ -234,8 +234,10 @@ class _RequestReviewPublishScreenState
             ),
           if (state.failure != null && !isOAuthRequired(state.failure!)) ...[
             KhInlineError(
-              message: state.failure!.message ??
-                  createCopy(context, 'create.publishFailed', 'Publish failed.'),
+              message: state.failure!.fieldErrors.isNotEmpty
+                  ? state.failure!.fieldErrors.values.join('\n')
+                  : (state.failure!.message ??
+                      createCopy(context, 'create.publishFailed', 'Publish failed.')),
             ),
             SizedBox(height: tokens.space.sm),
           ],
