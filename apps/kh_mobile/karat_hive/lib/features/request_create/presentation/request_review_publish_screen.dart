@@ -68,6 +68,7 @@ class _RequestReviewPublishScreenState
         .onSessionReadyForPublish();
     if (!mounted) return;
     if (ok) {
+      ref.read(requestCreateControllerProvider.notifier).resetFlow();
       context.go(AppGuards.customerHome);
     }
   }
@@ -112,6 +113,7 @@ class _RequestReviewPublishScreenState
     if (!mounted) return;
     if (ok) {
       final published = ref.read(requestCreateControllerProvider).published;
+      ref.read(requestCreateControllerProvider.notifier).resetFlow();
       if (published != null) {
         context.go('${AppGuards.customerRequests}/${published.id}');
       } else {
@@ -141,6 +143,7 @@ class _RequestReviewPublishScreenState
     final ok = await controller.publish();
     if (!mounted) return;
     if (ok) {
+      controller.resetFlow();
       context.go(AppGuards.customerHome);
       return;
     }
