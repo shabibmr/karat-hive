@@ -52,77 +52,24 @@ abstract final class NotificationDeepLink {
     GoRouter.of(context).go(location);
   }
 
-  static String? _resolveVendor(List<String> segments) {
-    // /me/vendor · /me/vendor/documents
-    if (segments.length >= 2 && segments[0] == 'me' && segments[1] == 'vendor') {
-      if (segments.length == 2) return '/vendor/profile';
-      if (segments.length == 3 && segments[2] == 'documents') {
-        return '/vendor/profile/documents';
-      }
-      return null;
-    }
+  static String? _resolveVendor(List<String> segments) => switch (segments) {
+        ['me', 'vendor'] => '/vendor/profile',
+        ['me', 'vendor', 'documents'] => '/vendor/profile/documents',
+        ['requests', final id] when _isId(id) => '/vendor/requests/$id',
+        ['offers', final id] when _isId(id) => '/vendor/offers/$id',
+        ['connections', final id] when _isId(id) => '/vendor/connections/$id',
+        _ => null,
+      };
 
-    // /requests/{id}
-    if (segments.length == 2 && segments[0] == 'requests') {
-      final id = segments[1];
-      if (!_isId(id)) return null;
-      return '/vendor/requests/$id';
-    }
-
-    // /offers/{id}
-    if (segments.length == 2 && segments[0] == 'offers') {
-      final id = segments[1];
-      if (!_isId(id)) return null;
-      return '/vendor/offers/$id';
-    }
-
-    // /connections/{id}
-    if (segments.length == 2 && segments[0] == 'connections') {
-      final id = segments[1];
-      if (!_isId(id)) return null;
-      return '/vendor/connections/$id';
-    }
-
-    return null;
-  }
-
-  static String? _resolveCustomer(List<String> segments) {
-    // Vendor-only targets — never open in Customer mode.
-    if (segments.length >= 2 && segments[0] == 'me' && segments[1] == 'vendor') {
-      return null;
-    }
-
-    // /requests/{id} · /requests/{id}/offers
-    if (segments.isNotEmpty && segments[0] == 'requests') {
-      if (segments.length == 2) {
-        final id = segments[1];
-        if (!_isId(id)) return null;
-        return '/customer/requests/$id';
-      }
-      if (segments.length == 3 && segments[2] == 'offers') {
-        final id = segments[1];
-        if (!_isId(id)) return null;
-        return '/customer/requests/$id/offers';
-      }
-      return null;
-    }
-
-    // /offers/{id}
-    if (segments.length == 2 && segments[0] == 'offers') {
-      final id = segments[1];
-      if (!_isId(id)) return null;
-      return '/customer/offers/$id';
-    }
-
-    // /connections/{id}
-    if (segments.length == 2 && segments[0] == 'connections') {
-      final id = segments[1];
-      if (!_isId(id)) return null;
-      return '/customer/connections/$id';
-    }
-
-    return null;
-  }
+  static String? _resolveCustomer(List<String> segments) => switch (segments) {
+        ['requests', final id] when _isId(id) => '/customer/requests/$id',
+        ['requests', final id, 'offers'] when _isId(id) =>
+          '/customer/requests/$id/offers',
+        ['offers', final id] when _isId(id) => '/customer/offers/$id',
+        ['connections', final id] when _isId(id) =>
+          '/customer/connections/$id',
+        _ => null,
+      };
 
   static bool _isId(String value) => _uuid.hasMatch(value);
 }

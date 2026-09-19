@@ -188,72 +188,61 @@ class PushInvalidationPlan {
     final segments = path.split('/')..removeWhere((s) => s.isEmpty);
     if (segments.isEmpty) return PushInvalidationPlan(targets: targets);
 
-    if (segments.length >= 2 &&
-        segments[0] == 'me' &&
-        segments[1] == 'vendor') {
-      targets.addAll({
-        PushInvalidationTarget.vendorMe,
-        PushInvalidationTarget.vendorProfile,
-      });
-      if (segments.length >= 3 && segments[2] == 'documents') {
-        targets.add(PushInvalidationTarget.vendorDocuments);
-      }
-      return PushInvalidationPlan(targets: targets);
-    }
-
-    if (segments[0] == 'requests') {
-      targets.addAll({
-        PushInvalidationTarget.requestFeed,
-        PushInvalidationTarget.myOffers,
-        PushInvalidationTarget.customerHome,
-      });
-      if (segments.length >= 2 && _isId(segments[1])) {
-        requestId = segments[1];
+    switch (segments) {
+      case ['me', 'vendor', ...final rest]:
         targets.addAll({
-          PushInvalidationTarget.requestDetail,
-          PushInvalidationTarget.ownerRequestDetail,
+          PushInvalidationTarget.vendorMe,
+          PushInvalidationTarget.vendorProfile,
+          if (rest case ['documents', ...])
+            PushInvalidationTarget.vendorDocuments,
         });
-        if (segments.length >= 3 && segments[2] == 'offers') {
-          targets.add(PushInvalidationTarget.offersList);
-        }
-      }
-      return PushInvalidationPlan(targets: targets, requestId: requestId);
-    }
 
-    if (segments[0] == 'offers') {
-      targets.addAll({
-        PushInvalidationTarget.myOffers,
-        PushInvalidationTarget.customerHome,
-      });
-      if (segments.length >= 2 && _isId(segments[1])) {
-        offerId = segments[1];
-        targets.add(PushInvalidationTarget.offerDetail);
-      }
-      return PushInvalidationPlan(targets: targets, offerId: offerId);
-    }
-
-    if (segments[0] == 'connections') {
-      targets.addAll({
-        PushInvalidationTarget.connectionsVendor,
-        PushInvalidationTarget.connectionsCustomer,
-      });
-      if (segments.length >= 2 && _isId(segments[1])) {
-        connectionId = segments[1];
+      case ['requests', ...final rest]:
         targets.addAll({
-          PushInvalidationTarget.connectionDetailVendor,
-          PushInvalidationTarget.connectionDetailCustomer,
+          PushInvalidationTarget.requestFeed,
+          PushInvalidationTarget.myOffers,
+          PushInvalidationTarget.customerHome,
         });
-        if (segments.length >= 3 && segments[2] == 'review') {
-          targets.add(PushInvalidationTarget.myReviews);
+        if (rest case [final id, ...final sub] when _isId(id)) {
+          requestId = id;
+          targets.addAll({
+            PushInvalidationTarget.requestDetail,
+            PushInvalidationTarget.ownerRequestDetail,
+            if (sub case ['offers', ...]) PushInvalidationTarget.offersList,
+          });
         }
-      }
-      return PushInvalidationPlan(
-        targets: targets,
-        connectionId: connectionId,
-      );
+
+      case ['offers', ...final rest]:
+        targets.addAll({
+          PushInvalidationTarget.myOffers,
+          PushInvalidationTarget.customerHome,
+        });
+        if (rest case [final id, ...] when _isId(id)) {
+          offerId = id;
+          targets.add(PushInvalidationTarget.offerDetail);
+        }
+
+      case ['connections', ...final rest]:
+        targets.addAll({
+          PushInvalidationTarget.connectionsVendor,
+          PushInvalidationTarget.connectionsCustomer,
+        });
+        if (rest case [final id, ...final sub] when _isId(id)) {
+          connectionId = id;
+          targets.addAll({
+            PushInvalidationTarget.connectionDetailVendor,
+            PushInvalidationTarget.connectionDetailCustomer,
+            if (sub case ['review', ...]) PushInvalidationTarget.myReviews,
+          });
+        }
     }
 
-    return PushInvalidationPlan(targets: targets);
+    return PushInvalidationPlan(
+      targets: targets,
+      requestId: requestId,
+      offerId: offerId,
+      connectionId: connectionId,
+    );
   }
 
   static Set<PushInvalidationTarget> _targetsForType(String type) {

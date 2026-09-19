@@ -32,14 +32,11 @@ class FirestoreService {
     String collectionPath, {
     Query<Map<String, dynamic>> Function(Query<Map<String, dynamic>> query)? queryBuilder,
   }) {
-    Query<Map<String, dynamic>> query = _firestore.collection(collectionPath);
-    if (queryBuilder != null) {
-      query = queryBuilder(query);
-    }
+    final collectionRef = _firestore.collection(collectionPath);
+    final query = queryBuilder != null ? queryBuilder(collectionRef) : collectionRef;
     return query.snapshots();
   }
 }
 
-final firestoreServiceProvider = Provider<FirestoreService>((ref) {
-  return FirestoreService();
-});
+final firestoreServiceProvider =
+    Provider<FirestoreService>((ref) => FirestoreService());

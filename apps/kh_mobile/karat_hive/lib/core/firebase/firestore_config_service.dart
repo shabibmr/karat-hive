@@ -49,33 +49,36 @@ class FirestoreConfigService {
   /// 1. Flat flavor key: `api_base_url_dev`, `api_base_url_prod`, etc.
   /// 2. Nested map/string: `data['dev']` or `data['dev']['api_base_url']`
   /// 3. Global fallback: `data['api_base_url']`
-  static String? parseApiBaseUrlForFlavor(Map<String, dynamic> data, String flavorName) {
+  static String? parseApiBaseUrlForFlavor(
+    Map<String, dynamic> data,
+    String flavorName,
+  ) {
     final lowerFlavor = flavorName.toLowerCase().trim();
 
     // 1. Check flat key: e.g. api_base_url_dev
-    final flatKey = 'api_base_url_$lowerFlavor';
-    if (data[flatKey] != null && data[flatKey].toString().trim().isNotEmpty) {
-      return data[flatKey].toString().trim();
-    }
+    final flatUrl = _clean(data['api_base_url_$lowerFlavor']);
+    if (flatUrl != null) return flatUrl;
 
     // 2. Check nested key: e.g. dev: "https://..." or dev: { api_base_url: "https://..." }
     final flavorValue = data[lowerFlavor];
-    if (flavorValue is String && flavorValue.trim().isNotEmpty) {
-      return flavorValue.trim();
-    } else if (flavorValue is Map && flavorValue['api_base_url'] != null) {
-      final url = flavorValue['api_base_url'].toString().trim();
-      if (url.isNotEmpty) return url;
+    if (flavorValue is Map) {
+      final nestedUrl = _clean(flavorValue['api_base_url']);
+      if (nestedUrl != null) return nestedUrl;
+    } else {
+      final strUrl = _clean(flavorValue);
+      if (strUrl != null) return strUrl;
     }
 
-    // 3. Fallback to global api_base_url if provided
-    if (data['api_base_url'] != null && data['api_base_url'].toString().trim().isNotEmpty) {
-      return data['api_base_url'].toString().trim();
-    }
+    // 3. Fallback to global api_base_url
+    return _clean(data['api_base_url']);
+  }
 
-    return null;
+  static String? _clean(dynamic value) {
+    if (value == null) return null;
+    final trimmed = value.toString().trim();
+    return trimmed.isNotEmpty ? trimmed : null;
   }
 }
 
-final firestoreConfigServiceProvider = Provider<FirestoreConfigService>((ref) {
-  return FirestoreConfigService();
-});
+final firestoreConfigServiceProvider =
+    Provider<FirestoreConfigService>((ref) => FirestoreConfigService());

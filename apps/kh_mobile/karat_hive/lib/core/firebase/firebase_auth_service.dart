@@ -110,10 +110,10 @@ class FirebaseAuthService {
   /// Signs out from both Firebase and Google.
   Future<void> signOut() async {
     try {
-      final futures = <Future<dynamic>>[];
-      if (_auth != null) futures.add(_auth!.signOut());
-      if (_googleSignIn != null) futures.add(_googleSignIn!.signOut());
-      await Future.wait(futures);
+      await Future.wait([
+        if (_auth != null) _auth!.signOut(),
+        if (_googleSignIn != null) _googleSignIn!.signOut(),
+      ]);
     } catch (e) {
       debugPrint('Error signing out: $e');
       rethrow;
@@ -121,11 +121,9 @@ class FirebaseAuthService {
   }
 }
 
-final firebaseAuthServiceProvider = Provider<FirebaseAuthService>((ref) {
-  return FirebaseAuthService();
-});
+final firebaseAuthServiceProvider =
+    Provider<FirebaseAuthService>((ref) => FirebaseAuthService());
 
-final firebaseUserProvider = StreamProvider<User?>((ref) {
-  final authService = ref.watch(firebaseAuthServiceProvider);
-  return authService.authStateChanges;
-});
+final firebaseUserProvider = StreamProvider<User?>(
+  (ref) => ref.watch(firebaseAuthServiceProvider).authStateChanges,
+);

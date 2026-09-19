@@ -20,10 +20,7 @@ final apiClientProvider = Provider<KhApiClient>((ref) {
     tokenStorage: storage,
     serverClock: clock,
     // G2-A14: domain calls use the Karat Hive access token only.
-    tokenGetter: () async {
-      final tokens = await storage.read();
-      return tokens?.accessToken;
-    },
+    tokenGetter: () async => (await storage.read())?.accessToken,
     onRefresh: (refreshToken) => KhApi.refresh(client, refreshToken),
   );
   return client;

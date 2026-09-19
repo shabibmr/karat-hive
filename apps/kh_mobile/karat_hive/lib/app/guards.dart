@@ -113,10 +113,11 @@ abstract final class AppGuards {
       return location == customerBlocked ? null : customerBlocked;
     }
     // Guest landing / login / register → home. Create compose stays allowed.
-    if (unauthRoutes.contains(location) || isVendorLocation(location)) {
+    if (unauthRoutes.contains(location) ||
+        isVendorLocation(location) ||
+        location == customerBlocked) {
       return customerHome;
     }
-    if (location == customerBlocked) return customerHome;
     return null;
   }
 

@@ -15,18 +15,16 @@ class FirebaseNotificationService {
 
   final FirebaseMessaging _messaging;
 
-  Future<NotificationSettings> requestPermission() async {
-    final settings = await _messaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
-    return settings;
-  }
+  Future<NotificationSettings> requestPermission() =>
+      _messaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
 
   Future<String?> getToken() async {
     try {
@@ -65,6 +63,6 @@ class FirebaseNotificationService {
 }
 
 final firebaseNotificationServiceProvider =
-    Provider<FirebaseNotificationService>((ref) {
-  return FirebaseNotificationService();
-});
+    Provider<FirebaseNotificationService>(
+  (ref) => FirebaseNotificationService(),
+);

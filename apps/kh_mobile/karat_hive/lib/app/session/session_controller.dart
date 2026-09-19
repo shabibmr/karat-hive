@@ -178,7 +178,7 @@ class SessionController extends Notifier<SessionState> {
   Future<void> refreshUser() async {
     final result = await _api.me();
     state = result.when(
-      ok: (user) => SignedIn(user),
+      ok: SignedIn.new,
       err: (_) => const SignedOut(),
     );
   }
