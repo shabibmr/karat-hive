@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
+import 'active_shell_registry.dart';
+
 /// Authenticated Customer marketplace shell (SH-SHELL-01/02/03).
 ///
 /// Destinations match `ui-mock/js/nav.js`:
@@ -17,6 +19,13 @@ class CustomerShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final strings = KhStrings.of(context);
     final selectedIndex = navigationShell.currentIndex.clamp(0, 4);
+
+    // Read by AppBackButtonDispatcher to route hardware/gesture back presses
+    // that have nothing left to pop: non-Home tab -> Home, Home -> confirm exit.
+    ActiveShellRegistry.instance.current = ActiveShellInfo(
+      isHome: selectedIndex == 0,
+      goHome: () => navigationShell.goBranch(0),
+    );
 
     return Scaffold(
       key: const Key('customer-shell'),

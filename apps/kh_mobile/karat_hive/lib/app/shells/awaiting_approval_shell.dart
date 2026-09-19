@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'active_shell_registry.dart';
+
 /// SH-SHELL-05 — separate from the Vendor shell so marketplace routes are not
 /// mounted for a non-ACTIVE Vendor (Architecture-Frontend §7.2, C-04).
 class AwaitingApprovalShell extends StatelessWidget {
@@ -8,8 +10,12 @@ class AwaitingApprovalShell extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => KeyedSubtree(
-        key: const Key('awaiting-approval-shell'),
-        child: child,
-      );
+  Widget build(BuildContext context) {
+    // No bottom-nav tabs here — clear any stale entry from a prior shell.
+    ActiveShellRegistry.instance.current = null;
+    return KeyedSubtree(
+      key: const Key('awaiting-approval-shell'),
+      child: child,
+    );
+  }
 }

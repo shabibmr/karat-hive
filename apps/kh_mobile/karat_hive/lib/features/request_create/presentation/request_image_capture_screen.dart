@@ -79,7 +79,11 @@ class _RequestImageCaptureScreenState
           final ok =
               await controller.persistAndGo(RequestCreateStep.review);
           if (ok && context.mounted) {
-            context.go(RequestCreatePaths.review);
+            // push (not go): keeps this step in history so hardware/gesture
+            // back returns here instead of exiting the app (`RequestCreatePaths`
+            // are flat siblings under `UnauthShell`, so `go()` would replace
+            // this screen's entire nested-Navigator stack).
+            context.push(RequestCreatePaths.review);
           }
         },
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'back_button_dispatcher.dart';
 import 'guards.dart';
 import 'session/session_controller.dart';
 import 'shells/awaiting_approval_shell.dart';
@@ -31,6 +32,10 @@ class _SessionListenable extends ChangeNotifier {
     ref.listen(sessionProvider, (_, __) => notifyListeners());
   }
 }
+
+final backButtonDispatcherProvider = Provider<AppBackButtonDispatcher>((ref) {
+  return AppBackButtonDispatcher(ref.watch(routerProvider));
+});
 
 final routerProvider = Provider<GoRouter>((ref) {
   final listenable = _SessionListenable(ref);

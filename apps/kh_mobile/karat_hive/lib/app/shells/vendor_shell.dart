@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 
+import 'active_shell_registry.dart';
+
 /// ACTIVE Vendor marketplace shell (SH-SHELL-01/02/03).
 ///
 /// Houses the 5 bottom navigation destinations:
@@ -33,6 +35,13 @@ class VendorShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final selectedIndex = navigationShell.currentIndex.clamp(0, 4);
+
+    // Read by AppBackButtonDispatcher to route hardware/gesture back presses
+    // that have nothing left to pop: non-Home tab -> Home, Home -> confirm exit.
+    ActiveShellRegistry.instance.current = ActiveShellInfo(
+      isHome: selectedIndex == 0,
+      goHome: () => navigationShell.goBranch(0),
+    );
 
     return Scaffold(
       key: const Key('vendor-shell'),

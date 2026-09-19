@@ -1,6 +1,10 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+import '../../app/guards.dart';
+import '../../app/session/session_controller.dart';
 import 'presentation/find_ornament_screen.dart';
 import 'presentation/request_image_capture_screen.dart';
 import 'presentation/request_review_publish_screen.dart';
@@ -26,10 +30,23 @@ abstract final class RequestCreatePaths {
       };
 }
 
+/// Safety net for entering this flow with no wizard history behind it
+/// (a deep link, or the post-login redirect landing straight on review) —
+/// `go_router` exits the app outright rather than popping when every nested
+/// Navigator's history is empty. Send the user somewhere sensible instead.
+Future<bool> _handleWizardRootExit(BuildContext context) async {
+  final session = ProviderScope.containerOf(context).read(sessionProvider);
+  context.go(
+    session is SignedIn ? AppGuards.homeFor(session) : AppGuards.customerGuest,
+  );
+  return false;
+}
+
 final List<GoRoute> requestCreateRoutes = [
   GoRoute(
     path: RequestCreatePaths.type,
     builder: (_, __) => const RequestTypeScreen(),
+    onExit: (context, state) => _handleWizardRootExit(context),
   ),
   GoRoute(
     path: RequestCreatePaths.ornament,
@@ -52,6 +69,9 @@ final List<GoRoute> requestCreateRoutes = [
     builder: (_, __) => const RequestImageCaptureScreen(),
   ),
   GoRoute(
+    // No onExit here (unlike `type`): this screen's own success paths call
+    // `context.go()` to leave the wizard, which would itself trigger
+    // `onExit` as an "exiting" route and race against that navigation.
     path: RequestCreatePaths.review,
     builder: (_, __) => const RequestReviewPublishScreen(),
   ),

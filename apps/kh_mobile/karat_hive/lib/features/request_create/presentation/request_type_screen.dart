@@ -212,7 +212,8 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
                 selected: state.requestType == card.type,
                 onTap: () {
                   controller.selectType(card.type);
-                  context.go(RequestCreatePaths.composeFor(card.type));
+                  // push (not go): preserves history so back returns here.
+                  context.push(RequestCreatePaths.composeFor(card.type));
                 },
               ),
               SizedBox(height: tokens.space.md),

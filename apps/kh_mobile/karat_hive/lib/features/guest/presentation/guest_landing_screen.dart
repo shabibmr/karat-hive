@@ -18,7 +18,9 @@ class GuestLandingScreen extends ConsumerWidget {
 
   void _openService(BuildContext context, WidgetRef ref, RequestType type) {
     ref.read(requestCreateControllerProvider.notifier).selectType(type);
-    context.go(RequestCreatePaths.composeFor(type));
+    // push (not go): Guest Landing has no prior history, so `go()` here
+    // left back with nothing to pop and exited the app outright.
+    context.push(RequestCreatePaths.composeFor(type));
   }
 
   @override

@@ -15,11 +15,15 @@ class KaratHiveApp extends ConsumerWidget {
     // AD-FE-10: keep FCM → provider invalidation subscribed for app lifetime.
     ref.watch(pushInvalidationBinderProvider);
     final router = ref.watch(routerProvider);
+    final backButtonDispatcher = ref.watch(backButtonDispatcherProvider);
     return MaterialApp.router(
       title: 'Karat Hive',
       debugShowCheckedModeBanner: false,
       theme: khTheme(),
-      routerConfig: router,
+      routeInformationProvider: router.routeInformationProvider,
+      routeInformationParser: router.routeInformationParser,
+      routerDelegate: router.routerDelegate,
+      backButtonDispatcher: backButtonDispatcher,
       locale: ref.watch(appLocaleProvider),
       supportedLocales: KhStrings.supportedLocales,
       localizationsDelegates: KhStrings.delegates,
