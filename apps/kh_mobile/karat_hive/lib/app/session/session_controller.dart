@@ -86,11 +86,16 @@ class SessionController extends Notifier<SessionState> {
   @override
   SessionState build() {
     _authSub?.cancel();
+    // Sign-in is handled explicitly by VendorLoginController /
+    // CustomerOnboardingController, which own the googleSession exchange and
+    // write this session's state via onAuthenticated/markUnboundGoogle/
+    // markAuthBlocked. Reacting to every authStateChanges sign-in event here
+    // too would fire a second, uncoordinated googleSession call for the same
+    // token and could race the screen controller's own result. Sign-out is
+    // still handled here since nothing else owns it.
     _authSub = _authService.authStateChanges.listen((fbUser) {
       if (fbUser == null) {
         _checkLegacySession();
-      } else {
-        _exchangeGoogleSession(fbUser);
       }
     });
     ref.onDispose(() => _authSub?.cancel());

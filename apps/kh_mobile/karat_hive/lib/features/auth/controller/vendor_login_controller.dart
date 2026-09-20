@@ -31,8 +31,14 @@ class LoginAuthenticated extends LoginState {
 }
 
 class VendorLoginController extends AutoDisposeNotifier<LoginState> {
+  bool _disposed = false;
+
   @override
-  LoginState build() => const LoginIdle();
+  LoginState build() {
+    _disposed = false;
+    ref.onDispose(() => _disposed = true);
+    return const LoginIdle();
+  }
 
   AuthRepository get _repo => ref.read(authRepositoryProvider);
   FirebaseAuthService get _firebase => ref.read(firebaseAuthServiceProvider);
@@ -43,13 +49,16 @@ class VendorLoginController extends AutoDisposeNotifier<LoginState> {
     try {
       await _firebase.signInWithGoogle();
     } catch (_) {
+      if (_disposed) return;
       state = const LoginError(
         NetworkFailure(message: 'Google Sign-In was cancelled or unavailable.'),
       );
       return;
     }
+    if (_disposed) return;
 
     final idToken = await _firebase.getIdToken(forceRefresh: true);
+    if (_disposed) return;
     if (idToken == null || idToken.isEmpty) {
       state = const LoginIdle();
       return;
@@ -57,9 +66,11 @@ class VendorLoginController extends AutoDisposeNotifier<LoginState> {
 
     final fbUser = _firebase.currentUser;
     final result = await _repo.googleSession(idToken);
+    if (_disposed) return;
     await result.when(
       ok: (bundle) async {
         await ref.read(sessionProvider.notifier).onAuthenticated(bundle);
+        if (_disposed) return;
         state = const LoginAuthenticated();
       },
       err: (failure) async {

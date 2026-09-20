@@ -14,7 +14,7 @@ class FirebaseAuthService {
 
   final FirebaseAuth? _customAuth;
   final GoogleSignIn? _customGoogleSignIn;
-  static bool _googleSignInInitialized = false;
+  static Future<void>? _googleSignInInitialization;
 
   FirebaseAuth? get _auth {
     if (_customAuth != null) return _customAuth;
@@ -44,19 +44,23 @@ class FirebaseAuthService {
     return _auth?.currentUser?.getIdToken(forceRefresh);
   }
 
-  Future<void> _ensureGoogleSignInInitialized() async {
+  Future<void> _ensureGoogleSignInInitialized() {
     final gsi = _googleSignIn;
-    if (gsi == null) return;
-    if (!_googleSignInInitialized) {
-      await gsi.initialize(
-        clientId: kIsWeb
-            ? '132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com'
-            : null,
-        serverClientId:
-            '132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com',
-      );
-      _googleSignInInitialized = true;
-    }
+    if (gsi == null) return Future.value();
+    // Cache the in-flight initialization itself (not just a completion flag)
+    // so two concurrent sign-in attempts await the same call instead of both
+    // racing gsi.initialize() before either observes it as done.
+    return _googleSignInInitialization ??= gsi.initialize(
+      clientId: kIsWeb
+          ? '132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com'
+          : null,
+      serverClientId:
+          '132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com',
+    ).catchError((Object e) {
+      // Let the next attempt retry instead of caching a permanent failure.
+      _googleSignInInitialization = null;
+      throw e;
+    });
   }
 
   /// Signs in with Google using GoogleSignIn.instance and Firebase Auth.

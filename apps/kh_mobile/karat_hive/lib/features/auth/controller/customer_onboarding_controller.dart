@@ -55,8 +55,14 @@ class OnboardingAuthenticated extends CustomerOnboardingState {
 /// own `google/session` call to branch to the completion step.
 class CustomerOnboardingController
     extends AutoDisposeNotifier<CustomerOnboardingState> {
+  bool _disposed = false;
+
   @override
-  CustomerOnboardingState build() => const OnboardingIdle();
+  CustomerOnboardingState build() {
+    _disposed = false;
+    ref.onDispose(() => _disposed = true);
+    return const OnboardingIdle();
+  }
 
   CustomerAuthRepository get _repo => ref.read(customerAuthRepositoryProvider);
   FirebaseAuthService get _firebase => ref.read(firebaseAuthServiceProvider);
@@ -70,12 +76,15 @@ class CustomerOnboardingController
     try {
       await _firebase.signInWithGoogle();
     } catch (_) {
+      if (_disposed) return;
       // Network / SDK failure — stay on Login with inline error (GL-39).
       state = const OnboardingFailure(NetworkFailure());
       return;
     }
+    if (_disposed) return;
 
     final idToken = await _firebase.getIdToken(forceRefresh: true);
+    if (_disposed) return;
     if (idToken == null || idToken.isEmpty) {
       // Cancelled picker, or no Firebase user — return to the button (GL-38).
       state = const OnboardingIdle();
@@ -84,9 +93,11 @@ class CustomerOnboardingController
 
     final fbUser = _firebase.currentUser;
     final result = await _repo.googleSession(idToken);
+    if (_disposed) return;
     await result.when(
       ok: (bundle) async {
         await ref.read(sessionProvider.notifier).onAuthenticated(bundle);
+        if (_disposed) return;
         state = const OnboardingAuthenticated();
       },
       err: (failure) async {
