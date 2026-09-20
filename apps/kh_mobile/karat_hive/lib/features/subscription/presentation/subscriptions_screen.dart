@@ -18,9 +18,9 @@ class SubscriptionsScreen extends ConsumerWidget {
 
   static const List<String> allTypes = [
     'FIND_ORNAMENT',
-    'CUSTOM_DESIGN',
-    'BULLION',
-    'REPAIR_RESIZE',
+    'SELL_OLD_GOLD',
+    'GOLD_COIN',
+    'GOLD_BULLION',
   ];
 
   @override
@@ -152,12 +152,9 @@ class _SubscriptionCard extends StatelessWidget {
     return switch (requestType) {
       'FIND_ORNAMENT' =>
         l10n?.requestTypeFindOrnament ?? 'Find Ornament',
-      'CUSTOM_DESIGN' =>
-        l10n?.requestTypeCustomDesign ?? 'Custom Design',
-      'BULLION' =>
-        l10n?.requestTypeBullionInvestment ?? 'Bullion & Investment',
-      'REPAIR_RESIZE' =>
-        l10n?.requestTypeRepairResize ?? 'Repair & Resize',
+      'SELL_OLD_GOLD' => 'Sell Old Gold',
+      'GOLD_COIN' => 'Gold Coin(s)',
+      'GOLD_BULLION' => 'Gold Bullion',
       _ => requestType.replaceAll('_', ' '),
     };
   }
@@ -177,9 +174,9 @@ class _SubscriptionCard extends StatelessWidget {
 
     final icon = switch (requestType) {
       'FIND_ORNAMENT' => Icons.diamond_outlined,
-      'CUSTOM_DESIGN' => Icons.brush_outlined,
-      'BULLION' => Icons.view_in_ar_outlined,
-      'REPAIR_RESIZE' => Icons.build_outlined,
+      'SELL_OLD_GOLD' => Icons.sell_outlined,
+      'GOLD_COIN' => Icons.monetization_on_outlined,
+      'GOLD_BULLION' => Icons.view_in_ar_outlined,
       _ => Icons.category_outlined,
     };
 

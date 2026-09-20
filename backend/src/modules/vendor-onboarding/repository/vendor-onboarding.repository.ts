@@ -13,6 +13,7 @@ export type CreateVendorProfileInput = {
   businessAddress: string;
   contactPersonName: string;
   businessEmail: string;
+  contactWhatsApp?: string;
 };
 
 @Injectable()
@@ -20,6 +21,8 @@ export class VendorOnboardingRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   createProfile(tx: DbTx, input: CreateVendorProfileInput): Promise<VendorProfile> {
+    // REGISTERED is reserved in the state machine for a future pre-KYC shell;
+    // registration currently creates PENDING_VERIFICATION directly (docs note unused).
     return tx.vendorProfile.create({
       data: {
         userId: input.userId,
@@ -30,6 +33,7 @@ export class VendorOnboardingRepository {
         businessAddress: input.businessAddress,
         contactPersonName: input.contactPersonName,
         businessEmail: input.businessEmail,
+        contactWhatsApp: input.contactWhatsApp,
         verificationState: 'PENDING_VERIFICATION',
       },
     });

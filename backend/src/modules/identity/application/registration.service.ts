@@ -40,6 +40,7 @@ export type RegisterVendorInput = {
   businessAddress: string;
   contactPersonName: string;
   businessEmail: string;
+  contactWhatsApp?: string;
   regionId: string;
   categoryIds: string[];
   servedRegionIds: string[];
@@ -66,11 +67,13 @@ export class RegistrationService {
     client: { ip?: string | null; userAgent?: string | null; acceptLanguage?: string },
   ): Promise<SessionBundle> {
     let mobileNumber: string | null = null;
+    let mobileVerifiedAt: Date | null = null;
     let firebaseUid: string | null = null;
 
     if (input.challengeId) {
       const challenge = await this.otp.requireVerified(input.challengeId, 'REGISTER_VENDOR');
       mobileNumber = challenge.mobileNumber;
+      mobileVerifiedAt = this.clock.now();
     }
 
     if (input.firebaseToken) {
@@ -91,12 +94,14 @@ export class RegistrationService {
           ]);
         }
         mobileNumber = claims.phoneNumber;
+        mobileVerifiedAt = this.clock.now();
       }
     }
 
     // Temporary: allow typed mobile without OTP while SMS send is deferred.
     if (!mobileNumber && input.mobileNumber) {
       mobileNumber = input.mobileNumber;
+      mobileVerifiedAt = null;
     }
 
     if (!mobileNumber) {
@@ -115,9 +120,15 @@ export class RegistrationService {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.LICENCE_ALREADY_REGISTERED);
     }
 
+    // VO-20: seed served regions from primary regionId when the wizard deferred the list.
+    const servedRegionIds =
+      input.servedRegionIds.length === 0 && input.regionId
+        ? [input.regionId]
+        : input.servedRegionIds;
+
     await this.taxonomy.assertActive({
       categoryIds: input.categoryIds,
-      regionIds: [input.regionId, ...input.servedRegionIds],
+      regionIds: [input.regionId, ...servedRegionIds],
     });
 
     const now = this.clock.now();
@@ -128,7 +139,7 @@ export class RegistrationService {
         mobileNumber: mobileNumber!,
         email: input.businessEmail,
         preferredLanguage: language,
-        mobileVerifiedAt: now,
+        mobileVerifiedAt,
         termsVersion: input.termsVersion,
         privacyVersion: input.privacyVersion,
         termsAcceptedAt: now,
@@ -142,8 +153,9 @@ export class RegistrationService {
         businessAddress: input.businessAddress,
         contactPersonName: input.contactPersonName,
         businessEmail: input.businessEmail,
+        contactWhatsApp: input.contactWhatsApp,
         categoryIds: input.categoryIds,
-        servedRegionIds: input.servedRegionIds,
+        servedRegionIds,
         ipAddress: client.ip ?? null,
         userAgent: client.userAgent ?? null,
       });

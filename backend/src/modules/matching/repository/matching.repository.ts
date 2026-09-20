@@ -3,6 +3,18 @@ import type { Prisma, RequestType } from '@prisma/client';
 import { PrismaService } from '../../../platform/db/prisma.service';
 import type { MatchesFilterDto } from '../domain/matching-engine';
 
+/** Live Type Subscription: stored ACTIVE/GRACE and still within periodEnd or graceEndsAt. */
+function liveSubscriptionWhere(
+  now: Date,
+  requestType?: RequestType,
+): Prisma.VendorTypeSubscriptionWhereInput {
+  return {
+    ...(requestType ? { requestType } : {}),
+    state: { in: ['ACTIVE', 'GRACE'] },
+    OR: [{ periodEnd: { gte: now } }, { graceEndsAt: { gte: now } }],
+  };
+}
+
 @Injectable()
 export class MatchingRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -17,14 +29,12 @@ export class MatchingRepository {
     const eligibleVendors = await this.prisma.vendorProfile.findMany({
       where: {
         verificationState: 'VERIFIED',
+        activatedAt: { not: null },
         user: { accountState: 'ACTIVE', deletedAt: null },
         categories: { some: { categoryId } },
         regions: { some: { regionId } },
         subscriptions: {
-          some: {
-            requestType,
-            state: { in: ['ACTIVE', 'GRACE'] },
-          },
+          some: liveSubscriptionWhere(now, requestType),
         },
       },
       select: { id: true },
@@ -53,14 +63,17 @@ export class MatchingRepository {
         categories: true,
         regions: true,
         subscriptions: {
-          where: {
-            state: { in: ['ACTIVE', 'GRACE'] },
-          },
+          where: liveSubscriptionWhere(now),
         },
       },
     });
 
-    if (!vendor || vendor.verificationState !== 'VERIFIED' || vendor.user.accountState !== 'ACTIVE') {
+    if (
+      !vendor ||
+      vendor.verificationState !== 'VERIFIED' ||
+      vendor.activatedAt === null ||
+      vendor.user.accountState !== 'ACTIVE'
+    ) {
       return 0;
     }
 

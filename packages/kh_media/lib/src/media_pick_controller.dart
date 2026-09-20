@@ -18,6 +18,7 @@ const Map<MediaUploadPurpose, int> mediaPurposeMaxBytes = {
   MediaUploadPurpose.kycDocument: 10 * 1024 * 1024,
   MediaUploadPurpose.requestImage: 5 * 1024 * 1024,
   MediaUploadPurpose.offerImage: 5 * 1024 * 1024,
+  MediaUploadPurpose.vendorLogo: 5 * 1024 * 1024,
 };
 
 /// The content type a prefetched intent is speculatively requested for.

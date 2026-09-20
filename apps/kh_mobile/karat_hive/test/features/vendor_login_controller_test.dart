@@ -63,6 +63,9 @@ void main() {
       isA<LoginNeedsRegistration>(),
     );
     expect(session.authenticated, isEmpty);
+    final unbound = c.read(sessionProvider);
+    expect(unbound, isA<UnboundGoogle>());
+    expect((unbound as UnboundGoogle).firebaseIdToken, 'fb-id-token');
   });
 
   test('a bare 401 with no code also needs registration', () async {
@@ -77,6 +80,7 @@ void main() {
       c.read(vendorLoginControllerProvider),
       isA<LoginNeedsRegistration>(),
     );
+    expect(c.read(sessionProvider), isA<UnboundGoogle>());
   });
 
   test('other server failures surface as LoginError', () async {

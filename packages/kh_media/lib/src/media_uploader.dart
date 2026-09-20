@@ -11,7 +11,8 @@ import 'package:kh_core/kh_core.dart';
 enum MediaUploadPurpose {
   kycDocument('KYC_DOCUMENT'),
   requestImage('REQUEST_IMAGE'),
-  offerImage('OFFER_IMAGE');
+  offerImage('OFFER_IMAGE'),
+  vendorLogo('VENDOR_LOGO');
 
   const MediaUploadPurpose(this.wire);
   final String wire;

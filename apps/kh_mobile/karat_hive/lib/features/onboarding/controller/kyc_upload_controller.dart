@@ -29,6 +29,7 @@ class KycScreenState {
     this.licenceExpiryDate = '',
     this.documents = const {},
     this.busy = false,
+    this.hydrated = false,
     this.failure,
   });
 
@@ -37,6 +38,7 @@ class KycScreenState {
   final String licenceExpiryDate;
   final Map<VendorDocumentType, KycFileState> documents;
   final bool busy;
+  final bool hydrated;
   final Failure? failure;
 
   bool get fieldsComplete =>
@@ -55,6 +57,7 @@ class KycScreenState {
     String? licenceExpiryDate,
     Map<VendorDocumentType, KycFileState>? documents,
     bool? busy,
+    bool? hydrated,
     Failure? failure,
     bool clearFailure = false,
   }) =>
@@ -64,6 +67,7 @@ class KycScreenState {
         licenceExpiryDate: licenceExpiryDate ?? this.licenceExpiryDate,
         documents: documents ?? this.documents,
         busy: busy ?? this.busy,
+        hydrated: hydrated ?? this.hydrated,
         failure: clearFailure ? null : (failure ?? this.failure),
       );
 }
@@ -82,6 +86,47 @@ class KycUploadController extends Notifier<KycScreenState> {
   /// overlaps with the vendor reading the KYC form, rather than happening
   /// after they've already picked a document. Idempotent.
   Future<void> prefetchDocumentIntent() => _repo.prefetchKycDocumentIntent();
+
+  /// Prefills legal/licence fields and marks already-uploaded mandatory docs
+  /// so reject/resubmit reopen shows existing state (VO-13). Idempotent.
+  Future<void> hydrateFromExisting() async {
+    if (state.hydrated) return;
+    final meRes = await _repo.vendorMe();
+    final docsRes = await _repo.documents();
+
+    VendorMe? me;
+    meRes.when(ok: (v) => me = v, err: (_) {});
+    List<VendorDocument> docs = const [];
+    docsRes.when(ok: (v) => docs = v, err: (_) {});
+
+    final docMap = <VendorDocumentType, KycFileState>{
+      for (final d in mandatoryVendorDocuments) d: state.documents[d] ?? const KycFileState(),
+    };
+    for (final doc in docs) {
+      if (!mandatoryVendorDocuments.contains(doc.documentType)) continue;
+      docMap[doc.documentType] = KycFileState(
+        mediaKey: doc.id,
+        progress: 1,
+      );
+    }
+
+    final existingLicence = me?.tradeLicenceNumber ?? '';
+    final provisional = existingLicence.startsWith('PENDING_');
+    state = state.copyWith(
+      legalBusinessName: state.legalBusinessName.isNotEmpty
+          ? state.legalBusinessName
+          : (me?.legalBusinessName ?? ''),
+      // Keep PENDING_ provisional blank so the vendor enters the real licence.
+      tradeLicenceNumber: state.tradeLicenceNumber.isNotEmpty
+          ? state.tradeLicenceNumber
+          : (provisional ? '' : existingLicence),
+      licenceExpiryDate: state.licenceExpiryDate.isNotEmpty
+          ? state.licenceExpiryDate
+          : (me?.licenceExpiryDate ?? ''),
+      documents: docMap,
+      hydrated: true,
+    );
+  }
 
   void patchFields({
     String? legalBusinessName,
@@ -129,9 +174,14 @@ class KycUploadController extends Notifier<KycScreenState> {
 
     await uploaded.when(
       ok: (key) async {
+        final expiry = type == VendorDocumentType.tradeLicence &&
+                state.licenceExpiryDate.trim().isNotEmpty
+            ? state.licenceExpiryDate.trim()
+            : null;
         final attached = await _repo.attachDocument(
           type: type,
           mediaKey: key,
+          expiryDate: expiry,
         );
         state = state.copyWith(
           documents: {
@@ -159,6 +209,7 @@ class KycUploadController extends Notifier<KycScreenState> {
     final patchRes = await _repo.patchKycProfile(
       legalBusinessName: state.legalBusinessName,
       tradeLicenceNumber: state.tradeLicenceNumber,
+      licenceExpiryDate: state.licenceExpiryDate.trim(),
     );
     return patchRes.when(
       ok: (_) async {

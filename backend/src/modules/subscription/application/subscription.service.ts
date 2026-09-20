@@ -174,4 +174,9 @@ export class SubscriptionService {
 
     return this.repo.getVendorPerformance(profile.id, filters);
   }
+
+  /** Scheduler: persist EXPIRED when past periodEnd/grace (VO-04). */
+  async sweepExpiredSubscriptions(now: Date = new Date()): Promise<number> {
+    return this.repo.expirePastGraceSubscriptions(now);
+  }
 }

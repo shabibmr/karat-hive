@@ -5,6 +5,7 @@ import { LocalDiskStorageAdapter } from '../../../platform/adapters/storage/loca
 import type { PrismaService } from '../../../platform/db/prisma.service';
 import type { Clock } from '../../../shared/clock';
 import type { AuditWriter } from '../../audit';
+import type { MediaService } from '../../media';
 import type { VendorOnboardingRepository } from '../repository/vendor-onboarding.repository';
 import { VendorOnboardingService } from './vendor-onboarding.service';
 
@@ -34,6 +35,7 @@ describe('VendorOnboardingService dashboard + export (G2-M06 / G2-P07)', () => {
   let repo: VendorOnboardingRepository;
   let prisma: PrismaService;
   let audit: AuditWriter;
+  let media: MediaService;
   let storage: LocalDiskStorageAdapter;
   let service: VendorOnboardingService;
 
@@ -66,8 +68,9 @@ describe('VendorOnboardingService dashboard + export (G2-M06 / G2-P07)', () => {
       append: vi.fn().mockResolvedValue(undefined),
     } as unknown as AuditWriter;
 
+    media = { getAttachable: vi.fn() } as unknown as MediaService;
     storage = new LocalDiskStorageAdapter();
-    service = new VendorOnboardingService(prisma, repo, audit, mockClock, storage);
+    service = new VendorOnboardingService(prisma, repo, audit, mockClock, media, storage);
   });
 
   it('returns empty-safe zero counts and empty subscriptions (G2-M06)', async () => {
@@ -176,5 +179,142 @@ describe('VendorOnboardingService dashboard + export (G2-M06 / G2-P07)', () => {
         afterValue: expect.objectContaining({ rowCount: 0 }),
       }),
     );
+  });
+});
+
+describe('VendorOnboardingService.patchProfile (VO-06 / BR-004)', () => {
+  const now = new Date('2026-09-20T12:00:00.000Z');
+  const mockClock: Clock = { now: () => now, nowIso: () => now.toISOString() };
+
+  const baseProfile = {
+    id: 'vp-1',
+    userId: 'usr-1',
+    legalBusinessName: 'Gold House LLC',
+    tradingName: 'Gold House',
+    tradeLicenceNumber: 'TL-1',
+    licenceExpiryDate: new Date('2027-01-01T00:00:00Z'),
+    businessAddress: 'Dubai',
+    contactPersonName: 'Ali',
+    businessEmail: 'shop@example.com',
+    contactWhatsApp: null,
+    description: null,
+    businessHours: null,
+    verificationState: 'VERIFIED' as const,
+    verificationMessage: null,
+    verificationNotes: null,
+    verifiedAt: new Date('2026-09-01T00:00:00Z'),
+    activatedAt: new Date('2026-09-01T00:00:00Z'),
+    awayMode: false,
+    aggregateRating: null,
+    reviewCount: 0,
+    offersSubmittedCount: 0,
+    ratingTrend: null,
+    createdAt: now,
+    updatedAt: now,
+  } as unknown as VendorProfile;
+
+  const viewer: ViewerContext = {
+    userId: 'usr-1',
+    role: 'VENDOR',
+    tokenVersion: 1,
+    accountState: 'ACTIVE',
+    preferredLanguage: 'en',
+    vendorProfileId: 'vp-1',
+    vendorVerificationState: 'VERIFIED',
+    vendorActivatedAt: new Date('2026-09-01T00:00:00Z'),
+    customerProfileId: null,
+    adminProfileId: null,
+  };
+
+  let repo: VendorOnboardingRepository;
+  let prisma: PrismaService;
+  let audit: AuditWriter;
+  let service: VendorOnboardingService;
+  let update: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    update = vi.fn().mockImplementation(async (_tx, _id, data) => ({
+      ...baseProfile,
+      ...data,
+      activatedAt: data.activatedAt === undefined ? baseProfile.activatedAt : data.activatedAt,
+      verificationState: data.verificationState ?? baseProfile.verificationState,
+    }));
+
+    repo = {
+      findById: vi.fn().mockResolvedValue(baseProfile),
+      update,
+      distinctDocumentTypes: vi.fn().mockResolvedValue(['TRADE_LICENCE', 'EMIRATES_ID']),
+      countCategories: vi.fn().mockResolvedValue(1),
+      countRegions: vi.fn().mockResolvedValue(1),
+      listCategoryIds: vi.fn().mockResolvedValue(['cat-1']),
+      listRegionIds: vi.fn().mockResolvedValue(['reg-1']),
+    } as unknown as VendorOnboardingRepository;
+
+    prisma = {
+      $transaction: vi.fn(async (cb) =>
+        cb({
+          outboxEvent: { create: vi.fn().mockResolvedValue({}) },
+        }),
+      ),
+    } as unknown as PrismaService;
+
+    audit = { append: vi.fn().mockResolvedValue(undefined) } as unknown as AuditWriter;
+    const media = { getAttachable: vi.fn() } as unknown as MediaService;
+    service = new VendorOnboardingService(
+      prisma,
+      repo,
+      audit,
+      mockClock,
+      media,
+      new LocalDiskStorageAdapter(),
+    );
+  });
+
+  it('transitions VERIFIED → PENDING_VERIFICATION and clears activatedAt', async () => {
+    await service.patchProfile(viewer, { legalBusinessName: 'New Legal Name LLC' });
+
+    expect(update).toHaveBeenCalledWith(
+      expect.anything(),
+      'vp-1',
+      expect.objectContaining({
+        legalBusinessName: 'New Legal Name LLC',
+        verificationState: 'PENDING_VERIFICATION',
+        activatedAt: null,
+      }),
+    );
+    expect(audit.append).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ action: 'VENDOR_PROFILE_REVERIFY' }),
+    );
+  });
+
+  it('keeps PENDING_VERIFICATION and only clears activatedAt', async () => {
+    vi.mocked(repo.findById).mockResolvedValue({
+      ...baseProfile,
+      verificationState: 'PENDING_VERIFICATION',
+      activatedAt: null,
+    } as VendorProfile);
+
+    await service.patchProfile(viewer, { tradeLicenceNumber: 'TL-2' });
+
+    expect(update).toHaveBeenCalledWith(
+      expect.anything(),
+      'vp-1',
+      expect.objectContaining({
+        tradeLicenceNumber: 'TL-2',
+        activatedAt: null,
+      }),
+    );
+    const data = update.mock.calls[0]?.[2] as Record<string, unknown>;
+    expect(data).not.toHaveProperty('verificationState');
+  });
+
+  it('does not touch verificationState for cosmetic fields', async () => {
+    await service.patchProfile(viewer, { tradingName: 'Cosmetic Only' });
+    const data = update.mock.calls[0]?.[2] as Record<string, unknown>;
+    expect(data).toEqual(expect.objectContaining({ tradingName: 'Cosmetic Only' }));
+    expect(data).not.toHaveProperty('verificationState');
+    expect(data).not.toHaveProperty('activatedAt');
+    expect(audit.append).not.toHaveBeenCalled();
   });
 });

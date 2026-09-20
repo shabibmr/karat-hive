@@ -240,8 +240,11 @@ class KhApi {
     String? description,
     String? contactPersonName,
     String? businessEmail,
+    String? contactWhatsApp,
+    String? logoMediaKey,
     String? legalBusinessName,
     String? tradeLicenceNumber,
+    String? licenceExpiryDate,
     String? businessAddress,
   }) =>
       vendor.patchProfile(
@@ -249,8 +252,11 @@ class KhApi {
         description: description,
         contactPersonName: contactPersonName,
         businessEmail: businessEmail,
+        contactWhatsApp: contactWhatsApp,
+        logoMediaKey: logoMediaKey,
         legalBusinessName: legalBusinessName,
         tradeLicenceNumber: tradeLicenceNumber,
+        licenceExpiryDate: licenceExpiryDate,
         businessAddress: businessAddress,
       );
 

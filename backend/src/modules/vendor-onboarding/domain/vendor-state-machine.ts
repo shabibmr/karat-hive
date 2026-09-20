@@ -6,7 +6,8 @@ export type VerificationDecision = 'VERIFY' | 'REJECT' | 'REQUEST_INFO';
 const TRANSITIONS: Record<VendorVerificationState, VendorVerificationState[]> = {
   REGISTERED: ['PENDING_VERIFICATION'],
   PENDING_VERIFICATION: ['VERIFIED', 'REJECTED', 'PENDING_VERIFICATION'],
-  VERIFIED: ['REJECTED'],
+  // BR-004: identity-bearing profile edits force re-verification.
+  VERIFIED: ['REJECTED', 'PENDING_VERIFICATION'],
   REJECTED: ['PENDING_VERIFICATION'],
 };
 

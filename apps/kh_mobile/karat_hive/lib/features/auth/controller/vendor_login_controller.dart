@@ -55,6 +55,7 @@ class VendorLoginController extends AutoDisposeNotifier<LoginState> {
       return;
     }
 
+    final fbUser = _firebase.currentUser;
     final result = await _repo.googleSession(idToken);
     await result.when(
       ok: (bundle) async {
@@ -64,7 +65,18 @@ class VendorLoginController extends AutoDisposeNotifier<LoginState> {
       err: (failure) async {
         if (failure is UnauthorisedFailure &&
             (failure.code == null || failure.code == 'UNAUTHENTICATED')) {
+          // Keep the Firebase token on session so vendor register can bind
+          // Google (`adr/0010`) — mirrors customer onboarding hand-off.
+          ref.read(sessionProvider.notifier).markUnboundGoogle(
+                firebaseIdToken: idToken,
+                suggestedName: fbUser?.displayName,
+                suggestedEmail: fbUser?.email,
+              );
           state = const LoginNeedsRegistration();
+        } else if (failure.code != null &&
+            kAuthLockoutCodes.contains(failure.code)) {
+          ref.read(sessionProvider.notifier).markAuthBlocked(failure);
+          state = LoginError(failure);
         } else {
           state = LoginError(failure);
         }

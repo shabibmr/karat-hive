@@ -7,6 +7,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../../platform/db/prisma.service';
 import type { DbTx } from '../../../platform/db/tx';
+import { computeSubscriptionState } from '../../subscription';
 import type { SubmitOfferInput } from '../domain/offer-validator';
 import type { PrismaOfferWithDetails } from '../presenter/offer.presenter';
 
@@ -53,7 +54,12 @@ export class OfferRepository {
     });
   }
 
-  async checkVendorEligibility(vendorProfileId: string, requestType: RequestType, tx?: DbTx) {
+  async checkVendorEligibility(
+    vendorProfileId: string,
+    requestType: RequestType,
+    tx?: DbTx,
+    now: Date = new Date(),
+  ) {
     const vendor = await this.db(tx).vendorProfile.findUnique({
       where: { id: vendorProfileId },
       include: {
@@ -71,10 +77,15 @@ export class OfferRepository {
 
     const isActive =
       vendor.verificationState === 'VERIFIED' &&
+      vendor.activatedAt !== null &&
       vendor.user.accountState === 'ACTIVE' &&
       vendor.user.deletedAt === null;
 
-    const hasSubscription = vendor.subscriptions.length > 0;
+    const liveSubscriptions = vendor.subscriptions.filter((sub) => {
+      const entitlement = computeSubscriptionState(sub, now);
+      return entitlement === 'ACTIVE' || entitlement === 'GRACE';
+    });
+    const hasSubscription = liveSubscriptions.length > 0;
 
     return {
       isFound: true,

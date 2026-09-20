@@ -937,5 +937,45 @@ void main() {
       expect(me.contactPersonName, 'Sara');
       expect(me.businessEmail, 'sara@example.com');
     });
+
+    test('PATCHes licenceExpiryDate for KYC (VO-03)', () async {
+      Object? lastBody;
+      final client = createClient((opts) async {
+        expect(opts.method, 'PATCH');
+        expect(opts.path, '/v1/me/vendor');
+        lastBody = opts.data;
+        return jsonBody({
+          'data': {
+            'vendorProfileId': 'vp1',
+            'lifecycle': 'PENDING_VERIFICATION',
+            'awaitingApproval': true,
+            'tradingName': 'Al Noor Gold',
+            'legalBusinessName': 'Al Noor LLC',
+            'tradeLicenceNumber': 'TL-1',
+            'licenceExpiryDate': '2027-06-30',
+            'businessAddress': 'Deira',
+            'contactPersonName': 'Sara',
+            'businessEmail': 'sara@example.com',
+            'categoryCount': 0,
+            'regionCount': 0,
+            'categoryIds': <String>[],
+            'regionIds': <String>[],
+            'awayMode': false,
+          },
+        });
+      });
+
+      await KhApi(client).patchVendorProfile(
+        legalBusinessName: 'Al Noor LLC',
+        tradeLicenceNumber: 'TL-1',
+        licenceExpiryDate: '2027-06-30',
+      );
+
+      expect(lastBody, {
+        'legalBusinessName': 'Al Noor LLC',
+        'tradeLicenceNumber': 'TL-1',
+        'licenceExpiryDate': '2027-06-30',
+      });
+    });
   });
 }

@@ -6,6 +6,29 @@ function decimal(value: number) {
   return { toNumber: () => value } as unknown as { toNumber(): number };
 }
 
+describe('SubscriptionRepository.expirePastGraceSubscriptions (VO-04)', () => {
+  it('marks ACTIVE/GRACE past periodEnd and grace as EXPIRED', async () => {
+    const updateMany = vi.fn().mockResolvedValue({ count: 2 });
+    const prisma = {
+      vendorTypeSubscription: { updateMany },
+    } as unknown as PrismaService;
+    const repo = new SubscriptionRepository(prisma);
+    const now = new Date('2026-09-20T12:00:00Z');
+
+    const count = await repo.expirePastGraceSubscriptions(now);
+
+    expect(count).toBe(2);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: {
+        state: { in: ['ACTIVE', 'GRACE'] },
+        periodEnd: { lt: now },
+        OR: [{ graceEndsAt: null }, { graceEndsAt: { lt: now } }],
+      },
+      data: { state: 'EXPIRED' },
+    });
+  });
+});
+
 describe('SubscriptionRepository.getVendorPerformance (CP5-A05 / CP6-A03)', () => {
   it('passes through vendor_profile.rating_trend verbatim', async () => {
     const trend = [

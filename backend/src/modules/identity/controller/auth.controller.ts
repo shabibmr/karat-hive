@@ -65,6 +65,10 @@ const registerVendorSchema = z
     businessAddress: z.string().min(1).max(500),
     contactPersonName: z.string().min(1).max(100),
     businessEmail: z.string().email().max(255),
+    contactWhatsApp: z
+      .string()
+      .regex(/^\+[1-9]\d{6,14}$/, 'Enter a valid WhatsApp number in E.164 format.')
+      .optional(),
     regionId: z.string().uuid(),
     // Categories/served regions are chosen later in the Categories & Regions step, not at registration.
     categoryIds: z.array(z.string().uuid()).default([]),

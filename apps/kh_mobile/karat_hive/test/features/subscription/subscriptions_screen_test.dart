@@ -26,14 +26,14 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
                 renewalDate: DateTime.utc(2026, 10, 1),
               ),
               VendorSubscriptionItem(
-                requestType: 'CUSTOM_DESIGN',
+                requestType: 'SELL_OLD_GOLD',
                 state: 'GRACE',
                 priceAed: '299.00',
                 canOffer: true,
                 graceEndsAt: DateTime.utc(2026, 9, 15),
               ),
               VendorSubscriptionItem(
-                requestType: 'BULLION',
+                requestType: 'GOLD_BULLION',
                 state: 'EXPIRED',
                 priceAed: '699.00',
                 canOffer: false,
@@ -95,11 +95,11 @@ void main() {
       expect(find.byKey(const Key('subscriptions-screen')), findsOneWidget);
       expect(find.text('Subscriptions & Entitlements'), findsOneWidget);
 
-      // 4 types present
+      // 4 SRS request types present
       expect(find.text('Find Ornament'), findsOneWidget);
-      expect(find.text('Custom Design'), findsOneWidget);
-      expect(find.text('Bullion & Investment'), findsOneWidget);
-      expect(find.text('Repair & Resize'), findsOneWidget);
+      expect(find.text('Sell Old Gold'), findsOneWidget);
+      expect(find.text('Gold Coin(s)'), findsOneWidget);
+      expect(find.text('Gold Bullion'), findsOneWidget);
 
       // Badges
       expect(find.byType(SubscriptionBadge), findsNWidgets(4));

@@ -28,7 +28,9 @@ class _KycUploadScreenState extends ConsumerState<KycUploadScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(kycUploadControllerProvider.notifier).prefetchDocumentIntent();
+      final c = ref.read(kycUploadControllerProvider.notifier);
+      c.prefetchDocumentIntent();
+      c.hydrateFromExisting();
     });
   }
 
@@ -100,16 +102,19 @@ class _KycUploadScreenState extends ConsumerState<KycUploadScreen> {
             ),
             const SizedBox(height: 12),
             KhTextField(
+              key: ValueKey('kyc-legal-hydrated-${state.hydrated}'),
               label: 'Registered company / Legal name *',
               initialValue: state.legalBusinessName,
               onChanged: (v) => controller.patchFields(legalBusinessName: v),
             ),
             KhTextField(
+              key: ValueKey('kyc-licence-hydrated-${state.hydrated}'),
               label: 'Trade licence number *',
               initialValue: state.tradeLicenceNumber,
               onChanged: (v) => controller.patchFields(tradeLicenceNumber: v),
             ),
             KhTextField(
+              key: ValueKey('kyc-expiry-hydrated-${state.hydrated}'),
               label: 'Licence expiry date (YYYY-MM-DD) *',
               initialValue: state.licenceExpiryDate,
               readOnly: true,

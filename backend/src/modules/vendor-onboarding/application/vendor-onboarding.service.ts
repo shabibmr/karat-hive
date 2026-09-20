@@ -11,6 +11,7 @@ import { enqueueOutbox } from '../../../platform/outbox/outbox.producer';
 import { OBJECT_STORAGE, type ObjectStorage } from '../../../platform/ports/storage.port';
 import { Clock } from '../../../shared/clock';
 import { AuditWriter } from '../../audit';
+import { MediaService } from '../../media';
 import {
   presentRequestForVendor,
   type RequestForVendor,
@@ -23,6 +24,7 @@ import {
   buildVendorPerformanceCsv,
   type VendorPerformanceCsvRow,
 } from '../domain/vendor-performance-csv';
+import { canTransition } from '../domain/vendor-state-machine';
 import { presentVendorMe, type VendorMe } from '../presenter/vendor-me.presenter';
 import {
   VendorOnboardingRepository,
@@ -58,6 +60,7 @@ export class VendorOnboardingService {
     private readonly repo: VendorOnboardingRepository,
     private readonly audit: AuditWriter,
     private readonly clock: Clock,
+    private readonly media: MediaService,
     @Inject(OBJECT_STORAGE) private readonly storage: ObjectStorage,
   ) {}
 
@@ -141,8 +144,11 @@ export class VendorOnboardingService {
       description?: string;
       contactPersonName?: string;
       businessEmail?: string;
+      contactWhatsApp?: string | null;
+      logoMediaKey?: string;
       legalBusinessName?: string;
       tradeLicenceNumber?: string;
+      licenceExpiryDate?: string;
       businessAddress?: string;
     },
   ): Promise<VendorMe> {
@@ -150,7 +156,31 @@ export class VendorOnboardingService {
     const reverifyFields =
       dto.legalBusinessName !== undefined ||
       dto.tradeLicenceNumber !== undefined ||
+      dto.licenceExpiryDate !== undefined ||
       dto.businessAddress !== undefined;
+
+    let forcePending = false;
+    if (reverifyFields) {
+      if (profile.verificationState === 'PENDING_VERIFICATION') {
+        // Already awaiting decision — clear activation only; no state change.
+        forcePending = false;
+      } else if (canTransition(profile.verificationState, 'PENDING_VERIFICATION')) {
+        forcePending = true;
+      } else {
+        throw new ApiException(HttpStatus.CONFLICT, ErrorCode.ILLEGAL_VENDOR_TRANSITION);
+      }
+    }
+
+    let logoMediaId: string | undefined;
+    if (dto.logoMediaKey !== undefined) {
+      const media = await this.media.getAttachable(dto.logoMediaKey, viewer.userId);
+      if (media.purpose !== 'VENDOR_LOGO') {
+        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.MEDIA_TYPE_REJECTED, [
+          { path: 'logoMediaKey', code: 'WRONG_PURPOSE', message: 'That upload is not a vendor logo.' },
+        ]);
+      }
+      logoMediaId = media.id;
+    }
 
     await withTx(this.prisma, async (tx) => {
       await this.repo.update(tx, profile.id, {
@@ -163,7 +193,17 @@ export class VendorOnboardingService {
           'tradeLicenceNumber',
           'businessAddress',
         ]),
-        ...(reverifyFields ? { verificationState: 'PENDING_VERIFICATION', activatedAt: null } : {}),
+        ...(dto.contactWhatsApp !== undefined ? { contactWhatsApp: dto.contactWhatsApp } : {}),
+        ...(logoMediaId !== undefined ? { logoMediaId } : {}),
+        ...(dto.licenceExpiryDate !== undefined
+          ? { licenceExpiryDate: new Date(`${dto.licenceExpiryDate}T00:00:00Z`) }
+          : {}),
+        ...(reverifyFields
+          ? {
+              ...(forcePending ? { verificationState: 'PENDING_VERIFICATION' as const } : {}),
+              activatedAt: null,
+            }
+          : {}),
       });
       if (reverifyFields) {
         await enqueueOutbox(tx, {

@@ -77,10 +77,12 @@ class OnboardingRepository {
   Future<Result<VendorMe>> patchKycProfile({
     required String legalBusinessName,
     required String tradeLicenceNumber,
+    required String licenceExpiryDate,
   }) =>
       _api.patchVendorProfile(
         legalBusinessName: legalBusinessName,
         tradeLicenceNumber: tradeLicenceNumber,
+        licenceExpiryDate: licenceExpiryDate,
       );
 }
 

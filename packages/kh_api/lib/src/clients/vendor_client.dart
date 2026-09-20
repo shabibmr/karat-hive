@@ -14,8 +14,11 @@ class VendorClient {
     String? description,
     String? contactPersonName,
     String? businessEmail,
+    String? contactWhatsApp,
+    String? logoMediaKey,
     String? legalBusinessName,
     String? tradeLicenceNumber,
+    String? licenceExpiryDate,
     String? businessAddress,
   }) =>
       _vendorMe('PATCH', '/v1/me/vendor', body: {
@@ -23,8 +26,11 @@ class VendorClient {
         if (description != null) 'description': description,
         if (contactPersonName != null) 'contactPersonName': contactPersonName,
         if (businessEmail != null) 'businessEmail': businessEmail,
+        if (contactWhatsApp != null) 'contactWhatsApp': contactWhatsApp,
+        if (logoMediaKey != null) 'logoMediaKey': logoMediaKey,
         if (legalBusinessName != null) 'legalBusinessName': legalBusinessName,
         if (tradeLicenceNumber != null) 'tradeLicenceNumber': tradeLicenceNumber,
+        if (licenceExpiryDate != null) 'licenceExpiryDate': licenceExpiryDate,
         if (businessAddress != null) 'businessAddress': businessAddress,
       });
 

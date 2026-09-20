@@ -402,7 +402,11 @@ describe('RegistrationService - registerVendor (G2-A11 Google completer)', () =>
     expect(otp.requireVerified).not.toHaveBeenCalled();
     expect(users.createVendorUser).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ mobileNumber: '+971501234567', email: 'shop@example.com' }),
+      expect.objectContaining({
+        mobileNumber: '+971501234567',
+        email: 'shop@example.com',
+        mobileVerifiedAt: new Date('2026-09-07T10:00:00Z'),
+      }),
     );
     expect(mockTx.oauthBinding.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -432,8 +436,8 @@ describe('RegistrationService - registerVendor (G2-A11 Google completer)', () =>
   });
 
   it('registers a vendor with typed mobileNumber when OTP and Firebase are both skipped', async () => {
-    // Mirrors what the zod schema's .default([]) produces when categoryIds/
-    // servedRegionIds are chosen later in the Categories & Regions step.
+    // Typed mobile bypass leaves mobileVerifiedAt null (VO-05). Empty servedRegionIds
+    // seed from regionId (VO-20); categoryIds may still be deferred.
     await service.registerVendor(
       { ...vendorBody, categoryIds: [], servedRegionIds: [], mobileNumber: '+971501234567' },
       { ip: '127.0.0.1' },
@@ -443,11 +447,33 @@ describe('RegistrationService - registerVendor (G2-A11 Google completer)', () =>
     expect(otp.requireVerified).not.toHaveBeenCalled();
     expect(users.createVendorUser).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ mobileNumber: '+971501234567' }),
+      expect.objectContaining({
+        mobileNumber: '+971501234567',
+        mobileVerifiedAt: null,
+      }),
     );
     expect(vendors.createProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ categoryIds: [], servedRegionIds: [] }),
+      expect.objectContaining({
+        categoryIds: [],
+        servedRegionIds: [vendorBody.regionId],
+      }),
+    );
+  });
+
+  it('sets mobileVerifiedAt from OTP challenge (VO-05)', async () => {
+    await service.registerVendor(
+      { ...vendorBody, challengeId: 'chal-v1' },
+      { ip: '127.0.0.1' },
+    );
+
+    expect(otp.requireVerified).toHaveBeenCalledWith('chal-v1', 'REGISTER_VENDOR');
+    expect(users.createVendorUser).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        mobileNumber: '+971501234567',
+        mobileVerifiedAt: new Date('2026-09-07T10:00:00Z'),
+      }),
     );
   });
 });

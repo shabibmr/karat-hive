@@ -108,9 +108,11 @@ class VendorMe {
     this.maskedPreview,
     this.description,
     this.tradeLicenceNumber = '',
+    this.licenceExpiryDate = '',
     this.registeredAddress = '',
     this.contactPersonName = '',
     this.businessEmail = '',
+    this.contactWhatsApp = '',
     this.businessHours = const {},
   });
 
@@ -120,6 +122,7 @@ class VendorMe {
   final String tradingName;
   final String legalBusinessName;
   final String tradeLicenceNumber;
+  final String licenceExpiryDate;
   final String registeredAddress;
   final int categoryCount;
   final int regionCount;
@@ -153,6 +156,9 @@ class VendorMe {
 
   /// Safe-edit business email (VEN-S15).
   final String businessEmail;
+
+  /// Optional WhatsApp contact (E.164) collected at register / profile.
+  final String contactWhatsApp;
 
   /// Per-weekday open/close (`mon`…`sun`). Patched via availability.
   final Map<String, BusinessDayHours> businessHours;
@@ -207,9 +213,11 @@ class VendorMe {
       maskedPreview: masked,
       description: j['description'] as String?,
       tradeLicenceNumber: j['tradeLicenceNumber'] as String? ?? '',
+      licenceExpiryDate: j['licenceExpiryDate'] as String? ?? '',
       registeredAddress: (j['registeredAddress'] ?? j['businessAddress']) as String? ?? '',
       contactPersonName: j['contactPersonName'] as String? ?? '',
       businessEmail: j['businessEmail'] as String? ?? '',
+      contactWhatsApp: j['contactWhatsApp'] as String? ?? '',
       businessHours: hours,
     );
   }
@@ -221,6 +229,7 @@ class VendorMe {
         'tradingName': tradingName,
         'legalBusinessName': legalBusinessName,
         if (tradeLicenceNumber.isNotEmpty) 'tradeLicenceNumber': tradeLicenceNumber,
+        if (licenceExpiryDate.isNotEmpty) 'licenceExpiryDate': licenceExpiryDate,
         if (registeredAddress.isNotEmpty) 'registeredAddress': registeredAddress,
         'categoryCount': categoryCount,
         'regionCount': regionCount,
@@ -239,6 +248,7 @@ class VendorMe {
         if (description != null) 'description': description,
         'contactPersonName': contactPersonName,
         'businessEmail': businessEmail,
+        if (contactWhatsApp.isNotEmpty) 'contactWhatsApp': contactWhatsApp,
         if (businessHours.isNotEmpty)
           'businessHours': {
             for (final e in businessHours.entries) e.key: e.value.toJson(),

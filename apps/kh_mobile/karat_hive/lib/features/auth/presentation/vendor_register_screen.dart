@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -6,15 +9,66 @@ import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import '../../../app/guards.dart';
+import '../../../app/platform/open_url.dart';
+import '../../../app/session/session_controller.dart';
 import '../../onboarding/repository/onboarding_repository.dart';
+import '../../subscription/controller/subscription_controller.dart';
 import '../controller/vendor_register_controller.dart';
 
-class VendorRegisterScreen extends ConsumerWidget {
+/// Vendor signup after UnboundGoogle (`adr/0010`).
+///
+/// Seeds [VendorRegisterController] with the Firebase ID token so register
+/// creates an `oauthBinding` (VO-01).
+class VendorRegisterScreen extends ConsumerStatefulWidget {
   const VendorRegisterScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<VendorRegisterScreen> createState() =>
+      _VendorRegisterScreenState();
+}
+
+class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final session = ref.read(sessionProvider);
+      if (session is UnboundGoogle && session.firebaseIdToken.isNotEmpty) {
+        ref.read(vendorRegisterControllerProvider.notifier).begin(
+              firebaseIdToken: session.firebaseIdToken,
+              suggestedName: session.suggestedName,
+              suggestedEmail: session.suggestedEmail,
+            );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final session = ref.watch(sessionProvider);
+    if (session is! UnboundGoogle || session.firebaseIdToken.isEmpty) {
+      // SignedIn after success is redirected by AppGuards; bare visit without
+      // Google → ask them to sign in again.
+      if (session is SignedIn) {
+        return const SizedBox.shrink();
+      }
+      return KhScaffold(
+        title: 'Create your account',
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              l10n?.authSignInFailed ??
+                  'Sign in with Google before registering your business.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
     final form = ref.watch(vendorRegisterControllerProvider);
     final controller = ref.read(vendorRegisterControllerProvider.notifier);
     final regions = ref.watch(regionsProvider);
@@ -56,6 +110,14 @@ class VendorRegisterScreen extends ConsumerWidget {
               onChanged: (v) =>
                   controller.patch((s) => s.copyWith(contactPersonName: v)),
             ),
+            if (form.googleEmailLocked)
+              KhTextField(
+                key: ValueKey('vendor-google-email-${form.businessEmail}'),
+                label: 'Google email',
+                initialValue: form.businessEmail,
+                readOnly: true,
+                helperText: 'From your Google sign-in — cannot be changed.',
+              ),
             KhTextField(
               label: 'Mobile number *',
               initialValue: form.mobileNumber,
@@ -109,8 +171,6 @@ class VendorRegisterScreen extends ConsumerWidget {
                 );
                 final file = res?.files.single;
                 if (file == null) return;
-                // Web has no filesystem path (accessing .path throws) —
-                // store the display name so UI still shows a selected logo.
                 final nativePath = kIsWeb ? null : file.path;
                 final String marker;
                 if (nativePath != null && nativePath.isNotEmpty) {
@@ -120,10 +180,32 @@ class VendorRegisterScreen extends ConsumerWidget {
                 } else {
                   marker = 'logo';
                 }
-                controller.patch((s) => s.copyWith(logoPath: marker));
+                final name = file.name.toLowerCase();
+                final ct = name.endsWith('.png')
+                    ? 'image/png'
+                    : name.endsWith('.webp')
+                        ? 'image/webp'
+                        : 'image/jpeg';
+                Uint8List? logoBytes;
+                if (file.bytes != null && file.bytes!.isNotEmpty) {
+                  logoBytes = Uint8List.fromList(file.bytes!);
+                } else if (!kIsWeb &&
+                    nativePath != null &&
+                    nativePath.isNotEmpty) {
+                  logoBytes = Uint8List.fromList(
+                    await File(nativePath).readAsBytes(),
+                  );
+                }
+                controller.patch(
+                  (s) => s.copyWith(
+                    logoPath: marker,
+                    logoBytes: logoBytes,
+                    logoContentType: ct,
+                  ),
+                );
               },
               onRemoveLogo: () {
-                controller.patch((s) => s.copyWith(logoPath: ''));
+                controller.patch((s) => s.copyWith(clearLogo: true));
               },
             ),
             const SizedBox(height: 16),
@@ -172,6 +254,7 @@ class VendorRegisterScreen extends ConsumerWidget {
             KhTextField(
               label: 'Shop / Unit #',
               initialValue: form.addressShopUnit,
+              helperText: 'Enter shop/unit or building (required).',
               onChanged: (v) =>
                   controller.patch((s) => s.copyWith(addressShopUnit: v)),
             ),
@@ -252,14 +335,23 @@ class VendorRegisterScreen extends ConsumerWidget {
               onChanged: (v) =>
                   controller.patch((s) => s.copyWith(whatsAppNumber: v)),
             ),
-            KhTextField(
-              label: 'Email address (optional)',
-              initialValue: form.businessEmail,
-              keyboardType: TextInputType.emailAddress,
-              errorText: fieldErrors['businessEmail'],
-              onChanged: (v) =>
-                  controller.patch((s) => s.copyWith(businessEmail: v)),
-            ),
+            if (form.googleEmailLocked)
+              KhTextField(
+                key: ValueKey('vendor-google-email-step4-${form.businessEmail}'),
+                label: 'Google email',
+                initialValue: form.businessEmail,
+                readOnly: true,
+                helperText: 'From your Google sign-in — cannot be changed.',
+              )
+            else
+              KhTextField(
+                label: 'Email address *',
+                initialValue: form.businessEmail,
+                keyboardType: TextInputType.emailAddress,
+                errorText: fieldErrors['businessEmail'],
+                onChanged: (v) =>
+                    controller.patch((s) => s.copyWith(businessEmail: v)),
+              ),
             const SizedBox(height: 12),
             // Terms and Privacy Policy
             Row(
@@ -280,8 +372,12 @@ class VendorRegisterScreen extends ConsumerWidget {
                       children: [
                         const Text('I agree to the '),
                         InkWell(
-                          onTap: () {
-                            // Link to Vendor Marketplace Terms
+                          onTap: () async {
+                            final config =
+                                ref.read(platformConfigProvider).valueOrNull;
+                            final url = config?.termsUrl ??
+                                'https://karathive.ae/terms';
+                            await openExternalUrl(url);
                           },
                           child: Text(
                             'Terms & Conditions',
@@ -294,8 +390,12 @@ class VendorRegisterScreen extends ConsumerWidget {
                         ),
                         const Text(' and '),
                         InkWell(
-                          onTap: () {
-                            // Link to Privacy Policy
+                          onTap: () async {
+                            final config =
+                                ref.read(platformConfigProvider).valueOrNull;
+                            final url = config?.privacyUrl ??
+                                'https://karathive.ae/privacy';
+                            await openExternalUrl(url);
                           },
                           child: Text(
                             'Privacy Policy',

@@ -32,7 +32,7 @@ export const MEDIA_CONSTRAINTS: Record<MediaPurpose, MediaConstraint> = {
   },
   VENDOR_LOGO: {
     bucket: 'REQUEST_MEDIA',
-    allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'],
     maxBytes: 5 * MIB,
   },
   VENDOR_SHOP_PHOTO: {

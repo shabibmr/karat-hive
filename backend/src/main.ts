@@ -14,6 +14,7 @@ import { NotificationService } from './modules/notifications';
 import { ReviewService } from './modules/reviews';
 import { AdminService } from './modules/admin';
 import { GoldRateService } from './modules/gold-rate';
+import { SubscriptionService } from './modules/subscription';
 import { corsConfig } from './edge/cors.config';
 
 async function bootstrap(): Promise<void> {
@@ -59,6 +60,7 @@ function startWorkerJobs(app: NestFastifyApplication, instanceId: string): void 
   const reviews = app.get(ReviewService);
   const admin = app.get(AdminService);
   const goldRates = app.get(GoldRateService);
+  const subscriptions = app.get(SubscriptionService);
 
   scheduler.register({
     name: 'outbox.drain',
@@ -113,6 +115,14 @@ function startWorkerJobs(app: NestFastifyApplication, instanceId: string): void 
     intervalMs: 86_400_000,
     run: async () => {
       await vendorDocs.sweepExpiringDocuments();
+    },
+  });
+
+  scheduler.register({
+    name: 'subscription-expiry-sweep',
+    intervalMs: 3_600_000,
+    run: async () => {
+      await subscriptions.sweepExpiredSubscriptions();
     },
   });
 

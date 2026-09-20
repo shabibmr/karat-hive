@@ -1,8 +1,9 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { z } from 'zod';
 import { Viewer } from '../../../edge/auth/viewer.decorator';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
 import { zodQuery } from '../../../edge/validation/zod-validation.pipe';
+import { VendorAccessGuard, VendorStageRequired } from '../../vendor-onboarding';
 import { SubscriptionService } from '../application/subscription.service';
 
 const performanceQuerySchema = z.object({
@@ -16,6 +17,8 @@ const performanceQuerySchema = z.object({
 });
 
 @Controller('v1/me')
+@UseGuards(VendorAccessGuard)
+@VendorStageRequired('ACTIVE')
 export class SubscriptionController {
   constructor(private readonly service: SubscriptionService) {}
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
@@ -143,7 +144,20 @@ class _AwaitingApprovalScreenState extends ConsumerState<AwaitingApprovalScreen>
             label: l10n?.onboardingResubmit ?? 'Resubmit for review',
             secondary: true,
             onPressed: () async {
-              await ref.read(onboardingRepositoryProvider).resubmit();
+              final result =
+                  await ref.read(onboardingRepositoryProvider).resubmit();
+              if (!c.mounted) return;
+              final failure = result.failureOrNull;
+              if (failure != null) {
+                ScaffoldMessenger.of(c).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      failure.message ?? 'Could not resubmit for review.',
+                    ),
+                  ),
+                );
+                return;
+              }
               await _refresh();
             },
           ),

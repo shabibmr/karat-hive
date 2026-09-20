@@ -124,6 +124,19 @@ export class SubscriptionRepository {
     });
   }
 
+  /** Marks ACTIVE/GRACE rows past periodEnd and grace as EXPIRED (VO-04). */
+  async expirePastGraceSubscriptions(now: Date): Promise<number> {
+    const result = await this.prisma.vendorTypeSubscription.updateMany({
+      where: {
+        state: { in: ['ACTIVE', 'GRACE'] },
+        periodEnd: { lt: now },
+        OR: [{ graceEndsAt: null }, { graceEndsAt: { lt: now } }],
+      },
+      data: { state: 'EXPIRED' },
+    });
+    return result.count;
+  }
+
   async getVendorPerformance(
     vendorProfileId: string,
     filters: PerformanceFilters,

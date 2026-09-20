@@ -455,6 +455,8 @@ model VendorProfile {
   businessAddress      String                   @map("business_address")
   contactPersonName    String                   @map("contact_person_name") @db.VarChar(100)
   businessEmail        String                   @map("business_email") @db.VarChar(255)
+  /// Optional WhatsApp contact for Talk / customer reach-out (E.164).
+  contactWhatsApp      String?                  @map("contact_whatsapp") @db.VarChar(20)
   logoMediaId          String?                  @map("logo_media_id") @db.Uuid
   description          String?
   verificationState    VendorVerificationState  @map("verification_state")

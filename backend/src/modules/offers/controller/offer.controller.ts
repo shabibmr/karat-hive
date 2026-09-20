@@ -7,11 +7,13 @@ import {
   Param,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 import { Viewer } from '../../../edge/auth/viewer.decorator';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
 import { zodBody, zodQuery } from '../../../edge/validation/zod-validation.pipe';
+import { VendorAccessGuard, VendorStageRequired } from '../../vendor-onboarding';
 import { OfferService } from '../application/offer.service';
 import {
   declineOfferSchema,
@@ -48,6 +50,8 @@ export class OfferController {
 
   @Post('requests/:id/offers')
   @HttpCode(HttpStatus.CREATED)
+  @UseGuards(VendorAccessGuard)
+  @VendorStageRequired('ACTIVE')
   async submitOffer(
     @Viewer() viewer: ViewerContext,
     @Param('id') requestId: string,
@@ -67,6 +71,8 @@ export class OfferController {
   }
 
   @Get('me/offers')
+  @UseGuards(VendorAccessGuard)
+  @VendorStageRequired('ACTIVE')
   async listMyOffers(
     @Viewer() viewer: ViewerContext,
     @Query(zodQuery(listVendorOffersQuerySchema)) query: z.infer<typeof listVendorOffersQuerySchema>,
@@ -94,6 +100,8 @@ export class OfferController {
 
   @Post('offers/:id/revise')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(VendorAccessGuard)
+  @VendorStageRequired('ACTIVE')
   async reviseOffer(
     @Viewer() viewer: ViewerContext,
     @Param('id') id: string,
@@ -105,6 +113,8 @@ export class OfferController {
 
   @Post('offers/:id/withdraw')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(VendorAccessGuard)
+  @VendorStageRequired('ACTIVE')
   async withdrawOffer(
     @Viewer() viewer: ViewerContext,
     @Param('id') id: string,

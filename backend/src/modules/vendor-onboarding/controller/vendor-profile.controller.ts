@@ -14,8 +14,18 @@ const patchSchema = z
     description: z.string().max(2000).optional(),
     contactPersonName: z.string().min(1).max(100).optional(),
     businessEmail: z.string().email().max(255).optional(),
+    contactWhatsApp: z
+      .string()
+      .regex(/^\+[1-9]\d{6,14}$/, 'Enter a valid WhatsApp number in E.164 format.')
+      .nullable()
+      .optional(),
+    logoMediaKey: z.string().uuid().optional(),
     legalBusinessName: z.string().min(1).max(200).optional(),
     tradeLicenceNumber: z.string().min(1).max(50).optional(),
+    licenceExpiryDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
     businessAddress: z.string().min(1).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'At least one field is required.' });

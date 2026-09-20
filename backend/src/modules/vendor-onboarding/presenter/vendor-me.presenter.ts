@@ -18,6 +18,7 @@ export type VendorMe = {
   businessAddress: string;
   contactPersonName: string;
   businessEmail: string;
+  contactWhatsApp: string | null;
   description: string | null;
   businessHours: unknown | null;
   verifiedAt: string | null;
@@ -61,6 +62,7 @@ export function presentVendorMe(
     businessAddress: profile.businessAddress,
     contactPersonName: profile.contactPersonName,
     businessEmail: profile.businessEmail,
+    contactWhatsApp: profile.contactWhatsApp ?? null,
     description: profile.description ?? null,
     businessHours: profile.businessHours ?? null,
     verifiedAt: profile.verifiedAt ? profile.verifiedAt.toISOString() : null,
