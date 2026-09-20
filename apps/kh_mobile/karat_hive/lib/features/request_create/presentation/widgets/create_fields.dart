@@ -376,25 +376,25 @@ class BudgetEditor extends StatelessWidget {
           style: Theme.of(context).textTheme.titleSmall,
         ),
         SizedBox(height: tokens.space.sm),
-        RadioListTile<BudgetMode>(
-          title: Text(
-            createCopy(context, 'create.budgetMaxOnly', 'Maximum only'),
-          ),
-          value: BudgetMode.maxOnly,
-          groupValue: state.budgetMode,
-          onChanged: (v) {
-            if (v != null) controller.setBudgetMode(v);
-          },
-        ),
-        RadioListTile<BudgetMode>(
-          title: Text(
-            createCopy(context, 'create.budgetRange', 'Min–max range'),
-          ),
-          value: BudgetMode.range,
-          groupValue: state.budgetMode,
-          onChanged: (v) {
-            if (v != null) controller.setBudgetMode(v);
-          },
+        Row(
+          children: [
+            Expanded(
+              child: _BudgetModeOption(
+                label: createCopy(context, 'create.budgetMaxOnly', 'Maximum only'),
+                value: BudgetMode.maxOnly,
+                groupValue: state.budgetMode,
+                onChanged: controller.setBudgetMode,
+              ),
+            ),
+            Expanded(
+              child: _BudgetModeOption(
+                label: createCopy(context, 'create.budgetRange', 'Min–max range'),
+                value: BudgetMode.range,
+                groupValue: state.budgetMode,
+                onChanged: controller.setBudgetMode,
+              ),
+            ),
+          ],
         ),
         if (state.budgetMode == BudgetMode.range)
           KhNumericField(
@@ -425,6 +425,43 @@ class BudgetEditor extends StatelessWidget {
           onChanged: (v) => controller.setBudgetFlexible(v ?? false),
         ),
       ],
+    );
+  }
+}
+
+class _BudgetModeOption extends StatelessWidget {
+  const _BudgetModeOption({
+    required this.label,
+    required this.value,
+    required this.groupValue,
+    required this.onChanged,
+  });
+
+  final String label;
+  final BudgetMode value;
+  final BudgetMode? groupValue;
+  final ValueChanged<BudgetMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => onChanged(value),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Radio<BudgetMode>(
+              value: value,
+              groupValue: groupValue,
+              onChanged: (v) {
+                if (v != null) onChanged(v);
+              },
+            ),
+            Flexible(child: Text(label)),
+          ],
+        ),
+      ),
     );
   }
 }
