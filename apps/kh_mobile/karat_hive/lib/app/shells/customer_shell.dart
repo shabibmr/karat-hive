@@ -7,9 +7,9 @@ import 'active_shell_registry.dart';
 
 /// Authenticated Customer marketplace shell (SH-SHELL-01/02/03).
 ///
-/// Destinations match `ui-mock/js/nav.js`:
-/// Home (CUS-S02), Requests (CUS-S10), Connections (CUS-S16),
-/// Alerts (CUS-S19), Profile (CUS-S20).
+/// Destinations:
+/// Home / Dashboard (CUS-S02), My Requests (open list + History),
+/// Connections (CUS-S16), Alerts (CUS-S19), Profile (CUS-S20).
 class CustomerShell extends StatelessWidget {
   const CustomerShell({super.key, required this.navigationShell});
 

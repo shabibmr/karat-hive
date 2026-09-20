@@ -56,7 +56,7 @@ void main() {
   test('Customer nav labels match ui-mock destinations', () {
     final en = KhStrings(const Locale('en'));
     expect(en.s('shell.nav.home'), 'Home');
-    expect(en.s('shell.nav.requests'), 'Requests');
+    expect(en.s('shell.nav.requests'), 'My Requests');
     expect(en.s('shell.nav.connections'), 'Connections');
     expect(en.s('shell.nav.alerts'), 'Alerts');
     expect(en.s('shell.nav.profile'), 'Profile');

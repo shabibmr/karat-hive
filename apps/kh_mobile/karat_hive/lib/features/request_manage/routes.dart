@@ -4,6 +4,7 @@ import '../../app/guards.dart';
 import '../offers_customer/presentation/customer_offers_list_screen.dart';
 import '../offers_customer/presentation/offer_comparison_screen.dart';
 import 'presentation/customer_home_screen.dart';
+import 'presentation/my_requests_screen.dart';
 import 'presentation/owner_request_detail_screen.dart';
 import 'presentation/request_history_screen.dart';
 
@@ -16,8 +17,8 @@ GoRoute customerHomeRoute({List<RouteBase> routes = const []}) => GoRoute(
 final requestManageRoutes = [
   GoRoute(
     path: AppGuards.customerRequests,
-    // Requests tab hub: list, not an empty owner-detail (CUS-S02 reuse).
-    builder: (_, __) => const CustomerHomeScreen(),
+    // My Requests tab — open/live list (not Home dashboard).
+    builder: (_, __) => const MyRequestsScreen(),
     routes: [
       GoRoute(
         path: ':requestId',

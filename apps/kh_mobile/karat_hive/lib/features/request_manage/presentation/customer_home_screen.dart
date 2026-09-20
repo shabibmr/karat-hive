@@ -1,54 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
+import '../../../app/guards.dart';
 import '../../request_create/controller/request_create_controller.dart';
 import '../../request_create/pending_publish_intent.dart';
 import '../../request_create/routes.dart';
 import '../controller/customer_home_controller.dart';
-import 'customer_copy.dart';
-import 'widgets/owner_request_card.dart';
 
-/// CUS-S02 — Home / Customer Dashboard (Services + My Requests).
-class CustomerHomeScreen extends ConsumerStatefulWidget {
+/// CUS-S02 — Customer Home / Dashboard (hero + services + activity summary).
+class CustomerHomeScreen extends ConsumerWidget {
   const CustomerHomeScreen({super.key});
 
   @override
-  ConsumerState<CustomerHomeScreen> createState() => _CustomerHomeScreenState();
-}
-
-class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
-  final _scroll = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-    _scroll.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scroll.removeListener(_onScroll);
-    _scroll.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (!_scroll.hasClients) return;
-    if (_scroll.offset >= _scroll.position.maxScrollExtent - 200) {
-      ref.read(customerHomeControllerProvider).loadNextPage();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = ref.watch(customerHomeControllerProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
     final s = KhStrings.of(context);
+    final theme = Theme.of(context);
+    final summary = ref.watch(customerHomeControllerProvider);
 
     final requestTypes = [
       _RequestTypeTileData(
@@ -84,14 +56,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     return Scaffold(
       key: const Key('customer-home-screen'),
       appBar: AppBar(
-        title: Text(s.s('cus.home.title')),
-        actions: [
-          TextButton(
-            key: const Key('open-history'),
-            onPressed: () => context.push('/customer/history'),
-            child: Text(s.s('cus.home.history')),
-          ),
-        ],
+        title: Text(s.s('shell.nav.home')),
       ),
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('quick-create'),
@@ -99,110 +64,247 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         icon: const Icon(Icons.add),
         label: Text(s.s('cus.home.create')),
       ),
-      body: ValueListenableBuilder<PagedListState<RequestForCustomer>>(
-        valueListenable: controller,
-        builder: (context, state, _) {
-          if (state.isInitialLoading) {
-            return const KhLoadingView();
-          }
-          if (state.isInitialError) {
-            return KhErrorView(
-              message: customerFailureMessage(
-                state.error,
-                s,
-                'cus.home.error',
-              ),
-              onRetry: controller.retry,
-              retryLabel: s.s('common.retry'),
-            );
-          }
-
-          return KhPullToRefresh(
-            onRefresh: controller.refresh,
-            child: ListView(
-              controller: _scroll,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(
-                tokens.space.md,
-                tokens.space.md,
-                tokens.space.md,
-                tokens.space.xl * 3,
-              ),
-              children: [
-                if (ref.watch(pendingPublishIntentProvider)) ...[
-                  _RetryPublicationBanner(
-                    key: const Key('retry-publication-banner'),
-                    onRetry: () => ref
-                        .read(requestCreateControllerProvider.notifier)
-                        .reconcilePendingPublish(),
-                  ),
-                  SizedBox(height: tokens.space.lg),
-                ],
-                // Top section: 2x2 Request Types Grid
-                _RequestTypesSection(
-                  title: s.s('guest.headline'),
-                  types: requestTypes,
-                  onSelect: (type) {
-                    ref
-                        .read(requestCreateControllerProvider.notifier)
-                        .selectType(type);
-                    context.push(RequestCreatePaths.composeFor(type));
-                  },
-                ),
-                SizedBox(height: tokens.space.lg),
-
-                // Section header: My Requests
-                KhSectionHeader(
-                  title: s.s('cus.home.title'),
-                ),
-                SizedBox(height: tokens.space.sm),
-
-                if (state.isEmpty)
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: tokens.space.xl),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.diamond_outlined,
-                            size: 40,
-                            color: tokens.ink.withValues(alpha: 0.35),
-                          ),
-                          SizedBox(height: tokens.space.sm),
-                          Text(
-                            s.s('cus.home.empty'),
-                            style:
-                                Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: tokens.ink.withValues(alpha: 0.65),
-                                    ),
-                          ),
-                          SizedBox(height: tokens.space.xs),
-                          Text(
-                            'Choose an option above to create your first request.',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: tokens.ink.withValues(alpha: 0.45),
-                                    ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  for (final req in state.items) ...[
-                    OwnerRequestCard(
-                      request: req,
-                      onOpen: () =>
-                          context.push('/customer/requests/${req.id}'),
-                      onViewOffers: () =>
-                          context.push('/customer/requests/${req.id}/offers'),
-                    ),
-                    SizedBox(height: tokens.space.sm),
-                  ],
-              ],
-            ),
-          );
+      body: KhPullToRefresh(
+        onRefresh: () async {
+          await ref.read(customerHomeControllerProvider.notifier).refresh();
         },
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(
+            tokens.space.md,
+            tokens.space.md,
+            tokens.space.md,
+            tokens.space.xl * 3,
+          ),
+          children: [
+            if (ref.watch(pendingPublishIntentProvider)) ...[
+              _RetryPublicationBanner(
+                key: const Key('retry-publication-banner'),
+                onRetry: () => ref
+                    .read(requestCreateControllerProvider.notifier)
+                    .reconcilePendingPublish(),
+              ),
+              SizedBox(height: tokens.space.lg),
+            ],
+            _HeroBanner(
+              title: s.s('cus.home.heroTitle'),
+              subtitle: s.s('cus.home.heroSub'),
+              ctaLabel: s.s('cus.home.create'),
+              onCreate: () => context.push(RequestCreatePaths.type),
+            ),
+            SizedBox(height: tokens.space.lg),
+            _RequestTypesSection(
+              title: s.s('guest.headline'),
+              types: requestTypes,
+              onSelect: (type) {
+                ref
+                    .read(requestCreateControllerProvider.notifier)
+                    .selectType(type);
+                context.push(RequestCreatePaths.composeFor(type));
+              },
+            ),
+            SizedBox(height: tokens.space.lg),
+            KhSectionHeader(title: s.s('cus.home.activity')),
+            SizedBox(height: tokens.space.sm),
+            summary.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (_, __) => KhErrorView(
+                message: s.s('cus.home.error'),
+                onRetry: () =>
+                    ref.read(customerHomeControllerProvider.notifier).refresh(),
+                retryLabel: s.s('common.retry'),
+              ),
+              data: (data) => _ActivitySummaryRow(
+                openLabel: s.s('cus.home.summaryOpen'),
+                offersLabel: s.s('cus.home.summaryOffers'),
+                connectionsLabel: s.s('cus.home.summaryConnections'),
+                openCount: data.openRequests,
+                offersCount: data.offersWaiting,
+                connectionsCount: data.connections,
+                onOpenTap: () => context.go(AppGuards.customerRequests),
+                onOffersTap: () => context.go(AppGuards.customerRequests),
+                onConnectionsTap: () =>
+                    context.go(AppGuards.customerConnections),
+              ),
+            ),
+            SizedBox(height: tokens.space.md),
+            Text(
+              s.s('cus.home.dashboardHint'),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: tokens.ink.withValues(alpha: 0.55),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroBanner extends StatelessWidget {
+  const _HeroBanner({
+    required this.title,
+    required this.subtitle,
+    required this.ctaLabel,
+    required this.onCreate,
+  });
+
+  final String title;
+  final String subtitle;
+  final String ctaLabel;
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final theme = Theme.of(context);
+
+    return Material(
+      key: const Key('customer-home-hero'),
+      color: tokens.gold.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(tokens.radius.md),
+      child: Padding(
+        padding: EdgeInsets.all(tokens.space.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            SizedBox(height: tokens.space.xs),
+            Text(
+              subtitle,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: tokens.ink.withValues(alpha: 0.7),
+              ),
+            ),
+            SizedBox(height: tokens.space.md),
+            KhButton(
+              key: const Key('customer-home-hero-cta'),
+              label: ctaLabel,
+              width: null,
+              onPressed: onCreate,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActivitySummaryRow extends StatelessWidget {
+  const _ActivitySummaryRow({
+    required this.openLabel,
+    required this.offersLabel,
+    required this.connectionsLabel,
+    required this.openCount,
+    required this.offersCount,
+    required this.connectionsCount,
+    required this.onOpenTap,
+    required this.onOffersTap,
+    required this.onConnectionsTap,
+  });
+
+  final String openLabel;
+  final String offersLabel;
+  final String connectionsLabel;
+  final int openCount;
+  final int offersCount;
+  final int connectionsCount;
+  final VoidCallback onOpenTap;
+  final VoidCallback onOffersTap;
+  final VoidCallback onConnectionsTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _SummaryCard(
+            key: const Key('summary-open'),
+            label: openLabel,
+            value: '$openCount',
+            onTap: onOpenTap,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _SummaryCard(
+            key: const Key('summary-offers'),
+            label: offersLabel,
+            value: '$offersCount',
+            onTap: onOffersTap,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _SummaryCard(
+            key: const Key('summary-connections'),
+            label: connectionsLabel,
+            value: '$connectionsCount',
+            onTap: onConnectionsTap,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final theme = Theme.of(context);
+
+    return Material(
+      color: tokens.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        side: BorderSide(color: tokens.ink.withValues(alpha: 0.12)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        child: Padding(
+          padding: EdgeInsets.all(tokens.space.sm),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: tokens.ink.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

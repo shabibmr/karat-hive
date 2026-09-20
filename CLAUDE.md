@@ -89,6 +89,10 @@ Prescribed by the source material (`Requirements-raw.txt` L96–L103), not an op
 
 `C-11`/`C-12` bite in code: async work goes through the outbox, not a queue; rate limiting is Postgres token buckets, not Redis. Don't propose Redis, Kafka, or Elasticsearch without explicitly framing it as an exception to `C-12`.
 
+## Working product notes (code ahead of docs)
+
+- **Customer bottom nav:** Home (dashboard: hero + service grid + activity summary) · **My Requests** (open/live list; AppBar **History** → terminal history) · Connections · Alerts · Profile. Do not mount the open-request list on Home. Docs/`ui-screens`/`ui-mock`/SRS Appendix C may still describe the old combined Home — prefer this shell behaviour until those docs are rewritten.
+
 ## Architecture gotchas
 
 - **Backend module boundaries are lint-enforced, not conventional.** Each `backend/src/modules/<name>/` exposes only `index.ts` to other modules; `eslint-plugin-boundaries` (`backend/eslint.config.mjs`) fails the build on a direct cross-module import or on `edge`/`platform` reaching into a module's internals. A lint failure here is a layering violation to fix, not a rule to suppress.

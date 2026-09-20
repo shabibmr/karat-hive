@@ -2,32 +2,57 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+import '../../../app/session/session_controller.dart';
 import '../repository/request_manage_repository.dart';
 
-/// Live Requests for CUS-S02. Default states come from the inventory, not a
-/// client-side eligibility check.
-class CustomerHomeController
-    extends AutoDisposeNotifier<PagedListController<RequestForCustomer>> {
-  @override
-  PagedListController<RequestForCustomer> build() {
-    final repo = ref.watch(requestManageRepositoryProvider);
-    final controller = PagedListController<RequestForCustomer>(
-      itemKey: (item) => item.id,
-      fetcher: (cursor) async {
-        final res = await repo.listMine(cursor: cursor);
-        return res.when(ok: (page) => page, err: (f) => throw f);
-      },
-    );
-    ref.onDispose(controller.dispose);
-    return controller;
-  }
+/// Dashboard activity strip for CUS-S02 Home.
+class CustomerHomeSummary {
+  const CustomerHomeSummary({
+    required this.openRequests,
+    required this.offersWaiting,
+    required this.connections,
+  });
 
-  Future<void> loadNextPage() => state.loadNextPage();
-  Future<void> refresh() => state.refresh();
-  Future<void> retry() => state.retry();
+  final int openRequests;
+  final int offersWaiting;
+  final int connections;
 }
 
-final customerHomeControllerProvider = AutoDisposeNotifierProvider<
-    CustomerHomeController, PagedListController<RequestForCustomer>>(
+class CustomerHomeController
+    extends AutoDisposeAsyncNotifier<CustomerHomeSummary> {
+  @override
+  Future<CustomerHomeSummary> build() => _load();
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(_load);
+  }
+
+  Future<CustomerHomeSummary> _load() async {
+    final session = ref.read(sessionProvider);
+    final signedIn = session is SignedIn ? session : null;
+    final open = signedIn?.user.liveRequestCount ?? 0;
+    final connections = signedIn?.customerProfile?.connectionCount ?? 0;
+
+    final repo = ref.read(requestManageRepositoryProvider);
+    final res = await repo.listMine();
+    final offersWaiting = res.when(
+      ok: (page) => page.items.fold<int>(
+        0,
+        (sum, r) => sum + (r.unreadOfferCount ?? 0),
+      ),
+      err: (_) => 0,
+    );
+
+    return CustomerHomeSummary(
+      openRequests: open,
+      offersWaiting: offersWaiting,
+      connections: connections,
+    );
+  }
+}
+
+final customerHomeControllerProvider = AutoDisposeAsyncNotifierProvider<
+    CustomerHomeController, CustomerHomeSummary>(
   CustomerHomeController.new,
 );

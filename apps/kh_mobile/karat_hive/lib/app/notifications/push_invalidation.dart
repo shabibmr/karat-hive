@@ -15,6 +15,7 @@ import '../../features/profile_settings/controller/business_profile_controller.d
 import '../../features/request_feed/controller/request_detail_controller.dart';
 import '../../features/request_feed/controller/request_feed_controller.dart';
 import '../../features/request_manage/controller/customer_home_controller.dart';
+import '../../features/request_manage/controller/my_requests_controller.dart';
 import '../../features/request_manage/controller/owner_request_detail_controller.dart';
 import '../../features/reviews/controller/my_reviews_controller.dart';
 
@@ -108,6 +109,7 @@ class PushInvalidationPlan {
           ref.invalidate(myOffersControllerProvider);
         case PushInvalidationTarget.customerHome:
           ref.invalidate(customerHomeControllerProvider);
+          ref.invalidate(myRequestsControllerProvider);
         case PushInvalidationTarget.ownerRequestDetail:
           if (requestId != null) {
             ref.invalidate(ownerRequestDetailProvider(requestId!));
