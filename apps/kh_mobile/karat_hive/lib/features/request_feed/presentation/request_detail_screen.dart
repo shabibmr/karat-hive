@@ -26,9 +26,7 @@ class RequestDetailScreen extends ConsumerWidget {
     return Scaffold(
       key: const Key('request-detail-screen'),
       appBar: AppBar(
-        title: Text(
-          l10n?.requestTitleWithId(requestId) ?? 'Request $requestId',
-        ),
+        title: Text(l10n?.requestDetailsFallback ?? 'Request Details'),
         actions: [
           PopupMenuButton<String>(
             key: const Key('request-detail-overflow-menu'),

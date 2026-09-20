@@ -99,7 +99,7 @@ class _OwnerRequestDetailScreenState
                 children: [
                   Expanded(
                     child: Text(
-                      req.reference ?? req.id,
+                      req.reference ?? requestTypeLabel(s, req.requestType),
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
