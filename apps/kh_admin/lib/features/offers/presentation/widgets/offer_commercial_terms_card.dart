@@ -56,15 +56,21 @@ class OfferCommercialTermsCard extends StatelessWidget {
                 (l10n?.offersDetailVendorNoteDefault ??
                     'No free-text note provided by vendor.'),
           ),
-          OfferDetailRow(
-            label: l10n?.offersDetailLabelValidityExpiry ??
-                'Offer Validity & Expiry',
-            value: l10n?.offersDetailValidityExpiryValue(
-                  detail.validityHours ?? 24,
-                  offerFormatDate(detail.expiresAt),
-                ) ??
-                '${detail.validityHours ?? 24} hours · Expiry: ${offerFormatDate(detail.expiresAt)}',
-          ),
+          if (detail.purityKarat != null)
+            OfferDetailRow(
+              label: 'Karat Purity',
+              value: detail.purityKarat!,
+            ),
+          if (detail.weightGrams != null)
+            OfferDetailRow(
+              label: 'Gold Weight',
+              value: '${detail.weightGrams!.toStringAsFixed(2)} g',
+            ),
+          if (detail.expiresAt != null)
+            OfferDetailRow(
+              label: 'Offer Expiry',
+              value: offerFormatDate(detail.expiresAt),
+            ),
           if (detail.declineReason != null && detail.declineReason!.isNotEmpty)
             OfferDetailRow(
               label: l10n?.offersDetailLabelDeclineReason ?? 'Decline Reason',

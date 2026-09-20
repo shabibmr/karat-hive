@@ -48,7 +48,7 @@ describe('AdminOffersService', () => {
       reference: 'REQ-2026-0001',
       requestType: RequestType.FIND_ORNAMENT,
       direction: Direction.BUY,
-      state: RequestState.OFFERS_RECEIVED,
+      state: RequestState.PUBLISHED,
       indicativeValue: '5000.00',
       customerProfile: {
         id: 'cust-1',

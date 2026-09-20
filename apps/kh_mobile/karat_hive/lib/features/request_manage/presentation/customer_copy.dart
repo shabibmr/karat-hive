@@ -21,7 +21,7 @@ String requestStateLabel(KhStrings s, RequestState state) =>
     s.s('cus.state.${state.wire}');
 
 KhStatusTone requestStateTone(RequestState state) => switch (state) {
-      RequestState.published || RequestState.offersReceived => KhStatusTone.accent,
+      RequestState.published => KhStatusTone.accent,
       RequestState.accepted => KhStatusTone.success,
       RequestState.expired ||
       RequestState.cancelled ||

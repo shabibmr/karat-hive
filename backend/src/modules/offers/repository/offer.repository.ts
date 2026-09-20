@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   Prisma,
   type DeclineReason,
+  type Karat,
   type OfferState,
   type RequestType,
 } from '@prisma/client';
@@ -139,6 +140,8 @@ export class OfferRepository {
         vendorProfileId: input.vendorProfileId,
         state: 'PENDING',
         offeredPrice: new Prisma.Decimal(input.terms.offeredPrice),
+        weightGrams: new Prisma.Decimal(input.terms.weightGrams),
+        purityKarat: input.terms.purityKarat,
         makingCharges: input.terms.makingCharges !== undefined
           ? new Prisma.Decimal(input.terms.makingCharges)
           : null,
@@ -148,7 +151,6 @@ export class OfferRepository {
         deliveryTimeframe: input.terms.deliveryTimeframe ?? null,
         warrantyTerms: input.terms.warrantyTerms ?? null,
         vendorNote: input.terms.vendorNote ?? null,
-        validityHours: input.terms.validityHours,
         expiresAt: input.expiresAt,
         submittedAt: input.now,
         revisionCount: 0,
@@ -186,17 +188,11 @@ export class OfferRepository {
       }
     }
 
-    // 3. Update parent request offerCount and transition from PUBLISHED to OFFERS_RECEIVED if first offer
-    const req = await tx.request.findUnique({
-      where: { id: input.requestId },
-      select: { state: true },
-    });
-
+    // 3. Update parent request offerCount
     await tx.request.update({
       where: { id: input.requestId },
       data: {
         offerCount: { increment: 1 },
-        ...(req?.state === 'PUBLISHED' ? { state: 'OFFERS_RECEIVED' } : {}),
       },
     });
 
@@ -243,12 +239,13 @@ export class OfferRepository {
       offerId: string;
       previousTerms: Prisma.InputJsonValue;
       newPrice: Prisma.Decimal;
+      newWeightGrams: Prisma.Decimal;
+      newPurityKarat: Karat;
       newMakingCharges?: Prisma.Decimal | null;
       newRatePerGram?: Prisma.Decimal | null;
       newDeliveryTimeframe?: string | null;
       newWarrantyTerms?: string | null;
       newVendorNote?: string | null;
-      newValidityHours: number;
       newExpiresAt: Date;
       newRevisionCount: number;
       now: Date;
@@ -270,13 +267,15 @@ export class OfferRepository {
       where: { id: input.offerId },
       data: {
         offeredPrice: input.newPrice,
+        weightGrams: input.newWeightGrams,
+        purityKarat: input.newPurityKarat,
         makingCharges: input.newMakingCharges,
         ratePerGram: input.newRatePerGram,
         deliveryTimeframe: input.newDeliveryTimeframe,
         warrantyTerms: input.newWarrantyTerms,
         vendorNote: input.newVendorNote,
-        validityHours: input.newValidityHours,
         expiresAt: input.newExpiresAt,
+        expiryWarnedAt: null,
         revisionCount: input.newRevisionCount,
         submittedAt: input.now,
       },

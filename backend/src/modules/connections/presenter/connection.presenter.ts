@@ -49,9 +49,10 @@ export type ConnectionForCustomer = {
   offer: {
     id: string;
     offeredPrice: string;
+    weightGrams: string;
+    purityKarat: string;
     makingCharges?: string;
     ratePerGram?: string;
-    validityHours: number;
     deliveryTimeframe?: string;
     warrantyTerms?: string;
     vendorNote?: string;
@@ -88,9 +89,10 @@ export type ConnectionForVendor = {
   offer: {
     id: string;
     offeredPrice: string;
+    weightGrams: string;
+    purityKarat: string;
     makingCharges?: string;
     ratePerGram?: string;
-    validityHours: number;
     deliveryTimeframe?: string;
     warrantyTerms?: string;
     vendorNote?: string;
@@ -195,9 +197,10 @@ export function presentConnectionForCustomer(
     offer: {
       id: conn.offer.id,
       offeredPrice: priceStr,
+      weightGrams: conn.offer.weightGrams.toString(),
+      purityKarat: conn.offer.purityKarat,
       makingCharges: conn.offer.makingCharges ? conn.offer.makingCharges.toString() : undefined,
       ratePerGram: conn.offer.ratePerGram ? conn.offer.ratePerGram.toString() : undefined,
-      validityHours: conn.offer.validityHours,
       deliveryTimeframe: conn.offer.deliveryTimeframe ?? undefined,
       warrantyTerms: conn.offer.warrantyTerms ?? undefined,
       vendorNote: conn.offer.vendorNote ?? undefined,
@@ -249,9 +252,10 @@ export function presentConnectionForVendor(
     offer: {
       id: conn.offer.id,
       offeredPrice: priceStr,
+      weightGrams: conn.offer.weightGrams.toString(),
+      purityKarat: conn.offer.purityKarat,
       makingCharges: conn.offer.makingCharges ? conn.offer.makingCharges.toString() : undefined,
       ratePerGram: conn.offer.ratePerGram ? conn.offer.ratePerGram.toString() : undefined,
-      validityHours: conn.offer.validityHours,
       deliveryTimeframe: conn.offer.deliveryTimeframe ?? undefined,
       warrantyTerms: conn.offer.warrantyTerms ?? undefined,
       vendorNote: conn.offer.vendorNote ?? undefined,

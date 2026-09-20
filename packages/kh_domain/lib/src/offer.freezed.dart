@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$OfferTerms {
 
- String get offeredPrice; int get validityHours; String? get weightGrams; String? get makingCharges; String? get ratePerGram; String? get deliveryTimeframe; String? get warrantyTerms; String? get vendorNote; List<MediaRef> get media;
+ String get offeredPrice; String get weightGrams; String get purityKarat; String? get makingCharges; String? get ratePerGram; String? get deliveryTimeframe; String? get warrantyTerms; String? get vendorNote; List<MediaRef> get media;
 /// Create a copy of OfferTerms
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $OfferTermsCopyWith<OfferTerms> get copyWith => _$OfferTermsCopyWithImpl<OfferTe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OfferTerms&&(identical(other.offeredPrice, offeredPrice) || other.offeredPrice == offeredPrice)&&(identical(other.validityHours, validityHours) || other.validityHours == validityHours)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.makingCharges, makingCharges) || other.makingCharges == makingCharges)&&(identical(other.ratePerGram, ratePerGram) || other.ratePerGram == ratePerGram)&&(identical(other.deliveryTimeframe, deliveryTimeframe) || other.deliveryTimeframe == deliveryTimeframe)&&(identical(other.warrantyTerms, warrantyTerms) || other.warrantyTerms == warrantyTerms)&&(identical(other.vendorNote, vendorNote) || other.vendorNote == vendorNote)&&const DeepCollectionEquality().equals(other.media, media));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OfferTerms&&(identical(other.offeredPrice, offeredPrice) || other.offeredPrice == offeredPrice)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.makingCharges, makingCharges) || other.makingCharges == makingCharges)&&(identical(other.ratePerGram, ratePerGram) || other.ratePerGram == ratePerGram)&&(identical(other.deliveryTimeframe, deliveryTimeframe) || other.deliveryTimeframe == deliveryTimeframe)&&(identical(other.warrantyTerms, warrantyTerms) || other.warrantyTerms == warrantyTerms)&&(identical(other.vendorNote, vendorNote) || other.vendorNote == vendorNote)&&const DeepCollectionEquality().equals(other.media, media));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,offeredPrice,validityHours,weightGrams,makingCharges,ratePerGram,deliveryTimeframe,warrantyTerms,vendorNote,const DeepCollectionEquality().hash(media));
+int get hashCode => Object.hash(runtimeType,offeredPrice,weightGrams,purityKarat,makingCharges,ratePerGram,deliveryTimeframe,warrantyTerms,vendorNote,const DeepCollectionEquality().hash(media));
 
 @override
 String toString() {
-  return 'OfferTerms(offeredPrice: $offeredPrice, validityHours: $validityHours, weightGrams: $weightGrams, makingCharges: $makingCharges, ratePerGram: $ratePerGram, deliveryTimeframe: $deliveryTimeframe, warrantyTerms: $warrantyTerms, vendorNote: $vendorNote, media: $media)';
+  return 'OfferTerms(offeredPrice: $offeredPrice, weightGrams: $weightGrams, purityKarat: $purityKarat, makingCharges: $makingCharges, ratePerGram: $ratePerGram, deliveryTimeframe: $deliveryTimeframe, warrantyTerms: $warrantyTerms, vendorNote: $vendorNote, media: $media)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $OfferTermsCopyWith<$Res>  {
   factory $OfferTermsCopyWith(OfferTerms value, $Res Function(OfferTerms) _then) = _$OfferTermsCopyWithImpl;
 @useResult
 $Res call({
- String offeredPrice, int validityHours, String? weightGrams, String? makingCharges, String? ratePerGram, String? deliveryTimeframe, String? warrantyTerms, String? vendorNote, List<MediaRef> media
+ String offeredPrice, String weightGrams, String purityKarat, String? makingCharges, String? ratePerGram, String? deliveryTimeframe, String? warrantyTerms, String? vendorNote, List<MediaRef> media
 });
 
 
@@ -65,12 +65,12 @@ class _$OfferTermsCopyWithImpl<$Res>
 
 /// Create a copy of OfferTerms
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? offeredPrice = null,Object? validityHours = null,Object? weightGrams = freezed,Object? makingCharges = freezed,Object? ratePerGram = freezed,Object? deliveryTimeframe = freezed,Object? warrantyTerms = freezed,Object? vendorNote = freezed,Object? media = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? offeredPrice = null,Object? weightGrams = null,Object? purityKarat = null,Object? makingCharges = freezed,Object? ratePerGram = freezed,Object? deliveryTimeframe = freezed,Object? warrantyTerms = freezed,Object? vendorNote = freezed,Object? media = null,}) {
   return _then(_self.copyWith(
 offeredPrice: null == offeredPrice ? _self.offeredPrice : offeredPrice // ignore: cast_nullable_to_non_nullable
-as String,validityHours: null == validityHours ? _self.validityHours : validityHours // ignore: cast_nullable_to_non_nullable
-as int,weightGrams: freezed == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
-as String?,makingCharges: freezed == makingCharges ? _self.makingCharges : makingCharges // ignore: cast_nullable_to_non_nullable
+as String,weightGrams: null == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
+as String,purityKarat: null == purityKarat ? _self.purityKarat : purityKarat // ignore: cast_nullable_to_non_nullable
+as String,makingCharges: freezed == makingCharges ? _self.makingCharges : makingCharges // ignore: cast_nullable_to_non_nullable
 as String?,ratePerGram: freezed == ratePerGram ? _self.ratePerGram : ratePerGram // ignore: cast_nullable_to_non_nullable
 as String?,deliveryTimeframe: freezed == deliveryTimeframe ? _self.deliveryTimeframe : deliveryTimeframe // ignore: cast_nullable_to_non_nullable
 as String?,warrantyTerms: freezed == warrantyTerms ? _self.warrantyTerms : warrantyTerms // ignore: cast_nullable_to_non_nullable
@@ -161,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String offeredPrice,  int validityHours,  String? weightGrams,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<MediaRef> media)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String offeredPrice,  String weightGrams,  String purityKarat,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<MediaRef> media)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OfferTerms() when $default != null:
-return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.media);case _:
+return $default(_that.offeredPrice,_that.weightGrams,_that.purityKarat,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.media);case _:
   return orElse();
 
 }
@@ -182,10 +182,10 @@ return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.m
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String offeredPrice,  int validityHours,  String? weightGrams,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<MediaRef> media)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String offeredPrice,  String weightGrams,  String purityKarat,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<MediaRef> media)  $default,) {final _that = this;
 switch (_that) {
 case _OfferTerms():
-return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.media);case _:
+return $default(_that.offeredPrice,_that.weightGrams,_that.purityKarat,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.media);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +202,10 @@ return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.m
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String offeredPrice,  int validityHours,  String? weightGrams,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<MediaRef> media)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String offeredPrice,  String weightGrams,  String purityKarat,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<MediaRef> media)?  $default,) {final _that = this;
 switch (_that) {
 case _OfferTerms() when $default != null:
-return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.media);case _:
+return $default(_that.offeredPrice,_that.weightGrams,_that.purityKarat,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.media);case _:
   return null;
 
 }
@@ -217,12 +217,12 @@ return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.m
 @JsonSerializable()
 
 class _OfferTerms implements OfferTerms {
-  const _OfferTerms({required this.offeredPrice, this.validityHours = 24, this.weightGrams, this.makingCharges, this.ratePerGram, this.deliveryTimeframe, this.warrantyTerms, this.vendorNote, final  List<MediaRef> media = const <MediaRef>[]}): _media = media;
+  const _OfferTerms({required this.offeredPrice, required this.weightGrams, required this.purityKarat, this.makingCharges, this.ratePerGram, this.deliveryTimeframe, this.warrantyTerms, this.vendorNote, final  List<MediaRef> media = const <MediaRef>[]}): _media = media;
   factory _OfferTerms.fromJson(Map<String, dynamic> json) => _$OfferTermsFromJson(json);
 
 @override final  String offeredPrice;
-@override@JsonKey() final  int validityHours;
-@override final  String? weightGrams;
+@override final  String weightGrams;
+@override final  String purityKarat;
 @override final  String? makingCharges;
 @override final  String? ratePerGram;
 @override final  String? deliveryTimeframe;
@@ -249,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OfferTerms&&(identical(other.offeredPrice, offeredPrice) || other.offeredPrice == offeredPrice)&&(identical(other.validityHours, validityHours) || other.validityHours == validityHours)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.makingCharges, makingCharges) || other.makingCharges == makingCharges)&&(identical(other.ratePerGram, ratePerGram) || other.ratePerGram == ratePerGram)&&(identical(other.deliveryTimeframe, deliveryTimeframe) || other.deliveryTimeframe == deliveryTimeframe)&&(identical(other.warrantyTerms, warrantyTerms) || other.warrantyTerms == warrantyTerms)&&(identical(other.vendorNote, vendorNote) || other.vendorNote == vendorNote)&&const DeepCollectionEquality().equals(other._media, _media));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OfferTerms&&(identical(other.offeredPrice, offeredPrice) || other.offeredPrice == offeredPrice)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.makingCharges, makingCharges) || other.makingCharges == makingCharges)&&(identical(other.ratePerGram, ratePerGram) || other.ratePerGram == ratePerGram)&&(identical(other.deliveryTimeframe, deliveryTimeframe) || other.deliveryTimeframe == deliveryTimeframe)&&(identical(other.warrantyTerms, warrantyTerms) || other.warrantyTerms == warrantyTerms)&&(identical(other.vendorNote, vendorNote) || other.vendorNote == vendorNote)&&const DeepCollectionEquality().equals(other._media, _media));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,offeredPrice,validityHours,weightGrams,makingCharges,ratePerGram,deliveryTimeframe,warrantyTerms,vendorNote,const DeepCollectionEquality().hash(_media));
+int get hashCode => Object.hash(runtimeType,offeredPrice,weightGrams,purityKarat,makingCharges,ratePerGram,deliveryTimeframe,warrantyTerms,vendorNote,const DeepCollectionEquality().hash(_media));
 
 @override
 String toString() {
-  return 'OfferTerms(offeredPrice: $offeredPrice, validityHours: $validityHours, weightGrams: $weightGrams, makingCharges: $makingCharges, ratePerGram: $ratePerGram, deliveryTimeframe: $deliveryTimeframe, warrantyTerms: $warrantyTerms, vendorNote: $vendorNote, media: $media)';
+  return 'OfferTerms(offeredPrice: $offeredPrice, weightGrams: $weightGrams, purityKarat: $purityKarat, makingCharges: $makingCharges, ratePerGram: $ratePerGram, deliveryTimeframe: $deliveryTimeframe, warrantyTerms: $warrantyTerms, vendorNote: $vendorNote, media: $media)';
 }
 
 
@@ -269,7 +269,7 @@ abstract mixin class _$OfferTermsCopyWith<$Res> implements $OfferTermsCopyWith<$
   factory _$OfferTermsCopyWith(_OfferTerms value, $Res Function(_OfferTerms) _then) = __$OfferTermsCopyWithImpl;
 @override @useResult
 $Res call({
- String offeredPrice, int validityHours, String? weightGrams, String? makingCharges, String? ratePerGram, String? deliveryTimeframe, String? warrantyTerms, String? vendorNote, List<MediaRef> media
+ String offeredPrice, String weightGrams, String purityKarat, String? makingCharges, String? ratePerGram, String? deliveryTimeframe, String? warrantyTerms, String? vendorNote, List<MediaRef> media
 });
 
 
@@ -286,12 +286,12 @@ class __$OfferTermsCopyWithImpl<$Res>
 
 /// Create a copy of OfferTerms
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? offeredPrice = null,Object? validityHours = null,Object? weightGrams = freezed,Object? makingCharges = freezed,Object? ratePerGram = freezed,Object? deliveryTimeframe = freezed,Object? warrantyTerms = freezed,Object? vendorNote = freezed,Object? media = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? offeredPrice = null,Object? weightGrams = null,Object? purityKarat = null,Object? makingCharges = freezed,Object? ratePerGram = freezed,Object? deliveryTimeframe = freezed,Object? warrantyTerms = freezed,Object? vendorNote = freezed,Object? media = null,}) {
   return _then(_OfferTerms(
 offeredPrice: null == offeredPrice ? _self.offeredPrice : offeredPrice // ignore: cast_nullable_to_non_nullable
-as String,validityHours: null == validityHours ? _self.validityHours : validityHours // ignore: cast_nullable_to_non_nullable
-as int,weightGrams: freezed == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
-as String?,makingCharges: freezed == makingCharges ? _self.makingCharges : makingCharges // ignore: cast_nullable_to_non_nullable
+as String,weightGrams: null == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
+as String,purityKarat: null == purityKarat ? _self.purityKarat : purityKarat // ignore: cast_nullable_to_non_nullable
+as String,makingCharges: freezed == makingCharges ? _self.makingCharges : makingCharges // ignore: cast_nullable_to_non_nullable
 as String?,ratePerGram: freezed == ratePerGram ? _self.ratePerGram : ratePerGram // ignore: cast_nullable_to_non_nullable
 as String?,deliveryTimeframe: freezed == deliveryTimeframe ? _self.deliveryTimeframe : deliveryTimeframe // ignore: cast_nullable_to_non_nullable
 as String?,warrantyTerms: freezed == warrantyTerms ? _self.warrantyTerms : warrantyTerms // ignore: cast_nullable_to_non_nullable
@@ -1805,7 +1805,7 @@ $OfferRequestSummaryCopyWith<$Res>? get requestSummary {
 /// @nodoc
 mixin _$OfferTermsInput {
 
- String get offeredPrice; int get validityHours; String? get weightGrams; String? get makingCharges; String? get ratePerGram; String? get deliveryTimeframe; String? get warrantyTerms; String? get vendorNote; List<String> get mediaKeys;
+ String get offeredPrice; String get weightGrams; String get purityKarat; String? get makingCharges; String? get ratePerGram; String? get deliveryTimeframe; String? get warrantyTerms; String? get vendorNote; List<String> get mediaKeys;
 /// Create a copy of OfferTermsInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1816,16 +1816,16 @@ $OfferTermsInputCopyWith<OfferTermsInput> get copyWith => _$OfferTermsInputCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OfferTermsInput&&(identical(other.offeredPrice, offeredPrice) || other.offeredPrice == offeredPrice)&&(identical(other.validityHours, validityHours) || other.validityHours == validityHours)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.makingCharges, makingCharges) || other.makingCharges == makingCharges)&&(identical(other.ratePerGram, ratePerGram) || other.ratePerGram == ratePerGram)&&(identical(other.deliveryTimeframe, deliveryTimeframe) || other.deliveryTimeframe == deliveryTimeframe)&&(identical(other.warrantyTerms, warrantyTerms) || other.warrantyTerms == warrantyTerms)&&(identical(other.vendorNote, vendorNote) || other.vendorNote == vendorNote)&&const DeepCollectionEquality().equals(other.mediaKeys, mediaKeys));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OfferTermsInput&&(identical(other.offeredPrice, offeredPrice) || other.offeredPrice == offeredPrice)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.makingCharges, makingCharges) || other.makingCharges == makingCharges)&&(identical(other.ratePerGram, ratePerGram) || other.ratePerGram == ratePerGram)&&(identical(other.deliveryTimeframe, deliveryTimeframe) || other.deliveryTimeframe == deliveryTimeframe)&&(identical(other.warrantyTerms, warrantyTerms) || other.warrantyTerms == warrantyTerms)&&(identical(other.vendorNote, vendorNote) || other.vendorNote == vendorNote)&&const DeepCollectionEquality().equals(other.mediaKeys, mediaKeys));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,offeredPrice,validityHours,weightGrams,makingCharges,ratePerGram,deliveryTimeframe,warrantyTerms,vendorNote,const DeepCollectionEquality().hash(mediaKeys));
+int get hashCode => Object.hash(runtimeType,offeredPrice,weightGrams,purityKarat,makingCharges,ratePerGram,deliveryTimeframe,warrantyTerms,vendorNote,const DeepCollectionEquality().hash(mediaKeys));
 
 @override
 String toString() {
-  return 'OfferTermsInput(offeredPrice: $offeredPrice, validityHours: $validityHours, weightGrams: $weightGrams, makingCharges: $makingCharges, ratePerGram: $ratePerGram, deliveryTimeframe: $deliveryTimeframe, warrantyTerms: $warrantyTerms, vendorNote: $vendorNote, mediaKeys: $mediaKeys)';
+  return 'OfferTermsInput(offeredPrice: $offeredPrice, weightGrams: $weightGrams, purityKarat: $purityKarat, makingCharges: $makingCharges, ratePerGram: $ratePerGram, deliveryTimeframe: $deliveryTimeframe, warrantyTerms: $warrantyTerms, vendorNote: $vendorNote, mediaKeys: $mediaKeys)';
 }
 
 
@@ -1836,7 +1836,7 @@ abstract mixin class $OfferTermsInputCopyWith<$Res>  {
   factory $OfferTermsInputCopyWith(OfferTermsInput value, $Res Function(OfferTermsInput) _then) = _$OfferTermsInputCopyWithImpl;
 @useResult
 $Res call({
- String offeredPrice, int validityHours, String? weightGrams, String? makingCharges, String? ratePerGram, String? deliveryTimeframe, String? warrantyTerms, String? vendorNote, List<String> mediaKeys
+ String offeredPrice, String weightGrams, String purityKarat, String? makingCharges, String? ratePerGram, String? deliveryTimeframe, String? warrantyTerms, String? vendorNote, List<String> mediaKeys
 });
 
 
@@ -1853,12 +1853,12 @@ class _$OfferTermsInputCopyWithImpl<$Res>
 
 /// Create a copy of OfferTermsInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? offeredPrice = null,Object? validityHours = null,Object? weightGrams = freezed,Object? makingCharges = freezed,Object? ratePerGram = freezed,Object? deliveryTimeframe = freezed,Object? warrantyTerms = freezed,Object? vendorNote = freezed,Object? mediaKeys = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? offeredPrice = null,Object? weightGrams = null,Object? purityKarat = null,Object? makingCharges = freezed,Object? ratePerGram = freezed,Object? deliveryTimeframe = freezed,Object? warrantyTerms = freezed,Object? vendorNote = freezed,Object? mediaKeys = null,}) {
   return _then(_self.copyWith(
 offeredPrice: null == offeredPrice ? _self.offeredPrice : offeredPrice // ignore: cast_nullable_to_non_nullable
-as String,validityHours: null == validityHours ? _self.validityHours : validityHours // ignore: cast_nullable_to_non_nullable
-as int,weightGrams: freezed == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
-as String?,makingCharges: freezed == makingCharges ? _self.makingCharges : makingCharges // ignore: cast_nullable_to_non_nullable
+as String,weightGrams: null == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
+as String,purityKarat: null == purityKarat ? _self.purityKarat : purityKarat // ignore: cast_nullable_to_non_nullable
+as String,makingCharges: freezed == makingCharges ? _self.makingCharges : makingCharges // ignore: cast_nullable_to_non_nullable
 as String?,ratePerGram: freezed == ratePerGram ? _self.ratePerGram : ratePerGram // ignore: cast_nullable_to_non_nullable
 as String?,deliveryTimeframe: freezed == deliveryTimeframe ? _self.deliveryTimeframe : deliveryTimeframe // ignore: cast_nullable_to_non_nullable
 as String?,warrantyTerms: freezed == warrantyTerms ? _self.warrantyTerms : warrantyTerms // ignore: cast_nullable_to_non_nullable
@@ -1949,10 +1949,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String offeredPrice,  int validityHours,  String? weightGrams,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<String> mediaKeys)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String offeredPrice,  String weightGrams,  String purityKarat,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<String> mediaKeys)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OfferTermsInput() when $default != null:
-return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.mediaKeys);case _:
+return $default(_that.offeredPrice,_that.weightGrams,_that.purityKarat,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.mediaKeys);case _:
   return orElse();
 
 }
@@ -1970,10 +1970,10 @@ return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.m
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String offeredPrice,  int validityHours,  String? weightGrams,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<String> mediaKeys)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String offeredPrice,  String weightGrams,  String purityKarat,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<String> mediaKeys)  $default,) {final _that = this;
 switch (_that) {
 case _OfferTermsInput():
-return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.mediaKeys);case _:
+return $default(_that.offeredPrice,_that.weightGrams,_that.purityKarat,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.mediaKeys);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1990,10 +1990,10 @@ return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.m
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String offeredPrice,  int validityHours,  String? weightGrams,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<String> mediaKeys)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String offeredPrice,  String weightGrams,  String purityKarat,  String? makingCharges,  String? ratePerGram,  String? deliveryTimeframe,  String? warrantyTerms,  String? vendorNote,  List<String> mediaKeys)?  $default,) {final _that = this;
 switch (_that) {
 case _OfferTermsInput() when $default != null:
-return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.mediaKeys);case _:
+return $default(_that.offeredPrice,_that.weightGrams,_that.purityKarat,_that.makingCharges,_that.ratePerGram,_that.deliveryTimeframe,_that.warrantyTerms,_that.vendorNote,_that.mediaKeys);case _:
   return null;
 
 }
@@ -2005,12 +2005,12 @@ return $default(_that.offeredPrice,_that.validityHours,_that.weightGrams,_that.m
 
 
 class _OfferTermsInput extends OfferTermsInput {
-  const _OfferTermsInput({required this.offeredPrice, this.validityHours = 24, this.weightGrams, this.makingCharges, this.ratePerGram, this.deliveryTimeframe, this.warrantyTerms, this.vendorNote, final  List<String> mediaKeys = const <String>[]}): _mediaKeys = mediaKeys,super._();
+  const _OfferTermsInput({required this.offeredPrice, required this.weightGrams, required this.purityKarat, this.makingCharges, this.ratePerGram, this.deliveryTimeframe, this.warrantyTerms, this.vendorNote, final  List<String> mediaKeys = const <String>[]}): _mediaKeys = mediaKeys,super._();
   
 
 @override final  String offeredPrice;
-@override@JsonKey() final  int validityHours;
-@override final  String? weightGrams;
+@override final  String weightGrams;
+@override final  String purityKarat;
 @override final  String? makingCharges;
 @override final  String? ratePerGram;
 @override final  String? deliveryTimeframe;
@@ -2034,16 +2034,16 @@ _$OfferTermsInputCopyWith<_OfferTermsInput> get copyWith => __$OfferTermsInputCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OfferTermsInput&&(identical(other.offeredPrice, offeredPrice) || other.offeredPrice == offeredPrice)&&(identical(other.validityHours, validityHours) || other.validityHours == validityHours)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.makingCharges, makingCharges) || other.makingCharges == makingCharges)&&(identical(other.ratePerGram, ratePerGram) || other.ratePerGram == ratePerGram)&&(identical(other.deliveryTimeframe, deliveryTimeframe) || other.deliveryTimeframe == deliveryTimeframe)&&(identical(other.warrantyTerms, warrantyTerms) || other.warrantyTerms == warrantyTerms)&&(identical(other.vendorNote, vendorNote) || other.vendorNote == vendorNote)&&const DeepCollectionEquality().equals(other._mediaKeys, _mediaKeys));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OfferTermsInput&&(identical(other.offeredPrice, offeredPrice) || other.offeredPrice == offeredPrice)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.makingCharges, makingCharges) || other.makingCharges == makingCharges)&&(identical(other.ratePerGram, ratePerGram) || other.ratePerGram == ratePerGram)&&(identical(other.deliveryTimeframe, deliveryTimeframe) || other.deliveryTimeframe == deliveryTimeframe)&&(identical(other.warrantyTerms, warrantyTerms) || other.warrantyTerms == warrantyTerms)&&(identical(other.vendorNote, vendorNote) || other.vendorNote == vendorNote)&&const DeepCollectionEquality().equals(other._mediaKeys, _mediaKeys));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,offeredPrice,validityHours,weightGrams,makingCharges,ratePerGram,deliveryTimeframe,warrantyTerms,vendorNote,const DeepCollectionEquality().hash(_mediaKeys));
+int get hashCode => Object.hash(runtimeType,offeredPrice,weightGrams,purityKarat,makingCharges,ratePerGram,deliveryTimeframe,warrantyTerms,vendorNote,const DeepCollectionEquality().hash(_mediaKeys));
 
 @override
 String toString() {
-  return 'OfferTermsInput(offeredPrice: $offeredPrice, validityHours: $validityHours, weightGrams: $weightGrams, makingCharges: $makingCharges, ratePerGram: $ratePerGram, deliveryTimeframe: $deliveryTimeframe, warrantyTerms: $warrantyTerms, vendorNote: $vendorNote, mediaKeys: $mediaKeys)';
+  return 'OfferTermsInput(offeredPrice: $offeredPrice, weightGrams: $weightGrams, purityKarat: $purityKarat, makingCharges: $makingCharges, ratePerGram: $ratePerGram, deliveryTimeframe: $deliveryTimeframe, warrantyTerms: $warrantyTerms, vendorNote: $vendorNote, mediaKeys: $mediaKeys)';
 }
 
 
@@ -2054,7 +2054,7 @@ abstract mixin class _$OfferTermsInputCopyWith<$Res> implements $OfferTermsInput
   factory _$OfferTermsInputCopyWith(_OfferTermsInput value, $Res Function(_OfferTermsInput) _then) = __$OfferTermsInputCopyWithImpl;
 @override @useResult
 $Res call({
- String offeredPrice, int validityHours, String? weightGrams, String? makingCharges, String? ratePerGram, String? deliveryTimeframe, String? warrantyTerms, String? vendorNote, List<String> mediaKeys
+ String offeredPrice, String weightGrams, String purityKarat, String? makingCharges, String? ratePerGram, String? deliveryTimeframe, String? warrantyTerms, String? vendorNote, List<String> mediaKeys
 });
 
 
@@ -2071,12 +2071,12 @@ class __$OfferTermsInputCopyWithImpl<$Res>
 
 /// Create a copy of OfferTermsInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? offeredPrice = null,Object? validityHours = null,Object? weightGrams = freezed,Object? makingCharges = freezed,Object? ratePerGram = freezed,Object? deliveryTimeframe = freezed,Object? warrantyTerms = freezed,Object? vendorNote = freezed,Object? mediaKeys = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? offeredPrice = null,Object? weightGrams = null,Object? purityKarat = null,Object? makingCharges = freezed,Object? ratePerGram = freezed,Object? deliveryTimeframe = freezed,Object? warrantyTerms = freezed,Object? vendorNote = freezed,Object? mediaKeys = null,}) {
   return _then(_OfferTermsInput(
 offeredPrice: null == offeredPrice ? _self.offeredPrice : offeredPrice // ignore: cast_nullable_to_non_nullable
-as String,validityHours: null == validityHours ? _self.validityHours : validityHours // ignore: cast_nullable_to_non_nullable
-as int,weightGrams: freezed == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
-as String?,makingCharges: freezed == makingCharges ? _self.makingCharges : makingCharges // ignore: cast_nullable_to_non_nullable
+as String,weightGrams: null == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
+as String,purityKarat: null == purityKarat ? _self.purityKarat : purityKarat // ignore: cast_nullable_to_non_nullable
+as String,makingCharges: freezed == makingCharges ? _self.makingCharges : makingCharges // ignore: cast_nullable_to_non_nullable
 as String?,ratePerGram: freezed == ratePerGram ? _self.ratePerGram : ratePerGram // ignore: cast_nullable_to_non_nullable
 as String?,deliveryTimeframe: freezed == deliveryTimeframe ? _self.deliveryTimeframe : deliveryTimeframe // ignore: cast_nullable_to_non_nullable
 as String?,warrantyTerms: freezed == warrantyTerms ? _self.warrantyTerms : warrantyTerms // ignore: cast_nullable_to_non_nullable

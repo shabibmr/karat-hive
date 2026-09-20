@@ -37,7 +37,6 @@ void main() {
     test('maps inventory wires', () {
       expect(RequestState.parse('DRAFT'), RequestState.draft);
       expect(RequestState.parse('PUBLISHED'), RequestState.published);
-      expect(RequestState.parse('OFFERS_RECEIVED'), RequestState.offersReceived);
       expect(RequestState.parse('ACCEPTED'), RequestState.accepted);
       expect(RequestState.parse('CLOSED'), RequestState.closed);
       expect(RequestState.parse('EXPIRED'), RequestState.expired);
@@ -54,7 +53,7 @@ void main() {
         'reference': 'KH-RQ-24A1',
         'requestType': 'FIND_ORNAMENT',
         'direction': 'BUY',
-        'state': 'OFFERS_RECEIVED',
+        'state': 'PUBLISHED',
         'category': {'id': 'cat-1', 'nameEn': 'Rings', 'nameAr': 'خواتم'},
         'region': {'id': 'reg-1', 'nameEn': 'Dubai', 'nameAr': 'دبي'},
         'weightIsApproximate': true,
@@ -70,7 +69,7 @@ void main() {
       expect(req.reference, 'KH-RQ-24A1');
       expect(req.requestType, RequestType.findOrnament);
       expect(req.direction, Direction.buy);
-      expect(req.state, RequestState.offersReceived);
+      expect(req.state, RequestState.published);
       expect(req.offerCount, 3);
       expect(req.expiresAt, DateTime.parse('2026-09-03T10:00:00.000Z'));
       expect(req.unreadOfferCount, isNull);

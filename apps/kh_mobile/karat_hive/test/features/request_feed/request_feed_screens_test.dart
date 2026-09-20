@@ -215,7 +215,7 @@ void main() {
         reference: 'REQ-RESPONDED',
         requestType: 'FIND_ORNAMENT',
         direction: 'BUY',
-        state: 'OFFERS_RECEIVED',
+        state: 'PUBLISHED',
         categoryId: 'cat-ring',
         categoryName: 'Rings',
         regionId: 'reg-dxb',

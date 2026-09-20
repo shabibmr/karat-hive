@@ -127,7 +127,7 @@ describe('request.presenter', () => {
   it('surfaces unreadOfferCount from the filtered _count relation (SAM-GAP-1 / CBG-01)', () => {
     const presented = presentRequestForCustomer({
       ...mockFullRequest,
-      state: 'OFFERS_RECEIVED',
+      state: 'PUBLISHED',
       offerCount: 3,
       _count: { offers: 3 },
     });
@@ -136,7 +136,7 @@ describe('request.presenter', () => {
 
     const afterOneViewed = presentRequestForCustomer({
       ...mockFullRequest,
-      state: 'OFFERS_RECEIVED',
+      state: 'PUBLISHED',
       offerCount: 3,
       _count: { offers: 2 },
     });

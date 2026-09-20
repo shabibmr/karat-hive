@@ -164,6 +164,8 @@ class OfferDetail with _$OfferDetail {
     @JsonKey(unknownEnumValue: OfferState.pending)
     OfferState state,
     required double offeredPrice,
+    double? weightGrams,
+    String? purityKarat,
     double? makingCharges,
     double? ratePerGram,
     double? goldPrice,
@@ -172,7 +174,6 @@ class OfferDetail with _$OfferDetail {
     String? deliveryTimeframe,
     String? warrantyTerms,
     String? vendorNote,
-    int? validityHours,
     DateTime? expiresAt,
     required DateTime submittedAt,
     DateTime? decidedAt,

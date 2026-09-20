@@ -115,32 +115,11 @@ class ReviseOfferController
         current.withdrawing) {
       return;
     }
-    if (!current.offer.canRevise) {
-      state = current.copyWith(
-        failure: const ConflictFailure(
-          code: 'OFFER_REVISION_LIMIT',
-          message: 'No revisions remaining for this Offer.',
-        ),
-      );
-      return;
-    }
-
-    final price = double.tryParse(current.draft.offeredPrice);
-    if (price == null || price <= 0) {
-      state = current.copyWith(
-        failure: const ValidationFailure(message: 'Enter a valid offered price.'),
-      );
-      return;
-    }
-
-    state = current.copyWith(submitting: true, clearFailure: true);
-    final result = await _repo.reviseOffer(
-      offerId: arg,
-      terms: current.draft.toInput(),
-    );
-    result.when(
-      ok: (offer) => state = ReviseOfferSucceeded(offer),
-      err: (f) => state = current.copyWith(submitting: false, failure: f),
+    state = current.copyWith(
+      failure: const ConflictFailure(
+        code: 'OFFER_REVISION_NOT_ALLOWED',
+        message: 'Offers cannot be revised once submitted.',
+      ),
     );
   }
 

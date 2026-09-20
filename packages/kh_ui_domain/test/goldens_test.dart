@@ -162,7 +162,8 @@ void main() {
             state: OfferState.accepted,
             terms: const OfferTerms(
               offeredPrice: '5500.00',
-              validityHours: 24,
+              weightGrams: '10.00',
+              purityKarat: '22K',
             ),
             submittedAt: DateTime.utc(2026, 9, 1, 11),
             expiresAt: DateTime.utc(2026, 9, 2, 11),

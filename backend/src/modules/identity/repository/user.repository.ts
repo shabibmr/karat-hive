@@ -216,7 +216,7 @@ export class UserRepository {
     const live = await tx.request.findMany({
       where: {
         customerProfileId,
-        state: { in: ['PUBLISHED', 'OFFERS_RECEIVED'] },
+        state: 'PUBLISHED',
       },
       select: { id: true },
     });

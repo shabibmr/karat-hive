@@ -93,8 +93,6 @@ enum RequestState {
   draft,
   @JsonValue('PUBLISHED')
   published,
-  @JsonValue('OFFERS_RECEIVED')
-  offersReceived,
   @JsonValue('ACCEPTED')
   accepted,
   @JsonValue('CLOSED')
@@ -112,8 +110,6 @@ enum RequestState {
         return 'DRAFT';
       case RequestState.published:
         return 'PUBLISHED';
-      case RequestState.offersReceived:
-        return 'OFFERS_RECEIVED';
       case RequestState.accepted:
         return 'ACCEPTED';
       case RequestState.closed:
@@ -133,8 +129,6 @@ enum RequestState {
         return 'DRAFT';
       case RequestState.published:
         return 'PUBLISHED';
-      case RequestState.offersReceived:
-        return 'OFFERS RECEIVED';
       case RequestState.accepted:
         return 'ACCEPTED';
       case RequestState.closed:

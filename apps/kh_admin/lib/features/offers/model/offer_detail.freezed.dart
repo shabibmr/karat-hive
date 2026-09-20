@@ -1804,7 +1804,8 @@ mixin _$OfferDetail {
   String? get deliveryTimeframe => throw _privateConstructorUsedError;
   String? get warrantyTerms => throw _privateConstructorUsedError;
   String? get vendorNote => throw _privateConstructorUsedError;
-  int? get validityHours => throw _privateConstructorUsedError;
+  double? get weightGrams => throw _privateConstructorUsedError;
+  String? get purityKarat => throw _privateConstructorUsedError;
   DateTime? get expiresAt => throw _privateConstructorUsedError;
   DateTime get submittedAt => throw _privateConstructorUsedError;
   DateTime? get decidedAt => throw _privateConstructorUsedError;
@@ -1854,7 +1855,8 @@ abstract class $OfferDetailCopyWith<$Res> {
     String? deliveryTimeframe,
     String? warrantyTerms,
     String? vendorNote,
-    int? validityHours,
+    double? weightGrams,
+    String? purityKarat,
     DateTime? expiresAt,
     DateTime submittedAt,
     DateTime? decidedAt,
@@ -1903,7 +1905,8 @@ class _$OfferDetailCopyWithImpl<$Res, $Val extends OfferDetail>
     Object? deliveryTimeframe = freezed,
     Object? warrantyTerms = freezed,
     Object? vendorNote = freezed,
-    Object? validityHours = freezed,
+    Object? weightGrams = freezed,
+    Object? purityKarat = freezed,
     Object? expiresAt = freezed,
     Object? submittedAt = null,
     Object? decidedAt = freezed,
@@ -1970,10 +1973,14 @@ class _$OfferDetailCopyWithImpl<$Res, $Val extends OfferDetail>
                 ? _value.vendorNote
                 : vendorNote // ignore: cast_nullable_to_non_nullable
                       as String?,
-            validityHours: freezed == validityHours
-                ? _value.validityHours
-                : validityHours // ignore: cast_nullable_to_non_nullable
-                      as int?,
+            weightGrams: freezed == weightGrams
+                ? _value.weightGrams
+                : weightGrams // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            purityKarat: freezed == purityKarat
+                ? _value.purityKarat
+                : purityKarat // ignore: cast_nullable_to_non_nullable
+                      as String?,
             expiresAt: freezed == expiresAt
                 ? _value.expiresAt
                 : expiresAt // ignore: cast_nullable_to_non_nullable
@@ -2092,7 +2099,8 @@ abstract class _$$OfferDetailImplCopyWith<$Res>
     String? deliveryTimeframe,
     String? warrantyTerms,
     String? vendorNote,
-    int? validityHours,
+    double? weightGrams,
+    String? purityKarat,
     DateTime? expiresAt,
     DateTime submittedAt,
     DateTime? decidedAt,
@@ -2142,7 +2150,8 @@ class __$$OfferDetailImplCopyWithImpl<$Res>
     Object? deliveryTimeframe = freezed,
     Object? warrantyTerms = freezed,
     Object? vendorNote = freezed,
-    Object? validityHours = freezed,
+    Object? weightGrams = freezed,
+    Object? purityKarat = freezed,
     Object? expiresAt = freezed,
     Object? submittedAt = null,
     Object? decidedAt = freezed,
@@ -2209,10 +2218,14 @@ class __$$OfferDetailImplCopyWithImpl<$Res>
             ? _value.vendorNote
             : vendorNote // ignore: cast_nullable_to_non_nullable
                   as String?,
-        validityHours: freezed == validityHours
-            ? _value.validityHours
-            : validityHours // ignore: cast_nullable_to_non_nullable
-                  as int?,
+        weightGrams: freezed == weightGrams
+            ? _value.weightGrams
+            : weightGrams // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        purityKarat: freezed == purityKarat
+            ? _value.purityKarat
+            : purityKarat // ignore: cast_nullable_to_non_nullable
+                  as String?,
         expiresAt: freezed == expiresAt
             ? _value.expiresAt
             : expiresAt // ignore: cast_nullable_to_non_nullable
@@ -2295,7 +2308,8 @@ class _$OfferDetailImpl extends _OfferDetail {
     this.deliveryTimeframe,
     this.warrantyTerms,
     this.vendorNote,
-    this.validityHours,
+    this.weightGrams,
+    this.purityKarat,
     this.expiresAt,
     required this.submittedAt,
     this.decidedAt,
@@ -2346,7 +2360,9 @@ class _$OfferDetailImpl extends _OfferDetail {
   @override
   final String? vendorNote;
   @override
-  final int? validityHours;
+  final double? weightGrams;
+  @override
+  final String? purityKarat;
   @override
   final DateTime? expiresAt;
   @override
@@ -2409,7 +2425,7 @@ class _$OfferDetailImpl extends _OfferDetail {
 
   @override
   String toString() {
-    return 'OfferDetail(id: $id, reference: $reference, state: $state, offeredPrice: $offeredPrice, makingCharges: $makingCharges, ratePerGram: $ratePerGram, goldPrice: $goldPrice, vat: $vat, totalAmount: $totalAmount, deliveryTimeframe: $deliveryTimeframe, warrantyTerms: $warrantyTerms, vendorNote: $vendorNote, validityHours: $validityHours, expiresAt: $expiresAt, submittedAt: $submittedAt, decidedAt: $decidedAt, declineReason: $declineReason, revisionCount: $revisionCount, winningOfferId: $winningOfferId, winningOfferReference: $winningOfferReference, winningOfferPrice: $winningOfferPrice, winningVendorName: $winningVendorName, parentRequest: $parentRequest, vendor: $vendor, attachments: $attachments, revisions: $revisions, stateTransitions: $stateTransitions, internalNotes: $internalNotes)';
+    return 'OfferDetail(id: $id, reference: $reference, state: $state, offeredPrice: $offeredPrice, makingCharges: $makingCharges, ratePerGram: $ratePerGram, goldPrice: $goldPrice, vat: $vat, totalAmount: $totalAmount, deliveryTimeframe: $deliveryTimeframe, warrantyTerms: $warrantyTerms, vendorNote: $vendorNote, weightGrams: $weightGrams, purityKarat: $purityKarat, expiresAt: $expiresAt, submittedAt: $submittedAt, decidedAt: $decidedAt, declineReason: $declineReason, revisionCount: $revisionCount, winningOfferId: $winningOfferId, winningOfferReference: $winningOfferReference, winningOfferPrice: $winningOfferPrice, winningVendorName: $winningVendorName, parentRequest: $parentRequest, vendor: $vendor, attachments: $attachments, revisions: $revisions, stateTransitions: $stateTransitions, internalNotes: $internalNotes)';
   }
 
   @override
@@ -2438,8 +2454,10 @@ class _$OfferDetailImpl extends _OfferDetail {
                 other.warrantyTerms == warrantyTerms) &&
             (identical(other.vendorNote, vendorNote) ||
                 other.vendorNote == vendorNote) &&
-            (identical(other.validityHours, validityHours) ||
-                other.validityHours == validityHours) &&
+            (identical(other.weightGrams, weightGrams) ||
+                other.weightGrams == weightGrams) &&
+            (identical(other.purityKarat, purityKarat) ||
+                other.purityKarat == purityKarat) &&
             (identical(other.expiresAt, expiresAt) ||
                 other.expiresAt == expiresAt) &&
             (identical(other.submittedAt, submittedAt) ||
@@ -2495,7 +2513,8 @@ class _$OfferDetailImpl extends _OfferDetail {
     deliveryTimeframe,
     warrantyTerms,
     vendorNote,
-    validityHours,
+    weightGrams,
+    purityKarat,
     expiresAt,
     submittedAt,
     decidedAt,
@@ -2541,7 +2560,8 @@ abstract class _OfferDetail extends OfferDetail {
     final String? deliveryTimeframe,
     final String? warrantyTerms,
     final String? vendorNote,
-    final int? validityHours,
+    final double? weightGrams,
+    final String? purityKarat,
     final DateTime? expiresAt,
     required final DateTime submittedAt,
     final DateTime? decidedAt,
@@ -2589,7 +2609,9 @@ abstract class _OfferDetail extends OfferDetail {
   @override
   String? get vendorNote;
   @override
-  int? get validityHours;
+  double? get weightGrams;
+  @override
+  String? get purityKarat;
   @override
   DateTime? get expiresAt;
   @override

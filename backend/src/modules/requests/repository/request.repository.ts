@@ -180,7 +180,7 @@ export class RequestRepository {
     return db.request.count({
       where: {
         customerProfileId,
-        state: { in: ['PUBLISHED', 'OFFERS_RECEIVED'] },
+        state: 'PUBLISHED',
       },
     });
   }
@@ -238,7 +238,7 @@ export class RequestRepository {
     if (params.states && params.states.length > 0) {
       where.state = { in: params.states };
     } else {
-      where.state = { in: ['DRAFT', 'PUBLISHED', 'OFFERS_RECEIVED', 'ACCEPTED'] };
+      where.state = { in: ['DRAFT', 'PUBLISHED', 'ACCEPTED'] };
     }
 
     if (params.requestType) {

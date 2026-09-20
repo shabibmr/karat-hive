@@ -18,7 +18,8 @@ OfferForVendor _testOffer({
   OfferState state = OfferState.pending,
   int revisionCount = 0,
   String offeredPrice = '5200.00',
-  int validityHours = 24,
+  String weightGrams = '10.00',
+  String purityKarat = '22K',
 }) {
   return OfferForVendor(
     id: id,
@@ -26,11 +27,12 @@ OfferForVendor _testOffer({
     state: state,
     terms: OfferTerms(
       offeredPrice: offeredPrice,
-      validityHours: validityHours,
+      weightGrams: weightGrams,
+      purityKarat: purityKarat,
       vendorNote: 'Original note',
     ),
-    submittedAt: DateTime.utc(2026, 9, 7, 12, 0),
-    expiresAt: DateTime.utc(2026, 9, 8, 12, 0),
+    submittedAt: DateTime.now().toUtc(),
+    expiresAt: DateTime.now().toUtc().add(const Duration(hours: 24)),
     revisionCount: revisionCount,
   );
 }
@@ -180,7 +182,8 @@ void main() {
       expect(ready.offer.id, offerId);
       expect(ready.config.offerValidityHours, [12, 24, 48]);
       expect(ready.draft.offeredPrice, '5200.00');
-      expect(ready.draft.validityHours, 24);
+      expect(ready.draft.weightGrams, '10.00');
+      expect(ready.draft.purityKarat, Karat.k22);
       expect(ready.draft.vendorNote, 'Original note');
       expect(ready.submitting, isFalse);
       expect(ready.withdrawing, isFalse);
@@ -214,30 +217,9 @@ void main() {
       );
     });
 
-    test('revise with empty price keeps ready and sets validation failure',
+    test('revise sets conflict failure with OFFER_REVISION_NOT_ALLOWED',
         () async {
       final repo = FakeOffersVendorRepository();
-      final container = containerWith(repo);
-      final loaded = await _waitUntilSettled(container, offerId);
-      (loaded as ReviseOfferReady).draft.offeredPrice = '';
-
-      await container
-          .read(reviseOfferControllerProvider(offerId).notifier)
-          .revise();
-
-      final state = container.read(reviseOfferControllerProvider(offerId));
-      expect(state, isA<ReviseOfferReady>());
-      final ready = state as ReviseOfferReady;
-      expect(ready.failure, isA<ValidationFailure>());
-      expect(ready.failure!.message, 'Enter a valid offered price.');
-      expect(repo.reviseCalls, 0);
-    });
-
-    test('revise when revisions exhausted sets conflict without API call (empty)',
-        () async {
-      final repo = FakeOffersVendorRepository(
-        offer: _testOffer(revisionCount: kMaxOfferRevisions),
-      );
       final container = containerWith(repo);
       await _waitUntilSettled(container, offerId);
 
@@ -248,57 +230,10 @@ void main() {
       final state = container.read(reviseOfferControllerProvider(offerId));
       expect(state, isA<ReviseOfferReady>());
       final ready = state as ReviseOfferReady;
-      expect(ready.offer.canRevise, isFalse);
       expect(ready.failure, isA<ConflictFailure>());
-      expect(ready.failure!.code, 'OFFER_REVISION_LIMIT');
+      expect(ready.failure!.code, 'OFFER_REVISION_NOT_ALLOWED');
+      expect(ready.failure!.message, 'Offers cannot be revised once submitted.');
       expect(repo.reviseCalls, 0);
-    });
-
-    test('revise with valid price succeeds', () async {
-      final repo = FakeOffersVendorRepository(
-        reviseResult: _testOffer(id: 'off-1', revisionCount: 1),
-      );
-      final container = containerWith(repo);
-      final loaded = await _waitUntilSettled(container, offerId);
-      final ready = loaded as ReviseOfferReady;
-      ready.draft.offeredPrice = '5300.00';
-      ready.draft.vendorNote = 'Updated';
-
-      await container
-          .read(reviseOfferControllerProvider(offerId).notifier)
-          .revise();
-
-      final state = container.read(reviseOfferControllerProvider(offerId));
-      expect(state, isA<ReviseOfferSucceeded>());
-      expect((state as ReviseOfferSucceeded).withdrawn, isFalse);
-      expect(state.offer.revisionCount, 1);
-      expect(repo.reviseCalls, 1);
-      expect(repo.lastReviseOfferId, offerId);
-      expect(repo.lastTerms!.offeredPrice, '5300.00');
-      expect(repo.lastTerms!.vendorNote, 'Updated');
-    });
-
-    test('revise API failure returns to ready with inline failure', () async {
-      final repo = FakeOffersVendorRepository(
-        reviseError: const ConflictFailure(
-          code: 'OFFER_NOT_PENDING',
-          message: 'Only a pending Offer can be revised.',
-        ),
-      );
-      final container = containerWith(repo);
-      final loaded = await _waitUntilSettled(container, offerId);
-      (loaded as ReviseOfferReady).draft.offeredPrice = '5100';
-
-      await container
-          .read(reviseOfferControllerProvider(offerId).notifier)
-          .revise();
-
-      final state = container.read(reviseOfferControllerProvider(offerId));
-      expect(state, isA<ReviseOfferReady>());
-      final ready = state as ReviseOfferReady;
-      expect(ready.submitting, isFalse);
-      expect(ready.failure?.code, 'OFFER_NOT_PENDING');
-      expect(ready.failure?.message, 'Only a pending Offer can be revised.');
     });
 
     test('withdraw succeeds', () async {

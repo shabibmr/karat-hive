@@ -180,7 +180,8 @@ _$OfferDetailImpl _$$OfferDetailImplFromJson(
   deliveryTimeframe: json['deliveryTimeframe'] as String?,
   warrantyTerms: json['warrantyTerms'] as String?,
   vendorNote: json['vendorNote'] as String?,
-  validityHours: (json['validityHours'] as num?)?.toInt(),
+  weightGrams: (json['weightGrams'] as num?)?.toDouble(),
+  purityKarat: json['purityKarat'] as String?,
   expiresAt: json['expiresAt'] == null
       ? null
       : DateTime.parse(json['expiresAt'] as String),
@@ -234,6 +235,8 @@ Map<String, dynamic> _$$OfferDetailImplToJson(_$OfferDetailImpl instance) =>
       'reference': instance.reference,
       'state': _$OfferStateEnumMap[instance.state]!,
       'offeredPrice': instance.offeredPrice,
+      'weightGrams': instance.weightGrams,
+      'purityKarat': instance.purityKarat,
       'makingCharges': instance.makingCharges,
       'ratePerGram': instance.ratePerGram,
       'goldPrice': instance.goldPrice,
@@ -242,7 +245,6 @@ Map<String, dynamic> _$$OfferDetailImplToJson(_$OfferDetailImpl instance) =>
       'deliveryTimeframe': instance.deliveryTimeframe,
       'warrantyTerms': instance.warrantyTerms,
       'vendorNote': instance.vendorNote,
-      'validityHours': instance.validityHours,
       'expiresAt': instance.expiresAt?.toIso8601String(),
       'submittedAt': instance.submittedAt.toIso8601String(),
       'decidedAt': instance.decidedAt?.toIso8601String(),

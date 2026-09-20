@@ -104,12 +104,13 @@ export type RequestForCustomer = RequestBaseDto & {
     revisionCount: number;
     terms: {
       offeredPrice: string;
+      weightGrams: string;
+      purityKarat: string;
       makingCharges?: string;
       ratePerGram?: string;
       deliveryTimeframe?: string;
       warrantyTerms?: string;
       vendorNote?: string;
-      validityHours: number;
     };
     vendor: {
       label: string;

@@ -241,7 +241,7 @@ export class VendorOnboardingService {
       isEligible: true,
       viewedAt: null,
       request: {
-        state: { in: ['PUBLISHED', 'OFFERS_RECEIVED'] },
+        state: 'PUBLISHED',
         expiresAt: { gt: now },
         offers: { none: { vendorProfileId: profile.id } },
       },

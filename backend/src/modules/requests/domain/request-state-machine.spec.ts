@@ -16,17 +16,11 @@ describe('request-state-machine', () => {
   });
 
   it('allows valid transitions from PUBLISHED', () => {
-    expect(canTransitionRequest('PUBLISHED', 'OFFERS_RECEIVED')).toBe(true);
+    expect(canTransitionRequest('PUBLISHED', 'ACCEPTED')).toBe(true);
     expect(canTransitionRequest('PUBLISHED', 'CANCELLED')).toBe(true);
     expect(canTransitionRequest('PUBLISHED', 'EXPIRED')).toBe(true);
+    expect(canTransitionRequest('PUBLISHED', 'REMOVED')).toBe(true);
     expect(canTransitionRequest('PUBLISHED', 'DRAFT')).toBe(false);
-  });
-
-  it('allows valid transitions from OFFERS_RECEIVED', () => {
-    expect(canTransitionRequest('OFFERS_RECEIVED', 'ACCEPTED')).toBe(true);
-    expect(canTransitionRequest('OFFERS_RECEIVED', 'CANCELLED')).toBe(true);
-    expect(canTransitionRequest('OFFERS_RECEIVED', 'EXPIRED')).toBe(true);
-    expect(canTransitionRequest('OFFERS_RECEIVED', 'PUBLISHED')).toBe(false);
   });
 
   it('identifies terminal states correctly', () => {
@@ -41,7 +35,6 @@ describe('request-state-machine', () => {
 
   it('identifies live states correctly', () => {
     expect(isLiveRequestState('PUBLISHED')).toBe(true);
-    expect(isLiveRequestState('OFFERS_RECEIVED')).toBe(true);
     expect(isLiveRequestState('DRAFT')).toBe(false);
     expect(isLiveRequestState('ACCEPTED')).toBe(false);
     expect(isLiveRequestState('CLOSED')).toBe(false);

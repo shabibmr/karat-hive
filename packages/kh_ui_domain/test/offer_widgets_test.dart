@@ -14,7 +14,8 @@ OfferForVendor _vendorOffer({
     state: state,
     terms: const OfferTerms(
       offeredPrice: '5500.00',
-      validityHours: 24,
+      weightGrams: '10.00',
+      purityKarat: '22K',
     ),
     submittedAt: DateTime.utc(2026, 9, 1, 11),
     expiresAt: DateTime.utc(2026, 9, 2, 11),
@@ -42,7 +43,8 @@ OfferForCustomer _customerOffer({
     state: state,
     terms: const OfferTerms(
       offeredPrice: '12500.00',
-      validityHours: 24,
+      weightGrams: '20.00',
+      purityKarat: '22K',
       makingCharges: '200.00',
     ),
     vendor: const MaskedParty(
@@ -145,7 +147,8 @@ void main() {
         OfferTermsReadOnly(
           terms: const OfferTerms(
             offeredPrice: '9800.00',
-            validityHours: 12,
+            weightGrams: '10.00',
+            purityKarat: '22K',
             makingCharges: '150.00',
           ),
         ),
@@ -154,7 +157,8 @@ void main() {
 
     expect(find.byKey(const Key('offer-terms-readonly')), findsOneWidget);
     expect(find.textContaining('AED'), findsWidgets);
-    expect(find.textContaining('12'), findsWidgets);
+    expect(find.textContaining('22K'), findsWidgets);
+    expect(find.textContaining('10.00g'), findsWidgets);
   });
 
   testWidgets('SH-OFF-04 shows media strip when terms include media',
@@ -164,7 +168,8 @@ void main() {
         OfferTermsReadOnly(
           terms: OfferTerms(
             offeredPrice: '9800.00',
-            validityHours: 12,
+            weightGrams: '10.00',
+            purityKarat: '22K',
             media: [
               MediaRef(
                 id: 'm1',

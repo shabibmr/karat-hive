@@ -21,7 +21,11 @@ OfferForVendor _testOffer({
     id: id,
     requestId: 'req-1',
     state: state,
-    terms: OfferTerms(offeredPrice: offeredPrice, validityHours: 24),
+    terms: OfferTerms(
+      offeredPrice: offeredPrice,
+      weightGrams: '10.00',
+      purityKarat: '22K',
+    ),
     submittedAt: DateTime.utc(2026, 9, 7, 12, 0),
     expiresAt: DateTime.utc(2026, 9, 8, 12, 0),
     revisionCount: 0,

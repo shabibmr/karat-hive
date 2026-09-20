@@ -223,9 +223,10 @@ class ConnectionOfferSummary {
     required this.id,
     this.reference,
     required this.agreedPriceAed,
+    this.weightGrams,
+    this.purityKarat,
     this.makingCharges,
     this.ratePerGram,
-    this.validityHours,
     this.expiresAt,
     this.deliveryTimeframe,
     this.warrantyTerms,
@@ -235,9 +236,10 @@ class ConnectionOfferSummary {
   final String id;
   final String? reference;
   final double agreedPriceAed;
+  final double? weightGrams;
+  final String? purityKarat;
   final double? makingCharges;
   final double? ratePerGram;
-  final int? validityHours;
   final DateTime? expiresAt;
   final String? deliveryTimeframe;
   final String? warrantyTerms;
@@ -259,11 +261,10 @@ class ConnectionOfferSummary {
       id: json['id']?.toString() ?? '',
       reference: json['reference']?.toString(),
       agreedPriceAed: agreedPrice,
+      weightGrams: parseNum(json['weightGrams']),
+      purityKarat: json['purityKarat']?.toString(),
       makingCharges: parseNum(json['makingCharges']),
       ratePerGram: parseNum(json['ratePerGram']),
-      validityHours: json['validityHours'] is int
-          ? json['validityHours'] as int
-          : int.tryParse(json['validityHours']?.toString() ?? ''),
       expiresAt: expiresStr != null ? DateTime.tryParse(expiresStr) : null,
       deliveryTimeframe: json['deliveryTimeframe']?.toString(),
       warrantyTerms: json['warrantyTerms']?.toString(),
@@ -275,9 +276,10 @@ class ConnectionOfferSummary {
         'id': id,
         'reference': reference,
         'agreedPriceAed': agreedPriceAed,
+        'weightGrams': weightGrams,
+        'purityKarat': purityKarat,
         'makingCharges': makingCharges,
         'ratePerGram': ratePerGram,
-        'validityHours': validityHours,
         'expiresAt': expiresAt?.toIso8601String(),
         'deliveryTimeframe': deliveryTimeframe,
         'warrantyTerms': warrantyTerms,
@@ -288,9 +290,10 @@ class ConnectionOfferSummary {
     String? id,
     String? reference,
     double? agreedPriceAed,
+    double? weightGrams,
+    String? purityKarat,
     double? makingCharges,
     double? ratePerGram,
-    int? validityHours,
     DateTime? expiresAt,
     String? deliveryTimeframe,
     String? warrantyTerms,
@@ -300,9 +303,10 @@ class ConnectionOfferSummary {
       id: id ?? this.id,
       reference: reference ?? this.reference,
       agreedPriceAed: agreedPriceAed ?? this.agreedPriceAed,
+      weightGrams: weightGrams ?? this.weightGrams,
+      purityKarat: purityKarat ?? this.purityKarat,
       makingCharges: makingCharges ?? this.makingCharges,
       ratePerGram: ratePerGram ?? this.ratePerGram,
-      validityHours: validityHours ?? this.validityHours,
       expiresAt: expiresAt ?? this.expiresAt,
       deliveryTimeframe: deliveryTimeframe ?? this.deliveryTimeframe,
       warrantyTerms: warrantyTerms ?? this.warrantyTerms,

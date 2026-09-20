@@ -63,8 +63,6 @@ KhStatusTone requestStateTone(RequestState state) {
       return KhStatusTone.neutral;
     case RequestState.published:
       return KhStatusTone.moderation;
-    case RequestState.offersReceived:
-      return KhStatusTone.pending;
     case RequestState.accepted:
       return KhStatusTone.success;
     case RequestState.closed:

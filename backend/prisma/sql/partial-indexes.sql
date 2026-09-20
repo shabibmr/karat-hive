@@ -12,13 +12,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS subscription_one_live_per_type
   ON vendor_type_subscription (vendor_profile_id, request_type)
   WHERE state IN ('ACTIVE', 'GRACE');
 
--- AD-API-07 / FR-VEN-013: validity hours 12 | 24 | 48.
--- SRS §6.2 listed 24/48/72/168 — treated as stale pending SRS alignment.
+-- AD-API-07 / Offer validity: validity_hours removed; offer expires with parent request.
 ALTER TABLE offer
   DROP CONSTRAINT IF EXISTS offer_validity_hours_allowed;
-ALTER TABLE offer
-  ADD CONSTRAINT offer_validity_hours_allowed
-  CHECK (validity_hours IN (12, 24, 48));
 
 -- Hot path 5 (Architecture §12.5): expiry sweeps stay small regardless of table size.
 CREATE INDEX IF NOT EXISTS offer_pending_expires_at
@@ -27,7 +23,7 @@ CREATE INDEX IF NOT EXISTS offer_pending_expires_at
 
 CREATE INDEX IF NOT EXISTS request_live_expires_at
   ON request (expires_at)
-  WHERE state IN ('PUBLISHED', 'OFFERS_RECEIVED');
+  WHERE state = 'PUBLISHED';
 
 -- Outbox drain: claim PENDING rows by available_at (Architecture §11.1).
 CREATE INDEX IF NOT EXISTS outbox_event_claim

@@ -120,17 +120,8 @@ class _OfferDetailScreenState extends ConsumerState<OfferDetailScreen> {
                         'OFFER ${detail.id}'),
                 heading: offerFormatPrice(detail.offeredPrice),
                 supportingText: detail.expiresAt != null
-                    ? (l10n?.offersDetailHeaderMetaExpires(
-                          offerFormatDate(detail.submittedAt),
-                          detail.validityHours ?? 24,
-                          offerFormatDate(detail.expiresAt),
-                        ) ??
-                        'Submitted on ${offerFormatDate(detail.submittedAt)} · Validity ${detail.validityHours ?? 24}h (Expires ${offerFormatDate(detail.expiresAt)})')
-                    : (l10n?.offersDetailHeaderMeta(
-                          offerFormatDate(detail.submittedAt),
-                          detail.validityHours ?? 24,
-                        ) ??
-                        'Submitted on ${offerFormatDate(detail.submittedAt)} · Validity ${detail.validityHours ?? 24}h'),
+                    ? 'Submitted on ${offerFormatDate(detail.submittedAt)} · Expires ${offerFormatDate(detail.expiresAt)}'
+                    : 'Submitted on ${offerFormatDate(detail.submittedAt)}',
                 trailing: KhStatusChip(
                   label: detail.state.displayName.toUpperCase(),
                   tone: detail.state.statusTone,

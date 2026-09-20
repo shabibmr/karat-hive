@@ -62,9 +62,9 @@ export class OfferService {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
 
-    // 2. Validate request state: must be PUBLISHED or OFFERS_RECEIVED, and unexpired
+    // 2. Validate request state: must be PUBLISHED and unexpired
     if (
-      (request.state !== 'PUBLISHED' && request.state !== 'OFFERS_RECEIVED') ||
+      request.state !== 'PUBLISHED' ||
       !request.expiresAt ||
       request.expiresAt <= now
     ) {
@@ -101,8 +101,8 @@ export class OfferService {
     // 6. Scan vendor note for forbidden contact details (BR-022)
     assertNoContactDetails(input.vendorNote);
 
-    // 7. Clamp expiry to request expiry (FR-VEN-013)
-    const expiresAt = calculateClampedExpiry(now, input.validityHours, request.expiresAt);
+    // 7. Align offer expiry to request expiry
+    const expiresAt = calculateClampedExpiry(request.expiresAt);
 
     // 8. Execute in atomic transaction
     const createdOffer = await this.prisma.$transaction(async (tx) => {
@@ -143,92 +143,8 @@ export class OfferService {
     offerId: string,
     input: ReviseOfferInput,
   ): Promise<OfferForVendor> {
-    const vendorProfileId = this.assertActiveVendor(viewer);
-    const now = this.clock.now();
-
-    const offer = await this.repo.findOfferById(offerId);
-    if (!offer || offer.vendorProfileId !== vendorProfileId) {
-      throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
-    }
-
-    if (offer.state !== 'PENDING') {
-      throw new ApiException(HttpStatus.CONFLICT, ErrorCode.OFFER_NOT_PENDING);
-    }
-
-    if (offer.expiresAt <= now) {
-      throw new ApiException(HttpStatus.CONFLICT, ErrorCode.OFFER_EXPIRED);
-    }
-
-    if (offer.revisionCount >= 3) {
-      throw new ApiException(HttpStatus.CONFLICT, ErrorCode.OFFER_REVISION_LIMIT);
-    }
-
-    const request = await this.repo.findRequestForOffer(offer.requestId);
-    if (
-      !request ||
-      (request.state !== 'PUBLISHED' && request.state !== 'OFFERS_RECEIVED') ||
-      !request.expiresAt ||
-      request.expiresAt <= now
-    ) {
-      throw new ApiException(HttpStatus.CONFLICT, ErrorCode.OFFER_NOT_OPEN);
-    }
-
-    assertNoContactDetails(input.vendorNote);
-
-    const newExpiresAt = calculateClampedExpiry(now, input.validityHours, request.expiresAt);
-
-    const previousTerms = {
-      offeredPrice: offer.offeredPrice.toString(),
-      makingCharges: offer.makingCharges ? offer.makingCharges.toString() : null,
-      ratePerGram: offer.ratePerGram ? offer.ratePerGram.toString() : null,
-      deliveryTimeframe: offer.deliveryTimeframe,
-      warrantyTerms: offer.warrantyTerms,
-      vendorNote: offer.vendorNote,
-      validityHours: offer.validityHours,
-    };
-
-    const revisedOffer = await this.prisma.$transaction(async (tx) => {
-      const revised = await this.repo.createRevision(
-        {
-          offerId: offer.id,
-          previousTerms,
-          newPrice: new Prisma.Decimal(input.offeredPrice),
-          newMakingCharges: input.makingCharges !== undefined
-            ? new Prisma.Decimal(input.makingCharges)
-            : null,
-          newRatePerGram: input.ratePerGram !== undefined
-            ? new Prisma.Decimal(input.ratePerGram)
-            : null,
-          newDeliveryTimeframe: input.deliveryTimeframe ?? null,
-          newWarrantyTerms: input.warrantyTerms ?? null,
-          newVendorNote: input.vendorNote ?? null,
-          newValidityHours: input.validityHours,
-          newExpiresAt,
-          newRevisionCount: offer.revisionCount + 1,
-          now,
-        },
-        tx,
-      );
-
-      await enqueueOutbox(tx, {
-        eventType: 'offer.revised',
-        aggregateType: 'offer',
-        aggregateId: offer.id,
-        payload: {
-          offerId: offer.id,
-          requestId: offer.requestId,
-          customerUserId: request.customerProfile.userId,
-          previousPrice: offer.offeredPrice.toString(),
-          newPrice: input.offeredPrice.toString(),
-          newExpiresAt: newExpiresAt.toISOString(),
-          revisedAt: now.toISOString(),
-        },
-      });
-
-      return revised;
-    });
-
-    return presentOfferForVendor(revisedOffer, { request });
+    this.assertActiveVendor(viewer);
+    throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.OFFER_REVISION_NOT_ALLOWED);
   }
 
   async withdrawOffer(viewer: ViewerContext, offerId: string): Promise<OfferForVendor> {
@@ -256,15 +172,6 @@ export class OfferService {
         { decidedAt: now },
         tx,
       );
-
-      // If no other PENDING offers remain, revert request from OFFERS_RECEIVED to PUBLISHED
-      const remainingPending = await this.repo.countPendingOffersOnRequest(request.id, tx);
-      if (remainingPending === 0 && request.state === 'OFFERS_RECEIVED') {
-        await tx.request.update({
-          where: { id: request.id },
-          data: { state: 'PUBLISHED' },
-        });
-      }
 
       await enqueueOutbox(tx, {
         eventType: 'offer.withdrawn',
@@ -316,15 +223,6 @@ export class OfferService {
         },
         tx,
       );
-
-      // If no other PENDING offers remain, revert request to PUBLISHED
-      const remainingPending = await this.repo.countPendingOffersOnRequest(request.id, tx);
-      if (remainingPending === 0 && request.state === 'OFFERS_RECEIVED') {
-        await tx.request.update({
-          where: { id: request.id },
-          data: { state: 'PUBLISHED' },
-        });
-      }
 
       return updated;
     });
@@ -506,12 +404,6 @@ export class OfferService {
         // Check if last pending offer
         const remaining = await this.repo.countPendingOffersOnRequest(offer.requestId, tx);
         const req = offer.request;
-        if (remaining === 0 && req.state === 'OFFERS_RECEIVED') {
-          await tx.request.update({
-            where: { id: req.id },
-            data: { state: 'PUBLISHED' },
-          });
-        }
 
         await enqueueOutbox(tx, {
           eventType: 'offer.expired',

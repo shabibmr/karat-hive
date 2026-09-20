@@ -27,9 +27,13 @@ OfferForVendor _testOffer({
     id: id,
     requestId: 'req-offer-1',
     state: state,
-    terms: OfferTerms(offeredPrice: offeredPrice, validityHours: 24),
-    submittedAt: DateTime.utc(2026, 9, 7, 12, 0),
-    expiresAt: DateTime.utc(2026, 9, 8, 12, 0),
+    terms: OfferTerms(
+      offeredPrice: offeredPrice,
+      weightGrams: '10.00',
+      purityKarat: '22K',
+    ),
+    submittedAt: DateTime.now().toUtc(),
+    expiresAt: DateTime.now().toUtc().add(const Duration(hours: 24)),
     revisionCount: revisionCount,
   );
 }
@@ -112,7 +116,7 @@ Widget _host({
     overrides: [
       offersVendorRepositoryProvider.overrideWithValue(repo),
       serverClockProvider.overrideWithValue(
-        ServerClock(nowProvider: () => now ?? DateTime.utc(2026, 9, 7, 12)),
+        ServerClock(nowProvider: () => now ?? DateTime.now().toUtc()),
       ),
     ],
     child: MaterialApp(
@@ -166,28 +170,7 @@ void main() {
       expect(find.byKey(const Key('revise-offer-button')), findsNothing);
     });
 
-    testWidgets(
-        'empty revise form when revisions exhausted (empty)',
-        (tester) async {
-      await setTallSurface(tester);
-      final repo = FakeOffersVendorRepository(
-        offer: _testOffer(revisionCount: kMaxOfferRevisions),
-      );
-
-      await tester.pumpWidget(_host(repo: repo));
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('revise-offer-screen')), findsOneWidget);
-      expect(find.byKey(const Key('offer-terms-readonly')), findsOneWidget);
-      expect(find.textContaining('AED'), findsWidgets);
-      expect(find.textContaining('5,200'), findsOneWidget);
-      expect(find.text('0 revisions remaining'), findsOneWidget);
-      expect(find.byType(OfferTermsForm), findsNothing);
-      expect(find.byKey(const Key('revise-offer-button')), findsNothing);
-      expect(find.byKey(const Key('withdraw-offer-button')), findsOneWidget);
-    });
-
-    testWidgets('renders revise form with current terms (data)',
+    testWidgets('renders read-only terms, ineligibility notice, and withdraw button',
         (tester) async {
       await setTallSurface(tester);
       final repo = FakeOffersVendorRepository(offer: _testOffer());
@@ -198,64 +181,15 @@ void main() {
       expect(find.byKey(const Key('revise-offer-screen')), findsOneWidget);
       expect(find.byKey(const Key('offer-terms-readonly')), findsOneWidget);
       expect(find.textContaining('5,200'), findsWidgets);
-      expect(find.text('3 revisions remaining'), findsOneWidget);
-      expect(find.byType(OfferTermsForm), findsOneWidget);
-      expect(find.byKey(const Key('offer-price-field')), findsOneWidget);
-      expect(find.byKey(const Key('revise-offer-button')), findsOneWidget);
-      expect(find.byKey(const Key('withdraw-offer-button')), findsOneWidget);
-      // Revise path does not re-offer media upload (showMediaHint: false).
-      expect(find.byKey(const Key('offer-image-add')), findsNothing);
-    });
-
-    testWidgets('revise with cleared price shows inline validation error',
-        (tester) async {
-      await setTallSurface(tester);
-      final repo = FakeOffersVendorRepository(offer: _testOffer());
-
-      await tester.pumpWidget(_host(repo: repo));
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byKey(const Key('offer-price-field')), '');
-      await tester.pump();
-
-      await tester.tap(find.byKey(const Key('revise-offer-button')));
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('inline-error')), findsOneWidget);
-      expect(find.text('Enter a valid offered price.'), findsOneWidget);
-      expect(repo.reviseCalls, 0);
-    });
-
-    testWidgets('revise API failure shows inline error on ready form',
-        (tester) async {
-      await setTallSurface(tester);
-      final repo = FakeOffersVendorRepository(
-        offer: _testOffer(),
-        reviseError: const ConflictFailure(
-          code: 'OFFER_REVISION_LIMIT',
-          message: 'No revisions remaining for this Offer.',
-        ),
-      );
-
-      await tester.pumpWidget(_host(repo: repo));
-      await tester.pumpAndSettle();
-
-      await tester.enterText(
-        find.byKey(const Key('offer-price-field')),
-        '5300',
-      );
-      await tester.pump();
-
-      await tester.tap(find.byKey(const Key('revise-offer-button')));
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('inline-error')), findsOneWidget);
       expect(
-        find.text('No revisions remaining for this Offer.'),
+        find.text(
+          'Offers cannot be updated once sent. You may withdraw this offer if you wish to submit a new one.',
+        ),
         findsOneWidget,
       );
-      expect(find.byKey(const Key('revise-offer-button')), findsOneWidget);
-      expect(repo.reviseCalls, 1);
+      expect(find.byType(OfferTermsForm), findsNothing);
+      expect(find.byKey(const Key('revise-offer-button')), findsNothing);
+      expect(find.byKey(const Key('withdraw-offer-button')), findsOneWidget);
     });
   });
 }

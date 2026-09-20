@@ -32,7 +32,7 @@ class ReviseOfferScreen extends ConsumerWidget {
       isDirty: state is ReviseOfferReady && state.touched && !state.submitting,
       child: Scaffold(
         key: const Key('revise-offer-screen'),
-        appBar: AppBar(title: Text(l10n?.reviseOfferTitle ?? 'Revise Offer')),
+        appBar: AppBar(title: Text(l10n?.offerCurrentTerms ?? 'Offer Details')),
         body: switch (state) {
           ReviseOfferLoading() || ReviseOfferSucceeded() => const Center(
             child: CircularProgressIndicator(),
@@ -80,77 +80,27 @@ class ReviseOfferScreen extends ConsumerWidget {
                   expiresAt: offer.expiresAt,
                 ),
                 SizedBox(height: tokens.space.md),
-                if (offer.canReviseAt(clock.now())) ...[
-                  Builder(
-                    builder: (context) {
-                      final remaining = offer.revisionTimeRemaining(
-                        clock.now(),
-                      );
-                      final mins = remaining.inMinutes;
-                      final secs = remaining.inSeconds % 60;
-                      return Text(
-                        '1 revision allowed before customer views (closes in ${mins}m ${secs}s)',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: tokens.gold,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      );
-                    },
+                Container(
+                  padding: EdgeInsets.all(tokens.space.md),
+                  decoration: BoxDecoration(
+                    color: tokens.ink.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(tokens.radius.md),
                   ),
-                  SizedBox(height: tokens.space.lg),
-                  Text(
-                    l10n?.offerNewTerms ?? 'New terms',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  SizedBox(height: tokens.space.sm),
-                  OfferTermsForm(
-                    draft: draft,
-                    validityOptions: config.offerValidityHours,
-                    requestExpiresAt: offer.requestSummary?.expiresAt,
-                    now: clock.now(),
-                    showMediaHint: false,
-                    onChanged: () => ref
-                        .read(reviseOfferControllerProvider(offerId).notifier)
-                        .touch(),
-                  ),
-                ] else ...[
-                  Container(
-                    padding: EdgeInsets.all(tokens.space.md),
-                    decoration: BoxDecoration(
-                      color: tokens.ink.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(tokens.radius.md),
-                    ),
-                    child: Text(
-                      _ineligibilityReason(offer),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: tokens.ink.withValues(alpha: 0.7),
-                      ),
+                  child: Text(
+                    'Offers cannot be updated once sent. You may withdraw this offer if you wish to submit a new one.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: tokens.ink.withValues(alpha: 0.7),
                     ),
                   ),
-                ],
+                ),
                 if (failure != null) ...[
                   SizedBox(height: tokens.space.md),
                   KhInlineError(
                     message: failure.message ?? failure.code ?? 'Error',
                   ),
                 ],
-                SizedBox(height: tokens.space.lg),
-                if (offer.canReviseAt(clock.now()))
-                  KhButton(
-                    key: const Key('revise-offer-button'),
-                    label: submitting
-                        ? (l10n?.commonSubmitting ?? 'Submitting…')
-                        : (l10n?.reviseOfferAction ?? 'Save revision'),
-                    onPressed: submitting || withdrawing
-                        ? null
-                        : () => ref
-                              .read(
-                                reviseOfferControllerProvider(offerId).notifier,
-                              )
-                              .revise(),
-                  ),
                 if (offer.canWithdraw) ...[
-                  SizedBox(height: tokens.space.md),
+                  SizedBox(height: tokens.space.lg),
                   KhButton(
                     key: const Key('withdraw-offer-button'),
                     label: withdrawing
@@ -162,7 +112,7 @@ class ReviseOfferScreen extends ConsumerWidget {
                             final confirmed = await showKhConfirmDialog(
                               context,
                               title:
-                                  l10n?.withdrawOfferConfirmTitle ??
+                                   l10n?.withdrawOfferConfirmTitle ??
                                   'Withdraw this Offer?',
                               body:
                                   l10n?.withdrawOfferConfirmBody ??
@@ -188,15 +138,5 @@ class ReviseOfferScreen extends ConsumerWidget {
         },
       ),
     );
-  }
-
-  String _ineligibilityReason(OfferForVendor offer) {
-    if (offer.isSeenByCustomer) {
-      return 'The customer has already viewed this offer. Revisions are no longer permitted.';
-    }
-    if (offer.revisionCount >= kMaxOfferRevisions) {
-      return 'Maximum revision limit reached (1 revision max).';
-    }
-    return 'Revision window has expired (allowed within 5 minutes of response only).';
   }
 }

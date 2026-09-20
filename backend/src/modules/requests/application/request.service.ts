@@ -211,7 +211,7 @@ export class RequestService {
       ]);
     }
 
-    const isPublished = existing.state === 'PUBLISHED' || existing.state === 'OFFERS_RECEIVED';
+    const isPublished = existing.state === 'PUBLISHED';
 
     if (isPublished) {
       // BR-014: Structural attributes are immutable once published!
@@ -383,7 +383,7 @@ export class RequestService {
     }
 
     // Idempotent success if already published
-    if (existing.state === 'PUBLISHED' || existing.state === 'OFFERS_RECEIVED') {
+    if (existing.state === 'PUBLISHED') {
       return {
         data: presentRequestForCustomer(existing),
         matchCount: 0,
@@ -752,7 +752,7 @@ export class RequestService {
   async sweepExpiredRequests(now: Date = new Date()): Promise<number> {
     const expired = await this.prisma.request.findMany({
       where: {
-        state: { in: ['PUBLISHED', 'OFFERS_RECEIVED'] },
+        state: 'PUBLISHED',
         expiresAt: {
           not: null,
           lte: now,
@@ -799,7 +799,7 @@ export class RequestService {
     const sixHoursLater = new Date(now.getTime() + 6 * 60 * 60 * 1000);
     const warnings = await this.prisma.request.findMany({
       where: {
-        state: { in: ['PUBLISHED', 'OFFERS_RECEIVED'] },
+        state: 'PUBLISHED',
         expiresAt: {
           not: null,
           lte: sixHoursLater,

@@ -223,7 +223,7 @@ void main() {
       final client = createClient((opts) async {
         expect(opts.method, 'GET');
         expect(opts.path, '/v1/me/requests');
-        expect(opts.queryParameters['state'], 'PUBLISHED,OFFERS_RECEIVED');
+        expect(opts.queryParameters['state'], 'PUBLISHED');
         return jsonBody({
           'data': [
             customerRequestJson(
@@ -238,7 +238,7 @@ void main() {
       });
 
       final res = await KhApi(client).requests.listMine(
-            state: const ['PUBLISHED', 'OFFERS_RECEIVED'],
+            state: const ['PUBLISHED'],
           );
       expect(res.isOk, isTrue);
       final page = res.unwrap();

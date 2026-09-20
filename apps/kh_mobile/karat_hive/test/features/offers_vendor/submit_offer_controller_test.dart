@@ -49,7 +49,11 @@ OfferForVendor _testOffer({
     id: id,
     requestId: requestId,
     state: OfferState.pending,
-    terms: const OfferTerms(offeredPrice: '5200.00', validityHours: 24),
+    terms: const OfferTerms(
+      offeredPrice: '5200.00',
+      weightGrams: '15.00',
+      purityKarat: '22K',
+    ),
     submittedAt: DateTime.utc(2026, 9, 7, 12, 0),
     expiresAt: DateTime.utc(2026, 9, 8, 12, 0),
     revisionCount: 0,
@@ -193,22 +197,12 @@ void main() {
       expect(ready.request.reference, 'REQ-2026-0099');
       expect(ready.config.offerValidityHours, [12, 24, 48]);
       expect(ready.draft.offeredPrice, isEmpty);
-      expect(ready.draft.validityHours, 24);
+      expect(ready.draft.weightGrams, '15.00');
+      expect(ready.draft.purityKarat, Karat.k22);
       expect(ready.submitting, isFalse);
       expect(ready.failure, isNull);
       expect(repo.getRequestCalls, 1);
       expect(repo.getConfigCalls, 1);
-    });
-
-    test('defaults validityHours to first option when 24 is absent', () async {
-      final repo = FakeOffersVendorRepository(
-        config: _testConfig(offerValidityHours: const [12, 48]),
-      );
-      final container = containerWith(repo);
-
-      final state = await _waitUntilSettled(container, requestId);
-      expect(state, isA<SubmitOfferReady>());
-      expect((state as SubmitOfferReady).draft.validityHours, 12);
     });
 
     test('surfaces request load failure as SubmitOfferFailed (error)', () async {
@@ -262,6 +256,8 @@ void main() {
       final loaded = await _waitUntilSettled(container, requestId);
       final ready = loaded as SubmitOfferReady;
       ready.draft.offeredPrice = '5200.50';
+      ready.draft.weightGrams = '15.00';
+      ready.draft.mediaKeys.add('media/1');
       ready.draft.vendorNote = 'Ready in 2 days';
 
       await container
@@ -274,8 +270,9 @@ void main() {
       expect(repo.submitCalls, 1);
       expect(repo.lastSubmitRequestId, requestId);
       expect(repo.lastTerms!.offeredPrice, '5200.50');
+      expect(repo.lastTerms!.weightGrams, '15.00');
+      expect(repo.lastTerms!.purityKarat, '22K');
       expect(repo.lastTerms!.vendorNote, 'Ready in 2 days');
-      expect(repo.lastTerms!.validityHours, 24);
     });
 
     test('submit API failure returns to ready with inline failure', () async {
@@ -288,6 +285,7 @@ void main() {
       final container = containerWith(repo);
       final loaded = await _waitUntilSettled(container, requestId);
       (loaded as SubmitOfferReady).draft.offeredPrice = '5000';
+      loaded.draft.mediaKeys.add('media/1');
 
       await container
           .read(submitOfferControllerProvider(requestId).notifier)

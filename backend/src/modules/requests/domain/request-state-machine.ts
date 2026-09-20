@@ -9,13 +9,11 @@ export const TERMINAL_REQUEST_STATES: readonly RequestState[] = [
 
 export const LIVE_REQUEST_STATES: readonly RequestState[] = [
   'PUBLISHED',
-  'OFFERS_RECEIVED',
 ] as const;
 
 export const ALLOWED_TRANSITIONS: Readonly<Record<RequestState, readonly RequestState[]>> = {
   DRAFT: ['PUBLISHED', 'CANCELLED', 'REMOVED'],
-  PUBLISHED: ['OFFERS_RECEIVED', 'CANCELLED', 'EXPIRED', 'REMOVED'],
-  OFFERS_RECEIVED: ['ACCEPTED', 'CANCELLED', 'EXPIRED', 'REMOVED'],
+  PUBLISHED: ['ACCEPTED', 'CANCELLED', 'EXPIRED', 'REMOVED'],
   ACCEPTED: ['CLOSED', 'REMOVED'],
   CLOSED: [],
   EXPIRED: ['REMOVED'],

@@ -110,14 +110,21 @@ class SubmitOfferController extends AutoDisposeFamilyNotifier<SubmitOfferState, 
     }
 
     final config = configResult.valueOrNull!;
-    final options = config.offerValidityHours;
-    final defaultHours =
-        options.contains(24) ? 24 : (options.firstOrNull ?? 24);
+    final request = requestResult.valueOrNull!;
+    final reqPurity = request.purityKarat != null && request.purityKarat!.isNotEmpty
+        ? Karat.parse(request.purityKarat)
+        : Karat.k22;
+    final reqWeight = request.weightGrams != null
+        ? request.weightGrams!.toStringAsFixed(2)
+        : '';
 
     state = SubmitOfferReady(
-      request: requestResult.valueOrNull!,
+      request: request,
       config: config,
-      draft: OfferTermsDraft(validityHours: defaultHours),
+      draft: OfferTermsDraft(
+        purityKarat: reqPurity == Karat.unknown ? Karat.k22 : reqPurity,
+        weightGrams: reqWeight,
+      ),
     );
   }
 
@@ -172,6 +179,14 @@ class SubmitOfferController extends AutoDisposeFamilyNotifier<SubmitOfferState, 
     if (price == null || price <= 0) {
       state = current.copyWith(
         failure: const ValidationFailure(message: 'Enter a valid offered price.'),
+      );
+      return;
+    }
+
+    final weight = double.tryParse(current.draft.weightGrams);
+    if (weight == null || weight <= 0) {
+      state = current.copyWith(
+        failure: const ValidationFailure(message: 'Enter a valid gold weight.'),
       );
       return;
     }

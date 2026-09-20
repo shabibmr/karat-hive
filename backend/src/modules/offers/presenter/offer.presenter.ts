@@ -37,12 +37,13 @@ export type MaskedVendorDto = {
 
 export type OfferTermsDto = {
   offeredPrice: string;
+  weightGrams: string;
+  purityKarat: string;
   makingCharges?: string;
   ratePerGram?: string;
   deliveryTimeframe?: string;
   warrantyTerms?: string;
   vendorNote?: string;
-  validityHours: number;
 };
 
 export type OfferForCustomer = {
@@ -123,12 +124,13 @@ export type PrismaOfferWithDetails = Offer & {
 export function presentOfferTerms(offer: Offer): OfferTermsDto {
   return {
     offeredPrice: offer.offeredPrice.toString(),
+    weightGrams: offer.weightGrams.toString(),
+    purityKarat: offer.purityKarat,
     makingCharges: offer.makingCharges ? offer.makingCharges.toString() : undefined,
     ratePerGram: offer.ratePerGram ? offer.ratePerGram.toString() : undefined,
     deliveryTimeframe: offer.deliveryTimeframe ?? undefined,
     warrantyTerms: offer.warrantyTerms ?? undefined,
     vendorNote: offer.vendorNote ?? undefined,
-    validityHours: offer.validityHours,
   };
 }
 

@@ -36,7 +36,8 @@ export type AdminOfferListItem = {
   deliveryTimeframe: string | null;
   warrantyTerms: string | null;
   vendorNote: string | null;
-  validityHours: number;
+  weightGrams: number;
+  purityKarat: string;
   expiresAt: string;
   revisionCount: number;
   submittedAt: string;
@@ -137,7 +138,8 @@ export function presentAdminOfferListItem(row: OfferListRow): AdminOfferListItem
     deliveryTimeframe: row.deliveryTimeframe,
     warrantyTerms: row.warrantyTerms,
     vendorNote: row.vendorNote,
-    validityHours: row.validityHours,
+    weightGrams: Number(row.weightGrams),
+    purityKarat: row.purityKarat,
     expiresAt: row.expiresAt.toISOString(),
     revisionCount: row.revisionCount,
     submittedAt: row.submittedAt.toISOString(),

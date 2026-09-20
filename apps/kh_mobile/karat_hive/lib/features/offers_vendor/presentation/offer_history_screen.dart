@@ -554,6 +554,12 @@ class _TerminalOfferCard extends StatelessWidget {
     final price = double.tryParse(offer.terms.offeredPrice) ?? 0;
 
     final termsList = <String>[];
+    if (offer.terms.purityKarat.isNotEmpty) {
+      termsList.add(offer.terms.purityKarat);
+    }
+    if (offer.terms.weightGrams.isNotEmpty) {
+      termsList.add('${offer.terms.weightGrams}g');
+    }
     if (offer.terms.makingCharges != null &&
         offer.terms.makingCharges!.isNotEmpty) {
       termsList.add('Making: AED ${offer.terms.makingCharges}');
@@ -569,9 +575,6 @@ class _TerminalOfferCard extends StatelessWidget {
     if (offer.terms.warrantyTerms != null &&
         offer.terms.warrantyTerms!.isNotEmpty) {
       termsList.add('Warranty: ${offer.terms.warrantyTerms}');
-    }
-    if (termsList.isEmpty && offer.terms.validityHours > 0) {
-      termsList.add('${offer.terms.validityHours}h validity');
     }
     if (offer.terms.vendorNote != null &&
         offer.terms.vendorNote!.isNotEmpty) {

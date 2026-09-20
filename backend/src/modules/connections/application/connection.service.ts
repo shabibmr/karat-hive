@@ -95,7 +95,7 @@ export class ConnectionService {
         throw new ApiException(HttpStatus.CONFLICT, ErrorCode.OFFER_ALREADY_ACCEPTED);
       }
 
-      if (lockedRequest.state !== 'PUBLISHED' && lockedRequest.state !== 'OFFERS_RECEIVED') {
+      if (lockedRequest.state !== 'PUBLISHED') {
         throw new ApiException(HttpStatus.CONFLICT, ErrorCode.OFFER_NOT_OPEN);
       }
 

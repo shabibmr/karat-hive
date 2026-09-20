@@ -35,9 +35,10 @@ describe('ConnectionService', () => {
     offer: {
       id: 'offer-1',
       offeredPrice: new Decimal(2500),
+      weightGrams: new Decimal(10),
+      purityKarat: '22K',
       makingCharges: null,
       ratePerGram: null,
-      validityHours: 24,
       deliveryTimeframe: null,
       warrantyTerms: null,
       vendorNote: null,
@@ -118,7 +119,7 @@ describe('ConnectionService', () => {
           $queryRaw: vi.fn().mockResolvedValue([
             {
               id: 'req-1',
-              state: 'OFFERS_RECEIVED',
+              state: 'PUBLISHED',
               customer_profile_id: 'cust-1',
               expires_at: new Date('2026-09-09T12:00:00Z'),
             },
@@ -147,9 +148,10 @@ describe('ConnectionService', () => {
           requestId: 'req-1',
           state: 'ACCEPTED',
           offeredPrice: new Decimal(2500),
+          weightGrams: new Decimal(10),
+          purityKarat: '22K',
           makingCharges: null,
           ratePerGram: null,
-          validityHours: 24,
           submittedAt: mockNow,
           expiresAt: new Date('2026-09-08T12:00:00Z'),
           revisionCount: 0,
@@ -234,7 +236,7 @@ describe('ConnectionService', () => {
           $queryRaw: vi.fn().mockResolvedValue([
             {
               id: 'req-1',
-              state: 'OFFERS_RECEIVED',
+              state: 'PUBLISHED',
               customer_profile_id: 'cust-1',
               expires_at: new Date('2026-09-09T12:00:00Z'),
             },

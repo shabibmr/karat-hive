@@ -86,7 +86,6 @@ class _SubmitOfferScreenState extends ConsumerState<SubmitOfferScreen> {
                 SizedBox(height: tokens.space.lg),
                 OfferTermsForm(
                   draft: draft,
-                  validityOptions: config.offerValidityHours,
                   requestExpiresAt: request.expiresAt,
                   now: clock.now(),
                   onChanged: () => ref

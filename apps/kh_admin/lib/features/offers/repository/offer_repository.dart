@@ -151,6 +151,8 @@ class OfferRepository {
       'reference': raw['reference'],
       'state': raw['state'],
       'offeredPrice': toDouble(raw['offeredPrice']),
+      'weightGrams': toDoubleOrNull(raw['weightGrams']),
+      'purityKarat': raw['purityKarat']?.toString(),
       'makingCharges': toDoubleOrNull(raw['makingCharges']),
       'ratePerGram': toDoubleOrNull(raw['ratePerGram']),
       // Derived pricing fields are absent on the raw row; the model getters
@@ -161,7 +163,6 @@ class OfferRepository {
       'deliveryTimeframe': raw['deliveryTimeframe'],
       'warrantyTerms': raw['warrantyTerms'],
       'vendorNote': raw['vendorNote'],
-      'validityHours': raw['validityHours'],
       'expiresAt': raw['expiresAt'],
       'submittedAt': raw['submittedAt'] ?? raw['createdAt'],
       'decidedAt': raw['decidedAt'],

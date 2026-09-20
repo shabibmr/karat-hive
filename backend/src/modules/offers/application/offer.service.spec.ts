@@ -69,12 +69,13 @@ describe('OfferService', () => {
         vendorProfileId: 'vendor-1',
         state: 'PENDING',
         offeredPrice: new Decimal(terms.offeredPrice),
+        weightGrams: new Decimal(terms.weightGrams ?? 10),
+        purityKarat: terms.purityKarat ?? '22K',
         makingCharges: null,
         ratePerGram: null,
         deliveryTimeframe: null,
         warrantyTerms: null,
         vendorNote: terms.vendorNote ?? null,
-        validityHours: terms.validityHours,
         expiresAt,
         submittedAt: mockNow,
         revisionCount: 0,
@@ -117,7 +118,8 @@ describe('OfferService', () => {
     it('successfully creates an offer when all preconditions are met', async () => {
       const res = await service.submitOffer(vendorViewer, 'req-1', {
         offeredPrice: 3000,
-        validityHours: 24,
+        weightGrams: 10,
+        purityKarat: '22K',
       });
 
       expect(res.id).toBe('offer-1');
@@ -134,7 +136,8 @@ describe('OfferService', () => {
       await expect(
         service.submitOffer(vendorViewer, 'req-1', {
           offeredPrice: 3000,
-          validityHours: 24,
+          weightGrams: 10,
+          purityKarat: '22K',
         }),
       ).rejects.toThrow(
         expect.objectContaining({
@@ -153,7 +156,8 @@ describe('OfferService', () => {
       await expect(
         service.submitOffer(vendorViewer, 'req-1', {
           offeredPrice: 3000,
-          validityHours: 24,
+          weightGrams: 10,
+          purityKarat: '22K',
         }),
       ).rejects.toThrow(
         expect.objectContaining({
@@ -168,7 +172,8 @@ describe('OfferService', () => {
       await expect(
         service.submitOffer(vendorViewer, 'req-1', {
           offeredPrice: 3000,
-          validityHours: 24,
+          weightGrams: 10,
+          purityKarat: '22K',
         }),
       ).rejects.toThrow(
         expect.objectContaining({
@@ -185,7 +190,8 @@ describe('OfferService', () => {
       await expect(
         service.submitOffer(vendorViewer, 'req-1', {
           offeredPrice: 3000,
-          validityHours: 24,
+          weightGrams: 10,
+          purityKarat: '22K',
         }),
       ).rejects.toThrow(
         expect.objectContaining({
@@ -196,24 +202,16 @@ describe('OfferService', () => {
   });
 
   describe('reviseOffer', () => {
-    it('rejects if revision limit reached', async () => {
-      vi.mocked(repo.findOfferById).mockResolvedValueOnce({
-        id: 'offer-1',
-        vendorProfileId: 'vendor-1',
-        state: 'PENDING',
-        revisionCount: 3,
-        expiresAt: new Date('2026-09-08T12:00:00Z'),
-        offeredPrice: new Decimal(2000),
-      } as unknown as Awaited<ReturnType<typeof repo.findOfferById>>);
-
+    it('rejects with OFFER_REVISION_NOT_ALLOWED because revising is not permitted', async () => {
       await expect(
         service.reviseOffer(vendorViewer, 'offer-1', {
           offeredPrice: 1900,
-          validityHours: 24,
+          weightGrams: 10,
+          purityKarat: '22K',
         }),
       ).rejects.toThrow(
         expect.objectContaining({
-          errorCode: 'OFFER_REVISION_LIMIT',
+          errorCode: 'OFFER_REVISION_NOT_ALLOWED',
         }),
       );
     });
@@ -227,7 +225,8 @@ describe('OfferService', () => {
         vendorProfileId: 'vendor-1',
         state: 'PENDING',
         offeredPrice: new Decimal(2000),
-        validityHours: 24,
+        weightGrams: new Decimal(10),
+        purityKarat: '22K',
         submittedAt: mockNow,
         expiresAt: new Date('2026-09-08T12:00:00Z'),
         revisionCount: 0,
@@ -238,7 +237,8 @@ describe('OfferService', () => {
         requestId: 'req-1',
         state: 'WITHDRAWN',
         offeredPrice: new Decimal(2000),
-        validityHours: 24,
+        weightGrams: new Decimal(10),
+        purityKarat: '22K',
         submittedAt: mockNow,
         expiresAt: new Date('2026-09-08T12:00:00Z'),
         revisionCount: 0,
@@ -257,7 +257,8 @@ describe('OfferService', () => {
         requestId: 'req-1',
         state: 'PENDING',
         offeredPrice: new Decimal(2000),
-        validityHours: 24,
+        weightGrams: new Decimal(10),
+        purityKarat: '22K',
         submittedAt: mockNow,
         expiresAt: new Date('2026-09-08T12:00:00Z'),
         revisionCount: 0,
@@ -268,7 +269,8 @@ describe('OfferService', () => {
         requestId: 'req-1',
         state: 'REJECTED',
         offeredPrice: new Decimal(2000),
-        validityHours: 24,
+        weightGrams: new Decimal(10),
+        purityKarat: '22K',
         submittedAt: mockNow,
         expiresAt: new Date('2026-09-08T12:00:00Z'),
         revisionCount: 0,

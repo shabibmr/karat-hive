@@ -8,23 +8,31 @@ import {
 } from './offer-validator';
 
 describe('offer-validator', () => {
-  it('validates a valid submit offer input', () => {
+  it('validates a valid submit offer input with mandatory weight and purity', () => {
     const input = {
       offeredPrice: 1500,
-      validityHours: 24,
+      weightGrams: 10.5,
+      purityKarat: '22K',
       vendorNote: 'Authentic 22K gold piece',
     };
     const parsed = submitOfferSchema.parse(input);
     expect(parsed.offeredPrice).toBe(1500);
-    expect(parsed.validityHours).toBe(24);
+    expect(parsed.weightGrams).toBe(10.5);
+    expect(parsed.purityKarat).toBe('22K');
   });
 
-  it('rejects invalid validity hours', () => {
-    const input = {
+  it('rejects input when mandatory weight or purity is missing', () => {
+    const inputMissingWeight = {
       offeredPrice: 1500,
-      validityHours: 72,
+      purityKarat: '22K',
     };
-    expect(() => submitOfferSchema.parse(input)).toThrow();
+    expect(() => submitOfferSchema.parse(inputMissingWeight)).toThrow();
+
+    const inputMissingPurity = {
+      offeredPrice: 1500,
+      weightGrams: 10.5,
+    };
+    expect(() => submitOfferSchema.parse(inputMissingPurity)).toThrow();
   });
 
   it('detects contact details in vendor note', () => {
@@ -38,18 +46,9 @@ describe('offer-validator', () => {
     );
   });
 
-  it('clamps offer expiry to parent request expiry', () => {
-    const now = new Date('2026-09-07T12:00:00Z');
-    // Request expires in 10 hours
+  it('sets offer expiry directly to parent request expiry', () => {
     const requestExpiresAt = new Date('2026-09-07T22:00:00Z');
-
-    // Vendor asks for 24h validity -> must be clamped to 10h (requestExpiresAt)
-    const clamped = calculateClampedExpiry(now, 24, requestExpiresAt);
+    const clamped = calculateClampedExpiry(requestExpiresAt);
     expect(clamped.toISOString()).toBe(requestExpiresAt.toISOString());
-
-    // Vendor asks for 12h validity on a request with 48h left -> 12h from now
-    const farRequestExpiry = new Date('2026-09-09T12:00:00Z');
-    const nominal = calculateClampedExpiry(now, 12, farRequestExpiry);
-    expect(nominal.toISOString()).toBe(new Date('2026-09-08T00:00:00Z').toISOString());
   });
 });

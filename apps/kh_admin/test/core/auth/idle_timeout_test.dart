@@ -28,6 +28,12 @@ class _MockSessionController extends StateNotifier<SessionState>
   Future<void> loginWithGoogle() async {}
 
   @override
+  Future<void> loginWithGoogleIdToken(String idToken) async {}
+
+  @override
+  Future<void> onFirebaseReady(dynamic authService) async {}
+
+  @override
   Future<void> logout({bool broadcast = true}) async {
     logoutCalled = true;
     logoutCallCount++;

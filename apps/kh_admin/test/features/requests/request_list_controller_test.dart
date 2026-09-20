@@ -32,7 +32,7 @@ class _MockRequestRepository extends RequestRepository {
       reference: 'KH-REQ-1002',
       requestType: RequestType.sellOldGold,
       direction: Direction.sell,
-      state: RequestState.offersReceived,
+      state: RequestState.published,
       customerName: 'Omar Farouk',
       offerCount: 3,
     ),

@@ -160,12 +160,16 @@ const MESSAGES: Record<ErrorCode, Record<UiLanguage, string>> = {
     ar: 'هذا الطلب لا يقبل العروض حالياً.',
   },
   OFFER_ALREADY_PENDING: {
-    en: 'You already have a pending offer on this request. Revise your existing offer instead.',
-    ar: 'لديك بالفعل عرض معلق على هذا الطلب. يرجى تعديل عرضك الحالي بدلاً من ذلك.',
+    en: 'You already have a pending offer on this request.',
+    ar: 'لديك بالفعل عرض معلق على هذا الطلب.',
   },
   OFFER_REVISION_LIMIT: {
     en: 'Maximum number of revisions reached for this offer.',
     ar: 'تم الوصول إلى الحد الأقصى لتعديل هذا العرض.',
+  },
+  OFFER_REVISION_NOT_ALLOWED: {
+    en: 'Offers cannot be revised once submitted.',
+    ar: 'لا يمكن تعديل العروض بعد تقديمها.',
   },
   OFFER_NOT_PENDING: {
     en: 'This offer is no longer pending.',

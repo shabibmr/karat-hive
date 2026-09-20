@@ -60,7 +60,7 @@ export class AdminRepository {
       }),
       this.prisma.request.count({
         where: {
-          state: { in: ['PUBLISHED', 'OFFERS_RECEIVED'] },
+          state: 'PUBLISHED',
           ...(dateFilter ? { createdAt: dateFilter } : {}),
         },
       }),

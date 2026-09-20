@@ -84,7 +84,6 @@ const _$DirectionEnumMap = {Direction.buy: 'BUY', Direction.sell: 'SELL'};
 const _$RequestStateEnumMap = {
   RequestState.draft: 'DRAFT',
   RequestState.published: 'PUBLISHED',
-  RequestState.offersReceived: 'OFFERS_RECEIVED',
   RequestState.accepted: 'ACCEPTED',
   RequestState.closed: 'CLOSED',
   RequestState.expired: 'EXPIRED',

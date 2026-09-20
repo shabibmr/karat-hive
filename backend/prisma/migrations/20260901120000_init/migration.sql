@@ -29,7 +29,7 @@ CREATE TYPE "RequestType" AS ENUM ('FIND_ORNAMENT', 'SELL_OLD_GOLD', 'GOLD_COIN'
 CREATE TYPE "Direction" AS ENUM ('BUY', 'SELL');
 
 -- CreateEnum
-CREATE TYPE "RequestState" AS ENUM ('DRAFT', 'PUBLISHED', 'OFFERS_RECEIVED', 'ACCEPTED', 'CLOSED', 'EXPIRED', 'CANCELLED', 'REMOVED');
+CREATE TYPE "RequestState" AS ENUM ('DRAFT', 'PUBLISHED', 'ACCEPTED', 'CLOSED', 'EXPIRED', 'CANCELLED', 'REMOVED');
 
 -- CreateEnum
 CREATE TYPE "OfferState" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'EXPIRED', 'WITHDRAWN', 'WITHDRAWN_BY_SYSTEM');
@@ -1184,7 +1184,7 @@ CREATE INDEX IF NOT EXISTS offer_pending_expires_at
 
 CREATE INDEX IF NOT EXISTS request_live_expires_at
   ON request (expires_at)
-  WHERE state IN ('PUBLISHED', 'OFFERS_RECEIVED');
+  WHERE state = 'PUBLISHED';
 
 -- Outbox drain: claim PENDING rows by available_at (Architecture §11.1).
 CREATE INDEX IF NOT EXISTS outbox_event_claim

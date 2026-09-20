@@ -73,7 +73,6 @@ enum Direction {
 enum RequestState {
   DRAFT
   PUBLISHED
-  OFFERS_RECEIVED
   ACCEPTED
   CLOSED
   EXPIRED
@@ -744,9 +743,8 @@ model Offer {
   deliveryTimeframe String?        @map("delivery_timeframe") @db.VarChar(100)
   warrantyTerms     String?        @map("warranty_terms")
   vendorNote        String?        @map("vendor_note")
-  /// AD-API-07: allowed 12 | 24 | 48 (CHECK in prisma/sql/partial-indexes.sql).
-  /// SRS §6.2 lists 24/48/72/168 — treated as stale. See Physical-Data-Model.md.
-  validityHours     Int            @map("validity_hours")
+  weightGrams       Decimal        @map("weight_grams") @db.Decimal(10, 2)
+  purityKarat       Karat          @map("purity_karat")
   expiresAt         DateTime       @map("expires_at") @db.Timestamptz(6)
   /// offer-expiry-warning job (FR-VEN-013 AC4). Set once when the T-6h warning fires.
   expiryWarnedAt    DateTime?      @map("expiry_warned_at") @db.Timestamptz(6)

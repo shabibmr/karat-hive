@@ -137,32 +137,20 @@ describe('CP3-A08 Vendor Offers Integration', () => {
       url: `/v1/requests/${requestId}/offers`,
       token,
       headers: idemHeaders(),
-      body: { offeredPrice: '5000.00', validityHours: 24 },
+      body: { offeredPrice: '5000.00', weightGrams: '10.00', purityKarat: '22K' },
     });
     expect(submit.status).toBe(201);
     const offerId = offered(submit).id as string;
 
-    for (let i = 1; i <= 3; i++) {
-      const revise = await inject(ctx.app, {
-        method: 'POST',
-        url: `/v1/offers/${offerId}/revise`,
-        token,
-        headers: idemHeaders(),
-        body: { offeredPrice: `${5000 + i}.00`, validityHours: 12 },
-      });
-      expect(revise.status).toBe(200);
-      expect(offered(revise).revisionCount).toBe(i);
-    }
-
-    const fourth = await inject(ctx.app, {
+    const revise = await inject(ctx.app, {
       method: 'POST',
       url: `/v1/offers/${offerId}/revise`,
       token,
       headers: idemHeaders(),
-      body: { offeredPrice: '6000.00', validityHours: 12 },
+      body: { offeredPrice: '5100.00', weightGrams: '10.00', purityKarat: '22K' },
     });
-    expect(fourth.status).toBe(409);
-    expect(fourth.json.error?.code).toBe('OFFER_REVISION_LIMIT');
+    expect(revise.status).toBe(403);
+    expect(revise.json.error?.code).toBe('OFFER_REVISION_NOT_ALLOWED');
   });
 
   it('rejects contact details in vendor note', async () => {

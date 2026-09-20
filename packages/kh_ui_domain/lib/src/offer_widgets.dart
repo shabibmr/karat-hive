@@ -6,6 +6,7 @@ import 'package:kh_l10n/kh_l10n.dart';
 import 'expiry_countdown.dart';
 import 'masked_party_label.dart';
 import 'money_display.dart';
+import 'purity_picker.dart';
 
 KhStatusTone offerStateTone(OfferState state) => switch (state) {
       OfferState.pending => KhStatusTone.accent,
@@ -303,7 +304,7 @@ class OfferTermsDraft {
   OfferTermsDraft({
     this.offeredPrice = '',
     this.weightGrams = '',
-    this.validityHours = 24,
+    this.purityKarat = Karat.k22,
     this.makingCharges = '',
     this.ratePerGram = '',
     this.deliveryTimeframe = '',
@@ -314,7 +315,7 @@ class OfferTermsDraft {
 
   String offeredPrice;
   String weightGrams;
-  int validityHours;
+  Karat purityKarat;
   String makingCharges;
   String ratePerGram;
   String deliveryTimeframe;
@@ -324,8 +325,8 @@ class OfferTermsDraft {
 
   OfferTermsInput toInput() => OfferTermsInput(
         offeredPrice: offeredPrice.trim(),
-        validityHours: validityHours,
-        weightGrams: weightGrams.trim().isEmpty ? null : weightGrams.trim(),
+        weightGrams: weightGrams.trim(),
+        purityKarat: purityKarat == Karat.unknown ? '22K' : purityKarat.wire,
         makingCharges: makingCharges.trim().isEmpty ? null : makingCharges.trim(),
         ratePerGram: ratePerGram.trim().isEmpty ? null : ratePerGram.trim(),
         deliveryTimeframe:
@@ -338,8 +339,8 @@ class OfferTermsDraft {
 
   factory OfferTermsDraft.fromTerms(OfferTerms terms) => OfferTermsDraft(
         offeredPrice: terms.offeredPrice,
-        weightGrams: terms.weightGrams ?? '',
-        validityHours: terms.validityHours == 0 ? 24 : terms.validityHours,
+        weightGrams: terms.weightGrams,
+        purityKarat: Karat.parse(terms.purityKarat),
         makingCharges: terms.makingCharges ?? '',
         ratePerGram: terms.ratePerGram ?? '',
         deliveryTimeframe: terms.deliveryTimeframe ?? '',
@@ -349,101 +350,23 @@ class OfferTermsDraft {
       );
 }
 
-/// SH-OFF-03 — validity picker from platform-config (never hard-coded).
-class OfferValidityPicker extends StatelessWidget {
-  const OfferValidityPicker({
-    super.key,
-    required this.options,
-    required this.value,
-    required this.onChanged,
-    this.requestExpiresAt,
-    this.now,
-    this.label,
-  });
-
-  final List<int> options;
-  final int value;
-  final ValueChanged<int> onChanged;
-  final DateTime? requestExpiresAt;
-  final DateTime? now;
-  final String? label;
-
-  List<int> get _allowed {
-    final clock = now ?? DateTime.now().toUtc();
-    if (requestExpiresAt == null) return options;
-    final remainingHours =
-        requestExpiresAt!.toUtc().difference(clock).inMinutes / 60.0;
-    final filtered = options.where((h) => h <= remainingHours + 0.01).toList();
-    return filtered.isEmpty ? options : filtered;
-  }
-
-  DateTime? absoluteExpiryFor(int hours) {
-    final clock = now ?? DateTime.now().toUtc();
-    final nominal = clock.add(Duration(hours: hours));
-    final req = requestExpiresAt?.toUtc();
-    if (req == null) return nominal;
-    return nominal.isAfter(req) ? req : nominal;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    final l10n = AppLocalizations.of(context);
-    final allowed = _allowed;
-    final selected = allowed.contains(value) ? value : allowed.first;
-    final absolute = absoluteExpiryFor(selected);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        KhSelectField<int>(
-          label: label ?? l10n?.offerValidityLabel ?? 'Validity',
-          value: selected,
-          options: [
-            for (final h in allowed)
-              KhSelectOption(
-                value: h,
-                label: l10n?.offerValidityHours(h) ?? '$h hours',
-              ),
-          ],
-          onChanged: onChanged,
-        ),
-        if (absolute != null) ...[
-          SizedBox(height: tokens.space.xs),
-          Text(
-            l10n?.offerAbsoluteExpiry(absolute.toLocal().toString()) ??
-                'Expires at ${absolute.toLocal()}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: tokens.ink.withValues(alpha: 0.7),
-                ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
 /// SH-OFF-02 — Offer terms form fields.
 class OfferTermsForm extends StatelessWidget {
   const OfferTermsForm({
     super.key,
     required this.draft,
-    this.validityOptions = const [24],
     required this.onChanged,
     this.requestExpiresAt,
     this.now,
     this.showMediaHint = true,
-    this.showValidityPicker = false,
     this.mediaSlot,
   });
 
   final OfferTermsDraft draft;
-  final List<int> validityOptions;
   final VoidCallback onChanged;
   final DateTime? requestExpiresAt;
   final DateTime? now;
   final bool showMediaHint;
-  final bool showValidityPicker;
   final Widget? mediaSlot;
 
   @override
@@ -468,7 +391,7 @@ class OfferTermsForm extends StatelessWidget {
         SizedBox(height: tokens.space.md),
         KhNumericField(
           key: const Key('offer-weight-field'),
-          label: 'Gold weight (grams, optional)',
+          label: 'Gold weight (grams)',
           unit: 'g',
           initialValue: draft.weightGrams,
           min: 0.01,
@@ -477,19 +400,15 @@ class OfferTermsForm extends StatelessWidget {
             onChanged();
           },
         ),
-        if (showValidityPicker) ...[
-          SizedBox(height: tokens.space.md),
-          OfferValidityPicker(
-            options: validityOptions,
-            value: draft.validityHours,
-            requestExpiresAt: requestExpiresAt,
-            now: now,
-            onChanged: (h) {
-              draft.validityHours = h;
-              onChanged();
-            },
-          ),
-        ],
+        SizedBox(height: tokens.space.md),
+        PurityPicker(
+          label: l10n?.purity ?? 'Purity',
+          value: draft.purityKarat == Karat.unknown ? Karat.k22 : draft.purityKarat,
+          onChanged: (k) {
+            draft.purityKarat = k;
+            onChanged();
+          },
+        ),
         SizedBox(height: tokens.space.md),
         KhNumericField(
           label: l10n?.offerMakingChargesLabel ?? 'Making charges (optional)',
@@ -608,12 +527,12 @@ class OfferTermsReadOnly extends StatelessWidget {
           children: [
             MoneyDisplay(amount: price, highlight: true),
             SizedBox(height: tokens.space.sm),
-            row(
-              l10n?.offerValidityLabel ?? 'Validity',
-              l10n?.offerValidityHours(terms.validityHours) ??
-                  '${terms.validityHours} hours',
-            ),
-            if (terms.weightGrams != null && terms.weightGrams!.isNotEmpty)
+            if (terms.purityKarat.isNotEmpty)
+              row(
+                l10n?.purity ?? 'Purity',
+                terms.purityKarat,
+              ),
+            if (terms.weightGrams.isNotEmpty)
               row(
                 'Gold weight',
                 '${terms.weightGrams}g',

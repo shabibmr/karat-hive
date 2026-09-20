@@ -65,13 +65,13 @@ Map<String, dynamic> _normalizeOfferTermsJson(Map<String, dynamic> json) {
   final nestedMedia = json['media'] as List?;
   return {
     'offeredPrice': json['offeredPrice']?.toString() ?? '',
-    'weightGrams': json['weightGrams']?.toString(),
+    'weightGrams': json['weightGrams']?.toString() ?? '',
+    'purityKarat': json['purityKarat']?.toString() ?? '',
     'makingCharges': json['makingCharges']?.toString(),
     'ratePerGram': json['ratePerGram']?.toString(),
     'deliveryTimeframe': json['deliveryTimeframe'] as String?,
     'warrantyTerms': json['warrantyTerms'] as String?,
     'vendorNote': json['vendorNote'] as String?,
-    'validityHours': (json['validityHours'] as num?)?.toInt() ?? 24,
     'media': (nestedMedia ?? const [])
         .map((e) => e is Map<String, dynamic> ? e : Map<String, dynamic>.from(e as Map))
         .toList(growable: false),
@@ -82,8 +82,8 @@ Map<String, dynamic> _normalizeOfferTermsJson(Map<String, dynamic> json) {
 abstract class OfferTerms with _$OfferTerms {
   const factory OfferTerms({
     required String offeredPrice,
-    @Default(24) int validityHours,
-    String? weightGrams,
+    required String weightGrams,
+    required String purityKarat,
     String? makingCharges,
     String? ratePerGram,
     String? deliveryTimeframe,
@@ -215,7 +215,7 @@ abstract class VendorRatingDetail with _$VendorRatingDetail {
 }
 
 /// Server-enforced max revisions per Offer (`OFFER_REVISION_LIMIT` / `FR-VEN-014`).
-const int kMaxOfferRevisions = 3;
+const int kMaxOfferRevisions = 0;
 
 enum OfferDeclineReason {
   priceTooHigh,
@@ -370,27 +370,15 @@ abstract class OfferForVendor with _$OfferForVendor {
   factory OfferForVendor.fromJson(Map<String, dynamic> json) =>
       _$OfferForVendorFromJson(_normalizeOfferForVendorJson(json));
 
-  int get revisionsRemaining =>
-      (kMaxOfferRevisions - revisionCount).clamp(0, kMaxOfferRevisions);
+  int get revisionsRemaining => 0;
 
   bool get isSeenByCustomer => viewedByCustomerAt != null;
 
-  bool canReviseAt(DateTime now) {
-    if (state != OfferState.pending) return false;
-    if (revisionCount >= kMaxOfferRevisions) return false;
-    if (isSeenByCustomer) return false;
-    final diff = now.toUtc().difference(submittedAt.toUtc());
-    if (diff.inMinutes >= 5 || diff.isNegative) return false;
-    return true;
-  }
+  bool canReviseAt(DateTime now) => false;
 
-  bool get canRevise => canReviseAt(DateTime.now().toUtc());
+  bool get canRevise => false;
 
-  Duration revisionTimeRemaining(DateTime now) {
-    final deadline = submittedAt.toUtc().add(const Duration(minutes: 5));
-    final diff = deadline.difference(now.toUtc());
-    return diff.isNegative ? Duration.zero : diff;
-  }
+  Duration revisionTimeRemaining(DateTime now) => Duration.zero;
 
   bool get canWithdraw => state == OfferState.pending;
 }
@@ -402,8 +390,8 @@ abstract class OfferTermsInput with _$OfferTermsInput {
 
   const factory OfferTermsInput({
     required String offeredPrice,
-    @Default(24) int validityHours,
-    String? weightGrams,
+    required String weightGrams,
+    required String purityKarat,
     String? makingCharges,
     String? ratePerGram,
     String? deliveryTimeframe,
@@ -414,9 +402,8 @@ abstract class OfferTermsInput with _$OfferTermsInput {
 
   Map<String, dynamic> toJson({bool includeMediaKeys = true}) => {
         'offeredPrice': offeredPrice,
-        'validityHours': validityHours,
-        if (weightGrams != null && weightGrams!.isNotEmpty)
-          'weightGrams': weightGrams,
+        'weightGrams': weightGrams,
+        'purityKarat': purityKarat,
         if (makingCharges != null && makingCharges!.isNotEmpty)
           'makingCharges': makingCharges,
         if (ratePerGram != null && ratePerGram!.isNotEmpty)

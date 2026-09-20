@@ -69,7 +69,11 @@ OfferForVendor _testOffer({String requestId = 'req-offer-1'}) {
     id: 'off-1',
     requestId: requestId,
     state: OfferState.pending,
-    terms: const OfferTerms(offeredPrice: '5200.00', validityHours: 24),
+    terms: const OfferTerms(
+      offeredPrice: '5200.00',
+      weightGrams: '10.00',
+      purityKarat: '22K',
+    ),
     submittedAt: DateTime.utc(2026, 9, 7, 12, 0),
     expiresAt: DateTime.utc(2026, 9, 8, 12, 0),
     revisionCount: 0,

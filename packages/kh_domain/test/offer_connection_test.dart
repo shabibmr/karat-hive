@@ -24,8 +24,9 @@ void main() {
         'state': 'PENDING',
         'terms': {
           'offeredPrice': '12500.00',
+          'weightGrams': '10.00',
+          'purityKarat': '22K',
           'makingCharges': '200.00',
-          'validityHours': 24,
           'vendorNote': 'Hallmarked 22K',
         },
         'vendor': {
@@ -41,7 +42,8 @@ void main() {
       expect(offer.id, 'off-1');
       expect(offer.state, OfferState.pending);
       expect(offer.terms.offeredPrice, '12500.00');
-      expect(offer.terms.validityHours, 24);
+      expect(offer.terms.weightGrams, '10.00');
+      expect(offer.terms.purityKarat, '22K');
       expect(offer.vendor, isA<MaskedParty>());
       expect(offer.vendor.pseudonym, 'Vendor · Deira');
       expect(offer.vendor.role, PartyRole.vendor);
@@ -66,7 +68,8 @@ void main() {
         'state': 'PENDING',
         'terms': {
           'offeredPrice': '9800.00',
-          'validityHours': 12,
+          'weightGrams': '10.00',
+          'purityKarat': '22K',
           'makingCharges': '150.00',
         },
         'media': [
@@ -91,8 +94,8 @@ void main() {
       expect(offer.state, OfferState.pending);
       expect(offer.terms.offeredPrice, '9800.00');
       expect(offer.terms.media, hasLength(1));
-      expect(offer.revisionsRemaining, 2);
-      expect(offer.canRevise, isTrue);
+      expect(offer.revisionsRemaining, 0);
+      expect(offer.canRevise, isFalse);
       expect(offer.requestSummary?.customerLabel, 'Customer · Deira');
       expect(offer.requestSummary?.categoryName, 'Bangles');
       expect(offer.awardedElsewhere, isFalse);
@@ -224,8 +227,9 @@ void main() {
         'offer': {
           'id': 'off-1',
           'offeredPrice': '12500.00',
+          'weightGrams': '10.00',
+          'purityKarat': '22K',
           'makingCharges': '200.00',
-          'validityHours': 24,
         },
       });
       expect(conn.state, ConnectionState.active);

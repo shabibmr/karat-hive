@@ -4,12 +4,10 @@ import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import { scanForContactDetails } from '../../requests/domain/contact-scanner';
 
-export const VALID_VALIDITY_HOURS = [12, 24, 48] as const;
-export type ValidityHours = (typeof VALID_VALIDITY_HOURS)[number];
-
 export const submitOfferSchema = z.object({
   offeredPrice: z.union([z.number().positive(), z.string().regex(/^\d+(\.\d{1,2})?$/)]),
-  validityHours: z.union([z.literal(12), z.literal(24), z.literal(48)]).default(24),
+  weightGrams: z.union([z.number().positive(), z.string().regex(/^\d+(\.\d{1,2})?$/)]),
+  purityKarat: z.enum(['18K', '21K', '22K', '24K']),
   makingCharges: z.union([z.number().nonnegative(), z.string().regex(/^\d+(\.\d{1,2})?$/)]).optional(),
   ratePerGram: z.union([z.number().positive(), z.string().regex(/^\d+(\.\d{1,2})?$/)]).optional(),
   deliveryTimeframe: z.string().max(100).optional(),
@@ -22,7 +20,8 @@ export type SubmitOfferInput = z.infer<typeof submitOfferSchema>;
 
 export const reviseOfferSchema = z.object({
   offeredPrice: z.union([z.number().positive(), z.string().regex(/^\d+(\.\d{1,2})?$/)]),
-  validityHours: z.union([z.literal(12), z.literal(24), z.literal(48)]).default(24),
+  weightGrams: z.union([z.number().positive(), z.string().regex(/^\d+(\.\d{1,2})?$/)]),
+  purityKarat: z.enum(['18K', '21K', '22K', '24K']),
   makingCharges: z.union([z.number().nonnegative(), z.string().regex(/^\d+(\.\d{1,2})?$/)]).optional(),
   ratePerGram: z.union([z.number().positive(), z.string().regex(/^\d+(\.\d{1,2})?$/)]).optional(),
   deliveryTimeframe: z.string().max(100).optional(),
@@ -60,13 +59,10 @@ export function assertNoContactDetails(vendorNote?: string | null): void {
 }
 
 /**
- * Calculates offer expiry timestamp clamped to the parent request's expiry (FR-VEN-013).
+ * Calculates offer expiry timestamp: strictly aligned to parent request's expiry.
  */
 export function calculateClampedExpiry(
-  now: Date,
-  validityHours: number,
   requestExpiresAt: Date,
 ): Date {
-  const nominalExpiry = new Date(now.getTime() + validityHours * 60 * 60 * 1000);
-  return nominalExpiry > requestExpiresAt ? requestExpiresAt : nominalExpiry;
+  return requestExpiresAt;
 }

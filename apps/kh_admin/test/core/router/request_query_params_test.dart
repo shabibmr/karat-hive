@@ -28,7 +28,7 @@ void main() {
       query: 'KH-RQ-1',
       requestType: RequestType.goldCoin,
       direction: Direction.sell,
-      state: RequestState.offersReceived,
+      state: RequestState.accepted,
       categoryId: 'cat-9',
       regionId: 'reg-3',
       zeroOffersOnly: true,
@@ -40,7 +40,7 @@ void main() {
     expect(map['q'], 'KH-RQ-1');
     expect(map['requestType'], 'GOLD_COIN');
     expect(map['direction'], 'SELL');
-    expect(map['state'], 'OFFERS_RECEIVED');
+    expect(map['state'], 'ACCEPTED');
     expect(map['categoryId'], 'cat-9');
     expect(map['regionId'], 'reg-3');
     expect(map['zeroOffers'], 'true');

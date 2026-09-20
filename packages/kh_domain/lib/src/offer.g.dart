@@ -8,8 +8,8 @@ part of 'offer.dart';
 
 _OfferTerms _$OfferTermsFromJson(Map<String, dynamic> json) => _OfferTerms(
   offeredPrice: json['offeredPrice'] as String,
-  validityHours: (json['validityHours'] as num?)?.toInt() ?? 24,
-  weightGrams: json['weightGrams'] as String?,
+  weightGrams: json['weightGrams'] as String,
+  purityKarat: json['purityKarat'] as String,
   makingCharges: json['makingCharges'] as String?,
   ratePerGram: json['ratePerGram'] as String?,
   deliveryTimeframe: json['deliveryTimeframe'] as String?,
@@ -25,8 +25,8 @@ _OfferTerms _$OfferTermsFromJson(Map<String, dynamic> json) => _OfferTerms(
 Map<String, dynamic> _$OfferTermsToJson(_OfferTerms instance) =>
     <String, dynamic>{
       'offeredPrice': instance.offeredPrice,
-      'validityHours': instance.validityHours,
       'weightGrams': instance.weightGrams,
+      'purityKarat': instance.purityKarat,
       'makingCharges': instance.makingCharges,
       'ratePerGram': instance.ratePerGram,
       'deliveryTimeframe': instance.deliveryTimeframe,

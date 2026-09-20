@@ -50,7 +50,6 @@ enum Direction {
 enum RequestState {
   draft,
   published,
-  offersReceived,
   accepted,
   closed,
   expired,
@@ -61,7 +60,6 @@ enum RequestState {
   static RequestState parse(String? raw) => switch (raw) {
         'DRAFT' => draft,
         'PUBLISHED' => published,
-        'OFFERS_RECEIVED' => offersReceived,
         'ACCEPTED' => accepted,
         'CLOSED' => closed,
         'EXPIRED' => expired,
@@ -73,7 +71,6 @@ enum RequestState {
   String get wire => switch (this) {
         draft => 'DRAFT',
         published => 'PUBLISHED',
-        offersReceived => 'OFFERS_RECEIVED',
         accepted => 'ACCEPTED',
         closed => 'CLOSED',
         expired => 'EXPIRED',

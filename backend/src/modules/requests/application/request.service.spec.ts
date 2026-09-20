@@ -523,7 +523,7 @@ describe('RequestService', () => {
     it('carries unreadOfferCount from the repo _count on list rows (SAM-GAP-1 / CBG-01)', async () => {
       mockRepo.listForCustomer.mockResolvedValueOnce({
         items: [
-          { ...sampleRequestRow, state: 'OFFERS_RECEIVED', offerCount: 3, _count: { offers: 3 } },
+          { ...sampleRequestRow, state: 'PUBLISHED', offerCount: 3, _count: { offers: 3 } },
         ],
         nextCursor: null,
       });
@@ -538,7 +538,7 @@ describe('RequestService', () => {
     it('carries unreadOfferCount from the repo _count on GET /v1/requests/:id (SAM-GAP-1 / CBG-01)', async () => {
       mockRepo.findById.mockResolvedValueOnce({
         ...sampleRequestRow,
-        state: 'OFFERS_RECEIVED',
+        state: 'PUBLISHED',
         offerCount: 2,
         _count: { offers: 1 },
       });
@@ -550,7 +550,7 @@ describe('RequestService', () => {
     it('reports unreadOfferCount 0 when every offer has been viewed', async () => {
       mockRepo.findById.mockResolvedValueOnce({
         ...sampleRequestRow,
-        state: 'OFFERS_RECEIVED',
+        state: 'PUBLISHED',
         offerCount: 2,
         _count: { offers: 0 },
       });

@@ -111,7 +111,8 @@ export type OfferOnRequestForAdmin = {
   deliveryTimeframe: string | null;
   warrantyTerms: string | null;
   vendorNote: string | null;
-  validityHours: number;
+  weightGrams: number;
+  purityKarat: string;
   expiresAt: string;
   revisionCount: number;
   submittedAt: string;
@@ -276,25 +277,13 @@ export function buildRequestStateTransitions(row: {
     });
   }
 
-  if (row.offers && row.offers.length > 0) {
-    const earliestOffer = [...row.offers].sort(
-      (a, b) => a.submittedAt.getTime() - b.submittedAt.getTime(),
-    )[0]!;
-    transitions.push({
-      fromState: 'PUBLISHED',
-      toState: 'OFFERS_RECEIVED',
-      transition: 'FIRST_OFFER_RECEIVED',
-      timestamp: earliestOffer.submittedAt.toISOString(),
-    });
-  }
-
   if (row.state === 'ACCEPTED') {
     const acceptedAt =
       row.acceptedOffer?.decidedAt ??
       row.connections?.[0]?.identityRevealedAt ??
       row.updatedAt;
     transitions.push({
-      fromState: 'OFFERS_RECEIVED',
+      fromState: 'PUBLISHED',
       toState: 'ACCEPTED',
       transition: 'OFFER_ACCEPTED',
       timestamp: acceptedAt.toISOString(),
@@ -308,14 +297,14 @@ export function buildRequestStateTransitions(row: {
     });
   } else if (row.state === 'EXPIRED') {
     transitions.push({
-      fromState: row.offerCount > 0 ? 'OFFERS_RECEIVED' : 'PUBLISHED',
+      fromState: 'PUBLISHED',
       toState: 'EXPIRED',
       transition: 'REQUEST_EXPIRED',
       timestamp: (row.expiresAt ?? row.updatedAt).toISOString(),
     });
   } else if (row.state === 'CANCELLED') {
     transitions.push({
-      fromState: row.offerCount > 0 ? 'OFFERS_RECEIVED' : 'PUBLISHED',
+      fromState: row.publishedAt ? 'PUBLISHED' : 'DRAFT',
       toState: 'CANCELLED',
       transition: 'CUSTOMER_CANCELLED',
       timestamp: row.updatedAt.toISOString(),
@@ -323,7 +312,7 @@ export function buildRequestStateTransitions(row: {
     });
   } else if (row.state === 'REMOVED') {
     transitions.push({
-      fromState: row.offerCount > 0 ? 'OFFERS_RECEIVED' : 'PUBLISHED',
+      fromState: row.publishedAt ? 'PUBLISHED' : 'DRAFT',
       toState: 'REMOVED',
       transition: 'ADMIN_REMOVED',
       timestamp: row.updatedAt.toISOString(),
@@ -368,7 +357,8 @@ export function presentAdminRequestDetail(row: RequestDetailRow): AdminRequestDe
     deliveryTimeframe: o.deliveryTimeframe,
     warrantyTerms: o.warrantyTerms,
     vendorNote: o.vendorNote,
-    validityHours: o.validityHours,
+    weightGrams: Number(o.weightGrams),
+    purityKarat: o.purityKarat,
     expiresAt: o.expiresAt.toISOString(),
     revisionCount: o.revisionCount,
     submittedAt: o.submittedAt.toISOString(),

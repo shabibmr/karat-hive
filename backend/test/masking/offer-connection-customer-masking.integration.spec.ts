@@ -66,7 +66,7 @@ describe('CBG-07 Customer Offer/Connection masking release-gate', () => {
         customerProfileId: customer.customerProfileId,
         requestType: 'FIND_ORNAMENT',
         direction: 'BUY',
-        state: 'OFFERS_RECEIVED',
+        state: 'PUBLISHED',
         categoryId: category.id,
         regionId: region.id,
         notes: '22K ring, size 7',

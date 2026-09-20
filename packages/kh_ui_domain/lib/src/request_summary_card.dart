@@ -80,7 +80,6 @@ class OwnerRequestCard extends StatelessWidget {
   static KhStatusTone _stateTone(RequestState state) => switch (state) {
         RequestState.draft => KhStatusTone.neutral,
         RequestState.published => KhStatusTone.accent,
-        RequestState.offersReceived => KhStatusTone.accent,
         RequestState.accepted => KhStatusTone.success,
         RequestState.closed => KhStatusTone.neutral,
         RequestState.expired => KhStatusTone.neutral,

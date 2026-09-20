@@ -72,9 +72,12 @@ class ConnectionAcceptedOfferCard extends StatelessWidget {
             ConnectionInfoRow(
                 label: 'Rate Per Gram',
                 value: connectionFormatPrice(offer!.ratePerGram!)),
-          if (offer?.validityHours != null)
+          if (offer?.purityKarat != null)
             ConnectionInfoRow(
-                label: 'Offer Validity', value: '${offer!.validityHours} hours'),
+                label: 'Karat Purity', value: offer!.purityKarat!),
+          if (offer?.weightGrams != null)
+            ConnectionInfoRow(
+                label: 'Gold Weight', value: '${offer!.weightGrams!.toStringAsFixed(2)} g'),
           if (offer?.deliveryTimeframe != null)
             ConnectionInfoRow(
                 label: 'Delivery Timeframe', value: offer!.deliveryTimeframe!),

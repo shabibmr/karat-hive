@@ -36,7 +36,8 @@ describe('Acceptance Concurrency (G2-C06 / BR-011)', () => {
     offer: {
       id: 'offer-1',
       offeredPrice: new Decimal(1000),
-      validityHours: 24,
+      weightGrams: new Decimal(10),
+      purityKarat: '22K',
     },
     request: {
       id: 'req-1',
@@ -65,7 +66,7 @@ describe('Acceptance Concurrency (G2-C06 / BR-011)', () => {
 
   // Shared in-memory mock database state for concurrency simulation
   let simulatedDb: {
-    requestState: 'OFFERS_RECEIVED' | 'ACCEPTED';
+    requestState: 'PUBLISHED' | 'ACCEPTED';
     connectionsCreated: number;
     auditLogs: Array<{ action: string; entityId: string }>;
     outboxEvents: string[];
@@ -74,7 +75,7 @@ describe('Acceptance Concurrency (G2-C06 / BR-011)', () => {
 
   beforeEach(() => {
     simulatedDb = {
-      requestState: 'OFFERS_RECEIVED',
+      requestState: 'PUBLISHED',
       connectionsCreated: 0,
       auditLogs: [],
       outboxEvents: [],
@@ -198,9 +199,10 @@ describe('Acceptance Concurrency (G2-C06 / BR-011)', () => {
           requestId: 'req-1',
           state: 'ACCEPTED',
           offeredPrice: new Decimal(1000),
+          weightGrams: new Decimal(10),
+          purityKarat: '22K',
           makingCharges: null,
           ratePerGram: null,
-          validityHours: 24,
           submittedAt: mockNow,
           expiresAt: new Date(mockNow.getTime() + 24 * 3600000),
           revisionCount: 0,
