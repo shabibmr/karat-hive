@@ -51,7 +51,7 @@ Future<bool?> showRequestInfoDialog({
   );
 }
 
-/// Dialog requiring rationale before approving vendor verification (ADM-S07).
+/// Dialog for approving vendor verification, with optional rationale (ADM-S07).
 class ApproveVerificationDialog extends ConsumerStatefulWidget {
   const ApproveVerificationDialog({
     super.key,
@@ -145,7 +145,7 @@ class _ApproveVerificationDialogState
             children: [
               Text(
                 widget.vendorName != null
-                    ? 'Approve verification for "${widget.vendorName}". Approval advances vendor toward ACTIVE marketplace status. Audit rationale is required.'
+                    ? 'Approve verification for "${widget.vendorName}". Approval advances vendor toward ACTIVE marketplace status.'
                     : (l10n?.approveConfirmBody ??
                         'This will mark the vendor as VERIFIED and may advance them to ACTIVE if categories and regions are already declared. The decision is audit-logged.'),
                 style: typography.bodySmall.copyWith(color: colors.textSecondary),
@@ -156,7 +156,7 @@ class _ApproveVerificationDialogState
               ],
               SizedBox(height: spacing.md),
               Text(
-                'Approval Rationale *',
+                'Approval Rationale (optional)',
                 style: typography.label.copyWith(color: colors.textSecondary),
               ),
               SizedBox(height: spacing.xs),
@@ -169,12 +169,6 @@ class _ApproveVerificationDialogState
                 decoration: InputDecoration(
                   hintText: 'Enter internal rationale for approving this vendor credentials...',
                 ),
-                validator: (value) {
-                  if ((value?.trim() ?? '').isEmpty) {
-                    return 'Rationale is required for approval';
-                  }
-                  return null;
-                },
               ),
             ],
           ),

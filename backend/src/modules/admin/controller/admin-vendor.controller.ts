@@ -35,6 +35,10 @@ const rationaleSchema = z.object({
   rationale: z.string().trim().min(1, 'rationale is required').max(2000),
 });
 
+const optionalRationaleSchema = z.object({
+  rationale: z.string().trim().max(2000).optional().default(''),
+});
+
 const requestInfoSchema = z.object({
   message: z.string().trim().min(1, 'message is required').max(2000),
 });
@@ -92,7 +96,7 @@ export class AdminVendorController {
   verifyVendor(
     @Param('id', vendorIdParam) id: string,
     @Viewer() viewer: ViewerContext,
-    @Body(zodBody(rationaleSchema)) body: z.infer<typeof rationaleSchema>,
+    @Body(zodBody(optionalRationaleSchema)) body: z.infer<typeof optionalRationaleSchema>,
   ): Promise<{ lifecycle: string }> {
     return this.vendors.verifyVendor(viewer, id, body.rationale);
   }
