@@ -115,7 +115,7 @@ export class UserRepository {
       mobileNumber: string;
       email: string;
       preferredLanguage: PreferredLanguage;
-      mobileVerifiedAt: Date | null;
+      mobileVerifiedAt?: Date | null;
       termsVersion: string;
       privacyVersion: string;
       termsAcceptedAt: Date;
@@ -128,7 +128,7 @@ export class UserRepository {
         userType: 'VENDOR',
         accountState: 'ACTIVE',
         preferredLanguage: input.preferredLanguage,
-        mobileVerifiedAt: input.mobileVerifiedAt,
+        mobileVerifiedAt: input.mobileVerifiedAt ?? null,
         termsVersion: input.termsVersion,
         privacyVersion: input.privacyVersion,
         termsAcceptedAt: input.termsAcceptedAt,

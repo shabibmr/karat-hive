@@ -73,6 +73,7 @@ describe('AdminVendorService', () => {
     businessAddress: 'Gold Souk, Deira, Dubai',
     contactPersonName: 'Rashid Khan',
     businessEmail: 'info@alkarat.ae',
+    contactWhatsApp: null,
     logoMediaId: null,
     description: 'Premier Gold Merchant',
     verificationState: 'PENDING_VERIFICATION',

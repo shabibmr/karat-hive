@@ -9,7 +9,7 @@ import 'package:kh_ui_domain/kh_ui_domain.dart';
 import '../../../app/platform/open_url.dart';
 import '../../../app/session/session_controller.dart';
 import '../../request_feed/controller/request_feed_controller.dart';
-import '../../subscription/controller/subscription_controller.dart';
+import '../../../core/platform_config.dart';
 import '../controller/settings_controller.dart';
 
 /// VEN-S18 — Vendor settings (language / feed / notifications / security / legal: CP6-B03).

@@ -15,7 +15,4 @@ class SubscriptionRepository {
 
   Future<Result<List<VendorSubscriptionItem>>> getSubscriptions() =>
       _api.subscriptions.getSubscriptions();
-
-  Future<Result<PlatformConfig>> getPlatformConfig() =>
-      _api.platformConfig.getConfig();
 }

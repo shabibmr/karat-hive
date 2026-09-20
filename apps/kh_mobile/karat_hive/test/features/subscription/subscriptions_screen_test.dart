@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:karat_hive/core/platform_config.dart';
 import 'package:karat_hive/features/subscription/presentation/subscriptions_screen.dart';
 import 'package:karat_hive/features/subscription/repository/subscription_repository.dart';
 import 'package:kh_core/kh_core.dart';
@@ -50,27 +51,30 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
     if (subscriptionsError != null) return Err(subscriptionsError!);
     return Ok(subscriptions);
   }
+}
 
+class _FakePlatformConfigController extends PlatformConfigController {
   @override
-  Future<Result<PlatformConfig>> getPlatformConfig() async {
-    return Ok(
-      PlatformConfig(
+  Future<PlatformConfig> build() async => PlatformConfig(
         requestLifetimeHours: 48,
-        offerValidityHours: [12, 24, 48],
+        offerValidityHours: const [12, 24, 48],
         defaultOfferValidityHours: 24,
         bullionMinimumAed: '5000',
         maxConcurrentLiveRequests: 3,
         maxOfferRevisions: 3,
         requestExpiryWarningHours: 6,
-        karatList: ['18', '21', '22', '24'],
+        karatList: const ['18', '21', '22', '24'],
         supportContactUrl: 'https://karathive.ae/support',
         subscriptionContactUrl: 'https://karathive.ae/subscriptions',
         termsUrl: 'https://karathive.ae/terms',
         privacyUrl: 'https://karathive.ae/privacy',
-      ),
-    );
-  }
+      );
 }
+
+List<Override> _subscriptionOverrides(FakeSubscriptionRepository repo) => [
+      subscriptionRepositoryProvider.overrideWithValue(repo),
+      platformConfigProvider.overrideWith(_FakePlatformConfigController.new),
+    ];
 
 void main() {
   group('SubscriptionsScreen (VEN-S22)', () {
@@ -79,9 +83,7 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            subscriptionRepositoryProvider.overrideWithValue(fakeRepo),
-          ],
+          overrides: _subscriptionOverrides(fakeRepo),
           child: MaterialApp(
             localizationsDelegates: KhStrings.delegates,
             supportedLocales: KhStrings.supportedLocales,
@@ -124,9 +126,7 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            subscriptionRepositoryProvider.overrideWithValue(fakeRepo),
-          ],
+          overrides: _subscriptionOverrides(fakeRepo),
           child: MaterialApp(
             localizationsDelegates: KhStrings.delegates,
             supportedLocales: KhStrings.supportedLocales,
@@ -147,9 +147,7 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            subscriptionRepositoryProvider.overrideWithValue(fakeRepo),
-          ],
+          overrides: _subscriptionOverrides(fakeRepo),
           child: MaterialApp(
             localizationsDelegates: KhStrings.delegates,
             supportedLocales: KhStrings.supportedLocales,

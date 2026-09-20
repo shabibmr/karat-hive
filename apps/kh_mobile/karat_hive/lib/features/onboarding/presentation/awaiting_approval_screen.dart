@@ -12,7 +12,7 @@ import 'package:kh_ui_domain/kh_ui_domain.dart';
 import '../../../app/guards.dart';
 import '../../../app/platform/open_url.dart';
 import '../../../app/session/session_controller.dart';
-import '../../subscription/controller/subscription_controller.dart';
+import '../../../core/platform_config.dart';
 import '../controller/vendor_me_controller.dart';
 import '../repository/onboarding_repository.dart';
 

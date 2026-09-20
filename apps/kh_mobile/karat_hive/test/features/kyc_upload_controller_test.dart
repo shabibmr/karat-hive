@@ -83,6 +83,42 @@ void main() {
     expect(state.hydrated, isTrue);
   });
 
+  test('hydrateFromExisting blanks provisional licence and placeholder expiry',
+      () async {
+    when(() => repo.vendorMe()).thenAnswer(
+      (_) async => const Ok(
+        VendorMe(
+          vendorProfileId: 'vp1',
+          lifecycle: VendorLifecycle.pendingVerification,
+          awaitingApproval: true,
+          tradingName: 'Gold House',
+          legalBusinessName: 'Gold House LLC',
+          tradeLicenceNumber: 'PENDING_abcdef0123456789',
+          licenceExpiryDate: '2028-01-01',
+          categoryCount: 0,
+          regionCount: 0,
+        ),
+      ),
+    );
+    when(() => repo.documents()).thenAnswer(
+      (_) async => const Ok([]),
+    );
+
+    final c = ProviderContainer(
+      overrides: [onboardingRepositoryProvider.overrideWithValue(repo)],
+    );
+    addTearDown(c.dispose);
+
+    await c.read(kycUploadControllerProvider.notifier).hydrateFromExisting();
+    final state = c.read(kycUploadControllerProvider);
+
+    expect(state.legalBusinessName, 'Gold House LLC');
+    expect(state.tradeLicenceNumber, '');
+    expect(state.licenceExpiryDate, '');
+    expect(state.fieldsComplete, isFalse);
+    expect(state.hydrated, isTrue);
+  });
+
   test('failed upload isolates error on that slot', () async {
     when(
       () => repo.uploadKycDocumentBytes(

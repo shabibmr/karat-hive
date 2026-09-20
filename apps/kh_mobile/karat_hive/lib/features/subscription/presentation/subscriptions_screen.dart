@@ -6,6 +6,7 @@ import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../../../app/platform/open_url.dart';
+import '../../../core/platform_config.dart';
 import '../controller/subscription_controller.dart';
 
 /// VEN-S22 — Vendor Subscriptions & Entitlements Screen.

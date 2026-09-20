@@ -12,7 +12,7 @@ import '../../../app/guards.dart';
 import '../../../app/platform/open_url.dart';
 import '../../../app/session/session_controller.dart';
 import '../../onboarding/repository/onboarding_repository.dart';
-import '../../subscription/controller/subscription_controller.dart';
+import '../../../core/platform_config.dart';
 import '../controller/vendor_register_controller.dart';
 
 /// Vendor signup after UnboundGoogle (`adr/0010`).

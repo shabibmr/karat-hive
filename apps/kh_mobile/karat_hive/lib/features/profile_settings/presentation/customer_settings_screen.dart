@@ -8,7 +8,7 @@ import 'package:kh_ui_domain/kh_ui_domain.dart';
 import '../../../app/platform/open_url.dart';
 import '../../../app/session/session_controller.dart';
 import '../../onboarding/repository/onboarding_repository.dart';
-import '../../subscription/controller/subscription_controller.dart';
+import '../../../core/platform_config.dart';
 import '../controller/settings_controller.dart';
 
 /// CUS-S21 — Customer settings (`FR-CUS-034`, `FR-CUS-004`).

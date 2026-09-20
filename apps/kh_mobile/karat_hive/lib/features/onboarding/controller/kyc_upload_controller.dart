@@ -112,6 +112,10 @@ class KycUploadController extends Notifier<KycScreenState> {
 
     final existingLicence = me?.tradeLicenceNumber ?? '';
     final provisional = existingLicence.startsWith('PENDING_');
+    final existingExpiry = me?.licenceExpiryDate ?? '';
+    // Register uses placeholder expiry with PENDING_ licence; force a real pick.
+    final placeholderExpiry =
+        provisional || existingExpiry == '2028-01-01';
     state = state.copyWith(
       legalBusinessName: state.legalBusinessName.isNotEmpty
           ? state.legalBusinessName
@@ -122,7 +126,7 @@ class KycUploadController extends Notifier<KycScreenState> {
           : (provisional ? '' : existingLicence),
       licenceExpiryDate: state.licenceExpiryDate.isNotEmpty
           ? state.licenceExpiryDate
-          : (me?.licenceExpiryDate ?? ''),
+          : (placeholderExpiry ? '' : existingExpiry),
       documents: docMap,
       hydrated: true,
     );
