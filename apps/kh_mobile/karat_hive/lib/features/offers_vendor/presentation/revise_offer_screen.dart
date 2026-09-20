@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
-import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
-import '../../../app/di.dart';
 import '../controller/revise_offer_controller.dart';
 
 /// VEN-S10 — Revise / withdraw a pending Offer.
@@ -20,7 +18,6 @@ class ReviseOfferScreen extends ConsumerWidget {
     final state = ref.watch(reviseOfferControllerProvider(offerId));
     final l10n = AppLocalizations.of(context);
     final tokens = context.tokens;
-    final clock = ref.watch(serverClockProvider);
 
     ref.listen(reviseOfferControllerProvider(offerId), (prev, next) {
       if (next is ReviseOfferSucceeded && context.mounted) {
@@ -46,8 +43,6 @@ class ReviseOfferScreen extends ConsumerWidget {
           ),
           ReviseOfferReady(
             :final offer,
-            :final config,
-            :final draft,
             :final submitting,
             :final withdrawing,
             :final failure,

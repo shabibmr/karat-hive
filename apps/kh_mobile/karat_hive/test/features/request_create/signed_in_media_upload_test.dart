@@ -11,7 +11,6 @@ import 'package:kh_domain/kh_domain.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/fake_image_converter.dart';
-import '../../helpers/fake_session.dart';
 
 class _MockRepo extends Mock implements RequestCreateRepository {}
 

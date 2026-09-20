@@ -32,6 +32,14 @@ export type ListVendorOffersFilter = {
   cursor?: string;
 };
 
+function toKarat(k?: string | null): Karat {
+  if (k === '24K' || k === 'K24') return 'K24';
+  if (k === '22K' || k === 'K22') return 'K22';
+  if (k === '21K' || k === 'K21') return 'K21';
+  if (k === '18K' || k === 'K18') return 'K18';
+  return 'K22';
+}
+
 @Injectable()
 export class OfferRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -141,7 +149,7 @@ export class OfferRepository {
         state: 'PENDING',
         offeredPrice: new Prisma.Decimal(input.terms.offeredPrice),
         weightGrams: new Prisma.Decimal(input.terms.weightGrams),
-        purityKarat: input.terms.purityKarat,
+        purityKarat: toKarat(input.terms.purityKarat),
         makingCharges: input.terms.makingCharges !== undefined
           ? new Prisma.Decimal(input.terms.makingCharges)
           : null,

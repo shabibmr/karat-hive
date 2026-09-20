@@ -7,6 +7,7 @@ import 'package:kh_admin/core/auth/dev_auth.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/auth/session_state.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/firebase/firebase_auth_service.dart';
 import 'package:kh_admin/core/firebase/firebase_init.dart';
 import 'package:kh_admin/features/auth/presentation/login_screen.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
@@ -40,6 +41,18 @@ class _MockSessionController extends StateNotifier<SessionState>
 
   @override
   Future<void> loginWithGoogle() async {
+    loginWithGoogleCalled = true;
+    if (errorToThrow != null) {
+      throw errorToThrow!;
+    }
+    state = state.copyWith(status: SessionStatus.authenticated);
+  }
+
+  @override
+  Future<void> onFirebaseReady(FirebaseAuthService? authService) async {}
+
+  @override
+  Future<void> loginWithGoogleIdToken(String idToken) async {
     loginWithGoogleCalled = true;
     if (errorToThrow != null) {
       throw errorToThrow!;

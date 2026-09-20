@@ -8,6 +8,7 @@ import 'package:kh_admin/core/auth/dev_auth.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/auth/session_state.dart';
 import 'package:kh_admin/core/auth/token_storage.dart';
+import 'package:kh_admin/core/firebase/firebase_auth_service.dart';
 import 'package:kh_admin/core/design/theme/kh_colors.dart';
 import 'package:kh_admin/features/dashboard/model/dashboard_queue_item.dart';
 import 'package:kh_admin/features/dashboard/model/dashboard_stats.dart';
@@ -263,6 +264,12 @@ class _AuthenticatedSessionController extends StateNotifier<SessionState>
 
   @override
   Future<void> loginWithGoogle() async {}
+
+  @override
+  Future<void> onFirebaseReady(FirebaseAuthService? authService) async {}
+
+  @override
+  Future<void> loginWithGoogleIdToken(String idToken) async {}
 
   @override
   Future<void> logout({bool broadcast = true}) async {

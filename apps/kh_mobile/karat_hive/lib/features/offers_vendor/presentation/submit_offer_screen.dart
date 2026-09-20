@@ -61,7 +61,6 @@ class _SubmitOfferScreenState extends ConsumerState<SubmitOfferScreen> {
           ),
           SubmitOfferReady(
             :final request,
-            :final config,
             :final draft,
             :final submitting,
             :final failure,

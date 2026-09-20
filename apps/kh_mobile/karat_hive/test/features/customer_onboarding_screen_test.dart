@@ -5,7 +5,6 @@ import 'package:karat_hive/app/session/session_controller.dart';
 import 'package:karat_hive/features/auth/controller/customer_onboarding_controller.dart';
 import 'package:karat_hive/features/auth/presentation/customer_onboarding_screen.dart';
 import 'package:karat_hive/features/auth/repository/customer_auth_repository.dart';
-import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_l10n/kh_l10n.dart';
