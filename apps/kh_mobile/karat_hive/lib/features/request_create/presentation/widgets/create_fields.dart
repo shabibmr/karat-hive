@@ -298,6 +298,57 @@ class WeightPurityFields extends StatelessWidget {
   }
 }
 
+class OrnamentTypeChips extends StatelessWidget {
+  const OrnamentTypeChips({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.errorText,
+  });
+
+  final OrnamentType? value;
+  final ValueChanged<OrnamentType> onChanged;
+  final String? errorText;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          createCopy(context, 'create.ornamentType', 'Ornament type'),
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        SizedBox(height: tokens.space.sm),
+        Wrap(
+          spacing: tokens.space.sm,
+          runSpacing: tokens.space.sm,
+          children: [
+            for (final t in OrnamentType.values)
+              if (t != OrnamentType.unknown)
+                ChoiceChip(
+                  key: Key('ornament-type-chip-${t.name}'),
+                  label: Text(ornamentWire(t)),
+                  selected: value == t,
+                  onSelected: (_) => onChanged(t),
+                ),
+          ],
+        ),
+        if (errorText != null) ...[
+          SizedBox(height: tokens.space.xs),
+          Text(
+            errorText!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class BudgetEditor extends StatelessWidget {
   const BudgetEditor({
     super.key,

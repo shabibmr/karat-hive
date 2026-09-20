@@ -148,16 +148,9 @@ class FindOrnamentScreen extends ConsumerWidget {
       fields: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          KhSelectField<OrnamentType>(
-            label: createCopy(context, 'create.ornamentType', 'Ornament type'),
+          OrnamentTypeChips(
             value: state.ornamentType,
             errorText: state.fieldError('ornamentType'),
-            searchable: false,
-            options: [
-              for (final t in OrnamentType.values)
-                if (t != OrnamentType.unknown)
-                  KhSelectOption(value: t, label: ornamentWire(t)),
-            ],
             onChanged: controller.setOrnamentType,
           ),
           WeightPurityFields(
@@ -226,15 +219,8 @@ class SellOldGoldScreen extends ConsumerWidget {
             ),
           ),
           SizedBox(height: tokens.space.md),
-          KhSelectField<OrnamentType>(
-            label: createCopy(context, 'create.ornamentType', 'Ornament type'),
+          OrnamentTypeChips(
             value: state.ornamentType,
-            searchable: false,
-            options: [
-              for (final t in OrnamentType.values)
-                if (t != OrnamentType.unknown)
-                  KhSelectOption(value: t, label: ornamentWire(t)),
-            ],
             onChanged: controller.setOrnamentType,
           ),
           WeightPurityFields(
