@@ -115,7 +115,7 @@ export class UserRepository {
       mobileNumber: string;
       email: string;
       preferredLanguage: PreferredLanguage;
-      mobileVerifiedAt: Date;
+      mobileVerifiedAt: Date | null;
       termsVersion: string;
       privacyVersion: string;
       termsAcceptedAt: Date;
