@@ -25,7 +25,7 @@ class SessionController extends StateNotifier<SessionState> {
         _firebaseAuthService = firebaseAuthService,
         _authBroadcast = authBroadcast,
         _devAuth = devAuth,
-        super(const SessionState()) {
+        super(const SessionState(bootstrapped: false)) {
     _initBroadcastListener();
     // Legacy tokens / dev auto-login can proceed before Firebase is ready.
     init();
@@ -82,12 +82,21 @@ class SessionController extends StateNotifier<SessionState> {
   /// Initializes session on app start by reading stored tokens and validating with /v1/me.
   Future<void> init() async {
     state = state.copyWith(status: SessionStatus.loading);
-    final fbUser = _firebaseAuthService?.currentUser;
-    if (fbUser != null) {
-      await _syncFirebaseUser(fbUser);
-      return;
+    try {
+      final fbUser = _firebaseAuthService?.currentUser;
+      if (fbUser != null) {
+        await _syncFirebaseUser(fbUser);
+        return;
+      }
+      await _checkLegacySession();
+    } finally {
+      // Whatever the outcome, the first resolution is done: release the
+      // splash gate so the router can send the admin to their real
+      // destination instead of holding a protected route open.
+      if (mounted) {
+        state = state.copyWith(bootstrapped: true);
+      }
     }
-    await _checkLegacySession();
   }
 
   static bool _isDefinitiveAuthFailure(Object e) {
@@ -127,6 +136,10 @@ class SessionController extends StateNotifier<SessionState> {
     _syncCompleter = completer;
     _syncingFirebaseUid = fbUser.uid;
 
+    // Captured before the status flips: only a session that was already
+    // validated may survive a transport failure below.
+    final wasAuthenticated = state.isAuthenticated;
+
     state = state.copyWith(status: SessionStatus.loading, clearError: true);
     try {
       final idToken = await fbUser.getIdToken();
@@ -161,7 +174,7 @@ class SessionController extends StateNotifier<SessionState> {
     } on Object catch (e) {
       // Unbound Google identity or API error — Admin must already exist; no auto-provision.
       // Transport failures must not clear a good in-memory session mid-race.
-      if (_isRetryableTransportFailure(e) && state.tokens != null) {
+      if (_isRetryableTransportFailure(e) && wasAuthenticated) {
         state = state.copyWith(
           status: SessionStatus.authenticated,
           errorMessage:

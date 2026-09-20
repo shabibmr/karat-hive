@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kh_admin/features/auth/presentation/login_screen.dart';
+import 'package:kh_admin/features/auth/presentation/splash_screen.dart';
 import 'package:kh_admin/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:kh_admin/features/taxonomy/model/taxonomy_kind.dart';
 import 'package:kh_admin/features/taxonomy/presentation/taxonomy_screen.dart';
@@ -60,34 +61,59 @@ class RouterNotifier extends ChangeNotifier {
     }
 
     final session = ref.read(sessionControllerProvider);
-    final isLoggingIn = state.matchedLocation == AdminRoutes.login;
     final matched = state.matchedLocation;
+    final isLoggingIn = matched == AdminRoutes.login;
+    final isSplash = matched == AdminRoutes.splash;
 
-    // While resolving session, keep the current URL (deep links survive bootstrap).
+    // First resolution not finished yet: park on the splash route rather than
+    // letting the request through. Returning `null` here used to admit the
+    // initial location (`/`), so the shell and dashboard mounted and fired
+    // their admin API calls before anyone was signed in, then snapped back to
+    // /login. The deep link rides along in `from`, so it still survives.
+    if (!session.bootstrapped) {
+      if (isSplash || isLoggingIn) return null;
+      return '${AdminRoutes.splash}?from=${Uri.encodeComponent(state.uri.toString())}';
+    }
+
+    // Post-bootstrap transient loading (a login in flight): keep the current
+    // URL — the login screen owns its own progress indicator.
     if (session.isLoading) {
       return null;
     }
 
+    final intended = _intendedLocation(state.uri.queryParameters['from']);
+
     if (!session.isAuthenticated) {
       if (isLoggingIn) return null;
+      if (isSplash) {
+        return intended == null
+            ? AdminRoutes.login
+            : '${AdminRoutes.login}?from=${Uri.encodeComponent(intended)}';
+      }
       if (matched == AdminRoutes.contractMismatch) return AdminRoutes.login;
       final from = Uri.encodeComponent(state.uri.toString());
       return '${AdminRoutes.login}?from=$from';
     }
 
-    // Authenticated admin on /login → restore `from` or land on dashboard.
-    if (isLoggingIn) {
-      final from = state.uri.queryParameters['from'];
-      if (from != null && from.isNotEmpty) {
-        final decoded = Uri.decodeComponent(from);
-        if (decoded.startsWith('/') && !decoded.startsWith('//')) {
-          return decoded;
-        }
-      }
-      return AdminRoutes.dashboard;
+    // Authenticated admin on /login or /splash → restore `from`, else dashboard.
+    if (isLoggingIn || isSplash) {
+      return intended ?? AdminRoutes.dashboard;
     }
 
     return null;
+  }
+
+  /// Decodes a `from` query parameter into a safe in-app destination.
+  ///
+  /// Rejects anything that is not a local path, and the two holding routes
+  /// themselves — restoring `/login` or `/splash` would loop the guard.
+  static String? _intendedLocation(String? from) {
+    if (from == null || from.isEmpty) return null;
+    final decoded = Uri.decodeComponent(from);
+    if (!decoded.startsWith('/') || decoded.startsWith('//')) return null;
+    final path = Uri.tryParse(decoded)?.path;
+    if (path == AdminRoutes.login || path == AdminRoutes.splash) return null;
+    return decoded;
   }
 }
 
@@ -103,6 +129,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: notifier,
     redirect: notifier.redirect,
     routes: [
+      GoRoute(
+        path: AdminRoutes.splash,
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: AdminRoutes.login,
         builder: (context, state) => const LoginScreen(),

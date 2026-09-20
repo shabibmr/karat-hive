@@ -5,6 +5,11 @@
 abstract final class AdminRoutes {
   static const dashboard = '/';
   static const login = '/login';
+
+  /// Holding route while the session resolves for the first time. Protected
+  /// screens must not mount before then; the original deep link rides along
+  /// in the `from` query parameter.
+  static const splash = '/splash';
   static const contractMismatch = '/contract-mismatch';
 
   // Primary verticals

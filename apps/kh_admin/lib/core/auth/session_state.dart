@@ -16,12 +16,20 @@ class SessionState {
     this.tokens,
     this.admin,
     this.errorMessage,
+    this.bootstrapped = true,
   });
 
   final SessionStatus status;
   final SessionTokens? tokens;
   final AdminUser? admin;
   final String? errorMessage;
+
+  /// `false` only while [SessionController] resolves the session for the very
+  /// first time. The route guard parks on the splash route until this flips,
+  /// so protected screens never mount against an unresolved session.
+  /// Defaults to `true` so a directly-constructed state (tests, fakes) is not
+  /// treated as mid-bootstrap.
+  final bool bootstrapped;
 
   bool get isAuthenticated =>
       status == SessionStatus.authenticated &&
@@ -36,6 +44,7 @@ class SessionState {
     SessionTokens? tokens,
     AdminUser? admin,
     String? errorMessage,
+    bool? bootstrapped,
     bool clearTokens = false,
     bool clearAdmin = false,
     bool clearError = false,
@@ -45,6 +54,7 @@ class SessionState {
       tokens: clearTokens ? null : (tokens ?? this.tokens),
       admin: clearAdmin ? null : (admin ?? this.admin),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      bootstrapped: bootstrapped ?? this.bootstrapped,
     );
   }
 }

@@ -28,6 +28,26 @@ class _GisGoogleSignInButtonState extends State<_GisGoogleSignInButton> {
   var _ready = false;
   Object? _initError;
 
+  /// `renderButton` keys its platform view off `configuration.hashCode`, and
+  /// `GSIButtonConfiguration` overrides neither `==` nor `hashCode` — so a
+  /// config built inside `build()` yields a fresh key on every rebuild, which
+  /// tears down the embedded GIS element and makes Google redraw it (the
+  /// visible blink). Build it once and hold it.
+  static final gsi_web.GSIButtonConfiguration _buttonConfiguration =
+      gsi_web.GSIButtonConfiguration(
+    type: gsi_web.GSIButtonType.standard,
+    theme: gsi_web.GSIButtonTheme.outline,
+    size: gsi_web.GSIButtonSize.large,
+    text: gsi_web.GSIButtonText.signinWith,
+    shape: gsi_web.GSIButtonShape.rectangular,
+    logoAlignment: gsi_web.GSIButtonLogoAlignment.left,
+    minimumWidth: 320,
+  );
+
+  /// The rendered GIS widget, cached for the same reason: an identical widget
+  /// instance lets Flutter reuse the element instead of remounting the view.
+  Widget? _button;
+
   @override
   void initState() {
     super.initState();
@@ -84,16 +104,8 @@ class _GisGoogleSignInButtonState extends State<_GisGoogleSignInButton> {
       width: double.infinity,
       height: 44,
       child: Center(
-        child: gsi_web.renderButton(
-          configuration: gsi_web.GSIButtonConfiguration(
-            type: gsi_web.GSIButtonType.standard,
-            theme: gsi_web.GSIButtonTheme.outline,
-            size: gsi_web.GSIButtonSize.large,
-            text: gsi_web.GSIButtonText.signinWith,
-            shape: gsi_web.GSIButtonShape.rectangular,
-            logoAlignment: gsi_web.GSIButtonLogoAlignment.left,
-            minimumWidth: 320,
-          ),
+        child: _button ??= gsi_web.renderButton(
+          configuration: _buttonConfiguration,
         ),
       ),
     );
