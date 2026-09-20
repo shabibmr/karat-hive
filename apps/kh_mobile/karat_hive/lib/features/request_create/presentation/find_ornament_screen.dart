@@ -152,11 +152,13 @@ class FindOrnamentScreen extends ConsumerWidget {
             value: state.ornamentType,
             errorText: state.fieldError('ornamentType'),
             onChanged: controller.setOrnamentType,
+            optional: true,
           ),
           WeightPurityFields(
             state: state,
             controller: controller,
             purityAsChips: true,
+            purityOptional: true,
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,

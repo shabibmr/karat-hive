@@ -9,7 +9,7 @@
 | **Date** | 6 September 2026 |
 | **Encoding** | [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma) |
 | **SQL Prisma cannot express** | [`backend/prisma/sql/`](../backend/prisma/sql/) |
-| **Source of truth** | SRS v1.3 §5–§6 → Architecture-Backend §12 + Appendix B/C → [API-Route-Inventory](API-Route-Inventory.md). T36 deltas from [Async-Contract §10](Async-Contract.md) and [Screen-API-Map §6](Screen-API-Map.md) |
+| **Source of truth** | SRS v1.4 §5–§6 → Architecture-Backend §12 + Appendix B/C → [API-Route-Inventory](API-Route-Inventory.md). T36 deltas from [Async-Contract §10](Async-Contract.md) and [Screen-API-Map §6](Screen-API-Map.md) |
 
 This is **not** OpenAPI and **not** Nest. Identity masking is a presenter concern (`FR-SYS-003`): the database stores full identity.
 

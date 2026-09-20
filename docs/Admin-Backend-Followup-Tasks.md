@@ -4,7 +4,7 @@
 > Admin Flutter workarounds stay in `apps/kh_admin` until these land; this register is **backend-only**.
 > **Plan of record (gaps)**: [`Admin-App-Completion-Plan.md`](Admin-App-Completion-Plan.md) §5.
 > **Prefix**: `ADM-C-70`–`ADM-C-76` (stable; never reused). Raise as `G2-*` when that backlog is next amended.
-> **Does not override** SRS v1.3 · `API-Route-Inventory.md` · `Physical-Data-Model.md`.
+> **Does not override** SRS v1.4 · `API-Route-Inventory.md` · `Physical-Data-Model.md`.
 
 Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 

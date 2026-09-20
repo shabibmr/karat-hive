@@ -8,7 +8,7 @@
 | **Date** | 7 September 2026 |
 | **Source snapshot** | [`backend_code_review_and_gap_report.md`](backend_code_review_and_gap_report.md) (6 Sep — historical) |
 | **Plan of record (phases)** | [`Backend-Implementation-Plan.md`](Backend-Implementation-Plan.md) v0.9 (P0–P12, T01–T44). This register is the live tick list. |
-| **Does not override** | SRS v1.3 (except marketplace login — [`adr/0010`](adr/0010-google-signin-only-login.md)) · API-Route-Inventory · Async-Contract · Physical-Data-Model |
+| **Does not override** | SRS v1.4 (except marketplace login — [`adr/0010`](adr/0010-google-signin-only-login.md)) · API-Route-Inventory · Async-Contract · Physical-Data-Model |
 | **Branch** | `main` (no extra worktree). Marketplace modules are **uncommitted** on this working tree; they are not on `origin/main`. |
 | **Prefix** | `G2-*` — stable, never reused. Each row maps to an existing `Tnn` where one exists. |
 
@@ -534,7 +534,7 @@ Report IDs `TSK-BE-01`–`TSK-BE-27` are **retired**. Do not allocate new work t
 
 | Document | Role after this file exists |
 |---|---|
-| SRS v1.3 | Still what the system must do, **except** marketplace login — that is [`adr/0010`](adr/0010-google-signin-only-login.md) until the SRS is rewritten |
+| SRS v1.4 | Still what the system must do, **except** marketplace login — that is [`adr/0010`](adr/0010-google-signin-only-login.md) until the SRS is rewritten |
 | API-Route-Inventory | Still the HTTP catalogue; G2-D02 must add the Google session route. SAM-GAP-7 stays as written (active-only) |
 | Backend-Implementation-Plan | Still the phase order P0–P12 and T01–T44. That file's “where the code is today” section is the 6 Sep snapshot. This register is the live tick list. |
 | Backend-Gap-Fix-Plan | Closed (F01–F17). Do not append G2 IDs there |

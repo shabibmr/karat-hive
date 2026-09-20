@@ -10,7 +10,7 @@
 | **Prefix** | `CM-*` — stable, never reused |
 | **Screens** | `CUS-S01` … `CUS-S23` |
 | **App** | `apps/kh_mobile` (same binary as Vendor; role is `userType`, not an in-session switch) |
-| **Does not override** | SRS v1.3 · [`adr/0010`](../adr/0010-google-signin-only-login.md) · [`adr/0011`](../adr/0011-guest-first-landing.md) · API-Route-Inventory · Architecture-Frontend / Backend · Screen-API-Map |
+| **Does not override** | SRS v1.4 · [`adr/0010`](../adr/0010-google-signin-only-login.md) · [`adr/0011`](../adr/0011-guest-first-landing.md) · API-Route-Inventory · Architecture-Frontend / Backend · Screen-API-Map |
 | **Branch (authoring)** | `cursor/customer-app-sweep-ce94` |
 | **Companion Vendor list** | [`checkpoint-1-vendor-onboarding-tasks.md`](checkpoint-1-vendor-onboarding-tasks.md) |
 

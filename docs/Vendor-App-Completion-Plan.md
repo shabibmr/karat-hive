@@ -10,7 +10,7 @@
 | **Scope** | Vendor app only. Full-stack verticals. Sliced as journey check-points |
 | **Task list** | [`Vendor-App-Completion-Tasks.md`](Vendor-App-Completion-Tasks.md) |
 | **Predecessor** | [`checkpoints/checkpoint-1-vendor-onboarding-vertical.md`](checkpoints/checkpoint-1-vendor-onboarding-vertical.md) |
-| **Does not override** | SRS v1.3 · `API-Route-Inventory.md` · `Architecture-Backend.md` / `-Frontend.md` · `Async-Contract.md` · `Physical-Data-Model.md` |
+| **Does not override** | SRS v1.4 · `API-Route-Inventory.md` · `Architecture-Backend.md` / `-Frontend.md` · `Async-Contract.md` · `Physical-Data-Model.md` |
 
 This document is the frozen contract for Vendor check-points 2 through 6. It **cites** the authority chain; it does not restate it. Where this plan and the SRS disagree, the SRS wins. Where this plan and `Backend-Implementation-Plan.md` disagree on backend task identity, that document's `T`-IDs remain authoritative — this plan slices them, it does not renumber them.
 

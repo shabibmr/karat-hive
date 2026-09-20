@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Source** | Frozen consensus in [`app-launch-flow-review.md`](app-launch-flow-review.md) (mirrored at `docs/reports/app-launch-flow-review.md`) |
-| **Does not override** | SRS v1.3 · `adr/0010` · Architecture-Frontend · domain invariants |
+| **Does not override** | SRS v1.4 · `adr/0010` · Architecture-Frontend · domain invariants |
 | **App** | `apps/kh_mobile/karat_hive` only. No backend change unless a lookup/create API refuses unauthenticated compose (call out; do not silently invent routes). |
 | **Prefix** | `GL-*` — Guest Launch. Stable, never reused. |
 | **Register** | [`guest-launch-tasks.md`](guest-launch-tasks.md) — orchestrator ticks status there |

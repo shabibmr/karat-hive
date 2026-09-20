@@ -7,7 +7,7 @@
 | **Version** | 0.3 |
 | **Status** | Draft — `[PROPOSED]`. Read alongside `docs/API-Route-Inventory.md`. |
 | **Date** | 11 September 2026 |
-| **Source of truth** | [`ui-screens/`](../ui-screens/) (68 screen files; `CUS-S23` per [`adr/0011`](adr/0011-guest-first-landing.md)) · [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) · [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`docs/adr/0010`](adr/0010-google-signin-only-login.md) · [`docs/adr/0011`](adr/0011-guest-first-landing.md) |
+| **Source of truth** | [`ui-screens/`](../ui-screens/) (68 screen files; `CUS-S23` per [`adr/0011`](adr/0011-guest-first-landing.md)) · [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) · [`docs/Requirements-Spec-v1.4.md`](Requirements-Spec-v1.4.md) · [`docs/adr/0010`](adr/0010-google-signin-only-login.md) · [`docs/adr/0011`](adr/0011-guest-first-landing.md) |
 | **Identifier prefix** | `SAM-GAP-nn` — gaps found by *this* document. Stable, never reused. |
 
 ---

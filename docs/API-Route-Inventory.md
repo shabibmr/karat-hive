@@ -7,7 +7,7 @@
 | **Version** | 0.3 |
 | **Status** | Draft — `[PROPOSED]`. Technical Lead sign-off required before it becomes binding. |
 | **Date** | 8 September 2026 |
-| **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`CONTEXT.md`](../CONTEXT.md) · [`docs/Architecture-Backend.md`](Architecture-Backend.md) §13–§16 |
+| **Source of truth** | [`docs/Requirements-Spec-v1.4.md`](Requirements-Spec-v1.4.md) · [`CONTEXT.md`](../CONTEXT.md) · [`docs/Architecture-Backend.md`](Architecture-Backend.md) §13–§16 |
 | **Superseded by** | Generated OpenAPI (`NFR-030`, `AD-BE-14`) once application code exists. Until then this document is the catalogue the clients may design against. |
 | **Companion** | [`docs/Screen-API-Map.md`](Screen-API-Map.md) — screen-by-screen coverage check of this inventory; open gaps tracked as `SAM-GAP-nn`. |
 | **Identifier prefix** | `AD-API-nn` — decisions made by *this* document. Stable, never reused. |

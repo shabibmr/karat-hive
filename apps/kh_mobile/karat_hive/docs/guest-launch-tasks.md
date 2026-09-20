@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Source** | [`guest-launch-plan.md`](guest-launch-plan.md) · frozen consensus in [`app-launch-flow-review.md`](app-launch-flow-review.md) |
-| **Does not override** | SRS v1.3 · `adr/0010` · Architecture-Frontend · domain invariants |
+| **Does not override** | SRS v1.4 · `adr/0010` · Architecture-Frontend · domain invariants |
 | **App** | `apps/kh_mobile/karat_hive` only |
 | **Prefix** | `GL-*` — Guest Launch. Stable, never reused. Ids `GL-00`…`GL-79` only. |
 | **Date** | 11 September 2026 |

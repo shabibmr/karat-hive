@@ -7,7 +7,7 @@
 | **Status** | Working backlog — derived from the plan of record |
 | **Date** | 4 September 2026 |
 | **Plan of record** | [`checkpoint-1-vendor-onboarding-vertical.md`](checkpoint-1-vendor-onboarding-vertical.md) |
-| **Does not override** | SRS v1.3 · API-Route-Inventory · Architecture-Backend / Frontend |
+| **Does not override** | SRS v1.4 · API-Route-Inventory · Architecture-Backend / Frontend |
 | **Branch** | `feat/vendor-onboarding-vertical` |
 | **Screens** | VEN-S04, VEN-S01, VEN-S02, VEN-S03, VEN-S16, thin VEN-S05 |
 

@@ -23,10 +23,10 @@ Compose a `BUY` Request for a jewellery piece Vendors can source or match.
 |---|---|---|---|---|
 | Request type | Display | — | Find An Ornament | Locked |
 | Direction | Display | — | BUY | Fixed; not editable |
-| Ornament type | Input | Yes | ring, chain, bangle, necklace, earring, bracelet, pendant, other | |
+| Ornament type | Input | No | ring, chain, bangle, necklace, earring, bracelet, pendant, other | Optional (`FR-CUS-006` AC3, v1.4) |
 | Weight (g) | Input | Conditional | decimal 0.10–5000.00, 2 dp | Spec capture |
 | Weight is approximate | Input | No | boolean | Surfaced to Vendors |
-| Purity | Input | Conditional | 24K, 22K, 21K, 18K | Configured karat list |
+| Purity | Input | No | 24K, 22K, 21K, 18K | Configured karat list; optional (`FR-CUS-006` AC3, v1.4) |
 | Reference gold rate (selected purity) | Display / System | — | AED/g + updated_at | Indicative; stale marking |
 | Gemstone presence | Input | No | boolean / flag | |
 | Gemstone type | Input | No | string / enum | If presence |

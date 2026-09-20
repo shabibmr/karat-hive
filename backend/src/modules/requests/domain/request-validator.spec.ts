@@ -49,13 +49,13 @@ describe('request-validator', () => {
     ).not.toThrow();
   });
 
-  it('fails FIND_ORNAMENT without ornamentType', () => {
+  it('passes FIND_ORNAMENT without ornamentType or purityKarat', () => {
     expect(() =>
       validateRequestForPublish({
-        request: { ...baseRequest, requestType: 'FIND_ORNAMENT', ornamentType: null },
+        request: { ...baseRequest, requestType: 'FIND_ORNAMENT', ornamentType: null, purityKarat: null },
         mediaCount: 1,
       }),
-    ).toThrow(ApiException);
+    ).not.toThrow();
   });
 
   it('fails FIND_ORNAMENT without reference image', () => {

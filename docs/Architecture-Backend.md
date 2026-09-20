@@ -9,7 +9,7 @@
 | **Date** | 10 August 2026 (password hashing and login pointer updated 6 September 2026) |
 | **Companion** | [`docs/Architecture-Frontend.md`](Architecture-Frontend.md) — client architecture |
 | **Governs** | Node.js monolith, PostgreSQL, object storage, background workers, all server-side integrations |
-| **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`docs/adr/0001`–`0010`](adr/) · [`CONTEXT.md`](../CONTEXT.md) |
+| **Source of truth** | [`docs/Requirements-Spec-v1.4.md`](Requirements-Spec-v1.4.md) · [`docs/adr/0001`–`0010`](adr/) · [`CONTEXT.md`](../CONTEXT.md) |
 
 ---
 
@@ -76,7 +76,7 @@ Domain nouns — Request, Offer, Connection, Acceptance, Match Set, Fan-out, Tal
 
 ```mermaid
 flowchart LR
-    RAW["Requirements-raw.txt<br/><i>original brief</i>"] --> SRS["Requirements-Spec-v1.3.md<br/><i>what the system does</i>"]
+    RAW["Requirements-raw.txt<br/><i>original brief</i>"] --> SRS["Requirements-Spec-v1.4.md<br/><i>what the system does</i>"]
     SRS --> ADR["adr/0001–0007<br/><i>why the shape is this shape</i>"]
     SRS --> BE["Architecture-Backend.md<br/><i>this document</i>"]
     SRS --> FE["Architecture-Frontend.md"]

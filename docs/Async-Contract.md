@@ -7,7 +7,7 @@
 | **Version** | 0.1 |
 | **Status** | Draft — `[PROPOSED]`. Technical Lead sign-off required before it becomes binding. |
 | **Date** | 1 September 2026 |
-| **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) §4.4, §5, §7.3 · [`CONTEXT.md`](../CONTEXT.md) · [`docs/Architecture-Backend.md`](Architecture-Backend.md) §9–§11, §15, §17 · [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) §12, §18 · [`docs/Physical-Data-Model.md`](Physical-Data-Model.md) §3 |
+| **Source of truth** | [`docs/Requirements-Spec-v1.4.md`](Requirements-Spec-v1.4.md) §4.4, §5, §7.3 · [`CONTEXT.md`](../CONTEXT.md) · [`docs/Architecture-Backend.md`](Architecture-Backend.md) §9–§11, §15, §17 · [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) §12, §18 · [`docs/Physical-Data-Model.md`](Physical-Data-Model.md) §3 |
 | **Encoding** | [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma) — `outbox_event`, `outbox_consumer`, `job_lock`, `notification`, `notification_delivery` |
 | **Companion** | `docs/Notification-Catalogue.md` — EN/AR bodies per trigger ([`Spec-Document-Sequence.md`](Spec-Document-Sequence.md) document #4, not yet written). This document fixes the *trigger*, *recipient*, *channel* and *deep link*; it never writes copy. |
 | **Identifier prefix** | `AD-ASYNC-nn` — decisions made by *this* document. Stable, never reused. |

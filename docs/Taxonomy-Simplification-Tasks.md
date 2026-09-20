@@ -6,7 +6,7 @@
 | **Document** | Executable task list derived from [`Taxonomy-Simplification-Plan.md`](Taxonomy-Simplification-Plan.md) |
 | **Status** | Working backlog — plan is `[PROPOSED]`, blocked on Decision Log (plan §3) |
 | **Prefix** | `TAX-nn` — stable, never reused |
-| **Does not override** | `Taxonomy-Simplification-Plan.md` · SRS v1.3 · Physical-Data-Model · API-Route-Inventory |
+| **Does not override** | `Taxonomy-Simplification-Plan.md` · SRS v1.4 · Physical-Data-Model · API-Route-Inventory |
 
 This file is the work list: IDs, order, files, acceptance. It does not restate rationale — see plan §1. Gate 0 decisions are resolved (plan §3, 15 September 2026): Categories = specific items (Option A), Regions = 7 Emirates only, no souk zones (Option B), API compat = drop `children`/`parentId` immediately, no transition window.
 

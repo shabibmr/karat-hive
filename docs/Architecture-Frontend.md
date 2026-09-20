@@ -9,7 +9,7 @@
 | **Date** | 10 August 2026 |
 | **Companion** | [`docs/Architecture-Backend.md`](Architecture-Backend.md) — server architecture and the API contract |
 | **Governs** | The Flutter codebase: dual-mode mobile app (iOS + Android) and the Flutter Web Admin Portal |
-| **Source of truth** | [`docs/Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`docs/adr/0006`](adr/0006-flutter-single-codebase-all-surfaces.md) · [`docs/adr/0010`](adr/0010-google-signin-only-login.md) · [`docs/adr/0011`](adr/0011-guest-first-landing.md) · [`ui-screens/`](../ui-screens/) · [`CONTEXT.md`](../CONTEXT.md) |
+| **Source of truth** | [`docs/Requirements-Spec-v1.4.md`](Requirements-Spec-v1.4.md) · [`docs/adr/0006`](adr/0006-flutter-single-codebase-all-surfaces.md) · [`docs/adr/0010`](adr/0010-google-signin-only-login.md) · [`docs/adr/0011`](adr/0011-guest-first-landing.md) · [`ui-screens/`](../ui-screens/) · [`CONTEXT.md`](../CONTEXT.md) |
 
 ---
 

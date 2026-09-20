@@ -6,7 +6,7 @@
 | **Document** | Backend changes required (or recommended) to unblock the Customer mobile app (`CUS-S01`…`CUS-S22`) |
 | **Status** | Working note — raised from the `feat/customer-app` branch, checked against the `main` working tree on 8 September 2026 |
 | **Author** | shabibmr (via Claude Code) |
-| **Does not override** | SRS v1.3 · [`API-Route-Inventory.md`](API-Route-Inventory.md) · [`Screen-API-Map.md`](Screen-API-Map.md) · [`adr/0010`](adr/0010-google-signin-only-login.md) |
+| **Does not override** | SRS v1.4 · [`API-Route-Inventory.md`](API-Route-Inventory.md) · [`Screen-API-Map.md`](Screen-API-Map.md) · [`adr/0010`](adr/0010-google-signin-only-login.md) |
 | **Scope** | Customer-facing endpoints only. No Vendor / Admin work is described here. |
 
 The Customer-side API is in good shape: `requests`, `offers`, `connections`, `reviews`, `abuse`,

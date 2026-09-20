@@ -200,6 +200,7 @@ class WeightPurityFields extends StatelessWidget {
     this.weightRequired = false,
     this.showWeight = true,
     this.purityAsChips = false,
+    this.purityOptional = false,
   });
 
   final RequestCreateState state;
@@ -207,6 +208,7 @@ class WeightPurityFields extends StatelessWidget {
   final bool weightRequired;
   final bool showWeight;
   final bool purityAsChips;
+  final bool purityOptional;
 
   @override
   Widget build(BuildContext context) {
@@ -246,7 +248,13 @@ class WeightPurityFields extends StatelessWidget {
         ],
         if (purityAsChips) ...[
           Text(
-            createCopy(context, 'create.purity', 'Purity'),
+            purityOptional
+                ? createCopy(
+                    context,
+                    'create.purityOptional',
+                    'Purity (optional)',
+                  )
+                : createCopy(context, 'create.purity', 'Purity'),
             style: Theme.of(context).textTheme.titleSmall,
           ),
           SizedBox(height: tokens.space.sm),
@@ -304,11 +312,13 @@ class OrnamentTypeChips extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.errorText,
+    this.optional = false,
   });
 
   final OrnamentType? value;
   final ValueChanged<OrnamentType> onChanged;
   final String? errorText;
+  final bool optional;
 
   @override
   Widget build(BuildContext context) {
@@ -317,7 +327,13 @@ class OrnamentTypeChips extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          createCopy(context, 'create.ornamentType', 'Ornament type'),
+          optional
+              ? createCopy(
+                  context,
+                  'create.ornamentTypeOptional',
+                  'Ornament type (optional)',
+                )
+              : createCopy(context, 'create.ornamentType', 'Ornament type'),
           style: Theme.of(context).textTheme.titleSmall,
         ),
         SizedBox(height: tokens.space.sm),

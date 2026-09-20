@@ -21,12 +21,6 @@ export function validateRequestForPublish(input: RequestPublishCheckInput): void
 
   switch (request.requestType) {
     case 'FIND_ORNAMENT': {
-      if (!request.ornamentType) {
-        errors.push({ path: 'ornamentType', code: 'REQUIRED', message: 'Ornament type is required.' });
-      }
-      if (!request.purityKarat) {
-        errors.push({ path: 'purityKarat', code: 'REQUIRED', message: 'Purity karat is required.' });
-      }
       if (mediaCount < 1) {
         errors.push({ path: 'mediaKeys', code: 'REQUIRED', message: 'At least one reference image is required.' });
       }

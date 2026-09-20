@@ -7,7 +7,7 @@
 | **Version** | 1.2 |
 | **Status** | Working backlog. Does not override the SRS. Last checked against the `main` working tree on 7 September 2026. Login (all roles): [`adr/0010`](adr/0010-google-signin-only-login.md). Track A (Google session) closed. Marketplace modules P6–P11 are **uncommitted** on `main` (not a worktree, not on `origin/main`). |
 | **Date** | 8 September 2026 |
-| **Source of truth** | [`Requirements-Spec-v1.3.md`](Requirements-Spec-v1.3.md) · [`Architecture-Backend.md`](Architecture-Backend.md) · [`API-Route-Inventory.md`](API-Route-Inventory.md) · [`Physical-Data-Model.md`](Physical-Data-Model.md) · [`Async-Contract.md`](Async-Contract.md) (`AD-ASYNC-nn` — outbox payloads and the 15 scheduled jobs; feeds P2/P7/P10/P12, T05/T21/T23/T28) |
+| **Source of truth** | [`Requirements-Spec-v1.4.md`](Requirements-Spec-v1.4.md) · [`Architecture-Backend.md`](Architecture-Backend.md) · [`API-Route-Inventory.md`](API-Route-Inventory.md) · [`Physical-Data-Model.md`](Physical-Data-Model.md) · [`Async-Contract.md`](Async-Contract.md) (`AD-ASYNC-nn` — outbox payloads and the 15 scheduled jobs; feeds P2/P7/P10/P12, T05/T21/T23/T28) |
 | **Coverage inputs** | [`Screen-API-Map.md`](Screen-API-Map.md) (`SAM-GAP-nn`) · [`Spec-Document-Sequence.md`](Spec-Document-Sequence.md) |
 | **Day-to-day leftover list** | [`Backend-Gap-Tasks.md`](Backend-Gap-Tasks.md) v0.4 (`G2-*`) — live tick list; splits the open T-rows into smaller tasks |
 | **Closed P0/P1 fixes** | [`Backend-Gap-Fix-Plan.md`](Backend-Gap-Fix-Plan.md) (F01–F17) |
@@ -28,7 +28,7 @@ Checked against `backend/src`, `backend/prisma`, `backend/test`, `.github/workfl
 
 | Area | What is committed |
 |---|---|
-| Specs | SRS v1.3, ADRs 0001–**0010**, Architecture-Backend, API inventory, Physical-Data-Model, Screen-API-Map, Async-Contract |
+| Specs | SRS v1.4, ADRs 0001–**0010**, Architecture-Backend, API inventory, Physical-Data-Model, Screen-API-Map, Async-Contract |
 | Database | Named Prisma migrations from `20260901120000_init` through `20260906120000_category_icon`. T36 extra columns are **in the schema**. |
 | Tooling | Nest 11 + Fastify 5 + Prisma 5 + Zod. `npm run build`, `npm test` (Vitest), `npm run lint`, CI (`.github/workflows/backend.yml`). Worker start script sets `KH_ROLE=worker`. |
 | Shared values | `Money`, `Weight`, `Result`, `Karat`, `Purity` |

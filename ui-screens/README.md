@@ -1,6 +1,6 @@
 # Karat Hive — UI Screens Inventory
 
-Screen-level field inventory derived from `docs/Requirements-Spec-v1.3.md` (Appendix C + §4 functional requirements + §6 entity dictionary). Domain language follows root `CONTEXT.md`.
+Screen-level field inventory derived from `docs/Requirements-Spec-v1.4.md` (Appendix C + §4 functional requirements + §6 entity dictionary). Domain language follows root `CONTEXT.md`.
 
 **Not included:** visual design, layout, or implementation details.
 
@@ -153,6 +153,6 @@ Working launch rule is [`adr/0011`](../docs/adr/0011-guest-first-landing.md): co
 
 ## Source
 
-- `docs/Requirements-Spec-v1.3.md` — Appendix C, §4, §5, §6, §7.1  
-- `docs/Requirements-Spec-v1.3.md` §2.5 (C-10–C-13) + `docs/adr/0006`, `0007`, `0008` — stack constraints  
+- `docs/Requirements-Spec-v1.4.md` — Appendix C, §4, §5, §6, §7.1  
+- `docs/Requirements-Spec-v1.4.md` §2.5 (C-10–C-13) + `docs/adr/0006`, `0007`, `0008` — stack constraints  
 - `CONTEXT.md` — ubiquitous language  

@@ -7,7 +7,7 @@
 | **Version** | 1.0 |
 | **Status** | Draft — planning index, not a product requirement |
 | **Date** | 1 September 2026 |
-| **Depends on** | [`API-Route-Inventory.md`](API-Route-Inventory.md) v0.1 · SRS v1.3 · both architecture documents |
+| **Depends on** | [`API-Route-Inventory.md`](API-Route-Inventory.md) v0.1 · SRS v1.4 · both architecture documents |
 
 ---
 

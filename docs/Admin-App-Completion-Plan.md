@@ -10,7 +10,7 @@
 | **Scope** | Admin Portal only. `apps/kh_admin` is standalone (excluded from the Melos workspace) |
 | **Task register** | Flutter: [`Admin-App-Completion-Tasks.md`](Admin-App-Completion-Tasks.md). Backend follow-ups: [`Admin-Backend-Followup-Tasks.md`](Admin-Backend-Followup-Tasks.md) (`ADM-C-70`–`ADM-C-76`). |
 | **Predecessor** | [`Admin-Checkpoint-1-Taxonomy-Plan.md`](Admin-Checkpoint-1-Taxonomy-Plan.md) |
-| **Does not override** | SRS v1.3 · `API-Route-Inventory.md` · `Architecture-Frontend.md` · `Screen-API-Map.md` |
+| **Does not override** | SRS v1.4 · `API-Route-Inventory.md` · `Architecture-Frontend.md` · `Screen-API-Map.md` |
 
 This document cites the authority chain; it does not restate it. Where it and the SRS
 disagree, the SRS wins. It slices `Backend-Implementation-Plan.md` `T`-IDs, it does not renumber them.
