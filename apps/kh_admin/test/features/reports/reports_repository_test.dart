@@ -235,7 +235,7 @@ void main() {
       expect(job.status, ExportJobStatus.ready);
       expect(job.downloadUrl, '/v1/admin/exports/exp-1/download');
       repo.openReadyDownload(job);
-      expect(opened, ['http://localhost:3000/v1/admin/exports/exp-1/download']);
+      expect(opened, ['$khApiBase/v1/admin/exports/exp-1/download']);
     });
 
     test('polls export until FAILED and does not open a download', () async {

@@ -23,6 +23,7 @@ Dio _putDio() {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   test('OnboardingRepository KYC path uses kh_media MediaUploader with KYC_DOCUMENT', () async {
     final api = _MockApi();
     final file = File(
@@ -63,6 +64,7 @@ void main() {
           sleep: (_) async {},
         ),
         purpose: MediaUploadPurpose.kycDocument,
+        cache: PendingUploadCache(baseDir: Directory.systemTemp),
       ),
     );
     // PDFs skip AVIF conversion (uploadRaw path) — safe to exercise without

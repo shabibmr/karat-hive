@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 
-import 'money_display.dart';
+import 'package:kh_ui_domain/src/money_display.dart';
 
 /// SH-DOM-01 — reference gold rate strip.
 ///

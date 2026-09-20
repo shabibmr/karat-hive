@@ -3,10 +3,10 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
-import 'expiry_countdown.dart';
-import 'masked_party_label.dart';
-import 'money_display.dart';
-import 'purity_picker.dart';
+import 'package:kh_ui_domain/src/expiry_countdown.dart';
+import 'package:kh_ui_domain/src/masked_party_label.dart';
+import 'package:kh_ui_domain/src/money_display.dart';
+import 'package:kh_ui_domain/src/purity_picker.dart';
 
 KhStatusTone offerStateTone(OfferState state) => switch (state) {
       OfferState.pending => KhStatusTone.accent,

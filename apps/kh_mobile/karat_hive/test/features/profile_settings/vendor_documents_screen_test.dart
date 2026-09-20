@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:karat_hive/app/session/session_controller.dart';
 import 'package:karat_hive/features/onboarding/repository/onboarding_repository.dart';
 import 'package:karat_hive/features/profile_settings/presentation/vendor_documents_screen.dart';
@@ -18,13 +19,20 @@ Widget _host({
   required List<Override> overrides,
   required Widget child,
 }) {
+  final router = GoRouter(
+    initialLocation: '/',
+    routes: [
+      GoRoute(path: '/', builder: (context, state) => child),
+      GoRoute(path: '/awaiting', builder: (context, state) => const SizedBox()),
+    ],
+  );
   return ProviderScope(
     overrides: overrides,
-    child: MaterialApp(
+    child: MaterialApp.router(
       theme: khTheme(),
       localizationsDelegates: KhStrings.delegates,
       supportedLocales: KhStrings.supportedLocales,
-      home: child,
+      routerConfig: router,
     ),
   );
 }
@@ -109,7 +117,7 @@ void main() {
 
     expect(find.text('Re-verification Required'), findsOneWidget);
 
-    await tester.tap(find.text('Submit for Re-verification'));
+    await tester.tap(find.text('Submit for Re-verification').last);
     await tester.pumpAndSettle();
 
     verify(() => repo.resubmit()).called(1);

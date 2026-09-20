@@ -6,7 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/shell/kh_admin_scaffold.dart';
+import 'package:kh_admin/features/dashboard/model/dashboard_queue_item.dart';
+import 'package:kh_admin/features/dashboard/model/dashboard_stats.dart';
 import 'package:kh_admin/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:kh_admin/features/dashboard/repository/dashboard_repository.dart';
+import 'package:kh_admin/features/reports/model/report_filters.dart';
+import 'package:kh_admin/features/reports/model/report_name.dart';
+import 'package:kh_admin/features/reports/model/report_result.dart';
 import 'package:kh_admin/features/taxonomy/model/taxonomy_kind.dart';
 import 'package:kh_admin/features/taxonomy/model/taxonomy_node.dart';
 import 'package:kh_admin/features/taxonomy/presentation/taxonomy_screen.dart';
@@ -54,9 +60,44 @@ class _FakeTaxonomyRepository extends TaxonomyRepository {
       _tree;
 }
 
+class _FakeDashboardRepository implements DashboardRepository {
+  @override
+  Future<DashboardStats> fetchStats({DateTime? from, DateTime? to}) async =>
+      const DashboardStats(
+        totalCustomers: 120,
+        totalVendors: 45,
+        pendingVerificationVendors: 3,
+        activeRequests: 80,
+        activeOffers: 210,
+        activeConnections: 55,
+      );
+
+  @override
+  Future<List<DashboardQueueItem>> fetchVerificationSnapshot() async => const [];
+
+  @override
+  Future<List<DashboardQueueItem>> fetchAbuseSnapshot() async => const [];
+
+  @override
+  Future<List<DashboardQueueItem>> fetchPendingReviewsSnapshot() async => const [];
+
+  @override
+  Future<ReportResult> fetchTrend(ReportFilters filters) async => ReportResult(
+        name: ReportName.requestVolume,
+        generatedAt: DateTime.utc(2026, 9, 9),
+        rows: const [
+          {'state': 'OPEN', 'count': 12},
+          {'state': 'CONNECTED', 'count': 4},
+        ],
+      );
+}
+
 Widget _app(Widget home, {List<Override> overrides = const []}) {
   return ProviderScope(
-    overrides: overrides,
+    overrides: [
+      dashboardRepositoryProvider.overrideWithValue(_FakeDashboardRepository()),
+      ...overrides,
+    ],
     child: MaterialApp(
       theme: buildKhAdminTheme(),
       localizationsDelegates: const [
@@ -140,6 +181,10 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            dashboardRepositoryProvider
+                .overrideWithValue(_FakeDashboardRepository()),
+          ],
           child: MaterialApp.router(
             theme: buildKhAdminTheme(),
             localizationsDelegates: const [

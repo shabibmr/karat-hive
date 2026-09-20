@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
-
-import 'expiry_countdown.dart';
-import 'masked_party_label.dart';
-import 'money_display.dart';
-import 'relative_time_label.dart';
+import 'package:kh_ui_domain/src/expiry_countdown.dart';
+import 'package:kh_ui_domain/src/masked_party_label.dart';
+import 'package:kh_ui_domain/src/money_display.dart';
+import 'package:kh_ui_domain/src/relative_time_label.dart';
 
 /// SH-REQ-01 — Request summary card (Vendor variant).
 ///
@@ -171,11 +170,31 @@ class VendorRequestCard extends StatelessWidget {
                   const Divider(height: 1),
                   SizedBox(height: tokens.space.xs),
 
-                  if (item.expiresAt != null)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ExpiryCountdown(expiresAt: item.expiresAt!),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.local_offer_outlined,
+                            size: 14,
+                            color: tokens.ink.withValues(alpha: 0.6),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            l10n?.offerCountShort(item.offerCount) ??
+                                '${item.offerCount} ${item.offerCount == 1 ? 'offer' : 'offers'}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: tokens.ink.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (item.expiresAt != null)
+                        ExpiryCountdown(expiresAt: item.expiresAt!),
+                    ],
+                  ),
                 ],
               ),
             ),

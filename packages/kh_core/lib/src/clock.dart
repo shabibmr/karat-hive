@@ -10,7 +10,7 @@ class ServerClock {
     _offset = serverTime.difference(_deviceNow());
   }
 
-  DateTime _deviceNow() => _nowProvider != null ? _nowProvider!() : DateTime.now().toUtc();
+  DateTime _deviceNow() => _nowProvider != null ? _nowProvider() : DateTime.now().toUtc();
 
   DateTime now() => _deviceNow().add(_offset);
 }

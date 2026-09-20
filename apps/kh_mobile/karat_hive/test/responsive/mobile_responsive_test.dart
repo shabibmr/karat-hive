@@ -26,6 +26,8 @@ KhApi _stubApi() {
       byteSize: any(named: 'byteSize'),
     ),
   ).thenAnswer((_) async => const Err(NetworkFailure()));
+  when(() => api.vendorMe()).thenAnswer((_) async => const Err(NetworkFailure()));
+  when(() => api.documents()).thenAnswer((_) async => const Ok([]));
   return api;
 }
 

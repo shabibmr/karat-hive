@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:karat_hive/features/onboarding/repository/onboarding_repository.dart';
 import 'package:karat_hive/features/profile_settings/controller/settings_controller.dart';
 import 'package:karat_hive/features/profile_settings/presentation/customer_settings_screen.dart';
 import 'package:karat_hive/features/profile_settings/repository/profile_settings_repository.dart';
@@ -19,7 +20,10 @@ Widget _host({
   Widget child = const CustomerSettingsScreen(),
 }) {
   return ProviderScope(
-    overrides: overrides,
+    overrides: [
+      regionsProvider.overrideWith((ref) async => const <TaxonomyNode>[]),
+      ...overrides,
+    ],
     child: Consumer(
       builder: (context, ref, _) {
         final locale = ref.watch(appLocaleProvider);

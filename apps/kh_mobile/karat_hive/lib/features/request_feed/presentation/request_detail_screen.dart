@@ -195,6 +195,28 @@ class RequestDetailScreen extends ConsumerWidget {
                         ),
                       ),
                     ],
+
+                    // Offers summary (Competitor price blind - BR-008)
+                    Card(
+                      elevation: 0,
+                      color: tokens.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(tokens.radius.md),
+                        side: BorderSide(color: tokens.ink.withValues(alpha: 0.12)),
+                      ),
+                      child: ListTile(
+                        leading: Icon(Icons.local_offer, color: tokens.gold),
+                        title: Text(
+                          l10n?.offersReceived(item.offerCount) ??
+                              '${item.offerCount} ${item.offerCount == 1 ? 'offer' : 'offers'} received',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          l10n?.competitorPricingHidden ??
+                              'Competitor pricing and terms are hidden per marketplace rules.',
+                        ),
+                      ),
+                    ),
                     SizedBox(height: tokens.space.lg),
                   ],
                 ),
