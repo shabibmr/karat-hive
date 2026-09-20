@@ -58,12 +58,6 @@ class CustomerHomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(s.s('shell.nav.home')),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        key: const Key('quick-create'),
-        onPressed: () => context.push(RequestCreatePaths.type),
-        icon: const Icon(Icons.add),
-        label: Text(s.s('cus.home.create')),
-      ),
       body: KhPullToRefresh(
         onRefresh: () async {
           await ref.read(customerHomeControllerProvider.notifier).refresh();

@@ -129,7 +129,7 @@ void main() {
     expect(find.byKey(const Key('summary-offers')), findsOneWidget);
     expect(find.byKey(const Key('summary-connections')), findsOneWidget);
     expect(find.byKey(const Key('open-history')), findsNothing);
-    expect(find.byKey(const Key('quick-create')), findsOneWidget);
+    expect(find.byKey(const Key('quick-create')), findsNothing);
   });
 
   testWidgets('Tapping a request type updates requestCreateController',

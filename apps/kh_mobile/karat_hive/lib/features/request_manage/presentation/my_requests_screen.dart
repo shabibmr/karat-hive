@@ -6,7 +6,6 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
-import '../../request_create/routes.dart';
 import '../controller/my_requests_controller.dart';
 import 'customer_copy.dart';
 import 'widgets/owner_request_card.dart';
@@ -59,12 +58,6 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
             child: Text(s.s('cus.home.history')),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        key: const Key('quick-create'),
-        onPressed: () => context.push(RequestCreatePaths.type),
-        icon: const Icon(Icons.add),
-        label: Text(s.s('cus.home.create')),
       ),
       body: ValueListenableBuilder<PagedListState<RequestForCustomer>>(
         valueListenable: controller,
