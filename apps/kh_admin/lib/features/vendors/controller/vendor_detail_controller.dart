@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kh_admin/features/vendors/controller/vendor_list_controller.dart';
 import 'package:kh_admin/features/vendors/model/vendor_detail.dart';
 import 'package:kh_admin/features/vendors/repository/vendor_repository.dart';
 
@@ -20,6 +21,24 @@ class VendorDetailController
     });
   }
 
+  /// Soft reload after a successful mutation — never throws.
+  Future<void> _softReload() async {
+    final previous = state;
+    final next = await AsyncValue.guard(() async {
+      final repository = ref.read(vendorRepositoryProvider);
+      return repository.fetchVendorDetail(arg);
+    });
+    if (next.hasError && previous.hasValue) {
+      state = previous;
+      return;
+    }
+    state = next;
+  }
+
+  void _invalidateList() {
+    ref.invalidate(vendorListControllerProvider);
+  }
+
   Future<void> suspendVendor({
     required String reasonCode,
     required String reasonText,
@@ -30,7 +49,8 @@ class VendorDetailController
       reasonCode: reasonCode,
       reasonText: reasonText,
     );
-    await reload();
+    await _softReload();
+    _invalidateList();
   }
 
   Future<void> reactivateVendor({
@@ -43,7 +63,8 @@ class VendorDetailController
       reasonCode: reasonCode,
       reasonText: reasonText,
     );
-    await reload();
+    await _softReload();
+    _invalidateList();
   }
 
   Future<void> deactivateVendor({
@@ -56,7 +77,8 @@ class VendorDetailController
       reasonCode: reasonCode,
       reasonText: reasonText,
     );
-    await reload();
+    await _softReload();
+    _invalidateList();
   }
 }
 

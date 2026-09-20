@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:kh_admin/core/api/json_parse.dart';
+
 /// Persisted session tokens.
 @immutable
 class SessionTokens {
@@ -16,12 +18,13 @@ class SessionTokens {
   final DateTime refreshExpiresAt;
 
   factory SessionTokens.fromJson(Map<String, dynamic> json) {
+    final map = asMap(json);
     return SessionTokens(
-      accessToken: json['accessToken'] as String? ?? '',
-      accessExpiresAt: DateTime.tryParse(json['accessExpiresAt']?.toString() ?? '') ??
+      accessToken: map['accessToken']?.toString() ?? '',
+      accessExpiresAt: DateTime.tryParse(map['accessExpiresAt']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      refreshToken: json['refreshToken'] as String? ?? '',
-      refreshExpiresAt: DateTime.tryParse(json['refreshExpiresAt']?.toString() ?? '') ??
+      refreshToken: map['refreshToken']?.toString() ?? '',
+      refreshExpiresAt: DateTime.tryParse(map['refreshExpiresAt']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     );
   }
@@ -50,15 +53,16 @@ class AdminUser {
   final String displayName;
 
   factory AdminUser.fromJson(Map<String, dynamic> json) {
-    final adminMap = json['admin'] as Map<String, dynamic>?;
-    final displayName = adminMap?['displayName'] as String? ??
-        json['displayName'] as String? ??
+    final map = asMap(json);
+    final adminMap = asMap(map['admin']);
+    final displayName = adminMap['displayName']?.toString() ??
+        map['displayName']?.toString() ??
         'Platform Admin';
 
     return AdminUser(
-      userId: json['userId'] as String? ?? json['id'] as String? ?? '',
-      userType: json['userType'] as String? ?? 'ADMIN',
-      email: json['email'] as String?,
+      userId: map['userId']?.toString() ?? map['id']?.toString() ?? '',
+      userType: map['userType']?.toString() ?? 'ADMIN',
+      email: map['email']?.toString(),
       displayName: displayName,
     );
   }
@@ -83,13 +87,14 @@ class SessionBundle {
   final AdminUser user;
 
   factory SessionBundle.fromJson(Map<String, dynamic> json) {
+    final map = asMap(json);
+    final tokensRaw = map['tokens'];
     final tokens = SessionTokens.fromJson(
-      json.containsKey('tokens') && json['tokens'] is Map<String, dynamic>
-          ? json['tokens'] as Map<String, dynamic>
-          : json,
+      tokensRaw is Map ? asMap(tokensRaw) : map,
     );
+    final userRaw = map['user'];
     final user = AdminUser.fromJson(
-      (json['user'] as Map<String, dynamic>?) ?? json,
+      userRaw is Map ? asMap(userRaw) : map,
     );
 
     return SessionBundle(tokens: tokens, user: user);

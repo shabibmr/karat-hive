@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/platform/open_url.dart';
 
 /// A friendly error recovery widget displayed when an unexpected error occurs.
 ///
@@ -16,6 +17,7 @@ class ErrorRetryWidget extends StatelessWidget {
   final FlutterErrorDetails? details;
 
   /// Callback executed when the user presses the Retry button.
+  /// Defaults to a same-tab page reload when null.
   final VoidCallback? onRetry;
 
   /// User-friendly message explaining that an error occurred.
@@ -50,7 +52,7 @@ class ErrorRetryWidget extends StatelessWidget {
               FilledButton.icon(
                 icon: const Icon(Icons.refresh, size: 16.0),
                 label: const Text('Retry'),
-                onPressed: onRetry,
+                onPressed: onRetry ?? reloadCurrentPage,
               ),
             ],
           ),

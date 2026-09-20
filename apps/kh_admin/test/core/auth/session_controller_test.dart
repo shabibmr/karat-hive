@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/auth/auth_broadcast.dart';
 import 'package:kh_admin/core/auth/auth_models.dart';
 import 'package:kh_admin/core/auth/auth_repository.dart';
@@ -39,6 +40,9 @@ class _MockAuthRepository extends AuthRepository {
   /// When true, [login] throws — simulating a backend that is down.
   bool loginShouldFail = false;
 
+  /// Optional override for [refresh] failures (network vs definitive auth).
+  Object? refreshError;
+
   @override
   Future<SessionBundle> login(String email, String password) async {
     loginCalled = true;
@@ -66,6 +70,8 @@ class _MockAuthRepository extends AuthRepository {
   @override
   Future<SessionBundle> refresh(String refreshToken) async {
     refreshCalled = true;
+    final err = refreshError;
+    if (err != null) throw err;
     return SessionBundle(
       tokens: SessionTokens(
         accessToken: 'access-2',
@@ -136,6 +142,33 @@ void main() {
     expect(success, isTrue);
     expect(authRepository.refreshCalled, isTrue);
     expect(controller.state.tokens?.accessToken, 'access-2');
+  });
+
+  test('silentRefresh keeps session on network failure', () async {
+    await controller.login('admin@kh.ae', 'secret123');
+    authRepository.refreshError = const ApiException(
+      statusCode: 0,
+      code: 'NETWORK_ERROR',
+      message: 'Network connection error',
+    );
+    final success = await controller.silentRefresh();
+    expect(success, isFalse);
+    expect(controller.state.isAuthenticated, isTrue);
+    expect(controller.state.tokens?.accessToken, 'access-1');
+    expect(authRepository.logoutCalled, isFalse);
+  });
+
+  test('silentRefresh logs out on definitive 401', () async {
+    await controller.login('admin@kh.ae', 'secret123');
+    authRepository.refreshError = const ApiException(
+      statusCode: 401,
+      code: 'UNAUTHORIZED',
+      message: 'Invalid refresh token',
+    );
+    final success = await controller.silentRefresh();
+    expect(success, isFalse);
+    expect(controller.state.isAuthenticated, isFalse);
+    expect(authRepository.logoutCalled, isTrue);
   });
 
   test('SessionController logout clears state and token storage', () async {

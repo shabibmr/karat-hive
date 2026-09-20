@@ -4,6 +4,9 @@ import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/list/list_state.dart';
 import 'package:kh_admin/core/list/paginated.dart';
 
+/// Which paging operation last ran — used by [retry] after a failed page.
+enum PagingMode { initial, nextPage, previousPage, loadMore }
+
 /// Abstract kernel Notifier for cursor-paginated lists (TR-S1-15).
 ///
 /// Features:
@@ -33,12 +36,14 @@ abstract class CursorPaginatedNotifier<TItem, TFilters>
   final Set<String> _visitedCursors = <String>{};
   Future<void>? _inFlightLoad;
   int _epoch = 0;
+  PagingMode _lastPagingMode = PagingMode.initial;
 
   @override
   CursorListState<TItem, TFilters> build() {
     _visitedCursors.clear();
     _inFlightLoad = null;
     _epoch = 0;
+    _lastPagingMode = PagingMode.initial;
 
     final effectiveLimit = pageSize;
     if (effectiveLimit > 100) {
@@ -57,9 +62,34 @@ abstract class CursorPaginatedNotifier<TItem, TFilters>
     return CursorListLoading<TItem, TFilters>(filters: initialFilters);
   }
 
+  /// Updates filters in state without a network fetch (search typing).
+  void replaceFilters(TFilters newFilters) {
+    final s = state;
+    if (s is CursorListLoaded<TItem, TFilters>) {
+      state = s.copyWith(filters: newFilters);
+    } else if (s is CursorListError<TItem, TFilters>) {
+      state = CursorListError<TItem, TFilters>(
+        filters: newFilters,
+        errorMessage: s.errorMessage,
+        rawError: s.rawError,
+        items: s.items,
+        page: s.page,
+        nextCursor: s.nextCursor,
+        totalCount: s.totalCount,
+        cursorHistory: s.cursorHistory,
+      );
+    } else if (s is CursorListLoading<TItem, TFilters>) {
+      state = CursorListLoading<TItem, TFilters>(filters: newFilters);
+    } else if (s is CursorListInitial<TItem, TFilters>) {
+      state = CursorListInitial<TItem, TFilters>(filters: newFilters);
+    }
+  }
+
   /// Initial or reset load. Clears cursors and history.
+  ///
+  /// Always supersedes any in-flight load via [_epoch]; never returns a stale
+  /// [_inFlightLoad] (filters / refresh must not reuse an older request).
   Future<void> loadInitial() {
-    if (_inFlightLoad != null) return _inFlightLoad!;
     final future = _performLoadInitial();
     _inFlightLoad = future;
     return future;
@@ -67,6 +97,7 @@ abstract class CursorPaginatedNotifier<TItem, TFilters>
 
   Future<void> _performLoadInitial() async {
     final currentEpoch = ++_epoch;
+    _lastPagingMode = PagingMode.initial;
     _visitedCursors.clear();
 
     state = CursorListLoading<TItem, TFilters>(filters: state.filters);
@@ -110,7 +141,9 @@ abstract class CursorPaginatedNotifier<TItem, TFilters>
         rawError: e,
       );
     } finally {
-      _inFlightLoad = null;
+      if (currentEpoch == _epoch) {
+        _inFlightLoad = null;
+      }
     }
   }
 
@@ -124,6 +157,7 @@ abstract class CursorPaginatedNotifier<TItem, TFilters>
     if (currentCursor == null || currentCursor.isEmpty) return;
 
     final currentEpoch = _epoch;
+    _lastPagingMode = PagingMode.loadMore;
     final previousItems = state.items;
 
     if (state is CursorListLoaded<TItem, TFilters>) {
@@ -209,6 +243,7 @@ abstract class CursorPaginatedNotifier<TItem, TFilters>
     if (currentCursor == null || currentCursor.isEmpty) return;
 
     final currentEpoch = _epoch;
+    _lastPagingMode = PagingMode.nextPage;
     final previousItems = state.items;
 
     if (state is CursorListLoaded<TItem, TFilters>) {
@@ -278,6 +313,7 @@ abstract class CursorPaginatedNotifier<TItem, TFilters>
     final targetCursor = state.cursorHistory[targetPage - 1];
 
     final currentEpoch = _epoch;
+    _lastPagingMode = PagingMode.previousPage;
     final previousItems = state.items;
 
     if (state is CursorListLoaded<TItem, TFilters>) {
@@ -334,17 +370,28 @@ abstract class CursorPaginatedNotifier<TItem, TFilters>
   /// Updates filters. If identical to current filters, skips refetching (TR-S1-20).
   Future<void> applyFilters(TFilters newFilters) async {
     if (state.filters == newFilters) return;
+    // Invalidate in-flight work before swapping filters / starting a new load.
+    _epoch++;
     state = CursorListLoading<TItem, TFilters>(filters: newFilters);
     await loadInitial();
   }
 
-  /// Retries a failed load or page.
+  /// Retries a failed load or page using the last paging mode.
   Future<void> retry() async {
     if (state is! CursorListError<TItem, TFilters>) return;
     if (state.items.isEmpty) {
       await loadInitial();
-    } else {
-      await nextPage();
+      return;
+    }
+    switch (_lastPagingMode) {
+      case PagingMode.initial:
+        await loadInitial();
+      case PagingMode.nextPage:
+        await nextPage();
+      case PagingMode.previousPage:
+        await previousPage();
+      case PagingMode.loadMore:
+        await loadMore();
     }
   }
 }

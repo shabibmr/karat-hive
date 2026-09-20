@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kh_admin/core/auth/dev_auth.dart';
+import 'package:kh_admin/core/auth/idle_timeout.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/theme/theme_mode_controller.dart';
@@ -168,59 +169,61 @@ class KhAdminScaffold extends ConsumerWidget {
     final isDevAutoLogin = ref.watch(devAuthConfigProvider).autoLogin;
 
     final currentPath = GoRouterState.of(context).uri.path;
+    void logout() => ref.read(sessionControllerProvider.notifier).logout();
 
-    if (isDesktop) {
-      return Scaffold(
-        backgroundColor: context.kh.colors.backgroundPrimary,
-        body: Row(
-          children: [
-            _AdminSidebar(
-              currentPath: currentPath,
-              onNavigate: (route) => context.go(route),
-            ),
-            Expanded(
-              child: Column(
-                children: [
-                  _AdminTopBar(
-                    displayName: displayName,
-                    showDevBadge: isDevAutoLogin,
-                    showHamburger: false,
-                    onLogout: () =>
-                        ref.read(sessionControllerProvider.notifier).logout(),
+    final scaffold = isDesktop
+        ? Scaffold(
+            backgroundColor: context.kh.colors.backgroundPrimary,
+            body: Row(
+              children: [
+                _AdminSidebar(
+                  currentPath: currentPath,
+                  onNavigate: (route) => context.go(route),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      _AdminTopBar(
+                        displayName: displayName,
+                        showDevBadge: isDevAutoLogin,
+                        showHamburger: false,
+                        onLogout: logout,
+                      ),
+                      Expanded(child: child),
+                    ],
                   ),
-                  Expanded(child: child),
-                ],
+                ),
+              ],
+            ),
+          )
+        : Scaffold(
+            backgroundColor: context.kh.colors.backgroundPrimary,
+            appBar: PreferredSize(
+              preferredSize: Size.fromHeight(context.kh.spacing.topBarHeight),
+              child: _AdminTopBar(
+                displayName: displayName,
+                showDevBadge: isDevAutoLogin,
+                showHamburger: true,
+                onLogout: logout,
               ),
             ),
-          ],
-        ),
-      );
-    }
+            drawer: Drawer(
+              backgroundColor: context.kh.colors.backgroundElevated,
+              child: _AdminSidebar(
+                currentPath: currentPath,
+                onNavigate: (route) {
+                  Navigator.of(context).pop(); // Close drawer
+                  context.go(route);
+                },
+              ),
+            ),
+            body: child,
+          );
 
-    // Mobile / Tablet (< 1280px)
-    return Scaffold(
-      backgroundColor: context.kh.colors.backgroundPrimary,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(context.kh.spacing.topBarHeight),
-        child: _AdminTopBar(
-          displayName: displayName,
-          showDevBadge: isDevAutoLogin,
-          showHamburger: true,
-          onLogout: () =>
-              ref.read(sessionControllerProvider.notifier).logout(),
-        ),
-      ),
-      drawer: Drawer(
-        backgroundColor: context.kh.colors.backgroundElevated,
-        child: _AdminSidebar(
-          currentPath: currentPath,
-          onNavigate: (route) {
-            Navigator.of(context).pop(); // Close drawer
-            context.go(route);
-          },
-        ),
-      ),
-      body: child,
+    return IdleTimeoutListener(
+      enabled: session.isAuthenticated,
+      onLogout: logout,
+      child: scaffold,
     );
   }
 }

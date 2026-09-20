@@ -62,5 +62,7 @@ KhStatusTone customerStatusTone(CustomerAccountState state) {
       return KhStatusTone.pending;
     case CustomerAccountState.deactivated:
       return KhStatusTone.error;
+    case CustomerAccountState.unknown:
+      return KhStatusTone.neutral;
   }
 }

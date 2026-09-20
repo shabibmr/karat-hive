@@ -32,7 +32,7 @@ class RequestListController
   }
 
   void setSearchQuery(String query) {
-    applyFilters(state.filters.copyWith(query: query));
+    replaceFilters(state.filters.copyWith(query: query));
   }
 
   Future<void> submitSearch() => refresh();

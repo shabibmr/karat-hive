@@ -27,9 +27,8 @@ class CustomerLifecycleActionsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kh = context.kh;
+    final isActive = detail.accountState == CustomerAccountState.active;
     final isSuspended = detail.accountState == CustomerAccountState.suspended;
-    final isDeactivated =
-        detail.accountState == CustomerAccountState.deactivated;
 
     return Container(
       key: const Key('customer-lifecycle-card'),
@@ -80,7 +79,7 @@ class CustomerLifecycleActionsCard extends StatelessWidget {
                   ),
                 ),
               )
-            else if (!isDeactivated)
+            else if (isActive)
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(

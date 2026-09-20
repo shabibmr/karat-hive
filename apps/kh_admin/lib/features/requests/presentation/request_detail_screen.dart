@@ -39,6 +39,7 @@ class RequestDetailScreen extends ConsumerStatefulWidget {
 class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   final _noteController = TextEditingController();
   bool _isSubmittingNote = false;
+  bool _isProcessing = false;
   String? _actionFeedback;
   bool _actionSuccess = true;
 
@@ -141,6 +142,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                               SizedBox(height: kh.spacing.lg),
                               RequestModerationCard(
                                 detail: detail,
+                                isProcessing: _isProcessing,
                                 onRemove: () => _handleRemove(detail),
                               ),
                               SizedBox(height: kh.spacing.lg),
@@ -174,6 +176,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                       SizedBox(height: kh.spacing.lg),
                       RequestModerationCard(
                         detail: detail,
+                        isProcessing: _isProcessing,
                         onRemove: () => _handleRemove(detail),
                       ),
                       SizedBox(height: kh.spacing.lg),
@@ -220,9 +223,15 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Future<void> _handleRemove(RequestDetail detail) async {
+    if (_isProcessing) return;
     final l10n = AppLocalizations.of(context);
     final outcome = await showRemoveRequestDialog(context, detail);
     if (outcome == null || !mounted) return;
+
+    setState(() {
+      _isProcessing = true;
+      _actionFeedback = null;
+    });
 
     try {
       await _controller.removeRequest(
@@ -230,17 +239,21 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
         reasonText: outcome.reasonText,
         policyClause: outcome.policyClause,
       );
+      if (!mounted) return;
       setState(() {
         _actionSuccess = true;
         _actionFeedback =
             l10n?.requestsDetailRemoveSuccess ?? 'Request successfully removed.';
       });
     } on Object catch (e) {
+      if (!mounted) return;
       setState(() {
         _actionSuccess = false;
         _actionFeedback = l10n?.requestsDetailRemoveFailed(e.toString()) ??
             'Failed to remove request: $e';
       });
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 }

@@ -26,34 +26,50 @@ class SessionController extends StateNotifier<SessionState> {
         _authBroadcast = authBroadcast,
         _devAuth = devAuth,
         super(const SessionState()) {
-    _initAuthListener();
     _initBroadcastListener();
+    // Legacy tokens / dev auto-login can proceed before Firebase is ready.
     init();
   }
 
   final TokenStorage _tokenStorage;
   final AuthRepository _authRepository;
-  final FirebaseAuthService? _firebaseAuthService;
+  FirebaseAuthService? _firebaseAuthService;
   final AuthBroadcast? _authBroadcast;
   final DevAuthConfig _devAuth;
   StreamSubscription<User?>? _firebaseAuthSub;
   StreamSubscription<void>? _authBroadcastSub;
   Completer<bool>? _refreshCompleter;
-
-  void _initAuthListener() {
-    _firebaseAuthSub = _firebaseAuthService?.authStateChanges.listen((fbUser) {
-      if (fbUser != null) {
-        _syncFirebaseUser(fbUser);
-      } else {
-        _checkLegacySession();
-      }
-    });
-  }
+  Completer<void>? _syncCompleter;
+  String? _syncingFirebaseUid;
 
   void _initBroadcastListener() {
     _authBroadcastSub = _authBroadcast?.onLogout.listen((_) {
       _handleMultiTabLogout();
     });
+  }
+
+  void _bindFirebaseAuthListener() {
+    _firebaseAuthSub?.cancel();
+    _firebaseAuthSub = _firebaseAuthService?.authStateChanges.listen((fbUser) {
+      if (fbUser != null) {
+        unawaited(_syncFirebaseUser(fbUser));
+      } else if (!state.isAuthenticated) {
+        unawaited(_checkLegacySession());
+      }
+    });
+  }
+
+  /// Re-bind Firebase auth after [initializeFirebaseNonBlocking] completes.
+  ///
+  /// Capturing `authStateChanges` before Firebase.initializeApp yields an empty
+  /// stream forever — call this once Firebase is ready so Google restore works.
+  Future<void> onFirebaseReady(FirebaseAuthService? authService) async {
+    _firebaseAuthService = authService ?? _firebaseAuthService;
+    _bindFirebaseAuthListener();
+    final fbUser = _firebaseAuthService?.currentUser;
+    if (fbUser != null) {
+      await _syncFirebaseUser(fbUser);
+    }
   }
 
   @override
@@ -74,8 +90,43 @@ class SessionController extends StateNotifier<SessionState> {
     await _checkLegacySession();
   }
 
+  static bool _isDefinitiveAuthFailure(Object e) {
+    if (e is ApiException) {
+      return e.statusCode == 401 || e.statusCode == 403;
+    }
+    return false;
+  }
+
+  static bool _isRetryableTransportFailure(Object e) {
+    if (e is ApiException) {
+      return e.statusCode == 0 ||
+          e.code == 'NETWORK_ERROR' ||
+          e.code == 'CONNECTION_TIMEOUT' ||
+          e.statusCode >= 500;
+    }
+    final msg = e.toString();
+    return msg.contains('Failed to fetch') ||
+        msg.contains('NETWORK_ERROR') ||
+        msg.contains('CONNECTION_TIMEOUT');
+  }
+
   /// G2-A14: exchange Google ID token for a KH SessionBundle, then use KH tokens.
   Future<void> _syncFirebaseUser(User fbUser) async {
+    // Single-flight: concurrent listener + loginWithGoogle must not race.
+    while (_syncCompleter != null) {
+      await _syncCompleter!.future;
+      if (state.isAuthenticated && _syncingFirebaseUid == fbUser.uid) {
+        return;
+      }
+      if (state.isAuthenticated && fbUser.email != null && state.admin?.email == fbUser.email) {
+        return;
+      }
+    }
+
+    final completer = Completer<void>();
+    _syncCompleter = completer;
+    _syncingFirebaseUid = fbUser.uid;
+
     state = state.copyWith(status: SessionStatus.loading, clearError: true);
     try {
       final idToken = await fbUser.getIdToken();
@@ -95,7 +146,8 @@ class SessionController extends StateNotifier<SessionState> {
           status: SessionStatus.unauthenticated,
           clearAdmin: true,
           clearTokens: true,
-          errorMessage: 'Google account (${fbUser.email}) is not authorized as an Admin.',
+          errorMessage:
+              'Google account (${fbUser.email}) is not authorized as an Admin.',
         );
         return;
       }
@@ -108,6 +160,15 @@ class SessionController extends StateNotifier<SessionState> {
       );
     } on Object catch (e) {
       // Unbound Google identity or API error — Admin must already exist; no auto-provision.
+      // Transport failures must not clear a good in-memory session mid-race.
+      if (_isRetryableTransportFailure(e) && state.tokens != null) {
+        state = state.copyWith(
+          status: SessionStatus.authenticated,
+          errorMessage:
+              'Unable to connect to the backend server. Please verify network/CORS configuration.',
+        );
+        return;
+      }
       await _tokenStorage.clearTokens();
       await _firebaseAuthService?.signOut();
       final emailStr = fbUser.email != null ? ' (${fbUser.email})' : '';
@@ -117,8 +178,11 @@ class SessionController extends StateNotifier<SessionState> {
         msg = e.statusCode == 401
             ? 'Google account$emailStr is not linked to an Admin user.'
             : (e.message.isNotEmpty ? e.message : 'Authentication failed (${e.code})');
-      } else if (errorStr.contains('Failed to fetch') || errorStr.contains('NETWORK_ERROR')) {
-        msg = 'Unable to connect to the backend server. Please verify network/CORS configuration.';
+      } else if (_isRetryableTransportFailure(e) ||
+          errorStr.contains('Failed to fetch') ||
+          errorStr.contains('NETWORK_ERROR')) {
+        msg =
+            'Unable to connect to the backend server. Please verify network/CORS configuration.';
       } else {
         msg = 'Google account$emailStr is not linked to an Admin user.';
       }
@@ -128,6 +192,9 @@ class SessionController extends StateNotifier<SessionState> {
         clearTokens: true,
         errorMessage: msg,
       );
+    } finally {
+      _syncCompleter = null;
+      completer.complete();
     }
   }
 
@@ -150,32 +217,65 @@ class SessionController extends StateNotifier<SessionState> {
         state = state.copyWith(
           status: SessionStatus.authenticated,
           admin: me,
+          clearError: true,
         );
-      } on Object catch (_) {
+      } on Object catch (e) {
+        if (_isRetryableTransportFailure(e)) {
+          // Keep tokens; surface retryable error without logging the admin out.
+          state = state.copyWith(
+            status: SessionStatus.authenticated,
+            errorMessage:
+                'Unable to reach the server to validate your session. Retry shortly.',
+          );
+          return;
+        }
         // Access token might be expired, attempt one-shot refresh
         final refreshed = await silentRefresh();
         if (refreshed) {
-          final me = await _authRepository.getMe();
+          try {
+            final me = await _authRepository.getMe();
+            state = state.copyWith(
+              status: SessionStatus.authenticated,
+              admin: me,
+              clearError: true,
+            );
+          } on Object catch (e2) {
+            if (_isRetryableTransportFailure(e2)) {
+              state = state.copyWith(
+                status: SessionStatus.authenticated,
+                errorMessage:
+                    'Unable to reach the server to validate your session. Retry shortly.',
+              );
+            } else if (_isDefinitiveAuthFailure(e2)) {
+              await logout();
+            } else {
+              state = state.copyWith(
+                status: SessionStatus.authenticated,
+                errorMessage: e2.toString(),
+              );
+            }
+          }
+        } else if (!state.isAuthenticated) {
+          // silentRefresh already logged out on definitive auth failure
+        } else {
           state = state.copyWith(
             status: SessionStatus.authenticated,
-            admin: me,
+            errorMessage:
+                'Unable to refresh your session. Check network and retry.',
           );
-        } else {
-          await logout();
         }
       }
     } on Object catch (_) {
-      state = state.copyWith(status: SessionStatus.unauthenticated);
+      state = state.copyWith(
+        status: SessionStatus.unauthenticated,
+        clearTokens: true,
+        clearAdmin: true,
+      );
     }
   }
 
   /// Development-only shortcut: signs in as the seeded admin so the portal
   /// lands on the dashboard without the login screen.
-  ///
-  /// This performs a *real* password login, so the session carries genuine
-  /// backend tokens and every `/v1/admin/*` call keeps working. Any failure
-  /// (backend down, admin not seeded) is swallowed so the caller falls through
-  /// to `unauthenticated` and the normal login screen is shown.
   Future<bool> _tryDevAutoLogin() async {
     if (!_devAuth.autoLogin) return false;
     try {
@@ -253,6 +353,9 @@ class SessionController extends StateNotifier<SessionState> {
   }
 
   /// Single-flight silent refresh when a 401 is encountered.
+  ///
+  /// Logs out only on definitive auth failure (401/403). Transport / 5xx
+  /// failures keep tokens so a blip does not kick the admin out.
   Future<bool> silentRefresh() async {
     if (_refreshCompleter != null) {
       return _refreshCompleter!.future;
@@ -274,12 +377,21 @@ class SessionController extends StateNotifier<SessionState> {
         status: SessionStatus.authenticated,
         tokens: bundle.tokens,
         admin: bundle.user,
+        clearError: true,
       );
       completer.complete(true);
       return true;
-    } on Object catch (_) {
+    } on Object catch (e) {
       completer.complete(false);
-      await logout();
+      if (_isDefinitiveAuthFailure(e)) {
+        await logout();
+      } else {
+        state = state.copyWith(
+          errorMessage: _isRetryableTransportFailure(e)
+              ? 'Unable to refresh session (network). Retry shortly.'
+              : e.toString(),
+        );
+      }
       return false;
     } finally {
       _refreshCompleter = null;
@@ -342,4 +454,3 @@ final StateNotifierProvider<SessionController, SessionState>
   apiClient.onUnauthorized = controller.silentRefresh;
   return controller;
 });
-

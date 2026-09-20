@@ -407,6 +407,8 @@ class _CustomerTable extends StatelessWidget {
         return KhStatusTone.pending;
       case CustomerAccountState.deactivated:
         return KhStatusTone.error;
+      case CustomerAccountState.unknown:
+        return KhStatusTone.neutral;
     }
   }
 

@@ -347,10 +347,13 @@ final contractMismatchProvider = StateProvider<bool>((ref) => false);
 
 /// Provider for [ApiClient] wired with session tokens, silent 401 refresh handler,
 /// server timestamp sync, and 426 contract mismatch notifier.
+///
+/// The client instance is stable across flavor URL updates — remote config calls
+/// [ApiClient.updateBaseUrl] instead of recreating the client (and the session).
 final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
-  final flavorConfig = ref.watch(flavorConfigProvider);
-  return ApiClient(
+  final flavorConfig = ref.read(flavorConfigProvider);
+  final client = ApiClient(
     baseUrl: flavorConfig.apiBaseUrl,
     // G2-A14: domain calls use the Karat Hive access token only.
     tokenGetter: () => tokenStorage.getAccessToken(),
@@ -361,5 +364,10 @@ final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
       ref.read(contractMismatchProvider.notifier).state = true;
     },
   );
+  ref.listen<FlavorConfig>(flavorConfigProvider, (previous, next) {
+    if (previous?.apiBaseUrl == next.apiBaseUrl) return;
+    client.updateBaseUrl(next.apiBaseUrl);
+  });
+  return client;
 });
 

@@ -34,7 +34,7 @@ class AbuseListController
   }
 
   void setSearchQuery(String query) {
-    applyFilters(state.filters.copyWith(query: query));
+    replaceFilters(state.filters.copyWith(query: query));
   }
 
   void submitSearch() => refresh();
@@ -58,29 +58,21 @@ class AbuseListController
   }
 
   Future<bool> resolveReport(String id, String resolution) async {
-    try {
-      await ref.read(abuseRepositoryProvider).resolveAbuseReport(
-            id,
-            resolution: resolution,
-          );
-      await refresh();
-      return true;
-    } on Object catch (_) {
-      return false;
-    }
+    await ref.read(abuseRepositoryProvider).resolveAbuseReport(
+          id,
+          resolution: resolution,
+        );
+    await refresh();
+    return true;
   }
 
   Future<bool> dismissReport(String id, String resolution) async {
-    try {
-      await ref.read(abuseRepositoryProvider).dismissAbuseReport(
-            id,
-            resolution: resolution,
-          );
-      await refresh();
-      return true;
-    } on Object catch (_) {
-      return false;
-    }
+    await ref.read(abuseRepositoryProvider).dismissAbuseReport(
+          id,
+          resolution: resolution,
+        );
+    await refresh();
+    return true;
   }
 
   /// FR-ADM-032 AC3 — dismiss / warn / suspend / deactivate the reported party,
@@ -91,17 +83,13 @@ class AbuseListController
     AbuseReportAction action,
     String rationale,
   ) async {
-    try {
-      await ref.read(abuseRepositoryProvider).actionAbuseReport(
-            id,
-            action: action,
-            rationale: rationale,
-          );
-      await refresh();
-      return true;
-    } on Object catch (_) {
-      return false;
-    }
+    await ref.read(abuseRepositoryProvider).actionAbuseReport(
+          id,
+          action: action,
+          rationale: rationale,
+        );
+    await refresh();
+    return true;
   }
 }
 

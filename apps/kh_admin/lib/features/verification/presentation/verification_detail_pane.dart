@@ -398,9 +398,12 @@ class _VerificationDetailPaneState
 
     final docView =
         ref.watch(verificationDocViewControllerProvider(widget.vendorId!));
-    final docErrorMessage = docView.error == null
+    final docError = docView.error;
+    final String? docErrorMessage = docError == null
         ? null
-        : resolveApiErrorMessage(docView.error!, l10n);
+        : docError is String
+            ? docError
+            : resolveApiErrorMessage(docError, l10n);
 
     return Container(
       padding: EdgeInsets.all(spacing.md),

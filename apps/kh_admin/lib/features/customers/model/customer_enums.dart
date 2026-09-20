@@ -8,7 +8,10 @@ enum CustomerAccountState {
   @JsonValue('SUSPENDED')
   suspended,
   @JsonValue('DEACTIVATED')
-  deactivated;
+  deactivated,
+  /// Unrecognized API value — never treat as Active for lifecycle UI.
+  @JsonValue('UNKNOWN')
+  unknown;
 
   String get apiValue {
     switch (this) {
@@ -18,6 +21,8 @@ enum CustomerAccountState {
         return 'SUSPENDED';
       case CustomerAccountState.deactivated:
         return 'DEACTIVATED';
+      case CustomerAccountState.unknown:
+        return 'UNKNOWN';
     }
   }
 
@@ -29,15 +34,19 @@ enum CustomerAccountState {
         return 'Suspended';
       case CustomerAccountState.deactivated:
         return 'Deactivated';
+      case CustomerAccountState.unknown:
+        return 'Unknown';
     }
   }
 
+  /// Null/empty → null (no filter). Unrecognized wire values → [unknown].
   static CustomerAccountState? fromApi(String? value) {
     if (value == null || value.isEmpty) return null;
     final upper = value.toUpperCase().trim();
     for (final state in CustomerAccountState.values) {
+      if (state == CustomerAccountState.unknown) continue;
       if (state.apiValue == upper) return state;
     }
-    return null;
+    return CustomerAccountState.unknown;
   }
 }

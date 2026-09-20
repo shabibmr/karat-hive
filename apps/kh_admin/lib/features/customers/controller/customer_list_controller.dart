@@ -47,26 +47,7 @@ class CustomerListController
 
   /// Updates the query without submitting an API call immediately (used with debounce).
   void setSearchQuery(String query) {
-    final newFilters = state.filters.copyWith(query: query);
-    final s = state;
-    if (s is CursorListLoaded<CustomerListItem, CustomerListFilters>) {
-      state = s.copyWith(filters: newFilters);
-    } else if (s is CursorListError<CustomerListItem, CustomerListFilters>) {
-      state = CursorListError<CustomerListItem, CustomerListFilters>(
-        filters: newFilters,
-        errorMessage: s.errorMessage,
-        rawError: s.rawError,
-        items: s.items,
-        page: s.page,
-        nextCursor: s.nextCursor,
-        totalCount: s.totalCount,
-        cursorHistory: s.cursorHistory,
-      );
-    } else if (s is CursorListLoading<CustomerListItem, CustomerListFilters>) {
-      state = CursorListLoading<CustomerListItem, CustomerListFilters>(
-        filters: newFilters,
-      );
-    }
+    replaceFilters(state.filters.copyWith(query: query));
   }
 
   /// Triggers a refresh using the current search query.

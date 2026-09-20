@@ -96,7 +96,10 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with 
           final success = await ref
               .read(announcementListControllerProvider.notifier)
               .createAnnouncement(dto);
-          if (!mounted || !success) return;
+          if (!success) {
+            throw StateError('Failed to create announcement');
+          }
+          if (!mounted) return;
           messenger.showSnackBar(
             SnackBar(
               content: Text(dto.scheduledFor != null

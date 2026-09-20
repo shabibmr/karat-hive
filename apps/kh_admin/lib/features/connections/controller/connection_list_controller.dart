@@ -41,26 +41,7 @@ class ConnectionListController
   }
 
   void setSearchQuery(String query) {
-    final newFilters = state.filters.copyWith(query: query);
-    final s = state;
-    if (s is CursorListLoaded<ConnectionListItem, ConnectionListFilters>) {
-      state = s.copyWith(filters: newFilters);
-    } else if (s is CursorListError<ConnectionListItem, ConnectionListFilters>) {
-      state = CursorListError<ConnectionListItem, ConnectionListFilters>(
-        filters: newFilters,
-        errorMessage: s.errorMessage,
-        rawError: s.rawError,
-        items: s.items,
-        page: s.page,
-        nextCursor: s.nextCursor,
-        totalCount: s.totalCount,
-        cursorHistory: s.cursorHistory,
-      );
-    } else if (s is CursorListLoading<ConnectionListItem, ConnectionListFilters>) {
-      state = CursorListLoading<ConnectionListItem, ConnectionListFilters>(
-        filters: newFilters,
-      );
-    }
+    replaceFilters(state.filters.copyWith(query: query));
   }
 
   Future<void> submitSearch() => refresh();

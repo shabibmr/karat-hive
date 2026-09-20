@@ -47,10 +47,9 @@ class TaxonomyController
       // Invalidate and reload authoritative server state
       await reload();
       return created;
-    } on Object catch (e, st) {
-      // Rollback optimistic update on error
+    } on Object catch (_) {
+      // Rollback optimistic update; keep prior data visible for snackbar UX.
       state = previousState;
-      state = AsyncValue.error(e, st);
       rethrow;
     }
   }
@@ -79,9 +78,8 @@ class TaxonomyController
       final updated = await repository.updateNode(arg, id, dto);
       await reload();
       return updated;
-    } on Object catch (e, st) {
+    } on Object catch (_) {
       state = previousState;
-      state = AsyncValue.error(e, st);
       rethrow;
     }
   }
@@ -104,9 +102,8 @@ class TaxonomyController
       final deactivated = await repository.deactivateNode(arg, id);
       await reload();
       return deactivated;
-    } on Object catch (e, st) {
+    } on Object catch (_) {
       state = previousState;
-      state = AsyncValue.error(e, st);
       rethrow;
     }
   }

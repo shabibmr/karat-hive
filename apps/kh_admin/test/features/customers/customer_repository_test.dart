@@ -160,7 +160,7 @@ void main() {
       expect(item.displayName, 'Guest User');
       expect(item.email, isNull);
       expect(item.mobileNumber, isNull);
-      expect(item.accountState, CustomerAccountState.active);
+      expect(item.accountState, CustomerAccountState.unknown);
       expect(item.requestCount, 0);
       expect(item.createdAt, isNull);
     });

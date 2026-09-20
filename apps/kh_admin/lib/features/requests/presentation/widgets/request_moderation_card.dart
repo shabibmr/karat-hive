@@ -11,10 +11,12 @@ class RequestModerationCard extends StatelessWidget {
     super.key,
     required this.detail,
     required this.onRemove,
+    this.isProcessing = false,
   });
 
   final RequestDetail detail;
   final VoidCallback onRemove;
+  final bool isProcessing;
 
   @override
   Widget build(BuildContext context) {
@@ -60,9 +62,15 @@ class RequestModerationCard extends StatelessWidget {
                   vertical: kh.spacing.sm,
                 ),
               ),
-              icon: const Icon(Icons.delete_forever, size: 18.0),
+              icon: isProcessing
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.delete_forever, size: 18.0),
               label: Text(l10n?.requestsDetailRemoveRequest ?? 'Remove Request'),
-              onPressed: onRemove,
+              onPressed: isProcessing ? null : onRemove,
             ),
         ],
       ),

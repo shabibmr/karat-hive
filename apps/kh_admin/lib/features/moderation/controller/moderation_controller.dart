@@ -35,7 +35,7 @@ class ModerationListController
   }
 
   void setSearchQuery(String query) {
-    applyFilters(state.filters.copyWith(query: query));
+    replaceFilters(state.filters.copyWith(query: query));
   }
 
   void submitSearch() => refresh();
@@ -59,26 +59,18 @@ class ModerationListController
   }
 
   Future<bool> approveReview(String id) async {
-    try {
-      await ref.read(moderationRepositoryProvider).approveReview(id);
-      await refresh();
-      return true;
-    } on Object catch (_) {
-      return false;
-    }
+    await ref.read(moderationRepositoryProvider).approveReview(id);
+    await refresh();
+    return true;
   }
 
   Future<bool> rejectReview(String id, String rationale) async {
-    try {
-      await ref.read(moderationRepositoryProvider).rejectReview(
-            id,
-            rationale: rationale,
-          );
-      await refresh();
-      return true;
-    } on Object catch (_) {
-      return false;
-    }
+    await ref.read(moderationRepositoryProvider).rejectReview(
+          id,
+          rationale: rationale,
+        );
+    await refresh();
+    return true;
   }
 
   Future<bool> redactReview(
@@ -86,17 +78,13 @@ class ModerationListController
     String rationale,
     String redactedComment,
   ) async {
-    try {
-      await ref.read(moderationRepositoryProvider).redactReview(
-            id,
-            rationale: rationale,
-            redactedComment: redactedComment,
-          );
-      await refresh();
-      return true;
-    } on Object catch (_) {
-      return false;
-    }
+    await ref.read(moderationRepositoryProvider).redactReview(
+          id,
+          rationale: rationale,
+          redactedComment: redactedComment,
+        );
+    await refresh();
+    return true;
   }
 }
 

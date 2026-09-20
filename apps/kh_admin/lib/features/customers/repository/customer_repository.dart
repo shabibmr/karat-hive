@@ -101,7 +101,7 @@ class CustomerRepository {
         normalized['userId'] = user['id'];
       }
     }
-    normalized['accountState'] ??= 'ACTIVE';
+    // Do not invent ACTIVE — missing/unknown maps to CustomerAccountState.unknown.
 
     if (raw['requestCount'] == null) {
       final countObj = raw['_count'];

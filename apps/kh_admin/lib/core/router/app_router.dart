@@ -61,18 +61,29 @@ class RouterNotifier extends ChangeNotifier {
 
     final session = ref.read(sessionControllerProvider);
     final isLoggingIn = state.matchedLocation == AdminRoutes.login;
+    final matched = state.matchedLocation;
 
-    // While resolving initial token/session state, stay on splash/login
+    // While resolving session, keep the current URL (deep links survive bootstrap).
     if (session.isLoading) {
-      return isLoggingIn ? null : AdminRoutes.login;
+      return null;
     }
 
     if (!session.isAuthenticated) {
-      return isLoggingIn ? null : AdminRoutes.login;
+      if (isLoggingIn) return null;
+      if (matched == AdminRoutes.contractMismatch) return AdminRoutes.login;
+      final from = Uri.encodeComponent(state.uri.toString());
+      return '${AdminRoutes.login}?from=$from';
     }
 
-    // Authenticated admin trying to visit /login -> redirect to default dashboard
+    // Authenticated admin on /login → restore `from` or land on dashboard.
     if (isLoggingIn) {
+      final from = state.uri.queryParameters['from'];
+      if (from != null && from.isNotEmpty) {
+        final decoded = Uri.decodeComponent(from);
+        if (decoded.startsWith('/') && !decoded.startsWith('//')) {
+          return decoded;
+        }
+      }
       return AdminRoutes.dashboard;
     }
 

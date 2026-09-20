@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/api/json_parse.dart';
 import 'package:kh_admin/core/auth/auth_models.dart';
 
 /// Authentication repository talking to backend identity endpoints.
@@ -21,7 +22,7 @@ class AuthRepository {
         'password': password,
       },
     );
-    return SessionBundle.fromJson(res as Map<String, dynamic>);
+    return SessionBundle.fromJson(asMap(res));
   }
 
   /// Exchanges a Google / Firebase ID token for a Karat Hive session (`AD-API-13`).
@@ -30,7 +31,7 @@ class AuthRepository {
       '/v1/auth/google/session',
       data: {'idToken': idToken},
     );
-    return SessionBundle.fromJson(res as Map<String, dynamic>);
+    return SessionBundle.fromJson(asMap(res));
   }
 
   /// Rotates refresh token and returns a new session bundle.
@@ -41,7 +42,7 @@ class AuthRepository {
         'refreshToken': refreshToken,
       },
     );
-    return SessionBundle.fromJson(res as Map<String, dynamic>);
+    return SessionBundle.fromJson(asMap(res));
   }
 
   /// Revokes refresh token and logs out the admin.
@@ -61,7 +62,7 @@ class AuthRepository {
   /// Fetches current authenticated admin profile.
   Future<AdminUser> getMe() async {
     final res = await _apiClient.get('/v1/me');
-    return AdminUser.fromJson(res as Map<String, dynamic>);
+    return AdminUser.fromJson(asMap(res));
   }
 }
 

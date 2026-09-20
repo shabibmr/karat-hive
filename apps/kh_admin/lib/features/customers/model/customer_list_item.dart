@@ -8,7 +8,7 @@ class CustomerListItem {
     required this.displayName,
     this.email,
     this.mobileNumber,
-    this.accountState = CustomerAccountState.active,
+    this.accountState = CustomerAccountState.unknown,
     this.requestCount = 0,
     this.createdAt,
   });
@@ -85,7 +85,7 @@ class CustomerListItem {
       mobileNumber:
           json['mobileNumber']?.toString() ?? user?['mobileNumber']?.toString(),
       accountState: CustomerAccountState.fromApi(rawState) ??
-          CustomerAccountState.active,
+          CustomerAccountState.unknown,
       requestCount: parseRequestCount(),
       createdAt: parseDate(json['createdAt'] ?? user?['createdAt']),
     );

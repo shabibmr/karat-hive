@@ -36,7 +36,7 @@ class AnnouncementListController
   }
 
   void setSearchQuery(String query) {
-    applyFilters(state.filters.copyWith(query: query));
+    replaceFilters(state.filters.copyWith(query: query));
   }
 
   void submitSearch() => refresh();

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kh_admin/features/requests/controller/request_list_controller.dart';
 import 'package:kh_admin/features/requests/model/request_detail.dart';
 import 'package:kh_admin/features/requests/repository/request_repository.dart';
 
@@ -19,6 +20,24 @@ class RequestDetailController extends FamilyAsyncNotifier<RequestDetail, String>
     });
   }
 
+  /// Soft reload after a successful mutation — never throws.
+  Future<void> _softReload() async {
+    final previous = state;
+    final next = await AsyncValue.guard(() async {
+      final repository = ref.read(requestRepositoryProvider);
+      return repository.fetchRequestDetail(arg);
+    });
+    if (next.hasError && previous.hasValue) {
+      state = previous;
+      return;
+    }
+    state = next;
+  }
+
+  void _invalidateList() {
+    ref.invalidate(requestListControllerProvider);
+  }
+
   /// Administratively removes the request for a policy violation (FR-ADM-019).
   Future<void> removeRequest({
     required String reasonCode,
@@ -32,14 +51,15 @@ class RequestDetailController extends FamilyAsyncNotifier<RequestDetail, String>
       reasonText: reasonText,
       policyClause: policyClause,
     );
-    await reload();
+    await _softReload();
+    _invalidateList();
   }
 
   /// Appends an admin internal note.
   Future<void> addNote({required String text}) async {
     final repository = ref.read(requestRepositoryProvider);
     await repository.addNote(arg, text: text);
-    await reload();
+    await _softReload();
   }
 }
 

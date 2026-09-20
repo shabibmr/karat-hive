@@ -196,7 +196,7 @@ class CustomerDetail {
     required this.displayName,
     this.email,
     this.mobileNumber,
-    this.accountState = CustomerAccountState.active,
+    this.accountState = CustomerAccountState.unknown,
     this.createdAt,
     this.defaultRegion,
     this.requests = const [],
@@ -296,7 +296,7 @@ class CustomerDetail {
       mobileNumber:
           json['mobileNumber']?.toString() ?? user?['mobileNumber']?.toString(),
       accountState: CustomerAccountState.fromApi(rawState) ??
-          CustomerAccountState.active,
+          CustomerAccountState.unknown,
       createdAt: parseDate(json['createdAt'] ?? user?['createdAt']),
       defaultRegion: parseRegion(json['defaultRegion']),
       requests: parseRequests(json['requests']),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
 import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
@@ -154,15 +155,29 @@ class _AbuseScreenState extends ConsumerState<AbuseScreen> with DebouncedSearchM
                 final rationale = rationaleController.text.trim();
                 if (rationale.isEmpty) return;
                 Navigator.of(dialogCtx).pop();
-                final success = await ref
-                    .read(abuseListControllerProvider.notifier)
-                    .actionReport(item.id, action, rationale);
-                if (mounted) {
+                try {
+                  await ref
+                      .read(abuseListControllerProvider.notifier)
+                      .actionReport(item.id, action, rationale);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Report #${_shortId(item.id)} ${action.pastTense}',
+                        ),
+                      ),
+                    );
+                  }
+                } on Object catch (e) {
+                  if (!mounted) return;
+                  final message = e is ApiException && e.message.isNotEmpty
+                      ? e.message
+                      : e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(success
-                          ? 'Report #${_shortId(item.id)} ${action.pastTense}'
-                          : 'Could not action report #${_shortId(item.id)} — please retry'),
+                      content: Text(
+                        'Could not action report #${_shortId(item.id)}: $message',
+                      ),
                     ),
                   );
                 }

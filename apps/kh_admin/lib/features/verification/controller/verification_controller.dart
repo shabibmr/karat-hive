@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart' show khApiBase;
-import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/features/vendors/controller/vendor_list_controller.dart';
 import 'package:kh_admin/features/verification/model/verification_decision_dto.dart';
 import 'package:kh_admin/features/verification/model/verification_queue_item.dart';
 import 'package:kh_admin/features/verification/model/vendor_verification_detail.dart';
@@ -23,13 +23,33 @@ class VerificationQueueController extends AsyncNotifier<List<VerificationQueueIt
     });
   }
 
+  /// Soft reload after a successful mutation — never throws.
+  Future<void> _softReload() async {
+    final previous = state;
+    final next = await AsyncValue.guard(() async {
+      final repository = ref.read(verificationRepositoryProvider);
+      return repository.fetchQueue();
+    });
+    if (next.hasError && previous.hasValue) {
+      state = previous;
+      return;
+    }
+    state = next;
+  }
+
+  void _invalidateRelated(String vendorId) {
+    ref.invalidate(verificationDetailControllerProvider(vendorId));
+    ref.invalidate(vendorListControllerProvider);
+  }
+
   Future<void> verifyVendor(String vendorId, String rationale) async {
     final repository = ref.read(verificationRepositoryProvider);
     await repository.verifyVendor(
       vendorId,
       VerifyDecisionDto(rationale: rationale),
     );
-    await reload();
+    await _softReload();
+    _invalidateRelated(vendorId);
   }
 
   Future<void> rejectVendor(String vendorId, String rationale) async {
@@ -38,7 +58,8 @@ class VerificationQueueController extends AsyncNotifier<List<VerificationQueueIt
       vendorId,
       RejectDecisionDto(rationale: rationale),
     );
-    await reload();
+    await _softReload();
+    _invalidateRelated(vendorId);
   }
 
   Future<void> requestInfo(String vendorId, String message) async {
@@ -47,7 +68,8 @@ class VerificationQueueController extends AsyncNotifier<List<VerificationQueueIt
       vendorId,
       RequestInfoDto(message: message),
     );
-    await reload();
+    await _softReload();
+    _invalidateRelated(vendorId);
   }
 }
 
@@ -137,19 +159,42 @@ class VerificationDocViewController
   @override
   VerificationDocView build(String arg) => const VerificationDocView();
 
-  /// origin/main's document-url endpoint returns a RELATIVE path
-  /// (`/v1/media/<key>`), not a signed absolute URL. Prefix the API base so the
-  /// browser can resolve it. NOTE: `/v1/media/<key>` is an authenticated route
-  /// and opening it in a new tab cannot attach the bearer token — a signed /
-  /// public media URL from the backend is still needed for this to actually
-  /// render (owned by S4 / TR-S4-19). Until then this at least points at the
-  /// right origin.
+  /// Prefix relative paths with the API base for display/diagnostics.
+  /// Opening still requires a signed absolute URL ([_looksLikeSignedUrl]).
   static String _resolveDocumentUrl(String url) {
     if (url.startsWith('/')) {
       return '${khApiBase.replaceAll(RegExp(r'/+$'), '')}$url';
     }
     return url;
   }
+
+  /// True when [url] is absolute http(s) with query params that look like a
+  /// signed/tokenized media URL. Auth-gated `/v1/media/` paths without a
+  /// signature cannot be opened in a bare browser tab.
+  static bool _looksLikeSignedUrl(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return false;
+    if (uri.scheme != 'http' && uri.scheme != 'https') return false;
+    if (!uri.hasAuthority) return false;
+    if (uri.queryParameters.isEmpty) return false;
+
+    final keys = uri.queryParameters.keys.map((k) => k.toLowerCase());
+    final hasSig = keys.any(
+      (k) =>
+          k.contains('sign') ||
+          k.contains('token') ||
+          k.contains('x-amz') ||
+          k == 'expires' ||
+          k == 'expiry',
+    );
+
+    if (uri.path.contains('/v1/media/')) return hasSig;
+    // Absolute https with any query — treat as signed (R2/S3-style).
+    return true;
+  }
+
+  static const _unsignedPreviewMessage =
+      'Document preview requires a signed URL; relative or unsigned media paths cannot be opened in a new tab.';
 
   /// Fetches the audited URL for [documentId], records it in state, and returns
   /// the resolved absolute URL for the caller to open (null on failure).
@@ -162,13 +207,21 @@ class VerificationDocViewController
         documentId: documentId,
       );
       final resolved = _resolveDocumentUrl(res.url);
+      if (!_looksLikeSignedUrl(resolved)) {
+        state = state._copy(
+          loadingDocId: null,
+          error: _unsignedPreviewMessage,
+        );
+        return null;
+      }
       state = state._copy(
         loadingDocId: null,
         openedDocId: documentId,
         openedDocUrl: resolved,
+        error: null,
       );
       return resolved;
-    } on ApiException catch (e) {
+    } on Object catch (e) {
       state = state._copy(loadingDocId: null, error: e);
       return null;
     }

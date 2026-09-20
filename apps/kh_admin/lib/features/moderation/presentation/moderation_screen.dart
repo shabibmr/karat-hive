@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/router/moderation_query_params.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
@@ -80,6 +81,20 @@ class _ModerationScreenState extends ConsumerState<ModerationScreen> with Deboun
   String _shortId(String id, [int maxLen = 8]) =>
       id.length > maxLen ? id.substring(0, maxLen) : id;
 
+  String _actionErrorMessage(Object error) {
+    if (error is ApiException && error.message.isNotEmpty) {
+      return error.message;
+    }
+    return error.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
+  }
+
+  void _showActionSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   String _formatDateTime(DateTime dt, [int maxLen = 16]) {
     final str = dt.toLocal().toString();
     return str.length >= maxLen ? str.substring(0, maxLen) : str;
@@ -103,13 +118,15 @@ class _ModerationScreenState extends ConsumerState<ModerationScreen> with Deboun
               key: const Key('moderation-confirm-approve-button'),
               onPressed: () async {
                 Navigator.of(dialogCtx).pop();
-                final success = await ref
-                    .read(moderationListControllerProvider.notifier)
-                    .approveReview(item.id);
-                if (mounted && success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Review #${_shortId(item.id)} approved & published')),
+                try {
+                  await ref
+                      .read(moderationListControllerProvider.notifier)
+                      .approveReview(item.id);
+                  _showActionSnackBar(
+                    'Review #${_shortId(item.id)} approved & published',
                   );
+                } on Object catch (e) {
+                  _showActionSnackBar(_actionErrorMessage(e));
                 }
               },
               child: const Text('Approve & Publish'),
@@ -163,13 +180,15 @@ class _ModerationScreenState extends ConsumerState<ModerationScreen> with Deboun
                 final rationale = rationaleController.text.trim();
                 if (rationale.isEmpty) return;
                 Navigator.of(dialogCtx).pop();
-                final success = await ref
-                    .read(moderationListControllerProvider.notifier)
-                    .rejectReview(item.id, rationale);
-                if (mounted && success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Review #${_shortId(item.id)} rejected')),
+                try {
+                  await ref
+                      .read(moderationListControllerProvider.notifier)
+                      .rejectReview(item.id, rationale);
+                  _showActionSnackBar(
+                    'Review #${_shortId(item.id)} rejected',
                   );
+                } on Object catch (e) {
+                  _showActionSnackBar(_actionErrorMessage(e));
                 }
               },
               child: const Text('Reject Review'),
@@ -233,13 +252,15 @@ class _ModerationScreenState extends ConsumerState<ModerationScreen> with Deboun
                 final redactedComment = commentController.text.trim();
                 if (rationale.isEmpty || redactedComment.isEmpty) return;
                 Navigator.of(dialogCtx).pop();
-                final success = await ref
-                    .read(moderationListControllerProvider.notifier)
-                    .redactReview(item.id, rationale, redactedComment);
-                if (mounted && success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Review #${_shortId(item.id)} redacted & updated')),
+                try {
+                  await ref
+                      .read(moderationListControllerProvider.notifier)
+                      .redactReview(item.id, rationale, redactedComment);
+                  _showActionSnackBar(
+                    'Review #${_shortId(item.id)} redacted & updated',
                   );
+                } on Object catch (e) {
+                  _showActionSnackBar(_actionErrorMessage(e));
                 }
               },
               child: const Text('Save & Redact'),

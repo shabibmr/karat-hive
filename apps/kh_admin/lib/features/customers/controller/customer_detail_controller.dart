@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kh_admin/features/customers/controller/customer_list_controller.dart';
 import 'package:kh_admin/features/customers/model/customer_detail.dart';
 import 'package:kh_admin/features/customers/repository/customer_repository.dart';
 
@@ -21,6 +22,25 @@ class CustomerDetailController
     });
   }
 
+  /// Soft reload after a successful mutation — never throws; keeps prior data
+  /// visible if the refetch fails (mutation already applied server-side).
+  Future<void> _softReload() async {
+    final previous = state;
+    final next = await AsyncValue.guard(() async {
+      final repository = ref.read(customerRepositoryProvider);
+      return repository.fetchCustomerDetail(arg);
+    });
+    if (next.hasError && previous.hasValue) {
+      state = previous;
+      return;
+    }
+    state = next;
+  }
+
+  void _invalidateList() {
+    ref.invalidate(customerListControllerProvider);
+  }
+
   /// Suspends the customer account with an audited reason code and text.
   Future<void> suspendCustomer({
     required String reasonCode,
@@ -32,7 +52,8 @@ class CustomerDetailController
       reasonCode: reasonCode,
       reasonText: reasonText,
     );
-    await reload();
+    await _softReload();
+    _invalidateList();
   }
 
   /// Reactivates a suspended customer account with an explanation.
@@ -44,14 +65,16 @@ class CustomerDetailController
       arg,
       reasonText: reasonText,
     );
-    await reload();
+    await _softReload();
+    _invalidateList();
   }
 
   /// Triggers permanent PII erasure for this customer (FR-CUS-004).
   Future<void> erasureCustomer({required String reasonText}) async {
     final repository = ref.read(customerRepositoryProvider);
     await repository.erasureCustomer(arg, reasonText: reasonText);
-    await reload();
+    await _softReload();
+    _invalidateList();
   }
 
   /// Appends an admin internal note to this customer record.
@@ -64,7 +87,7 @@ class CustomerDetailController
         current.copyWith(adminNotes: [newNote, ...current.adminNotes]),
       );
     } else {
-      await reload();
+      await _softReload();
     }
   }
 }

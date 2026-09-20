@@ -18,8 +18,8 @@ class ContractMismatchScreen extends StatelessWidget {
       onReload!();
       return;
     }
-    // Default: reload browser tab
-    openUrlInNewTab('.');
+    // Same-tab reload so sticky contractMismatchProvider state is cleared.
+    reloadCurrentPage();
   }
 
   @override
