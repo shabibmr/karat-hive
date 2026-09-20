@@ -63,6 +63,9 @@ Future<void> initializeFirebaseNonBlocking(
       status: FirebaseInitStatus.failed,
       error: e,
     );
+    // The session bootstrap gate may be holding the splash for an auth
+    // handoff that can no longer arrive.
+    ref.read(sessionControllerProvider.notifier).firebaseUnavailable();
   }
 }
 

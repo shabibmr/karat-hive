@@ -126,6 +126,8 @@ class _PendingSessionController extends StateNotifier<SessionState>
   @override
   Future<void> onFirebaseReady(FirebaseAuthService? authService) async {}
   @override
+  void firebaseUnavailable() {}
+  @override
   Future<void> logout({bool broadcast = true}) async {}
   @override
   Future<bool> silentRefresh() async => true;

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
@@ -20,13 +21,22 @@ class SessionController extends StateNotifier<SessionState> {
     FirebaseAuthService? firebaseAuthService,
     AuthBroadcast? authBroadcast,
     DevAuthConfig devAuth = DevAuthConfig.disabled,
+    bool awaitsFirebaseHandoff = false,
+    Duration firebaseHandoffTimeout = const Duration(seconds: 5),
   })  : _tokenStorage = tokenStorage,
         _authRepository = authRepository,
         _firebaseAuthService = firebaseAuthService,
         _authBroadcast = authBroadcast,
         _devAuth = devAuth,
+        _awaitingFirebaseHandoff = awaitsFirebaseHandoff,
         super(const SessionState(bootstrapped: false)) {
     _initBroadcastListener();
+    if (_awaitingFirebaseHandoff) {
+      // Backstop: if Firebase never initializes and never reports a failure,
+      // the admin still reaches the login screen instead of a stuck splash.
+      _firebaseHandoffTimer =
+          Timer(firebaseHandoffTimeout, _releaseFirebaseHandoff);
+    }
     // Legacy tokens / dev auto-login can proceed before Firebase is ready.
     init();
   }
@@ -42,6 +52,16 @@ class SessionController extends StateNotifier<SessionState> {
   Completer<void>? _syncCompleter;
   String? _syncingFirebaseUid;
 
+  /// True while a Firebase auth handoff is still expected. Firebase resolves
+  /// its persisted session asynchronously, so [init] finishing is not the end
+  /// of the story: on web it is the *only* way a reload recovers a session,
+  /// because tokens are held in memory only (TR-S4-01).
+  bool _awaitingFirebaseHandoff;
+  Timer? _firebaseHandoffTimer;
+
+  /// Whether the first [init] pass has finished, win or lose.
+  bool _initResolved = false;
+
   void _initBroadcastListener() {
     _authBroadcastSub = _authBroadcast?.onLogout.listen((_) {
       _handleMultiTabLogout();
@@ -50,14 +70,48 @@ class SessionController extends StateNotifier<SessionState> {
 
   void _bindFirebaseAuthListener() {
     _firebaseAuthSub?.cancel();
-    _firebaseAuthSub = _firebaseAuthService?.authStateChanges.listen((fbUser) {
-      if (fbUser != null) {
-        unawaited(_syncFirebaseUser(fbUser));
-      } else if (!state.isAuthenticated) {
-        unawaited(_checkLegacySession());
-      }
-    });
+    _firebaseAuthSub = _firebaseAuthService?.authStateChanges.listen(
+      (fbUser) => unawaited(_handleFirebaseAuthState(fbUser)),
+      // `authStateChanges` is `Stream.empty()` when Firebase Auth is absent:
+      // it closes without ever emitting, so done is the handoff settling.
+      onDone: _releaseFirebaseHandoff,
+    );
   }
+
+  Future<void> _handleFirebaseAuthState(User? fbUser) async {
+    try {
+      if (fbUser != null) {
+        await _syncFirebaseUser(fbUser);
+      } else if (!state.isAuthenticated) {
+        await _checkLegacySession();
+      }
+    } finally {
+      // Firebase has now reported the session it restored — or reported that
+      // there is none. Either way the handoff is settled.
+      _releaseFirebaseHandoff();
+    }
+  }
+
+  /// Opens the bootstrap gate once nothing still in flight can change where
+  /// the admin lands. Idempotent.
+  void _completeBootstrap() {
+    if (!mounted || state.bootstrapped || !_initResolved) return;
+    // An authenticated session has nowhere else to go, so a pending Firebase
+    // handoff can only confirm it — no reason to keep the splash up.
+    if (_awaitingFirebaseHandoff && !state.isAuthenticated) return;
+    state = state.copyWith(bootstrapped: true);
+  }
+
+  void _releaseFirebaseHandoff() {
+    _firebaseHandoffTimer?.cancel();
+    _firebaseHandoffTimer = null;
+    _awaitingFirebaseHandoff = false;
+    _completeBootstrap();
+  }
+
+  /// Firebase initialization failed: no auth handoff is coming, so stop
+  /// holding the bootstrap gate open for one.
+  void firebaseUnavailable() => _releaseFirebaseHandoff();
 
   /// Re-bind Firebase auth after [initializeFirebaseNonBlocking] completes.
   ///
@@ -68,12 +122,18 @@ class SessionController extends StateNotifier<SessionState> {
     _bindFirebaseAuthListener();
     final fbUser = _firebaseAuthService?.currentUser;
     if (fbUser != null) {
-      await _syncFirebaseUser(fbUser);
+      await _handleFirebaseAuthState(fbUser);
     }
+    // A null `currentUser` here is not an answer: on web Firebase restores
+    // persisted sessions asynchronously and reports the result through
+    // `authStateChanges`. Releasing the gate now is what made the login
+    // screen flash before the dashboard on reload, so leave it to the
+    // listener (or the timeout).
   }
 
   @override
   void dispose() {
+    _firebaseHandoffTimer?.cancel();
     _firebaseAuthSub?.cancel();
     _authBroadcastSub?.cancel();
     super.dispose();
@@ -90,12 +150,10 @@ class SessionController extends StateNotifier<SessionState> {
       }
       await _checkLegacySession();
     } finally {
-      // Whatever the outcome, the first resolution is done: release the
-      // splash gate so the router can send the admin to their real
-      // destination instead of holding a protected route open.
-      if (mounted) {
-        state = state.copyWith(bootstrapped: true);
-      }
+      // Whatever the outcome, this pass is done. The gate opens now unless a
+      // Firebase handoff is still expected to change the answer.
+      _initResolved = true;
+      _completeBootstrap();
     }
   }
 
@@ -463,6 +521,9 @@ final StateNotifierProvider<SessionController, SessionState>
     firebaseAuthService: firebaseAuth,
     authBroadcast: authBroadcast,
     devAuth: devAuth,
+    // Web holds tokens in memory only (TR-S4-01), so a reload can only be
+    // restored through Firebase. Hold the splash until it reports.
+    awaitsFirebaseHandoff: kIsWeb,
   );
   apiClient.onUnauthorized = controller.silentRefresh;
   return controller;

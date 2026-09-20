@@ -34,6 +34,9 @@ class _MockSessionController extends StateNotifier<SessionState>
   Future<void> onFirebaseReady(dynamic authService) async {}
 
   @override
+  void firebaseUnavailable() {}
+
+  @override
   Future<void> logout({bool broadcast = true}) async {
     logoutCalled = true;
     logoutCallCount++;

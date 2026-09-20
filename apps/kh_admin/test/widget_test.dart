@@ -269,6 +269,9 @@ class _AuthenticatedSessionController extends StateNotifier<SessionState>
   Future<void> onFirebaseReady(FirebaseAuthService? authService) async {}
 
   @override
+  void firebaseUnavailable() {}
+
+  @override
   Future<void> loginWithGoogleIdToken(String idToken) async {}
 
   @override
