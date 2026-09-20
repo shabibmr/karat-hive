@@ -1,0 +1,1854 @@
+{
+  "results": [
+    {
+      "row": {
+        "num": "1",
+        "method": "POST",
+        "url": "/v1/auth/otp/request",
+        "domain": "Auth & Sessions",
+        "roles": "Public",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/auth/otp/request (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "2",
+        "method": "POST",
+        "url": "/v1/auth/otp/verify",
+        "domain": "Auth & Sessions",
+        "roles": "Public",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/auth/otp/verify (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "3",
+        "method": "POST",
+        "url": "/v1/auth/register/customer",
+        "domain": "Auth & Sessions",
+        "roles": "Public / Token",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/auth/register/customer (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "4",
+        "method": "POST",
+        "url": "/v1/auth/register/vendor",
+        "domain": "Auth & Sessions",
+        "roles": "Public / Token",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/auth/register/vendor (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "5",
+        "method": "POST",
+        "url": "/v1/auth/register/admin",
+        "domain": "Auth & Sessions",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/auth/register/admin (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "6",
+        "method": "POST",
+        "url": "/v1/auth/google/session",
+        "domain": "Auth & Sessions",
+        "roles": "Public",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/auth/google/session (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "7",
+        "method": "POST",
+        "url": "/v1/auth/firebase/session",
+        "domain": "Auth & Sessions",
+        "roles": "Public",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/auth/firebase/session (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "8",
+        "method": "POST",
+        "url": "/v1/auth/login/password",
+        "domain": "Auth & Sessions",
+        "roles": "Public",
+        "hasBody": true
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "9",
+        "method": "POST",
+        "url": "/v1/auth/refresh",
+        "domain": "Auth & Sessions",
+        "roles": "Public (Refresh Token)",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/auth/refresh (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "10",
+        "method": "POST",
+        "url": "/v1/auth/logout",
+        "domain": "Auth & Sessions",
+        "roles": "Authenticated",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/auth/logout (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "11",
+        "method": "GET",
+        "url": "/v1/auth/sessions",
+        "domain": "Auth & Sessions",
+        "roles": "Authenticated",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/auth/sessions (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "12",
+        "method": "DELETE",
+        "url": "/v1/auth/sessions/{id}",
+        "domain": "Auth & Sessions",
+        "roles": "Authenticated",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "DELETE /v1/auth/sessions/:id (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "13",
+        "method": "POST",
+        "url": "/v1/auth/password",
+        "domain": "Auth & Sessions",
+        "roles": "Authenticated",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/auth/password (auth.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "14",
+        "method": "GET",
+        "url": "/v1/me",
+        "domain": "User Identity",
+        "roles": "Customer, Vendor, Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me (me.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "15",
+        "method": "PATCH",
+        "url": "/v1/me",
+        "domain": "User Identity",
+        "roles": "Customer, Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PATCH /v1/me (me.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "16",
+        "method": "POST",
+        "url": "/v1/me/mobile/change",
+        "domain": "User Identity",
+        "roles": "Customer, Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/me/mobile/change (me.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "17",
+        "method": "POST",
+        "url": "/v1/me/deactivate",
+        "domain": "User Identity",
+        "roles": "Customer, Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/me/deactivate (me.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "18",
+        "method": "POST",
+        "url": "/v1/me/deletion-requests",
+        "domain": "User Identity",
+        "roles": "Customer, Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/me/deletion-requests (me.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "19",
+        "method": "POST",
+        "url": "/v1/me/deletion-requests/{id}/confirm",
+        "domain": "User Identity",
+        "roles": "Customer, Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/me/deletion-requests/:id/confirm (me.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "20",
+        "method": "GET",
+        "url": "/v1/me/settings",
+        "domain": "Settings",
+        "roles": "Customer, Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me/settings (settings.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "21",
+        "method": "PATCH",
+        "url": "/v1/me/settings",
+        "domain": "Settings",
+        "roles": "Customer, Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PATCH /v1/me/settings (settings.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "22",
+        "method": "GET",
+        "url": "/v1/me/subscriptions",
+        "domain": "Subscriptions",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me/subscriptions (subscription.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "23",
+        "method": "GET",
+        "url": "/v1/me/vendor",
+        "domain": "Vendor Profile",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me/vendor (vendor-profile.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "24",
+        "method": "PATCH",
+        "url": "/v1/me/vendor",
+        "domain": "Vendor Profile",
+        "roles": "Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PATCH /v1/me/vendor (vendor-profile.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "25",
+        "method": "GET",
+        "url": "/v1/me/vendor/documents",
+        "domain": "Vendor KYC",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me/vendor/documents (vendor-documents.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "26",
+        "method": "POST",
+        "url": "/v1/me/vendor/documents",
+        "domain": "Vendor KYC",
+        "roles": "Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/me/vendor/documents (vendor-documents.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "27",
+        "method": "PUT",
+        "url": "/v1/me/vendor/categories",
+        "domain": "Vendor Taxonomy",
+        "roles": "Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PUT /v1/me/vendor/categories (vendor-taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "28",
+        "method": "PUT",
+        "url": "/v1/me/vendor/regions",
+        "domain": "Vendor Taxonomy",
+        "roles": "Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PUT /v1/me/vendor/regions (vendor-taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "29",
+        "method": "PATCH",
+        "url": "/v1/me/vendor/availability",
+        "domain": "Vendor Profile",
+        "roles": "Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PATCH /v1/me/vendor/availability (vendor-taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "30",
+        "method": "POST",
+        "url": "/v1/me/vendor/resubmit",
+        "domain": "Vendor Profile",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/me/vendor/resubmit (vendor-documents.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "31",
+        "method": "GET",
+        "url": "/v1/me/dashboard",
+        "domain": "Vendor Analytics",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me/dashboard (vendor-dashboard.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "32",
+        "method": "GET",
+        "url": "/v1/me/vendor/performance",
+        "domain": "Vendor Analytics",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me/vendor/performance (subscription.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "33",
+        "method": "GET",
+        "url": "/v1/me/vendor/performance/export",
+        "domain": "Vendor Analytics",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me/vendor/performance/export (vendor-profile.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "34",
+        "method": "POST",
+        "url": "/v1/requests",
+        "domain": "Requests",
+        "roles": "Customer",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/requests (request.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "35",
+        "method": "GET",
+        "url": "/v1/me/requests",
+        "domain": "Requests",
+        "roles": "Customer",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me/requests (request.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "36",
+        "method": "GET",
+        "url": "/v1/requests/{id}",
+        "domain": "Requests",
+        "roles": "Customer, Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/requests/:id (request.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "37",
+        "method": "PATCH",
+        "url": "/v1/requests/{id}",
+        "domain": "Requests",
+        "roles": "Customer",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PATCH /v1/requests/:id (request.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "38",
+        "method": "POST",
+        "url": "/v1/requests/{id}/publish",
+        "domain": "Requests",
+        "roles": "Customer",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/requests/:id/publish (request.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "39",
+        "method": "POST",
+        "url": "/v1/requests/{id}/cancel",
+        "domain": "Requests",
+        "roles": "Customer",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/requests/:id/cancel (request.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "40",
+        "method": "POST",
+        "url": "/v1/requests/{id}/duplicate",
+        "domain": "Requests",
+        "roles": "Customer",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/requests/:id/duplicate (request.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "41",
+        "method": "GET",
+        "url": "/v1/requests/{id}/offers",
+        "domain": "Requests / Offers",
+        "roles": "Customer",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/requests/:id/offers (offer.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "42",
+        "method": "POST",
+        "url": "/v1/requests/{id}/offers",
+        "domain": "Requests / Offers",
+        "roles": "Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/requests/:id/offers (offer.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "43",
+        "method": "GET",
+        "url": "/v1/matches",
+        "domain": "Matching Feed",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/matches (matching.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "44",
+        "method": "POST",
+        "url": "/v1/matches/{requestId}/viewed",
+        "domain": "Matching Feed",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/matches/:requestId/viewed (matching.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "45",
+        "method": "GET",
+        "url": "/v1/filter-presets",
+        "domain": "Filter Presets",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/filter-presets (filter-presets.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "46",
+        "method": "POST",
+        "url": "/v1/filter-presets",
+        "domain": "Filter Presets",
+        "roles": "Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/filter-presets (filter-presets.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "47",
+        "method": "PATCH",
+        "url": "/v1/filter-presets/{id}",
+        "domain": "Filter Presets",
+        "roles": "Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PATCH /v1/filter-presets/:id (filter-presets.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "48",
+        "method": "DELETE",
+        "url": "/v1/filter-presets/{id}",
+        "domain": "Filter Presets",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "DELETE /v1/filter-presets/:id (filter-presets.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "49",
+        "method": "GET",
+        "url": "/v1/me/offers",
+        "domain": "Offers",
+        "roles": "Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me/offers (offer.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "50",
+        "method": "GET",
+        "url": "/v1/offers/{id}",
+        "domain": "Offers",
+        "roles": "Customer, Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/offers/:id (offer.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "51",
+        "method": "POST",
+        "url": "/v1/offers/{id}/revise",
+        "domain": "Offers",
+        "roles": "Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/offers/:id/revise (offer.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "52",
+        "method": "POST",
+        "url": "/v1/offers/{id}/withdraw",
+        "domain": "Offers",
+        "roles": "Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/offers/:id/withdraw (offer.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "53",
+        "method": "POST",
+        "url": "/v1/offers/{id}/accept",
+        "domain": "Offers",
+        "roles": "Customer",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/offers/:id/accept (connection.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "54",
+        "method": "POST",
+        "url": "/v1/offers/{id}/decline",
+        "domain": "Offers",
+        "roles": "Customer",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/offers/:id/decline (offer.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "55",
+        "method": "GET",
+        "url": "/v1/offers/{id}/vendor-rating",
+        "domain": "Offers",
+        "roles": "Customer",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/offers/:id/vendor-rating (offer.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "56",
+        "method": "POST",
+        "url": "/v1/offers/{id}/viewed",
+        "domain": "Offers",
+        "roles": "Customer",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/offers/:id/viewed (offer.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "57",
+        "method": "GET",
+        "url": "/v1/me/connections",
+        "domain": "Connections",
+        "roles": "Customer, Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me/connections (connection.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "58",
+        "method": "GET",
+        "url": "/v1/connections/{id}",
+        "domain": "Connections",
+        "roles": "Customer, Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/connections/:id (connection.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "59",
+        "method": "POST",
+        "url": "/v1/connections/{id}/close",
+        "domain": "Connections",
+        "roles": "Customer, Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/connections/:id/close (connection.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "60",
+        "method": "POST",
+        "url": "/v1/connections/{id}/contact-events",
+        "domain": "Connections",
+        "roles": "Customer, Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/connections/:id/contact-events (connection.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "61",
+        "method": "POST",
+        "url": "/v1/connections/{id}/reviews",
+        "domain": "Reviews",
+        "roles": "Customer",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/connections/:id/reviews (review.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "62",
+        "method": "GET",
+        "url": "/v1/me/reviews",
+        "domain": "Reviews",
+        "roles": "Customer, Vendor",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/me/reviews (review.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "63",
+        "method": "GET",
+        "url": "/v1/reviews/{id}",
+        "domain": "Reviews",
+        "roles": "Customer, Vendor, Admin",
+        "hasBody": false
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "64",
+        "method": "PATCH",
+        "url": "/v1/reviews/{id}",
+        "domain": "Reviews",
+        "roles": "Customer",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PATCH /v1/reviews/:id (review.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "65",
+        "method": "POST",
+        "url": "/v1/reviews/{id}/withdraw",
+        "domain": "Reviews",
+        "roles": "Customer",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/reviews/:id/withdraw (review.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "66",
+        "method": "POST",
+        "url": "/v1/reviews/{id}/response",
+        "domain": "Reviews",
+        "roles": "Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/reviews/:id/response (review.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "67",
+        "method": "POST",
+        "url": "/v1/reviews/{id}/flag",
+        "domain": "Reviews",
+        "roles": "Customer, Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/reviews/:id/flag (review.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "68",
+        "method": "GET",
+        "url": "/v1/notifications",
+        "domain": "Notifications",
+        "roles": "Authenticated",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/notifications (notification.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "69",
+        "method": "GET",
+        "url": "/v1/notifications/unread-count",
+        "domain": "Notifications",
+        "roles": "Authenticated",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/notifications/unread-count (notification.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "70",
+        "method": "POST",
+        "url": "/v1/notifications/{id}/read",
+        "domain": "Notifications",
+        "roles": "Authenticated",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/notifications/:id/read (notification.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "71",
+        "method": "POST",
+        "url": "/v1/notifications/read-all",
+        "domain": "Notifications",
+        "roles": "Authenticated",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/notifications/read-all (notification.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "72",
+        "method": "POST",
+        "url": "/v1/devices",
+        "domain": "Devices / Push",
+        "roles": "Authenticated",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/devices (device.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "73",
+        "method": "DELETE",
+        "url": "/v1/devices/{id}",
+        "domain": "Devices / Push",
+        "roles": "Authenticated",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "DELETE /v1/devices/:id (device.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "74",
+        "method": "POST",
+        "url": "/v1/abuse-reports",
+        "domain": "Trust & Safety",
+        "roles": "Customer, Vendor",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/abuse-reports (abuse.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "75",
+        "method": "GET",
+        "url": "/v1/categories",
+        "domain": "Taxonomy",
+        "roles": "Public",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/categories (taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "76",
+        "method": "GET",
+        "url": "/v1/regions",
+        "domain": "Taxonomy",
+        "roles": "Public",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/regions (taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "77",
+        "method": "GET",
+        "url": "/v1/gold-rates",
+        "domain": "Reference Rates",
+        "roles": "Authenticated",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/gold-rates (gold-rate.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "78",
+        "method": "GET",
+        "url": "/v1/platform-config",
+        "domain": "Config",
+        "roles": "Public",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/platform-config (taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "79",
+        "method": "POST",
+        "url": "/v1/media/upload-intent",
+        "domain": "Media Upload",
+        "roles": "Authenticated",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/media/upload-intent (media.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "80",
+        "method": "POST",
+        "url": "/v1/media/{key}/complete",
+        "domain": "Media Upload",
+        "roles": "Authenticated",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/media/:key/complete (media.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "81",
+        "method": "GET",
+        "url": "/v1/media/{key}",
+        "domain": "Media Fetch",
+        "roles": "Authenticated",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/media/:key (media.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "82",
+        "method": "GET",
+        "url": "/v1/admin/dashboard",
+        "domain": "Admin Dashboard",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/dashboard (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "83",
+        "method": "GET",
+        "url": "/v1/admin/verification-queue",
+        "domain": "Admin KYC",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/verification-queue (admin-vendor.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "84",
+        "method": "GET",
+        "url": "/v1/admin/vendors",
+        "domain": "Admin Vendors",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/vendors (admin-vendor.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "85",
+        "method": "GET",
+        "url": "/v1/admin/vendors/{id}",
+        "domain": "Admin Vendors",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/vendors/:id (admin-vendor.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "86",
+        "method": "GET",
+        "url": "/v1/admin/vendors/{id}/documents/{docId}/url",
+        "domain": "Admin Vendors",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/vendors/:id/documents/:docId/url (admin-vendor.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "87",
+        "method": "POST",
+        "url": "/v1/admin/vendors/{id}/verify",
+        "domain": "Admin Vendors",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/vendors/:id/verify (admin-vendor.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "88",
+        "method": "POST",
+        "url": "/v1/admin/vendors/{id}/reject",
+        "domain": "Admin Vendors",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/vendors/:id/reject (admin-vendor.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "89",
+        "method": "POST",
+        "url": "/v1/admin/vendors/{id}/request-info",
+        "domain": "Admin Vendors",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/vendors/:id/request-info (admin-vendor.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "90",
+        "method": "POST",
+        "url": "/v1/admin/vendors/{id}/suspend",
+        "domain": "Admin Vendors",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/vendors/:id/suspend (admin-vendor.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "91",
+        "method": "POST",
+        "url": "/v1/admin/vendors/{id}/reactivate",
+        "domain": "Admin Vendors",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/vendors/:id/reactivate (admin-vendor.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "92",
+        "method": "POST",
+        "url": "/v1/admin/vendors/{id}/deactivate",
+        "domain": "Admin Vendors",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/vendors/:id/deactivate (admin-vendor.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "93",
+        "method": "GET",
+        "url": "/v1/admin/vendors/{id}/subscriptions",
+        "domain": "Admin Subscriptions",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "94",
+        "method": "POST",
+        "url": "/v1/admin/vendors/{id}/subscriptions",
+        "domain": "Admin Subscriptions",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/vendors/:id/subscriptions (admin-subscription.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "95",
+        "method": "DELETE",
+        "url": "/v1/admin/vendors/{id}/subscriptions/{requestType}",
+        "domain": "Admin Subscriptions",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "96",
+        "method": "GET",
+        "url": "/v1/admin/customers",
+        "domain": "Admin Customers",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/customers (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "97",
+        "method": "GET",
+        "url": "/v1/admin/customers/{id}",
+        "domain": "Admin Customers",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/customers/:id (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "98",
+        "method": "POST",
+        "url": "/v1/admin/customers/{id}/suspend",
+        "domain": "Admin Customers",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/customers/:id/suspend (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "99",
+        "method": "POST",
+        "url": "/v1/admin/customers/{id}/reactivate",
+        "domain": "Admin Customers",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/customers/:id/reactivate (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "100",
+        "method": "POST",
+        "url": "/v1/admin/customers/{id}/erasure",
+        "domain": "Admin Customers",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/customers/:id/erasure (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "101",
+        "method": "GET",
+        "url": "/v1/admin/requests",
+        "domain": "Admin Requests",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/requests (admin-requests.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "102",
+        "method": "GET",
+        "url": "/v1/admin/requests/{id}",
+        "domain": "Admin Requests",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/requests/:id (admin-requests.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "103",
+        "method": "POST",
+        "url": "/v1/admin/requests/{id}/remove",
+        "domain": "Admin Requests",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/requests/:id/remove (admin-requests.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "104",
+        "method": "GET",
+        "url": "/v1/admin/offers",
+        "domain": "Admin Offers",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/offers (admin-offers.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "105",
+        "method": "GET",
+        "url": "/v1/admin/offers/{id}",
+        "domain": "Admin Offers",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/offers/:id (admin-offers.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "106",
+        "method": "GET",
+        "url": "/v1/admin/connections",
+        "domain": "Admin Connections",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/connections (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "107",
+        "method": "GET",
+        "url": "/v1/admin/connections/{id}",
+        "domain": "Admin Connections",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/connections/:id (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "108",
+        "method": "POST",
+        "url": "/v1/admin/connections/{id}/close",
+        "domain": "Admin Connections",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/connections/:id/close (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "109",
+        "method": "GET",
+        "url": "/v1/admin/reviews",
+        "domain": "Admin Reviews",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/reviews (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "110",
+        "method": "GET",
+        "url": "/v1/admin/reviews/{id}",
+        "domain": "Admin Reviews",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "111",
+        "method": "POST",
+        "url": "/v1/admin/reviews/{id}/approve",
+        "domain": "Admin Reviews",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/reviews/:id/approve (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "112",
+        "method": "POST",
+        "url": "/v1/admin/reviews/{id}/reject",
+        "domain": "Admin Reviews",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/reviews/:id/reject (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "113",
+        "method": "POST",
+        "url": "/v1/admin/reviews/{id}/redact",
+        "domain": "Admin Reviews",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/reviews/:id/redact (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "114",
+        "method": "GET",
+        "url": "/v1/admin/abuse-reports",
+        "domain": "Admin Abuse",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/abuse-reports (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "115",
+        "method": "GET",
+        "url": "/v1/admin/abuse-reports/{id}",
+        "domain": "Admin Abuse",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/abuse-reports/:id (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "116",
+        "method": "POST",
+        "url": "/v1/admin/abuse-reports/{id}/resolve",
+        "domain": "Admin Abuse",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/abuse-reports/:id/resolve (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "117",
+        "method": "POST",
+        "url": "/v1/admin/abuse-reports/{id}/dismiss",
+        "domain": "Admin Abuse",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/abuse-reports/:id/dismiss (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "118",
+        "method": "GET",
+        "url": "/v1/admin/categories",
+        "domain": "Admin Taxonomy",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/categories (admin-taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "119",
+        "method": "POST",
+        "url": "/v1/admin/categories",
+        "domain": "Admin Taxonomy",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/categories (admin-taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "120",
+        "method": "PATCH",
+        "url": "/v1/admin/categories/{id}",
+        "domain": "Admin Taxonomy",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PATCH /v1/admin/categories/:id (admin-taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "121",
+        "method": "POST",
+        "url": "/v1/admin/categories/{id}/deactivate",
+        "domain": "Admin Taxonomy",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/categories/:id/deactivate (admin-taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "122",
+        "method": "GET",
+        "url": "/v1/admin/regions",
+        "domain": "Admin Taxonomy",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/regions (admin-taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "123",
+        "method": "POST",
+        "url": "/v1/admin/regions",
+        "domain": "Admin Taxonomy",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/regions (admin-taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "124",
+        "method": "PATCH",
+        "url": "/v1/admin/regions/{id}",
+        "domain": "Admin Taxonomy",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PATCH /v1/admin/regions/:id (admin-taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "125",
+        "method": "POST",
+        "url": "/v1/admin/regions/{id}/deactivate",
+        "domain": "Admin Taxonomy",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/regions/:id/deactivate (admin-taxonomy.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "126",
+        "method": "GET",
+        "url": "/v1/admin/gold-rates",
+        "domain": "Admin Rates",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/gold-rates (admin-gold-rate.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "127",
+        "method": "POST",
+        "url": "/v1/admin/gold-rates",
+        "domain": "Admin Rates",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "128",
+        "method": "GET",
+        "url": "/v1/admin/settings",
+        "domain": "Admin Settings",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/settings (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "129",
+        "method": "PATCH",
+        "url": "/v1/admin/settings/{key}",
+        "domain": "Admin Settings",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "PATCH /v1/admin/settings/:key (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "130",
+        "method": "GET",
+        "url": "/v1/admin/admins",
+        "domain": "Admin Staff",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/admins (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "131",
+        "method": "POST",
+        "url": "/v1/admin/admins/{id}/suspend",
+        "domain": "Admin Staff",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/admins/:id/suspend (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "132",
+        "method": "POST",
+        "url": "/v1/admin/admins/{id}/revoke",
+        "domain": "Admin Staff",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/admins/:id/revoke (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "133",
+        "method": "GET",
+        "url": "/v1/admin/announcements",
+        "domain": "Admin Broadcast",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/announcements (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "134",
+        "method": "POST",
+        "url": "/v1/admin/announcements",
+        "domain": "Admin Broadcast",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/announcements (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "135",
+        "method": "POST",
+        "url": "/v1/admin/announcements/{id}/cancel",
+        "domain": "Admin Broadcast",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/announcements/:id/cancel (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "136",
+        "method": "GET",
+        "url": "/v1/admin/audit-log",
+        "domain": "Admin Audit",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/audit-log (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "137",
+        "method": "POST",
+        "url": "/v1/admin/audit-log",
+        "domain": "Admin Audit",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/audit-log (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "138",
+        "method": "GET",
+        "url": "/v1/admin/exports",
+        "domain": "Admin Exports",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "139",
+        "method": "POST",
+        "url": "/v1/admin/exports",
+        "domain": "Admin Exports",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/exports (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "140",
+        "method": "GET",
+        "url": "/v1/admin/exports/{id}",
+        "domain": "Admin Exports",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/exports/:id (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "141",
+        "method": "GET",
+        "url": "/v1/admin/reports/{name}",
+        "domain": "Admin Analytics",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/reports/:name (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "142",
+        "method": "GET",
+        "url": "/v1/admin/{collection}/{id}/notes",
+        "domain": "Admin Notes",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /v1/admin/:collection/:id/notes (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "143",
+        "method": "POST",
+        "url": "/v1/admin/{collection}/{id}/notes",
+        "domain": "Admin Notes",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/admin/:collection/:id/notes (admin.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "144",
+        "method": "GET",
+        "url": "/health",
+        "domain": "System Status",
+        "roles": "Public",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /health (health.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "145",
+        "method": "GET",
+        "url": "/ready",
+        "domain": "System Status",
+        "roles": "Public",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "GET /ready (health.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "146",
+        "method": "POST",
+        "url": "/v1/dev/vendors/{id}/verify",
+        "domain": "Dev Helper",
+        "roles": "Dev / Admin",
+        "hasBody": false
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/dev/vendors/:id/verify (dev-verify.controller.ts)"
+    },
+    {
+      "row": {
+        "num": "147",
+        "method": "POST",
+        "url": "/v1/dev/requests/seed",
+        "domain": "Dev Helper",
+        "roles": "Dev / Admin",
+        "hasBody": true
+      },
+      "found": true,
+      "matchedRoute": "POST /v1/dev/requests/seed (dev-requests.controller.ts)"
+    }
+  ],
+  "notFound": [
+    {
+      "row": {
+        "num": "8",
+        "method": "POST",
+        "url": "/v1/auth/login/password",
+        "domain": "Auth & Sessions",
+        "roles": "Public",
+        "hasBody": true
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "63",
+        "method": "GET",
+        "url": "/v1/reviews/{id}",
+        "domain": "Reviews",
+        "roles": "Customer, Vendor, Admin",
+        "hasBody": false
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "93",
+        "method": "GET",
+        "url": "/v1/admin/vendors/{id}/subscriptions",
+        "domain": "Admin Subscriptions",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "95",
+        "method": "DELETE",
+        "url": "/v1/admin/vendors/{id}/subscriptions/{requestType}",
+        "domain": "Admin Subscriptions",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "110",
+        "method": "GET",
+        "url": "/v1/admin/reviews/{id}",
+        "domain": "Admin Reviews",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "127",
+        "method": "POST",
+        "url": "/v1/admin/gold-rates",
+        "domain": "Admin Rates",
+        "roles": "Admin",
+        "hasBody": true
+      },
+      "found": false,
+      "matchedRoute": null
+    },
+    {
+      "row": {
+        "num": "138",
+        "method": "GET",
+        "url": "/v1/admin/exports",
+        "domain": "Admin Exports",
+        "roles": "Admin",
+        "hasBody": false
+      },
+      "found": false,
+      "matchedRoute": null
+    }
+  ]
+}

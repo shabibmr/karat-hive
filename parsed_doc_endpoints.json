@@ -1,0 +1,791 @@
+[
+  {
+    "title": "Request OTP Challenge",
+    "endpoints": [
+      "POST /v1/auth/otp/request"
+    ],
+    "payload": {
+      "mobileNumber": "+971501234567",
+      "purpose": "LOGIN"
+    },
+    "rawText": " Request OTP Challenge\n* **Endpoint**: `POST /v1/auth/otp/request`\n* **Access**: Public / Unauthenticated\n* **Description**: Requests an SMS OTP challenge for mobile registration, login, or mobile number update.\n* **Request Payload**:\n  ```json\n  {\n    \"mobileNumber\": \"+971501234567\",\n    \"purpose\": \"LOGIN\"\n  }\n  ```\n  *(Allowed `purpose` values: `REGISTRATION`, `LOGIN`, `MOBILE_CHANGE`)*\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"challengeId\": \"chl_7c9e6679-7425-40de-944b-e07fc1f90ae7\",\n      \"expiresAt\": \"2026-09-20T03:35:00.000Z\",\n      \"resendAfterSeconds\": 60\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Verify OTP Challenge",
+    "endpoints": [
+      "POST /v1/auth/otp/verify"
+    ],
+    "payload": {
+      "challengeId": "chl_7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "code": "849201"
+    },
+    "rawText": " Verify OTP Challenge\n* **Endpoint**: `POST /v1/auth/otp/verify`\n* **Access**: Public / Unauthenticated\n* **Description**: Verifies the SMS OTP code sent to the user's phone.\n* **Request Payload**:\n  ```json\n  {\n    \"challengeId\": \"chl_7c9e6679-7425-40de-944b-e07fc1f90ae7\",\n    \"code\": \"849201\"\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"verified\": true,\n      \"challengeId\": \"chl_7c9e6679-7425-40de-944b-e07fc1f90ae7\",\n      \"userExists\": true,\n      \"session\": {\n        \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n        \"refreshToken\": \"rft_4c9f1a23-88bb-4c22-91ef-001298aabbcc\",\n        \"user\": {\n          \"id\": \"usr_991823ab-cd45-4ef6-7890-abcdef123456\",\n          \"role\": \"CUSTOMER\",\n          \"displayName\": \"Fatima Al Mansoori\",\n          \"preferredLanguage\": \"ar\"\n        }\n      }\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Register Customer Account",
+    "endpoints": [
+      "POST /v1/auth/register/customer"
+    ],
+    "payload": {
+      "challengeId": "chl_7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "displayName": "Fatima Al Mansoori",
+      "email": "fatima.almansoori@example.ae",
+      "preferredLanguage": "ar",
+      "defaultRegionId": "reg_dubai",
+      "termsVersion": "2026-09-01",
+      "privacyVersion": "2026-09-01"
+    },
+    "rawText": " Register Customer Account\n* **Endpoint**: `POST /v1/auth/register/customer`\n* **Access**: Public (requires verified `challengeId` or `firebaseToken`)\n* **Description**: Completes Customer registration after mobile OTP verification or Google authentication.\n* **Request Payload**:\n  ```json\n  {\n    \"challengeId\": \"chl_7c9e6679-7425-40de-944b-e07fc1f90ae7\",\n    \"displayName\": \"Fatima Al Mansoori\",\n    \"email\": \"fatima.almansoori@example.ae\",\n    \"preferredLanguage\": \"ar\",\n    \"defaultRegionId\": \"reg_dubai\",\n    \"termsVersion\": \"2026-09-01\",\n    \"privacyVersion\": \"2026-09-01\"\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n      \"refreshToken\": \"rft_99aa88bb-77cc-66dd-55ee-44ff33ee22dd\",\n      \"user\": {\n        \"id\": \"usr_c8301829-d591-49fa-9481-229048aab431\",\n        \"role\": \"CUSTOMER\",\n        \"displayName\": \"Fatima Al Mansoori\",\n        \"email\": \"fatima.almansoori@example.ae\",\n        \"preferredLanguage\": \"ar\",\n        \"defaultRegionId\": \"reg_dubai\"\n      }\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Register Vendor Account",
+    "endpoints": [
+      "POST /v1/auth/register/vendor"
+    ],
+    "payload": {
+      "challengeId": "chl_7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "legalBusinessName": "Al Barakah Jewellers LLC",
+      "tradingName": "Al Barakah Gold & Diamonds",
+      "tradeLicenceNumber": "TL-DXB-987654",
+      "phone": "+97142233445",
+      "preferredLanguage": "en",
+      "defaultRegionId": "reg_dubai",
+      "termsVersion": "2026-09-01",
+      "privacyVersion": "2026-09-01"
+    },
+    "rawText": " Register Vendor Account\n* **Endpoint**: `POST /v1/auth/register/vendor`\n* **Access**: Public (requires verified `challengeId`)\n* **Description**: Submits initial vendor business details to initiate onboarding & KYC.\n* **Request Payload**:\n  ```json\n  {\n    \"challengeId\": \"chl_7c9e6679-7425-40de-944b-e07fc1f90ae7\",\n    \"legalBusinessName\": \"Al Barakah Jewellers LLC\",\n    \"tradingName\": \"Al Barakah Gold & Diamonds\",\n    \"tradeLicenceNumber\": \"TL-DXB-987654\",\n    \"phone\": \"+97142233445\",\n    \"preferredLanguage\": \"en\",\n    \"defaultRegionId\": \"reg_dubai\",\n    \"termsVersion\": \"2026-09-01\",\n    \"privacyVersion\": \"2026-09-01\"\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n      \"refreshToken\": \"rft_vendor_11223344-5566-7788-99aa-bbccddeeff00\",\n      \"user\": {\n        \"id\": \"usr_ven_01928374-abcd-4ef0-9876-fedcba098765\",\n        \"role\": \"VENDOR\",\n        \"displayName\": \"Al Barakah Gold & Diamonds\",\n        \"preferredLanguage\": \"en\"\n      }\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Google / Firebase Session Exchange",
+    "endpoints": [
+      "POST /v1/auth/google/session"
+    ],
+    "payload": {
+      "idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImRiOWU4ZjFjNmE3YjgyZjYxMDY4..."
+    },
+    "rawText": " Google / Firebase Session Exchange\n* **Endpoint**: `POST /v1/auth/google/session` *(Alias: `POST /v1/auth/firebase/session`)*\n* **Access**: Public / Unauthenticated\n* **Description**: Exchanges a verified Google/Firebase ID token for a Karat Hive session bundle.\n* **Request Payload**:\n  ```json\n  {\n    \"idToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6ImRiOWU4ZjFjNmE3YjgyZjYxMDY4...\"\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n      \"refreshToken\": \"rft_77889900-aabb-ccdd-eeff-001122334455\",\n      \"user\": {\n        \"id\": \"usr_991823ab-cd45-4ef6-7890-abcdef123456\",\n        \"role\": \"CUSTOMER\",\n        \"displayName\": \"Fatima Al Mansoori\",\n        \"preferredLanguage\": \"ar\"\n      }\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Password Login",
+    "endpoints": [
+      "POST /v1/auth/login/password"
+    ],
+    "payload": {
+      "email": "admin@karathive.ae",
+      "password": "AdminSecurePassword#2026"
+    },
+    "rawText": " Password Login\n* **Endpoint**: `POST /v1/auth/login/password`\n* **Access**: Public / Unauthenticated *(Used by Admin and Vendor fallback)*\n* **Request Payload**:\n  ```json\n  {\n    \"email\": \"admin@karathive.ae\",\n    \"password\": \"AdminSecurePassword#2026\"\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n      \"refreshToken\": \"rft_admin_88776655-4433-2211-00ff-eeddccbbaa99\",\n      \"user\": {\n        \"id\": \"usr_adm_00000001-0000-0000-0000-000000000001\",\n        \"role\": \"ADMIN\",\n        \"displayName\": \"Platform Operations Admin\",\n        \"email\": \"admin@karathive.ae\"\n      }\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Token Refresh",
+    "endpoints": [
+      "POST /v1/auth/refresh"
+    ],
+    "payload": {
+      "refreshToken": "rft_4c9f1a23-88bb-4c22-91ef-001298aabbcc"
+    },
+    "rawText": " Token Refresh\n* **Endpoint**: `POST /v1/auth/refresh`\n* **Access**: Public (requires valid Refresh Token)\n* **Request Payload**:\n  ```json\n  {\n    \"refreshToken\": \"rft_4c9f1a23-88bb-4c22-91ef-001298aabbcc\"\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n      \"refreshToken\": \"rft_5d0a2b34-99cc-5d33-02fa-112309bbccdd\"\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Logout",
+    "endpoints": [
+      "POST /v1/auth/logout"
+    ],
+    "payload": {
+      "refreshToken": "rft_5d0a2b34-99cc-5d33-02fa-112309bbccdd"
+    },
+    "rawText": " Logout\n* **Endpoint**: `POST /v1/auth/logout`\n* **Access**: Authenticated\n* **Request Payload**:\n  ```json\n  {\n    \"refreshToken\": \"rft_5d0a2b34-99cc-5d33-02fa-112309bbccdd\"\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"loggedOut\": true\n    }\n  }\n  ```\n\n---\n\n### 3.2 Current User & Profile Management (`/v1/me`)\n\n"
+  },
+  {
+    "title": "Get Authenticated User Profile",
+    "endpoints": [
+      "GET /v1/me"
+    ],
+    "payload": {
+      "data": {
+        "id": "usr_c8301829-d591-49fa-9481-229048aab431",
+        "role": "CUSTOMER",
+        "mobileNumber": "+971501234567",
+        "displayName": "Fatima Al Mansoori",
+        "email": "fatima.almansoori@example.ae",
+        "preferredLanguage": "ar",
+        "defaultRegionId": "reg_dubai",
+        "photoMediaKey": "media/users/avatar_9876.jpg",
+        "isSuspended": false,
+        "createdAt": "2026-09-01T10:00:00.000Z"
+      }
+    },
+    "rawText": " Get Authenticated User Profile\n* **Endpoint**: `GET /v1/me`\n* **Access**: Customer, Vendor, Admin\n* **Request Payload**: *None*\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"id\": \"usr_c8301829-d591-49fa-9481-229048aab431\",\n      \"role\": \"CUSTOMER\",\n      \"mobileNumber\": \"+971501234567\",\n      \"displayName\": \"Fatima Al Mansoori\",\n      \"email\": \"fatima.almansoori@example.ae\",\n      \"preferredLanguage\": \"ar\",\n      \"defaultRegionId\": \"reg_dubai\",\n      \"photoMediaKey\": \"media/users/avatar_9876.jpg\",\n      \"isSuspended\": false,\n      \"createdAt\": \"2026-09-01T10:00:00.000Z\"\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Update Profile",
+    "endpoints": [
+      "PATCH /v1/me"
+    ],
+    "payload": {
+      "displayName": "Fatima M. Al Mansoori",
+      "email": "fatima.m@example.ae",
+      "preferredLanguage": "ar",
+      "defaultRegionId": "reg_dubai",
+      "photoMediaKey": "media/users/avatar_new_9876.jpg"
+    },
+    "rawText": " Update Profile\n* **Endpoint**: `PATCH /v1/me`\n* **Access**: Customer, Vendor\n* **Request Payload**:\n  ```json\n  {\n    \"displayName\": \"Fatima M. Al Mansoori\",\n    \"email\": \"fatima.m@example.ae\",\n    \"preferredLanguage\": \"ar\",\n    \"defaultRegionId\": \"reg_dubai\",\n    \"photoMediaKey\": \"media/users/avatar_new_9876.jpg\"\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"id\": \"usr_c8301829-d591-49fa-9481-229048aab431\",\n      \"displayName\": \"Fatima M. Al Mansoori\",\n      \"email\": \"fatima.m@example.ae\",\n      \"preferredLanguage\": \"ar\",\n      \"defaultRegionId\": \"reg_dubai\",\n      \"photoMediaKey\": \"media/users/avatar_new_9876.jpg\"\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Change Mobile Number",
+    "endpoints": [
+      "POST /v1/me/mobile/change"
+    ],
+    "payload": {
+      "challengeId": "chl_verified_mobile_change_uuid"
+    },
+    "rawText": " Change Mobile Number\n* **Endpoint**: `POST /v1/me/mobile/change`\n* **Access**: Customer, Vendor\n* **Request Payload**:\n  ```json\n  {\n    \"challengeId\": \"chl_verified_mobile_change_uuid\"\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"mobileNumber\": \"+971509998888\",\n      \"updatedAt\": \"2026-09-20T03:30:00.000Z\"\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "User Settings & Preferences",
+    "endpoints": [
+      "GET /v1/me/settings"
+    ],
+    "payload": {
+      "pushEnabled": true,
+      "smsEnabled": false,
+      "whatsappEnabled": true,
+      "emailEnabled": true,
+      "matchAlerts": true,
+      "offerAlerts": true,
+      "connectionAlerts": true,
+      "quietHoursEnabled": true,
+      "quietHoursStartUtc": "20:00",
+      "quietHoursEndUtc": "05:00"
+    },
+    "rawText": " User Settings & Preferences\n* **Endpoint**: `GET /v1/me/settings` & `PATCH /v1/me/settings`\n* **Access**: Customer, Vendor\n* **PATCH Request Payload**:\n  ```json\n  {\n    \"pushEnabled\": true,\n    \"smsEnabled\": false,\n    \"whatsappEnabled\": true,\n    \"emailEnabled\": true,\n    \"matchAlerts\": true,\n    \"offerAlerts\": true,\n    \"connectionAlerts\": true,\n    \"quietHoursEnabled\": true,\n    \"quietHoursStartUtc\": \"20:00\",\n    \"quietHoursEndUtc\": \"05:00\"\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"pushEnabled\": true,\n      \"smsEnabled\": false,\n      \"whatsappEnabled\": true,\n      \"emailEnabled\": true,\n      \"matchAlerts\": true,\n      \"offerAlerts\": true,\n      \"connectionAlerts\": true,\n      \"quietHoursEnabled\": true,\n      \"quietHoursStartUtc\": \"20:00\",\n      \"quietHoursEndUtc\": \"05:00\"\n    }\n  }\n  ```\n\n---\n\n### 3.3 Vendor Profile, Onboarding & Analytics\n\n"
+  },
+  {
+    "title": "Get Vendor Profile",
+    "endpoints": [
+      "GET /v1/me/vendor"
+    ],
+    "payload": {
+      "data": {
+        "id": "ven_01928374-abcd-4ef0-9876-fedcba098765",
+        "legalBusinessName": "Al Barakah Jewellers LLC",
+        "tradingName": "Al Barakah Gold & Diamonds",
+        "tradeLicenceNumber": "TL-DXB-987654",
+        "kycStatus": "VERIFIED",
+        "acceptingRequests": true,
+        "phone": "+97142233445",
+        "address": "Shop 14, Ground Floor, Deira Gold Souk, Dubai",
+        "googleMapsUrl": "https://maps.app.goo.gl/sampleDeiraGoldSouk",
+        "whatsappNumber": "+971501239876",
+        "categories": [
+          {
+            "id": "cat_bullion",
+            "nameEn": "Gold Bullion & Bars",
+            "nameAr": "سبائك الذهب"
+          },
+          {
+            "id": "cat_coins",
+            "nameEn": "Gold Coins",
+            "nameAr": "عملات ذهبية"
+          }
+        ],
+        "regions": [
+          {
+            "id": "reg_dubai",
+            "nameEn": "Dubai",
+            "nameAr": "دبي"
+          }
+        ],
+        "connectionCount": 42,
+        "rating": {
+          "average": "4.9",
+          "count": 28,
+          "limitedHistory": false
+        }
+      }
+    },
+    "rawText": " Get Vendor Profile\n* **Endpoint**: `GET /v1/me/vendor`\n* **Access**: Vendor\n* **Request Payload**: *None*\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"id\": \"ven_01928374-abcd-4ef0-9876-fedcba098765\",\n      \"legalBusinessName\": \"Al Barakah Jewellers LLC\",\n      \"tradingName\": \"Al Barakah Gold & Diamonds\",\n      \"tradeLicenceNumber\": \"TL-DXB-987654\",\n      \"kycStatus\": \"VERIFIED\",\n      \"acceptingRequests\": true,\n      \"phone\": \"+97142233445\",\n      \"address\": \"Shop 14, Ground Floor, Deira Gold Souk, Dubai\",\n      \"googleMapsUrl\": \"https://maps.app.goo.gl/sampleDeiraGoldSouk\",\n      \"whatsappNumber\": \"+971501239876\",\n      \"categories\": [\n        { \"id\": \"cat_bullion\", \"nameEn\": \"Gold Bullion & Bars\", \"nameAr\": \"سبائك الذهب\" },\n        { \"id\": \"cat_coins\", \"nameEn\": \"Gold Coins\", \"nameAr\": \"عملات ذهبية\" }\n      ],\n      \"regions\": [\n        { \"id\": \"reg_dubai\", \"nameEn\": \"Dubai\", \"nameAr\": \"دبي\" }\n      ],\n      \"connectionCount\": 42,\n      \"rating\": {\n        \"average\": \"4.9\",\n        \"count\": 28,\n        \"limitedHistory\": false\n      }\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Update Vendor Business Profile",
+    "endpoints": [
+      "PATCH /v1/me/vendor"
+    ],
+    "payload": {
+      "tradingName": "Al Barakah Gold & Diamonds",
+      "address": "Shop 14, Ground Floor, Deira Gold Souk, Dubai",
+      "googleMapsUrl": "https://maps.app.goo.gl/sampleDeiraGoldSouk",
+      "whatsappNumber": "+971501239876"
+    },
+    "rawText": " Update Vendor Business Profile\n* **Endpoint**: `PATCH /v1/me/vendor`\n* **Access**: Vendor\n* **Request Payload**:\n  ```json\n  {\n    \"tradingName\": \"Al Barakah Gold & Diamonds\",\n    \"address\": \"Shop 14, Ground Floor, Deira Gold Souk, Dubai\",\n    \"googleMapsUrl\": \"https://maps.app.goo.gl/sampleDeiraGoldSouk\",\n    \"whatsappNumber\": \"+971501239876\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Upload KYC Document Record",
+    "endpoints": [
+      "POST /v1/me/vendor/documents"
+    ],
+    "payload": {
+      "documentType": "TRADE_LICENCE",
+      "mediaKey": "media/kyc/trade_licence_doc_998877.pdf",
+      "validUntil": "2027-12-31"
+    },
+    "rawText": " Upload KYC Document Record\n* **Endpoint**: `POST /v1/me/vendor/documents`\n* **Access**: Vendor\n* **Request Payload**:\n  ```json\n  {\n    \"documentType\": \"TRADE_LICENCE\",\n    \"mediaKey\": \"media/kyc/trade_licence_doc_998877.pdf\",\n    \"validUntil\": \"2027-12-31\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Update Vendor Categories & Operating Regions",
+    "endpoints": [
+      "PUT /v1/me/vendor/categories"
+    ],
+    "payload": null,
+    "rawText": " Update Vendor Categories & Operating Regions\n* **Endpoints**: `PUT /v1/me/vendor/categories` & `PUT /v1/me/vendor/regions`\n* **Access**: Vendor\n* **Categories Payload**:\n  ```json\n  {\n    \"categoryIds\": [\"cat_bullion\", \"cat_coins\", \"cat_bridal_sets\"]\n  }\n  ```\n* **Regions Payload**:\n  ```json\n  {\n    \"regionIds\": [\"reg_dubai\", \"reg_sharjah\", \"reg_abu_dhabi\"]\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Toggle Vendor Availability",
+    "endpoints": [
+      "PATCH /v1/me/vendor/availability"
+    ],
+    "payload": {
+      "acceptingRequests": false
+    },
+    "rawText": " Toggle Vendor Availability\n* **Endpoint**: `PATCH /v1/me/vendor/availability`\n* **Access**: Vendor\n* **Request Payload**:\n  ```json\n  {\n    \"acceptingRequests\": false\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Vendor Home Dashboard Metrics",
+    "endpoints": [
+      "GET /v1/me/dashboard"
+    ],
+    "payload": {
+      "data": {
+        "kycStatus": "VERIFIED",
+        "acceptingRequests": true,
+        "activeMatchesCount": 15,
+        "pendingOffersCount": 4,
+        "activeConnectionsCount": 7,
+        "unreadNotificationsCount": 2,
+        "performance": {
+          "monthlyOffersSubmitted": 38,
+          "monthlyOffersAccepted": 12,
+          "conversionRate": "0.315",
+          "averageResponseMinutes": 14.5
+        }
+      }
+    },
+    "rawText": " Vendor Home Dashboard Metrics\n* **Endpoint**: `GET /v1/me/dashboard`\n* **Access**: Vendor\n* **Request Payload**: *None*\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"kycStatus\": \"VERIFIED\",\n      \"acceptingRequests\": true,\n      \"activeMatchesCount\": 15,\n      \"pendingOffersCount\": 4,\n      \"activeConnectionsCount\": 7,\n      \"unreadNotificationsCount\": 2,\n      \"performance\": {\n        \"monthlyOffersSubmitted\": 38,\n        \"monthlyOffersAccepted\": 12,\n        \"conversionRate\": \"0.315\",\n        \"averageResponseMinutes\": 14.5\n      }\n    }\n  }\n  ```\n\n---\n\n### 3.4 Buying Requests (`/v1/requests` & `/v1/me/requests`)\n\n"
+  },
+  {
+    "title": "Create Request Draft",
+    "endpoints": [
+      "POST /v1/requests"
+    ],
+    "payload": {
+      "requestType": "BUY",
+      "direction": "BUY",
+      "categoryId": "cat_bullion",
+      "regionId": "reg_dubai",
+      "notes": "Looking for 100g 24K PAMP Suisse gold bar with certificate and assay card",
+      "weightGrams": "100.00",
+      "weightIsApproximate": false,
+      "purityKarat": "24K",
+      "mintOrRefiner": "PAMP Suisse",
+      "budgetMin": "32000.00",
+      "budgetMax": "33500.00",
+      "budgetIsFlexible": true,
+      "gemstones": null,
+      "mediaKeys": [
+        "media/requests/ref_bar_front_100g.jpg"
+      ]
+    },
+    "rawText": " Create Request Draft\n* **Endpoint**: `POST /v1/requests`\n* **Access**: Customer\n* **Description**: Creates a new jewellery buying intent / request.\n* **Request Payload**:\n  ```json\n  {\n    \"requestType\": \"BUY\",\n    \"direction\": \"BUY\",\n    \"categoryId\": \"cat_bullion\",\n    \"regionId\": \"reg_dubai\",\n    \"notes\": \"Looking for 100g 24K PAMP Suisse gold bar with certificate and assay card\",\n    \"weightGrams\": \"100.00\",\n    \"weightIsApproximate\": false,\n    \"purityKarat\": \"24K\",\n    \"mintOrRefiner\": \"PAMP Suisse\",\n    \"budgetMin\": \"32000.00\",\n    \"budgetMax\": \"33500.00\",\n    \"budgetIsFlexible\": true,\n    \"gemstones\": null,\n    \"mediaKeys\": [\n      \"media/requests/ref_bar_front_100g.jpg\"\n    ]\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"id\": \"req_11223344-5566-7788-99aa-bbccddeeff00\",\n      \"reference\": \"KH-REQ-2026-00912\",\n      \"requestType\": \"BUY\",\n      \"direction\": \"BUY\",\n      \"state\": \"DRAFT\",\n      \"category\": {\n        \"id\": \"cat_bullion\",\n        \"nameEn\": \"Gold Bullion & Bars\",\n        \"nameAr\": \"سبائك الذهب\",\n        \"isActive\": true,\n        \"displayOrder\": 1\n      },\n      \"region\": {\n        \"id\": \"reg_dubai\",\n        \"nameEn\": \"Dubai\",\n        \"nameAr\": \"دبي\",\n        \"isActive\": true,\n        \"displayOrder\": 1\n      },\n      \"weightGrams\": \"100.00\",\n      \"weightIsApproximate\": false,\n      \"purityKarat\": \"24K\",\n      \"mintOrRefiner\": \"PAMP Suisse\",\n      \"budgetMin\": \"32000.00\",\n      \"budgetMax\": \"33500.00\",\n      \"budgetIsFlexible\": true,\n      \"offerCount\": 0,\n      \"media\": [\n        {\n          \"id\": \"med_998877\",\n          \"key\": \"media/requests/ref_bar_front_100g.jpg\",\n          \"displayOrder\": 0,\n          \"purpose\": \"REQUEST_IMAGE\"\n        }\n      ],\n      \"createdAt\": \"2026-09-20T03:30:00.000Z\",\n      \"updatedAt\": \"2026-09-20T03:30:00.000Z\"\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Publish Request",
+    "endpoints": [
+      "POST /v1/requests/{id}/publish"
+    ],
+    "payload": {
+      "data": {
+        "id": "req_11223344-5566-7788-99aa-bbccddeeff00",
+        "state": "PUBLISHED",
+        "publishedAt": "2026-09-20T03:32:00.000Z",
+        "expiresAt": "2026-09-27T03:32:00.000Z"
+      }
+    },
+    "rawText": " Publish Request\n* **Endpoint**: `POST /v1/requests/{id}/publish`\n* **Access**: Customer (Owner)\n* **Request Payload**: *None*\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"id\": \"req_11223344-5566-7788-99aa-bbccddeeff00\",\n      \"state\": \"PUBLISHED\",\n      \"publishedAt\": \"2026-09-20T03:32:00.000Z\",\n      \"expiresAt\": \"2026-09-27T03:32:00.000Z\"\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Cancel Request",
+    "endpoints": [
+      "POST /v1/requests/{id}/cancel"
+    ],
+    "payload": {
+      "reason": "PURCHASED_OFF_PLATFORM",
+      "notes": "Found in local store"
+    },
+    "rawText": " Cancel Request\n* **Endpoint**: `POST /v1/requests/{id}/cancel`\n* **Access**: Customer (Owner)\n* **Request Payload**:\n  ```json\n  {\n    \"reason\": \"PURCHASED_OFF_PLATFORM\",\n    \"notes\": \"Found in local store\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Duplicate Request",
+    "endpoints": [
+      "POST /v1/requests/{id}/duplicate"
+    ],
+    "payload": null,
+    "rawText": " Duplicate Request\n* **Endpoint**: `POST /v1/requests/{id}/duplicate`\n* **Access**: Customer (Owner)\n* **Request Payload**: *None*\n\n"
+  },
+  {
+    "title": "List Customer Requests",
+    "endpoints": [
+      "GET /v1/me/requests?state=PUBLISHED&limit=20"
+    ],
+    "payload": null,
+    "rawText": " List Customer Requests\n* **Endpoint**: `GET /v1/me/requests?state=PUBLISHED&limit=20`\n* **Access**: Customer\n* **Request Payload**: *None (Query Params: `state`, `limit`, `cursor`)*\n\n---\n\n### 3.5 Matching Engine & Vendor Feed (`/v1/matches`, `/v1/filter-presets`)\n\n"
+  },
+  {
+    "title": "Get Matched Requests Feed",
+    "endpoints": [
+      "GET /v1/matches?categoryId=cat_bullion&regionId=reg_dubai&limit=20"
+    ],
+    "payload": {
+      "data": [
+        {
+          "id": "req_11223344-5566-7788-99aa-bbccddeeff00",
+          "reference": "KH-REQ-2026-00912",
+          "requestType": "BUY",
+          "category": {
+            "id": "cat_bullion",
+            "nameEn": "Gold Bullion & Bars",
+            "nameAr": "سبائك الذهب"
+          },
+          "region": {
+            "id": "reg_dubai",
+            "nameEn": "Dubai",
+            "nameAr": "دبي"
+          },
+          "weightGrams": "100.00",
+          "purityKarat": "24K",
+          "budgetMin": "32000.00",
+          "budgetMax": "33500.00",
+          "budgetIsFlexible": true,
+          "notes": "Looking for 100g 24K PAMP Suisse gold bar",
+          "expiresAt": "2026-09-27T03:32:00.000Z",
+          "hasViewed": false,
+          "hasSubmittedOffer": false
+        }
+      ],
+      "meta": {
+        "nextCursor": "eyJpZCI6InJlcV8xMTIyMzM0NCJ9"
+      }
+    },
+    "rawText": " Get Matched Requests Feed\n* **Endpoint**: `GET /v1/matches?categoryId=cat_bullion&regionId=reg_dubai&limit=20`\n* **Access**: Vendor (with active Type Subscription)\n* **Request Payload**: *None (Query Params: `categoryId`, `regionId`, `purityKarat`, `minBudget`, `maxBudget`, `cursor`, `limit`)*\n* **Response Sample**:\n  ```json\n  {\n    \"data\": [\n      {\n        \"id\": \"req_11223344-5566-7788-99aa-bbccddeeff00\",\n        \"reference\": \"KH-REQ-2026-00912\",\n        \"requestType\": \"BUY\",\n        \"category\": { \"id\": \"cat_bullion\", \"nameEn\": \"Gold Bullion & Bars\", \"nameAr\": \"سبائك الذهب\" },\n        \"region\": { \"id\": \"reg_dubai\", \"nameEn\": \"Dubai\", \"nameAr\": \"دبي\" },\n        \"weightGrams\": \"100.00\",\n        \"purityKarat\": \"24K\",\n        \"budgetMin\": \"32000.00\",\n        \"budgetMax\": \"33500.00\",\n        \"budgetIsFlexible\": true,\n        \"notes\": \"Looking for 100g 24K PAMP Suisse gold bar\",\n        \"expiresAt\": \"2026-09-27T03:32:00.000Z\",\n        \"hasViewed\": false,\n        \"hasSubmittedOffer\": false\n      }\n    ],\n    \"meta\": {\n      \"nextCursor\": \"eyJpZCI6InJlcV8xMTIyMzM0NCJ9\"\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Mark Matched Request as Viewed",
+    "endpoints": [
+      "POST /v1/matches/{requestId}/viewed"
+    ],
+    "payload": null,
+    "rawText": " Mark Matched Request as Viewed\n* **Endpoint**: `POST /v1/matches/{requestId}/viewed`\n* **Access**: Vendor\n* **Request Payload**: *None*\n\n"
+  },
+  {
+    "title": "Create Saved Filter Preset",
+    "endpoints": [
+      "POST /v1/filter-presets"
+    ],
+    "payload": {
+      "name": "Dubai 24K Bullion Feed",
+      "categoryIds": [
+        "cat_bullion",
+        "cat_coins"
+      ],
+      "regionIds": [
+        "reg_dubai"
+      ],
+      "requestTypes": [
+        "BUY"
+      ],
+      "minBudget": "10000.00",
+      "maxBudget": "150000.00"
+    },
+    "rawText": " Create Saved Filter Preset\n* **Endpoint**: `POST /v1/filter-presets`\n* **Access**: Vendor\n* **Request Payload**:\n  ```json\n  {\n    \"name\": \"Dubai 24K Bullion Feed\",\n    \"categoryIds\": [\"cat_bullion\", \"cat_coins\"],\n    \"regionIds\": [\"reg_dubai\"],\n    \"requestTypes\": [\"BUY\"],\n    \"minBudget\": \"10000.00\",\n    \"maxBudget\": \"150000.00\"\n  }\n  ```\n\n---\n\n### 3.6 Offers (`/v1/offers`, `/v1/requests/{id}/offers`)\n\n"
+  },
+  {
+    "title": "Submit Offer (Vendor)",
+    "endpoints": [
+      "POST /v1/requests/{requestId}/offers"
+    ],
+    "payload": {
+      "offeredPrice": "32850.00",
+      "makingCharges": "150.00",
+      "ratePerGram": "327.00",
+      "validityHours": 24,
+      "deliveryTimeframe": "Ready for same-day store pickup at Deira branch",
+      "warrantyTerms": "Official PAMP assay certificate included + lifetime purity guarantee",
+      "vendorNote": "Brand new 100g bar, sealed in original assay cert pack with unique serial number.",
+      "mediaKeys": [
+        "media/offers/bar_actual_photo_01.jpg"
+      ]
+    },
+    "rawText": " Submit Offer (Vendor)\n* **Endpoint**: `POST /v1/requests/{requestId}/offers`\n* **Access**: Vendor\n* **Request Payload**:\n  ```json\n  {\n    \"offeredPrice\": \"32850.00\",\n    \"makingCharges\": \"150.00\",\n    \"ratePerGram\": \"327.00\",\n    \"validityHours\": 24,\n    \"deliveryTimeframe\": \"Ready for same-day store pickup at Deira branch\",\n    \"warrantyTerms\": \"Official PAMP assay certificate included + lifetime purity guarantee\",\n    \"vendorNote\": \"Brand new 100g bar, sealed in original assay cert pack with unique serial number.\",\n    \"mediaKeys\": [\n      \"media/offers/bar_actual_photo_01.jpg\"\n    ]\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"id\": \"off_99887766-5544-3322-1100-aabbccddeeff\",\n      \"requestId\": \"req_11223344-5566-7788-99aa-bbccddeeff00\",\n      \"state\": \"PENDING\",\n      \"submittedAt\": \"2026-09-20T03:35:00.000Z\",\n      \"expiresAt\": \"2026-09-21T03:35:00.000Z\",\n      \"revisionCount\": 0,\n      \"terms\": {\n        \"offeredPrice\": \"32850.00\",\n        \"makingCharges\": \"150.00\",\n        \"ratePerGram\": \"327.00\",\n        \"validityHours\": 24,\n        \"deliveryTimeframe\": \"Ready for same-day store pickup at Deira branch\",\n        \"warrantyTerms\": \"Official PAMP assay certificate included + lifetime purity guarantee\",\n        \"vendorNote\": \"Brand new 100g bar, sealed in original assay cert pack with unique serial number.\"\n      }\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Revise Offer (Vendor)",
+    "endpoints": [
+      "POST /v1/offers/{id}/revise"
+    ],
+    "payload": {
+      "offeredPrice": "32600.00",
+      "makingCharges": "100.00",
+      "ratePerGram": "325.00",
+      "validityHours": 24,
+      "vendorNote": "Special discounted rate applied."
+    },
+    "rawText": " Revise Offer (Vendor)\n* **Endpoint**: `POST /v1/offers/{id}/revise`\n* **Access**: Vendor (Owner)\n* **Request Payload**:\n  ```json\n  {\n    \"offeredPrice\": \"32600.00\",\n    \"makingCharges\": \"100.00\",\n    \"ratePerGram\": \"325.00\",\n    \"validityHours\": 24,\n    \"vendorNote\": \"Special discounted rate applied.\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Withdraw Offer (Vendor)",
+    "endpoints": [
+      "POST /v1/offers/{id}/withdraw"
+    ],
+    "payload": {
+      "reason": "ITEM_SOLD_OUT"
+    },
+    "rawText": " Withdraw Offer (Vendor)\n* **Endpoint**: `POST /v1/offers/{id}/withdraw`\n* **Access**: Vendor (Owner)\n* **Request Payload**:\n  ```json\n  {\n    \"reason\": \"ITEM_SOLD_OUT\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Accept Offer (Customer)",
+    "endpoints": [
+      "POST /v1/offers/{id}/accept"
+    ],
+    "payload": {
+      "data": {
+        "connectionId": "con_55443322-1100-9988-7766-554433221100",
+        "state": "OPEN",
+        "identityRevealedAt": "2026-09-20T03:40:00.000Z",
+        "vendor": {
+          "id": "ven_01928374-abcd-4ef0-9876-fedcba098765",
+          "legalBusinessName": "Al Barakah Jewellers LLC",
+          "tradingName": "Al Barakah Gold & Diamonds",
+          "tradeLicenceNumber": "TL-DXB-987654",
+          "phone": "+97142233445"
+        },
+        "talk": {
+          "available": true,
+          "waUrl": "https://wa.me/97142233445?text=Hello%20Al%20Barakah%2C%20regarding%20Offer%20KH-OFF-0012...",
+          "phone": "+97142233445",
+          "callUrl": "tel:+97142233445"
+        }
+      }
+    },
+    "rawText": " Accept Offer (Customer)\n* **Endpoint**: `POST /v1/offers/{id}/accept`\n* **Access**: Customer (Request Owner)\n* **Description**: Accepting an offer locks the deal and automatically creates an unmasked Connection with WhatsApp Talk handoff.\n* **Request Payload**: *None*\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"connectionId\": \"con_55443322-1100-9988-7766-554433221100\",\n      \"state\": \"OPEN\",\n      \"identityRevealedAt\": \"2026-09-20T03:40:00.000Z\",\n      \"vendor\": {\n        \"id\": \"ven_01928374-abcd-4ef0-9876-fedcba098765\",\n        \"legalBusinessName\": \"Al Barakah Jewellers LLC\",\n        \"tradingName\": \"Al Barakah Gold & Diamonds\",\n        \"tradeLicenceNumber\": \"TL-DXB-987654\",\n        \"phone\": \"+97142233445\"\n      },\n      \"talk\": {\n        \"available\": true,\n        \"waUrl\": \"https://wa.me/97142233445?text=Hello%20Al%20Barakah%2C%20regarding%20Offer%20KH-OFF-0012...\",\n        \"phone\": \"+97142233445\",\n        \"callUrl\": \"tel:+97142233445\"\n      }\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Decline Offer (Customer)",
+    "endpoints": [
+      "POST /v1/offers/{id}/decline"
+    ],
+    "payload": {
+      "reason": "PRICE_TOO_HIGH"
+    },
+    "rawText": " Decline Offer (Customer)\n* **Endpoint**: `POST /v1/offers/{id}/decline`\n* **Access**: Customer (Request Owner)\n* **Request Payload**:\n  ```json\n  {\n    \"reason\": \"PRICE_TOO_HIGH\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Get Masked Vendor Rating Breakdown",
+    "endpoints": [
+      "GET /v1/offers/{id}/vendor-rating"
+    ],
+    "payload": null,
+    "rawText": " Get Masked Vendor Rating Breakdown\n* **Endpoint**: `GET /v1/offers/{id}/vendor-rating`\n* **Access**: Customer\n* **Request Payload**: *None*\n\n---\n\n### 3.7 Connections & Talk Handoff (`/v1/connections`, `/v1/me/connections`)\n\n"
+  },
+  {
+    "title": "Get Connection Detail",
+    "endpoints": [
+      "GET /v1/connections/{id}"
+    ],
+    "payload": {
+      "data": {
+        "id": "con_55443322-1100-9988-7766-554433221100",
+        "offerId": "off_99887766-5544-3322-1100-aabbccddeeff",
+        "requestId": "req_11223344-5566-7788-99aa-bbccddeeff00",
+        "state": "OPEN",
+        "identityRevealedAt": "2026-09-20T03:40:00.000Z",
+        "vendor": {
+          "id": "ven_01928374-abcd-4ef0-9876-fedcba098765",
+          "legalBusinessName": "Al Barakah Jewellers LLC",
+          "tradingName": "Al Barakah Gold & Diamonds",
+          "tradeLicenceNumber": "TL-DXB-987654",
+          "phone": "+97142233445",
+          "connectionCount": 42
+        },
+        "talk": {
+          "available": true,
+          "waUrl": "https://wa.me/97142233445?text=...",
+          "phone": "+97142233445",
+          "callUrl": "tel:+97142233445"
+        }
+      }
+    },
+    "rawText": " Get Connection Detail\n* **Endpoint**: `GET /v1/connections/{id}`\n* **Access**: Customer or Vendor (Parties to Connection)\n* **Request Payload**: *None*\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"id\": \"con_55443322-1100-9988-7766-554433221100\",\n      \"offerId\": \"off_99887766-5544-3322-1100-aabbccddeeff\",\n      \"requestId\": \"req_11223344-5566-7788-99aa-bbccddeeff00\",\n      \"state\": \"OPEN\",\n      \"identityRevealedAt\": \"2026-09-20T03:40:00.000Z\",\n      \"vendor\": {\n        \"id\": \"ven_01928374-abcd-4ef0-9876-fedcba098765\",\n        \"legalBusinessName\": \"Al Barakah Jewellers LLC\",\n        \"tradingName\": \"Al Barakah Gold & Diamonds\",\n        \"tradeLicenceNumber\": \"TL-DXB-987654\",\n        \"phone\": \"+97142233445\",\n        \"connectionCount\": 42\n      },\n      \"talk\": {\n        \"available\": true,\n        \"waUrl\": \"https://wa.me/97142233445?text=...\",\n        \"phone\": \"+97142233445\",\n        \"callUrl\": \"tel:+97142233445\"\n      }\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Record Contact Event (WhatsApp Tap)",
+    "endpoints": [
+      "POST /v1/connections/{id}/contact-events"
+    ],
+    "payload": {
+      "channel": "WHATSAPP",
+      "clientTimestamp": "2026-09-20T03:41:00.000Z"
+    },
+    "rawText": " Record Contact Event (WhatsApp Tap)\n* **Endpoint**: `POST /v1/connections/{id}/contact-events`\n* **Access**: Customer or Vendor\n* **Request Payload**:\n  ```json\n  {\n    \"channel\": \"WHATSAPP\",\n    \"clientTimestamp\": \"2026-09-20T03:41:00.000Z\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Close Connection",
+    "endpoints": [
+      "POST /v1/connections/{id}/close"
+    ],
+    "payload": {
+      "outcome": "DEAL_COMPLETED",
+      "feedback": "Customer visited store, paid AED 32,600 and collected the bullion bar."
+    },
+    "rawText": " Close Connection\n* **Endpoint**: `POST /v1/connections/{id}/close`\n* **Access**: Customer or Vendor\n* **Request Payload**:\n  ```json\n  {\n    \"outcome\": \"DEAL_COMPLETED\",\n    \"feedback\": \"Customer visited store, paid AED 32,600 and collected the bullion bar.\"\n  }\n  ```\n\n---\n\n### 3.8 Reviews (`/v1/reviews`, `/v1/connections/{id}/reviews`)\n\n"
+  },
+  {
+    "title": "Submit Review for Completed Connection",
+    "endpoints": [
+      "POST /v1/connections/{connectionId}/reviews"
+    ],
+    "payload": {
+      "rating": 5,
+      "comment": "Genuine PAMP bar sealed with cert. Very polite staff and swift handover in Deira Gold Souk!"
+    },
+    "rawText": " Submit Review for Completed Connection\n* **Endpoint**: `POST /v1/connections/{connectionId}/reviews`\n* **Access**: Customer\n* **Request Payload**:\n  ```json\n  {\n    \"rating\": 5,\n    \"comment\": \"Genuine PAMP bar sealed with cert. Very polite staff and swift handover in Deira Gold Souk!\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Vendor Response to Review",
+    "endpoints": [
+      "POST /v1/reviews/{id}/response"
+    ],
+    "payload": {
+      "response": "Thank you for choosing Al Barakah Jewellers! We appreciate your trust."
+    },
+    "rawText": " Vendor Response to Review\n* **Endpoint**: `POST /v1/reviews/{id}/response`\n* **Access**: Vendor (Subject of Review)\n* **Request Payload**:\n  ```json\n  {\n    \"response\": \"Thank you for choosing Al Barakah Jewellers! We appreciate your trust.\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Flag Review for Moderation",
+    "endpoints": [
+      "POST /v1/reviews/{id}/flag"
+    ],
+    "payload": {
+      "reason": "ABUSIVE_OR_FALSE",
+      "details": "Customer did not visit store; defamatory claims."
+    },
+    "rawText": " Flag Review for Moderation\n* **Endpoint**: `POST /v1/reviews/{id}/flag`\n* **Access**: Customer or Vendor\n* **Request Payload**:\n  ```json\n  {\n    \"reason\": \"ABUSIVE_OR_FALSE\",\n    \"details\": \"Customer did not visit store; defamatory claims.\"\n  }\n  ```\n\n---\n\n### 3.9 Notifications & Devices\n\n"
+  },
+  {
+    "title": "Register Push Device Token",
+    "endpoints": [
+      "POST /v1/devices"
+    ],
+    "payload": {
+      "token": "fcm_token_dx992k_sample_abc1234567890xyz",
+      "platform": "ANDROID",
+      "appVersion": "1.0.4",
+      "deviceModel": "Pixel 8 Pro"
+    },
+    "rawText": " Register Push Device Token\n* **Endpoint**: `POST /v1/devices`\n* **Access**: Authenticated (Customer, Vendor, Admin)\n* **Request Payload**:\n  ```json\n  {\n    \"token\": \"fcm_token_dx992k_sample_abc1234567890xyz\",\n    \"platform\": \"ANDROID\",\n    \"appVersion\": \"1.0.4\",\n    \"deviceModel\": \"Pixel 8 Pro\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Mark Notification as Read",
+    "endpoints": [
+      "POST /v1/notifications/{id}/read"
+    ],
+    "payload": null,
+    "rawText": " Mark Notification as Read\n* **Endpoint**: `POST /v1/notifications/{id}/read`\n* **Access**: Authenticated\n* **Request Payload**: *None*\n\n"
+  },
+  {
+    "title": "Mark All Notifications as Read",
+    "endpoints": [
+      "POST /v1/notifications/read-all"
+    ],
+    "payload": null,
+    "rawText": " Mark All Notifications as Read\n* **Endpoint**: `POST /v1/notifications/read-all`\n* **Access**: Authenticated\n* **Request Payload**: *None*\n\n---\n\n### 3.10 Abuse Reports (`/v1/abuse-reports`)\n\n"
+  },
+  {
+    "title": "Submit Abuse / Scam Report",
+    "endpoints": [
+      "POST /v1/abuse-reports"
+    ],
+    "payload": {
+      "targetType": "VENDOR",
+      "targetId": "ven_01928374-abcd-4ef0-9876-fedcba098765",
+      "reason": "FRAUD_OR_MISREPRESENTATION",
+      "details": "Vendor attempted to offer unofficial hallmark non-certified item contrary to agreed terms.",
+      "evidenceMediaKeys": [
+        "media/evidence/chat_screenshot_01.jpg"
+      ]
+    },
+    "rawText": " Submit Abuse / Scam Report\n* **Endpoint**: `POST /v1/abuse-reports`\n* **Access**: Customer or Vendor\n* **Request Payload**:\n  ```json\n  {\n    \"targetType\": \"VENDOR\",\n    \"targetId\": \"ven_01928374-abcd-4ef0-9876-fedcba098765\",\n    \"reason\": \"FRAUD_OR_MISREPRESENTATION\",\n    \"details\": \"Vendor attempted to offer unofficial hallmark non-certified item contrary to agreed terms.\",\n    \"evidenceMediaKeys\": [\n      \"media/evidence/chat_screenshot_01.jpg\"\n    ]\n  }\n  ```\n\n---\n\n### 3.11 Media Pipeline (`/v1/media`)\n\n"
+  },
+  {
+    "title": "Create Upload Intent",
+    "endpoints": [
+      "POST /v1/media/upload-intent"
+    ],
+    "payload": {
+      "purpose": "REQUEST_ATTACHMENT",
+      "contentType": "image/jpeg",
+      "byteSize": 2450000,
+      "filename": "necklace_front.jpg"
+    },
+    "rawText": " Create Upload Intent\n* **Endpoint**: `POST /v1/media/upload-intent`\n* **Access**: Authenticated\n* **Request Payload**:\n  ```json\n  {\n    \"purpose\": \"REQUEST_ATTACHMENT\",\n    \"contentType\": \"image/jpeg\",\n    \"byteSize\": 2450000,\n    \"filename\": \"necklace_front.jpg\"\n  }\n  ```\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"key\": \"media/requests/req_image_99881122.jpg\",\n      \"uploadUrl\": \"https://r2.cloudflarestorage.com/karathive/media/requests/req_image_99881122.jpg?X-Amz-Signature=...\",\n      \"expiresAt\": \"2026-09-20T04:00:00.000Z\"\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Complete Media Upload",
+    "endpoints": [
+      "POST /v1/media/{key}/complete"
+    ],
+    "payload": null,
+    "rawText": " Complete Media Upload\n* **Endpoint**: `POST /v1/media/{key}/complete`\n* **Access**: Authenticated\n* **Request Payload**: *None*\n\n---\n\n### 3.12 Taxonomy, Config & Gold Rates\n\n"
+  },
+  {
+    "title": "Get Categories Tree",
+    "endpoints": [
+      "GET /v1/categories"
+    ],
+    "payload": null,
+    "rawText": " Get Categories Tree\n* **Endpoint**: `GET /v1/categories`\n* **Access**: Public\n* **Request Payload**: *None*\n\n"
+  },
+  {
+    "title": "Get Operating Regions",
+    "endpoints": [
+      "GET /v1/regions"
+    ],
+    "payload": null,
+    "rawText": " Get Operating Regions\n* **Endpoint**: `GET /v1/regions`\n* **Access**: Public\n* **Request Payload**: *None*\n\n"
+  },
+  {
+    "title": "Get Current Gold Rates",
+    "endpoints": [
+      "GET /v1/gold-rates"
+    ],
+    "payload": {
+      "data": {
+        "timestamp": "2026-09-20T03:30:00.000Z",
+        "currency": "AED",
+        "unit": "GRAM",
+        "rates": {
+          "24K": "328.50",
+          "22K": "304.25",
+          "21K": "290.50",
+          "18K": "249.00"
+        },
+        "source": "CENTRAL_BANK_MARKET_FEED"
+      }
+    },
+    "rawText": " Get Current Gold Rates\n* **Endpoint**: `GET /v1/gold-rates`\n* **Access**: Authenticated\n* **Request Payload**: *None*\n* **Response Sample**:\n  ```json\n  {\n    \"data\": {\n      \"timestamp\": \"2026-09-20T03:30:00.000Z\",\n      \"currency\": \"AED\",\n      \"unit\": \"GRAM\",\n      \"rates\": {\n        \"24K\": \"328.50\",\n        \"22K\": \"304.25\",\n        \"21K\": \"290.50\",\n        \"18K\": \"249.00\"\n      },\n      \"source\": \"CENTRAL_BANK_MARKET_FEED\"\n    }\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Get Platform Operational Config",
+    "endpoints": [
+      "GET /v1/platform-config"
+    ],
+    "payload": null,
+    "rawText": " Get Platform Operational Config\n* **Endpoint**: `GET /v1/platform-config`\n* **Access**: Public\n* **Request Payload**: *None*\n\n---\n\n### 3.13 Admin Operations (`/v1/admin/...`)\n\n"
+  },
+  {
+    "title": "Verification Decisions",
+    "endpoints": [
+      "POST /v1/admin/vendors/{id}/verify",
+      "POST /v1/admin/vendors/{id}/reject",
+      "POST /v1/admin/vendors/{id}/request-info"
+    ],
+    "payload": null,
+    "rawText": " Verification Decisions\n* **Verify Vendor**: `POST /v1/admin/vendors/{id}/verify`\n  ```json\n  {\n    \"note\": \"Trade license verified with Dubai DED; premises inspected.\"\n  }\n  ```\n* **Reject Vendor KYC**: `POST /v1/admin/vendors/{id}/reject`\n  ```json\n  {\n    \"reason\": \"Expired trade license; company name mismatch.\",\n    \"note\": \"Document uploaded was expired on 2025-12-31.\"\n  }\n  ```\n* **Request Additional Info**: `POST /v1/admin/vendors/{id}/request-info`\n  ```json\n  {\n    \"note\": \"Please upload a clearer copy of the trade license showing page 2 activities.\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Vendor Lifecycle Operations",
+    "endpoints": [
+      "POST /v1/admin/vendors/{id}/suspend",
+      "POST /v1/admin/vendors/{id}/reactivate"
+    ],
+    "payload": null,
+    "rawText": " Vendor Lifecycle Operations\n* **Suspend Vendor**: `POST /v1/admin/vendors/{id}/suspend`\n  ```json\n  {\n    \"reason\": \"POLICY_VIOLATION\",\n    \"note\": \"Multiple unfulfilled verified accepted offers.\"\n  }\n  ```\n* **Reactivate Vendor**: `POST /v1/admin/vendors/{id}/reactivate`\n  ```json\n  {\n    \"note\": \"Vendor resolved dispute and completed pending settlement.\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Customer Account Management",
+    "endpoints": [
+      "POST /v1/admin/customers/{id}/suspend",
+      "POST /v1/admin/customers/{id}/erasure"
+    ],
+    "payload": null,
+    "rawText": " Customer Account Management\n* **Suspend Customer**: `POST /v1/admin/customers/{id}/suspend`\n  ```json\n  {\n    \"reason\": \"SUSPICIOUS_ACTIVITY\",\n    \"note\": \"Spam buying requests posted across multiple regions.\"\n  }\n  ```\n* **Process Customer Erasure (GDPR/Privacy)**: `POST /v1/admin/customers/{id}/erasure`\n  ```json\n  {\n    \"note\": \"Customer requested account erasure under Privacy Policy §12.\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Request Takedown",
+    "endpoints": [
+      "POST /v1/admin/requests/{id}/remove"
+    ],
+    "payload": null,
+    "rawText": " Request Takedown\n* **Remove Request**: `POST /v1/admin/requests/{id}/remove`\n  ```json\n  {\n    \"reason\": \"PROHIBITED_GOODS\",\n    \"note\": \"Item does not meet marketplace precious metal guidelines.\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Review Moderation",
+    "endpoints": [
+      "POST /v1/admin/reviews/{id}/approve",
+      "POST /v1/admin/reviews/{id}/reject",
+      "POST /v1/admin/reviews/{id}/redact"
+    ],
+    "payload": null,
+    "rawText": " Review Moderation\n* **Approve Review**: `POST /v1/admin/reviews/{id}/approve`\n  ```json\n  {\n    \"note\": \"Verified genuine customer feedback.\"\n  }\n  ```\n* **Reject Review**: `POST /v1/admin/reviews/{id}/reject`\n  ```json\n  {\n    \"reason\": \"POLICY_VIOLATION\",\n    \"note\": \"Contains external phone numbers and abusive text.\"\n  }\n  ```\n* **Redact Review**: `POST /v1/admin/reviews/{id}/redact`\n  ```json\n  {\n    \"redactedComment\": \"Customer feedback regarding store experience [phone number redacted by admin].\",\n    \"note\": \"Removed private phone number from review comment.\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Abuse Report Resolution",
+    "endpoints": [
+      "POST /v1/admin/abuse-reports/{id}/resolve",
+      "POST /v1/admin/abuse-reports/{id}/dismiss"
+    ],
+    "payload": null,
+    "rawText": " Abuse Report Resolution\n* **Resolve Report**: `POST /v1/admin/abuse-reports/{id}/resolve`\n  ```json\n  {\n    \"actionTaken\": \"VENDOR_SUSPENDED\",\n    \"note\": \"Confirmed counterfeit claim; vendor suspended pending investigation.\"\n  }\n  ```\n* **Dismiss Report**: `POST /v1/admin/abuse-reports/{id}/dismiss`\n  ```json\n  {\n    \"reason\": \"UNSUBSTANTIATED\",\n    \"note\": \"No evidence provided of wrongdoing.\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Taxonomy Management (Categories & Regions)",
+    "endpoints": [
+      "POST /v1/admin/categories",
+      "PATCH /v1/admin/categories/{id}",
+      "POST /v1/admin/regions"
+    ],
+    "payload": null,
+    "rawText": " Taxonomy Management (Categories & Regions)\n* **Create Category**: `POST /v1/admin/categories`\n  ```json\n  {\n    \"nameEn\": \"Antique & Heritage Jewellery\",\n    \"nameAr\": \"مجوهرات أثرية وتراثية\",\n    \"icon\": \"heritage_ring\",\n    \"displayOrder\": 5,\n    \"isActive\": true\n  }\n  ```\n* **Update Category**: `PATCH /v1/admin/categories/{id}`\n  ```json\n  {\n    \"nameEn\": \"Heritage & Vintage Jewellery\",\n    \"displayOrder\": 4\n  }\n  ```\n* **Create Region**: `POST /v1/admin/regions`\n  ```json\n  {\n    \"nameEn\": \"Ras Al Khaimah\",\n    \"nameAr\": \"رأس الخيمة\",\n    \"displayOrder\": 6,\n    \"isActive\": true\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Manual Gold Rate Override",
+    "endpoints": [
+      "POST /v1/admin/gold-rates"
+    ],
+    "payload": null,
+    "rawText": " Manual Gold Rate Override\n* **Set Gold Rate**: `POST /v1/admin/gold-rates`\n  ```json\n  {\n    \"purityKarat\": \"24K\",\n    \"ratePerGram\": \"329.00\",\n    \"currency\": \"AED\",\n    \"overrideUntil\": \"2026-09-20T18:00:00.000Z\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Platform Settings",
+    "endpoints": [
+      "PATCH /v1/admin/settings/{key}"
+    ],
+    "payload": null,
+    "rawText": " Platform Settings\n* **Update Setting**: `PATCH /v1/admin/settings/{key}`\n  ```json\n  {\n    \"value\": \"48\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Broadcast Announcements",
+    "endpoints": [
+      "POST /v1/admin/announcements"
+    ],
+    "payload": null,
+    "rawText": " Broadcast Announcements\n* **Create Announcement**: `POST /v1/admin/announcements`\n  ```json\n  {\n    \"titleEn\": \"Scheduled Maintenance\",\n    \"titleAr\": \"صيانة دورية مجدولة\",\n    \"bodyEn\": \"The marketplace will undergo scheduled maintenance on Sunday from 2 AM to 4 AM GST.\",\n    \"bodyAr\": \"ستخضع المنصة لصيانة دورية يوم الأحد من الساعة 2 إلى 4 صباحاً بتوقيت الإمارات.\",\n    \"targetRole\": \"ALL\",\n    \"scheduledAt\": \"2026-09-22T02:00:00.000Z\"\n  }\n  ```\n\n"
+  },
+  {
+    "title": "Admin Audit Logging & Internal Notes",
+    "endpoints": [
+      "POST /v1/admin/audit-log",
+      "POST /v1/admin/{collection}/{id}/notes"
+    ],
+    "payload": null,
+    "rawText": " Admin Audit Logging & Internal Notes\n* **Record Audit View Event**: `POST /v1/admin/audit-log`\n  ```json\n  {\n    \"action\": \"CUSTOMER_DETAIL_VIEW\",\n    \"targetType\": \"CUSTOMER\",\n    \"targetId\": \"usr_c8301829-d591-49fa-9481-229048aab431\",\n    \"metadata\": {\n      \"screen\": \"ADM-S04\",\n      \"reason\": \"KYC inquiry lookup\"\n    }\n  }\n  ```\n* **Add Internal Note to Any Entity**: `POST /v1/admin/{collection}/{id}/notes`\n  ```json\n  {\n    \"note\": \"Spoke with vendor manager over phone; updated trade license copy promised by tomorrow morning.\"\n  }\n  ```\n\n---\n\n## 4. Verification & Validation Summary\n\nAll payload models above adhere strictly to:\n1. **Decimal Monetary & Weight String Representations**: `budgetMin`, `budgetMax`, `offeredPrice`, `ratePerGram`, and `weightGrams` are encoded as strings (e.g., `\"32850.00\"`, `\"100.00\"`).\n2. **Standard State Transitions**: Dedicated state-transition sub-resources (`/publish`, `/cancel`, `/accept`, `/withdraw`, `/close`, `/verify`, `/reject`).\n3. **Data Protection & Identity Masking**: Vendor details remain completely masked until an offer is accepted by the customer, where an unmasked Connection with WhatsApp deep-link (`wa.me`) is returned.\n"
+  }
+]

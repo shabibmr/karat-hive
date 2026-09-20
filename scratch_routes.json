@@ -1,0 +1,1046 @@
+[
+  {
+    "controller": "health.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/health",
+    "sig": "health(): { status: 'ok' } {"
+  },
+  {
+    "controller": "health.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/ready",
+    "sig": "async ready(): Promise<{ status: 'ok'; migrationsCurrent: boolean }> {"
+  },
+  {
+    "controller": "abuse.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/abuse-reports",
+    "sig": "@HttpCode(HttpStatus.CREATED) async submitReport( @Viewer() viewer: ViewerContext, @Body(zodBody(createAbuseReportSchema)) body: z.infer<typeof createAbuseReportSchema>, ) {"
+  },
+  {
+    "controller": "admin-offers.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/offers",
+    "sig": "listOffers( @Query(zodQuery(adminOfferListQuerySchema)) query: z.infer<typeof adminOfferListQuerySchema>, ): Promise<AdminOfferListPage> {"
+  },
+  {
+    "controller": "admin-offers.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/offers/:id",
+    "sig": "getOffer( @Param('id', offerIdParam) id: string, ): Promise<AdminOfferDetail> {"
+  },
+  {
+    "controller": "admin-offers.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/offers/:id/notes",
+    "sig": "@HttpCode(201) addNote( @Param('id', offerIdParam) id: string, @Viewer() viewer: ViewerContext, @Body(zodBody(addOfferNoteSchema)) body: z.infer<typeof addOfferNoteSchema>, ): Promise<AdminNoteView> {"
+  },
+  {
+    "controller": "admin-requests.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/requests",
+    "sig": "listRequests( @Query(zodQuery(adminRequestListQuerySchema)) query: z.infer<typeof adminRequestListQuerySchema>, ): Promise<AdminRequestListPage> {"
+  },
+  {
+    "controller": "admin-requests.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/requests/:id",
+    "sig": "getRequest( @Param('id', requestIdParam) id: string, ): Promise<AdminRequestDetail> {"
+  },
+  {
+    "controller": "admin-requests.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/requests/:id/remove",
+    "sig": "@HttpCode(200) removeRequest( @Param('id', requestIdParam) id: string, @Viewer() viewer: ViewerContext, @Req() request: FastifyRequest, @Body(zodBody(removeRequestSchema)) body: z.infer<typeof removeRequestSchema>, ): Promise<AdminRequestDetail> {"
+  },
+  {
+    "controller": "admin-requests.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/requests/:id/notes",
+    "sig": "@HttpCode(201) addNote( @Param('id', requestIdParam) id: string, @Viewer() viewer: ViewerContext, @Body(zodBody(addRequestNoteSchema)) body: z.infer<typeof addRequestNoteSchema>, ): Promise<AdminNoteView> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/verification-queue",
+    "sig": "getVerificationQueue(): Promise<VerificationQueueItem[]> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors",
+    "sig": "listVendors( @Query(zodQuery(vendorListQuerySchema)) query: z.infer<typeof vendorListQuerySchema>, ): Promise<VendorListPage> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors/:id",
+    "sig": "getVendor( @Param('id', vendorIdParam) id: string, ): Promise<VendorVerificationDetail> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors/:id/documents/:docId/url",
+    "sig": "getDocumentUrl( @Param('id', vendorIdParam) vendorId: string, @Param('docId', documentIdParam) docId: string, @Viewer() viewer: ViewerContext, @Req() request: FastifyRequest, ): Promise<DocumentUrlView> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/verify",
+    "sig": "@HttpCode(200) verifyVendor( @Param('id', vendorIdParam) id: string, @Viewer() viewer: ViewerContext, @Body(zodBody(rationaleSchema)) body: z.infer<typeof rationaleSchema>, ): Promise<{ lifecycle: string }> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/reject",
+    "sig": "@HttpCode(200) rejectVendor( @Param('id', vendorIdParam) id: string, @Viewer() viewer: ViewerContext, @Body(zodBody(rationaleSchema)) body: z.infer<typeof rationaleSchema>, ): Promise<{ lifecycle: string }> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/request-info",
+    "sig": "@HttpCode(200) requestInfo( @Param('id', vendorIdParam) id: string, @Viewer() viewer: ViewerContext, @Body(zodBody(requestInfoSchema)) body: z.infer<typeof requestInfoSchema>, ): Promise<{ lifecycle: string }> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/activate",
+    "sig": "@HttpCode(200) activateVendor( @Param('id', vendorIdParam) id: string, @Viewer() viewer: ViewerContext, @Body(zodBody(lifecycleActionSchema)) body: z.infer<typeof lifecycleActionSchema>, ): Promise<{ accountState: UserAccountState; lifecycle: string }> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/suspend",
+    "sig": "@HttpCode(200) suspendVendor( @Param('id', vendorIdParam) id: string, @Viewer() viewer: ViewerContext, @Body(zodBody(lifecycleActionSchema)) body: z.infer<typeof lifecycleActionSchema>, ): Promise<{ accountState: UserAccountState; lifecycle: string }> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/reactivate",
+    "sig": "@HttpCode(200) reactivateVendor( @Param('id', vendorIdParam) id: string, @Viewer() viewer: ViewerContext, @Body(zodBody(lifecycleActionSchema)) body: z.infer<typeof lifecycleActionSchema>, ): Promise<{ accountState: UserAccountState; lifecycle: string }> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/deactivate",
+    "sig": "@HttpCode(200) deactivateVendor( @Param('id', vendorIdParam) id: string, @Viewer() viewer: ViewerContext, @Body(zodBody(lifecycleActionSchema)) body: z.infer<typeof lifecycleActionSchema>, ): Promise<{ accountState: UserAccountState; lifecycle: string }> {"
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/notes",
+    "sig": "@HttpCode(201) addNote( @Param('id', vendorIdParam) id: string, @Viewer() viewer: ViewerContext, @Body(zodBody(addNoteSchema)) body: z.infer<typeof addNoteSchema>, ): Promise<AdminNoteView> {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/dashboard",
+    "sig": "async getDashboard( @Query('from') from?: string, @Query('to') to?: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/customers",
+    "sig": "async listCustomers( @Query('q') q?: string, @Query('state') state?: UserAccountState, @Query('limit') limit?: string, @Query('cursor') cursor?: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/customers/:id",
+    "sig": "async getCustomer(@Param('id') id: string) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/customers/:id/suspend",
+    "sig": "async suspendCustomer( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(suspendCustomerSchema)) body: z.infer<typeof suspendCustomerSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/customers/:id/reactivate",
+    "sig": "async reactivateCustomer( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(reactivateCustomerSchema)) body: z.infer<typeof reactivateCustomerSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/customers/:id/erasure",
+    "sig": "async erasureCustomer( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(erasureCustomerSchema)) body: z.infer<typeof erasureCustomerSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors",
+    "sig": "async listVendors( @Query('q') q?: string, @Query('verificationState') verificationState?: VendorVerificationState, @Query('accountState') accountState?: UserAccountState, @Query('regionId') regionId?: string, @Query('limit') limit?: string, @Query('cursor') cursor?: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors/:id",
+    "sig": "async getVendor(@Param('id') id: string) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors/:id/documents/:docId/url",
+    "sig": "async getVendorDocumentUrl( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Param('docId') docId: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/verification-queue",
+    "sig": "async getVerificationQueue() {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/verify",
+    "sig": "async verifyVendor( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(verifyVendorSchema)) body: z.infer<typeof verifyVendorSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/reject",
+    "sig": "async rejectVendor( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(rejectVendorSchema)) body: z.infer<typeof rejectVendorSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/request-info",
+    "sig": "async requestVendorInfo( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(requestInfoVendorSchema)) body: z.infer<typeof requestInfoVendorSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/activate",
+    "sig": "async activateVendor( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(setVendorStateSchema)) body: z.infer<typeof setVendorStateSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/suspend",
+    "sig": "async suspendVendor( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(setVendorStateSchema)) body: z.infer<typeof setVendorStateSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/reactivate",
+    "sig": "async reactivateVendor( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(setVendorStateSchema)) body: z.infer<typeof setVendorStateSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/deactivate",
+    "sig": "async deactivateVendor( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(setVendorStateSchema)) body: z.infer<typeof setVendorStateSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/requests",
+    "sig": "async listRequests( @Query('q') q?: string, @Query('state') state?: RequestState, @Query('requestType') requestType?: string, @Query('direction') direction?: string, @Query('categoryId') categoryId?: string, @Query('regionId') regionId?: string, @Query('zeroOffers') zeroOffers?: string, @Query('minValue') minValue?: string, @Query('maxValue') maxValue?: string, @Query('valueMin') valueMin?: string, @Query('valueMax') valueMax?: string, @Query('limit') limit?: string, @Query('cursor') cursor?: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/requests/:id",
+    "sig": "async getRequest(@Param('id') id: string) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/requests/:id/remove",
+    "sig": "async removeRequest( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(removeRequestSchema)) body: z.infer<typeof removeRequestSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/offers",
+    "sig": "async listOffers( @Query('q') q?: string, @Query('state') state?: string, @Query('vendorId') vendorId?: string, @Query('requestType') requestType?: string, @Query('minPrice') minPrice?: string, @Query('maxPrice') maxPrice?: string, @Query('priceMin') priceMin?: string, @Query('priceMax') priceMax?: string, @Query('dateFrom') dateFrom?: string, @Query('dateTo') dateTo?: string, @Query('limit') limit?: string, @Query('cursor') cursor?: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/offers/:id",
+    "sig": "async getOffer(@Param('id') id: string) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/connections",
+    "sig": "async listConnections( @Query('state') state?: string, @Query('limit') limit?: string, @Query('cursor') cursor?: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/connections/:id",
+    "sig": "async getConnection(@Param('id') id: string) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/connections/:id/close",
+    "sig": "async closeConnection( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(closeConnectionSchema)) body: z.infer<typeof closeConnectionSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/reviews",
+    "sig": "async listReviews( @Query('state') state?: ReviewState, @Query('authorType') authorType?: AuthorType, @Query('q') q?: string, @Query('limit') limit?: string, @Query('cursor') cursor?: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/reviews/:id/approve",
+    "sig": "async approveReview( @Viewer() viewer: ViewerContext, @Param('id') id: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/reviews/:id/reject",
+    "sig": "async rejectReview( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(rejectReviewSchema)) body: z.infer<typeof rejectReviewSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/reviews/:id/redact",
+    "sig": "async redactReview( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(redactReviewSchema)) body: z.infer<typeof redactReviewSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/abuse-reports",
+    "sig": "async listAbuseReports( @Query('state') state?: AbuseReportState, @Query('status') status?: AbuseReportState, @Query('limit') limit?: string, @Query('cursor') cursor?: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/abuse-reports/:id",
+    "sig": "async getAbuseReport(@Param('id') id: string) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/abuse-reports/:id/resolve",
+    "sig": "async resolveAbuseReport( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(resolveAbuseSchema)) body: z.infer<typeof resolveAbuseSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/abuse-reports/:id/dismiss",
+    "sig": "async dismissAbuseReport( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(resolveAbuseSchema)) body: z.infer<typeof resolveAbuseSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/abuse-reports/:id/action",
+    "sig": "async actionAbuseReport( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(actionAbuseSchema)) body: z.infer<typeof actionAbuseSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/settings",
+    "sig": "async getSettings() {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/admin/settings/:key",
+    "sig": "async updateSetting( @Viewer() viewer: ViewerContext, @Param('key') key: string, @Body(zodBody(updateSettingSchema)) body: z.infer<typeof updateSettingSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/audit-log",
+    "sig": "async listAuditLogs( @Query('limit') limit?: string, @Query('cursor') cursor?: string, @Query('actorUserId') actorUserId?: string, @Query('action') action?: string, @Query('entityType') entityType?: string, @Query('entityId') entityId?: string, @Query('from') from?: string, @Query('to') to?: string, @Query('ip') ip?: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/audit-log",
+    "sig": "async recordAuditLog( @Viewer() viewer: ViewerContext, @Body(zodBody(createAuditLogSchema)) body: z.infer<typeof createAuditLogSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/:collection/:id/notes",
+    "sig": "async createAdminNote( @Viewer() viewer: ViewerContext, @Param('collection') collection: string, @Param('id') id: string, @Body(zodBody(adminNoteSchema)) body: z.infer<typeof adminNoteSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/:collection/:id/notes",
+    "sig": "async listAdminNotes( @Param('collection') collection: string, @Param('id') id: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/admins",
+    "sig": "async listAdmins() {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/admins",
+    "sig": "async createAdmin( @Viewer() viewer: ViewerContext, @Body(zodBody(createAdminSchema)) body: z.infer<typeof createAdminSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/admins/:id/suspend",
+    "sig": "async suspendAdmin( @Viewer() viewer: ViewerContext, @Param('id') id: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/admins/:id/revoke",
+    "sig": "async revokeAdmin( @Viewer() viewer: ViewerContext, @Param('id') id: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/announcements",
+    "sig": "async listAnnouncements( @Query('limit') limit?: string, @Query('cursor') cursor?: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/announcements",
+    "sig": "async createAnnouncement( @Viewer() viewer: ViewerContext, @Body(zodBody(createAnnouncementSchema)) body: z.infer<typeof createAnnouncementSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/announcements/:id/cancel",
+    "sig": "async cancelAnnouncement( @Viewer() viewer: ViewerContext, @Param('id') id: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/reports/:name",
+    "sig": "async getReport( @Param('name') name: string, @Query('from') from?: string, @Query('to') to?: string, @Query('regionId') regionId?: string, @Query('categoryId') categoryId?: string, @Query('groupBy') groupBy?: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/exports",
+    "sig": "async createExport( @Viewer() viewer: ViewerContext, @Body(zodBody(createExportSchema)) body: z.infer<typeof createExportSchema>, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/exports/:id",
+    "sig": "async getExport( @Viewer() viewer: ViewerContext, @Param('id') id: string, ) {"
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/exports/:id/download",
+    "sig": "async downloadExport( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Res() reply: FastifyReply, ) {"
+  },
+  {
+    "controller": "connection.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/offers/:id/accept",
+    "sig": "@HttpCode(HttpStatus.OK) async acceptOffer( @Viewer() viewer: ViewerContext, @Param('id') offerId: string, @Body(zodBody(acceptOfferSchema)) body: z.infer<typeof acceptOfferSchema>, ) {"
+  },
+  {
+    "controller": "connection.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/connections",
+    "sig": "async listMyConnections( @Viewer() viewer: ViewerContext, @Query(zodQuery(listConnectionsQuerySchema)) query: z.infer<typeof listConnectionsQuerySchema>, ) {"
+  },
+  {
+    "controller": "connection.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/connections/:id",
+    "sig": "async getConnectionById( @Viewer() viewer: ViewerContext, @Param('id') connectionId: string, ) {"
+  },
+  {
+    "controller": "connection.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/connections/:id/close",
+    "sig": "@HttpCode(HttpStatus.OK) async closeConnection( @Viewer() viewer: ViewerContext, @Param('id') connectionId: string, @Body(zodBody(closeConnectionSchema)) body: z.infer<typeof closeConnectionSchema>, ) {"
+  },
+  {
+    "controller": "connection.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/connections/:id/contact-events",
+    "sig": "@HttpCode(HttpStatus.CREATED) async recordContactEvent( @Viewer() viewer: ViewerContext, @Param('id') connectionId: string, @Body(zodBody(contactEventSchema)) body: z.infer<typeof contactEventSchema>, ) {"
+  },
+  {
+    "controller": "admin-gold-rate.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/gold-rates",
+    "sig": "async getCurrent() {"
+  },
+  {
+    "controller": "admin-gold-rate.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/gold-rates/history",
+    "sig": "async getHistory(@Query(zodQuery(historyQuerySchema)) query: z.infer<typeof historyQuerySchema>) {"
+  },
+  {
+    "controller": "admin-gold-rate.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/gold-rates/override",
+    "sig": "@HttpCode(HttpStatus.CREATED) async override( @Viewer() viewer: ViewerContext, @Req() request: FastifyRequest, @Body(zodBody(overrideSchema)) body: z.infer<typeof overrideSchema>, ) {"
+  },
+  {
+    "controller": "gold-rate.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/gold-rates",
+    "sig": "async getGoldRates(@Viewer() viewer: ViewerContext) {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/firebase/session",
+    "sig": "@HttpCode(200) createFirebaseSession( @Req() request: FastifyRequest, @Body(zodBody(firebaseSessionSchema)) body: z.infer<typeof firebaseSessionSchema>, ): Promise<SessionBundle> {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/google/session",
+    "sig": "@HttpCode(200) createGoogleSession( @Req() request: FastifyRequest, @Body(zodBody(firebaseSessionSchema)) body: z.infer<typeof firebaseSessionSchema>, ): Promise<SessionBundle> {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/otp/request",
+    "sig": "@HttpCode(201) async otpRequest( @Body(zodBody(otpRequestSchema)) body: z.infer<typeof otpRequestSchema>, ): Promise<{ challengeId: string; expiresAt: string; retryAfterSeconds: number }> {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/otp/verify",
+    "sig": "@HttpCode(200) async otpVerify( @Body(zodBody(otpVerifySchema)) body: z.infer<typeof otpVerifySchema>, ): Promise<{ challengeId: string; mobileVerified: true }> {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/register/customer",
+    "sig": "@HttpCode(201) registerCustomer( @Req() request: FastifyRequest, @Body(zodBody(registerCustomerSchema)) body: z.infer<typeof registerCustomerSchema>, ): Promise<SessionBundle> {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/register/vendor",
+    "sig": "@HttpCode(201) registerVendor( @Req() request: FastifyRequest, @Body(zodBody(registerVendorSchema)) body: z.infer<typeof registerVendorSchema>, ): Promise<SessionBundle> {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/register/admin",
+    "sig": "@HttpCode(404) registerAdmin(): never {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/refresh",
+    "sig": "@HttpCode(200) refresh( @Req() request: FastifyRequest, @Body(zodBody(refreshSchema)) body: z.infer<typeof refreshSchema>, ): Promise<SessionBundle> {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/logout",
+    "sig": "@HttpCode(204) async logout(@Body(zodBody(logoutSchema)) body: z.infer<typeof logoutSchema>): Promise<void> {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/auth/sessions",
+    "sig": "@RevealsIdentity() listSessions(@Viewer() viewer: ViewerContext): Promise<SessionFamilyView[]> {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "DELETE",
+    "fullPath": "/v1/auth/sessions/:id",
+    "sig": "@HttpCode(204) async revokeSession( @Viewer() viewer: ViewerContext, @Param('id') familyId: string, ): Promise<void> {"
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/password",
+    "sig": "@HttpCode(204) async setPassword( @Viewer() viewer: ViewerContext, @Body(zodBody(setPasswordSchema)) body: z.infer<typeof setPasswordSchema>, ): Promise<void> {"
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me",
+    "sig": "@AllowSuspended() get(@Viewer() viewer: ViewerContext): Promise<Me> {"
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/me",
+    "sig": "patch( @Viewer() viewer: ViewerContext, @Body(zodBody(patchMeSchema)) body: z.infer<typeof patchMeSchema>, ): Promise<Me> {"
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/mobile/change",
+    "sig": "@HttpCode(200) changeMobile( @Viewer() viewer: ViewerContext, @Body(zodBody(changeMobileSchema)) body: z.infer<typeof changeMobileSchema>, ): Promise<Me> {"
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/deactivate",
+    "sig": "@HttpCode(200) deactivate(@Viewer() viewer: ViewerContext): Promise<Me> {"
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/deletion-requests",
+    "sig": "@HttpCode(201) @AllowSuspended() createDeletionRequest(@Viewer() viewer: ViewerContext): Promise<DeletionRequestView> {"
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/deletion-requests/:id/confirm",
+    "sig": "@HttpCode(200) @AllowSuspended() confirmDeletionRequest( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(confirmDeletionSchema)) body: z.infer<typeof confirmDeletionSchema>, ): Promise<DeletionRequestView> {"
+  },
+  {
+    "controller": "filter-presets.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/filter-presets",
+    "sig": "list(@Viewer() viewer: ViewerContext): Promise<FilterPresetView[]> {"
+  },
+  {
+    "controller": "filter-presets.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/filter-presets",
+    "sig": "create( @Viewer() viewer: ViewerContext, @Body(zodBody(createFilterPresetSchema)) body: z.infer<typeof createFilterPresetSchema>, ): Promise<FilterPresetView> {"
+  },
+  {
+    "controller": "filter-presets.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/filter-presets/:id",
+    "sig": "update( @Viewer() viewer: ViewerContext, @Param('id', ParseUUIDPipe) id: string, @Body(zodBody(updateFilterPresetSchema)) body: z.infer<typeof updateFilterPresetSchema>, ): Promise<FilterPresetView> {"
+  },
+  {
+    "controller": "filter-presets.controller.ts",
+    "httpMethod": "DELETE",
+    "fullPath": "/v1/filter-presets/:id",
+    "sig": "@HttpCode(HttpStatus.NO_CONTENT) async delete( @Viewer() viewer: ViewerContext, @Param('id', ParseUUIDPipe) id: string, ): Promise<void> {"
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/matches",
+    "sig": "async listMatches( @Viewer() viewer: ViewerContext, @Query(zodQuery(matchesQuerySchema)) query: z.infer<typeof matchesQuerySchema>, ): Promise<{ data: RequestForVendor[]; meta: { nextCursor?: string } }> {"
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/matches/:requestId/viewed",
+    "sig": "@HttpCode(HttpStatus.NO_CONTENT) async markViewed( @Viewer() viewer: ViewerContext, @Param('requestId') requestId: string, ): Promise<void> {"
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/filter-presets",
+    "sig": "async listPresets(@Viewer() viewer: ViewerContext) {"
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/filter-presets",
+    "sig": "@HttpCode(HttpStatus.CREATED) async createPreset( @Viewer() viewer: ViewerContext, @Body(zodBody(filterPresetCreateSchema)) body: z.infer<typeof filterPresetCreateSchema>, ) {"
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/filter-presets/:id",
+    "sig": "async updatePreset( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(filterPresetUpdateSchema)) body: z.infer<typeof filterPresetUpdateSchema>, ) {"
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "DELETE",
+    "fullPath": "/v1/filter-presets/:id",
+    "sig": "@HttpCode(HttpStatus.NO_CONTENT) async deletePreset(@Viewer() viewer: ViewerContext, @Param('id') id: string): Promise<void> {"
+  },
+  {
+    "controller": "media.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/media/:key",
+    "sig": "async getMedia( @Param('key') key: string, @Res() reply: FastifyReply, ) {"
+  },
+  {
+    "controller": "media.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/media/upload-intent",
+    "sig": "createIntent( @Viewer() viewer: ViewerContext, @Body(zodBody(uploadIntentSchema)) body: z.infer<typeof uploadIntentSchema>, ): Promise<UploadIntent> {"
+  },
+  {
+    "controller": "media.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/media/:key/complete",
+    "sig": "complete(@Viewer() viewer: ViewerContext, @Param('key') key: string): Promise<MediaRef> {"
+  },
+  {
+    "controller": "media.controller.ts",
+    "httpMethod": "DELETE",
+    "fullPath": "/v1/media/:key",
+    "sig": "@HttpCode(204) async remove(@Viewer() viewer: ViewerContext, @Param('key') key: string): Promise<void> {"
+  },
+  {
+    "controller": "device.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/devices",
+    "sig": "@HttpCode(HttpStatus.CREATED) async registerDevice( @Viewer() viewer: ViewerContext, @Body(zodBody(registerDeviceSchema)) body: z.infer<typeof registerDeviceSchema>, ) {"
+  },
+  {
+    "controller": "device.controller.ts",
+    "httpMethod": "DELETE",
+    "fullPath": "/v1/devices/:id",
+    "sig": "@HttpCode(HttpStatus.NO_CONTENT) async deleteDevice( @Viewer() viewer: ViewerContext, @Param('id') deviceId: string, ): Promise<void> {"
+  },
+  {
+    "controller": "notification.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/notifications",
+    "sig": "async listNotifications( @Viewer() viewer: ViewerContext, @Query(zodQuery(listNotificationsQuerySchema)) query: z.infer<typeof listNotificationsQuerySchema>, ) {"
+  },
+  {
+    "controller": "notification.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/notifications/unread-count",
+    "sig": "async getUnreadCount(@Viewer() viewer: ViewerContext) {"
+  },
+  {
+    "controller": "notification.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/notifications/:id/read",
+    "sig": "@HttpCode(HttpStatus.OK) async markAsRead(@Viewer() viewer: ViewerContext, @Param('id') notificationId: string) {"
+  },
+  {
+    "controller": "notification.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/notifications/read-all",
+    "sig": "@HttpCode(HttpStatus.OK) async markAllAsRead(@Viewer() viewer: ViewerContext) {"
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests/:id/offers",
+    "sig": "@HttpCode(HttpStatus.CREATED) async submitOffer( @Viewer() viewer: ViewerContext, @Param('id') requestId: string, @Body(zodBody(submitOfferSchema)) body: SubmitOfferInput, ) {"
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/requests/:id/offers",
+    "sig": "async listOffersForRequest( @Viewer() viewer: ViewerContext, @Param('id') requestId: string, @Query(zodQuery(listRequestOffersQuerySchema)) query: z.infer<typeof listRequestOffersQuerySchema>, ) {"
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/offers",
+    "sig": "async listMyOffers( @Viewer() viewer: ViewerContext, @Query(zodQuery(listVendorOffersQuerySchema)) query: z.infer<typeof listVendorOffersQuerySchema>, ) {"
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/offers/:id",
+    "sig": "async getOfferById( @Viewer() viewer: ViewerContext, @Param('id') id: string, ) {"
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/offers/:id/vendor-rating",
+    "sig": "async getVendorRating( @Viewer() viewer: ViewerContext, @Param('id') id: string, ) {"
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/offers/:id/revise",
+    "sig": "@HttpCode(HttpStatus.OK) async reviseOffer( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(reviseOfferSchema)) body: ReviseOfferInput, ) {"
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/offers/:id/withdraw",
+    "sig": "@HttpCode(HttpStatus.OK) async withdrawOffer( @Viewer() viewer: ViewerContext, @Param('id') id: string, ) {"
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/offers/:id/decline",
+    "sig": "@HttpCode(HttpStatus.OK) async declineOffer( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(declineOfferSchema)) body: DeclineOfferInput, ) {"
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/offers/:id/viewed",
+    "sig": "@HttpCode(HttpStatus.NO_CONTENT) async markOfferViewed( @Viewer() viewer: ViewerContext, @Param('id') id: string, ) {"
+  },
+  {
+    "controller": "dev-requests.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/dev/requests/seed",
+    "sig": "async seedRequests() {"
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests",
+    "sig": "@HttpCode(HttpStatus.CREATED) async createDraft( @Viewer() viewer: ViewerContext, @Body(zodBody(createRequestSchema)) body: z.infer<typeof createRequestSchema>, ) {"
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/requests",
+    "sig": "async listMyRequests( @Viewer() viewer: ViewerContext, @Query(zodQuery(listCustomerRequestsQuerySchema)) query: z.infer<typeof listCustomerRequestsQuerySchema>, ) {"
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/requests/:id",
+    "sig": "async getById( @Viewer() viewer: ViewerContext, @Param('id') id: string, ): Promise<RequestForCustomer | RequestForVendor> {"
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/requests/:id",
+    "sig": "async update( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(updateRequestSchema)) body: z.infer<typeof updateRequestSchema>, ) {"
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests/:id/publish",
+    "sig": "@HttpCode(HttpStatus.OK) async publish(@Viewer() viewer: ViewerContext, @Param('id') id: string) {"
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests/:id/cancel",
+    "sig": "@HttpCode(HttpStatus.OK) async cancel( @Viewer() viewer: ViewerContext, @Param('id') id: string, @Body(zodBody(cancelRequestSchema)) body: z.infer<typeof cancelRequestSchema>, ): Promise<RequestForCustomer> {"
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests/:id/duplicate",
+    "sig": "@HttpCode(HttpStatus.CREATED) async duplicate( @Viewer() viewer: ViewerContext, @Param('id') id: string, ): Promise<RequestForCustomer> {"
+  },
+  {
+    "controller": "requests.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests",
+    "sig": "@RevealsIdentity() createDraft( @Viewer() viewer: ViewerContext, @Body(zodBody(createRequestSchema)) body: z.infer<typeof createRequestSchema>, ): Promise<CustomerRequestView> {"
+  },
+  {
+    "controller": "requests.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests/:id/publish",
+    "sig": "@RevealsIdentity() publish( @Viewer() viewer: ViewerContext, @Param('id', ParseUUIDPipe) id: string, ): Promise<CustomerRequestView> {"
+  },
+  {
+    "controller": "requests.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/requests/:id",
+    "sig": "async getRequest( @Viewer() viewer: ViewerContext, @Param('id', ParseUUIDPipe) id: string, ): Promise<CustomerRequestView | VendorRequestView> {"
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/connections/:id/reviews",
+    "sig": "@HttpCode(HttpStatus.CREATED) async createReview( @Viewer() viewer: ViewerContext, @Param('id') connectionId: string, @Body(zodBody(createReviewSchema)) body: z.infer<typeof createReviewSchema>, ) {"
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/reviews",
+    "sig": "async listMyReviews( @Viewer() viewer: ViewerContext, @Query(zodQuery(listReviewsQuerySchema)) query: z.infer<typeof listReviewsQuerySchema>, ) {"
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/reviews/:id",
+    "sig": "async updateReview( @Viewer() viewer: ViewerContext, @Param('id') reviewId: string, @Body(zodBody(patchReviewSchema)) body: z.infer<typeof patchReviewSchema>, ) {"
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/reviews/:id/withdraw",
+    "sig": "async withdrawReview( @Viewer() viewer: ViewerContext, @Param('id') reviewId: string, ) {"
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/reviews/:id/response",
+    "sig": "async respondToReview( @Viewer() viewer: ViewerContext, @Param('id') reviewId: string, @Body(zodBody(respondReviewSchema)) body: z.infer<typeof respondReviewSchema>, ) {"
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/reviews/:id/flag",
+    "sig": "async flagReview( @Viewer() viewer: ViewerContext, @Param('id') reviewId: string, ) {"
+  },
+  {
+    "controller": "settings.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/settings",
+    "sig": "async getMySettings(@Viewer() viewer: ViewerContext) {"
+  },
+  {
+    "controller": "settings.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/me/settings",
+    "sig": "async updateMySettings( @Viewer() viewer: ViewerContext, @Body(zodBody(patchSettingsSchema)) body: z.infer<typeof patchSettingsSchema>, ) {"
+  },
+  {
+    "controller": "admin-subscription.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/subscriptions",
+    "sig": "async grantSubscription( @Viewer() viewer: ViewerContext, @Param('id') vendorProfileId: string, @Body(zodBody(grantSubscriptionSchema)) body: z.infer<typeof grantSubscriptionSchema>, ) {"
+  },
+  {
+    "controller": "admin-subscription.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/admin/vendors/:id/subscriptions/:requestType",
+    "sig": "async patchSubscription( @Viewer() viewer: ViewerContext, @Param('id') vendorProfileId: string, @Param('requestType') requestType: RequestType, @Body(zodBody(patchSubscriptionSchema)) body: z.infer<typeof patchSubscriptionSchema>, ) {"
+  },
+  {
+    "controller": "subscription.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/subscriptions",
+    "sig": "async getMySubscriptions(@Viewer() viewer: ViewerContext) {"
+  },
+  {
+    "controller": "subscription.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/vendor/performance",
+    "sig": "async getVendorPerformance( @Viewer() viewer: ViewerContext, @Query(zodQuery(performanceQuerySchema)) query: z.infer<typeof performanceQuerySchema>, ) {"
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/categories",
+    "sig": "getCategories(@Query('includeInactive') includeInactive?: string): Promise<TaxonomyNode[]> {"
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/categories",
+    "sig": "@HttpCode(201) createCategory( @Viewer() viewer: ViewerContext, @Req() request: FastifyRequest, @Body(zodBody(createCategorySchema)) body: z.infer<typeof createCategorySchema>, ): Promise<CategorySummary> {"
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/admin/categories/:id",
+    "sig": "updateCategory( @Param('id') id: string, @Viewer() viewer: ViewerContext, @Req() request: FastifyRequest, @Body(zodBody(updateCategorySchema)) body: z.infer<typeof updateCategorySchema>, ): Promise<CategorySummary> {"
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/categories/:id/deactivate",
+    "sig": "@HttpCode(200) deactivateCategory( @Param('id') id: string, @Viewer() viewer: ViewerContext, @Req() request: FastifyRequest, ): Promise<CategorySummary> {"
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/regions",
+    "sig": "getRegions(@Query('includeInactive') includeInactive?: string): Promise<TaxonomyNode[]> {"
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/regions",
+    "sig": "@HttpCode(201) createRegion( @Viewer() viewer: ViewerContext, @Req() request: FastifyRequest, @Body(zodBody(createRegionSchema)) body: z.infer<typeof createRegionSchema>, ): Promise<RegionSummary> {"
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/admin/regions/:id",
+    "sig": "updateRegion( @Param('id') id: string, @Viewer() viewer: ViewerContext, @Req() request: FastifyRequest, @Body(zodBody(updateRegionSchema)) body: z.infer<typeof updateRegionSchema>, ): Promise<RegionSummary> {"
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/regions/:id/deactivate",
+    "sig": "@HttpCode(200) deactivateRegion( @Param('id') id: string, @Viewer() viewer: ViewerContext, @Req() request: FastifyRequest, ): Promise<RegionSummary> {"
+  },
+  {
+    "controller": "taxonomy.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/categories",
+    "sig": "categories(): Promise<TaxonomyNode[]> {"
+  },
+  {
+    "controller": "taxonomy.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/regions",
+    "sig": "regions(): Promise<TaxonomyNode[]> {"
+  },
+  {
+    "controller": "taxonomy.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/platform-config",
+    "sig": "getPlatformConfig(): Promise<PlatformConfig> {"
+  },
+  {
+    "controller": "dev-verify.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/dev/vendors/:id/verify",
+    "sig": "verify( @Param('id') id: string, @Body(zodBody(bodySchema)) body: z.infer<typeof bodySchema>, ): Promise<{ lifecycle: string }> {"
+  },
+  {
+    "controller": "vendor-dashboard.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/dashboard",
+    "sig": "dashboard(@Viewer() viewer: ViewerContext) {"
+  },
+  {
+    "controller": "vendor-documents.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/vendor/documents",
+    "sig": "list(@Viewer() viewer: ViewerContext): Promise<VendorDocumentView[]> {"
+  },
+  {
+    "controller": "vendor-documents.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/vendor/documents",
+    "sig": "attach( @Viewer() viewer: ViewerContext, @Body(zodBody(attachSchema)) body: z.infer<typeof attachSchema>, ): Promise<VendorDocumentView[]> {"
+  },
+  {
+    "controller": "vendor-documents.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/vendor/resubmit",
+    "sig": "@HttpCode(200) async resubmit(@Viewer() viewer: ViewerContext): Promise<VendorMe> {"
+  },
+  {
+    "controller": "vendor-profile.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/vendor",
+    "sig": "me(@Viewer() viewer: ViewerContext): Promise<VendorMe> {"
+  },
+  {
+    "controller": "vendor-profile.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/me/vendor",
+    "sig": "patch( @Viewer() viewer: ViewerContext, @Body(zodBody(patchSchema)) body: z.infer<typeof patchSchema>, ): Promise<VendorMe> {"
+  },
+  {
+    "controller": "vendor-profile.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/vendor/performance/export",
+    "sig": "@VendorStageRequired('ACTIVE') exportPerformance( @Viewer() viewer: ViewerContext, @Query(zodQuery(performanceExportQuerySchema)) query: z.infer<typeof performanceExportQuerySchema>, ) {"
+  },
+  {
+    "controller": "vendor-taxonomy.controller.ts",
+    "httpMethod": "PUT",
+    "fullPath": "/v1/me/vendor/categories",
+    "sig": "@VendorStageRequired('VERIFIED') setCategories( @Viewer() viewer: ViewerContext, @Body(zodBody(categoriesSchema)) body: z.infer<typeof categoriesSchema>, ): Promise<VendorMe> {"
+  },
+  {
+    "controller": "vendor-taxonomy.controller.ts",
+    "httpMethod": "PUT",
+    "fullPath": "/v1/me/vendor/regions",
+    "sig": "@VendorStageRequired('VERIFIED') setRegions( @Viewer() viewer: ViewerContext, @Body(zodBody(regionsSchema)) body: z.infer<typeof regionsSchema>, ): Promise<VendorMe> {"
+  },
+  {
+    "controller": "vendor-taxonomy.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/me/vendor/availability",
+    "sig": "@VendorStageRequired('VERIFIED') setAvailability( @Viewer() viewer: ViewerContext, @Body(zodBody(availabilitySchema)) body: z.infer<typeof availabilitySchema>, ): Promise<VendorMe> {"
+  }
+]

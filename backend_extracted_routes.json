@@ -1,0 +1,1798 @@
+[
+  {
+    "controller": "health.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/health",
+    "handlerName": "health",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "health.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/ready",
+    "handlerName": "ready",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "abuse.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/abuse-reports",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-offers.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/offers",
+    "handlerName": "listOffers",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-offers.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/offers/:id",
+    "handlerName": "getOffer",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-offers.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/offers/:id/notes",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-requests.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/requests",
+    "handlerName": "listRequests",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-requests.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/requests/:id",
+    "handlerName": "getRequest",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-requests.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/requests/:id/remove",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-requests.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/requests/:id/notes",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/verification-queue",
+    "handlerName": "getVerificationQueue",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors",
+    "handlerName": "listVendors",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors/:id",
+    "handlerName": "getVendor",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors/:id/documents/:docId/url",
+    "handlerName": "getDocumentUrl",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/verify",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/reject",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/request-info",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/activate",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/suspend",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/reactivate",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/deactivate",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-vendor.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/notes",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/dashboard",
+    "handlerName": "getDashboard",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "from",
+      "to"
+    ]
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/customers",
+    "handlerName": "listCustomers",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "q",
+      "state",
+      "limit",
+      "cursor"
+    ]
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/customers/:id",
+    "handlerName": "getCustomer",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/customers/:id/suspend",
+    "handlerName": "suspendCustomer",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/customers/:id/reactivate",
+    "handlerName": "reactivateCustomer",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/customers/:id/erasure",
+    "handlerName": "erasureCustomer",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors",
+    "handlerName": "listVendors",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "q",
+      "verificationState",
+      "accountState",
+      "regionId",
+      "limit",
+      "cursor"
+    ]
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors/:id",
+    "handlerName": "getVendor",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/vendors/:id/documents/:docId/url",
+    "handlerName": "getVendorDocumentUrl",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id",
+      "docId"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/verification-queue",
+    "handlerName": "getVerificationQueue",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/verify",
+    "handlerName": "verifyVendor",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/reject",
+    "handlerName": "rejectVendor",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/request-info",
+    "handlerName": "requestVendorInfo",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/activate",
+    "handlerName": "activateVendor",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/suspend",
+    "handlerName": "suspendVendor",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/reactivate",
+    "handlerName": "reactivateVendor",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/deactivate",
+    "handlerName": "deactivateVendor",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/requests",
+    "handlerName": "listRequests",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "q",
+      "state",
+      "requestType",
+      "direction",
+      "categoryId",
+      "regionId",
+      "zeroOffers",
+      "minValue",
+      "maxValue",
+      "valueMin",
+      "valueMax",
+      "limit",
+      "cursor"
+    ]
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/requests/:id",
+    "handlerName": "getRequest",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/requests/:id/remove",
+    "handlerName": "removeRequest",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/offers",
+    "handlerName": "listOffers",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "q",
+      "state",
+      "vendorId",
+      "requestType",
+      "minPrice",
+      "maxPrice",
+      "priceMin",
+      "priceMax",
+      "dateFrom",
+      "dateTo",
+      "limit",
+      "cursor"
+    ]
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/offers/:id",
+    "handlerName": "getOffer",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/connections",
+    "handlerName": "listConnections",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "state",
+      "limit",
+      "cursor"
+    ]
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/connections/:id",
+    "handlerName": "getConnection",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/connections/:id/close",
+    "handlerName": "closeConnection",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/reviews",
+    "handlerName": "listReviews",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "state",
+      "authorType",
+      "q",
+      "limit",
+      "cursor"
+    ]
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/reviews/:id/approve",
+    "handlerName": "approveReview",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/reviews/:id/reject",
+    "handlerName": "rejectReview",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/reviews/:id/redact",
+    "handlerName": "redactReview",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/abuse-reports",
+    "handlerName": "listAbuseReports",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "state",
+      "status",
+      "limit",
+      "cursor"
+    ]
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/abuse-reports/:id",
+    "handlerName": "getAbuseReport",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/abuse-reports/:id/resolve",
+    "handlerName": "resolveAbuseReport",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/abuse-reports/:id/dismiss",
+    "handlerName": "dismissAbuseReport",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/abuse-reports/:id/action",
+    "handlerName": "actionAbuseReport",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/settings",
+    "handlerName": "getSettings",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/admin/settings/:key",
+    "handlerName": "updateSetting",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "key"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/audit-log",
+    "handlerName": "listAuditLogs",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "limit",
+      "cursor",
+      "actorUserId",
+      "action",
+      "entityType",
+      "entityId",
+      "from",
+      "to",
+      "ip"
+    ]
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/audit-log",
+    "handlerName": "recordAuditLog",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/:collection/:id/notes",
+    "handlerName": "createAdminNote",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "collection",
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/:collection/:id/notes",
+    "handlerName": "listAdminNotes",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "collection",
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/admins",
+    "handlerName": "listAdmins",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/admins",
+    "handlerName": "createAdmin",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/admins/:id/suspend",
+    "handlerName": "suspendAdmin",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/admins/:id/revoke",
+    "handlerName": "revokeAdmin",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/announcements",
+    "handlerName": "listAnnouncements",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "limit",
+      "cursor"
+    ]
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/announcements",
+    "handlerName": "createAnnouncement",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/announcements/:id/cancel",
+    "handlerName": "cancelAnnouncement",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/reports/:name",
+    "handlerName": "getReport",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "name"
+    ],
+    "queryParamMatches": [
+      "from",
+      "to",
+      "regionId",
+      "categoryId",
+      "groupBy"
+    ]
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/exports",
+    "handlerName": "createExport",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/exports/:id",
+    "handlerName": "getExport",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/exports/:id/download",
+    "handlerName": "downloadExport",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "connection.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/offers/:id/accept",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "connection.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/connections",
+    "handlerName": "listMyConnections",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "connection.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/connections/:id",
+    "handlerName": "getConnectionById",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "connection.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/connections/:id/close",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "connection.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/connections/:id/contact-events",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-gold-rate.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/gold-rates",
+    "handlerName": "getCurrent",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-gold-rate.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/gold-rates/history",
+    "handlerName": "getHistory",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-gold-rate.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/gold-rates/override",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "gold-rate.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/gold-rates",
+    "handlerName": "getGoldRates",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/firebase/session",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/google/session",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/otp/request",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/otp/verify",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/register/customer",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/register/vendor",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/register/admin",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/refresh",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/logout",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/auth/sessions",
+    "handlerName": "RevealsIdentity",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "DELETE",
+    "fullPath": "/v1/auth/sessions/:id",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "auth.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/auth/password",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me",
+    "handlerName": "AllowSuspended",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/me",
+    "handlerName": "patch",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/mobile/change",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/deactivate",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/deletion-requests",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "me.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/deletion-requests/:id/confirm",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "filter-presets.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/filter-presets",
+    "handlerName": "list",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "filter-presets.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/filter-presets",
+    "handlerName": "create",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "filter-presets.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/filter-presets/:id",
+    "handlerName": "update",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "filter-presets.controller.ts",
+    "httpMethod": "DELETE",
+    "fullPath": "/v1/filter-presets/:id",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/matches",
+    "handlerName": "listMatches",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/matches/:requestId/viewed",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "requestId"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/filter-presets",
+    "handlerName": "listPresets",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/filter-presets",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/filter-presets/:id",
+    "handlerName": "updatePreset",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "matching.controller.ts",
+    "httpMethod": "DELETE",
+    "fullPath": "/v1/filter-presets/:id",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "media.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/media/:key",
+    "handlerName": "getMedia",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "key"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "media.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/media/upload-intent",
+    "handlerName": "createIntent",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "media.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/media/:key/complete",
+    "handlerName": "complete",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "key"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "media.controller.ts",
+    "httpMethod": "DELETE",
+    "fullPath": "/v1/media/:key",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "key"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "device.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/devices",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "device.controller.ts",
+    "httpMethod": "DELETE",
+    "fullPath": "/v1/devices/:id",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "notification.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/notifications",
+    "handlerName": "listNotifications",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "notification.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/notifications/unread-count",
+    "handlerName": "getUnreadCount",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "notification.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/notifications/:id/read",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "notification.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/notifications/read-all",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests/:id/offers",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/requests/:id/offers",
+    "handlerName": "listOffersForRequest",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/offers",
+    "handlerName": "listMyOffers",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/offers/:id",
+    "handlerName": "getOfferById",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/offers/:id/vendor-rating",
+    "handlerName": "getVendorRating",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/offers/:id/revise",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/offers/:id/withdraw",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/offers/:id/decline",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "offer.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/offers/:id/viewed",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "dev-requests.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/dev/requests/seed",
+    "handlerName": "seedRequests",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/requests",
+    "handlerName": "listMyRequests",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/requests/:id",
+    "handlerName": "getById",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/requests/:id",
+    "handlerName": "update",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests/:id/publish",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests/:id/cancel",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "request.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests/:id/duplicate",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "requests.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests",
+    "handlerName": "RevealsIdentity",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "requests.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/requests/:id/publish",
+    "handlerName": "RevealsIdentity",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "requests.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/requests/:id",
+    "handlerName": "getRequest",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/connections/:id/reviews",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/reviews",
+    "handlerName": "listMyReviews",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/reviews/:id",
+    "handlerName": "updateReview",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/reviews/:id/withdraw",
+    "handlerName": "withdrawReview",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/reviews/:id/response",
+    "handlerName": "respondToReview",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "review.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/reviews/:id/flag",
+    "handlerName": "flagReview",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "settings.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/settings",
+    "handlerName": "getMySettings",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "settings.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/me/settings",
+    "handlerName": "updateMySettings",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-subscription.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/vendors/:id/subscriptions",
+    "handlerName": "grantSubscription",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-subscription.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/admin/vendors/:id/subscriptions/:requestType",
+    "handlerName": "patchSubscription",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id",
+      "requestType"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "subscription.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/subscriptions",
+    "handlerName": "getMySubscriptions",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "subscription.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/vendor/performance",
+    "handlerName": "getVendorPerformance",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/categories",
+    "handlerName": "getCategories",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "includeInactive"
+    ]
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/categories",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/admin/categories/:id",
+    "handlerName": "updateCategory",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/categories/:id/deactivate",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/admin/regions",
+    "handlerName": "getRegions",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": [
+      "includeInactive"
+    ]
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/regions",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/admin/regions/:id",
+    "handlerName": "updateRegion",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "admin-taxonomy.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/admin/regions/:id/deactivate",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "taxonomy.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/categories",
+    "handlerName": "categories",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "taxonomy.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/regions",
+    "handlerName": "regions",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "taxonomy.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/platform-config",
+    "handlerName": "getPlatformConfig",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "dev-verify.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/dev/vendors/:id/verify",
+    "handlerName": "verify",
+    "bodyInfo": null,
+    "pathParamMatches": [
+      "id"
+    ],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "vendor-dashboard.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/dashboard",
+    "handlerName": "dashboard",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "vendor-documents.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/vendor/documents",
+    "handlerName": "list",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "vendor-documents.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/vendor/documents",
+    "handlerName": "attach",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "vendor-documents.controller.ts",
+    "httpMethod": "POST",
+    "fullPath": "/v1/me/vendor/resubmit",
+    "handlerName": "HttpCode",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "vendor-profile.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/vendor",
+    "handlerName": "me",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "vendor-profile.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/me/vendor",
+    "handlerName": "patch",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "vendor-profile.controller.ts",
+    "httpMethod": "GET",
+    "fullPath": "/v1/me/vendor/performance/export",
+    "handlerName": "VendorStageRequired",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "vendor-taxonomy.controller.ts",
+    "httpMethod": "PUT",
+    "fullPath": "/v1/me/vendor/categories",
+    "handlerName": "VendorStageRequired",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "vendor-taxonomy.controller.ts",
+    "httpMethod": "PUT",
+    "fullPath": "/v1/me/vendor/regions",
+    "handlerName": "VendorStageRequired",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  },
+  {
+    "controller": "vendor-taxonomy.controller.ts",
+    "httpMethod": "PATCH",
+    "fullPath": "/v1/me/vendor/availability",
+    "handlerName": "VendorStageRequired",
+    "bodyInfo": null,
+    "pathParamMatches": [],
+    "queryParamMatches": []
+  }
+]

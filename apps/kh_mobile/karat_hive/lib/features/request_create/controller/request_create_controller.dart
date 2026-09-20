@@ -550,45 +550,15 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     if (bytes.isEmpty) return;
     final label = filename.trim().isEmpty ? 'photo.jpg' : filename;
     final token = Object.hash(path ?? label, bytes.length);
+    final key = _isGuest ? 'local:$token' : 'pending:$token';
 
-    final converted = await _convertToAvif(bytes);
-    if (converted == null) {
-      final slot = MediaSlot(
-        key: _isGuest ? 'local:$token' : 'pending:$token',
-        localLabel: label,
-        localPath: path,
-        localBytes: bytes,
-        contentType: 'image/avif',
-        failure: const ServerFailure(message: 'Could not convert that photo. Try another.'),
-      );
-      state = state.copyWith(media: [...state.media, slot]);
-      return;
-    }
-
-    // Guest: keep converted AVIF until after bind (`adr/0011`).
-    if (_isGuest) {
-      final slot = MediaSlot(
-        key: 'local:$token',
-        localLabel: label,
-        localPath: path,
-        localBytes: bytes,
-        uploadBytes: converted,
-        contentType: 'image/avif',
-      );
-      state = state.copyWith(
-        media: [...state.media, slot],
-        clearFailure: true,
-      );
-      return;
-    }
-
+    // Show the picked photo immediately; conversion + upload continue below.
     final placeholder = MediaSlot(
-      key: 'pending:$token',
+      key: key,
       localLabel: label,
       localPath: path,
       localBytes: bytes,
-      uploadBytes: converted,
-      contentType: 'image/avif',
+      contentType: contentType,
       progress: 0,
       uploading: true,
     );
@@ -597,7 +567,56 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       uploading: true,
       clearFailure: true,
     );
-    await _uploadConvertedSlot(placeholder.key);
+
+    final converted = await _convertToAvif(bytes);
+    if (converted == null) {
+      state = state.copyWith(
+        uploading: state.media.any((m) => m.key != key && m.uploading),
+        media: [
+          for (final m in state.media)
+            if (m.key == key)
+              m.copyWith(
+                uploading: false,
+                failure: const ServerFailure(
+                  message: 'Could not convert that photo. Try another.',
+                ),
+              )
+            else
+              m,
+        ],
+      );
+      return;
+    }
+
+    // Guest: keep converted AVIF until after bind (`adr/0011`).
+    if (_isGuest) {
+      state = state.copyWith(
+        uploading: state.media.any((m) => m.key != key && m.uploading),
+        media: [
+          for (final m in state.media)
+            if (m.key == key)
+              m.copyWith(
+                uploadBytes: converted,
+                contentType: 'image/avif',
+                uploading: false,
+              )
+            else
+              m,
+        ],
+      );
+      return;
+    }
+
+    state = state.copyWith(
+      media: [
+        for (final m in state.media)
+          if (m.key == key)
+            m.copyWith(uploadBytes: converted, contentType: 'image/avif')
+          else
+            m,
+      ],
+    );
+    await _uploadConvertedSlot(key);
   }
 
   Future<void> retryFailedMediaAt(int index) async {

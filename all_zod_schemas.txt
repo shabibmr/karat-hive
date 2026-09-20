@@ -1,0 +1,959 @@
+=== abuse.controller.ts -> createAbuseReportSchema ===
+const createAbuseReportSchema = z.object({
+  entityType: z.enum([
+    'REQUEST',
+    'OFFER',
+    'CONNECTION',
+    'REVIEW',
+    'VENDOR',
+    'CUSTOMER',
+  ]),
+  entityId: z.string().uuid(),
+  category: z.string().trim().min(1).max(64),
+  description: z.string().trim().min(1).max(2000),
+})
+
+=== admin-offers.controller.ts -> adminOfferListQuerySchema ===
+const adminOfferListQuerySchema = z.object({
+  state: z.nativeEnum(OfferState).optional(),
+  vendorId: z.string().uuid().optional(),
+  requestType: z.nativeEnum(RequestType).optional(),
+  priceMin: z.coerce.number().min(0).optional(),
+  priceMax: z.coerce.number().min(0).optional(),
+  cursor: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  page: z.coerce.number().int().min(1).optional(),
+})
+
+=== admin-offers.controller.ts -> addOfferNoteSchema ===
+const addOfferNoteSchema = z.union([
+  z.object({
+    content: z.string().trim().min(1, 'content is required').max(4000),
+  }),
+  z
+    .object({
+      text: z.string().trim().min(1, 'text is required').max(4000),
+    })
+    .transform((val) => ({ content: val.text })),
+])
+
+=== admin-requests.controller.ts -> adminRequestListQuerySchema ===
+const adminRequestListQuerySchema = z.object({
+  requestType: z.nativeEnum(RequestType).optional(),
+  direction: z.nativeEnum(Direction).optional(),
+  state: z.nativeEnum(RequestState).optional(),
+  categoryId: z.string().uuid().optional(),
+  regionId: z.string().uuid().optional(),
+  valueMin: z.coerce.number().min(0).optional(),
+  valueMax: z.coerce.number().min(0).optional(),
+  zeroOffers: z
+    .union([z.boolean(), z.enum(['true', 'false'])])
+    .transform((val) => (typeof val === 'boolean' ? val : val === 'true'))
+    .optional(),
+  q: z.string().max(200).optional(),
+  cursor: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  page: z.coerce.number().int().min(1).optional(),
+})
+
+=== admin-requests.controller.ts -> removeRequestSchema ===
+const removeRequestSchema = z.object({
+  reasonCode: z.string().trim().max(100).optional(),
+  reasonText: z.string().trim().min(1, 'reasonText is required').max(2000),
+  policyClause: z.string().trim().max(500).optional(),
+})
+
+=== admin-requests.controller.ts -> addRequestNoteSchema ===
+const addRequestNoteSchema = z.union([
+  z.object({
+    content: z.string().trim().min(1, 'content is required').max(4000),
+  }),
+  z
+    .object({
+      text: z.string().trim().min(1, 'text is required').max(4000),
+    })
+    .transform((val) => ({ content: val.text })),
+])
+
+=== admin-vendor.controller.ts -> vendorListQuerySchema ===
+const vendorListQuerySchema = z.object({
+  verificationState: z.nativeEnum(VendorVerificationState).optional(),
+  accountState: z.nativeEnum(UserAccountState).optional(),
+  regionId: z.string().uuid().optional(),
+  categoryId: z.string().uuid().optional(),
+  q: z.string().max(200).optional(),
+  cursor: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  page: z.coerce.number().int().min(1).optional(),
+})
+
+=== admin-vendor.controller.ts -> rationaleSchema ===
+const rationaleSchema = z.object({
+  rationale: z.string().trim().min(1, 'rationale is required').max(2000),
+})
+
+=== admin-vendor.controller.ts -> requestInfoSchema ===
+const requestInfoSchema = z.object({
+  message: z.string().trim().min(1, 'message is required').max(2000),
+})
+
+=== admin-vendor.controller.ts -> lifecycleActionSchema ===
+const lifecycleActionSchema = z.object({
+  reasonCode: z.string().trim().max(100).optional(),
+  reasonText: z.string().trim().min(1, 'reasonText is required').max(2000),
+})
+
+=== admin-vendor.controller.ts -> addNoteSchema ===
+const addNoteSchema = z.object({
+  text: z.string().trim().min(1, 'text is required').max(4000),
+})
+
+=== admin.controller.ts -> suspendCustomerSchema ===
+const suspendCustomerSchema = z.object({
+  reasonCode: z.string().trim().min(1).max(50),
+  reasonText: z.string().trim().min(1).max(500),
+})
+
+=== admin.controller.ts -> reactivateCustomerSchema ===
+const reactivateCustomerSchema = z.object({
+  reasonText: z.string().trim().min(1).max(500),
+})
+
+=== admin.controller.ts -> erasureCustomerSchema ===
+const erasureCustomerSchema = z.object({
+  reasonText: z.string().trim().min(1).max(500),
+})
+
+=== admin.controller.ts -> verifyVendorSchema ===
+const verifyVendorSchema = z.object({
+  rationale: z.string().trim().min(1).max(500),
+})
+
+=== admin.controller.ts -> rejectVendorSchema ===
+const rejectVendorSchema = z.object({
+  rationale: z.string().trim().min(1).max(500),
+})
+
+=== admin.controller.ts -> requestInfoVendorSchema ===
+const requestInfoVendorSchema = z.object({
+  message: z.string().trim().min(1).max(1000),
+})
+
+=== admin.controller.ts -> setVendorStateSchema ===
+const setVendorStateSchema = z.object({
+  reasonCode: z.string().trim().max(50).optional(),
+  reasonText: z.string().trim().max(500).optional(),
+})
+
+=== admin.controller.ts -> removeRequestSchema ===
+const removeRequestSchema = z.object({
+  reasonCode: z.string().trim().min(1).max(50),
+  reasonText: z.string().trim().min(1).max(500),
+  policyClause: z.string().trim().max(100).optional(),
+})
+
+=== admin.controller.ts -> closeConnectionSchema ===
+const closeConnectionSchema = z.object({
+  reasonText: z.string().trim().min(1).max(500),
+})
+
+=== admin.controller.ts -> rejectReviewSchema ===
+const rejectReviewSchema = z.object({
+  rationale: z.string().trim().min(1).max(500),
+})
+
+=== admin.controller.ts -> redactReviewSchema ===
+const redactReviewSchema = z.object({
+  rationale: z.string().trim().min(1).max(500),
+  redactedComment: z.string().trim().min(1).max(2000),
+})
+
+=== admin.controller.ts -> resolveAbuseSchema ===
+const resolveAbuseSchema = z.object({
+  resolution: z.string().trim().min(1).max(500),
+})
+
+=== admin.controller.ts -> actionAbuseSchema ===
+const actionAbuseSchema = z.object({
+  action: z.enum(['DISMISS', 'WARN', 'SUSPEND', 'DEACTIVATE']),
+  rationale: z.string().trim().min(1).max(500),
+})
+
+=== admin.controller.ts -> updateSettingSchema ===
+const updateSettingSchema = z.object({
+  value: z.unknown(),
+  confirm: z.boolean().optional(),
+})
+
+=== admin.controller.ts -> adminNoteSchema ===
+const adminNoteSchema = z.object({
+  text: z.string().trim().min(1).max(2000),
+})
+
+=== admin.controller.ts -> createAdminSchema ===
+const createAdminSchema = z.object({
+  email: z.string().email().max(255),
+  displayName: z.string().trim().min(1).max(100),
+})
+
+=== admin.controller.ts -> createAnnouncementSchema ===
+const createAnnouncementSchema = z.object({
+  titleEn: z.string().trim().min(1).max(200),
+  titleAr: z.string().trim().min(1).max(200),
+  bodyEn: z.string().trim().min(1).max(2000),
+  bodyAr: z.string().trim().min(1).max(2000),
+  audience: z.record(z.unknown()).default({}),
+  channels: z.record(z.unknown()).default({ inApp: true }),
+  critical: z.boolean().optional(),
+  scheduledFor: z.coerce.date().optional(),
+})
+
+=== admin.controller.ts -> createExportSchema ===
+const createExportSchema = z.object({
+  reportName: z.string().trim().min(1).max(64),
+  format: z.preprocess(
+    (val) => (typeof val === 'string' ? val.toUpperCase() : val),
+    z.enum(['CSV', 'XLSX', 'PNG']),
+  ),
+  filters: z.record(z.unknown()).default({}),
+  purpose: z.string().trim().min(1).max(200),
+})
+
+=== admin.controller.ts -> createAuditLogSchema ===
+const createAuditLogSchema = z.object({
+  action: z.string().trim().min(1).max(100),
+  entityType: z.string().trim().min(1).max(100),
+  occurredAt: z.coerce.date().optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
+
+@RevealsIdentity()
+@UseGuards(AdminGuard)
+@Controller('v1/admin')
+export class AdminController {
+  constructor(private readonly service: AdminService) {}
+
+  private resolveAdminProfileId(viewer: ViewerContext): string {
+    if (!viewer.adminProfileId) {
+      throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+    }
+    return viewer.adminProfileId;
+  }
+
+  // --- Dashboard ---
+  @Get('dashboard')
+  async getDashboard(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const data = await this.service.getDashboard({ from, to });
+    return { data };
+  }
+
+  // --- Customers ---
+  @Get('customers')
+  async listCustomers(
+    @Query('q') q?: string,
+    @Query('state') state?: UserAccountState,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    const data = await this.service.listCustomers({
+      q,
+      state,
+      limit: limit ? Number.parseInt(limit, 10) : undefined,
+      cursor,
+    });
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
+  }
+
+  @Get('customers/:id')
+  async getCustomer(@Param('id') id: string) {
+    const data = await this.service.getCustomer(id);
+    return { data };
+  }
+
+  @Post('customers/:id/suspend')
+  async suspendCustomer(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(suspendCustomerSchema)) body: z.infer<typeof suspendCustomerSchema>,
+  ) {
+    const data = await this.service.suspendCustomer(id, body, viewer.userId);
+    return { data };
+  }
+
+  @Post('customers/:id/reactivate')
+  async reactivateCustomer(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(reactivateCustomerSchema)) body: z.infer<typeof reactivateCustomerSchema>,
+  ) {
+    const data = await this.service.reactivateCustomer(id, body, viewer.userId);
+    return { data };
+  }
+
+  @Post('customers/:id/erasure')
+  async erasureCustomer(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(erasureCustomerSchema)) body: z.infer<typeof erasureCustomerSchema>,
+  ) {
+    const data = await this.service.erasureCustomer(id, body, viewer.userId);
+    return { data };
+  }
+
+  // --- Vendors ---
+  @Get('vendors')
+  async listVendors(
+    @Query('q') q?: string,
+    @Query('verificationState') verificationState?: VendorVerificationState,
+    @Query('accountState') accountState?: UserAccountState,
+    @Query('regionId') regionId?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    const data = await this.service.listVendors({
+      q,
+      verificationState,
+      accountState,
+      regionId,
+      limit: limit ? Number.parseInt(limit, 10) : undefined,
+      cursor,
+    });
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
+  }
+
+  @Get('vendors/:id')
+  async getVendor(@Param('id') id: string) {
+    const data = await this.service.getVendor(id);
+    return { data };
+  }
+
+  @Get('vendors/:id/documents/:docId/url')
+  async getVendorDocumentUrl(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Param('docId') docId: string,
+  ) {
+    const data = await this.service.getVendorDocumentUrl(id, docId, viewer.userId);
+    return { data };
+  }
+
+  @Get('verification-queue')
+  async getVerificationQueue() {
+    const data = await this.service.getVerificationQueue();
+    return { data };
+  }
+
+  @Post('vendors/:id/verify')
+  async verifyVendor(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(verifyVendorSchema)) body: z.infer<typeof verifyVendorSchema>,
+  ) {
+    const data = await this.service.verifyVendor(id, body, viewer.userId);
+    return { data };
+  }
+
+  @Post('vendors/:id/reject')
+  async rejectVendor(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(rejectVendorSchema)) body: z.infer<typeof rejectVendorSchema>,
+  ) {
+    const data = await this.service.rejectVendor(id, body, viewer.userId);
+    return { data };
+  }
+
+  @Post('vendors/:id/request-info')
+  async requestVendorInfo(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(requestInfoVendorSchema)) body: z.infer<typeof requestInfoVendorSchema>,
+  ) {
+    const data = await this.service.requestVendorInfo(id, body, viewer.userId);
+    return { data };
+  }
+
+  @Post('vendors/:id/activate')
+  async activateVendor(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(setVendorStateSchema)) body: z.infer<typeof setVendorStateSchema>,
+  ) {
+    const data = await this.service.setVendorState(id, 'ACTIVE', body, viewer.userId);
+    return { data };
+  }
+
+  @Post('vendors/:id/suspend')
+  async suspendVendor(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(setVendorStateSchema)) body: z.infer<typeof setVendorStateSchema>,
+  ) {
+    const data = await this.service.setVendorState(id, 'SUSPENDED', body, viewer.userId);
+    return { data };
+  }
+
+  @Post('vendors/:id/reactivate')
+  async reactivateVendor(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(setVendorStateSchema)) body: z.infer<typeof setVendorStateSchema>,
+  ) {
+    const data = await this.service.setVendorState(id, 'ACTIVE', body, viewer.userId);
+    return { data };
+  }
+
+  @Post('vendors/:id/deactivate')
+  async deactivateVendor(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(setVendorStateSchema)) body: z.infer<typeof setVendorStateSchema>,
+  ) {
+    const data = await this.service.setVendorState(id, 'DEACTIVATED', body, viewer.userId);
+    return { data };
+  }
+
+  // --- Requests ---
+  @Get('requests')
+  async listRequests(
+    @Query('q') q?: string,
+    @Query('state') state?: RequestState,
+    @Query('requestType') requestType?: string,
+    @Query('direction') direction?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('regionId') regionId?: string,
+    @Query('zeroOffers') zeroOffers?: string,
+    @Query('minValue') minValue?: string,
+    @Query('maxValue') maxValue?: string,
+    @Query('valueMin') valueMin?: string,
+    @Query('valueMax') valueMax?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    const data = await this.service.listRequests({
+      q,
+      state,
+      requestType,
+      direction,
+      categoryId,
+      regionId,
+      zeroOffers: parseOptionalBoolean(zeroOffers),
+      minValue: parseOptionalNumber(minValue),
+      maxValue: parseOptionalNumber(maxValue),
+      valueMin: parseOptionalNumber(valueMin),
+      valueMax: parseOptionalNumber(valueMax),
+      limit: limit ? Number.parseInt(limit, 10) : undefined,
+      cursor,
+    });
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
+  }
+
+  @Get('requests/:id')
+  async getRequest(@Param('id') id: string) {
+    const data = await this.service.getRequest(id);
+    return { data };
+  }
+
+  @Post('requests/:id/remove')
+  async removeRequest(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(removeRequestSchema)) body: z.infer<typeof removeRequestSchema>,
+  ) {
+    const data = await this.service.removeRequest(id, body, viewer.userId);
+    return { data };
+  }
+
+  // --- Offers ---
+  @Get('offers')
+  async listOffers(
+    @Query('q') q?: string,
+    @Query('state') state?: string,
+    @Query('vendorId') vendorId?: string,
+    @Query('requestType') requestType?: string,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
+    @Query('priceMin') priceMin?: string,
+    @Query('priceMax') priceMax?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    const data = await this.service.listOffers({
+      q,
+      state,
+      vendorId,
+      requestType,
+      minPrice: parseOptionalNumber(minPrice),
+      maxPrice: parseOptionalNumber(maxPrice),
+      priceMin: parseOptionalNumber(priceMin),
+      priceMax: parseOptionalNumber(priceMax),
+      dateFrom,
+      dateTo,
+      limit: limit ? Number.parseInt(limit, 10) : undefined,
+      cursor,
+    });
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
+  }
+
+  @Get('offers/:id')
+  async getOffer(@Param('id') id: string) {
+    const data = await this.service.getOffer(id);
+    return { data };
+  }
+
+  // --- Connections ---
+  @Get('connections')
+  async listConnections(
+    @Query('state') state?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    const data = await this.service.listConnections({
+      state,
+      limit: limit ? Number.parseInt(limit, 10) : undefined,
+      cursor,
+    });
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
+  }
+
+  @Get('connections/:id')
+  async getConnection(@Param('id') id: string) {
+    const data = await this.service.getConnection(id);
+    return { data };
+  }
+
+  @Post('connections/:id/close')
+  async closeConnection(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(closeConnectionSchema)) body: z.infer<typeof closeConnectionSchema>,
+  ) {
+    const data = await this.service.closeConnection(id, body, viewer.userId);
+    return { data };
+  }
+
+  // --- Review Moderation ---
+  @Get('reviews')
+  async listReviews(
+    @Query('state') state?: ReviewState,
+    @Query('authorType') authorType?: AuthorType,
+    @Query('q') q?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    const data = await this.service.listReviews({
+      state,
+      authorType,
+      q,
+      limit: limit ? Number.parseInt(limit, 10) : undefined,
+      cursor,
+    });
+    return { data: data.items, meta: { nextCursor: data.nextCursor ?? null } };
+  }
+
+  @Post('reviews/:id/approve')
+  async approveReview(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+  ) {
+    const data = await this.service.approveReview(id, viewer.userId);
+    return { data };
+  }
+
+  @Post('reviews/:id/reject')
+  async rejectReview(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(rejectReviewSchema)) body: z.infer<typeof rejectReviewSchema>,
+  ) {
+    const data = await this.service.rejectReview(id, body, viewer.userId);
+    return { data };
+  }
+
+  @Post('reviews/:id/redact')
+  async redactReview(
+    @Viewer() viewer: ViewerContext,
+    @Param('id') id: string,
+    @Body(zodBody(redactReviewSchema)) body: z.infer<typeof redactReviewSchema>,
+  ) {
+    const data = await this.service.redactReview(id, body, viewer.userId);
+    return { data };
+  }
+
+  // --- Abuse Reports ---
+  @Get('abuse-reports')
+  async listAbuseReports(
+    @Query('state') state?: AbuseReportState,
+    @Query('status') status?: AbuseReportState,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    const effectiveState = state ?? status
+
+=== connection.controller.ts -> acceptOfferSchema ===
+const acceptOfferSchema = z.object({
+  confirmation: z.literal('REVEAL_AND_CONNECT'),
+})
+
+=== connection.controller.ts -> listConnectionsQuerySchema ===
+const listConnectionsQuerySchema = z.object({
+  state: z.enum(['ACTIVE', 'CLOSED']).optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  cursor: z.string().uuid().optional(),
+})
+
+=== connection.controller.ts -> closeConnectionSchema ===
+const closeConnectionSchema = z.object({
+  reason: z.string().max(500).optional(),
+})
+
+=== connection.controller.ts -> contactEventSchema ===
+const contactEventSchema = z.object({
+  channel: z.enum(['WHATSAPP', 'PHONE']),
+})
+
+=== admin-gold-rate.controller.ts -> historyQuerySchema ===
+const historyQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  cursor: z.string().uuid().optional(),
+  karat: z.enum(['24K', '22K', '21K', '18K', 'K24', 'K22', 'K21', 'K18']).optional(),
+  source: z.enum(['FEED', 'MANUAL_OVERRIDE']).optional(),
+})
+
+=== admin-gold-rate.controller.ts -> overrideSchema ===
+const overrideSchema = z.object({
+  karat: z.enum(['24K', '22K', '21K', '18K', 'K24', 'K22', 'K21', 'K18']),
+  ratePerGramAed: z.union([z.string(), z.number()]),
+  reason: z.string().trim().min(1).max(500),
+  expiresAt: z.coerce.date(),
+})
+
+=== auth.controller.ts -> otpRequestSchema ===
+const otpRequestSchema = z.object({
+  mobileNumber: z
+    .string()
+    .regex(/^\+[1-9]\d{6,14}$/, 'Enter a valid mobile number in E.164 format.'),
+  // LOGIN removed (adr/0010 / G2-A15). OTP proves a number only.
+  purpose: z.enum(['REGISTER_CUSTOMER', 'REGISTER_VENDOR', 'CHANGE_MOBILE']),
+})
+
+=== auth.controller.ts -> otpVerifySchema ===
+const otpVerifySchema = z.object({
+  challengeId: z.string().uuid(),
+  code: z.string().regex(/^\d{4,8}$/),
+})
+
+=== auth.controller.ts -> refreshSchema ===
+const refreshSchema = z.object({ refreshToken: z.string().min(1) })
+
+=== auth.controller.ts -> logoutSchema ===
+const logoutSchema = z.object({
+  refreshToken: z.string().min(1).optional(),
+  allDevices: z.boolean().optional(),
+})
+
+=== auth.controller.ts -> setPasswordSchema ===
+const setPasswordSchema = z.object({
+  currentPassword: z.string().min(1).optional(),
+  newPassword: z.string().min(1),
+})
+
+=== me.controller.ts -> changeMobileSchema ===
+const changeMobileSchema = z.object({
+  challengeId: z.string().uuid(),
+})
+
+=== me.controller.ts -> confirmDeletionSchema ===
+const confirmDeletionSchema = z.object({
+  challengeId: z.string().uuid(),
+})
+
+=== filter-presets.controller.ts -> createFilterPresetSchema ===
+const createFilterPresetSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  filters: z.record(z.unknown()),
+})
+
+=== filter-presets.controller.ts -> updateFilterPresetSchema ===
+const updateFilterPresetSchema = z.object({
+  name: z.string().trim().min(1).max(100).optional(),
+  filters: z.record(z.unknown()).optional(),
+})
+
+=== matching.controller.ts -> matchesQuerySchema ===
+const matchesQuerySchema = z.object({
+  requestType: z.enum(['FIND_ORNAMENT', 'SELL_OLD_GOLD', 'GOLD_COIN', 'GOLD_BULLION']).optional(),
+  direction: z.enum(['BUY', 'SELL']).optional(),
+  categoryId: z.string().uuid().optional(),
+  regionId: z.string().uuid().optional(),
+  purityKarat: karatEnum.optional(),
+  weightMin: z.coerce.number().positive().optional(),
+  weightMax: z.coerce.number().positive().optional(),
+  budgetMin: z.coerce.number().nonnegative().optional(),
+  budgetMax: z.coerce.number().positive().optional(),
+  publishedWithinHours: z.coerce.number().int().positive().optional(),
+  includeResponded: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => v === 'true'),
+  q: z.string().optional(),
+  sort: z.enum(['NEWEST', 'EXPIRING', 'HIGHEST_VALUE', 'FEWEST_OFFERS']).optional(),
+  presetId: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20).optional(),
+  cursor: z.string().uuid().optional(),
+})
+
+=== matching.controller.ts -> filterPresetCreateSchema ===
+const filterPresetCreateSchema = z.object({
+  name: z.string().min(1).max(100),
+  filters: z.record(z.unknown()),
+})
+
+=== media.controller.ts -> uploadIntentSchema ===
+const uploadIntentSchema = z.object({
+  purpose: z.enum([
+    'REQUEST_IMAGE',
+    'OFFER_IMAGE',
+    'PROFILE_PHOTO',
+    'VENDOR_LOGO',
+    'VENDOR_SHOP_PHOTO',
+    'KYC_DOCUMENT',
+    'EXPORT_ARTEFACT',
+  ]),
+  contentType: z.string().min(1).max(100),
+  byteSize: z.number().int().positive(),
+})
+
+=== device.controller.ts -> registerDeviceSchema ===
+const registerDeviceSchema = z.object({
+  platform: z.enum(['IOS', 'ANDROID']),
+  pushToken: z.string().min(1).max(500),
+  label: z.string().max(100).optional(),
+})
+
+=== notification.controller.ts -> listNotificationsQuerySchema ===
+const listNotificationsQuerySchema = z.object({
+  unread: z.coerce.boolean().optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  cursor: z.string().uuid().optional(),
+})
+
+=== offer.controller.ts -> listRequestOffersQuerySchema ===
+const listRequestOffersQuerySchema = z.object({
+  sort: z.enum(['PRICE_ASC', 'PRICE_DESC', 'RATING', 'NEWEST', 'OLDEST', 'EXPIRING']).optional(),
+  minRating: z.coerce.number().optional(),
+  priceMin: z.coerce.number().optional(),
+  priceMax: z.coerce.number().optional(),
+  excludeExpiringWithinHours: z.coerce.number().int().optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  cursor: z.string().uuid().optional(),
+})
+
+=== offer.controller.ts -> listVendorOffersQuerySchema ===
+const listVendorOffersQuerySchema = z.object({
+  tab: z.enum(['PENDING', 'ACCEPTED', 'CLOSED']).optional(),
+  requestType: z.enum(['FIND_ORNAMENT', 'SELL_OLD_GOLD', 'GOLD_COIN', 'GOLD_BULLION']).optional(),
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional(),
+  q: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  cursor: z.string().uuid().optional(),
+})
+
+=== request.controller.ts -> createRequestSchema ===
+const createRequestSchema = z.object({
+  requestType: z.enum(['FIND_ORNAMENT', 'SELL_OLD_GOLD', 'GOLD_COIN', 'GOLD_BULLION']),
+  direction: z.enum(['BUY', 'SELL']).optional(),
+  categoryId: z.string().uuid().optional(),
+  regionId: z.string().uuid().optional(),
+  notes: z.string().max(2000).optional(),
+  weightGrams: z.union([z.number().positive(), z.string()]).optional(),
+  weightIsApproximate: z.boolean().optional(),
+  purityKarat: karatEnum.optional(),
+  ornamentType: z
+    .enum(['RING', 'CHAIN', 'BANGLE', 'NECKLACE', 'EARRING', 'BRACELET', 'PENDANT', 'OTHER'])
+    .optional(),
+  condition: z.enum(['NEW', 'LIKE_NEW', 'USED', 'DAMAGED']).optional(),
+  denominationGrams: z.union([z.number().positive(), z.string()]).optional(),
+  quantity: z.number().int().positive().optional(),
+  mintOrRefiner: z.string().max(100).optional(),
+  budgetMin: z.union([z.number().nonnegative(), z.string()]).optional(),
+  budgetMax: z.union([z.number().positive(), z.string()]).optional(),
+  budgetIsFlexible: z.boolean().optional(),
+  gemstones: z.record(z.unknown()).optional(),
+  mediaKeys: z.array(z.string()).max(5).optional(),
+})
+
+=== request.controller.ts -> cancelRequestSchema ===
+const cancelRequestSchema = z.object({
+  reason: z.string().max(500).optional(),
+})
+
+=== request.controller.ts -> listCustomerRequestsQuerySchema ===
+const listCustomerRequestsQuerySchema = z.object({
+  state: z.union([z.string(), z.array(z.string())]).optional(),
+  requestType: z.enum(['FIND_ORNAMENT', 'SELL_OLD_GOLD', 'GOLD_COIN', 'GOLD_BULLION']).optional(),
+  direction: z.enum(['BUY', 'SELL']).optional(),
+  q: z.string().optional(),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20).optional(),
+  cursor: z.string().uuid().optional(),
+})
+
+=== requests.controller.ts -> createRequestSchema ===
+const createRequestSchema = z.object({
+  requestType: z.nativeEnum(RequestType),
+  direction: z.nativeEnum(Direction).optional(),
+  categoryId: z.string().uuid(),
+  regionId: z.string().uuid(),
+  notes: z.string().max(2000).optional().nullable(),
+  weightGrams: z.union([z.number(), z.string()]).optional().nullable(),
+  weightIsApproximate: z.boolean().optional(),
+  purityKarat: z.nativeEnum(Karat).optional().nullable(),
+  ornamentType: z.nativeEnum(OrnamentType).optional().nullable(),
+  condition: z.nativeEnum(ItemCondition).optional().nullable(),
+  denominationGrams: z.union([z.number(), z.string()]).optional().nullable(),
+  quantity: z.number().int().positive().optional().nullable(),
+  mintOrRefiner: z.string().max(100).optional().nullable(),
+  budgetMin: z.union([z.number(), z.string()]).optional().nullable(),
+  budgetMax: z.union([z.number(), z.string()]).optional().nullable(),
+  budgetIsFlexible: z.boolean().optional(),
+  gemstones: z.unknown().optional(),
+})
+
+=== review.controller.ts -> createReviewSchema ===
+const createReviewSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().trim().max(1000).optional(),
+})
+
+=== review.controller.ts -> listReviewsQuerySchema ===
+const listReviewsQuerySchema = z.object({
+  role: z.enum(['AUTHOR', 'SUBJECT']).optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  cursor: z.string().uuid().optional(),
+})
+
+=== review.controller.ts -> respondReviewSchema ===
+const respondReviewSchema = z.object({
+  response: z.string().trim().min(1).max(500),
+})
+
+=== settings.controller.ts -> patchSettingsSchema ===
+const patchSettingsSchema = z.object({
+  preferredLanguage: z.enum(['en', 'ar']).optional(),
+  defaultRegionId: z.string().uuid().nullable().optional(),
+  defaultFilterPresetId: z.string().uuid().nullable().optional(),
+  quietHours: z
+    .object({
+      start: z.string().regex(/^\d{2}:\d{2}$/),
+      end: z.string().regex(/^\d{2}:\d{2}$/),
+    })
+    .nullable()
+    .optional(),
+  notifications: z
+    .record(
+      z.object({
+        inApp: z.boolean().optional(),
+        push: z.boolean().optional(),
+        email: z.boolean().optional(),
+      }),
+    )
+    .optional(),
+})
+
+=== admin-subscription.controller.ts -> grantSubscriptionSchema ===
+const grantSubscriptionSchema = z.object({
+  requestType: z.enum([
+    'FIND_ORNAMENT',
+    'SELL_OLD_GOLD',
+    'GOLD_COIN',
+    'GOLD_BULLION',
+  ]),
+  periodStart: z.coerce.date(),
+  periodEnd: z.coerce.date(),
+  priceAed: z.union([z.string(), z.number()]),
+  paymentReference: z.string().max(100).optional(),
+})
+
+=== admin-subscription.controller.ts -> patchSubscriptionSchema ===
+const patchSubscriptionSchema = z.object({
+  state: z.enum(['GRACE', 'EXPIRED', 'CANCELLED']).optional(),
+  periodEnd: z.coerce.date().optional(),
+  reasonText: z.string().trim().min(1).max(500),
+})
+
+=== subscription.controller.ts -> performanceQuerySchema ===
+const performanceQuerySchema = z.object({
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional(),
+  requestType: z
+    .enum(['FIND_ORNAMENT', 'SELL_OLD_GOLD', 'GOLD_COIN', 'GOLD_BULLION'])
+    .optional(),
+  categoryId: z.string().uuid().optional(),
+  regionId: z.string().uuid().optional(),
+})
+
+=== admin-taxonomy.controller.ts -> createCategorySchema ===
+const createCategorySchema = z.object({
+  nameEn: z.string().trim().min(1, 'nameEn is required').max(100),
+  nameAr: z.string().trim().min(1, 'nameAr is required').max(100),
+  icon: z.string().max(100).optional(),
+  displayOrder: z.coerce.number().int().optional(),
+  isActive: z.boolean().optional(),
+})
+
+=== admin-taxonomy.controller.ts -> createRegionSchema ===
+const createRegionSchema = z.object({
+  nameEn: z.string().trim().min(1, 'nameEn is required').max(100),
+  nameAr: z.string().trim().min(1, 'nameAr is required').max(100),
+  displayOrder: z.coerce.number().int().optional(),
+  isActive: z.boolean().optional(),
+})
+
+=== dev-verify.controller.ts -> bodySchema ===
+const bodySchema = z.object({
+  decision: z.enum(['VERIFY', 'REJECT', 'REQUEST_INFO']),
+  rationale: z.string().max(2000).optional(),
+  message: z.string().max(2000).optional(),
+})
+
+=== vendor-documents.controller.ts -> attachSchema ===
+const attachSchema = z.object({
+  documentType: z.enum([
+    'TRADE_LICENCE',
+    'EMIRATES_ID',
+    'VAT_CERT',
+    'TRADING_PERMIT',
+    'TENANCY',
+    'OTHER',
+  ]),
+  mediaKey: z.string().uuid(),
+  expiryDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+})
+
+=== vendor-profile.controller.ts -> performanceExportQuerySchema ===
+const performanceExportQuerySchema = z.object({
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional(),
+  requestType: z
+    .enum(['FIND_ORNAMENT', 'SELL_OLD_GOLD', 'GOLD_COIN', 'GOLD_BULLION'])
+    .optional(),
+  categoryId: z.string().uuid().optional(),
+  regionId: z.string().uuid().optional(),
+})
+
+=== vendor-taxonomy.controller.ts -> categoriesSchema ===
+const categoriesSchema = z.object({ categoryIds: z.array(z.string().uuid()).min(1) })
+
+=== vendor-taxonomy.controller.ts -> regionsSchema ===
+const regionsSchema = z.object({ regionIds: z.array(z.string().uuid()).min(1) })
