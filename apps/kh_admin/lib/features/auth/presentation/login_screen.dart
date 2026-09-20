@@ -80,9 +80,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleGoogleSignIn() async {
     final firebaseInit = ref.read(firebaseInitStateProvider);
     final isProdMode = !ref.read(devAuthConfigProvider).autoLogin;
-    if (isProdMode && firebaseInit.isFailed) {
+    if (isProdMode && !firebaseInit.isInitialized) {
       setState(() {
-        _errorMessage = 'Authentication service unavailable: Firebase initialization failed.';
+        _errorMessage = firebaseInit.isFailed
+            ? 'Authentication service unavailable: Firebase initialization failed.'
+            : 'Authentication service is still starting up. Please try again in a moment.';
       });
       return;
     }
@@ -114,10 +116,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleGoogleIdToken(String idToken) async {
     final firebaseInit = ref.read(firebaseInitStateProvider);
     final isProdMode = !ref.read(devAuthConfigProvider).autoLogin;
-    if (isProdMode && firebaseInit.isFailed) {
+    if (isProdMode && !firebaseInit.isInitialized) {
       setState(() {
-        _errorMessage =
-            'Authentication service unavailable: Firebase initialization failed.';
+        _errorMessage = firebaseInit.isFailed
+            ? 'Authentication service unavailable: Firebase initialization failed.'
+            : 'Authentication service is still starting up. Please try again in a moment.';
       });
       return;
     }
@@ -170,9 +173,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final session = ref.watch(sessionControllerProvider);
     final devAuth = ref.watch(devAuthConfigProvider);
     final firebaseInit = ref.watch(firebaseInitStateProvider);
-    final isGoogleSignInBlocked = !devAuth.autoLogin && firebaseInit.isFailed;
+    // Block interaction until Firebase is actually ready, not just after it
+    // fails — otherwise a click during the brief `initializing` window hits a
+    // null FirebaseAuth instance and surfaces a confusing "not initialized" error.
+    final isGoogleSignInBlocked = !devAuth.autoLogin && !firebaseInit.isInitialized;
     final displayError = _errorMessage ??
-        (isGoogleSignInBlocked
+        (isGoogleSignInBlocked && firebaseInit.isFailed
             ? 'Authentication service unavailable: Firebase initialization failed.'
             : (!session.isAuthenticated ? session.errorMessage : null));
 

@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kh_admin/core/auth/session_controller.dart';
+import 'package:kh_admin/core/firebase/firebase_auth_service.dart';
 import 'package:kh_admin/core/firebase/firebase_notification_service.dart';
 import 'package:kh_admin/core/firebase/firestore_config_service.dart';
 import 'package:kh_admin/core/log/kh_logger.dart';
@@ -46,6 +48,12 @@ Future<void> initializeFirebaseNonBlocking(
     );
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     notifier.state = const FirebaseInitState(status: FirebaseInitStatus.initialized);
+
+    // Re-bind auth here (not in a widget postFrameCallback) so Google session
+    // restore never depends on the calling widget still being mounted.
+    await ref
+        .read(sessionControllerProvider.notifier)
+        .onFirebaseReady(ref.read(firebaseAuthServiceProvider));
 
     // Sync remote API Base URL from Firestore
     await _syncRemoteEnvironmentConfig(ref, logger);

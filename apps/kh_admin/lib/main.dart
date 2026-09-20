@@ -6,11 +6,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
-import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/theme/theme_mode_controller.dart';
 import 'package:kh_admin/core/error/error_retry_widget.dart';
-import 'package:kh_admin/core/firebase/firebase_auth_service.dart';
 import 'package:kh_admin/core/firebase/firebase_init.dart';
 import 'package:kh_admin/core/firebase/firebase_notification_service.dart';
 import 'package:kh_admin/core/firebase/firebase_push_handler.dart';
@@ -85,12 +83,10 @@ class _KhAdminAppState extends ConsumerState<KhAdminApp> {
 
       if (!mounted) return;
 
-      // Re-bind auth after Firebase exists so Google restore is not lost on an
-      // empty pre-init authStateChanges stream.
+      // onFirebaseReady is invoked from initializeFirebaseNonBlocking itself
+      // so Google session restore doesn't depend on this widget still being
+      // mounted when Firebase finishes initializing.
       if (ref.read(firebaseInitStateProvider).isInitialized) {
-        await ref
-            .read(sessionControllerProvider.notifier)
-            .onFirebaseReady(ref.read(firebaseAuthServiceProvider));
         _initForegroundPush();
       }
     });

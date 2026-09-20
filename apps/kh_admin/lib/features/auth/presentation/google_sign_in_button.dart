@@ -28,9 +28,18 @@ class GoogleSignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!kIsWeb || !enabled || onWebCredential == null) {
+    if (!kIsWeb || onWebCredential == null) {
       return fallback;
     }
-    return impl.buildGoogleSignInButton(onIdToken: onWebCredential!);
+    // Keep the GIS widget mounted across `enabled` toggles (e.g. the password
+    // form submitting) instead of swapping subtrees, which would tear down
+    // and re-initialize Google Identity Services on every unrelated submit.
+    return IgnorePointer(
+      ignoring: !enabled,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.5,
+        child: impl.buildGoogleSignInButton(onIdToken: onWebCredential!),
+      ),
+    );
   }
 }
