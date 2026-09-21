@@ -480,7 +480,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
               eyebrow: 'Platform Administration',
               heading: 'Admin Users',
               supportingText:
-                  'Provision and manage system administrator accounts. Enforces coarse RBAC without role customization; at least one active admin must always be maintained.',
+                  'Provision and manage system administrator accounts with explicit role-based permissions. At least one active admin must always be maintained.',
               trailing: FilledButton.icon(
                 key: const Key('provision-admin-button'),
                 style: FilledButton.styleFrom(
