@@ -237,6 +237,7 @@ void main() {
       final newItem = await repo.createAdmin(
         email: 'newadmin@karathive.ae',
         displayName: 'New Admin',
+        role: AdminRole.operationsAdmin,
       );
 
       expect(recordedOptions, isNotNull);
