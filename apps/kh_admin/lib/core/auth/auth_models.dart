@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:kh_admin/core/api/json_parse.dart';
+import 'package:kh_admin/core/auth/admin_role.dart';
 
 /// Persisted session tokens.
 @immutable
@@ -45,12 +46,14 @@ class AdminUser {
     required this.userType,
     required this.email,
     required this.displayName,
+    required this.role,
   });
 
   final String userId;
   final String userType;
   final String? email;
   final String displayName;
+  final AdminRole? role;
 
   factory AdminUser.fromJson(Map<String, dynamic> json) {
     final map = asMap(json);
@@ -64,6 +67,9 @@ class AdminUser {
       userType: map['userType']?.toString() ?? 'ADMIN',
       email: map['email']?.toString(),
       displayName: displayName,
+      role: AdminRoleWire.fromWire(
+        adminMap['role']?.toString() ?? map['role']?.toString(),
+      ),
     );
   }
 
