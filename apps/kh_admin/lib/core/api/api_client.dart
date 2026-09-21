@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/auth/token_storage.dart';
 import 'package:kh_admin/core/api/api_exception.dart';
+import 'package:kh_admin/core/api/api_types.dart';
 import 'package:kh_admin/core/api/server_time_provider.dart';
 import 'package:kh_admin/core/platform/flavor.dart';
 
@@ -154,6 +155,67 @@ class ApiClient {
       data: data,
       queryParameters: queryParameters,
       options: options,
+    );
+  }
+
+  /// Typed GET boundary. Decoding happens immediately after the transport
+  /// envelope is unwrapped, so repositories never need to expose dynamic JSON.
+  Future<T> getDecoded<T>(
+    String path, {
+    required ApiDecoder<T> decoder,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
+    final payload = await _send(
+      'GET',
+      path,
+      queryParameters: queryParameters,
+      options: options,
+    );
+    return decoder(payload);
+  }
+
+  /// Typed POST boundary.
+  Future<T> postDecoded<T>(
+    String path, {
+    required ApiDecoder<T> decoder,
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
+    final payload = await _send(
+      'POST',
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
+    return decoder(payload);
+  }
+
+  /// Typed cursor-paginated collection boundary. The decoder is applied to
+  /// each item before the repository receives the collection.
+  Future<ApiCollection<T>> getCollectionDecoded<T>(
+    String path, {
+    required T Function(Map<String, dynamic> json) itemDecoder,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final response = await getCollection(
+      path,
+      queryParameters: queryParameters,
+    );
+    final items = <T>[];
+    for (final raw in response.items) {
+      if (raw is! Map) {
+        throw FormatException('Expected object item from $path');
+      }
+      items.add(itemDecoder(Map<String, dynamic>.from(raw)));
+    }
+    final meta = response.meta;
+    return ApiCollection<T>(
+      items: List<T>.unmodifiable(items),
+      nextCursor: meta?['nextCursor']?.toString(),
+      totalCount: meta?['total'] is num ? (meta!['total'] as num).toInt() : null,
     );
   }
 
