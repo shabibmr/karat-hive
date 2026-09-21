@@ -159,6 +159,23 @@ void main() {
     expect(res['name'], 'Gold Bars');
   });
 
+  test('getDecoded applies a typed decoder at the transport boundary', () async {
+    final id = await apiClient.getDecoded<String>(
+      '/v1/success',
+      decoder: (payload) => (payload as Map<String, dynamic>)['id'] as String,
+    );
+    expect(id, '123');
+  });
+
+  test('getCollectionDecoded decodes every row and preserves pagination metadata', () async {
+    final page = await apiClient.getCollectionDecoded<String>(
+      '/v1/collection',
+      itemDecoder: (json) => json['id'] as String,
+    );
+    expect(page.items, ['1', '2']);
+    expect(page.nextCursor, 'cursor-2');
+  });
+
   test('ApiClient maps error envelope to typed ApiException', () async {
     try {
       await apiClient.get('/v1/error');
