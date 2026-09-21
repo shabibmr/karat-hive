@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
+import 'package:kh_admin/core/auth/admin_role.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_enums.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_filters.dart';
 import 'package:kh_admin/features/admin_users/repository/admin_user_repository.dart';
@@ -14,6 +15,7 @@ void main() {
     required String displayName,
     required String email,
     String accountState = 'ACTIVE',
+    String role = 'OPERATIONS_ADMIN',
   }) {
     return {
       'id': id,
@@ -21,6 +23,7 @@ void main() {
       'displayName': displayName,
       'createdAt': '2026-09-01T10:00:00.000Z',
       'updatedAt': '2026-09-01T10:00:00.000Z',
+      'role': role,
       'user': {
         'id': userId,
         'email': email,
@@ -122,6 +125,7 @@ void main() {
                       'id': 'usr-new',
                       'email': body['email'],
                       'accountState': 'ACTIVE',
+                      'role': body['role'],
                       'createdAt': '2026-09-02T12:00:00.000Z',
                     },
                   },
@@ -247,8 +251,7 @@ void main() {
       final body = recordedOptions!.data as Map<String, dynamic>;
       expect(body['email'], 'newadmin@karathive.ae');
       expect(body['displayName'], 'New Admin');
-      // Constraint verification: NO role field (SAM-GAP-13, AD-API-03)
-      expect(body.containsKey('role'), isFalse);
+      expect(body['role'], AdminRole.operationsAdmin.wireValue);
 
       expect(newItem.id, 'prof-new');
       expect(newItem.displayName, 'New Admin');
