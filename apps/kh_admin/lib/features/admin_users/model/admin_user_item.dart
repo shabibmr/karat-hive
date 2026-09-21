@@ -1,4 +1,5 @@
 import 'package:kh_admin/features/admin_users/model/admin_user_enums.dart';
+import 'package:kh_admin/core/auth/admin_role.dart';
 
 /// Single item in ADM-S23 Admin User Provisioning & Management.
 ///
@@ -12,6 +13,7 @@ class AdminUserItem {
     required this.accountState,
     required this.createdAt,
     this.updatedAt,
+    this.role,
   });
 
   /// The AdminProfile ID (or User ID if flat).
@@ -34,6 +36,10 @@ class AdminUserItem {
 
   /// Timestamp of the last update, if available.
   final DateTime? updatedAt;
+
+  /// RBAC role returned by the backend. Null means the server returned a legacy
+  /// payload; UI actions must fail closed until the role is resolved.
+  final AdminRole? role;
 
   factory AdminUserItem.fromJson(Map<String, dynamic> json) {
     final userMap = json['user'] is Map<String, dynamic>
@@ -75,9 +81,15 @@ class AdminUserItem {
         userMap?['updatedAt'] ??
         json['updatedAt'];
 
-    final createdAt = rawCreatedAt != null
-        ? DateTime.tryParse(rawCreatedAt.toString()) ?? DateTime.now()
-        : DateTime.now();
+    if (rawCreatedAt == null) {
+      throw const FormatException('AdminUserItem.createdAt is required');
+    }
+    final createdAt = DateTime.tryParse(rawCreatedAt.toString());
+    if (createdAt == null) {
+      throw FormatException(
+        'Invalid AdminUserItem.createdAt: $rawCreatedAt',
+      );
+    }
 
     final updatedAt = rawUpdatedAt != null
         ? DateTime.tryParse(rawUpdatedAt.toString())
@@ -91,6 +103,9 @@ class AdminUserItem {
       accountState: accountState,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      role: AdminRoleWire.fromWire(
+        profileMap?['role']?.toString() ?? json['role']?.toString(),
+      ),
     );
   }
 
@@ -103,6 +118,7 @@ class AdminUserItem {
       'accountState': accountState.wireValue,
       'createdAt': createdAt.toIso8601String(),
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+      if (role != null) 'role': role!.wireValue,
       'user': <String, dynamic>{
         'id': userId,
         'email': email,
@@ -120,6 +136,7 @@ class AdminUserItem {
     AdminAccountState? accountState,
     DateTime? createdAt,
     DateTime? updatedAt,
+    AdminRole? role,
   }) {
     return AdminUserItem(
       id: id ?? this.id,
@@ -129,6 +146,7 @@ class AdminUserItem {
       accountState: accountState ?? this.accountState,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      role: role ?? this.role,
     );
   }
 
@@ -143,7 +161,8 @@ class AdminUserItem {
           email == other.email &&
           accountState == other.accountState &&
           createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
+          updatedAt == other.updatedAt &&
+          role == other.role;
 
   @override
   int get hashCode => Object.hash(
@@ -158,5 +177,5 @@ class AdminUserItem {
 
   @override
   String toString() =>
-      'AdminUserItem(id: $id, displayName: $displayName, email: $email, state: ${accountState.wireValue})';
+      'AdminUserItem(id: $id, displayName: $displayName, email: $email, state: ${accountState.wireValue}, role: ${role?.wireValue})';
 }
