@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart' show khApiBase;
+import 'package:kh_admin/features/requests/model/request_enums.dart';
 import 'package:kh_admin/features/vendors/controller/vendor_list_controller.dart';
+import 'package:kh_admin/features/verification/model/grant_subscription_dto.dart';
 import 'package:kh_admin/features/verification/model/verification_decision_dto.dart';
 import 'package:kh_admin/features/verification/model/verification_queue_item.dart';
 import 'package:kh_admin/features/verification/model/vendor_verification_detail.dart';
@@ -60,6 +62,35 @@ class VerificationQueueController extends AsyncNotifier<List<VerificationQueueIt
     );
     await _softReload();
     _invalidateRelated(vendorId);
+  }
+
+  /// Records one type subscription per entry in [types] (`FR-VEN-031`).
+  ///
+  /// Grants run after `/verify` as separate calls, so a failed grant leaves the
+  /// verification standing rather than rolling it back. Returns the types that
+  /// could not be granted, paired with the failure, for the caller to report
+  /// and retry — already-granted types must not be resent, the backend has no
+  /// duplicate guard on `(vendor, requestType, ACTIVE)`.
+  Future<List<({RequestType type, Object error})>> grantTypeSubscriptions(
+    String vendorId,
+    List<RequestType> types,
+  ) async {
+    if (types.isEmpty) return const [];
+
+    final repository = ref.read(verificationRepositoryProvider);
+    final failures = <({RequestType type, Object error})>[];
+    for (final type in types) {
+      try {
+        await repository.grantSubscription(
+          vendorId,
+          GrantSubscriptionDto.forType(type),
+        );
+      } on Object catch (e) {
+        failures.add((type: type, error: e));
+      }
+    }
+    _invalidateRelated(vendorId);
+    return failures;
   }
 
   Future<void> requestInfo(String vendorId, String message) async {

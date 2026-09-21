@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_admin/features/requests/model/request_enums.dart';
 import 'package:kh_admin/features/verification/controller/verification_controller.dart';
 
 /// Shows the [ApproveVerificationDialog]. Returns true if approval was submitted successfully.
@@ -71,6 +72,17 @@ class _ApproveVerificationDialogState
     extends ConsumerState<ApproveVerificationDialog> {
   final _formKey = GlobalKey<FormState>();
   final _rationaleController = TextEditingController();
+
+  /// Request types the Vendor has paid for, ticked by the admin (`FR-VEN-031`).
+  final Set<RequestType> _selectedTypes = <RequestType>{};
+
+  /// Types already recorded, so a retry after a partial failure does not send
+  /// them twice — the backend has no duplicate guard on an active entitlement.
+  final Set<RequestType> _grantedTypes = <RequestType>{};
+
+  /// True once `/verify` has succeeded. A retry then only replays the grants.
+  bool _verified = false;
+
   bool _isSubmitting = false;
   String? _errorMessage;
 
@@ -80,6 +92,10 @@ class _ApproveVerificationDialogState
     super.dispose();
   }
 
+  /// Approves, then records one subscription per ticked type. Verification and
+  /// entitlement are separate conditions (`BR-002`), so they are separate calls
+  /// — a grant that fails leaves the approval standing and is reported here for
+  /// retry rather than rolled back.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -87,11 +103,33 @@ class _ApproveVerificationDialogState
       _errorMessage = null;
     });
 
+    final controller = ref.read(verificationQueueControllerProvider.notifier);
+
     try {
-      final rationale = _rationaleController.text.trim();
-      await ref
-          .read(verificationQueueControllerProvider.notifier)
-          .verifyVendor(widget.vendorId, rationale);
+      if (!_verified) {
+        final rationale = _rationaleController.text.trim();
+        await controller.verifyVendor(widget.vendorId, rationale);
+        _verified = true;
+      }
+
+      final pending = RequestType.values
+          .where((type) =>
+              _selectedTypes.contains(type) && !_grantedTypes.contains(type))
+          .toList(growable: false);
+      final failures =
+          await controller.grantTypeSubscriptions(widget.vendorId, pending);
+      final failed = failures.map((f) => f.type).toSet();
+      _grantedTypes.addAll(pending.where((type) => !failed.contains(type)));
+
+      if (failures.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+            _errorMessage = _grantFailureMessage(failures);
+          });
+        }
+        return;
+      }
 
       if (mounted) {
         Navigator.of(context).pop(true);
@@ -104,6 +142,16 @@ class _ApproveVerificationDialogState
         });
       }
     }
+  }
+
+  static String _grantFailureMessage(
+    List<({RequestType type, Object error})> failures,
+  ) {
+    final names = failures.map((f) => f.type.label).join(', ');
+    final first = failures.first.error;
+    final reason = first is ApiException ? first.message : first.toString();
+    return 'Vendor approved, but the subscription could not be recorded for: '
+        '$names. $reason';
   }
 
   @override

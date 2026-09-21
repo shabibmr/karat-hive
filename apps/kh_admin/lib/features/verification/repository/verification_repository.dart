@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/api/json_parse.dart';
 import 'package:kh_admin/features/verification/model/document_url_response.dart';
+import 'package:kh_admin/features/verification/model/grant_subscription_dto.dart';
 import 'package:kh_admin/features/verification/model/verification_decision_dto.dart';
 import 'package:kh_admin/features/verification/model/verification_queue_item.dart';
 import 'package:kh_admin/features/verification/model/vendor_verification_detail.dart';
@@ -134,6 +135,19 @@ class VerificationRepository {
   Future<void> requestInfo(String vendorId, RequestInfoDto dto) async {
     await _apiClient.post(
       '/v1/admin/vendors/$vendorId/request-info',
+      data: dto.toJson(),
+    );
+  }
+
+  /// `POST /v1/admin/vendors/{id}/subscriptions` — records one type
+  /// entitlement (`FR-VEN-031`). Separate from `/verify`: `BR-002` keeps
+  /// verification and entitlement as independent conditions.
+  Future<void> grantSubscription(
+    String vendorId,
+    GrantSubscriptionDto dto,
+  ) async {
+    await _apiClient.post(
+      '/v1/admin/vendors/$vendorId/subscriptions',
       data: dto.toJson(),
     );
   }
