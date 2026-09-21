@@ -633,11 +633,12 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                                 KhTableColumn('Created Date', flex: 2),
                                 KhTableColumn('Actions', flex: 2),
                               ],
-                              rows: filteredAdmins.map((item) {
+                              itemCount: filteredAdmins.length,
+                              rowBuilder: (context, index) {
+                                final item = filteredAdmins[index];
                                 return KhTableRow(
                                   key: ValueKey(item.id),
                                   cells: [
-                                    // Name + short ID
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
@@ -652,68 +653,52 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                                         ),
                                       ],
                                     ),
-                                    // Email
                                     Text(
                                       item.email,
                                       style: kh.typography.bodySmall,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    // RBAC role
                                     Text(
                                       item.role?.label ?? 'Role unavailable',
                                       style: kh.typography.bodySmall.copyWith(
-                                        color: item.role == null
-                                            ? kh.colors.error
-                                            : kh.colors.textSecondary,
+                                        color: item.role == null ? kh.colors.error : kh.colors.textSecondary,
                                       ),
                                     ),
-                                    // Status Chip
                                     KhStatusChip(
                                       label: item.accountState.label,
                                       tone: item.accountState.tone,
                                       dense: true,
                                     ),
-                                    // Created Date
                                     Text(
                                       _formatDateTime(item.createdAt),
                                       style: kh.typography.bodySmall,
                                     ),
-                                    // Actions (Suspend / Revoke)
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        if (item.accountState == AdminAccountState.active)
+                                        if (item.accountState == AdminAccountState.active &&
+                                            ref.watch(adminAccessProvider)?.can(AdminPermission.adminUsersWrite) == true)
                                           IconButton(
                                             key: ValueKey('suspend-${item.id}'),
-                                            icon: Icon(
-                                              Icons.pause_circle_outline,
-                                              size: 18,
-                                              color: kh.colors.warning,
-                                            ),
+                                            icon: Icon(Icons.pause_circle_outline, size: 18, color: kh.colors.warning),
                                             tooltip: 'Suspend Admin',
                                             onPressed: () => _showSuspendDialog(item),
                                           ),
-                                        if (item.accountState != AdminAccountState.deactivated)
+                                        if (item.accountState != AdminAccountState.deactivated &&
+                                            ref.watch(adminAccessProvider)?.can(AdminPermission.adminUsersWrite) == true)
                                           IconButton(
                                             key: ValueKey('revoke-${item.id}'),
-                                            icon: Icon(
-                                              Icons.person_off_outlined,
-                                              size: 18,
-                                              color: kh.colors.error,
-                                            ),
+                                            icon: Icon(Icons.person_off_outlined, size: 18, color: kh.colors.error),
                                             tooltip: 'Revoke Admin',
                                             onPressed: () => _showRevokeDialog(item),
                                           ),
                                         if (item.accountState == AdminAccountState.deactivated)
-                                          Text(
-                                            'Revoked',
-                                            style: kh.typography.caption.copyWith(color: kh.colors.textMuted),
-                                          ),
+                                          Text('Revoked', style: kh.typography.caption.copyWith(color: kh.colors.textMuted)),
                                       ],
                                     ),
                                   ],
                                 );
-                              }).toList(),
+                              },
                             ),
             ),
           ],
