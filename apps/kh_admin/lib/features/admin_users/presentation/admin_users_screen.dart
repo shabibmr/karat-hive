@@ -462,6 +462,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
     final filteredAdmins =
         ref.watch(adminUserControllerProvider.select((s) => s.filteredAdmins));
     final controller = ref.read(adminUserControllerProvider.notifier);
+    final canManageAdmins = ref.watch(adminAccessProvider)?.can(AdminPermission.adminUsersWrite) == true;
 
     // Sync search input if cleared externally
     if (_searchController.text != filters.query &&
@@ -491,9 +492,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                     vertical: kh.spacing.sm,
                   ),
                 ),
-                onPressed: ref.watch(adminAccessProvider)?.can(AdminPermission.adminUsersWrite) == true
-                    ? _showProvisionDialog
-                    : null,
+                onPressed: canManageAdmins ? _showProvisionDialog : null,
                 icon: const Icon(Icons.person_add, size: 18),
                 label: const Text(
                   'Provision Admin',
@@ -677,7 +676,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         if (item.accountState == AdminAccountState.active &&
-                                            ref.watch(adminAccessProvider)?.can(AdminPermission.adminUsersWrite) == true)
+                                            canManageAdmins)
                                           IconButton(
                                             key: ValueKey('suspend-${item.id}'),
                                             icon: Icon(Icons.pause_circle_outline, size: 18, color: kh.colors.warning),
