@@ -173,6 +173,7 @@ class AdminUserItem {
         accountState,
         createdAt,
         updatedAt,
+        role,
       );
 
   @override
