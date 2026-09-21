@@ -77,7 +77,10 @@ class AdminUser {
         'userId': userId,
         'userType': userType,
         'email': email,
-        'admin': {'displayName': displayName},
+        'admin': {
+          'displayName': displayName,
+          if (role != null) 'role': role!.wireValue,
+        },
       };
 }
 
