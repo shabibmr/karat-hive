@@ -38,6 +38,12 @@ enum UserType {
   ADMIN
 }
 
+enum AdminRole {
+  SUPER_ADMIN
+  OPERATIONS_ADMIN
+  READ_ONLY_ANALYST
+}
+
 /// Marketplace login state for every user type (FR-CUS-002, FR-ADM-012, FR-ADM-016).
 /// Vendor verification is a separate column on vendor_profile — see Physical-Data-Model.md.
 enum UserAccountState {
@@ -350,12 +356,14 @@ model CustomerProfile {
   @@map("customer_profile")
 }
 
-/// SRS §6.2 has no field dictionary for ADMIN_PROFILE. Fields below are [PROPOSED]
-/// from FR-ADM-001 / FR-ADM-002. No role column (AD-API-03).
+/// Platform Admin role. The default preserves the legacy coarse ADMIN access while
+/// existing rows are migrated to SUPER_ADMIN. New accounts should be provisioned
+/// with the least-privileged role required.
 model AdminProfile {
   id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId               String    @unique @map("user_id") @db.Uuid
   displayName          String    @map("display_name") @db.VarChar(100)
+  role                 AdminRole @default(SUPER_ADMIN)
   totpSecretEncrypted  String?   @map("totp_secret_encrypted")
   totpConfirmedAt      DateTime? @map("totp_confirmed_at") @db.Timestamptz(6)
   createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
