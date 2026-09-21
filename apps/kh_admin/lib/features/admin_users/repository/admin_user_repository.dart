@@ -32,24 +32,16 @@ class AdminUserRepository {
       ...filters.toQueryParameters(),
     };
 
-    final response = await _apiClient.getCollection(
+    final response = await _apiClient.getCollectionDecoded<AdminUserItem>(
       '/v1/admin/admins',
+      itemDecoder: AdminUserItem.fromJson,
       queryParameters: queryParameters.isEmpty ? null : queryParameters,
     );
 
-    final items = response.items
-        .whereType<Map<String, dynamic>>()
-        .map(AdminUserItem.fromJson)
-        .toList(growable: false);
-
-    final meta = response.meta;
-    final nextCursor = meta?['nextCursor']?.toString();
-
     return Paginated<AdminUserItem>(
-      items: items,
-      nextCursor: nextCursor,
-      totalCount:
-          meta?['total'] is num ? (meta!['total'] as num).toInt() : null,
+      items: response.items,
+      nextCursor: response.nextCursor,
+      totalCount: response.totalCount,
     );
   }
 
@@ -61,15 +53,16 @@ class AdminUserRepository {
     required String email,
     required String displayName,
   }) async {
-    final response = await _apiClient.post(
+    final response = await _apiClient.postDecoded<AdminUserItem>(
       '/v1/admin/admins',
       data: <String, dynamic>{
         'email': email.trim(),
         'displayName': displayName.trim(),
       },
+      decoder: (payload) => AdminUserItem.fromJson(unwrapEntity(payload)),
     );
 
-    return AdminUserItem.fromJson(unwrapEntity(response));
+    return response;
   }
 
   /// Suspends the administrator account with identifier [id].
