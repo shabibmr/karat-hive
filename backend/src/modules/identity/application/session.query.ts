@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { UserAccountState, UserType, VendorVerificationState } from '@prisma/client';
+import type { AdminRole, UserAccountState, UserType, VendorVerificationState } from '@prisma/client';
 import { PrismaService } from '../../../platform/db/prisma.service';
 import type { FirebaseClaims } from './firebase-token.service';
 import { hashToken } from './token.service';
@@ -16,6 +16,7 @@ export type UserForViewer = {
   vendorActivatedAt: Date | null;
   customerProfileId: string | null;
   adminProfileId: string | null;
+  adminRole: AdminRole | null;
 };
 
 @Injectable()
@@ -40,6 +41,7 @@ export class SessionQuery {
       vendorActivatedAt: user.vendorProfile?.activatedAt ?? null,
       customerProfileId: user.customerProfile?.id ?? null,
       adminProfileId: user.adminProfile?.id ?? null,
+      adminRole: user.adminProfile?.role ?? null,
     };
   }
 
