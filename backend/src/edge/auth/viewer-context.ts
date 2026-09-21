@@ -1,5 +1,5 @@
 import type { FastifyRequest } from 'fastify';
-import type { UserAccountState, UserType, VendorVerificationState } from '@prisma/client';
+import type { AdminRole, UserAccountState, UserType, VendorVerificationState } from '@prisma/client';
 
 export type ViewerRole = UserType;
 
@@ -14,6 +14,7 @@ export type ViewerContext = {
   vendorActivatedAt: Date | null;
   customerProfileId: string | null;
   adminProfileId: string | null;
+  adminRole?: AdminRole | null;
 };
 
 export const VIEWER_CONTEXT_KEY = 'kh:viewer';

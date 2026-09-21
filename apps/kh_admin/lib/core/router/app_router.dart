@@ -27,6 +27,7 @@ import 'package:kh_admin/features/requests/presentation/request_list_screen.dart
 import 'package:kh_admin/features/vendors/presentation/vendor_detail_screen.dart';
 import 'package:kh_admin/features/vendors/presentation/vendor_list_screen.dart';
 import 'package:kh_admin/core/api/api_client.dart';
+import 'package:kh_admin/core/auth/admin_role.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
 import 'package:kh_admin/core/auth/session_state.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
@@ -93,6 +94,16 @@ class RouterNotifier extends ChangeNotifier {
       if (matched == AdminRoutes.contractMismatch) return AdminRoutes.login;
       final from = Uri.encodeComponent(state.uri.toString());
       return '${AdminRoutes.login}?from=$from';
+    }
+
+    // Every protected destination is checked against the Admin role as well
+    // as the authenticated session. Backend AdminGuard remains authoritative.
+    final adminRole = session.admin?.role;
+    if (adminRole == null) {
+      return AdminRoutes.login;
+    }
+    if (!AdminAccess(adminRole).canRoute(matched)) {
+      return AdminRoutes.dashboard;
     }
 
     // Authenticated admin on /login or /splash → restore `from`, else dashboard.

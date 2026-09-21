@@ -3,6 +3,7 @@ import type { VendorMe } from '../../vendor-onboarding';
 
 export type AdminMe = {
   displayName: string;
+  role: 'SUPER_ADMIN' | 'OPERATIONS_ADMIN' | 'READ_ONLY_ANALYST';
 };
 
 export type CustomerMe = {

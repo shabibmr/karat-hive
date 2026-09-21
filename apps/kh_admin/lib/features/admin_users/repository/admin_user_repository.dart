@@ -5,6 +5,7 @@ import 'package:kh_admin/core/api/json_parse.dart';
 import 'package:kh_admin/core/list/paginated.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_filters.dart';
 import 'package:kh_admin/features/admin_users/model/admin_user_item.dart';
+import 'package:kh_admin/core/auth/admin_role.dart';
 
 /// Typed repository for ADM-S23 Admin User Provisioning & Management.
 ///
@@ -32,44 +33,37 @@ class AdminUserRepository {
       ...filters.toQueryParameters(),
     };
 
-    final response = await _apiClient.getCollection(
+    final response = await _apiClient.getCollectionDecoded<AdminUserItem>(
       '/v1/admin/admins',
+      itemDecoder: AdminUserItem.fromJson,
       queryParameters: queryParameters.isEmpty ? null : queryParameters,
     );
 
-    final items = response.items
-        .whereType<Map<String, dynamic>>()
-        .map(AdminUserItem.fromJson)
-        .toList(growable: false);
-
-    final meta = response.meta;
-    final nextCursor = meta?['nextCursor']?.toString();
-
     return Paginated<AdminUserItem>(
-      items: items,
-      nextCursor: nextCursor,
-      totalCount:
-          meta?['total'] is num ? (meta!['total'] as num).toInt() : null,
+      items: response.items,
+      nextCursor: response.nextCursor,
+      totalCount: response.totalCount,
     );
   }
 
-  /// Provisions a new administrator account with [email] and [displayName].
-  ///
-  /// Per SAM-GAP-13 and AD-API-03, roles are coarse/fixed for system admins;
-  /// no `role` parameter is sent in the payload.
+  /// Provisions a new administrator account. The backend enforces that only
+  /// a Super Admin can perform this mutation and persists the selected role.
   Future<AdminUserItem> createAdmin({
     required String email,
     required String displayName,
+    required AdminRole role,
   }) async {
-    final response = await _apiClient.post(
+    final response = await _apiClient.postDecoded<AdminUserItem>(
       '/v1/admin/admins',
       data: <String, dynamic>{
         'email': email.trim(),
         'displayName': displayName.trim(),
+        'role': role.wireValue,
       },
+      decoder: (payload) => AdminUserItem.fromJson(unwrapEntity(payload)),
     );
 
-    return AdminUserItem.fromJson(unwrapEntity(response));
+    return response;
   }
 
   /// Suspends the administrator account with identifier [id].

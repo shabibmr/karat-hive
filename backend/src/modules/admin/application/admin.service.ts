@@ -645,14 +645,17 @@ export class AdminService {
     return this.repo.listAdmins();
   }
 
-  async createAdmin(dto: { email: string; displayName: string }, adminUserId: string) {
+  async createAdmin(
+    dto: { email: string; displayName: string; role: 'SUPER_ADMIN' | 'OPERATIONS_ADMIN' | 'READ_ONLY_ANALYST' },
+    adminUserId: string,
+  ) {
     const res = await this.repo.createAdmin(dto);
     await this.audit.append(this.prisma, {
       actorUserId: adminUserId,
       action: 'ADMIN_USER_CREATED',
       entityType: 'admin_profile',
       entityId: res.profile.id,
-      afterValue: { email: dto.email, displayName: dto.displayName },
+      afterValue: { email: dto.email, displayName: dto.displayName, role: dto.role },
     });
     return res;
   }

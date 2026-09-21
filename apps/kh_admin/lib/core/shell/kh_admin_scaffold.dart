@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kh_admin/core/auth/admin_role.dart';
 import 'package:kh_admin/core/auth/dev_auth.dart';
 import 'package:kh_admin/core/auth/idle_timeout.dart';
 import 'package:kh_admin/core/auth/session_controller.dart';
@@ -438,7 +439,7 @@ class _AdminTopBar extends ConsumerWidget {
   }
 }
 
-class _AdminSidebar extends StatelessWidget {
+class _AdminSidebar extends ConsumerWidget {
   const _AdminSidebar({
     required this.currentPath,
     required this.onNavigate,
@@ -448,10 +449,13 @@ class _AdminSidebar extends StatelessWidget {
   final ValueChanged<String> onNavigate;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.kh.colors;
     final spacing = context.kh.spacing;
     final typography = context.kh.typography;
+    final role = ref.watch(sessionControllerProvider.select((state) => state.admin?.role));
+    final access = role == null ? null : AdminAccess(role);
+    final visibleItems = kAdminNavItems.where((item) => access?.canRoute(item.route) ?? false).toList(growable: false);
 
     return Container(
       width: spacing.sidebarWidth,
@@ -503,10 +507,10 @@ class _AdminSidebar extends StatelessWidget {
                 vertical: spacing.sm,
                 horizontal: spacing.sm,
               ),
-              itemCount: kAdminNavItems.length,
+              itemCount: visibleItems.length,
               separatorBuilder: (_, __) => SizedBox(height: spacing.xxs),
               itemBuilder: (context, index) {
-                final item = kAdminNavItems[index];
+                final item = visibleItems[index];
                 final isSelected = item.route == '/'
                     ? currentPath == '/'
                     : currentPath.startsWith(item.route);
