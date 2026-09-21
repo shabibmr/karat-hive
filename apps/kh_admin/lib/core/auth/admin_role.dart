@@ -77,6 +77,25 @@ class AdminAccess {
 
   final AdminRole role;
 
+  bool canRoute(String path) {
+    if (path == '/') return can(AdminPermission.dashboardRead);
+    if (path.startsWith('/reports')) return can(AdminPermission.reportsRead);
+    if (path.startsWith('/customers')) return can(AdminPermission.customersRead);
+    if (path.startsWith('/vendors')) return can(AdminPermission.vendorsRead);
+    if (path.startsWith('/verification')) return can(AdminPermission.verificationWrite);
+    if (path.startsWith('/requests')) return can(AdminPermission.requestsRead);
+    if (path.startsWith('/offers')) return can(AdminPermission.offersRead);
+    if (path.startsWith('/connections')) return can(AdminPermission.connectionsRead);
+    if (path.startsWith('/taxonomy/')) return can(AdminPermission.taxonomyWrite);
+    if (path.startsWith('/moderation')) return can(AdminPermission.moderationWrite);
+    if (path.startsWith('/abuse')) return can(AdminPermission.abuseWrite);
+    if (path.startsWith('/announcements')) return can(AdminPermission.announcementsWrite);
+    if (path.startsWith('/settings')) return can(AdminPermission.settingsWrite);
+    if (path.startsWith('/audit')) return can(AdminPermission.auditRead);
+    if (path.startsWith('/admin-users')) return can(AdminPermission.adminUsersWrite);
+    return false;
+  }
+
   bool can(AdminPermission permission) {
     if (role == AdminRole.superAdmin) return true;
     if (role == AdminRole.readOnlyAnalyst) {
