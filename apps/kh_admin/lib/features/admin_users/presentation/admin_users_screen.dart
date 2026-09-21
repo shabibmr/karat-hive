@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kh_admin/core/router/admin_user_query_params.dart';
+import 'package:kh_admin/core/auth/admin_role.dart';
+import 'package:kh_admin/core/auth/admin_access_provider.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
 import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
@@ -19,7 +21,7 @@ import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 ///
 /// Features:
 /// - Summary metric cards: Total Admins, Active, Suspended, Revoked
-/// - Provision Admin action dialog (email + displayName, strictly no role selector per SAM-GAP-13 & AD-API-03)
+/// - Provision Admin action dialog with explicit RBAC role selection
 /// - Search and lifecycle state filtering
 /// - Data table displaying Name, Email, Status, Created Date, and Suspend/Revoke actions
 /// - Confirmation dialogs for account suspension and revocation
@@ -94,6 +96,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
     final nameController = TextEditingController();
     final emailController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    var selectedRole = AdminRole.operationsAdmin;
     final messenger = ScaffoldMessenger.of(context);
 
     showDialog<void>(
@@ -120,7 +123,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Provision a new system administrator. An email with temporary credentials will be dispatched. System admin roles have fixed coarse administrative access (AD-API-03).',
+                        'Provision a new administrator and assign the least-privileged role required. The backend enforces the selected role on every Admin request.',
                         style: kh.typography.bodySmall.copyWith(
                           color: kh.colors.textSecondary,
                         ),
@@ -178,29 +181,37 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                           return null;
                         },
                       ),
-                      SizedBox(height: kh.spacing.sm),
-                      Container(
-                        padding: EdgeInsets.all(kh.spacing.sm),
-                        decoration: BoxDecoration(
-                          color: kh.colors.backgroundSurface,
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: kh.colors.borderSubtle),
+                      SizedBox(height: kh.spacing.md),
+                      DropdownButtonFormField<AdminRole>(
+                        key: const Key('admin-role-field'),
+                        value: selectedRole,
+                        decoration: InputDecoration(
+                          labelText: 'Role *',
+                          labelStyle: TextStyle(color: kh.colors.textSecondary),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: kh.colors.borderSubtle),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: kh.colors.goldPrimary),
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline, size: 16, color: kh.colors.goldPrimary),
-                            SizedBox(width: kh.spacing.xs),
-                            Expanded(
-                              child: Text(
-                                'Role is fixed: System Administrator (coarse RBAC)',
-                                style: kh.typography.caption.copyWith(
-                                  color: kh.colors.textSecondary,
-                                ),
+                        items: AdminRole.values
+                            .map(
+                              (role) => DropdownMenuItem<AdminRole>(
+                                value: role,
+                                child: Text(role.label),
                               ),
-                            ),
-                          ],
-                        ),
+                            )
+                            .toList(growable: false),
+                        onChanged: isBusy
+                            ? null
+                            : (value) {
+                                if (value != null) {
+                                  setDialogState(() => selectedRole = value);
+                                }
+                              },
                       ),
+
                     ],
                   ),
                 ),
@@ -228,6 +239,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                               .provisionAdmin(
                                 email: email,
                                 displayName: name,
+                                role: selectedRole,
                               );
 
                           if (!dialogCtx.mounted) return;
@@ -479,7 +491,9 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                     vertical: kh.spacing.sm,
                   ),
                 ),
-                onPressed: _showProvisionDialog,
+                onPressed: ref.watch(adminAccessProvider)?.can(AdminPermission.adminUsersWrite) == true
+                    ? _showProvisionDialog
+                    : null,
                 icon: const Icon(Icons.person_add, size: 18),
                 label: const Text(
                   'Provision Admin',
@@ -614,6 +628,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                               columns: const [
                                 KhTableColumn('Name', flex: 3),
                                 KhTableColumn('Email', flex: 3),
+                                KhTableColumn('Role', flex: 2),
                                 KhTableColumn('Status', flex: 2),
                                 KhTableColumn('Created Date', flex: 2),
                                 KhTableColumn('Actions', flex: 2),
@@ -642,6 +657,15 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                                       item.email,
                                       style: kh.typography.bodySmall,
                                       overflow: TextOverflow.ellipsis,
+                                    ),
+                                    // RBAC role
+                                    Text(
+                                      item.role?.label ?? 'Role unavailable',
+                                      style: kh.typography.bodySmall.copyWith(
+                                        color: item.role == null
+                                            ? kh.colors.error
+                                            : kh.colors.textSecondary,
+                                      ),
                                     ),
                                     // Status Chip
                                     KhStatusChip(
