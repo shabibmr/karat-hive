@@ -46,7 +46,7 @@ class AdminUser {
     required this.userType,
     required this.email,
     required this.displayName,
-    required this.role,
+    this.role,
   });
 
   final String userId;
