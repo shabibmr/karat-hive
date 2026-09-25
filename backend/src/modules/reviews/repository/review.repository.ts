@@ -212,7 +212,7 @@ export class ReviewRepository {
     data: {
       state: ReviewState;
       comment?: string;
-      moderatedByAdminId: string;
+      moderatedByAdminId?: string | null;
       publishedAt?: Date | null;
     },
   ) {

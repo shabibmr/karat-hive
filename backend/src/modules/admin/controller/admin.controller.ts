@@ -248,7 +248,7 @@ export class AdminController {
     @Param('id') id: string,
     @Body(zodBody(verifyVendorSchema)) body: z.infer<typeof verifyVendorSchema>,
   ) {
-    const data = await this.service.verifyVendor(id, body, viewer.userId);
+    const data = await this.service.verifyVendor(id, body, viewer.userId, viewer.adminProfileId ?? undefined);
     return { data };
   }
 
@@ -258,7 +258,7 @@ export class AdminController {
     @Param('id') id: string,
     @Body(zodBody(rejectVendorSchema)) body: z.infer<typeof rejectVendorSchema>,
   ) {
-    const data = await this.service.rejectVendor(id, body, viewer.userId);
+    const data = await this.service.rejectVendor(id, body, viewer.userId, viewer.adminProfileId ?? undefined);
     return { data };
   }
 
@@ -268,7 +268,7 @@ export class AdminController {
     @Param('id') id: string,
     @Body(zodBody(requestInfoVendorSchema)) body: z.infer<typeof requestInfoVendorSchema>,
   ) {
-    const data = await this.service.requestVendorInfo(id, body, viewer.userId);
+    const data = await this.service.requestVendorInfo(id, body, viewer.userId, viewer.adminProfileId ?? undefined);
     return { data };
   }
 
@@ -510,7 +510,7 @@ export class AdminController {
     @Param('id') id: string,
     @Body(zodBody(resolveAbuseSchema)) body: z.infer<typeof resolveAbuseSchema>,
   ) {
-    const data = await this.service.resolveAbuseReport(id, body, viewer.userId);
+    const data = await this.service.resolveAbuseReport(id, body, viewer.userId, viewer.adminProfileId ?? undefined);
     return { data };
   }
 
@@ -520,7 +520,7 @@ export class AdminController {
     @Param('id') id: string,
     @Body(zodBody(resolveAbuseSchema)) body: z.infer<typeof resolveAbuseSchema>,
   ) {
-    const data = await this.service.dismissAbuseReport(id, body, viewer.userId);
+    const data = await this.service.dismissAbuseReport(id, body, viewer.userId, viewer.adminProfileId ?? undefined);
     return { data };
   }
 
@@ -530,7 +530,7 @@ export class AdminController {
     @Param('id') id: string,
     @Body(zodBody(actionAbuseSchema)) body: z.infer<typeof actionAbuseSchema>,
   ) {
-    const data = await this.service.actionAbuseReport(id, body, viewer.userId);
+    const data = await this.service.actionAbuseReport(id, body, viewer.userId, viewer.adminProfileId ?? undefined);
     return { data };
   }
 
@@ -547,7 +547,7 @@ export class AdminController {
     @Param('key') key: string,
     @Body(zodBody(updateSettingSchema)) body: z.infer<typeof updateSettingSchema>,
   ) {
-    const data = await this.service.updateSetting(key, body.value, viewer.userId);
+    const data = await this.service.updateSetting(key, body.value, viewer.userId, viewer.adminProfileId ?? undefined);
     return { data };
   }
 

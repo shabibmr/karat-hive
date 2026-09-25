@@ -44,35 +44,34 @@ void main() {
   });
 
   Map<String, dynamic> envelope(Object data) => {
-        'data': data,
-        'meta': {'serverTime': '2026-09-07T12:00:00.000Z'},
-      };
+    'data': data,
+    'meta': {'serverTime': '2026-09-07T12:00:00.000Z'},
+  };
 
   Map<String, dynamic> meUserJson({
     String userType = 'CUSTOMER',
     Map<String, dynamic>? customer,
     Map<String, dynamic>? vendor,
-  }) =>
-      {
-        'userId': 'u-1',
-        'id': 'u-1',
-        'userType': userType,
-        'accountState': 'ACTIVE',
-        'mobileNumber': '+971500000001',
-        'preferredLanguage': 'en',
-        'email': 'aisha@example.com',
-        'oauthBound': true,
-        if (customer != null) 'customer': customer,
-        if (vendor != null) 'vendor': vendor,
-      };
+  }) => {
+    'userId': 'u-1',
+    'id': 'u-1',
+    'userType': userType,
+    'accountState': 'ACTIVE',
+    'mobileNumber': '+971500000001',
+    'preferredLanguage': 'en',
+    'email': 'aisha@example.com',
+    'oauthBound': true,
+    if (customer != null) 'customer': customer,
+    if (vendor != null) 'vendor': vendor,
+  };
 
   Map<String, dynamic> sessionJson({Map<String, dynamic>? user}) => {
-        'accessToken': 'at',
-        'refreshToken': 'rt',
-        'accessExpiresAt': '2026-09-07T12:15:00.000Z',
-        'refreshExpiresAt': '2026-10-07T12:00:00.000Z',
-        'user': user ?? meUserJson(customer: _customerJson),
-      };
+    'accessToken': 'at',
+    'refreshToken': 'rt',
+    'accessExpiresAt': '2026-09-07T12:15:00.000Z',
+    'refreshExpiresAt': '2026-10-07T12:00:00.000Z',
+    'user': user ?? meUserJson(customer: _customerJson),
+  };
 
   group('registerCustomer', () {
     test('POSTs /v1/auth/register/customer and maps SessionBundle', () async {
@@ -150,10 +149,9 @@ void main() {
     });
 
     test('PATCH /v1/me sends Customer fields and maps MeUser', () async {
-      payload = envelope(meUserJson(customer: {
-        ..._customerJson,
-        'displayName': 'Aisha K',
-      }));
+      payload = envelope(
+        meUserJson(customer: {..._customerJson, 'displayName': 'Aisha K'}),
+      );
 
       final result = await api.patchMe(
         displayName: 'Aisha K',
@@ -177,18 +175,20 @@ void main() {
     });
 
     test('GET /v1/me still maps Vendor branch', () async {
-      payload = envelope(meUserJson(
-        userType: 'VENDOR',
-        vendor: {
-          'vendorProfileId': 'vp-1',
-          'lifecycle': 'ACTIVE',
-          'awaitingApproval': false,
-          'tradingName': 'Al Noor',
-          'legalBusinessName': 'Al Noor LLC',
-          'categoryCount': 2,
-          'regionCount': 1,
-        },
-      ));
+      payload = envelope(
+        meUserJson(
+          userType: 'VENDOR',
+          vendor: {
+            'vendorProfileId': 'vp-1',
+            'lifecycle': 'ACTIVE',
+            'awaitingApproval': false,
+            'tradingName': 'Al Noor',
+            'legalBusinessName': 'Al Noor LLC',
+            'categoryCount': 2,
+            'regionCount': 1,
+          },
+        ),
+      );
 
       final result = await api.me();
       final me = (result as Ok<MeUser>).value;
@@ -282,7 +282,7 @@ void main() {
           'timezone': 'Asia/Dubai',
         },
         'notifications': {
-          'OFFERS': {'inApp': true, 'push': true, 'email': false},
+          'OFFERS': {'inApp': true, 'push': true, 'emailChannel': false},
         },
       });
 
@@ -302,7 +302,7 @@ void main() {
       payload = envelope({
         'preferredLanguage': 'en',
         'notifications': {
-          'OFFERS': {'inApp': false, 'push': false, 'email': false},
+          'OFFERS': {'inApp': false, 'push': false, 'emailChannel': false},
         },
       });
 
@@ -311,7 +311,11 @@ void main() {
         defaultRegionId: 'reg-9',
         quietHours: const QuietHours(start: '21:00', end: '06:00'),
         notifications: {
-          'OFFERS': const NotificationChannelPref(inApp: false, push: false, email: false),
+          'OFFERS': const NotificationChannelPref(
+            inApp: false,
+            push: false,
+            emailChannel: false,
+          ),
         },
       );
 
@@ -326,7 +330,7 @@ void main() {
           'timezone': 'Asia/Dubai',
         },
         'notifications': {
-          'OFFERS': {'inApp': false, 'push': false, 'email': false},
+          'OFFERS': {'inApp': false, 'push': false, 'emailChannel': false},
         },
       });
       expect(result, isA<Ok<UserSettings>>());
@@ -347,20 +351,22 @@ void main() {
   group('existing Vendor methods', () {
     test('registerVendor still POSTs /v1/auth/register/vendor', () async {
       status = 201;
-      payload = envelope(sessionJson(
-        user: meUserJson(
-          userType: 'VENDOR',
-          vendor: {
-            'vendorProfileId': 'vp-1',
-            'lifecycle': 'PENDING_VERIFICATION',
-            'awaitingApproval': true,
-            'tradingName': 'Al Noor',
-            'legalBusinessName': 'Al Noor LLC',
-            'categoryCount': 0,
-            'regionCount': 0,
-          },
+      payload = envelope(
+        sessionJson(
+          user: meUserJson(
+            userType: 'VENDOR',
+            vendor: {
+              'vendorProfileId': 'vp-1',
+              'lifecycle': 'PENDING_VERIFICATION',
+              'awaitingApproval': true,
+              'tradingName': 'Al Noor',
+              'legalBusinessName': 'Al Noor LLC',
+              'categoryCount': 0,
+              'regionCount': 0,
+            },
+          ),
         ),
-      ));
+      );
 
       final result = await api.registerVendor({
         'firebaseToken': 'tok',
@@ -388,11 +394,7 @@ void main() {
 const _customerJson = {
   'displayName': 'Aisha',
   'photoUrl': null,
-  'defaultRegion': {
-    'id': 'reg-1',
-    'nameEn': 'Dubai',
-    'nameAr': 'دبي',
-  },
+  'defaultRegion': {'id': 'reg-1', 'nameEn': 'Dubai', 'nameAr': 'دبي'},
   'reviewCount': 0,
   'connectionCount': 0,
   'liveRequestCount': 1,

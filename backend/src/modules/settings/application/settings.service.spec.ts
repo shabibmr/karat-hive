@@ -196,7 +196,7 @@ describe('SettingsService — locked notification categories (CP6-A01.2)', () =>
     );
 
     const result = await service.updateMySettings(customerViewer, {
-      notifications: { security: { inApp: true, push: true, email: true } },
+      notifications: { security: { inApp: true, push: true, emailChannel: true } },
     });
 
     expect(repo.updateUserSettings).toHaveBeenCalledWith(
@@ -208,7 +208,7 @@ describe('SettingsService — locked notification categories (CP6-A01.2)', () =>
     expect(result.notifications.security).toEqual({
       inApp: true,
       push: true,
-      email: true,
+      emailChannel: true,
     });
   });
 
@@ -225,7 +225,7 @@ describe('SettingsService — locked notification categories (CP6-A01.2)', () =>
     expect(result.notifications['offer.submitted']).toEqual({
       inApp: false,
       push: false,
-      email: true,
+      emailChannel: true,
     });
   });
 
@@ -239,7 +239,7 @@ describe('SettingsService — locked notification categories (CP6-A01.2)', () =>
     expect(result.notifications.security).toEqual({
       inApp: true,
       push: true,
-      email: true,
+      emailChannel: true,
     });
   });
 });

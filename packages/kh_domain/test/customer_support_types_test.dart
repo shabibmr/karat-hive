@@ -65,7 +65,7 @@ void main() {
           'timezone': 'Asia/Dubai',
         },
         'notifications': {
-          'FIRST_OFFER': {'inApp': true, 'push': true, 'email': false},
+          'FIRST_OFFER': {'inApp': true, 'push': true, 'emailChannel': false},
         },
       });
       expect(s.preferredLanguage, 'ar');
@@ -75,31 +75,34 @@ void main() {
   });
 
   group('PlatformConfig', () {
-    test('has maxConcurrentLiveRequests and optional legal URLs (SAM-GAP-5)', () {
-      final cfg = PlatformConfig.fromJson({
-        'requestLifetimeHours': 48,
-        'offerValidityHours': [12, 24, 48],
-        'defaultOfferValidityHours': 24,
-        'bullionMinimumAed': '500.00',
-        'maxConcurrentLiveRequests': 10,
-        'maxRequestImages': 5,
-        'maxOfferImages': 3,
-        'maxImageBytes': 5242880,
-        'acceptedImageTypes': ['image/jpeg'],
-        'karatList': ['24K', '22K'],
-        'maxOfferRevisions': 3,
-        'requestExpiryWarningHours': 6,
-        'termsUrl': 'https://karathive.ae/legal/terms',
-        'privacyUrl': 'https://karathive.ae/legal/privacy',
-        'supportContactUrl': 'https://karathive.ae/support',
-        'subscriptionContactUrl': 'https://karathive.ae/subscriptions',
-      });
-      expect(cfg.maxConcurrentLiveRequests, 10);
-      expect(cfg.bullionMinimumAed, '500.00');
-      expect(cfg.termsUrl, contains('terms'));
-      expect(cfg.privacyUrl, contains('privacy'));
-      expect(cfg.supportContactUrl, isNotNull);
-    });
+    test(
+      'has maxConcurrentLiveRequests and optional legal URLs (SAM-GAP-5)',
+      () {
+        final cfg = PlatformConfig.fromJson({
+          'requestLifetimeHours': 48,
+          'offerValidityHours': [12, 24, 48],
+          'defaultOfferValidityHours': 24,
+          'bullionMinimumAed': '500.00',
+          'maxConcurrentLiveRequests': 10,
+          'maxRequestImages': 5,
+          'maxOfferImages': 3,
+          'maxImageBytes': 5242880,
+          'acceptedImageTypes': ['image/jpeg'],
+          'karatList': ['24K', '22K'],
+          'maxOfferRevisions': 3,
+          'requestExpiryWarningHours': 6,
+          'termsUrl': 'https://karathive.ae/legal/terms',
+          'privacyUrl': 'https://karathive.ae/legal/privacy',
+          'supportContactUrl': 'https://karathive.ae/support',
+          'subscriptionContactUrl': 'https://karathive.ae/subscriptions',
+        });
+        expect(cfg.maxConcurrentLiveRequests, 10);
+        expect(cfg.bullionMinimumAed, '500.00');
+        expect(cfg.termsUrl, contains('terms'));
+        expect(cfg.privacyUrl, contains('privacy'));
+        expect(cfg.supportContactUrl, isNotNull);
+      },
+    );
 
     test('legal URLs are optional when absent', () {
       final cfg = PlatformConfig.fromJson({

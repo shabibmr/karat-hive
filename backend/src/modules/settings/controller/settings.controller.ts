@@ -21,7 +21,10 @@ const patchSettingsSchema = z.object({
       z.object({
         inApp: z.boolean().optional(),
         push: z.boolean().optional(),
-        email: z.boolean().optional(),
+        // Wire key is `emailChannel`, not `email` — "email" is a reserved
+        // identity key (edge/masking/identity-keys.ts) and trips
+        // MaskingInterceptor's leak check on this non-identity boolean.
+        emailChannel: z.boolean().optional(),
       }),
     )
     .optional(),

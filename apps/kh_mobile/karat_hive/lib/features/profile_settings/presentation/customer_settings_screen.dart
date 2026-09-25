@@ -18,11 +18,7 @@ import '../controller/settings_controller.dart';
 /// agnostic. Adds the Customer-only account lifecycle actions (deactivate,
 /// request deletion) that VEN-S18 doesn't have.
 class CustomerSettingsScreen extends ConsumerWidget {
-  const CustomerSettingsScreen({
-    super.key,
-    this.openUrl,
-    this.onLogout,
-  });
+  const CustomerSettingsScreen({super.key, this.openUrl, this.onLogout});
 
   /// Optional override for URL opening (useful in tests).
   final Future<bool> Function(String url)? openUrl;
@@ -49,9 +45,9 @@ class CustomerSettingsScreen extends ConsumerWidget {
   }
 
   void _showError(BuildContext context, Failure failure, String fallback) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(failure.message ?? fallback)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(failure.message ?? fallback)));
   }
 
   Future<void> _handleDeactivate(BuildContext context, WidgetRef ref) async {
@@ -67,8 +63,9 @@ class CustomerSettingsScreen extends ConsumerWidget {
     );
     if (confirmed != true) return;
 
-    final res =
-        await ref.read(settingsControllerProvider.notifier).deactivateAccount();
+    final res = await ref
+        .read(settingsControllerProvider.notifier)
+        .deactivateAccount();
     if (!context.mounted) return;
     res.when(
       ok: (_) async {
@@ -89,7 +86,8 @@ class CustomerSettingsScreen extends ConsumerWidget {
     final firstConfirm = await showKhConfirmDialog(
       context,
       title: 'Request Permanent Deletion',
-      body: 'This permanently deletes your account. Your personal data is '
+      body:
+          'This permanently deletes your account. Your personal data is '
           'anonymised within 30 days; reviews you left show as "Deleted '
           'user". This is refused if you have a Connection in the last 30 '
           'days. This cannot be undone.',
@@ -129,15 +127,15 @@ class CustomerSettingsScreen extends ConsumerWidget {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => _DeletionOtpDialog(
-        challengeId: challengeId,
-        requestId: request.id,
-      ),
+      builder: (_) =>
+          _DeletionOtpDialog(challengeId: challengeId, requestId: request.id),
     );
     if (confirmed == true && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Account deletion requested. You have been logged out.'),
+          content: Text(
+            'Account deletion requested. You have been logged out.',
+          ),
         ),
       );
       if (onLogout != null) {
@@ -166,41 +164,45 @@ class CustomerSettingsScreen extends ConsumerWidget {
       NotificationPreferenceCategory(
         id: 'offer_updates',
         label: 'Offers',
-        pref: notifications['offer_updates'] ??
+        pref:
+            notifications['offer_updates'] ??
             const NotificationChannelPref(
               inApp: false,
               push: false,
-              email: false,
+              emailChannel: false,
             ),
       ),
       NotificationPreferenceCategory(
         id: 'request_expiry',
         label: 'Request Expiry',
-        pref: notifications['request_expiry'] ??
+        pref:
+            notifications['request_expiry'] ??
             const NotificationChannelPref(
               inApp: false,
               push: false,
-              email: false,
+              emailChannel: false,
             ),
       ),
       NotificationPreferenceCategory(
         id: 'review_reminder',
         label: 'Review Reminders',
-        pref: notifications['review_reminder'] ??
+        pref:
+            notifications['review_reminder'] ??
             const NotificationChannelPref(
               inApp: false,
               push: false,
-              email: false,
+              emailChannel: false,
             ),
       ),
       NotificationPreferenceCategory(
         id: 'announcement',
         label: 'Announcements',
-        pref: notifications['announcement'] ??
+        pref:
+            notifications['announcement'] ??
             const NotificationChannelPref(
               inApp: false,
               push: false,
-              email: false,
+              emailChannel: false,
             ),
       ),
       NotificationPreferenceCategory(
@@ -229,9 +231,9 @@ class CustomerSettingsScreen extends ConsumerWidget {
                     ref
                         .read(appLocaleProvider.notifier)
                         .setLanguageCode(newLocale);
-                    ref.read(settingsControllerProvider.notifier).patch(
-                          preferredLanguage: newLocale,
-                        );
+                    ref
+                        .read(settingsControllerProvider.notifier)
+                        .patch(preferredLanguage: newLocale);
                   },
                 ),
               ],
@@ -246,8 +248,7 @@ class CustomerSettingsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(16),
                   child: regionsAsync.when(
                     loading: () => const LinearProgressIndicator(),
-                    error: (_, __) =>
-                        const Text('Could not load regions'),
+                    error: (_, __) => const Text('Could not load regions'),
                     data: (regions) => DropdownButtonFormField<String?>(
                       key: const Key('default-region-select'),
                       initialValue: defaultRegionId,
@@ -269,9 +270,9 @@ class CustomerSettingsScreen extends ConsumerWidget {
                         ),
                       ],
                       onChanged: (value) {
-                        ref.read(settingsControllerProvider.notifier).patch(
-                              defaultRegionId: value ?? '',
-                            );
+                        ref
+                            .read(settingsControllerProvider.notifier)
+                            .patch(defaultRegionId: value ?? '');
                       },
                     ),
                   ),
@@ -291,12 +292,13 @@ class CustomerSettingsScreen extends ConsumerWidget {
                   inAppLabel: 'SMS',
                   categories: categories,
                   onChanged: (categoryId, nextPref) {
-                    final updated =
-                        Map<String, NotificationChannelPref>.from(notifications);
+                    final updated = Map<String, NotificationChannelPref>.from(
+                      notifications,
+                    );
                     updated[categoryId] = nextPref;
-                    ref.read(settingsControllerProvider.notifier).patch(
-                          notifications: updated,
-                        );
+                    ref
+                        .read(settingsControllerProvider.notifier)
+                        .patch(notifications: updated);
                   },
                 ),
               ],
@@ -313,7 +315,8 @@ class CustomerSettingsScreen extends ConsumerWidget {
                   leadingIcon: Icons.description,
                   showChevron: true,
                   onTap: () {
-                    final url = config?.termsUrl ?? 'https://karathive.ae/terms';
+                    final url =
+                        config?.termsUrl ?? 'https://karathive.ae/terms';
                     (openUrl ?? openExternalUrl)(url);
                   },
                 ),
@@ -334,7 +337,8 @@ class CustomerSettingsScreen extends ConsumerWidget {
                   leadingIcon: Icons.help_outline,
                   showChevron: true,
                   onTap: () {
-                    final url = config?.supportContactUrl ??
+                    final url =
+                        config?.supportContactUrl ??
                         'https://karathive.ae/support';
                     (openUrl ?? openExternalUrl)(url);
                   },
@@ -407,7 +411,10 @@ class CustomerSettingsScreen extends ConsumerWidget {
 /// purpose `CHANGE_MOBILE`) that must be verified before
 /// `confirmDeletionRequest` will finalise.
 class _DeletionOtpDialog extends ConsumerStatefulWidget {
-  const _DeletionOtpDialog({required this.challengeId, required this.requestId});
+  const _DeletionOtpDialog({
+    required this.challengeId,
+    required this.requestId,
+  });
 
   final String challengeId;
   final String requestId;

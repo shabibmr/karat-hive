@@ -44,7 +44,11 @@ void main() {
         'defaultRegionId': 'r1',
         'quietHours': {'start': '22:00', 'end': '07:00'},
         'notifications': {
-          'offer_updates': {'inApp': true, 'push': false, 'email': false},
+          'offer_updates': {
+            'inApp': true,
+            'push': false,
+            'emailChannel': false,
+          },
         },
       });
 

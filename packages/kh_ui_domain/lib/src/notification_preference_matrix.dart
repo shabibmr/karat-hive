@@ -15,7 +15,7 @@ bool isLockedNotificationCategory(String category) =>
 
 /// Forced channel state for locked / security-critical categories.
 const NotificationChannelPref kLockedNotificationChannelPref =
-    NotificationChannelPref(inApp: true, push: true, email: true);
+    NotificationChannelPref(inApp: true, push: true, emailChannel: true);
 
 /// Channels exposed by `UserSettings.notifications` / `NotificationChannelPref`.
 enum NotificationPrefChannel { inApp, push, email }
@@ -61,19 +61,19 @@ NotificationChannelPref notificationChannelPrefWith(
       return NotificationChannelPref(
         inApp: value,
         push: pref.push,
-        email: pref.email,
+        emailChannel: pref.emailChannel,
       );
     case NotificationPrefChannel.push:
       return NotificationChannelPref(
         inApp: pref.inApp,
         push: value,
-        email: pref.email,
+        emailChannel: pref.emailChannel,
       );
     case NotificationPrefChannel.email:
       return NotificationChannelPref(
         inApp: pref.inApp,
         push: pref.push,
-        email: value,
+        emailChannel: value,
       );
   }
 }
@@ -88,7 +88,7 @@ bool notificationChannelValue(
     case NotificationPrefChannel.push:
       return pref.push;
     case NotificationPrefChannel.email:
-      return pref.email;
+      return pref.emailChannel;
   }
 }
 
@@ -113,7 +113,7 @@ class NotificationPreferenceMatrix extends StatelessWidget {
   /// Fired with the category id and the next full channel pref. Never called
   /// for locked / security-critical categories.
   final void Function(String categoryId, NotificationChannelPref next)?
-      onChanged;
+  onChanged;
 
   final String inAppLabel;
   final String pushLabel;
@@ -167,7 +167,7 @@ class _CategoryBlock extends StatelessWidget {
   final NotificationPreferenceCategory category;
   final String Function(NotificationPrefChannel channel) channelLabel;
   final void Function(String categoryId, NotificationChannelPref next)?
-      onChanged;
+  onChanged;
 
   @override
   Widget build(BuildContext context) {

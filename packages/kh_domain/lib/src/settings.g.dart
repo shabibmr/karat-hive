@@ -48,7 +48,7 @@ _NotificationChannelPref _$NotificationChannelPrefFromJson(
 ) => _NotificationChannelPref(
   inApp: json['inApp'] as bool,
   push: json['push'] as bool,
-  email: json['email'] as bool,
+  emailChannel: json['emailChannel'] as bool,
 );
 
 Map<String, dynamic> _$NotificationChannelPrefToJson(
@@ -56,7 +56,7 @@ Map<String, dynamic> _$NotificationChannelPrefToJson(
 ) => <String, dynamic>{
   'inApp': instance.inApp,
   'push': instance.push,
-  'email': instance.email,
+  'emailChannel': instance.emailChannel,
 };
 
 _UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) =>

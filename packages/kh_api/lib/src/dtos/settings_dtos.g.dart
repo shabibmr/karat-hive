@@ -48,7 +48,7 @@ _NotificationChannelPrefsDto _$NotificationChannelPrefsDtoFromJson(
 ) => _NotificationChannelPrefsDto(
   inApp: json['inApp'] as bool? ?? true,
   push: json['push'] as bool? ?? true,
-  email: json['email'] as bool? ?? false,
+  emailChannel: json['emailChannel'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$NotificationChannelPrefsDtoToJson(
@@ -56,7 +56,7 @@ Map<String, dynamic> _$NotificationChannelPrefsDtoToJson(
 ) => <String, dynamic>{
   'inApp': instance.inApp,
   'push': instance.push,
-  'email': instance.email,
+  'emailChannel': instance.emailChannel,
 };
 
 _PlatformConfigDto _$PlatformConfigDtoFromJson(

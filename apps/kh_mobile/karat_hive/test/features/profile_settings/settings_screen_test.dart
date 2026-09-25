@@ -57,13 +57,12 @@ UserSettings _mockSettings({
   QuietHours? quietHours,
   Map<String, NotificationChannelPref> notifications = const {},
   String? defaultFilterPresetId,
-}) =>
-    UserSettings(
-      preferredLanguage: preferredLanguage,
-      quietHours: quietHours,
-      notifications: notifications,
-      defaultFilterPresetId: defaultFilterPresetId,
-    );
+}) => UserSettings(
+  preferredLanguage: preferredLanguage,
+  quietHours: quietHours,
+  notifications: notifications,
+  defaultFilterPresetId: defaultFilterPresetId,
+);
 
 void main() {
   late _MockProfileSettingsRepository repo;
@@ -79,12 +78,14 @@ void main() {
     currentNotifications = const {};
     currentDefaultFilterPresetId = null;
     when(() => repo.settings()).thenAnswer(
-      (_) async => Ok(_mockSettings(
-        preferredLanguage: currentLang,
-        quietHours: currentQuietHours,
-        notifications: currentNotifications,
-        defaultFilterPresetId: currentDefaultFilterPresetId,
-      )),
+      (_) async => Ok(
+        _mockSettings(
+          preferredLanguage: currentLang,
+          quietHours: currentQuietHours,
+          notifications: currentNotifications,
+          defaultFilterPresetId: currentDefaultFilterPresetId,
+        ),
+      ),
     );
     when(
       () => repo.patchSettings(
@@ -95,41 +96,49 @@ void main() {
         notifications: any(named: 'notifications'),
       ),
     ).thenAnswer((invocation) async {
-      final lang =
-          invocation.namedArguments[#preferredLanguage] as String?;
+      final lang = invocation.namedArguments[#preferredLanguage] as String?;
       if (lang != null) currentLang = lang;
       if (invocation.namedArguments.containsKey(#quietHours)) {
         currentQuietHours =
             invocation.namedArguments[#quietHours] as QuietHours?;
       }
-      final notifs = invocation.namedArguments[#notifications]
-          as Map<String, NotificationChannelPref>?;
+      final notifs =
+          invocation.namedArguments[#notifications]
+              as Map<String, NotificationChannelPref>?;
       if (notifs != null) currentNotifications = notifs;
       if (invocation.namedArguments.containsKey(#defaultFilterPresetId)) {
         final val =
             invocation.namedArguments[#defaultFilterPresetId] as String?;
-        currentDefaultFilterPresetId =
-            (val == null || val.isEmpty) ? null : val;
+        currentDefaultFilterPresetId = (val == null || val.isEmpty)
+            ? null
+            : val;
       }
 
-      return Ok(_mockSettings(
-        preferredLanguage: currentLang,
-        quietHours: currentQuietHours,
-        notifications: currentNotifications,
-        defaultFilterPresetId: currentDefaultFilterPresetId,
-      ));
+      return Ok(
+        _mockSettings(
+          preferredLanguage: currentLang,
+          quietHours: currentQuietHours,
+          notifications: currentNotifications,
+          defaultFilterPresetId: currentDefaultFilterPresetId,
+        ),
+      );
     });
     when(() => repo.listSessions()).thenAnswer((_) async => const Ok([]));
-    when(() => repo.revokeSession(any())).thenAnswer((_) async => const Ok(null));
-    when(() => repo.setPassword(
-          currentPassword: any(named: 'currentPassword'),
-          newPassword: any(named: 'newPassword'),
-        )).thenAnswer((_) async => const Ok(null));
+    when(
+      () => repo.revokeSession(any()),
+    ).thenAnswer((_) async => const Ok(null));
+    when(
+      () => repo.setPassword(
+        currentPassword: any(named: 'currentPassword'),
+        newPassword: any(named: 'newPassword'),
+      ),
+    ).thenAnswer((_) async => const Ok(null));
   });
 
   group('VEN-S18 SettingsScreen Language & Immediate RTL', () {
-    testWidgets('renders LanguagePickerTile inside SettingsGroup',
-        (tester) async {
+    testWidgets('renders LanguagePickerTile inside SettingsGroup', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _host(
           overrides: [
@@ -156,46 +165,48 @@ void main() {
     });
 
     testWidgets(
-        'tapping Arabic segment updates locale, triggers patch, updates label and sets RTL',
-        (tester) async {
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+      'tapping Arabic segment updates locale, triggers patch, updates label and sets RTL',
+      (tester) async {
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      expect(
-        Directionality.of(tester.element(find.byType(SettingsScreen))),
-        TextDirection.ltr,
-      );
-      expect(find.text('English (LTR)'), findsOneWidget);
+        expect(
+          Directionality.of(tester.element(find.byType(SettingsScreen))),
+          TextDirection.ltr,
+        );
+        expect(find.text('English (LTR)'), findsOneWidget);
 
-      // Tap Arabic segment
-      await tester.tap(find.text('عربي'));
-      await tester.pumpAndSettle();
+        // Tap Arabic segment
+        await tester.tap(find.text('عربي'));
+        await tester.pumpAndSettle();
 
-      verify(
-        () => repo.patchSettings(
-          preferredLanguage: 'ar',
-          defaultRegionId: any(named: 'defaultRegionId'),
-          quietHours: any(named: 'quietHours'),
-          defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
-          notifications: any(named: 'notifications'),
-        ),
-      ).called(1);
+        verify(
+          () => repo.patchSettings(
+            preferredLanguage: 'ar',
+            defaultRegionId: any(named: 'defaultRegionId'),
+            quietHours: any(named: 'quietHours'),
+            defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
+            notifications: any(named: 'notifications'),
+          ),
+        ).called(1);
 
-      expect(find.text('العربية (Arabic - RTL)'), findsOneWidget);
-      expect(
-        Directionality.of(tester.element(find.byType(SettingsScreen))),
-        TextDirection.rtl,
-      );
-    });
+        expect(find.text('العربية (Arabic - RTL)'), findsOneWidget);
+        expect(
+          Directionality.of(tester.element(find.byType(SettingsScreen))),
+          TextDirection.rtl,
+        );
+      },
+    );
 
-    testWidgets('switching back to English updates Directionality to LTR',
-        (tester) async {
+    testWidgets('switching back to English updates Directionality to LTR', (
+      tester,
+    ) async {
       currentLang = 'ar';
 
       await tester.pumpWidget(
@@ -234,26 +245,28 @@ void main() {
       );
     });
 
-    testWidgets('initial locale reads from userSettingsProvider preferredLanguage',
-        (tester) async {
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-            userSettingsProvider.overrideWith(
-              (ref) async => _mockSettings(preferredLanguage: 'ar'),
-            ),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+    testWidgets(
+      'initial locale reads from userSettingsProvider preferredLanguage',
+      (tester) async {
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+              userSettingsProvider.overrideWith(
+                (ref) async => _mockSettings(preferredLanguage: 'ar'),
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('العربية (Arabic - RTL)'), findsOneWidget);
-      expect(
-        Directionality.of(tester.element(find.byType(SettingsScreen))),
-        TextDirection.rtl,
-      );
-    });
+        expect(find.text('العربية (Arabic - RTL)'), findsOneWidget);
+        expect(
+          Directionality.of(tester.element(find.byType(SettingsScreen))),
+          TextDirection.rtl,
+        );
+      },
+    );
   });
 
   group('AppLocaleNotifier unit tests', () {
@@ -311,8 +324,9 @@ void main() {
   });
 
   group('VEN-S18 Notification Matrix', () {
-    testWidgets('renders Push, Email, SMS channels and 4 categories',
-        (tester) async {
+    testWidgets('renders Push, Email, SMS channels and 4 categories', (
+      tester,
+    ) async {
       _setLargeViewport(tester);
 
       await tester.pumpWidget(
@@ -359,8 +373,9 @@ void main() {
       expect(find.text('SMS'), findsNWidgets(4));
     });
 
-    testWidgets('security category is locked and cannot be toggled off',
-        (tester) async {
+    testWidgets('security category is locked and cannot be toggled off', (
+      tester,
+    ) async {
       _setLargeViewport(tester);
 
       await tester.pumpWidget(
@@ -372,14 +387,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(
-        find.byKey(const Key('notif-pref-lock-security')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const Key('notif-pref-hint-security')),
-        findsOneWidget,
-      );
+      expect(find.byKey(const Key('notif-pref-lock-security')), findsOneWidget);
+      expect(find.byKey(const Key('notif-pref-hint-security')), findsOneWidget);
       expect(find.text('Required for account security'), findsOneWidget);
 
       final pushToggle = tester.widget<KhToggle>(
@@ -418,236 +427,241 @@ void main() {
     });
 
     testWidgets(
-        'unlocked notification category toggles call patchSettings(notifications: ...)',
-        (tester) async {
-      _setLargeViewport(tester);
+      'unlocked notification category toggles call patchSettings(notifications: ...)',
+      (tester) async {
+        _setLargeViewport(tester);
 
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      // Tap Push toggle for Request Matches
-      await _tap(
-        tester,
-        find.descendant(
-          of: find.byKey(const Key('notif-pref-request_matches-push')),
-          matching: find.byType(Switch),
-        ),
-      );
+        // Tap Push toggle for Request Matches
+        await _tap(
+          tester,
+          find.descendant(
+            of: find.byKey(const Key('notif-pref-request_matches-push')),
+            matching: find.byType(Switch),
+          ),
+        );
 
-      verify(
-        () => repo.patchSettings(
-          preferredLanguage: any(named: 'preferredLanguage'),
-          defaultRegionId: any(named: 'defaultRegionId'),
-          quietHours: any(named: 'quietHours'),
-          defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
-          notifications: any(
-            named: 'notifications',
-            that: isA<Map<String, NotificationChannelPref>>().having(
-              (m) => m['request_matches']?.push,
-              'request_matches.push',
-              isTrue,
+        verify(
+          () => repo.patchSettings(
+            preferredLanguage: any(named: 'preferredLanguage'),
+            defaultRegionId: any(named: 'defaultRegionId'),
+            quietHours: any(named: 'quietHours'),
+            defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
+            notifications: any(
+              named: 'notifications',
+              that: isA<Map<String, NotificationChannelPref>>().having(
+                (m) => m['request_matches']?.push,
+                'request_matches.push',
+                isTrue,
+              ),
             ),
           ),
-        ),
-      ).called(1);
+        ).called(1);
 
-      // Tap Email toggle for Offer Updates
-      await _tap(
-        tester,
-        find.descendant(
-          of: find.byKey(const Key('notif-pref-offer_updates-email')),
-          matching: find.byType(Switch),
-        ),
-      );
+        // Tap Email toggle for Offer Updates
+        await _tap(
+          tester,
+          find.descendant(
+            of: find.byKey(const Key('notif-pref-offer_updates-email')),
+            matching: find.byType(Switch),
+          ),
+        );
 
-      verify(
-        () => repo.patchSettings(
-          preferredLanguage: any(named: 'preferredLanguage'),
-          defaultRegionId: any(named: 'defaultRegionId'),
-          quietHours: any(named: 'quietHours'),
-          defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
-          notifications: any(
-            named: 'notifications',
-            that: isA<Map<String, NotificationChannelPref>>().having(
-              (m) => m['offer_updates']?.email,
-              'offer_updates.email',
-              isTrue,
+        verify(
+          () => repo.patchSettings(
+            preferredLanguage: any(named: 'preferredLanguage'),
+            defaultRegionId: any(named: 'defaultRegionId'),
+            quietHours: any(named: 'quietHours'),
+            defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
+            notifications: any(
+              named: 'notifications',
+              that: isA<Map<String, NotificationChannelPref>>().having(
+                (m) => m['offer_updates']?.emailChannel,
+                'offer_updates.emailChannel',
+                isTrue,
+              ),
             ),
           ),
-        ),
-      ).called(1);
-    });
+        ).called(1);
+      },
+    );
   });
 
   group('VEN-S18 Quiet Hours', () {
     testWidgets(
-        'quiet hours toggle updates state and triggers patchSettings(quietHours: ...)',
-        (tester) async {
-      _setLargeViewport(tester);
+      'quiet hours toggle updates state and triggers patchSettings(quietHours: ...)',
+      (tester) async {
+        _setLargeViewport(tester);
 
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('quiet-hours-toggle')), findsOneWidget);
-      expect(
-        tester
-            .widget<KhToggle>(find.byKey(const Key('quiet-hours-toggle')))
-            .value,
-        isFalse,
-      );
-      expect(find.byKey(const Key('quiet-hours-start')), findsNothing);
-      expect(find.byKey(const Key('quiet-hours-end')), findsNothing);
-
-      // Enable quiet hours
-      await _tap(
-        tester,
-        find.descendant(
-          of: find.byKey(const Key('quiet-hours-toggle')),
-          matching: find.byType(Switch),
-        ),
-      );
-
-      verify(
-        () => repo.patchSettings(
-          preferredLanguage: any(named: 'preferredLanguage'),
-          defaultRegionId: any(named: 'defaultRegionId'),
-          quietHours: any(
-            named: 'quietHours',
-            that: isA<QuietHours>()
-                .having((q) => q.start, 'start', '22:00')
-                .having((q) => q.end, 'end', '07:00'),
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+            ],
           ),
-          defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
-          notifications: any(named: 'notifications'),
-        ),
-      ).called(1);
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('quiet-hours-start')), findsOneWidget);
-      expect(find.byKey(const Key('quiet-hours-end')), findsOneWidget);
-      expect(find.text('22:00'), findsOneWidget);
-      expect(find.text('07:00'), findsOneWidget);
+        expect(find.byKey(const Key('quiet-hours-toggle')), findsOneWidget);
+        expect(
+          tester
+              .widget<KhToggle>(find.byKey(const Key('quiet-hours-toggle')))
+              .value,
+          isFalse,
+        );
+        expect(find.byKey(const Key('quiet-hours-start')), findsNothing);
+        expect(find.byKey(const Key('quiet-hours-end')), findsNothing);
 
-      // Disable quiet hours
-      await _tap(
-        tester,
-        find.descendant(
-          of: find.byKey(const Key('quiet-hours-toggle')),
-          matching: find.byType(Switch),
-        ),
-      );
+        // Enable quiet hours
+        await _tap(
+          tester,
+          find.descendant(
+            of: find.byKey(const Key('quiet-hours-toggle')),
+            matching: find.byType(Switch),
+          ),
+        );
 
-      verify(
-        () => repo.patchSettings(
-          preferredLanguage: any(named: 'preferredLanguage'),
-          defaultRegionId: any(named: 'defaultRegionId'),
-          quietHours: null,
-          defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
-          notifications: any(named: 'notifications'),
-        ),
-      ).called(1);
+        verify(
+          () => repo.patchSettings(
+            preferredLanguage: any(named: 'preferredLanguage'),
+            defaultRegionId: any(named: 'defaultRegionId'),
+            quietHours: any(
+              named: 'quietHours',
+              that: isA<QuietHours>()
+                  .having((q) => q.start, 'start', '22:00')
+                  .having((q) => q.end, 'end', '07:00'),
+            ),
+            defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
+            notifications: any(named: 'notifications'),
+          ),
+        ).called(1);
 
-      expect(find.byKey(const Key('quiet-hours-start')), findsNothing);
-      expect(find.byKey(const Key('quiet-hours-end')), findsNothing);
-    });
+        expect(find.byKey(const Key('quiet-hours-start')), findsOneWidget);
+        expect(find.byKey(const Key('quiet-hours-end')), findsOneWidget);
+        expect(find.text('22:00'), findsOneWidget);
+        expect(find.text('07:00'), findsOneWidget);
+
+        // Disable quiet hours
+        await _tap(
+          tester,
+          find.descendant(
+            of: find.byKey(const Key('quiet-hours-toggle')),
+            matching: find.byType(Switch),
+          ),
+        );
+
+        verify(
+          () => repo.patchSettings(
+            preferredLanguage: any(named: 'preferredLanguage'),
+            defaultRegionId: any(named: 'defaultRegionId'),
+            quietHours: null,
+            defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
+            notifications: any(named: 'notifications'),
+          ),
+        ).called(1);
+
+        expect(find.byKey(const Key('quiet-hours-start')), findsNothing);
+        expect(find.byKey(const Key('quiet-hours-end')), findsNothing);
+      },
+    );
 
     testWidgets(
-        'tapping start time picker updates quiet hours and triggers patchSettings',
-        (tester) async {
-      _setLargeViewport(tester);
+      'tapping start time picker updates quiet hours and triggers patchSettings',
+      (tester) async {
+        _setLargeViewport(tester);
 
-      currentQuietHours = const QuietHours(start: '22:00', end: '07:00');
+        currentQuietHours = const QuietHours(start: '22:00', end: '07:00');
 
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-          ],
-          child: SettingsScreen(
-            timePicker: (context, {required initialTime}) async =>
-                const TimeOfDay(hour: 23, minute: 15),
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+            ],
+            child: SettingsScreen(
+              timePicker: (context, {required initialTime}) async =>
+                  const TimeOfDay(hour: 23, minute: 15),
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('22:00'), findsOneWidget);
+        expect(find.text('22:00'), findsOneWidget);
 
-      await _tap(tester, find.byKey(const Key('quiet-hours-start')));
+        await _tap(tester, find.byKey(const Key('quiet-hours-start')));
 
-      verify(
-        () => repo.patchSettings(
-          preferredLanguage: any(named: 'preferredLanguage'),
-          defaultRegionId: any(named: 'defaultRegionId'),
-          quietHours: any(
-            named: 'quietHours',
-            that: isA<QuietHours>()
-                .having((q) => q.start, 'start', '23:15')
-                .having((q) => q.end, 'end', '07:00'),
+        verify(
+          () => repo.patchSettings(
+            preferredLanguage: any(named: 'preferredLanguage'),
+            defaultRegionId: any(named: 'defaultRegionId'),
+            quietHours: any(
+              named: 'quietHours',
+              that: isA<QuietHours>()
+                  .having((q) => q.start, 'start', '23:15')
+                  .having((q) => q.end, 'end', '07:00'),
+            ),
+            defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
+            notifications: any(named: 'notifications'),
           ),
-          defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
-          notifications: any(named: 'notifications'),
-        ),
-      ).called(1);
+        ).called(1);
 
-      expect(find.text('23:15'), findsOneWidget);
-    });
+        expect(find.text('23:15'), findsOneWidget);
+      },
+    );
 
     testWidgets(
-        'tapping end time picker updates quiet hours and triggers patchSettings',
-        (tester) async {
-      _setLargeViewport(tester);
+      'tapping end time picker updates quiet hours and triggers patchSettings',
+      (tester) async {
+        _setLargeViewport(tester);
 
-      currentQuietHours = const QuietHours(start: '22:00', end: '07:00');
+        currentQuietHours = const QuietHours(start: '22:00', end: '07:00');
 
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-          ],
-          child: SettingsScreen(
-            timePicker: (context, {required initialTime}) async =>
-                const TimeOfDay(hour: 8, minute: 30),
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+            ],
+            child: SettingsScreen(
+              timePicker: (context, {required initialTime}) async =>
+                  const TimeOfDay(hour: 8, minute: 30),
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('07:00'), findsOneWidget);
+        expect(find.text('07:00'), findsOneWidget);
 
-      await _tap(tester, find.byKey(const Key('quiet-hours-end')));
+        await _tap(tester, find.byKey(const Key('quiet-hours-end')));
 
-      verify(
-        () => repo.patchSettings(
-          preferredLanguage: any(named: 'preferredLanguage'),
-          defaultRegionId: any(named: 'defaultRegionId'),
-          quietHours: any(
-            named: 'quietHours',
-            that: isA<QuietHours>()
-                .having((q) => q.start, 'start', '22:00')
-                .having((q) => q.end, 'end', '08:30'),
+        verify(
+          () => repo.patchSettings(
+            preferredLanguage: any(named: 'preferredLanguage'),
+            defaultRegionId: any(named: 'defaultRegionId'),
+            quietHours: any(
+              named: 'quietHours',
+              that: isA<QuietHours>()
+                  .having((q) => q.start, 'start', '22:00')
+                  .having((q) => q.end, 'end', '08:30'),
+            ),
+            defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
+            notifications: any(named: 'notifications'),
           ),
-          defaultFilterPresetId: any(named: 'defaultFilterPresetId'),
-          notifications: any(named: 'notifications'),
-        ),
-      ).called(1);
+        ).called(1);
 
-      expect(find.text('08:30'), findsOneWidget);
-    });
+        expect(find.text('08:30'), findsOneWidget);
+      },
+    );
 
-    testWidgets('default showTimePicker opens time picker dialog',
-        (tester) async {
+    testWidgets('default showTimePicker opens time picker dialog', (
+      tester,
+    ) async {
       _setLargeViewport(tester);
 
       currentQuietHours = const QuietHours(start: '22:00', end: '07:00');
@@ -702,68 +716,74 @@ void main() {
     ];
 
     testWidgets(
-        'renders Default Filter Preset row with current selection or None',
-        (tester) async {
-      _setLargeViewport(tester);
+      'renders Default Filter Preset row with current selection or None',
+      (tester) async {
+        _setLargeViewport(tester);
 
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-            filterPresetsListProvider.overrideWith((ref) async => samplePresets),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+              filterPresetsListProvider.overrideWith(
+                (ref) async => samplePresets,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      expect(
-        find.byKey(const Key('default-filter-preset-row')),
-        findsOneWidget,
-      );
-      expect(find.text('Default Filter Preset'), findsOneWidget);
-      expect(find.text('None'), findsOneWidget);
-    });
+        expect(
+          find.byKey(const Key('default-filter-preset-row')),
+          findsOneWidget,
+        );
+        expect(find.text('Default Filter Preset'), findsOneWidget);
+        expect(find.text('None'), findsOneWidget);
+      },
+    );
 
     testWidgets(
-        'tapping Default Filter Preset opens dialog and selecting preset patches settings',
-        (tester) async {
-      _setLargeViewport(tester);
+      'tapping Default Filter Preset opens dialog and selecting preset patches settings',
+      (tester) async {
+        _setLargeViewport(tester);
 
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-            filterPresetsListProvider.overrideWith((ref) async => samplePresets),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+              filterPresetsListProvider.overrideWith(
+                (ref) async => samplePresets,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await _tap(tester, find.byKey(const Key('default-filter-preset-row')));
+        await _tap(tester, find.byKey(const Key('default-filter-preset-row')));
 
-      expect(find.text('Default Filter Preset'), findsWidgets);
-      expect(find.byKey(const Key('preset-option-none')), findsOneWidget);
-      expect(
-        find.byKey(const Key('preset-option-pre-gold-bars')),
-        findsOneWidget,
-      );
-      expect(find.text('Gold Bullion 24K'), findsOneWidget);
+        expect(find.text('Default Filter Preset'), findsWidgets);
+        expect(find.byKey(const Key('preset-option-none')), findsOneWidget);
+        expect(
+          find.byKey(const Key('preset-option-pre-gold-bars')),
+          findsOneWidget,
+        );
+        expect(find.text('Gold Bullion 24K'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('preset-option-pre-gold-bars')));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('preset-option-pre-gold-bars')));
+        await tester.pumpAndSettle();
 
-      verify(
-        () => repo.patchSettings(
-          preferredLanguage: any(named: 'preferredLanguage'),
-          defaultRegionId: any(named: 'defaultRegionId'),
-          quietHours: any(named: 'quietHours'),
-          defaultFilterPresetId: 'pre-gold-bars',
-          notifications: any(named: 'notifications'),
-        ),
-      ).called(1);
+        verify(
+          () => repo.patchSettings(
+            preferredLanguage: any(named: 'preferredLanguage'),
+            defaultRegionId: any(named: 'defaultRegionId'),
+            quietHours: any(named: 'quietHours'),
+            defaultFilterPresetId: 'pre-gold-bars',
+            notifications: any(named: 'notifications'),
+          ),
+        ).called(1);
 
-      expect(find.text('Gold Bullion 24K'), findsOneWidget);
-    });
+        expect(find.text('Gold Bullion 24K'), findsOneWidget);
+      },
+    );
 
     testWidgets('selecting None clears the default preset', (tester) async {
       _setLargeViewport(tester);
@@ -773,7 +793,9 @@ void main() {
         _host(
           overrides: [
             profileSettingsRepositoryProvider.overrideWithValue(repo),
-            filterPresetsListProvider.overrideWith((ref) async => samplePresets),
+            filterPresetsListProvider.overrideWith(
+              (ref) async => samplePresets,
+            ),
           ],
         ),
       );
@@ -819,8 +841,9 @@ void main() {
       ),
     ];
 
-    testWidgets('change password dialog validates policy and mismatch',
-        (tester) async {
+    testWidgets('change password dialog validates policy and mismatch', (
+      tester,
+    ) async {
       _setLargeViewport(tester);
 
       await tester.pumpWidget(
@@ -873,158 +896,169 @@ void main() {
     });
 
     testWidgets(
-        'submitting valid password invokes setPassword and shows snackbar',
-        (tester) async {
-      _setLargeViewport(tester);
+      'submitting valid password invokes setPassword and shows snackbar',
+      (tester) async {
+        _setLargeViewport(tester);
 
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await _tap(tester, find.byKey(const Key('change-password-row')));
+        await _tap(tester, find.byKey(const Key('change-password-row')));
 
-      await tester.enterText(
-        find.byKey(const Key('current-password-input')),
-        'CurrentPass123!',
-      );
-      await tester.enterText(
-        find.byKey(const Key('new-password-input')),
-        'NewStrongPass123!',
-      );
-      await tester.enterText(
-        find.byKey(const Key('confirm-password-input')),
-        'NewStrongPass123!',
-      );
-      await tester.tap(find.byKey(const Key('submit-password-button')));
-      await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('current-password-input')),
+          'CurrentPass123!',
+        );
+        await tester.enterText(
+          find.byKey(const Key('new-password-input')),
+          'NewStrongPass123!',
+        );
+        await tester.enterText(
+          find.byKey(const Key('confirm-password-input')),
+          'NewStrongPass123!',
+        );
+        await tester.tap(find.byKey(const Key('submit-password-button')));
+        await tester.pumpAndSettle();
 
-      verify(
-        () => repo.setPassword(
-          currentPassword: 'CurrentPass123!',
-          newPassword: 'NewStrongPass123!',
-        ),
-      ).called(1);
+        verify(
+          () => repo.setPassword(
+            currentPassword: 'CurrentPass123!',
+            newPassword: 'NewStrongPass123!',
+          ),
+        ).called(1);
 
-      expect(find.text('Password changed successfully.'), findsOneWidget);
-    });
-
-    testWidgets(
-        'renders active sessions list with platform icon, IP, and badges',
-        (tester) async {
-      _setLargeViewport(tester);
-      when(() => repo.listSessions()).thenAnswer((_) async => Ok(sampleSessions));
-
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Active Sessions'), findsOneWidget);
-      expect(find.text('Safari on macOS'), findsOneWidget);
-      expect(find.text('iPhone 15 Pro, iOS 17.4'), findsOneWidget);
-      expect(find.textContaining('192.168.1.5'), findsOneWidget);
-      expect(find.textContaining('10.0.0.4'), findsOneWidget);
-
-      // Current device badge
-      expect(
-        find.byKey(const Key('current-device-badge-session-curr')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const Key('revoke-button-session-curr')),
-        findsNothing,
-      );
-
-      // Other device revoke button
-      expect(
-        find.byKey(const Key('revoke-button-session-other')),
-        findsOneWidget,
-      );
-
-      // Verify Last active timestamp formatting in GST (UTC+4)
-      expect(
-        find.textContaining('Last active: 08/09/2026 18:30'),
-        findsOneWidget,
-      );
-      expect(
-        find.textContaining('Last active: 07/09/2026 14:15'),
-        findsOneWidget,
-      );
-    });
+        expect(find.text('Password changed successfully.'), findsOneWidget);
+      },
+    );
 
     testWidgets(
-        'formats session last active timestamp according to GST (UTC+4 offset)',
-        (tester) async {
-      _setLargeViewport(tester);
-      // UTC timestamp crossing midnight when converted to GST (+4h):
-      // 2026-09-08 21:45 UTC -> 2026-09-09 01:45 GST
-      final gstSession = [
-        AuthSessionDto(
-          id: 'session-gst-midnight',
-          deviceLabel: 'Chrome on Linux',
-          lastIp: '127.0.0.1',
-          lastUsedAt: DateTime.utc(2026, 9, 8, 21, 45),
-          createdAt: DateTime.utc(2026, 9, 1),
-          isCurrent: true,
-        ),
-      ];
-      when(() => repo.listSessions()).thenAnswer((_) async => Ok(gstSession));
+      'renders active sessions list with platform icon, IP, and badges',
+      (tester) async {
+        _setLargeViewport(tester);
+        when(
+          () => repo.listSessions(),
+        ).thenAnswer((_) async => Ok(sampleSessions));
 
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      expect(
-        find.text('IP: 127.0.0.1 • Last active: 09/09/2026 01:45'),
-        findsOneWidget,
-      );
-    });
+        expect(find.text('Active Sessions'), findsOneWidget);
+        expect(find.text('Safari on macOS'), findsOneWidget);
+        expect(find.text('iPhone 15 Pro, iOS 17.4'), findsOneWidget);
+        expect(find.textContaining('192.168.1.5'), findsOneWidget);
+        expect(find.textContaining('10.0.0.4'), findsOneWidget);
+
+        // Current device badge
+        expect(
+          find.byKey(const Key('current-device-badge-session-curr')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const Key('revoke-button-session-curr')),
+          findsNothing,
+        );
+
+        // Other device revoke button
+        expect(
+          find.byKey(const Key('revoke-button-session-other')),
+          findsOneWidget,
+        );
+
+        // Verify Last active timestamp formatting in GST (UTC+4)
+        expect(
+          find.textContaining('Last active: 08/09/2026 18:30'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('Last active: 07/09/2026 14:15'),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets(
-        'revoking session shows confirm dialog and invokes repo.revokeSession',
-        (tester) async {
-      _setLargeViewport(tester);
-      when(() => repo.listSessions()).thenAnswer((_) async => Ok(sampleSessions));
+      'formats session last active timestamp according to GST (UTC+4 offset)',
+      (tester) async {
+        _setLargeViewport(tester);
+        // UTC timestamp crossing midnight when converted to GST (+4h):
+        // 2026-09-08 21:45 UTC -> 2026-09-09 01:45 GST
+        final gstSession = [
+          AuthSessionDto(
+            id: 'session-gst-midnight',
+            deviceLabel: 'Chrome on Linux',
+            lastIp: '127.0.0.1',
+            lastUsedAt: DateTime.utc(2026, 9, 8, 21, 45),
+            createdAt: DateTime.utc(2026, 9, 1),
+            isCurrent: true,
+          ),
+        ];
+        when(() => repo.listSessions()).thenAnswer((_) async => Ok(gstSession));
 
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await _tap(tester, find.byKey(const Key('revoke-button-session-other')));
+        expect(
+          find.text('IP: 127.0.0.1 • Last active: 09/09/2026 01:45'),
+          findsOneWidget,
+        );
+      },
+    );
 
-      expect(find.text('Revoke Session'), findsOneWidget);
-      expect(
-        find.text(
-          'Are you sure you want to revoke this session? That device will be signed out immediately.',
-        ),
-        findsOneWidget,
-      );
+    testWidgets(
+      'revoking session shows confirm dialog and invokes repo.revokeSession',
+      (tester) async {
+        _setLargeViewport(tester);
+        when(
+          () => repo.listSessions(),
+        ).thenAnswer((_) async => Ok(sampleSessions));
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Revoke'));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      verify(() => repo.revokeSession('session-other')).called(1);
-      expect(find.text('Session revoked successfully.'), findsOneWidget);
-    });
+        await _tap(
+          tester,
+          find.byKey(const Key('revoke-button-session-other')),
+        );
+
+        expect(find.text('Revoke Session'), findsOneWidget);
+        expect(
+          find.text(
+            'Are you sure you want to revoke this session? That device will be signed out immediately.',
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.widgetWithText(FilledButton, 'Revoke'));
+        await tester.pumpAndSettle();
+
+        verify(() => repo.revokeSession('session-other')).called(1);
+        expect(find.text('Session revoked successfully.'), findsOneWidget);
+      },
+    );
   });
 
   group('VEN-S18 SettingsScreen Legal, App Version, Logout (CP6-B03.6)', () {
@@ -1057,8 +1091,9 @@ void main() {
       expect(openedUrls, contains('https://karathive.ae/support'));
     });
 
-    testWidgets('renders App Version row with correct version text',
-        (tester) async {
+    testWidgets('renders App Version row with correct version text', (
+      tester,
+    ) async {
       _setLargeViewport(tester);
 
       await tester.pumpWidget(
@@ -1076,42 +1111,44 @@ void main() {
     });
 
     testWidgets(
-        'tapping Log Out row shows confirmation dialog and invokes onLogout',
-        (tester) async {
-      _setLargeViewport(tester);
-      var loggedOut = false;
+      'tapping Log Out row shows confirmation dialog and invokes onLogout',
+      (tester) async {
+        _setLargeViewport(tester);
+        var loggedOut = false;
 
-      await tester.pumpWidget(
-        _host(
-          overrides: [
-            profileSettingsRepositoryProvider.overrideWithValue(repo),
-          ],
-          child: SettingsScreen(
-            onLogout: () async {
-              loggedOut = true;
-            },
+        await tester.pumpWidget(
+          _host(
+            overrides: [
+              profileSettingsRepositoryProvider.overrideWithValue(repo),
+            ],
+            child: SettingsScreen(
+              onLogout: () async {
+                loggedOut = true;
+              },
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      await _tap(tester, find.byKey(const Key('logout-row')));
+        await _tap(tester, find.byKey(const Key('logout-row')));
 
-      expect(find.text('Log Out'), findsWidgets);
-      expect(
-        find.text('Are you sure you want to log out of your account?'),
-        findsOneWidget,
-      );
+        expect(find.text('Log Out'), findsWidgets);
+        expect(
+          find.text('Are you sure you want to log out of your account?'),
+          findsOneWidget,
+        );
 
-      // Confirm log out
-      await tester.tap(find.widgetWithText(FilledButton, 'Log Out'));
-      await tester.pumpAndSettle();
+        // Confirm log out
+        await tester.tap(find.widgetWithText(FilledButton, 'Log Out'));
+        await tester.pumpAndSettle();
 
-      expect(loggedOut, isTrue);
-    });
+        expect(loggedOut, isTrue);
+      },
+    );
 
-    testWidgets('cancelling Log Out dialog does not invoke onLogout',
-        (tester) async {
+    testWidgets('cancelling Log Out dialog does not invoke onLogout', (
+      tester,
+    ) async {
       _setLargeViewport(tester);
       var loggedOut = false;
 

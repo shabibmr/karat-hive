@@ -33,7 +33,7 @@ export interface UserSettingsResponse {
     timezone: 'Asia/Dubai';
   } | null;
   defaultFilterPresetId?: string | null;
-  notifications: Record<string, { inApp: boolean; push: boolean; email: boolean }>;
+  notifications: Record<string, { inApp: boolean; push: boolean; emailChannel: boolean }>;
 }
 
 export interface UpdateUserSettingsDto {
@@ -45,7 +45,7 @@ export interface UpdateUserSettingsDto {
     timezone?: string;
   } | null;
   defaultFilterPresetId?: string | null;
-  notifications?: Record<string, { inApp?: boolean; push?: boolean; email?: boolean }>;
+  notifications?: Record<string, { inApp?: boolean; push?: boolean; emailChannel?: boolean }>;
 }
 
 @Injectable()
@@ -94,16 +94,17 @@ export class SettingsService {
       throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
     }
 
-    const notifications: Record<string, { inApp: boolean; push: boolean; email: boolean }> = {};
+    const notifications: Record<string, { inApp: boolean; push: boolean; emailChannel: boolean }> =
+      {};
     for (const pref of user.notificationPreferences) {
       if (isLockedNotificationCategory(pref.category)) {
-        notifications[pref.category] = { inApp: true, push: true, email: true };
+        notifications[pref.category] = { inApp: true, push: true, emailChannel: true };
         continue;
       }
       notifications[pref.category] = {
         inApp: pref.inApp,
         push: pref.push,
-        email: pref.email,
+        emailChannel: pref.email,
       };
     }
 
@@ -147,7 +148,14 @@ export class SettingsService {
       defaultFilterPresetId: dto.defaultFilterPresetId,
       quietHoursStart: dto.quietHours ? dto.quietHours.start : dto.quietHours === null ? null : undefined,
       quietHoursEnd: dto.quietHours ? dto.quietHours.end : dto.quietHours === null ? null : undefined,
-      notifications,
+      notifications: notifications
+        ? Object.fromEntries(
+            Object.entries(notifications).map(([category, prefs]) => [
+              category,
+              { inApp: prefs.inApp, push: prefs.push, email: prefs.emailChannel },
+            ]),
+          )
+        : undefined,
     });
 
     return this.getMySettings(viewer);
@@ -164,7 +172,7 @@ export class SettingsService {
 
     for (const [category, prefs] of Object.entries(notifications)) {
       if (!isLockedNotificationCategory(category)) continue;
-      if (prefs.inApp === false || prefs.push === false || prefs.email === false) {
+      if (prefs.inApp === false || prefs.push === false || prefs.emailChannel === false) {
         throw new ApiException(HttpStatus.BAD_REQUEST, ErrorCode.SETTING_OUT_OF_RANGE);
       }
     }

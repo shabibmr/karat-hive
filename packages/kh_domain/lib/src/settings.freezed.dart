@@ -562,7 +562,10 @@ as String,
 /// @nodoc
 mixin _$NotificationChannelPref {
 
- bool get inApp; bool get push; bool get email;
+ bool get inApp; bool get push;// Wire key is `emailChannel`, not `email` — `email` is a reserved
+// identity key on the backend (edge/masking/identity-keys.ts) and trips
+// MaskingInterceptor's leak check on this non-identity boolean.
+ bool get emailChannel;
 /// Create a copy of NotificationChannelPref
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -575,16 +578,16 @@ $NotificationChannelPrefCopyWith<NotificationChannelPref> get copyWith => _$Noti
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationChannelPref&&(identical(other.inApp, inApp) || other.inApp == inApp)&&(identical(other.push, push) || other.push == push)&&(identical(other.email, email) || other.email == email));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationChannelPref&&(identical(other.inApp, inApp) || other.inApp == inApp)&&(identical(other.push, push) || other.push == push)&&(identical(other.emailChannel, emailChannel) || other.emailChannel == emailChannel));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,inApp,push,email);
+int get hashCode => Object.hash(runtimeType,inApp,push,emailChannel);
 
 @override
 String toString() {
-  return 'NotificationChannelPref(inApp: $inApp, push: $push, email: $email)';
+  return 'NotificationChannelPref(inApp: $inApp, push: $push, emailChannel: $emailChannel)';
 }
 
 
@@ -595,7 +598,7 @@ abstract mixin class $NotificationChannelPrefCopyWith<$Res>  {
   factory $NotificationChannelPrefCopyWith(NotificationChannelPref value, $Res Function(NotificationChannelPref) _then) = _$NotificationChannelPrefCopyWithImpl;
 @useResult
 $Res call({
- bool inApp, bool push, bool email
+ bool inApp, bool push, bool emailChannel
 });
 
 
@@ -612,11 +615,11 @@ class _$NotificationChannelPrefCopyWithImpl<$Res>
 
 /// Create a copy of NotificationChannelPref
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? inApp = null,Object? push = null,Object? email = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? inApp = null,Object? push = null,Object? emailChannel = null,}) {
   return _then(_self.copyWith(
 inApp: null == inApp ? _self.inApp : inApp // ignore: cast_nullable_to_non_nullable
 as bool,push: null == push ? _self.push : push // ignore: cast_nullable_to_non_nullable
-as bool,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as bool,emailChannel: null == emailChannel ? _self.emailChannel : emailChannel // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -702,10 +705,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool inApp,  bool push,  bool email)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool inApp,  bool push,  bool emailChannel)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _NotificationChannelPref() when $default != null:
-return $default(_that.inApp,_that.push,_that.email);case _:
+return $default(_that.inApp,_that.push,_that.emailChannel);case _:
   return orElse();
 
 }
@@ -723,10 +726,10 @@ return $default(_that.inApp,_that.push,_that.email);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool inApp,  bool push,  bool email)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool inApp,  bool push,  bool emailChannel)  $default,) {final _that = this;
 switch (_that) {
 case _NotificationChannelPref():
-return $default(_that.inApp,_that.push,_that.email);case _:
+return $default(_that.inApp,_that.push,_that.emailChannel);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -743,10 +746,10 @@ return $default(_that.inApp,_that.push,_that.email);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool inApp,  bool push,  bool email)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool inApp,  bool push,  bool emailChannel)?  $default,) {final _that = this;
 switch (_that) {
 case _NotificationChannelPref() when $default != null:
-return $default(_that.inApp,_that.push,_that.email);case _:
+return $default(_that.inApp,_that.push,_that.emailChannel);case _:
   return null;
 
 }
@@ -758,12 +761,15 @@ return $default(_that.inApp,_that.push,_that.email);case _:
 @JsonSerializable()
 
 class _NotificationChannelPref implements NotificationChannelPref {
-  const _NotificationChannelPref({required this.inApp, required this.push, required this.email});
+  const _NotificationChannelPref({required this.inApp, required this.push, required this.emailChannel});
   factory _NotificationChannelPref.fromJson(Map<String, dynamic> json) => _$NotificationChannelPrefFromJson(json);
 
 @override final  bool inApp;
 @override final  bool push;
-@override final  bool email;
+// Wire key is `emailChannel`, not `email` — `email` is a reserved
+// identity key on the backend (edge/masking/identity-keys.ts) and trips
+// MaskingInterceptor's leak check on this non-identity boolean.
+@override final  bool emailChannel;
 
 /// Create a copy of NotificationChannelPref
 /// with the given fields replaced by the non-null parameter values.
@@ -778,16 +784,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationChannelPref&&(identical(other.inApp, inApp) || other.inApp == inApp)&&(identical(other.push, push) || other.push == push)&&(identical(other.email, email) || other.email == email));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationChannelPref&&(identical(other.inApp, inApp) || other.inApp == inApp)&&(identical(other.push, push) || other.push == push)&&(identical(other.emailChannel, emailChannel) || other.emailChannel == emailChannel));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,inApp,push,email);
+int get hashCode => Object.hash(runtimeType,inApp,push,emailChannel);
 
 @override
 String toString() {
-  return 'NotificationChannelPref(inApp: $inApp, push: $push, email: $email)';
+  return 'NotificationChannelPref(inApp: $inApp, push: $push, emailChannel: $emailChannel)';
 }
 
 
@@ -798,7 +804,7 @@ abstract mixin class _$NotificationChannelPrefCopyWith<$Res> implements $Notific
   factory _$NotificationChannelPrefCopyWith(_NotificationChannelPref value, $Res Function(_NotificationChannelPref) _then) = __$NotificationChannelPrefCopyWithImpl;
 @override @useResult
 $Res call({
- bool inApp, bool push, bool email
+ bool inApp, bool push, bool emailChannel
 });
 
 
@@ -815,11 +821,11 @@ class __$NotificationChannelPrefCopyWithImpl<$Res>
 
 /// Create a copy of NotificationChannelPref
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? inApp = null,Object? push = null,Object? email = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? inApp = null,Object? push = null,Object? emailChannel = null,}) {
   return _then(_NotificationChannelPref(
 inApp: null == inApp ? _self.inApp : inApp // ignore: cast_nullable_to_non_nullable
 as bool,push: null == push ? _self.push : push // ignore: cast_nullable_to_non_nullable
-as bool,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as bool,emailChannel: null == emailChannel ? _self.emailChannel : emailChannel // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

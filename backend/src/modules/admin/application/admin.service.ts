@@ -134,13 +134,28 @@ export class AdminService {
     return this.repo.listVerificationQueue();
   }
 
+  private async resolveAdminProfile(adminUserId: string, adminProfileId?: string | null) {
+    if (adminProfileId) {
+      return { adminProfileId, actorUserId: adminUserId };
+    }
+    const admin = await this.repo.findAdmin?.(adminUserId);
+    return {
+      adminProfileId: admin?.id ?? adminUserId,
+      actorUserId: admin?.userId ?? adminUserId,
+    };
+  }
+
   async verifyVendor(
     id: string,
     dto: { rationale: string },
     adminUserId: string,
+    adminProfileId?: string | null,
   ) {
     const vendor = await this.repo.findVendor(id);
     if (!vendor) throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+
+    const { adminProfileId: resolvedAdminProfileId, actorUserId } =
+      await this.resolveAdminProfile(adminUserId, adminProfileId);
 
     const hasTaxonomy =
       vendor.categories.length > 0 && vendor.regions.length > 0;
@@ -148,7 +163,9 @@ export class AdminService {
 
     const updated = await this.repo.updateVendorVerification(id, {
       verificationState: 'VERIFIED',
-      verifiedByAdminId: adminUserId,
+      verificationNotes: dto.rationale,
+      verificationMessage: null,
+      verifiedByAdminId: resolvedAdminProfileId,
       verifiedAt: now,
       ...(hasTaxonomy
         ? { activatedAt: now }
@@ -160,7 +177,7 @@ export class AdminService {
     }
 
     await this.audit.append(this.prisma, {
-      actorUserId: adminUserId,
+      actorUserId,
       action: 'VENDOR_VERIFIED',
       entityType: 'vendor_profile',
       entityId: id,
@@ -174,19 +191,26 @@ export class AdminService {
     id: string,
     dto: { rationale: string },
     adminUserId: string,
+    adminProfileId?: string | null,
   ) {
     const vendor = await this.repo.findVendor(id);
     if (!vendor) throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
 
+    const { actorUserId } = await this.resolveAdminProfile(adminUserId, adminProfileId);
+
     const updated = await this.repo.updateVendorVerification(id, {
       verificationState: 'REJECTED',
+      verificationNotes: dto.rationale,
       verificationMessage: dto.rationale,
+      verifiedByAdminId: null,
+      verifiedAt: null,
+      activatedAt: null,
     });
 
     await this.repo.updateVendorAccountState(id, 'DEACTIVATED');
 
     await this.audit.append(this.prisma, {
-      actorUserId: adminUserId,
+      actorUserId,
       action: 'VENDOR_VERIFICATION_REJECTED',
       entityType: 'vendor_profile',
       entityId: id,
@@ -200,9 +224,12 @@ export class AdminService {
     id: string,
     dto: { message: string },
     adminUserId: string,
+    adminProfileId?: string | null,
   ) {
     const vendor = await this.repo.findVendor(id);
     if (!vendor) throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+
+    const { actorUserId } = await this.resolveAdminProfile(adminUserId, adminProfileId);
 
     const updated = await this.repo.updateVendorVerification(id, {
       verificationState: 'PENDING_VERIFICATION',
@@ -210,7 +237,7 @@ export class AdminService {
     });
 
     await this.audit.append(this.prisma, {
-      actorUserId: adminUserId,
+      actorUserId,
       action: 'VENDOR_INFO_REQUESTED',
       entityType: 'vendor_profile',
       entityId: id,
@@ -477,17 +504,21 @@ export class AdminService {
     id: string,
     dto: { resolution: string },
     adminUserId: string,
+    adminProfileId?: string | null,
   ) {
+    const { adminProfileId: resolvedAdminProfileId, actorUserId } =
+      await this.resolveAdminProfile(adminUserId, adminProfileId);
+
     return this.prisma.$transaction(async (tx) => {
       const res = await this.repo.resolveAbuseReport(
         tx,
         id,
         'RESOLVED',
         dto.resolution,
-        adminUserId,
+        resolvedAdminProfileId,
       );
       await this.audit.append(tx, {
-        actorUserId: adminUserId,
+        actorUserId,
         action: 'ABUSE_REPORT_RESOLVED',
         entityType: 'abuse_report',
         entityId: id,
@@ -501,17 +532,21 @@ export class AdminService {
     id: string,
     dto: { resolution: string },
     adminUserId: string,
+    adminProfileId?: string | null,
   ) {
+    const { adminProfileId: resolvedAdminProfileId, actorUserId } =
+      await this.resolveAdminProfile(adminUserId, adminProfileId);
+
     return this.prisma.$transaction(async (tx) => {
       const res = await this.repo.resolveAbuseReport(
         tx,
         id,
         'DISMISSED',
         dto.resolution,
-        adminUserId,
+        resolvedAdminProfileId,
       );
       await this.audit.append(tx, {
-        actorUserId: adminUserId,
+        actorUserId,
         action: 'ABUSE_REPORT_DISMISSED',
         entityType: 'abuse_report',
         entityId: id,
@@ -534,11 +569,15 @@ export class AdminService {
       rationale: string;
     },
     adminUserId: string,
+    adminProfileId?: string | null,
   ) {
     const report = await this.repo.findAbuseReport(id);
     if (!report) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
+
+    const { adminProfileId: resolvedAdminProfileId, actorUserId } =
+      await this.resolveAdminProfile(adminUserId, adminProfileId);
 
     return this.prisma.$transaction(async (tx) => {
       if (dto.action === 'SUSPEND' || dto.action === 'DEACTIVATE') {
@@ -554,7 +593,7 @@ export class AdminService {
         id,
         dto.action === 'DISMISS' ? 'DISMISSED' : 'RESOLVED',
         dto.rationale,
-        adminUserId,
+        resolvedAdminProfileId,
       );
 
       const auditAction = {
@@ -564,7 +603,7 @@ export class AdminService {
         DEACTIVATE: 'ABUSE_PARTY_DEACTIVATED',
       }[dto.action];
       await this.audit.append(tx, {
-        actorUserId: adminUserId,
+        actorUserId,
         action: auditAction,
         entityType: 'abuse_report',
         entityId: id,
@@ -583,8 +622,15 @@ export class AdminService {
     return this.settings.getAllAdminSettings();
   }
 
-  async updateSetting(key: string, value: unknown, adminUserId: string) {
-    return this.settings.updateAdminSetting(key, value, adminUserId);
+  async updateSetting(
+    key: string,
+    value: unknown,
+    adminUserId: string,
+    adminProfileId?: string | null,
+  ) {
+    const { adminProfileId: resolvedAdminProfileId } =
+      await this.resolveAdminProfile(adminUserId, adminProfileId);
+    return this.settings.updateAdminSetting(key, value, resolvedAdminProfileId ?? undefined);
   }
 
   // --- Audit Log ---

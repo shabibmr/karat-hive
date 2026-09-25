@@ -269,15 +269,28 @@ export class AdminRepository {
     id: string,
     data: {
       verificationState: VendorVerificationState;
+      verificationNotes?: string | null;
       verificationMessage?: string | null;
-      verifiedByAdminId?: string;
+      verifiedByAdminId?: string | null;
       verifiedAt?: Date | null;
       activatedAt?: Date | null;
     },
   ) {
+    let verifiedByAdminId = data.verifiedByAdminId;
+    if (verifiedByAdminId) {
+      const admin = await this.prisma.adminProfile?.findFirst?.({
+        where: { OR: [{ id: verifiedByAdminId }, { userId: verifiedByAdminId }] },
+      });
+      if (admin) {
+        verifiedByAdminId = admin.id;
+      }
+    }
     return this.prisma.vendorProfile.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        verifiedByAdminId,
+      },
     });
   }
 
@@ -834,14 +847,23 @@ export class AdminRepository {
     id: string,
     state: AbuseReportState,
     resolution: string,
-    adminId: string,
+    adminId?: string | null,
   ) {
+    let resolvedByAdminId = adminId ?? null;
+    if (adminId) {
+      const admin = await tx.adminProfile?.findFirst?.({
+        where: { OR: [{ id: adminId }, { userId: adminId }] },
+      });
+      if (admin) {
+        resolvedByAdminId = admin.id;
+      }
+    }
     return tx.abuseReport.update({
       where: { id },
       data: {
         state,
         resolution,
-        resolvedByAdminId: adminId,
+        resolvedByAdminId,
       },
     });
   }

@@ -4,11 +4,12 @@ part 'settings_dtos.freezed.dart';
 part 'settings_dtos.g.dart';
 
 Map<String, dynamic> _normalizeUserSettingsJson(Map<String, dynamic> json) => {
-      ...json,
-      'preferredLanguage': json['preferredLanguage'] as String? ?? 'en',
-      'notifications': ((json['notifications'] as Map?) ?? const {})
-          .map((k, v) => MapEntry(k.toString(), v)),
-    };
+  ...json,
+  'preferredLanguage': json['preferredLanguage'] as String? ?? 'en',
+  'notifications': ((json['notifications'] as Map?) ?? const {}).map(
+    (k, v) => MapEntry(k.toString(), v),
+  ),
+};
 
 /// `settings.service.ts` `UserSettingsResponse` — `GET /v1/me/settings`
 /// (`CUS-S21`).
@@ -28,10 +29,10 @@ abstract class UserSettingsDto with _$UserSettingsDto {
 }
 
 Map<String, dynamic> _normalizeQuietHoursJson(Map<String, dynamic> json) => {
-      'start': json['start'] as String? ?? '',
-      'end': json['end'] as String? ?? '',
-      'timezone': json['timezone'] as String? ?? 'Asia/Dubai',
-    };
+  'start': json['start'] as String? ?? '',
+  'end': json['end'] as String? ?? '',
+  'timezone': json['timezone'] as String? ?? 'Asia/Dubai',
+};
 
 @freezed
 abstract class QuietHoursDto with _$QuietHoursDto {
@@ -51,7 +52,10 @@ abstract class NotificationChannelPrefsDto with _$NotificationChannelPrefsDto {
   const factory NotificationChannelPrefsDto({
     @Default(true) bool inApp,
     @Default(true) bool push,
-    @Default(false) bool email,
+    // Wire key is `emailChannel`, not `email` — `email` is a reserved
+    // identity key on the backend (edge/masking/identity-keys.ts) and trips
+    // MaskingInterceptor's leak check on this non-identity boolean.
+    @Default(false) bool emailChannel,
   }) = _NotificationChannelPrefsDto;
 
   factory NotificationChannelPrefsDto.fromJson(Map<String, dynamic> json) =>
@@ -81,50 +85,58 @@ class UserSettingsPatch {
   final Map<String, Map<String, bool>>? notifications;
 
   Map<String, dynamic> toJson() => {
-        if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
-        if (clearDefaultRegion)
-          'defaultRegionId': null
-        else if (defaultRegionId != null)
-          'defaultRegionId': defaultRegionId,
-        if (clearQuietHours)
-          'quietHours': null
-        else if (quietHours != null)
-          'quietHours': quietHours!.toJson(),
-        if (notifications != null) 'notifications': notifications,
-      };
+    if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
+    if (clearDefaultRegion)
+      'defaultRegionId': null
+    else if (defaultRegionId != null)
+      'defaultRegionId': defaultRegionId,
+    if (clearQuietHours)
+      'quietHours': null
+    else if (quietHours != null)
+      'quietHours': quietHours!.toJson(),
+    if (notifications != null) 'notifications': notifications,
+  };
 }
 
 int _platformConfigInt(dynamic v, int d) =>
     v is num ? v.toInt() : int.tryParse('$v') ?? d;
 
-Map<String, dynamic> _normalizePlatformConfigJson(Map<String, dynamic> json) => {
-      'requestLifetimeHours': _platformConfigInt(json['requestLifetimeHours'], 48),
-      'offerValidityHours':
-          ((json['offerValidityHours'] as List?) ?? const [12, 24, 48])
-              .map((e) => _platformConfigInt(e, 0))
-              .toList(growable: false),
-      'defaultOfferValidityHours':
-          _platformConfigInt(json['defaultOfferValidityHours'], 24),
-      'bullionMinimumAed': (json['bullionMinimumAed'] ?? '0').toString(),
-      'maxConcurrentLiveRequests':
-          _platformConfigInt(json['maxConcurrentLiveRequests'], 10),
-      'maxRequestImages': _platformConfigInt(json['maxRequestImages'], 5),
-      'maxOfferImages': _platformConfigInt(json['maxOfferImages'], 3),
-      'maxImageBytes': _platformConfigInt(json['maxImageBytes'], 5242880),
-      'acceptedImageTypes': ((json['acceptedImageTypes'] as List?) ?? const [])
-          .map((e) => e.toString())
+Map<String, dynamic> _normalizePlatformConfigJson(
+  Map<String, dynamic> json,
+) => {
+  'requestLifetimeHours': _platformConfigInt(json['requestLifetimeHours'], 48),
+  'offerValidityHours':
+      ((json['offerValidityHours'] as List?) ?? const [12, 24, 48])
+          .map((e) => _platformConfigInt(e, 0))
           .toList(growable: false),
-      'karatList': ((json['karatList'] as List?) ?? const [])
-          .map((e) => e.toString())
-          .toList(growable: false),
-      'maxOfferRevisions': _platformConfigInt(json['maxOfferRevisions'], 3),
-      'requestExpiryWarningHours':
-          _platformConfigInt(json['requestExpiryWarningHours'], 6),
-      'termsUrl': json['termsUrl'] as String? ?? '',
-      'privacyUrl': json['privacyUrl'] as String? ?? '',
-      'supportContactUrl': json['supportContactUrl'] as String? ?? '',
-      'subscriptionContactUrl': json['subscriptionContactUrl'] as String? ?? '',
-    };
+  'defaultOfferValidityHours': _platformConfigInt(
+    json['defaultOfferValidityHours'],
+    24,
+  ),
+  'bullionMinimumAed': (json['bullionMinimumAed'] ?? '0').toString(),
+  'maxConcurrentLiveRequests': _platformConfigInt(
+    json['maxConcurrentLiveRequests'],
+    10,
+  ),
+  'maxRequestImages': _platformConfigInt(json['maxRequestImages'], 5),
+  'maxOfferImages': _platformConfigInt(json['maxOfferImages'], 3),
+  'maxImageBytes': _platformConfigInt(json['maxImageBytes'], 5242880),
+  'acceptedImageTypes': ((json['acceptedImageTypes'] as List?) ?? const [])
+      .map((e) => e.toString())
+      .toList(growable: false),
+  'karatList': ((json['karatList'] as List?) ?? const [])
+      .map((e) => e.toString())
+      .toList(growable: false),
+  'maxOfferRevisions': _platformConfigInt(json['maxOfferRevisions'], 3),
+  'requestExpiryWarningHours': _platformConfigInt(
+    json['requestExpiryWarningHours'],
+    6,
+  ),
+  'termsUrl': json['termsUrl'] as String? ?? '',
+  'privacyUrl': json['privacyUrl'] as String? ?? '',
+  'supportContactUrl': json['supportContactUrl'] as String? ?? '',
+  'subscriptionContactUrl': json['subscriptionContactUrl'] as String? ?? '',
+};
 
 /// `settings.service.ts` `PlatformConfigResponse` — `GET /v1/platform-config`.
 @freezed

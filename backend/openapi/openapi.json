@@ -511,6 +511,93 @@
         }
       }
     },
+    "/v1/admin/abuse-reports/{id}/action": {
+      "post": {
+        "operationId": "Admin_actionAbuseReport",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "POST /v1/admin/abuse-reports/{id}/action",
+        "description": "Handler Admin.actionAbuseReport. Request shapes come from ZodValidationPipe schemas (single source). Response DTOs are not yet Zod-exported — SuccessEnvelope is a placeholder.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "DISMISS",
+                      "WARN",
+                      "SUSPEND",
+                      "DEACTIVATE"
+                    ]
+                  },
+                  "rationale": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "action",
+                  "rationale"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success (envelope per Architecture §13 / EnvelopeInterceptor)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/admin/abuse-reports/{id}/dismiss": {
       "post": {
         "operationId": "Admin_dismissAbuseReport",
@@ -1153,6 +1240,86 @@
             }
           }
         }
+      },
+      "post": {
+        "operationId": "Admin_recordAuditLog",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "POST /v1/admin/audit-log",
+        "description": "Handler Admin.recordAuditLog. Request shapes come from ZodValidationPipe schemas (single source). Response DTOs are not yet Zod-exported — SuccessEnvelope is a placeholder.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "entityType": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "occurredAt": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "action",
+                  "entityType"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success (envelope per Architecture §13 / EnvelopeInterceptor)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/v1/admin/categories": {
@@ -1219,11 +1386,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "parentId": {
-                    "type": "string",
-                    "nullable": true,
-                    "format": "uuid"
-                  },
                   "nameEn": {
                     "type": "string",
                     "minLength": 1,
@@ -1318,11 +1480,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "parentId": {
-                    "type": "string",
-                    "nullable": true,
-                    "format": "uuid"
-                  },
                   "nameEn": {
                     "type": "string",
                     "minLength": 1,
@@ -1752,6 +1909,25 @@
             "in": "path"
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reasonText": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reasonText"
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Success (envelope per Architecture §13 / EnvelopeInterceptor)",
@@ -2139,6 +2315,64 @@
         }
       }
     },
+    "/v1/admin/exports/{id}/download": {
+      "get": {
+        "operationId": "Admin_downloadExport",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "GET /v1/admin/exports/{id}/download",
+        "description": "Handler Admin.downloadExport. Request shapes come from ZodValidationPipe schemas (single source). Response DTOs are not yet Zod-exported — SuccessEnvelope is a placeholder.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success (envelope per Architecture §13 / EnvelopeInterceptor)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/admin/offers": {
       "get": {
         "operationId": "Admin_listOffers",
@@ -2308,11 +2542,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "parentId": {
-                    "type": "string",
-                    "nullable": true,
-                    "format": "uuid"
-                  },
                   "nameEn": {
                     "type": "string",
                     "minLength": 1,
@@ -2403,11 +2632,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "parentId": {
-                    "type": "string",
-                    "nullable": true,
-                    "format": "uuid"
-                  },
                   "nameEn": {
                     "type": "string",
                     "minLength": 1,
@@ -4450,6 +4674,75 @@
         }
       }
     },
+    "/v1/auth/password": {
+      "post": {
+        "operationId": "Auth_setPassword",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "POST /v1/auth/password",
+        "description": "Handler Auth.setPassword. Request shapes come from ZodValidationPipe schemas (single source). Response DTOs are not yet Zod-exported — SuccessEnvelope is a placeholder.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "newPassword"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Success (envelope per Architecture §13 / EnvelopeInterceptor)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/auth/refresh": {
       "post": {
         "operationId": "Auth_refresh",
@@ -4577,6 +4870,10 @@
                     "type": "string",
                     "minLength": 1
                   },
+                  "mobileNumber": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9]\\d{6,14}$"
+                  },
                   "displayName": {
                     "type": "string",
                     "minLength": 1,
@@ -4675,6 +4972,10 @@
                     "type": "string",
                     "minLength": 1
                   },
+                  "mobileNumber": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9]\\d{6,14}$"
+                  },
                   "legalBusinessName": {
                     "type": "string",
                     "minLength": 1,
@@ -4709,6 +5010,10 @@
                     "maxLength": 255,
                     "format": "email"
                   },
+                  "contactWhatsApp": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9]\\d{6,14}$"
+                  },
                   "regionId": {
                     "type": "string",
                     "format": "uuid"
@@ -4738,14 +5043,6 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 32
-                  },
-                  "mobileNumber": {
-                    "type": "string",
-                    "pattern": "^\\+[1-9]\\d{6,14}$"
-                  },
-                  "contactWhatsApp": {
-                    "type": "string",
-                    "pattern": "^\\+[1-9]\\d{6,14}$"
                   }
                 },
                 "required": [
@@ -6891,6 +7188,11 @@
                     "nullable": true,
                     "format": "uuid"
                   },
+                  "defaultFilterPresetId": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "uuid"
+                  },
                   "quietHours": {
                     "type": "object",
                     "nullable": true,
@@ -6920,7 +7222,7 @@
                         "push": {
                           "type": "boolean"
                         },
-                        "email": {
+                        "emailChannel": {
                           "type": "boolean"
                         }
                       }
@@ -7095,6 +7397,15 @@
                     "maxLength": 255,
                     "format": "email"
                   },
+                  "contactWhatsApp": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^\\+[1-9]\\d{6,14}$"
+                  },
+                  "logoMediaKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
                   "legalBusinessName": {
                     "type": "string",
                     "minLength": 1,
@@ -7105,18 +7416,13 @@
                     "minLength": 1,
                     "maxLength": 50
                   },
+                  "licenceExpiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
                   "businessAddress": {
                     "type": "string",
                     "minLength": 1
-                  },
-                  "contactWhatsApp": {
-                    "type": "string",
-                    "pattern": "^\\+[1-9]\\d{6,14}$",
-                    "nullable": true
-                  },
-                  "logoMediaKey": {
-                    "type": "string",
-                    "format": "uuid"
                   }
                 }
               }
@@ -7786,6 +8092,62 @@
             }
           }
         }
+      },
+      "get": {
+        "operationId": "Media_getMedia",
+        "tags": [
+          "Media"
+        ],
+        "summary": "GET /v1/media/{key}",
+        "description": "Handler Media.getMedia. Request shapes come from ZodValidationPipe schemas (single source). Response DTOs are not yet Zod-exported — SuccessEnvelope is a placeholder.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "key",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success (envelope per Architecture §13 / EnvelopeInterceptor)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/v1/media/{key}/complete": {
@@ -8421,28 +8783,27 @@
                       }
                     ]
                   },
-                  "validityHours": {
+                  "weightGrams": {
                     "anyOf": [
                       {
                         "type": "number",
-                        "enum": [
-                          12
-                        ]
+                        "minimum": 0,
+                        "exclusiveMinimum": true
                       },
                       {
-                        "type": "number",
-                        "enum": [
-                          24
-                        ]
-                      },
-                      {
-                        "type": "number",
-                        "enum": [
-                          48
-                        ]
+                        "type": "string",
+                        "pattern": "^\\d+(\\.\\d{1,2})?$"
                       }
-                    ],
-                    "default": 24
+                    ]
+                  },
+                  "purityKarat": {
+                    "type": "string",
+                    "enum": [
+                      "18K",
+                      "21K",
+                      "22K",
+                      "24K"
+                    ]
                   },
                   "makingCharges": {
                     "anyOf": [
@@ -8483,7 +8844,9 @@
                   }
                 },
                 "required": [
-                  "offeredPrice"
+                  "offeredPrice",
+                  "weightGrams",
+                  "purityKarat"
                 ]
               }
             }
@@ -9546,28 +9909,27 @@
                       }
                     ]
                   },
-                  "validityHours": {
+                  "weightGrams": {
                     "anyOf": [
                       {
                         "type": "number",
-                        "enum": [
-                          12
-                        ]
+                        "minimum": 0,
+                        "exclusiveMinimum": true
                       },
                       {
-                        "type": "number",
-                        "enum": [
-                          24
-                        ]
-                      },
-                      {
-                        "type": "number",
-                        "enum": [
-                          48
-                        ]
+                        "type": "string",
+                        "pattern": "^\\d+(\\.\\d{1,2})?$"
                       }
-                    ],
-                    "default": 24
+                    ]
+                  },
+                  "purityKarat": {
+                    "type": "string",
+                    "enum": [
+                      "18K",
+                      "21K",
+                      "22K",
+                      "24K"
+                    ]
                   },
                   "makingCharges": {
                     "anyOf": [
@@ -9616,7 +9978,9 @@
                   }
                 },
                 "required": [
-                  "offeredPrice"
+                  "offeredPrice",
+                  "weightGrams",
+                  "purityKarat"
                 ]
               }
             }

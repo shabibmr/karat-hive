@@ -10,55 +10,55 @@ import 'golden_runner.dart';
 final DateTime _fixedNow = DateTime.utc(2026, 9, 7, 12, 0, 0);
 
 MaskedParty get _maskedCustomer => const MaskedParty(
-      role: UserRole.customer,
-      region: 'DXB',
-      pseudonym: 'Cust. DXB',
-      rating: RatingSummary.score(4.5, 12),
-      dealCount: 8,
-    );
+  role: UserRole.customer,
+  region: 'DXB',
+  pseudonym: 'Cust. DXB',
+  rating: RatingSummary.score(4.5, 12),
+  dealCount: 8,
+);
 
 VendorRequestItem get _requestItem => VendorRequestItem(
-      id: 'req-1',
-      reference: 'REQ-1001',
-      requestType: 'FIND_ORNAMENT',
-      direction: 'BUY',
-      state: 'PUBLISHED',
-      categoryId: 'cat-1',
-      categoryName: 'Bangles',
-      regionId: 'reg-1',
-      regionName: 'Deira',
-      weightGrams: 25.5,
-      purityKarat: '21',
-      budgetMin: 5000,
-      notes: 'Prefer classic design',
-      // Omit publishedAt: VendorRequestCard does not forward a frozen `now`
-      // into RelativeTimeLabel, so relative text would be non-deterministic.
-      // Omit expiresAt when using pumpAndSettle (periodic timer would hang).
-      offerCount: 3,
-      viewedAt: DateTime.utc(2026, 9, 1),
-      hasResponded: true,
-      customer: _maskedCustomer,
-    );
+  id: 'req-1',
+  reference: 'REQ-1001',
+  requestType: 'FIND_ORNAMENT',
+  direction: 'BUY',
+  state: 'PUBLISHED',
+  categoryId: 'cat-1',
+  categoryName: 'Bangles',
+  regionId: 'reg-1',
+  regionName: 'Deira',
+  weightGrams: 25.5,
+  purityKarat: '21',
+  budgetMin: 5000,
+  notes: 'Prefer classic design',
+  // Omit publishedAt: VendorRequestCard does not forward a frozen `now`
+  // into RelativeTimeLabel, so relative text would be non-deterministic.
+  // Omit expiresAt when using pumpAndSettle (periodic timer would hang).
+  offerCount: 3,
+  viewedAt: DateTime.utc(2026, 9, 1),
+  hasResponded: true,
+  customer: _maskedCustomer,
+);
 
 /// Card golden omits weight so the budget Row fits under Ahem (wider than prod fonts).
 VendorRequestItem get _cardItem => VendorRequestItem(
-      id: _requestItem.id,
-      reference: _requestItem.reference,
-      requestType: _requestItem.requestType,
-      direction: _requestItem.direction,
-      state: _requestItem.state,
-      categoryId: _requestItem.categoryId,
-      categoryName: _requestItem.categoryName,
-      regionId: _requestItem.regionId,
-      regionName: _requestItem.regionName,
-      purityKarat: _requestItem.purityKarat,
-      budgetMin: _requestItem.budgetMin,
-      notes: _requestItem.notes,
-      offerCount: _requestItem.offerCount,
-      viewedAt: _requestItem.viewedAt,
-      hasResponded: _requestItem.hasResponded,
-      customer: _requestItem.customer,
-    );
+  id: _requestItem.id,
+  reference: _requestItem.reference,
+  requestType: _requestItem.requestType,
+  direction: _requestItem.direction,
+  state: _requestItem.state,
+  categoryId: _requestItem.categoryId,
+  categoryName: _requestItem.categoryName,
+  regionId: _requestItem.regionId,
+  regionName: _requestItem.regionName,
+  purityKarat: _requestItem.purityKarat,
+  budgetMin: _requestItem.budgetMin,
+  notes: _requestItem.notes,
+  offerCount: _requestItem.offerCount,
+  viewedAt: _requestItem.viewedAt,
+  hasResponded: _requestItem.hasResponded,
+  customer: _requestItem.customer,
+);
 
 void main() {
   testWidgets('MoneyDisplay LTR+RTL golden', (tester) async {
@@ -105,10 +105,8 @@ void main() {
       tester,
       name: 'masked_party_label',
       size: const Size(360, 100),
-      builder: () => SizedBox(
-        width: 320,
-        child: MaskedPartyLabel(party: _maskedCustomer),
-      ),
+      builder: () =>
+          SizedBox(width: 320, child: MaskedPartyLabel(party: _maskedCustomer)),
     );
   });
 
@@ -129,10 +127,8 @@ void main() {
       tester,
       name: 'specification_grid',
       size: const Size(400, 360),
-      builder: () => SizedBox(
-        width: 360,
-        child: SpecificationGrid(item: _requestItem),
-      ),
+      builder: () =>
+          SizedBox(width: 360, child: SpecificationGrid(item: _requestItem)),
     );
   });
 
@@ -244,10 +240,8 @@ void main() {
       tester,
       name: 'connection_closed_banner',
       size: const Size(400, 100),
-      builder: () => const SizedBox(
-        width: 360,
-        child: ConnectionClosedBanner(),
-      ),
+      builder: () =>
+          const SizedBox(width: 360, child: ConnectionClosedBanner()),
     );
   });
 
@@ -375,7 +369,7 @@ void main() {
               pref: NotificationChannelPref(
                 inApp: true,
                 push: true,
-                email: false,
+                emailChannel: false,
               ),
             ),
             NotificationPreferenceCategory(
@@ -384,7 +378,7 @@ void main() {
               pref: NotificationChannelPref(
                 inApp: false,
                 push: false,
-                email: false,
+                emailChannel: false,
               ),
               hint: 'Required for account security',
             ),
@@ -408,13 +402,7 @@ void main() {
               summary: RatingSummary(
                 average: 4.6,
                 count: 12,
-                distribution: {
-                  '5': 8,
-                  '4': 3,
-                  '3': 1,
-                  '2': 0,
-                  '1': 0,
-                },
+                distribution: {'5': 8, '4': 3, '3': 1, '2': 0, '1': 0},
                 limitedHistory: false,
               ),
             ),
@@ -547,5 +535,3 @@ void main() {
 void _noopStar(int _) {}
 
 void _noopComment(String _) {}
-
-

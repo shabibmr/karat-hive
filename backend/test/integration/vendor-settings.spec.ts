@@ -103,7 +103,9 @@ describe('CP6-A06.1 vendor settings round-trip', () => {
       quietHours: null,
     });
 
-    // Omit notifications here: nested channel key `email` trips identity masking (500).
+    // Notification channel key is `emailChannel`, not `email` — `email` is a
+    // reserved identity key (edge/masking/identity-keys.ts) and previously
+    // tripped MaskingInterceptor's leak check on this non-identity boolean.
     const patch = await inject(ctx.app, {
       method: 'PATCH',
       url: '/v1/me/settings',
@@ -112,6 +114,7 @@ describe('CP6-A06.1 vendor settings round-trip', () => {
         preferredLanguage: 'ar',
         quietHours: { start: '22:00', end: '07:00' },
         defaultFilterPresetId: presetA.id,
+        notifications: { 'offer.submitted': { inApp: true, push: false, emailChannel: true } },
       },
     });
     expect(patch.status).toBe(200);
@@ -119,6 +122,7 @@ describe('CP6-A06.1 vendor settings round-trip', () => {
       preferredLanguage: 'ar',
       defaultFilterPresetId: presetA.id,
       quietHours: { start: '22:00', end: '07:00', timezone: 'Asia/Dubai' },
+      notifications: { 'offer.submitted': { inApp: true, push: false, emailChannel: true } },
     });
 
     const after = await inject(ctx.app, {
@@ -131,6 +135,7 @@ describe('CP6-A06.1 vendor settings round-trip', () => {
       preferredLanguage: 'ar',
       defaultFilterPresetId: presetA.id,
       quietHours: { start: '22:00', end: '07:00', timezone: 'Asia/Dubai' },
+      notifications: { 'offer.submitted': { inApp: true, push: false, emailChannel: true } },
     });
 
     // Second preset becomes the sole default (column overwrite).

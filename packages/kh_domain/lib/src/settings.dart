@@ -4,19 +4,20 @@ part 'settings.freezed.dart';
 part 'settings.g.dart';
 
 Map<String, dynamic> _normalizeAccountDeletionRequestJson(
-        Map<String, dynamic> json) =>
-    {
-      'id': json['id'] as String,
-      'state': json['state'] as String? ?? 'QUEUED',
-      'createdAt': (DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+  Map<String, dynamic> json,
+) => {
+  'id': json['id'] as String,
+  'state': json['state'] as String? ?? 'QUEUED',
+  'createdAt':
+      (DateTime.tryParse(json['createdAt'] as String? ?? '') ??
               DateTime.fromMillisecondsSinceEpoch(0))
           .toIso8601String(),
-      'challengeId': json['challengeId'] as String?,
-      'expiresAt': json['expiresAt'] is String
-          ? (DateTime.tryParse(json['expiresAt'] as String)?.toIso8601String())
-          : null,
-      'retryAfterSeconds': (json['retryAfterSeconds'] as num?)?.toInt(),
-    };
+  'challengeId': json['challengeId'] as String?,
+  'expiresAt': json['expiresAt'] is String
+      ? (DateTime.tryParse(json['expiresAt'] as String)?.toIso8601String())
+      : null,
+  'retryAfterSeconds': (json['retryAfterSeconds'] as num?)?.toInt(),
+};
 
 @freezed
 abstract class AccountDeletionRequest with _$AccountDeletionRequest {
@@ -31,7 +32,8 @@ abstract class AccountDeletionRequest with _$AccountDeletionRequest {
 
   factory AccountDeletionRequest.fromJson(Map<String, dynamic> json) =>
       _$AccountDeletionRequestFromJson(
-          _normalizeAccountDeletionRequestJson(json));
+        _normalizeAccountDeletionRequestJson(json),
+      );
 }
 
 @freezed
@@ -51,7 +53,10 @@ abstract class NotificationChannelPref with _$NotificationChannelPref {
   const factory NotificationChannelPref({
     required bool inApp,
     required bool push,
-    required bool email,
+    // Wire key is `emailChannel`, not `email` — `email` is a reserved
+    // identity key on the backend (edge/masking/identity-keys.ts) and trips
+    // MaskingInterceptor's leak check on this non-identity boolean.
+    required bool emailChannel,
   }) = _NotificationChannelPref;
 
   factory NotificationChannelPref.fromJson(Map<String, dynamic> json) =>

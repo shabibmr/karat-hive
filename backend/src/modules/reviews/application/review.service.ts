@@ -243,12 +243,14 @@ export class ReviewService {
     }
 
     const now = this.clock.now();
+    const { adminProfileId, actorUserId } = await this.resolveAdminProfile(adminUserId);
+
     const updated = await this.prisma.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const res = await this.repo.moderateReview(tx, reviewId, {
           state: 'PUBLISHED',
           publishedAt: now,
-          moderatedByAdminId: adminUserId,
+          moderatedByAdminId: adminProfileId,
         });
 
         await enqueueOutbox(tx, {
@@ -275,7 +277,7 @@ export class ReviewService {
         });
 
         await this.audit.append(tx, {
-          actorUserId: adminUserId,
+          actorUserId,
           action: 'REVIEW_APPROVED',
           entityType: 'review',
           entityId: reviewId,
@@ -300,11 +302,13 @@ export class ReviewService {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
 
+    const { adminProfileId, actorUserId } = await this.resolveAdminProfile(adminUserId);
+
     const updated = await this.prisma.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const res = await this.repo.moderateReview(tx, reviewId, {
           state: 'REJECTED',
-          moderatedByAdminId: adminUserId,
+          moderatedByAdminId: adminProfileId,
         });
 
         await enqueueOutbox(tx, {
@@ -319,7 +323,7 @@ export class ReviewService {
         });
 
         await this.audit.append(tx, {
-          actorUserId: adminUserId,
+          actorUserId,
           action: 'REVIEW_REJECTED',
           entityType: 'review',
           entityId: reviewId,
@@ -345,12 +349,14 @@ export class ReviewService {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
 
+    const { adminProfileId, actorUserId } = await this.resolveAdminProfile(adminUserId);
+
     const updated = await this.prisma.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const res = await this.repo.moderateReview(tx, reviewId, {
           state: 'REDACTED',
           comment: redactedComment,
-          moderatedByAdminId: adminUserId,
+          moderatedByAdminId: adminProfileId,
         });
 
         await enqueueOutbox(tx, {
@@ -365,7 +371,7 @@ export class ReviewService {
         });
 
         await this.audit.append(tx, {
-          actorUserId: adminUserId,
+          actorUserId,
           action: 'REVIEW_REDACTED',
           entityType: 'review',
           entityId: reviewId,
@@ -377,6 +383,16 @@ export class ReviewService {
     );
 
     return presentReview(updated)!;
+  }
+
+  private async resolveAdminProfile(adminUserId: string) {
+    const admin = await this.prisma.adminProfile?.findFirst?.({
+      where: { OR: [{ id: adminUserId }, { userId: adminUserId }] },
+    });
+    return {
+      adminProfileId: admin?.id ?? null,
+      actorUserId: admin?.userId ?? adminUserId,
+    };
   }
 
   async recalculateRatings(subjectUserId: string): Promise<void> {

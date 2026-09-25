@@ -25,7 +25,8 @@ class SettingsScreen extends ConsumerWidget {
   final Future<TimeOfDay?> Function(
     BuildContext context, {
     required TimeOfDay initialTime,
-  })? timePicker;
+  })?
+  timePicker;
 
   /// Optional override for URL opening (useful in tests).
   final Future<bool> Function(String url)? openUrl;
@@ -72,9 +73,9 @@ class SettingsScreen extends ConsumerWidget {
                     ? const Icon(Icons.check, color: Colors.green)
                     : null,
                 onTap: () {
-                  ref.read(settingsControllerProvider.notifier).patch(
-                        defaultFilterPresetId: '',
-                      );
+                  ref
+                      .read(settingsControllerProvider.notifier)
+                      .patch(defaultFilterPresetId: '');
                   Navigator.of(dialogCtx).pop();
                 },
               ),
@@ -87,9 +88,9 @@ class SettingsScreen extends ConsumerWidget {
                       ? const Icon(Icons.check, color: Colors.green)
                       : null,
                   onTap: () {
-                    ref.read(settingsControllerProvider.notifier).patch(
-                          defaultFilterPresetId: preset.id,
-                        );
+                    ref
+                        .read(settingsControllerProvider.notifier)
+                        .patch(defaultFilterPresetId: preset.id);
                     Navigator.of(dialogCtx).pop();
                   },
                 ),
@@ -141,9 +142,7 @@ class SettingsScreen extends ConsumerWidget {
       ok: (_) {
         ref.invalidate(activeSessionsProvider);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Session revoked successfully.'),
-          ),
+          const SnackBar(content: Text('Session revoked successfully.')),
         );
       },
       err: (failure) {
@@ -195,7 +194,8 @@ class SettingsScreen extends ConsumerWidget {
     final presetsAsync = ref.watch(filterPresetsListProvider);
     final presets = presetsAsync.valueOrNull ?? const <FilterPresetItem>[];
     final defaultPresetId = settings?.defaultFilterPresetId;
-    final defaultPreset = (defaultPresetId != null && defaultPresetId.isNotEmpty)
+    final defaultPreset =
+        (defaultPresetId != null && defaultPresetId.isNotEmpty)
         ? presets.where((p) => p.id == defaultPresetId).firstOrNull
         : null;
     final defaultPresetName = defaultPreset?.name ?? 'None';
@@ -208,31 +208,34 @@ class SettingsScreen extends ConsumerWidget {
       NotificationPreferenceCategory(
         id: 'request_matches',
         label: 'Request Matches',
-        pref: notifications['request_matches'] ??
+        pref:
+            notifications['request_matches'] ??
             const NotificationChannelPref(
               inApp: false,
               push: false,
-              email: false,
+              emailChannel: false,
             ),
       ),
       NotificationPreferenceCategory(
         id: 'offer_updates',
         label: 'Offer Updates',
-        pref: notifications['offer_updates'] ??
+        pref:
+            notifications['offer_updates'] ??
             const NotificationChannelPref(
               inApp: false,
               push: false,
-              email: false,
+              emailChannel: false,
             ),
       ),
       NotificationPreferenceCategory(
         id: 'connection_alerts',
         label: 'Connection Alerts',
-        pref: notifications['connection_alerts'] ??
+        pref:
+            notifications['connection_alerts'] ??
             const NotificationChannelPref(
               inApp: false,
               push: false,
-              email: false,
+              emailChannel: false,
             ),
       ),
       NotificationPreferenceCategory(
@@ -261,9 +264,9 @@ class SettingsScreen extends ConsumerWidget {
                     ref
                         .read(appLocaleProvider.notifier)
                         .setLanguageCode(newLocale);
-                    ref.read(settingsControllerProvider.notifier).patch(
-                          preferredLanguage: newLocale,
-                        );
+                    ref
+                        .read(settingsControllerProvider.notifier)
+                        .patch(preferredLanguage: newLocale);
                   },
                 ),
               ],
@@ -280,16 +283,12 @@ class SettingsScreen extends ConsumerWidget {
                   trailing: Text(
                     defaultPresetName,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   showChevron: true,
-                  onTap: () => _openPresetDialog(
-                    context,
-                    ref,
-                    presets,
-                    defaultPresetId,
-                  ),
+                  onTap: () =>
+                      _openPresetDialog(context, ref, presets, defaultPresetId),
                 ),
               ],
             ),
@@ -306,12 +305,13 @@ class SettingsScreen extends ConsumerWidget {
                   inAppLabel: 'SMS',
                   categories: categories,
                   onChanged: (categoryId, nextPref) {
-                    final updated =
-                        Map<String, NotificationChannelPref>.from(notifications);
+                    final updated = Map<String, NotificationChannelPref>.from(
+                      notifications,
+                    );
                     updated[categoryId] = nextPref;
-                    ref.read(settingsControllerProvider.notifier).patch(
-                          notifications: updated,
-                        );
+                    ref
+                        .read(settingsControllerProvider.notifier)
+                        .patch(notifications: updated);
                   },
                 ),
               ],
@@ -330,16 +330,18 @@ class SettingsScreen extends ConsumerWidget {
                     value: quietHoursEnabled,
                     onChanged: (enabled) {
                       if (enabled) {
-                        ref.read(settingsControllerProvider.notifier).patch(
+                        ref
+                            .read(settingsControllerProvider.notifier)
+                            .patch(
                               quietHours: QuietHours(
                                 start: startTimeStr,
                                 end: endTimeStr,
                               ),
                             );
                       } else {
-                        ref.read(settingsControllerProvider.notifier).patch(
-                              quietHours: null,
-                            );
+                        ref
+                            .read(settingsControllerProvider.notifier)
+                            .patch(quietHours: null);
                       }
                     },
                   ),
@@ -351,8 +353,8 @@ class SettingsScreen extends ConsumerWidget {
                     trailing: Text(
                       startTimeStr,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     showChevron: true,
                     onTap: () async {
@@ -368,7 +370,9 @@ class SettingsScreen extends ConsumerWidget {
                             );
                       if (picked != null) {
                         final formatted = _formatTime(picked);
-                        ref.read(settingsControllerProvider.notifier).patch(
+                        ref
+                            .read(settingsControllerProvider.notifier)
+                            .patch(
                               quietHours: QuietHours(
                                 start: formatted,
                                 end: endTimeStr,
@@ -383,8 +387,8 @@ class SettingsScreen extends ConsumerWidget {
                     trailing: Text(
                       endTimeStr,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     showChevron: true,
                     onTap: () async {
@@ -400,7 +404,9 @@ class SettingsScreen extends ConsumerWidget {
                             );
                       if (picked != null) {
                         final formatted = _formatTime(picked);
-                        ref.read(settingsControllerProvider.notifier).patch(
+                        ref
+                            .read(settingsControllerProvider.notifier)
+                            .patch(
                               quietHours: QuietHours(
                                 start: startTimeStr,
                                 end: formatted,
@@ -431,8 +437,8 @@ class SettingsScreen extends ConsumerWidget {
                   child: Text(
                     'Active Sessions',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 sessionsAsync.when(
@@ -449,8 +455,8 @@ class SettingsScreen extends ConsumerWidget {
                     child: Text(
                       'Could not load active sessions',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ),
                   data: (sessions) {
@@ -465,9 +471,11 @@ class SettingsScreen extends ConsumerWidget {
                         for (final (i, s) in sessions.indexed)
                           _SessionRow(
                             session: s,
-                            isCurrent: s.isCurrent ||
+                            isCurrent:
+                                s.isCurrent ||
                                 (i == 0 && !sessions.any((x) => x.isCurrent)),
-                            onRevoke: () => _handleRevokeSession(context, ref, s),
+                            onRevoke: () =>
+                                _handleRevokeSession(context, ref, s),
                           ),
                       ],
                     );
@@ -487,7 +495,8 @@ class SettingsScreen extends ConsumerWidget {
                   leadingIcon: Icons.description,
                   showChevron: true,
                   onTap: () {
-                    final url = config?.termsUrl ?? 'https://karathive.ae/terms';
+                    final url =
+                        config?.termsUrl ?? 'https://karathive.ae/terms';
                     (openUrl ?? openExternalUrl)(url);
                   },
                 ),
@@ -508,7 +517,8 @@ class SettingsScreen extends ConsumerWidget {
                   leadingIcon: Icons.help_outline,
                   showChevron: true,
                   onTap: () {
-                    final url = config?.supportContactUrl ??
+                    final url =
+                        config?.supportContactUrl ??
                         'https://karathive.ae/support';
                     (openUrl ?? openExternalUrl)(url);
                   },
@@ -602,8 +612,10 @@ class _ChangePasswordDialogState extends ConsumerState<_ChangePasswordDialog> {
       return;
     }
     if (!_checkPolicy(newPass)) {
-      setState(() => _error =
-          'Password must be at least 8 characters, include 1 uppercase letter, 1 number, and 1 symbol.');
+      setState(
+        () => _error =
+            'Password must be at least 8 characters, include 1 uppercase letter, 1 number, and 1 symbol.',
+      );
       return;
     }
     if (newPass != confirm) {
