@@ -208,56 +208,61 @@ class _OwnerRequestDetailScreenState
                         context.push('/customer/connections/${req.connectionId}'),
                   ),
                 ],
-                SizedBox(height: tokens.space.xl),
-                KhTextField(
-                  label: s.s('cus.s10.editNotes'),
-                  controller: _notes,
-                ),
-                KhTextField(
-                  label: s.s('cus.s10.budgetMin'),
-                  controller: _budgetMin,
-                  keyboardType: TextInputType.number,
-                ),
-                KhTextField(
-                  label: s.s('cus.s10.budgetMax'),
-                  controller: _budgetMax,
-                  keyboardType: TextInputType.number,
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(s.s('cus.s10.budgetFlexible')),
-                  value: _flexible,
-                  onChanged: (v) => setState(() => _flexible = v),
-                ),
-                if (detail.actionError != null) ...[
-                  KhInlineError(
-                    message: customerFailureMessage(
-                      detail.actionError!,
-                      s,
-                      'cus.home.error',
+                if (req.state == RequestState.published) ...[
+                  SizedBox(height: tokens.space.xl),
+                  KhTextField(
+                    label: s.s('cus.s10.editNotes'),
+                    controller: _notes,
+                  ),
+                  KhTextField(
+                    label: s.s('cus.s10.budgetMin'),
+                    controller: _budgetMin,
+                    keyboardType: TextInputType.number,
+                  ),
+                  KhTextField(
+                    label: s.s('cus.s10.budgetMax'),
+                    controller: _budgetMax,
+                    keyboardType: TextInputType.number,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(s.s('cus.s10.budgetFlexible')),
+                    value: _flexible,
+                    onChanged: (v) => setState(() => _flexible = v),
+                  ),
+                  if (detail.actionError != null) ...[
+                    KhInlineError(
+                      message: customerFailureMessage(
+                        detail.actionError!,
+                        s,
+                        'cus.home.error',
+                      ),
                     ),
+                    SizedBox(height: tokens.space.md),
+                  ],
+                  KhButton(
+                    label: s.s('cus.s10.saveEdits'),
+                    busy: detail.saving,
+                    onPressed: detail.cancelling
+                        ? null
+                        : () => ref
+                            .read(ownerRequestDetailProvider(widget.requestId)
+                                .notifier)
+                            .save(
+                              notes: _notes.text,
+                              budgetMin: _budgetMin.text,
+                              budgetMax: _budgetMax.text,
+                              budgetIsFlexible: _flexible,
+                            ),
                   ),
                   SizedBox(height: tokens.space.md),
+                  KhButton(
+                    label: s.s('cus.s10.cancelRequest'),
+                    destructive: true,
+                    busy: detail.cancelling,
+                    onPressed: detail.saving ? null : () => _confirmCancel(s),
+                  ),
                 ],
-                KhButton(
-                  label: s.s('cus.s10.saveEdits'),
-                  busy: detail.saving,
-                  onPressed: () => ref
-                      .read(ownerRequestDetailProvider(widget.requestId).notifier)
-                      .save(
-                        notes: _notes.text,
-                        budgetMin: _budgetMin.text,
-                        budgetMax: _budgetMax.text,
-                        budgetIsFlexible: _flexible,
-                      ),
-                ),
-                SizedBox(height: tokens.space.md),
-                KhButton(
-                  label: s.s('cus.s10.cancelRequest'),
-                  destructive: true,
-                  busy: detail.cancelling,
-                  onPressed: () => _confirmCancel(s),
-                ),
               ],
             ],
           );

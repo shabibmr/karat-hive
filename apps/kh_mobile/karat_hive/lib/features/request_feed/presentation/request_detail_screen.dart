@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
+import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
@@ -11,14 +13,22 @@ import '../controller/request_detail_controller.dart';
 ///
 /// Strictly adheres to BR-006 (customer identity masked) and BR-008 (competitor
 /// price and offers absent).
-class RequestDetailScreen extends ConsumerWidget {
+class RequestDetailScreen extends ConsumerStatefulWidget {
   const RequestDetailScreen({super.key, required this.requestId});
 
   final String requestId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final detailAsync = ref.watch(requestDetailProvider(requestId));
+  ConsumerState<RequestDetailScreen> createState() =>
+      _RequestDetailScreenState();
+}
+
+class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
+  bool _expiredNow = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final detailAsync = ref.watch(requestDetailProvider(widget.requestId));
     final tokens = context.tokens;
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
@@ -35,7 +45,7 @@ class RequestDetailScreen extends ConsumerWidget {
             onSelected: (value) {
               if (value == 'report') {
                 context.push(
-                  '/abuse/new?targetType=REQUEST&targetId=$requestId',
+                  '/abuse/new?targetType=REQUEST&targetId=${widget.requestId}',
                 );
               }
             },
@@ -55,20 +65,23 @@ class RequestDetailScreen extends ConsumerWidget {
           child: KhErrorView(
             message: l10n?.couldNotLoadRequestDetails ??
                 'Could not load request details.',
-            onRetry: () => ref.invalidate(requestDetailProvider(requestId)),
+            onRetry: () =>
+                ref.invalidate(requestDetailProvider(widget.requestId)),
           ),
         ),
         data: (item) {
-          final isExpired = item.expiresAt != null &&
-              item.expiresAt!.isBefore(DateTime.now().toUtc());
+          final clock = ServerClockScope.maybeOf(context) ?? ServerClock();
+          final isExpired = _expiredNow ||
+              (item.expiresAt != null &&
+                  item.expiresAt!.isBefore(clock.now()));
           final closedStates = {
-            'EXPIRED',
-            'CANCELLED',
-            'CLOSED',
-            'ACCEPTED',
-            'WITHDRAWN',
+            RequestState.expired,
+            RequestState.cancelled,
+            RequestState.closed,
+            RequestState.accepted,
+            RequestState.removed,
           };
-          final isClosed = closedStates.contains(item.state.toUpperCase());
+          final isClosed = closedStates.contains(RequestState.parse(item.state));
           final actionsDisabled = isExpired || isClosed;
           final actionLabel = switch ((isExpired, isClosed)) {
             (true, _) => l10n?.requestExpired ?? 'Request Expired',
@@ -124,7 +137,12 @@ class RequestDetailScreen extends ConsumerWidget {
                           ),
                         ),
                         if (item.expiresAt != null)
-                          ExpiryCountdown(expiresAt: item.expiresAt!),
+                          ExpiryCountdown(
+                            expiresAt: item.expiresAt!,
+                            onExpired: () {
+                              if (mounted) setState(() => _expiredNow = true);
+                            },
+                          ),
                       ],
                     ),
                     SizedBox(height: tokens.space.md),
@@ -240,7 +258,8 @@ class RequestDetailScreen extends ConsumerWidget {
                     label: actionLabel,
                     onPressed: actionsDisabled
                         ? null
-                        : () => context.push('/vendor/requests/$requestId/offer'),
+                        : () => context
+                            .push('/vendor/requests/${widget.requestId}/offer'),
                   ),
                 ),
               ),

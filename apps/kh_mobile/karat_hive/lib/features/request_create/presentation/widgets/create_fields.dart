@@ -414,6 +414,7 @@ class BudgetEditor extends StatelessWidget {
         ),
         if (state.budgetMode == BudgetMode.range)
           KhNumericField(
+            key: const ValueKey('create-field-budgetMin'),
             label: createCopy(context, 'create.budgetMin', 'Budget min'),
             unit: 'AED',
             initialValue: state.budgetMin,
@@ -421,6 +422,7 @@ class BudgetEditor extends StatelessWidget {
             onChanged: (v) => controller.setBudgetMin(v?.toStringAsFixed(2)),
           ),
         KhNumericField(
+          key: const ValueKey('create-field-budgetMax'),
           label: createCopy(context, 'create.budgetMax', 'Budget max'),
           unit: 'AED',
           initialValue: state.budgetMax,

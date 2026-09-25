@@ -181,7 +181,7 @@ export class OciS3StorageAdapter implements ObjectStorage {
     return fetch(url, {
       method,
       headers,
-      body: method === 'GET' || method === 'HEAD' ? undefined : body,
+      body: method === 'GET' || method === 'HEAD' ? undefined : (body as BodyInit),
     });
   }
 }

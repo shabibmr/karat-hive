@@ -162,7 +162,7 @@ class VendorDetail {
           VendorVerificationState.fromApi(verificationStateStr) ??
               VendorVerificationState.registered,
       accountState: VendorAccountState.fromApi(accountStateStr) ??
-          VendorAccountState.active,
+          VendorAccountState.suspended,
       categories: parseStringList(json['categories']),
       regions: parseStringList(json['regions']),
       documents: parseDocs(json['documents']),

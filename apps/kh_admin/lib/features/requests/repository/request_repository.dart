@@ -50,7 +50,8 @@ class RequestRepository {
 
     final meta = response.meta;
     final nextCursor = meta?['nextCursor']?.toString();
-    final totalCount = (meta?['totalCount'] ?? meta?['total']) as int?;
+    final totalCount =
+        (meta?['totalCount'] as num?)?.toInt() ?? (meta?['total'] as num?)?.toInt();
 
     return Paginated<RequestListItem>(
       items: items,

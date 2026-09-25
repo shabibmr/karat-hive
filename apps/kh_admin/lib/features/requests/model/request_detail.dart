@@ -454,6 +454,8 @@ class RequestDetail with _$RequestDetail {
 
   bool get isRemoved => state == RequestState.removed;
   bool get isAccepted => state == RequestState.accepted || connection != null;
+  bool get canRemove =>
+      state == RequestState.draft || state == RequestState.published;
 
   factory RequestDetail.fromJson(Map<String, dynamic> json) =>
       _$RequestDetailFromJson(json);

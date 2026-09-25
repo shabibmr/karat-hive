@@ -219,9 +219,7 @@ class VerificationDocViewController
           k == 'expiry',
     );
 
-    if (uri.path.contains('/v1/media/')) return hasSig;
-    // Absolute https with any query — treat as signed (R2/S3-style).
-    return true;
+    return hasSig;
   }
 
   static const _unsignedPreviewMessage =

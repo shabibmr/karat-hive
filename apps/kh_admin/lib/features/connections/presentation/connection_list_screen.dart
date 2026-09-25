@@ -72,6 +72,7 @@ class _ConnectionListScreenState extends ConsumerState<ConnectionListScreen> wit
   }
 
   void _onSearchSubmitted() {
+    cancelSearchDebounce();
     ref
         .read(connectionListControllerProvider.notifier)
         .setSearchQuery(_searchController.text.trim());

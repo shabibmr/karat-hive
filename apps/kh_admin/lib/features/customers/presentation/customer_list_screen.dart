@@ -72,6 +72,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> with De
   }
 
   void _onSearchSubmitted() {
+    cancelSearchDebounce();
     ref
         .read(customerListControllerProvider.notifier)
         .setSearchQuery(_searchController.text.trim());

@@ -39,7 +39,7 @@ class CustomerHomeController
         0,
         (sum, r) => sum + (r.unreadOfferCount ?? 0),
       ),
-      err: (_) => 0,
+      err: (failure) => throw failure,
     );
 
     return CustomerHomeSummary(

@@ -12,6 +12,13 @@ library;
 
 import 'package:intl/intl.dart';
 
+/// Converts a UTC-stored timestamp to Gulf Standard Time (UTC+4, `BR-021`)
+/// for display. Callers must apply this before passing a [DateTime] to any
+/// formatter below.
+extension KhGstConversion on DateTime {
+  DateTime toGst() => toUtc().add(const Duration(hours: 4));
+}
+
 /// Date with time, e.g. `04 Sep 2026, 14:30`.
 final DateFormat khDateTimeFormat = DateFormat('dd MMM yyyy, HH:mm');
 

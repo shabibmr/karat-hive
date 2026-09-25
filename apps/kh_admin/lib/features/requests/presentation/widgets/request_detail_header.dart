@@ -91,12 +91,12 @@ class RequestDetailHeader extends StatelessWidget {
                 heading: heading,
                 supportingText: detail.publishedAt != null
                     ? (l10n?.requestsDetailPublishedAt(
-                            dateFormat.format(detail.publishedAt!)) ??
-                        'Published ${dateFormat.format(detail.publishedAt!)} GST')
+                            dateFormat.format(detail.publishedAt!.toGst())) ??
+                        'Published ${dateFormat.format(detail.publishedAt!.toGst())} GST')
                     : (detail.createdAt != null
                         ? (l10n?.requestsDetailCreatedAt(
-                                dateFormat.format(detail.createdAt!)) ??
-                            'Created ${dateFormat.format(detail.createdAt!)} GST')
+                                dateFormat.format(detail.createdAt!.toGst())) ??
+                            'Created ${dateFormat.format(detail.createdAt!.toGst())} GST')
                         : ''),
               ),
             ],

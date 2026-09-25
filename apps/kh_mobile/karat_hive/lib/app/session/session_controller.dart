@@ -93,6 +93,10 @@ class SessionController extends Notifier<SessionState> {
     // too would fire a second, uncoordinated googleSession call for the same
     // token and could race the screen controller's own result. Sign-out is
     // still handled here since nothing else owns it.
+    // authStateChanges delivers the current Firebase user to a new listener as
+    // its first event, so the fbUser == null branch here already covers cold
+    // start with no Firebase session — a separate unconditional restore call
+    // would race this listener for the same legacy-session check.
     _authSub = _authService.authStateChanges.listen((fbUser) {
       if (fbUser == null) {
         _checkLegacySession();
@@ -100,17 +104,11 @@ class SessionController extends Notifier<SessionState> {
     });
     ref.onDispose(() => _authSub?.cancel());
 
-    _restore();
-    return const SessionLoading();
-  }
-
-  Future<void> _restore() async {
     final fbUser = _authService.currentUser;
     if (fbUser != null) {
-      await _exchangeGoogleSession(fbUser);
-      return;
+      _exchangeGoogleSession(fbUser);
     }
-    await _checkLegacySession();
+    return const SessionLoading();
   }
 
   Future<void> _checkLegacySession() async {

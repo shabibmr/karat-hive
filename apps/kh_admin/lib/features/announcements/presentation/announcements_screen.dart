@@ -80,6 +80,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> with 
   }
 
   void _onSearchSubmitted() {
+    cancelSearchDebounce();
     ref
         .read(announcementListControllerProvider.notifier)
         .setSearchQuery(_searchController.text.trim());

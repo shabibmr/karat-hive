@@ -70,7 +70,8 @@ class RequestModerationCard extends StatelessWidget {
                     )
                   : const Icon(Icons.delete_forever, size: 18.0),
               label: Text(l10n?.requestsDetailRemoveRequest ?? 'Remove Request'),
-              onPressed: isProcessing ? null : onRemove,
+              onPressed:
+                  isProcessing || !detail.canRemove ? null : onRemove,
             ),
         ],
       ),

@@ -10,13 +10,21 @@ import '../../request_manage/presentation/customer_copy.dart';
 import '../controller/offer_detail_controller.dart';
 
 /// CUS-S13 — Offer detail + masked vendor rating (CU-20).
-class OfferDetailScreen extends ConsumerWidget {
+class OfferDetailScreen extends ConsumerStatefulWidget {
   const OfferDetailScreen({super.key, required this.offerId});
 
   final String offerId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OfferDetailScreen> createState() => _OfferDetailScreenState();
+}
+
+class _OfferDetailScreenState extends ConsumerState<OfferDetailScreen> {
+  bool _declining = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final offerId = widget.offerId;
     final async = ref.watch(offerDetailProvider(offerId));
     final s = KhStrings.of(context);
     final tokens = context.tokens;
@@ -125,15 +133,17 @@ class OfferDetailScreen extends ConsumerWidget {
                 KhButton(
                   key: const Key('offer-mark-interested'),
                   label: s.s('cus.s13.markInterested'),
-                  onPressed: () =>
-                      context.push('/customer/offers/$offerId/accept'),
+                  onPressed: _declining
+                      ? null
+                      : () => context.push('/customer/offers/$offerId/accept'),
                 ),
                 SizedBox(height: tokens.space.sm),
                 KhButton(
                   key: const Key('offer-decline'),
                   label: s.s('cus.s13.decline'),
                   secondary: true,
-                  onPressed: () => _decline(context, ref, s),
+                  busy: _declining,
+                  onPressed: _declining ? null : () => _decline(context, ref, s),
                 ),
               ],
             ],
@@ -193,17 +203,19 @@ class OfferDetailScreen extends ConsumerWidget {
         );
       },
     );
-    if (confirmed != true || !context.mounted) return;
+    if (confirmed != true || !context.mounted || _declining) return;
+    setState(() => _declining = true);
     final res = await ref
-        .read(offerDetailProvider(offerId).notifier)
+        .read(offerDetailProvider(widget.offerId).notifier)
         .decline(reason: reason);
     if (!context.mounted) return;
     res.when(
       ok: (_) {
-        ref.invalidate(offerDetailProvider(offerId));
+        ref.invalidate(offerDetailProvider(widget.offerId));
         context.pop();
       },
       err: (f) {
+        setState(() => _declining = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

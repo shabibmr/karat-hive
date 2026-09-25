@@ -7,8 +7,14 @@ import '../model/customer_register_form_state.dart';
 import '../repository/auth_repository.dart';
 
 class CustomerRegisterController extends AutoDisposeNotifier<CustomerRegisterFormState> {
+  bool _disposed = false;
+
   @override
-  CustomerRegisterFormState build() => const CustomerRegisterFormState();
+  CustomerRegisterFormState build() {
+    _disposed = false;
+    ref.onDispose(() => _disposed = true);
+    return const CustomerRegisterFormState();
+  }
 
   AuthRepository get _repo => ref.read(authRepositoryProvider);
 
@@ -18,6 +24,7 @@ class CustomerRegisterController extends AutoDisposeNotifier<CustomerRegisterFor
   Future<void> sendOtp() async {
     state = state.copyWith(busy: true, clearFailure: true);
     final r = await _repo.requestOtp(state.mobileNumber.trim(), 'REGISTER_CUSTOMER');
+    if (_disposed) return;
     state = r.when(
       ok: (c) => state.copyWith(
         busy: false,
@@ -33,6 +40,7 @@ class CustomerRegisterController extends AutoDisposeNotifier<CustomerRegisterFor
     if (cid == null) return;
     state = state.copyWith(busy: true, clearFailure: true);
     final r = await _repo.verifyOtp(cid, code);
+    if (_disposed) return;
     await r.when(
       ok: (res) async {
         if (!res.mobileVerified) {
@@ -60,10 +68,13 @@ class CustomerRegisterController extends AutoDisposeNotifier<CustomerRegisterFor
       termsVersion: '1.0',
       privacyVersion: '1.0',
     );
+    if (_disposed) return;
     await r.when(
       ok: (bundle) async {
         await ref.read(sessionProvider.notifier).onAuthenticated(bundle);
+        if (_disposed) return;
         await _bindGoogleIfPresent();
+        if (_disposed) return;
         state = state.copyWith(step: CustomerRegisterStep.done, busy: false);
       },
       err: (f) async => state = state.copyWith(
@@ -78,6 +89,7 @@ class CustomerRegisterController extends AutoDisposeNotifier<CustomerRegisterFor
     final token = await ref.read(firebaseAuthServiceProvider).getIdToken();
     if (token == null || token.isEmpty) return;
     await _repo.bindGoogle(token);
+    if (_disposed) return;
     await ref.read(sessionProvider.notifier).refreshUser();
   }
 }

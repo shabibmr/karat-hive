@@ -132,12 +132,13 @@ class _ConnectionTile extends ConsumerWidget {
                   child: TextButton.icon(
                     key: Key('talk-shortcut-${connection.id}'),
                     onPressed: () async {
+                      final url = connection.talk.waUrl;
+                      if (url.isEmpty) return;
+                      final launched = await openExternalUrl(url);
+                      if (!launched) return;
                       await ref
                           .read(connectionsRepositoryProvider)
                           .recordContactEvent(connection.id, channel: 'WHATSAPP');
-                      final url = connection.talk.waUrl;
-                      if (url.isEmpty) return;
-                      await openExternalUrl(url);
                     },
                     icon: const Icon(Icons.chat_outlined),
                     label: Text(s.s('connections.talk')),

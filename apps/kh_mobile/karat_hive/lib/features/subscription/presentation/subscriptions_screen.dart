@@ -140,6 +140,20 @@ class SubscriptionsScreen extends ConsumerWidget {
   }
 }
 
+enum _SubStatus {
+  active,
+  grace,
+  expired,
+  none;
+
+  static _SubStatus fromWire(String wire) => switch (wire) {
+        'ACTIVE' => _SubStatus.active,
+        'GRACE' => _SubStatus.grace,
+        'EXPIRED' || 'LAPSED' => _SubStatus.expired,
+        _ => _SubStatus.none,
+      };
+}
+
 class _SubscriptionCard extends StatelessWidget {
   const _SubscriptionCard({
     required this.requestType,
@@ -167,9 +181,10 @@ class _SubscriptionCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     final state = item?.state ?? 'NONE';
-    final isActive = state == 'ACTIVE';
-    final isGrace = state == 'GRACE';
-    final isExpired = state == 'EXPIRED' || state == 'LAPSED';
+    final status = _SubStatus.fromWire(state);
+    final isActive = status == _SubStatus.active;
+    final isGrace = status == _SubStatus.grace;
+    final isExpired = status == _SubStatus.expired;
 
     final displayName = _displayName(l10n);
 

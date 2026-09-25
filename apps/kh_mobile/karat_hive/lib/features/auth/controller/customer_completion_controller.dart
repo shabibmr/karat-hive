@@ -12,8 +12,14 @@ import '../repository/customer_auth_repository.dart';
 /// never composes prose and never shows a raw code.
 class CustomerCompletionController
     extends AutoDisposeNotifier<CustomerCompletionForm> {
+  bool _disposed = false;
+
   @override
-  CustomerCompletionForm build() => const CustomerCompletionForm();
+  CustomerCompletionForm build() {
+    _disposed = false;
+    ref.onDispose(() => _disposed = true);
+    return const CustomerCompletionForm();
+  }
 
   CustomerAuthRepository get _repo => ref.read(customerAuthRepositoryProvider);
 
@@ -61,10 +67,12 @@ class CustomerCompletionController
       displayName: state.displayName.trim(),
       email: state.email,
     );
+    if (_disposed) return;
 
     await register.when(
       ok: (bundle) async {
         await ref.read(sessionProvider.notifier).onAuthenticated(bundle);
+        if (_disposed) return;
         state = state.copyWith(busy: false, step: CompletionStep.done);
       },
       err: (f) async {
@@ -83,6 +91,7 @@ class CustomerCompletionController
     final r = await _repo.requestOtp(
       CustomerCompletionForm.normalizeMobile(state.mobileNumber),
     );
+    if (_disposed) return;
     state = r.when(
       ok: (challenge) => state.copyWith(
         busy: false,
@@ -100,6 +109,7 @@ class CustomerCompletionController
     state = state.copyWith(busy: true, clearFailure: true);
 
     final verify = await _repo.verifyOtp(challengeId, code.trim());
+    if (_disposed) return;
     final verified = verify.when(
       ok: (res) => res.challengeId ?? challengeId,
       err: (_) => null,
@@ -120,10 +130,12 @@ class CustomerCompletionController
       displayName: state.displayName.trim(),
       email: state.email,
     );
+    if (_disposed) return;
 
     await register.when(
       ok: (bundle) async {
         await ref.read(sessionProvider.notifier).onAuthenticated(bundle);
+        if (_disposed) return;
         state = state.copyWith(busy: false, step: CompletionStep.done);
       },
       err: (f) async {

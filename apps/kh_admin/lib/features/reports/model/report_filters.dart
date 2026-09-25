@@ -13,8 +13,8 @@ class ReportFilters {
   final String? categoryId;
 
   static ReportFilters lastThirtyDays({DateTime? now}) {
-    final today = now ?? DateTime.now().toUtc();
-    final to = DateTime.utc(today.year, today.month, today.day);
+    final gstNow = (now ?? DateTime.now().toUtc()).toUtc().add(const Duration(hours: 4));
+    final to = DateTime.utc(gstNow.year, gstNow.month, gstNow.day);
     final from = to.subtract(const Duration(days: 30));
     return ReportFilters(from: from, to: to);
   }

@@ -104,6 +104,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
             ),
             const SizedBox(height: 16),
             KhTextField(
+              key: const ValueKey('vendor-field-contactPersonName'),
               label: 'Your name *',
               initialValue: form.contactPersonName,
               errorText: fieldErrors['contactPersonName'],
@@ -119,6 +120,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
                 helperText: 'From your Google sign-in — cannot be changed.',
               ),
             KhTextField(
+              key: const ValueKey('vendor-field-mobileNumber'),
               label: 'Mobile number *',
               initialValue: form.mobileNumber,
               keyboardType: TextInputType.phone,
@@ -127,6 +129,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
                   controller.patch((s) => s.copyWith(mobileNumber: v)),
             ),
             KhTextField(
+              key: const ValueKey('vendor-field-designation'),
               label: 'Your role (e.g. Owner, Manager)',
               initialValue: form.designation,
               onChanged: (v) =>
@@ -211,6 +214,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
             const SizedBox(height: 16),
 
             KhTextField(
+              key: const ValueKey('vendor-field-tradingName'),
               label: 'Store / Business name *',
               initialValue: form.tradingName,
               errorText: fieldErrors['tradingName'],
@@ -218,6 +222,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
                   controller.patch((s) => s.copyWith(tradingName: v)),
             ),
             KhTextField(
+              key: const ValueKey('vendor-field-website'),
               label: 'Website (optional)',
               initialValue: form.website,
               keyboardType: TextInputType.url,
@@ -252,6 +257,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
             ),
             const SizedBox(height: 16),
             KhTextField(
+              key: const ValueKey('vendor-field-addressShopUnit'),
               label: 'Shop / Unit #',
               initialValue: form.addressShopUnit,
               helperText: 'Enter shop/unit or building (required).',
@@ -259,6 +265,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
                   controller.patch((s) => s.copyWith(addressShopUnit: v)),
             ),
             KhTextField(
+              key: const ValueKey('vendor-field-addressBuilding'),
               label: 'Building or street',
               initialValue: form.addressBuilding,
               onChanged: (v) =>
@@ -329,6 +336,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
             ),
             const SizedBox(height: 16),
             KhTextField(
+              key: const ValueKey('vendor-field-whatsAppNumber'),
               label: 'WhatsApp number *',
               initialValue: form.whatsAppNumber,
               keyboardType: TextInputType.phone,
@@ -345,6 +353,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
               )
             else
               KhTextField(
+                key: const ValueKey('vendor-field-businessEmail'),
                 label: 'Email address *',
                 initialValue: form.businessEmail,
                 keyboardType: TextInputType.emailAddress,

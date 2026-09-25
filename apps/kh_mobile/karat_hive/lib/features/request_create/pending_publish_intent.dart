@@ -54,7 +54,7 @@ class PendingPublishDraftSnapshot {
 
   final DateTime expiresAt;
 
-  bool get isExpired => DateTime.now().isAfter(expiresAt);
+  bool get isExpired => DateTime.now().toUtc().isAfter(expiresAt);
 
   Map<String, dynamic> toJson() => {
         'fields': fields,

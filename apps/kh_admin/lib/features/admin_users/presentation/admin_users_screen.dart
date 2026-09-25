@@ -86,7 +86,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
       id.length > maxLen ? id.substring(0, maxLen) : id;
 
   String _formatDateTime(DateTime dt, [int maxLen = 10]) {
-    final str = dt.toLocal().toString();
+    final str = dt.toUtc().add(const Duration(hours: 4)).toString();
     return str.length >= maxLen ? str.substring(0, maxLen) : str;
   }
 

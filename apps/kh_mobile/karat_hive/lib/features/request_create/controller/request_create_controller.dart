@@ -134,7 +134,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
             PendingPublishDraftSnapshot(
               fields: _persistedFields(),
               mediaKeys: state.mediaKeys,
-              expiresAt: DateTime.now().add(const Duration(days: 7)),
+              expiresAt: DateTime.now().toUtc().add(const Duration(days: 7)),
             ),
           );
     } catch (_) {

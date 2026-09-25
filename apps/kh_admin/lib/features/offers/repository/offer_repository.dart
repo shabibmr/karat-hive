@@ -296,7 +296,6 @@ class OfferRepository {
     if (customerProfile.isNotEmpty || customerUser.isNotEmpty) {
       return MaskedParty(
         role: UserRole.customer,
-        pseudonym: customerProfile['displayName']?.toString() ?? 'Customer',
         region: customerProfile['region']?.toString(),
       );
     }

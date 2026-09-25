@@ -74,6 +74,7 @@ class _ModerationScreenState extends ConsumerState<ModerationScreen> with Deboun
   }
 
   void _onSearchSubmitted() {
+    cancelSearchDebounce();
     ref.read(moderationListControllerProvider.notifier).setSearchQuery(_searchController.text.trim());
     ref.read(moderationListControllerProvider.notifier).submitSearch();
   }

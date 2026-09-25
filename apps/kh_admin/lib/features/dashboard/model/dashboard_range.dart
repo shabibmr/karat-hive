@@ -27,13 +27,13 @@ enum DashboardRange {
     }
   }
 
-  /// `to` = today (UTC, date-floored); `from` = `to` minus [days].
+  /// `to` = today in GST (`BR-021`, date-floored); `from` = `to` minus [days].
   ///
   /// Reuses [ReportFilters] so the dashboard and reports screens share one
   /// date-range encoding (`ReportFilters.toIsoDate` → `yyyy-MM-dd`).
   ReportFilters toFilters(Clock clock) {
-    final now = clock.now().toUtc();
-    final to = DateTime.utc(now.year, now.month, now.day);
+    final gstNow = clock.now().toUtc().add(const Duration(hours: 4));
+    final to = DateTime.utc(gstNow.year, gstNow.month, gstNow.day);
     final from = to.subtract(Duration(days: days));
     return ReportFilters(from: from, to: to);
   }
