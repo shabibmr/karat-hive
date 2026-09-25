@@ -475,17 +475,15 @@ The Customer shall be able to save an incomplete Request as a draft and resume i
 
 ---
 
-#### FR-CUS-016 · Edit a Published Request `[ASSUMED]`
-**Priority:** Should · **Source:** `[ASSUMED]` — not addressed in the raw notes.
+#### FR-CUS-016 · Edit a Published Request — retired `[ASSUMED]`
+**Priority:** Should · **Source:** `[ASSUMED]` — not addressed in the raw notes. Retired by product decision, 2026-09-26 (change request: "Hide Edit Option from Request when its published").
 
-The Customer shall be able to amend the notes and budget of a `PUBLISHED` Request that has not yet had an Offer accepted.
+The Customer app shall **not** offer any self-service edit surface — notes, budget, or otherwise — once a Request has left `DRAFT`. Structural attributes were already immutable post-publish (`BR-014`); this decision extends that immutability to notes and budget as well, from the Customer's perspective. `Cancel Request` remains the only mutating action available on a `PUBLISHED`/`OFFERS_RECEIVED` Request.
 
 **Acceptance criteria**
-1. Editing is permitted while the Request is in `PUBLISHED` or `OFFERS_RECEIVED`; it is blocked once an Offer has been accepted.
-2. Structural attributes — Request type, direction, weight, purity, quantity — are **not** editable after publication, because existing Offers were priced against them.
-3. Notes, budget, and images are editable.
-4. Every edit is versioned and every Vendor holding a pending Offer on the Request is notified of the change.
-5. Vendors may revise their Offer following an edit (`FR-VEN-014`).
+1. `OwnerRequestDetailScreen` (`CUS-S10`) shows no notes/budget edit form or Save action for a Request once it is no longer `DRAFT`.
+2. `Cancel Request` continues to be available while the Request is `PUBLISHED` or `OFFERS_RECEIVED`, unchanged.
+3. No `request.edited` fan-out to Vendors holding a pending Offer is triggered by a Customer, since the edit surface producing it no longer exists client-side.
 
 ---
 
