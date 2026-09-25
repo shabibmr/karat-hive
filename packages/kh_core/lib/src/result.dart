@@ -19,6 +19,7 @@ sealed class Result<T> {
   T? get valueOrNull => this is Ok<T> ? (this as Ok<T>).value : null;
   Failure? get failureOrNull => this is Err<T> ? (this as Err<T>).failure : null;
   bool get isOk => this is Ok<T>;
+  bool get isErr => this is Err<T>;
 }
 
 final class Ok<T> extends Result<T> {

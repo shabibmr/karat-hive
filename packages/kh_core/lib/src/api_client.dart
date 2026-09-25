@@ -189,15 +189,35 @@ class KhApiClient {
     }
     final cb = _onRefresh;
     if (cb == null) return false;
-    _refreshing ??= () async {
+    if (_refreshing != null) {
+      await _refreshing;
       final current = await tokenStorage.read();
-      if (current == null) return;
-      final next = await cb(current.refreshToken);
-      if (next != null) await tokenStorage.save(next);
+      return current != null;
+    }
+    bool refreshedOk = false;
+    _refreshing = () async {
+      try {
+        final current = await tokenStorage.read();
+        if (current == null) {
+          refreshedOk = false;
+          return;
+        }
+        final next = await cb(current.refreshToken);
+        if (next != null) {
+          await tokenStorage.save(next);
+          refreshedOk = true;
+        } else {
+          await tokenStorage.clear();
+          refreshedOk = false;
+        }
+      } catch (_) {
+        await tokenStorage.clear();
+        refreshedOk = false;
+      }
     }()
         .whenComplete(() => _refreshing = null);
     await _refreshing;
-    return (await tokenStorage.read()) != null;
+    return refreshedOk;
   }
 }
 
@@ -208,6 +228,9 @@ class _ChainInterceptor extends Interceptor {
 
   bool _isMutating(String method) =>
       const {'POST', 'PATCH', 'PUT', 'DELETE'}.contains(method.toUpperCase());
+
+  bool _isAuthPath(String path) =>
+      path.startsWith('/v1/auth/') || path.contains('/auth/');
 
   @override
   Future<void> onRequest(
@@ -236,8 +259,10 @@ class _ChainInterceptor extends Interceptor {
       final t = DateTime.tryParse(data['meta']['serverTime'].toString());
       if (t != null) _client.serverClock.syncFrom(t.toUtc());
     }
+    final path = response.requestOptions.path;
     final alreadyRetried = response.requestOptions.extra['kh.retried'] == true;
-    if (response.statusCode == 401 && !alreadyRetried) {
+    final noRefresh = response.requestOptions.extra['kh.noRefresh'] == true;
+    if (response.statusCode == 401 && !alreadyRetried && !noRefresh && !_isAuthPath(path)) {
       final ok = await _client._tryRefresh();
       if (ok) {
         final opts = response.requestOptions;
@@ -260,8 +285,10 @@ class _ChainInterceptor extends Interceptor {
   @override
   Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
     final res = err.response;
+    final path = err.requestOptions.path;
     final alreadyRetried = err.requestOptions.extra['kh.retried'] == true;
-    if (res?.statusCode == 401 && !alreadyRetried) {
+    final noRefresh = err.requestOptions.extra['kh.noRefresh'] == true;
+    if (res?.statusCode == 401 && !alreadyRetried && !noRefresh && !_isAuthPath(path)) {
       final ok = await _client._tryRefresh();
       if (ok) {
         final opts = err.requestOptions;
