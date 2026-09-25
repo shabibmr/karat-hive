@@ -40,6 +40,8 @@ export type RequestMediaRef = {
   contentType: string;
   byteSize: number;
   displayOrder: number;
+  thumbnailUrl?: string;
+  displayUrl?: string;
 };
 
 export type MaskedCustomer = {
@@ -193,6 +195,10 @@ export function presentRegion(r: Region): RegionSummary {
 }
 
 export function presentRequestMedia(rm: RequestMedia & { media: Media }): RequestMediaRef {
+  // Served by GET /v1/media/:key (public, redirects to the object store) — the
+  // client resolves this path against its own API base URL.
+  const displayUrl = `/v1/media/${rm.media.key}`;
+  const thumbnailUrl = rm.media.thumbnailKey ? `/v1/media/${rm.media.thumbnailKey}` : displayUrl;
   return {
     id: rm.media.id,
     key: rm.media.key,
@@ -201,6 +207,8 @@ export function presentRequestMedia(rm: RequestMedia & { media: Media }): Reques
     contentType: rm.media.contentType,
     byteSize: rm.media.byteSize,
     displayOrder: rm.displayOrder,
+    displayUrl,
+    thumbnailUrl,
   };
 }
 

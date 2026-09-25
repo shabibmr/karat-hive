@@ -15,6 +15,7 @@ class MediaSlot {
     this.localBytes,
     this.uploadBytes,
     this.contentType,
+    this.remoteUrl,
     this.progress = 1,
     this.uploading = false,
     this.failure,
@@ -29,6 +30,9 @@ class MediaSlot {
   /// Converted AVIF bytes ready to upload.
   final Uint8List? uploadBytes;
   final String? contentType;
+  /// Resolved URL for a slot loaded from an already-uploaded Request (e.g.
+  /// resuming a saved draft) — no local bytes/path exist for these.
+  final String? remoteUrl;
   final double progress;
   final bool uploading;
   final Failure? failure;
@@ -46,6 +50,7 @@ class MediaSlot {
     Uint8List? localBytes,
     Uint8List? uploadBytes,
     String? contentType,
+    String? remoteUrl,
     double? progress,
     bool? uploading,
     Failure? failure,
@@ -59,6 +64,7 @@ class MediaSlot {
         localBytes: clearLocal ? null : (localBytes ?? this.localBytes),
         uploadBytes: clearLocal ? null : (uploadBytes ?? this.uploadBytes),
         contentType: clearLocal ? null : (contentType ?? this.contentType),
+        remoteUrl: remoteUrl ?? this.remoteUrl,
         progress: progress ?? this.progress,
         uploading: uploading ?? this.uploading,
         failure: clearFailure ? null : (failure ?? this.failure),

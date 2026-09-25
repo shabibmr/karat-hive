@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
+import '../../../../app/di.dart';
 import '../customer_copy.dart';
 
 /// CU-01 — owner-centric live Request row. Unread marker only if the payload
 /// includes [RequestForCustomer.unreadOfferCount] (SAM-GAP-1).
-class OwnerRequestCard extends StatelessWidget {
+class OwnerRequestCard extends ConsumerWidget {
   const OwnerRequestCard({
     super.key,
     required this.request,
@@ -21,14 +23,17 @@ class OwnerRequestCard extends StatelessWidget {
   final VoidCallback? onViewOffers;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
     final s = KhStrings.of(context);
     final theme = Theme.of(context);
     final unread = request.unreadOfferCount;
+    final env = ref.watch(envProvider);
     final thumb = request.media.isEmpty
         ? null
-        : (request.media.first.thumbnailUrl ?? request.media.first.displayUrl);
+        : env.resolveUrl(
+            request.media.first.thumbnailUrl ?? request.media.first.displayUrl,
+          );
 
     return Card(
       key: Key('owner-request-card-${request.id}'),

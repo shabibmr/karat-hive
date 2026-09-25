@@ -17,6 +17,14 @@ class Env {
     );
   }
 
+  /// Resolves a server-relative path (e.g. `/v1/media/<key>`) against
+  /// [apiBaseUrl]. Already-absolute URLs pass through unchanged.
+  String? resolveUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return Uri.parse(apiBaseUrl).resolve(path).toString();
+  }
+
   static Env fromDefines() {
     const flavorName = String.fromEnvironment('KH_FLAVOR', defaultValue: 'dev');
     const baseUrl = String.fromEnvironment(

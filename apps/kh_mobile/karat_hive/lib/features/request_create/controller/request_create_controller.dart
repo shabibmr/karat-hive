@@ -9,6 +9,7 @@ import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_media/kh_media.dart';
 
+import '../../../app/di.dart';
 import '../../../app/session/session_controller.dart';
 import '../pending_publish_intent.dart';
 import '../repository/request_create_repository.dart';
@@ -393,6 +394,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   /// Loads an existing saved draft into the creation flow so the customer
   /// can review, complete missing fields, and publish it.
   void loadFromRequest(RequestForCustomer req) {
+    final env = ref.read(envProvider);
     state = state.copyWith(
       draftId: req.id,
       requestType: req.requestType,
@@ -416,6 +418,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           MediaSlot(
             key: m.key,
             contentType: m.contentType,
+            remoteUrl: env.resolveUrl(m.displayUrl ?? m.thumbnailUrl),
           ),
       ],
       step: RequestCreateStep.compose,

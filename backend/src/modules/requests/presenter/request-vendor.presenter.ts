@@ -74,17 +74,26 @@ export function presentVendorRequest(
   request: Request & {
     category?: CategorySummary;
     region?: RegionSummary;
-    media?: Array<{ displayOrder: number; media: { id: string; key: string; contentType: string } }>;
+    media?: Array<{
+      displayOrder: number;
+      media: { id: string; key: string; contentType: string; thumbnailKey?: string | null };
+    }>;
   },
   customerSummary?: Partial<MaskedCustomerSummary>,
   viewedAt?: Date | null,
   hasResponded = false,
 ): VendorRequestView {
+  // Served by GET /v1/media/:key (public, redirects to the object store) — the
+  // client resolves this path against its own API base URL.
   const mediaViews: MediaView[] | undefined = request.media?.map((m) => ({
     id: m.media.id,
     key: m.media.key,
     contentType: m.media.contentType,
     displayOrder: m.displayOrder,
+    displayUrl: `/v1/media/${m.media.key}`,
+    thumbnailUrl: m.media.thumbnailKey
+      ? `/v1/media/${m.media.thumbnailKey}`
+      : `/v1/media/${m.media.key}`,
   }));
 
   return {

@@ -253,5 +253,13 @@ Widget mediaSlotPreview(MediaSlot slot) {
           const Center(child: Icon(Icons.broken_image_outlined)),
     );
   }
+  if (slot.remoteUrl != null && slot.remoteUrl!.isNotEmpty) {
+    return Image.network(
+      slot.remoteUrl!,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) =>
+          const Center(child: Icon(Icons.broken_image_outlined)),
+    );
+  }
   return const Center(child: Icon(Icons.image_outlined));
 }
