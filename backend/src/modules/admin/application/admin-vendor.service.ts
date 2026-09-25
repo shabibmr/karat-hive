@@ -1,5 +1,5 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { UserAccountState, VendorVerificationState } from '@prisma/client';
+import type { UserAccountState } from '@prisma/client';
 import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
@@ -7,13 +7,12 @@ import type { ClientInfo } from '../../../edge/client-ip';
 import { ENV, type Env } from '../../../config/env';
 import { PrismaService } from '../../../platform/db/prisma.service';
 import { withTx } from '../../../platform/db/tx';
+import { physicalBucketNamesFromEnv } from '../../../platform/adapters/storage/physical-buckets';
 import { OBJECT_STORAGE, type ObjectStorage } from '../../../platform/ports/storage.port';
 import { Clock } from '../../../shared/clock';
 import { AuditWriter } from '../../audit';
 import { storagePath } from '../../media/domain/media-rules';
-import {
-  canApplyDecision,
-} from '../../vendor-onboarding/domain/vendor-state-machine';
+import { canApplyDecision } from '../../vendor-onboarding/domain/vendor-state-machine';
 import {
   composeVendorLifecycle,
   type VendorAccountState,
@@ -117,7 +116,7 @@ export class AdminVendorService {
       vendorProfileId: row.vendorProfileId,
       ownerUserId: row.vendorProfile.userId,
     });
-    const bucket = this.env.SUPABASE_STORAGE_BUCKET_KYC;
+    const bucket = physicalBucketNamesFromEnv(this.env).kyc;
     const signed = await this.storage.createSignedDownloadUrl(
       bucket,
       objectKey,

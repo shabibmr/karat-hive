@@ -1,4 +1,4 @@
-/** Object storage abstraction (C-13). Supabase Storage in dev/prod; local disk in tests. */
+/** Object storage abstraction (C-13). Test → local disk; OCI S3 when configured (`adr/0013`); else Supabase. */
 
 export interface SignedUpload {
   uploadUrl: string;

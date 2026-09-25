@@ -15,7 +15,7 @@ When a decision needs tracing back, read in this order. Later documents may not 
 | `docs/Requirements-raw.txt` | **Sole source input.** Never edit. Every requirement traces to a line number here |
 | `CONTEXT.md` | Ubiquitous language — binding vocabulary, including the `_Avoid_` list under each term |
 | `docs/Requirements-Spec-v1.4.md` | **Authoritative SRS.** What the system must do |
-| `docs/adr/0001`–`0011` | Why the shape is this shape, one decision each. `0010` Google-only login; `0011` Guest-first launch |
+| `docs/adr/0001`–`0013` | Why the shape is this shape, one decision each. `0010` Google-only login; `0011` Guest-first launch; `0013` object storage on Oracle S3 (`ap-hyderabad-1`; supersedes `0012` R2 KYC) |
 | `docs/Architecture-Backend.md`, `docs/Architecture-Frontend.md` | How it gets built. Derived from the SRS; cite it, never restate it |
 | `docs/API-Route-Inventory.md` | Pre-code HTTP catalogue (`[PROPOSED]`). Superseded by generated OpenAPI (`NFR-030`) once code exists |
 | `docs/Physical-Data-Model.md` | Pre-code Postgres schema (`[PROPOSED]`). Encoded in `backend/prisma/schema.prisma` |
@@ -85,7 +85,7 @@ Prescribed by the source material (`Requirements-raw.txt` L96–L103), not an op
 - **Node.js monolith** — single deployable, no service decomposition, **no message broker**
 - **PostgreSQL** — the only system of record, no secondary datastore for cache/search/queue
 - **Supabase** (non-prod, `adr/0009`) — backend connects directly as `postgres`; the PostgREST Data API is deny-all RLS, `anon`/`authenticated` grants revoked. No Supabase Auth/Realtime/Edge, no client SDKs, no RLS policies
-- **Cloudflare R2** (S3-compatible) for object storage, MinIO locally/CI
+- **Oracle Object Storage** (S3 Compatibility API, `ap-hyderabad-1`) for hosted object storage (`adr/0013`); MinIO or local disk for local/CI; Supabase Storage as non-prod fallback when OCI credentials are unset
 
 `C-11`/`C-12` bite in code: async work goes through the outbox, not a queue; rate limiting is Postgres token buckets, not Redis. Don't propose Redis, Kafka, or Elasticsearch without explicitly framing it as an exception to `C-12`.
 
@@ -110,9 +110,9 @@ Don't resolve these by inference; they're recorded as open on purpose.
 |---|---|
 | Yahoo Finance redistribution terms | Displaying reference gold rates to end users |
 | Admin data grid — build or buy (`AD-FE-12`) | 14 Admin list screens |
-| Object-storage data residency (`NFR-020`) — R2 has no UAE-region guarantee | Production storage of KYC personal data; swappable behind the S3 adapter, non-blocking |
+| Production PostgreSQL region (`NFR-020`) | UAE-consistent region for the live database. Hosted **object** bytes are on Oracle Object Storage S3 in `ap-hyderabad-1` (`adr/0013`) — India, not UAE; a UAE OCI region remains a future config swap |
 
-Resolved, see `docs/old/README.md` and SRS Appendix D: `C-10` Admin Portal is Flutter Web (1 Sep 2026); `C-13` object storage is R2 + MinIO; Supabase Data-API/RLS locked down (6 Sep 2026, `adr/0009`); Guest-first launch (11 Sep 2026, `adr/0011` — SRS Appendix C still lists 22 Customer screens until the next SRS bump).
+Resolved, see `docs/old/README.md` and SRS Appendix D: `C-10` Admin Portal is Flutter Web (1 Sep 2026); `C-13` hosted object storage is Oracle Object Storage S3 Compatibility in `ap-hyderabad-1` (`adr/0013`, superseding R2 KYC interim `adr/0012`); Supabase Data-API/RLS locked down (6 Sep 2026, `adr/0009`); Guest-first launch (11 Sep 2026, `adr/0011` — SRS Appendix C still lists 22 Customer screens until the next SRS bump).
 
 ## Writing conventions
 

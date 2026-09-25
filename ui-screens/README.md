@@ -147,7 +147,7 @@ Working launch rule is [`adr/0011`](../docs/adr/0011-guest-first-landing.md): co
 | Offer validity options | VEN-S09, ADM-S19 | FR-VEN-013: 12 / 24 / 48 h; entity `OFFER.validity_hours`: 24 / 48 / 72 / 168 |
 | Dual-mode shell | Customer/Vendor README | One binary; mode by role |
 | Admin on Flutter Web | ADM-S03…S12, ADM-S17, ADM-S22 | Flutter Web for the Admin Portal is confirmed (C-10, SRS v1.3) and the risk is accepted. Dense tables, keyboard-driven queue processing, and text selection are not free on a canvas-rendered web target; the data-grid build-or-buy (`AD-FE-12`) is still open. SRS §7.1, `NFR-023`, `adr/0006` |
-| Object storage | CUS-S08, VEN-S02, ADM-S07, ADM-S09 | Provider resolved to Cloudflare R2 (S3-compatible), MinIO for local/CI. SRS C-13, §7.6, `adr/0008`. Production data-residency for KYC under `NFR-020` is an open infra item |
+| Object storage | CUS-S08, VEN-S02, ADM-S07, ADM-S09 | Hosted provider: Oracle Object Storage S3 Compatibility `ap-hyderabad-1` (`adr/0013`). MinIO/disk local/CI. SRS C-13, §7.6. India region — not a UAE residency guarantee |
 
 ---
 

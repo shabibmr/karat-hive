@@ -8,13 +8,16 @@ import { ENV, type Env } from '../../../config/env';
 import { PrismaService } from '../../../platform/db/prisma.service';
 import { withTx } from '../../../platform/db/tx';
 import { enqueueOutbox } from '../../../platform/outbox/outbox.producer';
+import {
+  physicalBucketName,
+  physicalBucketNamesFromEnv,
+} from '../../../platform/adapters/storage/physical-buckets';
 import { OBJECT_STORAGE, type ObjectStorage } from '../../../platform/ports/storage.port';
 import { AuditWriter } from '../../audit';
 import {
   MEDIA_CONSTRAINTS,
   isByteSizeAllowed,
   isContentTypeAllowed,
-  physicalBucketName,
   storagePath,
 } from '../domain/media-rules';
 import { MediaRepository } from '../repository/media.repository';
@@ -62,7 +65,7 @@ export class MediaService {
     const key = randomUUID();
     const objectKey = this.objectKeyFor(dto.purpose, key, viewer);
     const signed = await this.storage.createSignedUploadUrl({
-      bucket: physicalBucketName(constraint.bucket, this.env.SUPABASE_STORAGE_BUCKET_KYC),
+      bucket: physicalBucketName(constraint.bucket, physicalBucketNamesFromEnv(this.env)),
       key: objectKey,
       contentType: dto.contentType,
       maxBytes: constraint.maxBytes,
@@ -113,7 +116,7 @@ export class MediaService {
     }
 
     const objectKey = this.objectKeyFor(media.purpose, key, viewer);
-    const bucket = physicalBucketName(media.bucket, this.env.SUPABASE_STORAGE_BUCKET_KYC);
+    const bucket = physicalBucketName(media.bucket, physicalBucketNamesFromEnv(this.env));
     const head = await this.storage.headObject(bucket, objectKey);
     if (!head || !head.exists) {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.UPLOAD_NOT_COMPLETED);
@@ -175,7 +178,7 @@ export class MediaService {
     }
     const objectKey = this.objectKeyFor(media.purpose, key, viewer);
     await this.storage.deleteObject(
-      physicalBucketName(media.bucket, this.env.SUPABASE_STORAGE_BUCKET_KYC),
+      physicalBucketName(media.bucket, physicalBucketNamesFromEnv(this.env)),
       objectKey,
     );
     await this.repo.deleteByKey(key);
@@ -201,8 +204,7 @@ export class MediaService {
   async resolveMediaUrlOrStream(
     key: string,
   ): Promise<
-    | { type: 'redirect'; url: string }
-    | { type: 'stream'; buffer: Buffer; contentType: string }
+    { type: 'redirect'; url: string } | { type: 'stream'; buffer: Buffer; contentType: string }
   > {
     let media = await this.repo.findByKey(key);
     let isThumbnail = false;
@@ -221,7 +223,11 @@ export class MediaService {
     }
 
     let vendorProfileId: string | undefined;
-    if (media.purpose === 'KYC_DOCUMENT' && media.uploadedByUserId && this.prisma.vendorProfile?.findUnique) {
+    if (
+      media.purpose === 'KYC_DOCUMENT' &&
+      media.uploadedByUserId &&
+      this.prisma.vendorProfile?.findUnique
+    ) {
       const vp = await this.prisma.vendorProfile.findUnique({
         where: { userId: media.uploadedByUserId },
         select: { id: true },
@@ -239,7 +245,7 @@ export class MediaService {
       objectKey = `${objectKey}.thumb`;
     }
 
-    const bucket = physicalBucketName(media.bucket, this.env.SUPABASE_STORAGE_BUCKET_KYC);
+    const bucket = physicalBucketName(media.bucket, physicalBucketNamesFromEnv(this.env));
 
     const signed = await this.storage.createSignedDownloadUrl(bucket, objectKey, 3600);
     if (signed.url.startsWith('http://') || signed.url.startsWith('https://')) {

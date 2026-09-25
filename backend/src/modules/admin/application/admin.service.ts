@@ -14,6 +14,7 @@ import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import { PrismaService } from '../../../platform/db/prisma.service';
 import { enqueueOutbox } from '../../../platform/outbox/outbox.producer';
+import { physicalBucketNamesFromEnv } from '../../../platform/adapters/storage/physical-buckets';
 import { OBJECT_STORAGE, type ObjectStorage } from '../../../platform/ports/storage.port';
 import { AuditWriter } from '../../audit';
 import { storagePath } from '../../media/domain/media-rules';
@@ -74,11 +75,7 @@ export class AdminService {
     return user;
   }
 
-  async reactivateCustomer(
-    id: string,
-    dto: { reasonText: string },
-    adminUserId: string,
-  ) {
+  async reactivateCustomer(id: string, dto: { reasonText: string }, adminUserId: string) {
     const cust = await this.repo.findCustomer(id);
     if (!cust) throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
 
@@ -93,11 +90,7 @@ export class AdminService {
     return user;
   }
 
-  async erasureCustomer(
-    id: string,
-    dto: { reasonText: string },
-    adminUserId: string,
-  ) {
+  async erasureCustomer(id: string, dto: { reasonText: string }, adminUserId: string) {
     const cust = await this.repo.findCustomer(id);
     if (!cust) throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
 
@@ -154,11 +147,12 @@ export class AdminService {
     const vendor = await this.repo.findVendor(id);
     if (!vendor) throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
 
-    const { adminProfileId: resolvedAdminProfileId, actorUserId } =
-      await this.resolveAdminProfile(adminUserId, adminProfileId);
+    const { adminProfileId: resolvedAdminProfileId, actorUserId } = await this.resolveAdminProfile(
+      adminUserId,
+      adminProfileId,
+    );
 
-    const hasTaxonomy =
-      vendor.categories.length > 0 && vendor.regions.length > 0;
+    const hasTaxonomy = vendor.categories.length > 0 && vendor.regions.length > 0;
     const now = new Date();
 
     const updated = await this.repo.updateVendorVerification(id, {
@@ -167,9 +161,7 @@ export class AdminService {
       verificationMessage: null,
       verifiedByAdminId: resolvedAdminProfileId,
       verifiedAt: now,
-      ...(hasTaxonomy
-        ? { activatedAt: now }
-        : {}),
+      ...(hasTaxonomy ? { activatedAt: now } : {}),
     });
 
     if (hasTaxonomy) {
@@ -269,11 +261,7 @@ export class AdminService {
     return updated;
   }
 
-  async getVendorDocumentUrl(
-    vendorProfileId: string,
-    docId: string,
-    adminUserId: string,
-  ) {
+  async getVendorDocumentUrl(vendorProfileId: string, docId: string, adminUserId: string) {
     const doc = await this.repo.findVendorDocument(vendorProfileId, docId);
     if (!doc || !doc.media) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
@@ -292,7 +280,7 @@ export class AdminService {
       ownerUserId: doc.media.uploadedByUserId ?? vendorProfileId,
     });
     const signed = await this.storage.createSignedDownloadUrl(
-      this.env.SUPABASE_STORAGE_BUCKET_KYC,
+      physicalBucketNamesFromEnv(this.env).kyc,
       objectKey,
       SIGNED_DOCUMENT_URL_TTL_SECONDS,
     );
@@ -345,12 +333,7 @@ export class AdminService {
     if (!req) throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
 
     const removed = await this.prisma.$transaction(async (tx) => {
-      const res = await this.repo.removeRequest(
-        tx,
-        id,
-        dto.reasonCode,
-        dto.reasonText,
-      );
+      const res = await this.repo.removeRequest(tx, id, dto.reasonCode, dto.reasonText);
 
       await this.audit.append(tx, {
         actorUserId: adminUserId,
@@ -395,11 +378,7 @@ export class AdminService {
   }
 
   // --- Connections ---
-  async listConnections(query: {
-    state?: string;
-    limit?: number;
-    cursor?: string;
-  }) {
+  async listConnections(query: { state?: string; limit?: number; cursor?: string }) {
     return this.repo.listConnections(query);
   }
 
@@ -409,11 +388,7 @@ export class AdminService {
     return conn;
   }
 
-  async closeConnection(
-    id: string,
-    dto: { reasonText: string },
-    adminUserId: string,
-  ) {
+  async closeConnection(id: string, dto: { reasonText: string }, adminUserId: string) {
     const conn = await this.repo.findConnection(id);
     if (!conn) throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
 
@@ -426,8 +401,7 @@ export class AdminService {
         entityId: id,
         afterValue: { reasonText: dto.reasonText },
       });
-      const request = (conn as { request?: { customerProfile?: { userId?: string } } })
-        .request;
+      const request = (conn as { request?: { customerProfile?: { userId?: string } } }).request;
       const offer = (conn as { offer?: { vendorProfile?: { userId?: string } } }).offer;
       await enqueueOutbox(tx, {
         eventType: 'connection.closed',
@@ -464,11 +438,7 @@ export class AdminService {
     return this.reviews.approveReviewByAdmin(id, adminUserId);
   }
 
-  async rejectReview(
-    id: string,
-    dto: { rationale: string },
-    adminUserId: string,
-  ) {
+  async rejectReview(id: string, dto: { rationale: string }, adminUserId: string) {
     return this.reviews.rejectReviewByAdmin(id, dto.rationale, adminUserId);
   }
 
@@ -477,20 +447,11 @@ export class AdminService {
     dto: { rationale: string; redactedComment: string },
     adminUserId: string,
   ) {
-    return this.reviews.redactReviewByAdmin(
-      id,
-      dto.rationale,
-      dto.redactedComment,
-      adminUserId,
-    );
+    return this.reviews.redactReviewByAdmin(id, dto.rationale, dto.redactedComment, adminUserId);
   }
 
   // --- Abuse Queue ---
-  async listAbuseReports(query: {
-    state?: AbuseReportState;
-    limit?: number;
-    cursor?: string;
-  }) {
+  async listAbuseReports(query: { state?: AbuseReportState; limit?: number; cursor?: string }) {
     return this.repo.listAbuseReports(query);
   }
 
@@ -506,8 +467,10 @@ export class AdminService {
     adminUserId: string,
     adminProfileId?: string | null,
   ) {
-    const { adminProfileId: resolvedAdminProfileId, actorUserId } =
-      await this.resolveAdminProfile(adminUserId, adminProfileId);
+    const { adminProfileId: resolvedAdminProfileId, actorUserId } = await this.resolveAdminProfile(
+      adminUserId,
+      adminProfileId,
+    );
 
     return this.prisma.$transaction(async (tx) => {
       const res = await this.repo.resolveAbuseReport(
@@ -534,8 +497,10 @@ export class AdminService {
     adminUserId: string,
     adminProfileId?: string | null,
   ) {
-    const { adminProfileId: resolvedAdminProfileId, actorUserId } =
-      await this.resolveAdminProfile(adminUserId, adminProfileId);
+    const { adminProfileId: resolvedAdminProfileId, actorUserId } = await this.resolveAdminProfile(
+      adminUserId,
+      adminProfileId,
+    );
 
     return this.prisma.$transaction(async (tx) => {
       const res = await this.repo.resolveAbuseReport(
@@ -576,8 +541,10 @@ export class AdminService {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
 
-    const { adminProfileId: resolvedAdminProfileId, actorUserId } =
-      await this.resolveAdminProfile(adminUserId, adminProfileId);
+    const { adminProfileId: resolvedAdminProfileId, actorUserId } = await this.resolveAdminProfile(
+      adminUserId,
+      adminProfileId,
+    );
 
     return this.prisma.$transaction(async (tx) => {
       if (dto.action === 'SUSPEND' || dto.action === 'DEACTIVATE') {
@@ -628,8 +595,10 @@ export class AdminService {
     adminUserId: string,
     adminProfileId?: string | null,
   ) {
-    const { adminProfileId: resolvedAdminProfileId } =
-      await this.resolveAdminProfile(adminUserId, adminProfileId);
+    const { adminProfileId: resolvedAdminProfileId } = await this.resolveAdminProfile(
+      adminUserId,
+      adminProfileId,
+    );
     return this.settings.updateAdminSetting(key, value, resolvedAdminProfileId ?? undefined);
   }
 
@@ -668,12 +637,7 @@ export class AdminService {
   }
 
   // --- Admin Notes ---
-  async createAdminNote(
-    collection: string,
-    id: string,
-    noteText: string,
-    adminProfileId: string,
-  ) {
+  async createAdminNote(collection: string, id: string, noteText: string, adminProfileId: string) {
     return this.repo.createAdminNote({
       entityType: collection,
       entityId: id,

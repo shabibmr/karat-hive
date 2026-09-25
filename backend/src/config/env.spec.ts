@@ -47,4 +47,29 @@ describe('loadEnv', () => {
     const env = loadEnv({ ...BASE, FIREBASE_PROJECT_ID: 'custom-project-id' });
     expect(env.FIREBASE_PROJECT_ID).toBe('custom-project-id');
   });
+
+  it('refuses production without Oracle S3 credentials', () => {
+    expect(() =>
+      loadEnv({
+        ...BASE,
+        NODE_ENV: 'production',
+        SUPABASE_URL: 'https://example.supabase.co',
+        SUPABASE_SERVICE_ROLE_KEY: 'service-role',
+      }),
+    ).toThrow(/OCI_S3_NAMESPACE/);
+  });
+
+  it('accepts production with Oracle S3 credentials alone (Supabase storage optional)', () => {
+    const env = loadEnv({
+      ...BASE,
+      NODE_ENV: 'production',
+      OCI_S3_NAMESPACE: 'axxa9erb3sgs',
+      OCI_S3_ACCESS_KEY_ID: 'access',
+      OCI_S3_SECRET_ACCESS_KEY: 'secret',
+    });
+    expect(env.OCI_S3_REGION).toBe('ap-hyderabad-1');
+    expect(env.OCI_S3_BUCKET_KYC).toBe('kyc');
+    expect(env.OCI_S3_BUCKET_REQUEST_MEDIA).toBe('request-media');
+    expect(env.OCI_S3_BUCKET_EXPORT).toBe('export');
+  });
 });

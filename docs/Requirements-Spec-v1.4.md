@@ -164,7 +164,7 @@ Two properties of this loop define the product and shape most requirements in §
 | Admin Portal | **Flutter Web**, served over current-and-previous major versions of Chrome, Edge, Safari, and Firefox; responsive from 1280 px upward |
 | Backend runtime | **Node.js** (active LTS at build freeze), deployed as a **single monolithic service** |
 | Database | **PostgreSQL** — the system of record for every entity in §6 |
-| Object storage | S3-compatible object storage for Request media and Vendor KYC documents — **Cloudflare R2** for hosted environments, **MinIO** for local/CI (§7.6, C-13, `docs/adr/0008`) |
+| Object storage | S3-compatible object storage for Request media and Vendor KYC documents — **Oracle Object Storage** (`ap-hyderabad-1`, `docs/adr/0013`) for hosted environments, **MinIO**/disk for local/CI (§7.6, C-13, `docs/adr/0008`) |
 | Connectivity | Persistent internet connection required; no offline transaction capability in v1 |
 | External dependency | WhatsApp installed on the device for the post-acceptance handoff (with a web fallback — see `FR-CUS-027`) |
 | Gold rate feed | Yahoo Finance (see §7.4) |
@@ -186,7 +186,7 @@ Two properties of this loop define the product and shape most requirements in §
 | C-10 | **Flutter is the sole client framework** for all three user surfaces. The Admin Portal is a Flutter Web target of the same toolchain rather than a separate web application — **confirmed for v1** (Product Owner, 1 Sep 2026). The Flutter Web consequences for the Admin Portal (canvas rendering, no first-party data grid, `NFR-023` keyboard-operability test gate) are accepted and tracked in §7.1. See `docs/adr/0006`. |
 | C-11 | The backend ships as a **single Node.js monolithic deployable**. No service decomposition, no inter-service network contracts, and no message broker in v1. Background work (fan-out, expiry sweeps, rate polling, notification dispatch — `FR-SYS-001`, `-004`, `-005`, `-008`, `-010`) runs as scheduled workers inside that deployable. See `docs/adr/0007`. |
 | C-12 | **PostgreSQL** is the single system of record. Every entity in §6 is relational; no secondary datastore is introduced in v1 for search, cache, or analytics. |
-| C-13 | **Object storage is S3-compatible.** Provider: **Cloudflare R2** for hosted environments, **MinIO** for local/CI (`Requirements-raw.txt` L102 was blank; resolved 1 Sep 2026, `docs/adr/0008`). All access is behind the storage port of §7.6, so a later provider change does not touch business logic. Production data-residency for personal data (KYC documents) under `NFR-020` is tracked as an open infrastructure item — see `docs/Architecture-Backend.md` §22.1. |
+| C-13 | **Object storage is S3-compatible.** Hosted provider: **Oracle Object Storage** S3 Compatibility in `ap-hyderabad-1` (`docs/adr/0013`, superseding R2 KYC interim `docs/adr/0012`). Local/CI: **MinIO**/disk (`docs/adr/0008`). All access is behind the storage port of §7.6. `ap-hyderabad-1` is India, not UAE. Production database region stays open under `NFR-020`. |
 
 ### 2.6 Assumptions and Dependencies
 
@@ -2379,16 +2379,16 @@ Request media (`FR-CUS-007`), Vendor KYC documents (`FR-VEN-002`), and processed
 
 | Aspect | Specification |
 |---|---|
-| Provider | **Cloudflare R2**, via its S3-compatible API, for hosted environments. **MinIO** stands in for local and CI. `Requirements-raw.txt` L102 ("Files Storage -") was blank; resolved 1 Sep 2026 (C-13, `docs/adr/0008`) |
+| Provider | **Oracle Object Storage** S3 Compatibility (`ap-hyderabad-1`) for hosted environments (`docs/adr/0013`). **MinIO**/disk for local and CI. Original C-13 resolution was R2 (`docs/adr/0008`); hosted target updated 25 Sep 2026 |
 | Buckets | Segregated by sensitivity: Request media, Vendor KYC documents, and system/export artefacts are distinct buckets with distinct policies. KYC documents are never served to any actor other than a Platform Admin |
 | Access | **No public objects.** All reads are via short-lived signed URLs issued by the backend after authorisation; default validity 15 minutes, configurable (`NFR-013`) |
 | Upload | Direct-to-storage via backend-issued pre-signed upload URLs, constrained by content type and maximum size; the backend records the object only after an integrity check |
 | Processing | On ingest: EXIF and geolocation stripped, image re-encoded, thumbnail derivative generated (`FR-SYS-009`). Originals are never served to counterparties before processing completes |
 | Encryption | Server-side encryption at rest, and TLS in transit (`NFR-012`) |
 | Retention & erasure | Object lifecycle mirrors the entity lifecycle. A PDPL erasure request (`NFR-019`) must delete objects as well as rows, so the provider must support programmatic delete with verifiable completion |
-| Residency | Same region policy as the database (`NFR-020`). Cloudflare R2 places objects by location hint and does not guarantee a UAE region; UAE-residency confirmation for KYC personal data is an open infrastructure item — see `docs/Architecture-Backend.md` §22.1 |
+| Residency | Same region policy as the database (`NFR-020`). Object buckets live in OCI `ap-hyderabad-1` (`docs/adr/0013`) — India, not UAE. Production database region stays open — see `docs/Architecture-Backend.md` §22.1 |
 
-> **Provider selected** (`docs/adr/0008`): Cloudflare R2 for hosted environments, MinIO for local/CI. Signed-URL semantics, KYC retention, PDPL erasure mechanics and the media cost model are all settled against the S3 API. **Remaining:** production data-residency confirmation for KYC documents under `NFR-020`.
+> **Provider selected** (`docs/adr/0013`): Oracle Object Storage S3 Compatibility in `ap-hyderabad-1` for hosted environments; MinIO/disk for local/CI (`docs/adr/0008`). Signed-URL semantics and the media cost model stay on the S3 API. **Remaining:** production database region under `NFR-020`, and a UAE object region if that bar is enforced (`me-abudhabi-1` / `me-dubai-1` remain config swaps).
 
 ---
 
@@ -2491,7 +2491,7 @@ Recorded in §2.5 as C-01 through C-13.
 | SMS gateway (UAE) | External | Medium — OTP deliverability directly gates registration |
 | Cloud region with UAE residency | Infrastructure | Medium — constrains provider and region choice (`NFR-020`) |
 | Apple App Store / Google Play review | Process | Medium — single dual-mode binary; release cadence and the 6-month API support window (`NFR-027`) |
-| **Object storage — Cloudflare R2** | Infrastructure | Medium — provider selected (C-13, `adr/0008`); MinIO for local/CI. Production data-residency for KYC personal data under `NFR-020` still needs Infrastructure confirmation |
+| **Object storage — Oracle S3** | Infrastructure | Medium — hosted provider Oracle Object Storage `ap-hyderabad-1` (C-13, `adr/0013`); MinIO/disk for local/CI. UAE object residency under `NFR-020` still needs Infrastructure confirmation if that bar is enforced |
 | **Flutter / Dart SDK** | Platform | Medium — sole client framework (C-10); Flutter Web is the weakest fit for the Admin Portal, and the data-grid gap needs a build-or-buy decision (`AD-FE-12`) |
 | **Node.js LTS** | Platform | Low — mainstream runtime; pin to an active LTS line and plan the upgrade before end-of-life |
 | **PostgreSQL** | Infrastructure | Low — sole system of record (C-12); managed instance assumed, with PITR per `NFR-011` |
@@ -2551,11 +2551,11 @@ Sourced from `Requirements-raw.txt` L96–L103. These are prescribed, not recomm
 | Frontend | **Flutter**, targeting iOS, Android, and Web; Admin Portal is the Flutter Web target (confirmed v1.3) | C-10, §2.1, §2.4, §7.1, `adr/0006` |
 | Backend | **Node.js**, **monolithic** — one deployable, workers in-process | C-11, §2.4, §7.5, `NFR-007`, `NFR-009`, `adr/0007` |
 | Database | **PostgreSQL** — single system of record | C-12, §2.4, §6, `NFR-008`, `NFR-011` |
-| File storage | **Cloudflare R2** (S3-compatible), hosted; **MinIO** for local/CI (resolved v1.3) | C-13, §7.6, `adr/0008` |
+| File storage | **Oracle Object Storage** S3 Compatibility (`ap-hyderabad-1`), hosted; **MinIO**/disk for local/CI (`adr/0013`; original C-13 resolution was R2 in `adr/0008`) | C-13, §7.6 |
 
 **All four technology constraints are now resolved.** One infrastructure follow-up remains:
 
-- **Object-storage data residency (`NFR-020`).** Cloudflare R2 does not guarantee a UAE region. For production, either R2 residency is confirmed acceptable for KYC personal data, or the S3-compatible adapter is pointed at a residency-compliant provider — a configuration change, not a redesign. Tracked in `docs/Architecture-Backend.md` §22.1 alongside the cloud-region decision.
+- **Object-storage data residency (`NFR-020`).** Hosted objects are in OCI `ap-hyderabad-1` (25 Sep 2026, `docs/adr/0013`) — India, not UAE. Production PostgreSQL region remains open in `docs/Architecture-Backend.md` §22.1.
 
 ### Appendix A — Glossary
 

@@ -40,11 +40,20 @@ const envSchema = z
     LOGIN_LOCK_MINUTES: z.coerce.number().int().positive().default(15),
     PASSWORD_MIN_LENGTH: z.coerce.number().int().positive().default(10),
 
-    // --- Supabase Storage (KYC documents) ---
+    // --- Supabase Storage fallback when OCI S3 is unset (non-production) ---
     SUPABASE_URL: optionalString,
     SUPABASE_SERVICE_ROLE_KEY: optionalString,
     SUPABASE_STORAGE_BUCKET_KYC: z.string().min(1).default('kyc'),
     SIGNED_UPLOAD_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+
+    // --- Oracle Object Storage S3 Compatibility, all buckets (adr/0013). Region ap-hyderabad-1. ---
+    OCI_S3_NAMESPACE: optionalString,
+    OCI_S3_REGION: z.string().min(1).default('ap-hyderabad-1'),
+    OCI_S3_ACCESS_KEY_ID: optionalString,
+    OCI_S3_SECRET_ACCESS_KEY: optionalString,
+    OCI_S3_BUCKET_KYC: z.string().min(1).default('kyc'),
+    OCI_S3_BUCKET_REQUEST_MEDIA: z.string().min(1).default('request-media'),
+    OCI_S3_BUCKET_EXPORT: z.string().min(1).default('export'),
 
     // --- push (G2-N03). Optional; adapters stub when unset. ---
     FCM_SERVER_KEY: optionalString,
@@ -82,14 +91,27 @@ const envSchema = z
         message: 'DEV_VERIFY_KEY is required when DEV_VERIFY_ENABLED is true.',
       });
     }
+    const ociConfigured = Boolean(
+      value.OCI_S3_NAMESPACE && value.OCI_S3_ACCESS_KEY_ID && value.OCI_S3_SECRET_ACCESS_KEY,
+    );
     if (
       value.NODE_ENV === 'production' &&
+      !ociConfigured &&
       (!value.SUPABASE_URL || !value.SUPABASE_SERVICE_ROLE_KEY)
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['SUPABASE_URL'],
-        message: 'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required in production.',
+        message:
+          'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required in production when Oracle S3 is unset.',
+      });
+    }
+    if (value.NODE_ENV === 'production' && !ociConfigured) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['OCI_S3_NAMESPACE'],
+        message:
+          'OCI_S3_NAMESPACE, OCI_S3_ACCESS_KEY_ID, and OCI_S3_SECRET_ACCESS_KEY are required in production so object storage uses Oracle Object Storage S3 (adr/0013), not Supabase.',
       });
     }
   });

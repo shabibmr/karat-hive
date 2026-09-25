@@ -1,11 +1,15 @@
 import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
-import type { DevicePlatform, MediaPurpose, Prisma, StorageBucket } from '@prisma/client';
+import type { DevicePlatform, MediaPurpose, Prisma } from '@prisma/client';
 import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
 import { ENV, type Env } from '../../../config/env';
 import { Clock } from '../../../shared/clock';
 import { PrismaService } from '../../../platform/db/prisma.service';
+import {
+  physicalBucketName,
+  physicalBucketNamesFromEnv,
+} from '../../../platform/adapters/storage/physical-buckets';
 import { OBJECT_STORAGE, type ObjectStorage } from '../../../platform/ports/storage.port';
 import { PUSH_GATEWAY, type PushGateway } from '../../../platform/ports/push.port';
 import { isWithinQuietHours } from '../domain/quiet-hours';
@@ -39,17 +43,6 @@ export type RetentionPurgeResult = {
 };
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
-function storageBucketId(bucket: StorageBucket, env: Env): string {
-  switch (bucket) {
-    case 'KYC':
-      return env.SUPABASE_STORAGE_BUCKET_KYC;
-    case 'REQUEST_MEDIA':
-      return 'request-media';
-    case 'EXPORT':
-      return 'export';
-  }
-}
 
 /** Mirrors media storagePath — kept local to avoid a notifications→media module edge. */
 function objectKeyFor(
@@ -347,10 +340,16 @@ export class NotificationService {
             media.uploadedByUserId,
             vendorProfileId,
           );
-          await this.storage.deleteObject(storageBucketId(media.bucket, this.env), objectKey);
+          await this.storage.deleteObject(
+            physicalBucketName(media.bucket, physicalBucketNamesFromEnv(this.env)),
+            objectKey,
+          );
           if (media.thumbnailKey) {
             await this.storage
-              .deleteObject(storageBucketId(media.bucket, this.env), media.thumbnailKey)
+              .deleteObject(
+                physicalBucketName(media.bucket, physicalBucketNamesFromEnv(this.env)),
+                media.thumbnailKey,
+              )
               .catch(() => undefined);
           }
         }

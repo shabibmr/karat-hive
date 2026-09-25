@@ -102,7 +102,7 @@ These are not open. They come from `Requirements-raw.txt` L96–L103 and are rec
 | **C-10** | Flutter is the sole client framework; the Admin Portal is a Flutter Web target. | No backend consequence beyond the shared OpenAPI contract (§1.4). Listed here for completeness of the C-10–C-13 set. |
 | **C-11** | Single Node.js monolithic deployable. No service decomposition, **no message broker**. | Asynchronous work must be built on PostgreSQL. §11 exists because of this. |
 | **C-12** | PostgreSQL is the single system of record. **No secondary datastore** for search, cache or analytics. | No Redis, no Elasticsearch. Rate limiting, idempotency, job locks, sessions and search all land in PostgreSQL. §12.6 and §13.6 exist because of this. |
-| **C-13** | Object storage is S3-compatible: **Cloudflare R2** hosted, **MinIO** local/CI (`docs/adr/0008`). | All storage access sits behind a port (§15.3); the provider is a config choice, and a residency-driven swap does not touch business logic. |
+| **C-13** | Object storage is S3-compatible: **Oracle Object Storage** hosted (`ap-hyderabad-1`, `docs/adr/0013`), **MinIO**/disk local/CI (`docs/adr/0008`). | All storage access sits behind a port (§15.3); the provider is a config choice, and a residency-driven swap does not touch business logic. |
 | **C-05 / BR-006** | Identity masking until Acceptance. | The single most invasive constraint on the code. §9. |
 | **C-07** | Requests hard-expire at 48 h. | A clock the system must honour to the minute, across restarts and instances. §11.3. |
 
@@ -184,7 +184,7 @@ flowchart TB
         PUSH["APNs / FCM"]
         MAIL["Transactional email"]
         RATE["Yahoo Finance<br/><i>gold rate</i>"]
-        OBJ["Object storage<br/><i>Cloudflare R2 — C-13</i>"]
+        OBJ["Object storage<br/><i>Oracle S3 ap-hyderabad-1 — C-13</i>"]
     end
 
     WA["WhatsApp<br/><i>client-side deep link only</i>"]
@@ -238,7 +238,7 @@ flowchart TB
     subgraph Data
         PG[("PostgreSQL primary<br/><i>sole write target</i>")]
         RR[("Read replica<br/><i>Admin lists, reports</i>")]
-        OS[("Object storage<br/><i>R2 — 3 buckets — C-13</i>")]
+        OS[("Object storage<br/><i>Oracle S3 ap-hyderabad-1 — C-13</i>")]
         SEC["Secret manager"]
     end
 
@@ -262,7 +262,7 @@ flowchart TB
 
 | Environment | Purpose | Data | Notes |
 |---|---|---|---|
-| `local` | Developer machine | Seeded synthetic | Local PostgreSQL (Docker optional) + MinIO (S3-compatible), **or** the shared managed Supabase Postgres (`docs/adr/0009`) — both are fine because the app connects on the plain Postgres wire protocol. Staging and production use Cloudflare R2 against the same S3 API (C-13, `docs/adr/0008`) |
+| `local` | Developer machine | Seeded synthetic | Local PostgreSQL (Docker optional) + MinIO/disk (S3-compatible), **or** the shared managed Supabase Postgres (`docs/adr/0009`) — both are fine because the app connects on the plain Postgres wire protocol. Hosted environments use Oracle Object Storage S3 Compatibility in `ap-hyderabad-1` (C-13, `docs/adr/0013`) |
 | `ci` | Automated test | Ephemeral, per-run | Full migration run from empty on every build |
 | `staging` | UAT, PO `[ASSUMED]` sign-off, penetration test | Synthetic only — **never** production personal data | Same region and topology as production |
 | `production` | Live | Real | UAE-consistent region (`NFR-020`) |
@@ -271,7 +271,7 @@ flowchart TB
 
 ### 5.2 Regional placement
 
-One region, chosen for UAE data-residency consistency (`NFR-020`, SRS §7.6 residency row). Database, backups and logs all sit in that region. Object storage is Cloudflare R2 (`docs/adr/0008`), which places objects by location hint and does not guarantee a UAE region — confirming R2 residency is acceptable for KYC personal data, or swapping the S3 adapter to a residency-compliant provider, is tracked in §22.1. Any log shipping or APM vendor whose ingestion lands outside the region needs a documented legal basis before it is enabled — this catches people out late, so it is an infrastructure checklist item, not an afterthought.
+One region, chosen for UAE data-residency consistency (`NFR-020`, SRS §7.6 residency row). Database, backups and logs all sit in that region. Object storage is Oracle Object Storage S3 Compatibility in `ap-hyderabad-1` (`docs/adr/0013`); that is India, not UAE. The production database region remains §22.1. Any log shipping or APM vendor whose ingestion lands outside the region needs a documented legal basis before it is enabled — this catches people out late, so it is an infrastructure checklist item, not an afterthought.
 
 ---
 
@@ -469,7 +469,7 @@ canRevealIdentity(viewerUserId, counterpartyUserId) → boolean
 
 ### 9.4 Media and enumeration
 
-`FR-SYS-003.4` and `NFR-014`. Object keys are random UUIDs, never sequential and never derived from the Request reference. Every read is a signed URL issued after the same `canRevealIdentity` / match-set check that guards the parent entity, valid for 15 minutes. A Vendor who is no longer in a Request's match set stops being issued URLs immediately; any URL already issued dies within the window. The signing mechanics are Cloudflare R2 pre-signed URLs (C-13, `docs/adr/0008`).
+`FR-SYS-003.4` and `NFR-014`. Object keys are random UUIDs, never sequential and never derived from the Request reference. Every read is a signed URL issued after the same `canRevealIdentity` / match-set check that guards the parent entity, valid for 15 minutes. A Vendor who is no longer in a Request's match set stops being issued URLs immediately; any URL already issued dies within the window. The signing mechanics are S3-compatible pre-signed URLs against Oracle Object Storage (C-13, `docs/adr/0013`).
 
 ### 9.5 Where masking does *not* apply
 
@@ -661,7 +661,7 @@ C-12 forbids a search engine, and `FR-VEN-009` and the Admin lists still need te
 | `AUDIT_LOG` | **Retained unaltered.** It is the legal record of what happened, including the erasure itself; anonymising it would defeat `FR-SYS-011.3` |
 | `NOTIFICATION` | Purged (90-day retention anyway) |
 
-Every erasure runs as one auditable job producing a completion certificate for the Admin who actioned it — because "we deleted your data" is a statement someone may have to defend to a regulator. The object-storage half relies on Cloudflare R2's programmatic delete with verifiable completion (SRS §7.6, `docs/adr/0008`).
+Every erasure runs as one auditable job producing a completion certificate for the Admin who actioned it — because "we deleted your data" is a statement someone may have to defend to a regulator. The object-storage half relies on programmatic delete with verifiable completion against the S3-compatible store (SRS §7.6, `docs/adr/0013`).
 
 ### 12.8 Replicas
 
@@ -753,7 +753,7 @@ Layer 3 is where authorisation bugs live, because it needs a query. It is implem
 
 ## 15. Integration Ports and Adapters
 
-`AD-BE-12`. Each external system is reached through a narrow port defined in domain terms. The adapter is the only place a vendor SDK is imported, which is what lets the storage provider (C-13 — Cloudflare R2, swappable if `NFR-020` residency requires it) and the legally uncertain rate feed (SRS §7.4) be swapped without touching business logic.
+`AD-BE-12`. Each external system is reached through a narrow port defined in domain terms. The adapter is the only place a vendor SDK is imported, which is what lets the storage provider (C-13 — Oracle Object Storage S3 Compatibility today, swappable if `NFR-020` residency requires a UAE region) and the legally uncertain rate feed (SRS §7.4) be swapped without touching business logic.
 
 ### 15.1 Notification gateway (SRS §7.3)
 
@@ -769,11 +769,11 @@ Failure behaviour is specified precisely because getting it wrong is a commercia
 
 **`[BLOCKED]` — legal.** Whether Yahoo's terms permit redistribution of rate data to end users is unresolved (SRS §7.4, A-06). The port exists so that a different provider, or manual-entry-only operation, is an adapter change of a day rather than a refactor.
 
-### 15.3 Object storage (SRS §7.6) — Cloudflare R2
+### 15.3 Object storage (SRS §7.6) — Oracle Object Storage (S3)
 
-Port: `presignUpload`, `presignDownload`, `delete`, `head`. The interface is specified against S3 semantics; **MinIO** backs `local` and `ci`, **Cloudflare R2** backs `staging` and `production` (C-13, `docs/adr/0008`). Three buckets with distinct policies — Request media, Vendor KYC, system/export artefacts — no public objects, server-side encryption, signed URLs of 15 minutes by default (`NFR-014`).
+Port: `presignUpload`, `presignDownload`, `delete`, `head`. The interface is specified against S3 semantics; **MinIO**/disk backs `local` and `ci`, **Oracle Object Storage** (S3 Compatibility API, `ap-hyderabad-1`) backs hosted environments when credentials are set (C-13, `docs/adr/0013`). Three buckets with distinct policies — Request media, Vendor KYC, system/export artefacts — no public objects, server-side encryption, signed URLs of 15 minutes by default (`NFR-014`).
 
-The one open point is residency: R2 does not guarantee a UAE region, so production either confirms that is acceptable for KYC personal data or points this adapter at a residency-compliant S3 provider — a config change, tracked in §22.1 (`NFR-020`).
+All three buckets live in `ap-hyderabad-1`. That is India, not UAE. Production PostgreSQL region stays open in §22.1 (`NFR-020`). A later move to `me-abudhabi-1` / `me-dubai-1` is a config change.
 
 ### 15.4 OAuth providers
 
@@ -998,7 +998,7 @@ One repository. `packages/` and workspaces are deliberately absent — C-11 says
 | # | Item | Blocks | Owner |
 |---|---|---|---|
 | 1 | **Yahoo Finance redistribution terms** (SRS §7.4, A-06) | Displaying reference rates to end users. The port and manual-override fallback exist, so this blocks a feature, not the build | Legal |
-| 2 | **Cloud provider and region, incl. object-storage residency** (`NFR-020`) | Provisioning, residency compliance, managed-PostgreSQL selection, backup topology. **Object storage** is now Cloudflare R2 (C-13, `docs/adr/0008`), which does not guarantee a UAE region — production either confirms R2 residency is acceptable for KYC personal data or points the S3 adapter at a residency-compliant provider (a config change). **Managed PostgreSQL** is now Supabase for non-production (`docs/adr/0009`), region `ap-northeast-2` (Seoul) — not UAE-resident, acceptable only because non-production holds synthetic data; production needs a UAE-region managed provider (e.g. AWS RDS `me-central-1`) or a documented legal basis. `local`/`ci`/demo proceed on MinIO / R2 / Supabase today | Infrastructure |
+| 2 | **Production PostgreSQL region** (`NFR-020`) | Live database residency. Non-production PostgreSQL is Supabase `ap-northeast-2` (Seoul, `docs/adr/0009`) and holds synthetic data only. Production still needs a UAE-region managed provider (e.g. AWS RDS `me-central-1`) or a documented legal basis. **Object storage** is on Oracle S3 in `ap-hyderabad-1` (`docs/adr/0013`) — India, not UAE | Infrastructure |
 
 ### 22.2 Decisions awaiting Technical Lead sign-off
 
@@ -1105,6 +1105,8 @@ Physical encoding (Prisma DSL + the SQL Prisma cannot express): [`docs/Physical-
 | 1.0 | 10 Aug 2026 | Initial backend architecture, derived from SRS v1.2 and ADRs 0001–0007 |
 | 1.1 | 1 Sep 2026 | Re-based on SRS v1.3: C-13 resolved (object storage → Cloudflare R2 hosted, MinIO local/CI; new ADR `0008`); C-10 row added to §2.1. §22.1 blocking list drops the storage-provider item; the region item now names object-storage residency (`NFR-020`) |
 | 1.2 | 6 Sep 2026 | `AD-BE-15` added — managed PostgreSQL on Supabase for non-production, PostgREST Data API locked down (new ADR `0009`). §12.1 gains the "monolith is the only database client" paragraph; §18 gains the managed-service attack-surface row; §22.1 item 2 notes the Supabase region is not UAE-resident |
+| 1.3 | 25 Sep 2026 | KYC objects: interim R2 location hint `apac` (`docs/adr/0012`). §22.1 item 2 narrowed to the production PostgreSQL region |
+| 1.4 | 25 Sep 2026 | Object storage: Oracle S3 Compatibility `ap-hyderabad-1` for all buckets (`docs/adr/0013`). Supersedes `0012` |
 
 | Role | Signs off on | Status |
 |---|---|---|

@@ -3,7 +3,11 @@ import type { Media, Prisma } from '@prisma/client';
 import { ENV, type Env } from '../../../config/env';
 import { OBJECT_STORAGE, type ObjectStorage } from '../../../platform/ports/storage.port';
 import { processMediaBytes } from '../domain/media-pipeline';
-import { physicalBucketName, storagePath, thumbnailStorageKey } from '../domain/media-rules';
+import {
+  physicalBucketName,
+  physicalBucketNamesFromEnv,
+} from '../../../platform/adapters/storage/physical-buckets';
+import { storagePath, thumbnailStorageKey } from '../domain/media-rules';
 import { MediaRepository } from '../repository/media.repository';
 
 export type MediaUploadedEvent = {
@@ -44,7 +48,7 @@ export class MediaProcessingService {
     }
 
     const objectKey = this.objectKeyOf(media, payload);
-    const bucket = physicalBucketName(media.bucket, this.env.SUPABASE_STORAGE_BUCKET_KYC);
+    const bucket = physicalBucketName(media.bucket, physicalBucketNamesFromEnv(this.env));
     const bytes = await this.storage.getObject(bucket, objectKey);
     if (!bytes) {
       throw new Error(`media object missing bucket=${bucket} key=${objectKey}`);

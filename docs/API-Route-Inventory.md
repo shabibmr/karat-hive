@@ -1088,7 +1088,7 @@ Sequence is backend §16 / SRS §7.6. Direct-to-storage PUT; the API never proxi
 
 ```
 POST /v1/media/upload-intent  →  { uploadUrl, objectKey, headers, expiresAt }
-PUT  {uploadUrl}              →  storage (S3/R2/MinIO), not this API
+PUT  {uploadUrl}              →  storage (S3-compatible: OCI/MinIO), not this API
 POST /v1/media/{key}/complete →  HEAD verify, insert row, enqueue processing
 ```
 
@@ -2110,7 +2110,7 @@ These are recorded so implementation does not silently resolve them.
 | Item | Kind | Impact on this inventory |
 |---|---|---|
 | Yahoo Finance redistribution to end users | `[BLOCKED]` Legal | `GET /v1/gold-rates` exists; `goldRates.endUserDisplay` feature flag. Indicative value and bullion floor still need a rate server-side. |
-| Object-storage residency for KYC (`NFR-020`) | `[BLOCKED]` Infra | Does not change paths. Signed URLs and the KYC bucket policy stay as specified. Adapter swap is config (`adr/0008`). |
+| Object storage placement | `adr/0013` | All object buckets (`kyc`, `request-media`, `export`) on Oracle Object Storage S3 in `ap-hyderabad-1`. Paths and signed-URL flow unchanged. Production database region (`NFR-020`) stays open |
 | Admin data-grid build-or-buy (`AD-FE-12`) | `[BLOCKED]` Frontend | No API impact. Admin list contracts in §21 are grid-agnostic. |
 | `FR-ADM-002` Super / Ops / Analyst | Deferred by `AD-API-03` | Coarse `ADMIN`. Revisit before any permission split; identifiers on Admin routes stay stable. |
 | Offer validity options: `FR-VEN-013` (12/24/48) vs entity dictionary (24/48/72/168) | Spec tension | Inventory follows `FR-VEN-013` (`AD-API-07`). Align SRS §6 on the next revision. |

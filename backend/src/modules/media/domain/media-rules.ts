@@ -74,18 +74,6 @@ export function storagePath(input: {
   return `user/${input.ownerUserId}/${input.purpose}/${input.key}`;
 }
 
-/** Real object-store bucket name for a StorageBucket enum value. */
-export function physicalBucketName(bucket: StorageBucket, kycBucket: string): string {
-  switch (bucket) {
-    case 'KYC':
-      return kycBucket;
-    case 'REQUEST_MEDIA':
-      return 'request-media';
-    case 'EXPORT':
-      return 'export';
-  }
-}
-
 /**
  * Derivative object key stored on `media.thumbnail_key` (varchar 64).
  * Random UUID prefix keeps it non-guessable (NFR-014).
