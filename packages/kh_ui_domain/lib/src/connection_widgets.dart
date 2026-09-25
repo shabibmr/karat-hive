@@ -26,7 +26,7 @@ class ConnectionSummaryRow extends StatelessWidget {
     required this.connectionId,
     required this.counterpartyName,
     required this.state,
-    this.requestReference,
+    this.requestLabel,
     this.offeredPrice,
     this.connectedAt,
     this.onTap,
@@ -36,7 +36,9 @@ class ConnectionSummaryRow extends StatelessWidget {
   final String connectionId;
   final String counterpartyName;
   final ConnectionState state;
-  final String? requestReference;
+
+  /// Specs-based Request title (e.g. `Ring 22gm 22K`). Never a `KH-RQ-…` ref.
+  final String? requestLabel;
   final String? offeredPrice;
   final DateTime? connectedAt;
   final VoidCallback? onTap;
@@ -87,10 +89,10 @@ class ConnectionSummaryRow extends StatelessWidget {
                   ),
                 ],
               ),
-              if (requestReference != null && requestReference!.isNotEmpty) ...[
+              if (requestLabel != null && requestLabel!.isNotEmpty) ...[
                 SizedBox(height: tokens.space.xs),
                 Text(
-                  requestReference!,
+                  requestLabel!,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: tokens.ink.withValues(alpha: 0.7),
                   ),

@@ -219,7 +219,7 @@ void main() {
 
     // Parent request card
     expect(find.text('Parent Request Reference'), findsOneWidget);
-    expect(find.text('KH-RQ-2026-01482'), findsOneWidget);
+    expect(find.text('Bridal Set'), findsWidgets);
     expect(
       find.text('Sara Al Maktoum · +971501234567'),
       findsOneWidget,

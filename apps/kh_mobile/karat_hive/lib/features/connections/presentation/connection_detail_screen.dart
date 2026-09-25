@@ -165,9 +165,9 @@ class ConnectionDetailScreen extends ConsumerWidget {
                   ),
                 ),
               SizedBox(height: tokens.space.lg),
-              if (conn.request?.reference != null)
+              if (conn.request != null)
                 Text(
-                  conn.request!.reference!,
+                  conn.request!.displayTitle(),
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               SizedBox(height: tokens.space.sm),

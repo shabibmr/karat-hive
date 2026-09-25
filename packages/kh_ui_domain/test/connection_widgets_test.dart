@@ -30,7 +30,7 @@ void main() {
           connectionId: 'conn-1',
           counterpartyName: 'Fatima Al Zahra',
           state: ConnectionState.active,
-          requestReference: 'KH-RQ-24A1',
+          requestLabel: 'Ring 22gm 22K',
           offeredPrice: '12500.00',
           connectedAt: DateTime.utc(2026, 9, 1, 12),
           onTalk: () {},
@@ -41,7 +41,7 @@ void main() {
 
     expect(find.byKey(const Key('connection-summary-conn-1')), findsOneWidget);
     expect(find.text('Fatima Al Zahra'), findsOneWidget);
-    expect(find.text('KH-RQ-24A1'), findsOneWidget);
+    expect(find.text('Ring 22gm 22K'), findsOneWidget);
     expect(find.textContaining('AED'), findsWidgets);
     expect(find.byKey(const Key('connection-talk-shortcut-conn-1')), findsOneWidget);
   });

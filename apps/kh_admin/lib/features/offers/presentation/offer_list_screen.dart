@@ -12,6 +12,7 @@ import 'package:kh_admin/l10n/app_localizations.dart';
 import 'package:kh_admin/features/offers/controller/offer_list_controller.dart';
 import 'package:kh_admin/features/offers/model/offer_enums.dart';
 import 'package:kh_admin/features/offers/model/offer_list_filters.dart';
+import 'package:kh_admin/features/requests/presentation/admin_request_display_title.dart';
 import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
 /// ADM-S10 · Offer list — Platform-wide vendor offer monitoring and inspection.
@@ -353,7 +354,10 @@ class _OfferTable extends ConsumerWidget {
                 ],
               ),
               Text(
-                item.requestReference ?? item.requestId,
+                adminRequestDisplayTitle(
+                  requestTypeRaw: item.requestType?.apiValue,
+                  fallback: item.requestType?.displayName ?? 'Request',
+                ),
                 style: kh.typography.bodySmall.copyWith(
                   color: kh.colors.textSecondary,
                   fontSize: 12.0,

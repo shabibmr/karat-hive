@@ -187,8 +187,9 @@ class _VendorOfferSummaryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final summary = offer.requestSummary;
-    final title = summary?.reference ??
-        summary?.categoryName ??
+    final title = summary?.displayTitle(
+          fallback: l10n?.offerFallbackTitle ?? 'Offer',
+        ) ??
         (l10n?.offerFallbackTitle ?? 'Offer');
     final price = double.tryParse(offer.terms.offeredPrice) ?? 0;
 

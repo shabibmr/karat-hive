@@ -6,6 +6,7 @@ import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
 import 'package:kh_admin/features/customers/model/customer_detail.dart';
 import 'package:kh_admin/features/customers/presentation/widgets/customer_detail_formatters.dart';
+import 'package:kh_admin/features/requests/presentation/admin_request_display_title.dart';
 
 /// Customer request-history card. Was
 /// `_CustomerDetailScreenState._buildRequestHistoryCard` (TR-S2-12).
@@ -55,7 +56,7 @@ class CustomerRequestHistoryCard extends StatelessWidget {
               key: const Key('customer-requests-table'),
               minWidth: 640,
               columns: const [
-                KhTableColumn('Reference / ID', flex: 2),
+                KhTableColumn('Request', flex: 2),
                 KhTableColumn('Type', flex: 2),
                 KhTableColumn('State', flex: 2),
                 KhTableColumn('Offers', flex: 1),
@@ -66,8 +67,10 @@ class CustomerRequestHistoryCard extends StatelessWidget {
                   KhTableRow(
                     cells: [
                       Text(
-                        req.reference ??
-                            (req.id.length > 8 ? req.id.substring(0, 8) : req.id),
+                        adminRequestDisplayTitle(
+                          requestTypeRaw: req.requestType,
+                          fallback: req.requestType ?? 'Request',
+                        ),
                         style: kh.typography.bodySmall.copyWith(
                           color: kh.colors.textPrimary,
                           fontWeight: FontWeight.w600,

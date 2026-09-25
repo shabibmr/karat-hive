@@ -71,8 +71,8 @@ void main() {
         ),
       );
 
-      // Verify reference, state, category, direction, purity
-      expect(find.text('KH-RQ-2026-000001'), findsOneWidget);
+      // Specs title, state, category, direction, purity
+      expect(find.text('Bangle 25.5gm 22K'), findsOneWidget);
       expect(find.text('PUBLISHED'), findsOneWidget);
       expect(find.text('BUY'), findsOneWidget);
       expect(find.text('Bangles'), findsOneWidget);

@@ -189,7 +189,7 @@ void main() {
           connectionId: 'conn-1',
           counterpartyName: 'Fatima Al Zahra',
           state: ConnectionState.active,
-          requestReference: 'KH-RQ-24A1',
+          requestLabel: 'Ring 22gm 22K',
           offeredPrice: '12500.00',
           onTalk: () {},
           onTap: () {},

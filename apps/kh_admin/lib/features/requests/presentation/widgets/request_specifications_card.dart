@@ -57,9 +57,6 @@ class RequestSpecificationsCard extends StatelessWidget {
           ),
           SizedBox(height: kh.spacing.md),
           RequestDetailRow(
-              l10n?.requestsDetailLabelReferenceCode ?? 'Reference Code',
-              detail.reference ?? '—'),
-          RequestDetailRow(
               l10n?.requestsDetailLabelRequestType ?? 'Request Type',
               detail.requestType.label),
           RequestDetailRow(

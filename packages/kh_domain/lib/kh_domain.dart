@@ -6,6 +6,7 @@ export 'src/vendor_document.dart';
 export 'src/party.dart';
 export 'src/session.dart';
 export 'src/request.dart';
+export 'src/request_display_title.dart';
 export 'src/offer.dart';
 export 'src/connection.dart';
 export 'src/review.dart';

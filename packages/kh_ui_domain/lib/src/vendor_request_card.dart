@@ -27,9 +27,9 @@ class VendorRequestCard extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    final title = item.reference ??
-        item.categoryName ??
-        (l10n?.requestFallback ?? 'Request');
+    final title = item.displayTitle(
+      fallback: l10n?.requestFallback ?? 'Request',
+    );
     final isUnread = !item.isViewed;
 
     return Card(

@@ -96,8 +96,10 @@ class OwnerRequestCard extends StatelessWidget {
     final locale = Localizations.localeOf(context).languageCode;
 
     final catName = request.category.name(locale);
-    final title = request.reference ??
-        (catName.isNotEmpty ? catName : (l10n?.requestFallback ?? 'Request'));
+    final title = request.displayTitle(
+      locale: locale,
+      fallback: l10n?.requestFallback ?? 'Request',
+    );
 
     final unreadOffers = request.unreadOfferCount ?? 0;
     final hasUnreadOffers = unreadOffers > 0;

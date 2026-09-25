@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/features/requests/model/request_detail.dart';
+import 'package:kh_admin/features/requests/presentation/admin_request_display_title.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 
 /// Result of the remove-request dialog. Null return from
@@ -49,10 +50,20 @@ Future<RemoveRequestOutcome?> showRemoveRequestDialog(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n?.requestsDetailRemoveDialogBody(
-                      detail.reference ?? detail.id,
-                    ) ??
-                    'Removing "${detail.reference ?? detail.id}" sets status to REMOVED, withdraws all pending offers, and notifies both parties.',
+                () {
+                  final label = adminRequestDisplayTitle(
+                    requestType: detail.requestType,
+                    ornamentType: detail.ornamentType,
+                    weightGrams: detail.weightGrams,
+                    purityKarat: detail.purityKarat,
+                    denominationGrams: detail.denominationGrams,
+                    quantity: detail.quantity,
+                    categoryName: detail.categoryName,
+                    fallback: detail.requestType.label,
+                  );
+                  return l10n?.requestsDetailRemoveDialogBody(label) ??
+                      'Removing "$label" sets status to REMOVED, withdraws all pending offers, and notifies both parties.';
+                }(),
                 style: kh.typography.bodySmall.copyWith(
                   color: kh.colors.textSecondary,
                   fontSize: 12.0,

@@ -107,7 +107,7 @@ class _CustomerOffersListScreenState
                   children: [
                     Expanded(
                       child: Text(
-                        req.reference ?? req.id,
+                        req.displayTitle(fallback: 'Request'),
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                     ),

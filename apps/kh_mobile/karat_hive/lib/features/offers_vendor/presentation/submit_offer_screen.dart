@@ -70,9 +70,9 @@ class _SubmitOfferScreenState extends ConsumerState<SubmitOfferScreen> {
               padding: EdgeInsets.all(tokens.space.md),
               children: [
                 Text(
-                  request.reference ??
-                      request.categoryName ??
-                      (l10n?.requestFallback ?? 'Request'),
+                  request.displayTitle(
+                    fallback: l10n?.requestFallback ?? 'Request',
+                  ),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 SizedBox(height: tokens.space.xs),

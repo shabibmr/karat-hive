@@ -150,10 +150,10 @@ class _Body extends ConsumerWidget {
           ),
         if (vendor.region != null)
           _Fact(label: 'Region', value: vendor.region!.nameEn),
-        if (connection.request?.reference != null)
+        if (connection.request != null)
           _Fact(
             label: 'Request',
-            value: connection.request!.reference!,
+            value: connection.request!.displayTitle(),
           ),
         if (price != null) ...[
           SizedBox(height: tokens.space.sm),

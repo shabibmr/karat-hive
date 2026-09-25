@@ -12,6 +12,7 @@ import 'package:kh_admin/l10n/app_localizations.dart';
 import 'package:kh_admin/features/requests/controller/request_list_controller.dart';
 import 'package:kh_admin/features/requests/model/request_enums.dart';
 import 'package:kh_admin/features/requests/model/request_list_filters.dart';
+import 'package:kh_admin/features/requests/presentation/admin_request_display_title.dart';
 import 'package:kh_admin/core/format/kh_formats.dart';
 import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 
@@ -340,7 +341,7 @@ class _RequestTable extends ConsumerWidget {
       key: const Key('request-list-table'),
       minWidth: 1200.0,
       columns: [
-        KhTableColumn(l10n?.requestsColumnReference ?? 'Reference', flex: 3),
+        KhTableColumn(l10n?.requestsColumnReference ?? 'Request', flex: 3),
         KhTableColumn(l10n?.requestsColumnType ?? 'Type', flex: 2),
         KhTableColumn(l10n?.requestsColumnDirection ?? 'Direction', flex: 1),
         KhTableColumn(l10n?.requestsColumnCustomer ?? 'Customer', flex: 3),
@@ -359,27 +360,26 @@ class _RequestTable extends ConsumerWidget {
             key: Key('request-row-${item.id}'),
             onTap: () => context.go('/requests/${item.id}'),
             cells: [
-              // Reference
+              // Specs title
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    item.reference ?? '—',
+                    adminRequestDisplayTitle(
+                      requestType: item.requestType,
+                      ornamentType: item.ornamentType,
+                      weightGrams: item.weightGrams,
+                      purityKarat: item.purityKarat,
+                      categoryName: item.categoryName,
+                      fallback: item.requestType.label,
+                    ),
                     style: kh.typography.bodySmall.copyWith(
                       color: kh.colors.goldPrimary,
                       fontWeight: FontWeight.w700,
                       fontSize: 13.0,
                     ),
                   ),
-                  if (item.ornamentType != null && item.ornamentType!.isNotEmpty)
-                    Text(
-                      item.ornamentType!,
-                      style: kh.typography.caption.copyWith(
-                        color: kh.colors.textMuted,
-                        fontSize: 11.0,
-                      ),
-                    ),
                 ],
               ),
               // Type

@@ -119,7 +119,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                         connectionId: conn.id,
                         counterpartyName: conn.customer.displayName,
                         state: conn.state,
-                        requestReference: conn.request?.reference,
+                        requestLabel: conn.request?.displayTitle(),
                         offeredPrice: conn.acceptedOffer?.terms.offeredPrice,
                         connectedAt: conn.connectedAt,
                         onTalk: conn.talk.canOpenWhatsApp
@@ -144,7 +144,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                         connectionId: conn.id,
                         counterpartyName: conn.customer.displayName,
                         state: conn.state,
-                        requestReference: conn.request?.reference,
+                        requestLabel: conn.request?.displayTitle(),
                         offeredPrice: conn.acceptedOffer?.terms.offeredPrice,
                         connectedAt: conn.connectedAt,
                         onTap: () =>

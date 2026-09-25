@@ -419,11 +419,11 @@ void main() {
       expect(find.byKey(const Key('offer-card-off-1')), findsOneWidget);
       expect(find.byKey(const Key('offer-card-off-2')), findsOneWidget);
 
-      // Titles & Categories
-      expect(find.text('KH-RQ-001'), findsOneWidget);
-      expect(find.text('Necklaces'), findsOneWidget);
-      expect(find.text('KH-RQ-002'), findsOneWidget);
-      expect(find.text('Bangles'), findsOneWidget);
+      // Specs titles (category fallback when summary has no weight/ornament)
+      expect(find.byKey(const Key('offer-title-off-1')), findsOneWidget);
+      expect(find.text('Necklaces'), findsWidgets);
+      expect(find.byKey(const Key('offer-title-off-2')), findsOneWidget);
+      expect(find.text('Bangles'), findsWidgets);
 
       // Submission date and closed date
       expect(find.text('Submitted: 1 Sep 2026'), findsOneWidget);

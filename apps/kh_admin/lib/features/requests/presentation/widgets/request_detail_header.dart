@@ -6,6 +6,7 @@ import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
 import 'package:kh_admin/core/format/kh_formats.dart';
 import 'package:kh_admin/features/requests/model/request_detail.dart';
+import 'package:kh_admin/features/requests/presentation/admin_request_display_title.dart';
 import 'package:kh_admin/features/requests/presentation/widgets/request_detail_row.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 
@@ -44,9 +45,16 @@ class RequestDetailHeader extends StatelessWidget {
     final kh = context.kh;
     final l10n = AppLocalizations.of(context);
     final dateFormat = khDateTimeFormat;
-    final heading = detail.ornamentType != null && detail.ornamentType!.isNotEmpty
-        ? '${detail.purityKarat != null ? "${detail.purityKarat} " : ""}${detail.ornamentType}'
-        : '${detail.requestType.label} (${detail.direction.label})';
+    final heading = adminRequestDisplayTitle(
+      requestType: detail.requestType,
+      ornamentType: detail.ornamentType,
+      weightGrams: detail.weightGrams,
+      purityKarat: detail.purityKarat,
+      denominationGrams: detail.denominationGrams,
+      quantity: detail.quantity,
+      categoryName: detail.categoryName,
+      fallback: '${detail.requestType.label} (${detail.direction.label})',
+    );
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,28 +65,6 @@ class RequestDetailHeader extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: kh.spacing.sm,
-                      vertical: kh.spacing.xxs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: kh.colors.backgroundElevated,
-                      borderRadius: kh.shapes.roundedSm,
-                      border: Border.all(color: kh.colors.borderSubtle),
-                    ),
-                    child: Text(
-                      detail.reference ??
-                          (l10n?.requestsDetailNoReference ?? 'NO REFERENCE'),
-                      style: kh.typography.caption.copyWith(
-                        color: kh.colors.goldPrimary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12.0,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: kh.spacing.sm),
                   KhStatusChip(
                     label: detail.state.label,
                     tone: requestStateTone(detail.state),

@@ -117,9 +117,10 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                item.reference ??
-                                    (l10n?.requestDetailsFallback ??
-                                        'Request Details'),
+                                item.displayTitle(
+                                  fallback: l10n?.requestDetailsFallback ??
+                                      'Request Details',
+                                ),
                                 style: theme.textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),

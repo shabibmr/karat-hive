@@ -547,8 +547,7 @@ class _TerminalOfferCard extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final summary = offer.requestSummary;
-    final title = summary?.reference ??
-        summary?.categoryName ??
+    final title = summary?.displayTitle(fallback: 'Offer #${offer.id}') ??
         'Offer #${offer.id}';
     final closedAt = offer.decidedAt ?? offer.expiresAt;
     final price = double.tryParse(offer.terms.offeredPrice) ?? 0;

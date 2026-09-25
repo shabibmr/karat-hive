@@ -5,6 +5,7 @@ import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/features/offers/model/offer_detail.dart';
 import 'package:kh_admin/features/offers/presentation/widgets/offer_detail_formatters.dart';
 import 'package:kh_admin/features/offers/presentation/widgets/offer_detail_row.dart';
+import 'package:kh_admin/features/requests/presentation/admin_request_display_title.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
 import 'package:kh_domain/kh_domain.dart' show MaskedParty, RevealedParty;
 
@@ -70,9 +71,12 @@ class OfferParentRequestCard extends StatelessWidget {
             )
           else ...[
             OfferDetailRow(
-              label: l10n?.offersDetailLabelRequestReference ??
-                  'Request Reference',
-              value: request!.reference ?? request!.id,
+              label: l10n?.offersDetailLabelRequestReference ?? 'Request',
+              value: adminRequestDisplayTitle(
+                requestTypeRaw: request!.requestType?.apiValue,
+                categoryName: request!.categoryName,
+                fallback: request!.requestType?.displayName ?? 'Request',
+              ),
               isStrong: true,
             ),
             if (request!.requestType != null)

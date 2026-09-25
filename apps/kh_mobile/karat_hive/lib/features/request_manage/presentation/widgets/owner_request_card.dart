@@ -63,21 +63,13 @@ class OwnerRequestCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          requestTypeLabel(s, request.requestType),
+                          request.displayTitle(
+                            fallback: requestTypeLabel(s, request.requestType),
+                          ),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        if (request.reference != null) ...[
-                          SizedBox(height: tokens.space.xs),
-                          Text(
-                            request.reference!,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: tokens.ink.withValues(alpha: 0.55),
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                        ],
                         SizedBox(height: tokens.space.xs),
                         Row(
                           children: [

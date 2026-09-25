@@ -114,10 +114,10 @@ class _ConnectionTile extends ConsumerWidget {
                   ),
                 ],
               ),
-              if (connection.request?.reference != null) ...[
+              if (connection.request != null) ...[
                 SizedBox(height: tokens.space.xs),
                 Text(
-                  connection.request!.reference!,
+                  connection.request!.displayTitle(),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],

@@ -73,7 +73,7 @@ void main() {
     await tester.pumpWidget(_host(OfferSummaryCard(offer: _vendorOffer())));
 
     expect(find.byKey(const Key('offer-summary-off-1')), findsOneWidget);
-    expect(find.text('KH-RQ-24A1'), findsOneWidget);
+    expect(find.text('Bangles'), findsOneWidget);
     expect(find.text('Customer · Deira'), findsOneWidget);
     expect(find.textContaining('AED'), findsWidgets);
     expect(find.textContaining('+971'), findsNothing);

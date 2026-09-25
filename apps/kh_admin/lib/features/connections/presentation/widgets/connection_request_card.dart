@@ -5,6 +5,7 @@ import 'package:kh_admin/core/design/widgets/kh_section_label.dart';
 import 'package:kh_admin/features/connections/model/connection_detail.dart';
 import 'package:kh_admin/features/connections/presentation/widgets/connection_detail_formatters.dart';
 import 'package:kh_admin/features/connections/presentation/widgets/connection_info_row.dart';
+import 'package:kh_admin/features/requests/presentation/admin_request_display_title.dart';
 
 /// Originating-request card. Was
 /// `_ConnectionDetailScreenState._buildRequestCard` (TR-S2-14).
@@ -37,10 +38,16 @@ class ConnectionRequestCard extends StatelessWidget {
               Icon(Icons.shopping_bag_outlined, color: kh.colors.goldPrimary, size: 20),
               SizedBox(width: kh.spacing.xs),
               Text('Originating Request', style: kh.typography.title),
-              if (request?.reference != null) ...[
+              if (request != null) ...[
                 const Spacer(),
                 Text(
-                  request!.reference!,
+                  adminRequestDisplayTitle(
+                    requestTypeRaw: request.requestType,
+                    ornamentType: request.ornamentType,
+                    weightGrams: request.weightGrams,
+                    purityKarat: request.purityKarat,
+                    fallback: request.requestType ?? 'Request',
+                  ),
                   style: kh.typography.bodySmall.copyWith(color: kh.colors.goldPrimary),
                 ),
               ],

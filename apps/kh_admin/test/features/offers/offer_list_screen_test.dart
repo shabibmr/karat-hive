@@ -132,7 +132,7 @@ void main() {
     // Table and rows
     expect(find.byKey(const Key('offer-list-table')), findsOneWidget);
     expect(find.text('OFF-2026-9921'), findsOneWidget);
-    expect(find.text('KH-RQ-2026-01482'), findsOneWidget);
+    expect(find.text('Find An Ornament'), findsOneWidget);
     expect(find.text('Al Noor Jewellery LLC'), findsOneWidget);
     expect(find.text('AED 14,850.00'), findsOneWidget);
     expect(find.text('PENDING'), findsOneWidget);
