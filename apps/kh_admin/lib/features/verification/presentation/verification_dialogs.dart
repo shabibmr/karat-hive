@@ -218,6 +218,35 @@ class _ApproveVerificationDialogState
                   hintText: 'Enter internal rationale for approving this vendor credentials...',
                 ),
               ),
+              SizedBox(height: spacing.md),
+              Text(
+                'Grant Type Subscriptions (optional)',
+                style: typography.label.copyWith(color: colors.textSecondary),
+              ),
+              SizedBox(height: spacing.xs),
+              Wrap(
+                spacing: spacing.sm,
+                runSpacing: spacing.xs,
+                children: [
+                  for (final type in RequestType.values)
+                    FilterChip(
+                      key: Key('approve-service-chip-${type.apiValue}'),
+                      label: Text(type.label),
+                      selected: _selectedTypes.contains(type),
+                      onSelected: _isSubmitting
+                          ? null
+                          : (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedTypes.add(type);
+                                } else {
+                                  _selectedTypes.remove(type);
+                                }
+                              });
+                            },
+                    ),
+                ],
+              ),
             ],
           ),
         ),

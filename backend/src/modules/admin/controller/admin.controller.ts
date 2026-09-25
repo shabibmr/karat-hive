@@ -37,7 +37,7 @@ const erasureCustomerSchema = z.object({
 });
 
 const verifyVendorSchema = z.object({
-  rationale: z.string().trim().min(1).max(500),
+  rationale: z.string().trim().max(500).optional().default(''),
 });
 
 const rejectVendorSchema = z.object({

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_feedback_banner.dart';
+import 'package:kh_admin/features/requests/model/request_enums.dart';
 import 'package:kh_admin/features/vendors/controller/vendor_detail_controller.dart';
 import 'package:kh_admin/features/vendors/model/vendor_detail.dart';
 import 'package:kh_admin/features/vendors/model/vendor_enums.dart';
@@ -12,6 +13,7 @@ import 'package:kh_admin/features/vendors/presentation/widgets/vendor_detail_hea
 import 'package:kh_admin/features/vendors/presentation/widgets/vendor_kyc_documents_card.dart';
 import 'package:kh_admin/features/vendors/presentation/widgets/vendor_lifecycle_actions_card.dart';
 import 'package:kh_admin/features/vendors/presentation/widgets/vendor_profile_card.dart';
+import 'package:kh_admin/features/vendors/presentation/widgets/vendor_services_card.dart';
 import 'package:kh_admin/features/vendors/presentation/widgets/vendor_taxonomy_card.dart';
 
 /// ADM-S06 · Vendor detail — full business profile, KYC document inspection,
@@ -99,6 +101,13 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                     onDeactivate: () =>
                         _promptDeactivateDialog(context, kh, detail),
                   );
+                  final servicesCard = VendorServicesCard(
+                    detail: detail,
+                    isBusy: _isProcessingAction,
+                    onGrant: (type) => _grantSubscription(detail, type),
+                    onRevoke: (type, reasonText) =>
+                        _revokeSubscription(detail, type, reasonText),
+                  );
                   if (isWide) {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,6 +120,8 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                               VendorProfileCard(detail: detail),
                               SizedBox(height: kh.spacing.lg),
                               VendorTaxonomyCard(detail: detail),
+                              SizedBox(height: kh.spacing.lg),
+                              servicesCard,
                               SizedBox(height: kh.spacing.lg),
                               VendorKycDocumentsCard(detail: detail),
                             ],
@@ -131,6 +142,8 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                       VendorProfileCard(detail: detail),
                       SizedBox(height: kh.spacing.lg),
                       VendorTaxonomyCard(detail: detail),
+                      SizedBox(height: kh.spacing.lg),
+                      servicesCard,
                       SizedBox(height: kh.spacing.lg),
                       VendorKycDocumentsCard(detail: detail),
                       SizedBox(height: kh.spacing.lg),
@@ -455,6 +468,30 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
         successMessage: 'Vendor account permanently deactivated.',
       );
     }
+  }
+
+  Future<void> _grantSubscription(VendorDetail detail, RequestType type) async {
+    await _executeLifecycleAction(
+      actionName: 'grant ${type.label}',
+      task: () => ref
+          .read(vendorDetailControllerProvider(detail.id).notifier)
+          .grantSubscription(type),
+      successMessage: '${type.label} granted.',
+    );
+  }
+
+  Future<void> _revokeSubscription(
+    VendorDetail detail,
+    RequestType type,
+    String reasonText,
+  ) async {
+    await _executeLifecycleAction(
+      actionName: 'revoke ${type.label}',
+      task: () => ref
+          .read(vendorDetailControllerProvider(detail.id).notifier)
+          .revokeSubscription(type, reasonText: reasonText),
+      successMessage: '${type.label} revoked.',
+    );
   }
 
   Future<void> _executeLifecycleAction({

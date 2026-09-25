@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kh_admin/features/requests/model/request_enums.dart';
 import 'package:kh_admin/features/vendors/controller/vendor_list_controller.dart';
 import 'package:kh_admin/features/vendors/model/vendor_detail.dart';
 import 'package:kh_admin/features/vendors/repository/vendor_repository.dart';
@@ -79,6 +80,18 @@ class VendorDetailController
     );
     await _softReload();
     _invalidateList();
+  }
+
+  Future<void> grantSubscription(RequestType type) async {
+    final repository = ref.read(vendorRepositoryProvider);
+    await repository.grantSubscription(arg, type);
+    await _softReload();
+  }
+
+  Future<void> revokeSubscription(RequestType type, {required String reasonText}) async {
+    final repository = ref.read(vendorRepositoryProvider);
+    await repository.revokeSubscription(arg, type, reasonText: reasonText);
+    await _softReload();
   }
 }
 

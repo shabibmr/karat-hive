@@ -1,5 +1,47 @@
+import 'package:kh_admin/features/requests/model/request_enums.dart';
 import 'package:kh_admin/features/vendors/model/vendor_enums.dart';
 import 'package:kh_admin/features/verification/model/vendor_verification_detail.dart';
+
+/// One `VendorTypeSubscription` row (`GET /v1/admin/vendors/{id}`, raw Prisma
+/// shape — `subscriptions: true` include, no presenter layer).
+class VendorSubscriptionSummary {
+  const VendorSubscriptionSummary({
+    required this.id,
+    required this.requestType,
+    required this.state,
+    required this.periodEnd,
+  });
+
+  final String id;
+  final RequestType requestType;
+
+  /// Raw `SubscriptionState` string: `ACTIVE` / `GRACE` / `EXPIRED` / `CANCELLED`.
+  final String state;
+  final DateTime periodEnd;
+
+  bool get isEntitling => state == 'ACTIVE' || state == 'GRACE';
+
+  static List<VendorSubscriptionSummary> parseList(dynamic raw) {
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map((row) {
+          final type = RequestType.fromApi(row['requestType']?.toString());
+          if (type == null) return null;
+          final periodEnd = row['periodEnd'] is String
+              ? DateTime.tryParse(row['periodEnd'] as String)
+              : null;
+          return VendorSubscriptionSummary(
+            id: row['id']?.toString() ?? '',
+            requestType: type,
+            state: row['state']?.toString() ?? 'EXPIRED',
+            periodEnd: periodEnd ?? DateTime.now(),
+          );
+        })
+        .whereType<VendorSubscriptionSummary>()
+        .toList(growable: false);
+  }
+}
 
 /// Full vendor profile data model for ADM-S06.
 class VendorDetail {
@@ -18,6 +60,7 @@ class VendorDetail {
     this.categories = const [],
     this.regions = const [],
     this.documents = const [],
+    this.subscriptions = const [],
     this.oldestWaitingHours,
     this.submittedAt,
   });
@@ -36,10 +79,18 @@ class VendorDetail {
   final List<String> categories;
   final List<String> regions;
   final List<VendorDocumentDetail> documents;
+  final List<VendorSubscriptionSummary> subscriptions;
   final double? oldestWaitingHours;
   final DateTime? submittedAt;
 
   bool get isLicenceExpired => licenceExpiryDate.isBefore(DateTime.now());
+
+  /// Request types the vendor currently holds an `ACTIVE`/`GRACE` entitlement
+  /// for (`BR-002`).
+  Set<RequestType> get entitledTypes => {
+        for (final s in subscriptions)
+          if (s.isEntitling) s.requestType,
+      };
 
   VendorDetail copyWith({
     String? id,
@@ -56,6 +107,7 @@ class VendorDetail {
     List<String>? categories,
     List<String>? regions,
     List<VendorDocumentDetail>? documents,
+    List<VendorSubscriptionSummary>? subscriptions,
     double? oldestWaitingHours,
     DateTime? submittedAt,
   }) {
@@ -74,6 +126,7 @@ class VendorDetail {
       categories: categories ?? this.categories,
       regions: regions ?? this.regions,
       documents: documents ?? this.documents,
+      subscriptions: subscriptions ?? this.subscriptions,
       oldestWaitingHours: oldestWaitingHours ?? this.oldestWaitingHours,
       submittedAt: submittedAt ?? this.submittedAt,
     );
@@ -166,6 +219,7 @@ class VendorDetail {
       categories: parseStringList(json['categories']),
       regions: parseStringList(json['regions']),
       documents: parseDocs(json['documents']),
+      subscriptions: VendorSubscriptionSummary.parseList(json['subscriptions']),
       oldestWaitingHours: (json['oldestWaitingHours'] as num?)?.toDouble(),
       // origin/main's detail route sends neither `submittedAt` nor
       // `oldestWaitingHours`; fall back to `createdAt` for the registration date.

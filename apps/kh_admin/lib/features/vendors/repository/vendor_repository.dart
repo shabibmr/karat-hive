@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/list/paginated.dart';
+import 'package:kh_admin/features/requests/model/request_enums.dart';
 import 'package:kh_admin/features/vendors/model/vendor_detail.dart';
 import 'package:kh_admin/features/vendors/model/vendor_list_filters.dart';
 import 'package:kh_admin/features/vendors/model/vendor_list_item.dart';
 import 'package:kh_admin/features/vendors/model/vendor_list_page.dart';
+import 'package:kh_admin/features/verification/model/grant_subscription_dto.dart';
 import 'package:kh_admin/core/api/json_parse.dart';
 
 /// Typed repository for `GET /v1/admin/vendors` (ADM-S05, API-Route-Inventory §21.3).
@@ -126,6 +128,31 @@ class VendorRepository {
       '/v1/admin/vendors/$vendorId/deactivate',
       data: {
         'reasonCode': reasonCode,
+        'reasonText': reasonText,
+      },
+    );
+  }
+
+  /// `POST /v1/admin/vendors/{id}/subscriptions` — grants a Type Subscription
+  /// (`FR-VEN-031`), independent of verification/approval (`BR-002`).
+  Future<void> grantSubscription(String vendorId, RequestType type) async {
+    await _apiClient.post(
+      '/v1/admin/vendors/$vendorId/subscriptions',
+      data: GrantSubscriptionDto.forType(type).toJson(),
+    );
+  }
+
+  /// `PATCH /v1/admin/vendors/{id}/subscriptions/{requestType}` — revokes an
+  /// active/grace entitlement by setting it `CANCELLED`.
+  Future<void> revokeSubscription(
+    String vendorId,
+    RequestType type, {
+    required String reasonText,
+  }) async {
+    await _apiClient.patch(
+      '/v1/admin/vendors/$vendorId/subscriptions/${type.apiValue}',
+      data: {
+        'state': 'CANCELLED',
         'reasonText': reasonText,
       },
     );
