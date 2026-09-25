@@ -18,6 +18,20 @@ final requestImageConverterProvider = Provider<ImageConverter>(
   (ref) => const AvifImageConverter(),
 );
 
+/// Overridable so tests can exercise the web upload branch without the web
+/// test runner — `kIsWeb` is a compile-time constant on the VM.
+final isWebPlatformProvider = Provider<bool>((ref) => kIsWeb);
+
+/// Wait between publish retries while photos finish server-side processing.
+/// Overridable so tests don't sleep.
+final mediaReadyRetryDelayProvider = Provider<Duration>(
+  (ref) => const Duration(seconds: 2),
+);
+
+/// ~60 s at the default delay — the same budget the uploader used to spend
+/// polling each photo for `READY` before this moved to publish time.
+const _mediaReadyMaxRetries = 30;
+
 Direction? directionForType(RequestType type) => switch (type) {
       RequestType.findOrnament => Direction.buy,
       RequestType.sellOldGold => Direction.sell,
@@ -568,8 +582,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       clearFailure: true,
     );
 
-    final converted = await _convertToAvif(bytes);
-    if (converted == null) {
+    final prepared = await _prepareForUpload(bytes, contentType);
+    if (prepared == null) {
       state = state.copyWith(
         uploading: state.media.any((m) => m.key != key && m.uploading),
         media: [
@@ -588,7 +602,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       return;
     }
 
-    // Guest: keep converted AVIF until after bind (`adr/0011`).
+    // Guest: keep converted bytes until after bind (`adr/0011`).
     if (_isGuest) {
       state = state.copyWith(
         uploading: state.media.any((m) => m.key != key && m.uploading),
@@ -596,8 +610,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           for (final m in state.media)
             if (m.key == key)
               m.copyWith(
-                uploadBytes: converted,
-                contentType: 'image/avif',
+                uploadBytes: prepared.bytes,
+                contentType: prepared.contentType,
                 uploading: false,
               )
             else
@@ -611,7 +625,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       media: [
         for (final m in state.media)
           if (m.key == key)
-            m.copyWith(uploadBytes: converted, contentType: 'image/avif')
+            m.copyWith(uploadBytes: prepared.bytes, contentType: prepared.contentType)
           else
             m,
       ],
@@ -626,37 +640,40 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     final source = slot.localBytes;
     if (source == null || source.isEmpty) return;
 
-    Uint8List? converted = slot.uploadBytes;
-    if (converted == null || converted.isEmpty) {
-      converted = await _convertToAvif(source);
-    }
-    if (converted == null) {
-      state = state.copyWith(
-        media: [
-          for (var i = 0; i < state.media.length; i++)
-            if (i == index)
-              slot.copyWith(
-                failure: const ServerFailure(
-                  message: 'Could not convert that photo. Try another.',
-                ),
-              )
-            else
-              state.media[i],
-        ],
-      );
-      return;
+    Uint8List? uploadBytes = slot.uploadBytes;
+    var contentType = slot.contentType ?? 'image/jpeg';
+    if (uploadBytes == null || uploadBytes.isEmpty) {
+      final prepared = await _prepareForUpload(source, contentType);
+      if (prepared == null) {
+        state = state.copyWith(
+          media: [
+            for (var i = 0; i < state.media.length; i++)
+              if (i == index)
+                slot.copyWith(
+                  failure: const ServerFailure(
+                    message: 'Could not convert that photo. Try another.',
+                  ),
+                )
+              else
+                state.media[i],
+          ],
+        );
+        return;
+      }
+      uploadBytes = prepared.bytes;
+      contentType = prepared.contentType;
     }
 
     final retryKey = slot.key.startsWith('pending:') || slot.key.startsWith('local:')
         ? slot.key
-        : 'pending:${Object.hash(slot.key, converted.length)}';
+        : 'pending:${Object.hash(slot.key, uploadBytes.length)}';
     final next = MediaSlot(
       key: _isGuest ? (slot.key.startsWith('local:') ? slot.key : 'local:$retryKey') : retryKey,
       localLabel: slot.localLabel,
       localPath: slot.localPath,
       localBytes: slot.localBytes,
-      uploadBytes: converted,
-      contentType: 'image/avif',
+      uploadBytes: uploadBytes,
+      contentType: contentType,
       progress: 0,
       uploading: !_isGuest,
     );
@@ -746,7 +763,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     }
     state = state.copyWith(busy: true);
     final key = _ensurePublishKey();
-    final result = await _repo.publish(id, idempotencyKey: key);
+    final result = await _publishWhenMediaReady(id, key);
     return result.when(
       ok: (req) {
         state = state.copyWith(
@@ -767,6 +784,25 @@ class RequestCreateController extends Notifier<RequestCreateState> {
         return false;
       },
     );
+  }
+
+  /// Photos upload without waiting for server processing (`READY`), so a
+  /// fast publish can see `MEDIA_NOT_READY`; retry with the same idempotency
+  /// key — failed attempts are not cached against it.
+  Future<Result<RequestForCustomer>> _publishWhenMediaReady(
+    String id,
+    String idempotencyKey,
+  ) async {
+    final delay = ref.read(mediaReadyRetryDelayProvider);
+    var result = await _repo.publish(id, idempotencyKey: idempotencyKey);
+    for (var n = 0;
+        n < _mediaReadyMaxRetries &&
+            result.failureOrNull?.code == 'MEDIA_NOT_READY';
+        n++) {
+      await Future<void>.delayed(delay);
+      result = await _repo.publish(id, idempotencyKey: idempotencyKey);
+    }
+    return result;
   }
 
   /// Flush guest-local AVIF slots (also used after sign-in). Safe to call twice.
@@ -802,8 +838,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           }
         }
         if (source == null || source.isEmpty) continue;
-        avif = await _convertToAvif(source);
-        if (avif == null) {
+        final prepared = await _prepareForUpload(source, slot.contentType ?? 'image/jpeg');
+        if (prepared == null) {
           state = state.copyWith(
             uploading: false,
             failure: const ServerFailure(
@@ -824,11 +860,12 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           );
           return false;
         }
+        avif = prepared.bytes;
         state = state.copyWith(
           media: [
             for (final m in state.media)
               if (m.key == key)
-                m.copyWith(uploadBytes: avif, contentType: 'image/avif')
+                m.copyWith(uploadBytes: prepared.bytes, contentType: prepared.contentType)
               else
                 m,
           ],
@@ -851,6 +888,21 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     }
   }
 
+  /// Native: converts to AVIF on-device. Web: the WASM AVIF encoder is the
+  /// slowest step in the picker flow, so web uploads the original bytes
+  /// as-is and skips it — `REQUEST_IMAGE` already accepts JPEG/PNG/WebP.
+  Future<({Uint8List bytes, String contentType})?> _prepareForUpload(
+    Uint8List bytes,
+    String contentType,
+  ) async {
+    if (ref.read(isWebPlatformProvider)) {
+      return (bytes: bytes, contentType: contentType);
+    }
+    final converted = await _convertToAvif(bytes);
+    if (converted == null) return null;
+    return (bytes: converted, contentType: 'image/avif');
+  }
+
   Future<bool> _uploadConvertedSlot(String placeholderKey) async {
     MediaSlot? slot;
     for (final m in state.media) {
@@ -863,9 +915,10 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     final uploadSlot = slot;
     final avif = uploadSlot.uploadBytes;
     if (avif == null || avif.isEmpty) return false;
+    final uploadContentType = uploadSlot.contentType ?? 'image/avif';
     final result = await _repo.uploadRequestImageBytes(
       avif,
-      'image/avif',
+      uploadContentType,
       onProgress: (p) {
         state = state.copyWith(
           media: [
@@ -901,7 +954,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
               localPath: uploadSlot.localPath,
               localBytes: uploadSlot.localBytes,
               uploadBytes: avif,
-              contentType: 'image/avif',
+              contentType: uploadContentType,
             )
           else
             m,

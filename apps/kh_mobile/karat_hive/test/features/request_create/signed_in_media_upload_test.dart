@@ -100,6 +100,7 @@ void main() {
       overrides: [
         requestCreateRepositoryProvider.overrideWithValue(repo),
         requestImageConverterProvider.overrideWithValue(converter),
+        mediaReadyRetryDelayProvider.overrideWithValue(Duration.zero),
         sessionProvider.overrideWith(() => _MutableSessionController(session)),
       ],
     );
@@ -274,6 +275,121 @@ void main() {
       final ok = await ctrl.publish();
       expect(ok, isTrue);
       expect(order, ['upload', 'draft', 'publish']);
+    });
+  });
+
+  group('web upload skips client-side AVIF', () {
+    test('addImage uploads original bytes/contentType, no conversion', () async {
+      when(
+        () => repo.uploadRequestImageBytes(
+          any(),
+          any(),
+          onProgress: any(named: 'onProgress'),
+        ),
+      ).thenAnswer((inv) async {
+        final contentType = inv.positionalArguments[1] as String;
+        expect(contentType, 'image/jpeg');
+        return const Ok('media-key-web-1');
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          requestCreateRepositoryProvider.overrideWithValue(repo),
+          requestImageConverterProvider.overrideWithValue(converter),
+          isWebPlatformProvider.overrideWithValue(true),
+          sessionProvider.overrideWith(() => _MutableSessionController(SignedIn(_customer()))),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final ctrl = container.read(requestCreateControllerProvider.notifier);
+      ctrl.selectType(RequestType.findOrnament);
+      await ctrl.addImage(imageFile, 'image/jpeg');
+
+      final state = container.read(requestCreateControllerProvider);
+      expect(converter.convertCalls, 0);
+      expect(state.media.single.key, 'media-key-web-1');
+      expect(state.media.single.contentType, 'image/jpeg');
+    });
+  });
+
+  group('publish while photos are still processing', () {
+    void stubDraftAndUpload() {
+      stubUpload();
+      when(() => repo.createDraft(any())).thenAnswer(
+        (_) async => Ok(DraftSaveResult(request: _draftRequest())),
+      );
+      when(() => repo.patchDraft(any(), any())).thenAnswer(
+        (_) async => Ok(DraftSaveResult(request: _draftRequest())),
+      );
+    }
+
+    const notReady = ValidationFailure(
+      code: 'MEDIA_NOT_READY',
+      message: 'Photos are still processing.',
+    );
+
+    test('retries MEDIA_NOT_READY with the same idempotency key', () async {
+      stubDraftAndUpload();
+      final keys = <String>[];
+      when(
+        () => repo.publish(any(), idempotencyKey: any(named: 'idempotencyKey')),
+      ).thenAnswer((inv) async {
+        keys.add(inv.namedArguments[#idempotencyKey] as String);
+        return keys.length < 3 ? const Err(notReady) : Ok(_publishedRequest());
+      });
+
+      final container = containerWith(SignedIn(_customer()));
+      final ctrl = container.read(requestCreateControllerProvider.notifier);
+      ctrl.selectType(RequestType.findOrnament);
+      await ctrl.addImage(imageFile, 'image/jpeg');
+
+      expect(await ctrl.publish(), isTrue);
+      expect(keys, hasLength(3));
+      expect(keys.toSet(), hasLength(1));
+    });
+
+    test('gives up and surfaces the failure if photos never become ready',
+        () async {
+      stubDraftAndUpload();
+      var calls = 0;
+      when(
+        () => repo.publish(any(), idempotencyKey: any(named: 'idempotencyKey')),
+      ).thenAnswer((_) async {
+        calls++;
+        return const Err(notReady);
+      });
+
+      final container = containerWith(SignedIn(_customer()));
+      final ctrl = container.read(requestCreateControllerProvider.notifier);
+      ctrl.selectType(RequestType.findOrnament);
+      await ctrl.addImage(imageFile, 'image/jpeg');
+
+      expect(await ctrl.publish(), isFalse);
+      expect(calls, 31);
+      expect(
+        container.read(requestCreateControllerProvider).failure?.code,
+        'MEDIA_NOT_READY',
+      );
+    });
+
+    test('other publish failures are not retried', () async {
+      stubDraftAndUpload();
+      var calls = 0;
+      when(
+        () => repo.publish(any(), idempotencyKey: any(named: 'idempotencyKey')),
+      ).thenAnswer((_) async {
+        calls++;
+        return const Err(ServerFailure(message: 'boom'));
+      });
+
+      final container = containerWith(SignedIn(_customer()));
+      final ctrl = container.read(requestCreateControllerProvider.notifier);
+      ctrl.selectType(RequestType.findOrnament);
+      await ctrl.addImage(imageFile, 'image/jpeg');
+
+      expect(await ctrl.publish(), isFalse);
+      expect(calls, 1);
     });
   });
 }

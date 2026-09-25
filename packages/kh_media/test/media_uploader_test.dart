@@ -181,6 +181,32 @@ void main() {
     expect(completes, 3);
   });
 
+  test('awaitReady: false returns the key without polling', () async {
+    when(
+      () => api.uploadIntent(
+        purpose: any(named: 'purpose'),
+        contentType: any(named: 'contentType'),
+        byteSize: any(named: 'byteSize'),
+      ),
+    ).thenAnswer((_) async => Ok(_intent()));
+
+    var completes = 0;
+    when(() => api.completeUpload('media-key-1')).thenAnswer((_) async {
+      completes++;
+      return const Ok('PENDING_PROCESSING');
+    });
+
+    final result = await uploader().upload(
+      file,
+      purpose: MediaUploadPurpose.requestImage,
+      contentType: 'image/avif',
+      awaitReady: false,
+    );
+
+    expect(result.valueOrNull, 'media-key-1');
+    expect(completes, 1);
+  });
+
   test('reports progress including completion', () async {
     when(
       () => api.uploadIntent(

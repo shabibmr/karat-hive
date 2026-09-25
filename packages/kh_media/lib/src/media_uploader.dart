@@ -19,6 +19,10 @@ enum MediaUploadPurpose {
 }
 
 /// Shared upload pipeline: intent → PUT bytes → complete → poll `READY`.
+///
+/// Pass `awaitReady: false` to return as soon as the server has accepted the
+/// bytes (`PENDING_PROCESSING`) — the caller then owns waiting for `READY`,
+/// e.g. Request publish retrying on `MEDIA_NOT_READY`.
 class MediaUploader {
   MediaUploader(
     this._api, {
@@ -71,6 +75,7 @@ class MediaUploader {
     required String contentType,
     void Function(double progress)? onProgress,
     UploadIntent? prefetchedIntent,
+    bool awaitReady = true,
   }) async {
     final bytes = await file.readAsBytes();
     return uploadBytes(
@@ -79,6 +84,7 @@ class MediaUploader {
       contentType: contentType,
       onProgress: onProgress,
       prefetchedIntent: prefetchedIntent,
+      awaitReady: awaitReady,
     );
   }
 
@@ -89,6 +95,7 @@ class MediaUploader {
     required String contentType,
     void Function(double progress)? onProgress,
     UploadIntent? prefetchedIntent,
+    bool awaitReady = true,
   }) async {
     final length = bytes.length;
     final canReusePrefetched =
@@ -134,7 +141,7 @@ class MediaUploader {
         final fail = done.failureOrNull;
         if (fail != null) return Err<String>(fail);
         var currentState = done.valueOrNull;
-        if (currentState != 'READY') {
+        if (awaitReady && currentState != 'READY') {
           for (var n = 0; n < maxPolls; n++) {
             await _sleep(pollInterval);
             final again = await _api.completeUpload(i.key);
