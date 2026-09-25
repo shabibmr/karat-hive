@@ -12,12 +12,15 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockRepo extends Mock implements RequestManageRepository {}
 
-GoRouter _testRouter() => GoRouter(
-      initialLocation: '/customer/requests',
+GoRouter _testRouter({String initialLocation = '/customer/requests'}) =>
+    GoRouter(
+      initialLocation: initialLocation,
       routes: [
         GoRoute(
           path: '/customer/requests',
-          builder: (_, __) => const MyRequestsScreen(),
+          builder: (_, state) => MyRequestsScreen(
+            initialTab: state.uri.queryParameters['tab'],
+          ),
         ),
         GoRoute(
           path: '/customer/history',
@@ -40,7 +43,9 @@ void main() {
     repo = _MockRepo();
   });
 
-  testWidgets('My Requests shows History and empty open list', (tester) async {
+  void stubListMine({
+    List<RequestForCustomer> items = const [],
+  }) {
     when(() => repo.listMine(
           cursor: any(named: 'cursor'),
           limit: any(named: 'limit'),
@@ -51,11 +56,16 @@ void main() {
           from: any(named: 'from'),
           to: any(named: 'to'),
         )).thenAnswer(
-      (_) async => const Ok(
-        PagedResult<RequestForCustomer>(items: [], nextCursor: null),
+      (_) async => Ok(
+        PagedResult<RequestForCustomer>(items: items, nextCursor: null),
       ),
     );
+  }
 
+  Future<void> pumpScreen(
+    WidgetTester tester, {
+    String location = '/customer/requests',
+  }) async {
     tester.view.physicalSize = const Size(800, 1200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -68,7 +78,7 @@ void main() {
         ],
         child: MaterialApp.router(
           theme: khTheme(),
-          routerConfig: _testRouter(),
+          routerConfig: _testRouter(initialLocation: location),
           localizationsDelegates: const [
             ...KhStrings.delegates,
             AppLocalizations.delegate,
@@ -78,50 +88,86 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+  }
+
+  testWidgets('My Requests shows Open/Drafts tabs, History, and empty open list',
+      (tester) async {
+    stubListMine();
+    await pumpScreen(tester);
 
     expect(find.byKey(const Key('my-requests-screen')), findsOneWidget);
+    expect(find.byKey(const Key('my-requests-tabs')), findsOneWidget);
+    expect(find.byKey(const Key('kh-segmented-tab-OPEN')), findsOneWidget);
+    expect(find.byKey(const Key('kh-segmented-tab-DRAFTS')), findsOneWidget);
     expect(find.byKey(const Key('open-history')), findsOneWidget);
     expect(find.text('My Requests'), findsWidgets);
     expect(find.byKey(const Key('customer-home-hero')), findsNothing);
   });
 
   testWidgets('History button opens history screen', (tester) async {
-    when(() => repo.listMine(
-          cursor: any(named: 'cursor'),
-          limit: any(named: 'limit'),
-          state: any(named: 'state'),
-          requestType: any(named: 'requestType'),
-          direction: any(named: 'direction'),
-          q: any(named: 'q'),
-          from: any(named: 'from'),
-          to: any(named: 'to'),
-        )).thenAnswer(
-      (_) async => const Ok(
-        PagedResult<RequestForCustomer>(items: [], nextCursor: null),
-      ),
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          requestManageRepositoryProvider.overrideWithValue(repo),
-        ],
-        child: MaterialApp.router(
-          theme: khTheme(),
-          routerConfig: _testRouter(),
-          localizationsDelegates: const [
-            ...KhStrings.delegates,
-            AppLocalizations.delegate,
-          ],
-          supportedLocales: KhStrings.supportedLocales,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+    stubListMine();
+    await pumpScreen(tester);
 
     await tester.tap(find.byKey(const Key('open-history')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('request-history-screen')), findsOneWidget);
+  });
+
+  testWidgets('Drafts tab requests DRAFT state and shows drafts empty copy',
+      (tester) async {
+    stubListMine();
+    await pumpScreen(tester);
+
+    await tester.tap(find.byKey(const Key('kh-segmented-tab-DRAFTS')));
+    await tester.pumpAndSettle();
+
+    final captured = verify(() => repo.listMine(
+          cursor: any(named: 'cursor'),
+          limit: any(named: 'limit'),
+          state: captureAny(named: 'state'),
+          requestType: any(named: 'requestType'),
+          direction: any(named: 'direction'),
+          q: any(named: 'q'),
+          from: any(named: 'from'),
+          to: any(named: 'to'),
+        )).captured;
+
+    expect(
+      captured.any((states) =>
+          states is List<String> &&
+          states.length == 1 &&
+          states.single == 'DRAFT'),
+      isTrue,
+    );
+    expect(
+      find.text('No drafts yet. Save a request as draft to finish it later.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('?tab=DRAFTS opens on Drafts segment', (tester) async {
+    stubListMine();
+    await pumpScreen(tester, location: '/customer/requests?tab=DRAFTS');
+
+    final captured = verify(() => repo.listMine(
+          cursor: any(named: 'cursor'),
+          limit: any(named: 'limit'),
+          state: captureAny(named: 'state'),
+          requestType: any(named: 'requestType'),
+          direction: any(named: 'direction'),
+          q: any(named: 'q'),
+          from: any(named: 'from'),
+          to: any(named: 'to'),
+        )).captured;
+
+    expect(
+      captured.any((states) =>
+          states is List<String> &&
+          states.length == 1 &&
+          states.single == 'DRAFT'),
+      isTrue,
+    );
+    expect(find.text('Drafts'), findsWidgets);
   });
 }

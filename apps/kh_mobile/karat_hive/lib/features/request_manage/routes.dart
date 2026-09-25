@@ -18,7 +18,10 @@ final requestManageRoutes = [
   GoRoute(
     path: AppGuards.customerRequests,
     // My Requests tab — open/live list (not Home dashboard).
-    builder: (_, __) => const MyRequestsScreen(),
+    // Optional `?tab=DRAFTS` lands on the Drafts segment.
+    builder: (_, state) => MyRequestsScreen(
+      initialTab: state.uri.queryParameters['tab'],
+    ),
     routes: [
       GoRoute(
         path: ':requestId',

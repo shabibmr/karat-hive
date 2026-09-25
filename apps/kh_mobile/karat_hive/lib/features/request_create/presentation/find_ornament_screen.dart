@@ -60,7 +60,7 @@ class _ComposeScreenHostState extends ConsumerState<ComposeScreenHost> {
             ),
           ),
         );
-        context.go(AppGuards.customerRequests);
+        context.go('${AppGuards.customerRequests}?tab=DRAFTS');
       }
     }
 

@@ -175,7 +175,7 @@ class _RequestReviewPublishScreenState
           ),
         ),
       );
-      context.go(AppGuards.customerRequests);
+      context.go('${AppGuards.customerRequests}?tab=DRAFTS');
     }
   }
 

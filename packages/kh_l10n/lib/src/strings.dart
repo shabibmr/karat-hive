@@ -136,6 +136,10 @@ class KhStrings {
       'common.empty': 'Nothing here yet',
       'cus.home.title': 'My Requests',
       'cus.home.empty': 'No active requests yet. Create a request to receive offers from verified jewelers.',
+      'cus.home.emptyDrafts':
+          'No drafts yet. Save a request as draft to finish it later.',
+      'cus.home.tabOpen': 'Open',
+      'cus.home.tabDrafts': 'Drafts',
       'cus.home.create': 'Create request',
       'cus.home.viewOffers': 'View offers',
       'cus.home.error': 'Could not load your requests.',
@@ -368,6 +372,10 @@ class KhStrings {
       'common.empty': 'لا يوجد شيء بعد',
       'cus.home.title': 'طلباتي',
       'cus.home.empty': 'لا توجد طلبات حيّة بعد. أنشئ طلباً لتستقبل عروض الصاغة الموثّقين.',
+      'cus.home.emptyDrafts':
+          'لا توجد مسودات بعد. احفظ طلباً كمسودة لإكماله لاحقاً.',
+      'cus.home.tabOpen': 'مفتوحة',
+      'cus.home.tabDrafts': 'مسودات',
       'cus.home.create': 'إنشاء طلب',
       'cus.home.viewOffers': 'عرض العروض',
       'cus.home.error': 'تعذّر تحميل طلباتك.',

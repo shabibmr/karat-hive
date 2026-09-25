@@ -58,7 +58,7 @@ class _RequestImageCaptureScreenState
                 ),
               ),
             );
-            context.go(AppGuards.customerRequests);
+            context.go('${AppGuards.customerRequests}?tab=DRAFTS');
           }
         },
         onContinue: () async {
