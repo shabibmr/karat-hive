@@ -24,37 +24,7 @@ class OwnerRequestDetailScreen extends ConsumerStatefulWidget {
 
 class _OwnerRequestDetailScreenState
     extends ConsumerState<OwnerRequestDetailScreen> {
-  late final TextEditingController _notes;
-  late final TextEditingController _budgetMin;
-  late final TextEditingController _budgetMax;
-  bool _flexible = false;
-  bool _hydrated = false;
   String? _cancelReason;
-
-  @override
-  void initState() {
-    super.initState();
-    _notes = TextEditingController();
-    _budgetMin = TextEditingController();
-    _budgetMax = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _notes.dispose();
-    _budgetMin.dispose();
-    _budgetMax.dispose();
-    super.dispose();
-  }
-
-  void _hydrate(RequestForCustomer req) {
-    if (_hydrated) return;
-    _hydrated = true;
-    _notes.text = req.notes ?? '';
-    _budgetMin.text = req.budgetMin ?? '';
-    _budgetMax.text = req.budgetMax ?? '';
-    _flexible = req.budgetIsFlexible;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +51,6 @@ class _OwnerRequestDetailScreenState
         ),
         data: (detail) {
           final req = detail.request;
-          _hydrate(req);
           final specs = <(String, String)>[
             ('Type', requestTypeLabel(s, req.requestType)),
             ('Direction', req.direction.wire),
@@ -211,28 +180,8 @@ class _OwnerRequestDetailScreenState
                   ),
                 ],
                 if (req.state == RequestState.published) ...[
-                  SizedBox(height: tokens.space.xl),
-                  KhTextField(
-                    label: s.s('cus.s10.editNotes'),
-                    controller: _notes,
-                  ),
-                  KhTextField(
-                    label: s.s('cus.s10.budgetMin'),
-                    controller: _budgetMin,
-                    keyboardType: TextInputType.number,
-                  ),
-                  KhTextField(
-                    label: s.s('cus.s10.budgetMax'),
-                    controller: _budgetMax,
-                    keyboardType: TextInputType.number,
-                  ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(s.s('cus.s10.budgetFlexible')),
-                    value: _flexible,
-                    onChanged: (v) => setState(() => _flexible = v),
-                  ),
                   if (detail.actionError != null) ...[
+                    SizedBox(height: tokens.space.md),
                     KhInlineError(
                       message: customerFailureMessage(
                         detail.actionError!,
@@ -240,29 +189,13 @@ class _OwnerRequestDetailScreenState
                         'cus.home.error',
                       ),
                     ),
-                    SizedBox(height: tokens.space.md),
                   ],
-                  KhButton(
-                    label: s.s('cus.s10.saveEdits'),
-                    busy: detail.saving,
-                    onPressed: detail.cancelling
-                        ? null
-                        : () => ref
-                            .read(ownerRequestDetailProvider(widget.requestId)
-                                .notifier)
-                            .save(
-                              notes: _notes.text,
-                              budgetMin: _budgetMin.text,
-                              budgetMax: _budgetMax.text,
-                              budgetIsFlexible: _flexible,
-                            ),
-                  ),
                   SizedBox(height: tokens.space.md),
                   KhButton(
                     label: s.s('cus.s10.cancelRequest'),
                     destructive: true,
                     busy: detail.cancelling,
-                    onPressed: detail.saving ? null : () => _confirmCancel(s),
+                    onPressed: () => _confirmCancel(s),
                   ),
                 ],
               ],

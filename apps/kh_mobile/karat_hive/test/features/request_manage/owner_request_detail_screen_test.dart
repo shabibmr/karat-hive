@@ -122,7 +122,7 @@ Future<void> _pump(
 
 void main() {
   group('OwnerRequestDetailScreen (CUS-S10)', () {
-    testWidgets('renders spec grid, offer count and edit fields for a live request',
+    testWidgets('renders spec grid and offer count for a live request',
         (tester) async {
       final repo = _FakeRequestManageRepository(
         request: _testRequest(offerCount: 2),
@@ -136,6 +136,21 @@ void main() {
       expect(find.textContaining('2'), findsWidgets);
       expect(find.text('Rings'), findsOneWidget);
       expect(find.text('Dubai'), findsOneWidget);
+    });
+
+    testWidgets('hides the notes/budget edit form once the request is PUBLISHED',
+        (tester) async {
+      final repo = _FakeRequestManageRepository(
+        request: _testRequest(state: RequestState.published),
+      );
+
+      await _pump(tester, repo: repo, requestId: 'req-101');
+
+      expect(find.text('Save edits'), findsNothing);
+      expect(find.text('Edit Details'), findsNothing);
+      expect(find.text('Notes'), findsNothing);
+      expect(find.byKey(const Key('confirm-cancel-request')), findsNothing);
+      expect(find.text('Cancel request'), findsOneWidget);
     });
 
     testWidgets('shows zero-offers copy when offerCount is 0', (tester) async {
@@ -190,22 +205,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.lastCancelReason, 'CHANGED_MIND');
-    });
-
-    testWidgets('server error on save (STRUCTURAL_FIELD_IMMUTABLE) shows an inline error banner',
-        (tester) async {
-      final repo = _FakeRequestManageRepository(request: _testRequest())
-        ..patchError = const ValidationFailure(
-          code: 'STRUCTURAL_FIELD_IMMUTABLE',
-          message: 'This field cannot be changed after publish.',
-        );
-
-      await _pump(tester, repo: repo, requestId: 'req-101');
-
-      await tester.tap(find.text('Save edits'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('This field cannot be changed after publish.'), findsOneWidget);
     });
 
     testWidgets('server error on cancel (already accepted) shows an inline error banner',
