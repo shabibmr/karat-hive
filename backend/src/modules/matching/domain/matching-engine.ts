@@ -14,8 +14,7 @@ export type VendorEligibilitySnapshot = {
 
 /**
  * Pure domain check for vendor eligibility against a request (FR-SYS-002).
- * Eligibility gates on verification, ACTIVE state, and an active Type
- * Subscription for the Request's type only (BR-002) — not Region.
+ * Match dimensions: VERIFIED + ACTIVE marketplace access + live Type Subscription.
  */
 export function isVendorEligibleForRequest(
   vendor: VendorEligibilitySnapshot,

@@ -14,7 +14,7 @@ describe('MatchingEngine (FR-SYS-002)', () => {
     activeSubscriptionTypes: ['FIND_ORNAMENT', 'SELL_OLD_GOLD'],
   };
 
-  it('matches when vendor is verified, active, and subscribed to the request type', () => {
+  it('matches when vendor is VERIFIED + ACTIVE with live Type Subscription', () => {
     expect(isVendorEligibleForRequest(fullyEligibleVendor, sampleRequest)).toBe(true);
   });
 

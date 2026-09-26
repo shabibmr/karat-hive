@@ -64,8 +64,8 @@ describe('CP2-A15 Vendor Feed Integration Suite', () => {
       expect(res.json.meta).toBeDefined();
     });
 
-    it('2. Subscribed active vendor with matching category and region sees published requests', async () => {
-      // Setup active vendor with category, region, and ACTIVE subscription for FIND_ORNAMENT
+    it('2. Subscribed active vendor with Type Subscription sees published requests', async () => {
+      // Setup active vendor with ACTIVE Type Subscription for FIND_ORNAMENT
       const { user, vendorProfileId } = await insertVendor(ctx.prisma, {
         state: 'ACTIVE',
         categoryId,
