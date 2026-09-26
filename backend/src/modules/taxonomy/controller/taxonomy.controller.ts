@@ -16,12 +16,6 @@ export class TaxonomyController {
   ) {}
 
   @Public()
-  @Get('categories')
-  categories(): Promise<TaxonomyNode[]> {
-    return this.taxonomy.categories();
-  }
-
-  @Public()
   @Get('regions')
   regions(): Promise<TaxonomyNode[]> {
     return this.taxonomy.regions();

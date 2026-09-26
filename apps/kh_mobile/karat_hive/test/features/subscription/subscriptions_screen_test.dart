@@ -78,7 +78,7 @@ List<Override> _subscriptionOverrides(FakeSubscriptionRepository repo) => [
 
 void main() {
   group('SubscriptionsScreen (VEN-S22)', () {
-    testWidgets('renders all 4 request categories and their entitlement states', (tester) async {
+    testWidgets('renders all 4 request types and their entitlement states', (tester) async {
       final fakeRepo = FakeSubscriptionRepository();
 
       await tester.pumpWidget(
@@ -114,7 +114,7 @@ void main() {
       expect(find.textContaining('Grace period active until 2026-09-15'), findsOneWidget);
 
       // Distinct Expired messaging
-      expect(find.textContaining('Subscription expired. Matching requests for this category are currently paused.'), findsOneWidget);
+      expect(find.textContaining('Subscription expired.'), findsOneWidget);
 
       // CTA deep link button
       await tester.scrollUntilVisible(find.byType(KhButton), 300);

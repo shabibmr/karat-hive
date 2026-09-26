@@ -6,8 +6,8 @@ part of 'offer_list_item.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$OfferListItemImpl _$$OfferListItemImplFromJson(Map<String, dynamic> json) =>
-    _$OfferListItemImpl(
+_OfferListItem _$OfferListItemFromJson(Map<String, dynamic> json) =>
+    _OfferListItem(
       id: json['id'] as String,
       reference: json['reference'] as String?,
       requestId: json['requestId'] as String,
@@ -36,7 +36,7 @@ _$OfferListItemImpl _$$OfferListItemImplFromJson(Map<String, dynamic> json) =>
       ratePerGram: (json['ratePerGram'] as num?)?.toDouble(),
     );
 
-Map<String, dynamic> _$$OfferListItemImplToJson(_$OfferListItemImpl instance) =>
+Map<String, dynamic> _$OfferListItemToJson(_OfferListItem instance) =>
     <String, dynamic>{
       'id': instance.id,
       'reference': instance.reference,

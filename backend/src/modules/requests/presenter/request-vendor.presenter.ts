@@ -7,15 +7,6 @@ export type MaskedCustomerSummary = {
   dealCount?: number;
 };
 
-export type CategorySummary = {
-  id?: string;
-  nameEn?: string;
-  nameAr?: string;
-  slug?: string;
-  isActive?: boolean;
-  displayOrder?: number;
-};
-
 export type RegionSummary = {
   id?: string;
   nameEn?: string;
@@ -40,8 +31,6 @@ export type VendorRequestView = {
   requestType: string;
   direction: string;
   state: string;
-  categoryId: string;
-  category?: CategorySummary;
   regionId: string;
   region?: RegionSummary;
   notes: string | null;
@@ -72,7 +61,6 @@ export type VendorRequestView = {
 
 export function presentVendorRequest(
   request: Request & {
-    category?: CategorySummary;
     region?: RegionSummary;
     media?: Array<{
       displayOrder: number;
@@ -102,17 +90,6 @@ export function presentVendorRequest(
     requestType: request.requestType,
     direction: request.direction,
     state: request.state,
-    categoryId: request.categoryId,
-    ...(request.category && {
-      category: {
-        id: request.category.id,
-        nameEn: request.category.nameEn,
-        nameAr: request.category.nameAr,
-        slug: request.category.slug,
-        isActive: request.category.isActive,
-        displayOrder: request.category.displayOrder,
-      },
-    }),
     regionId: request.regionId,
     ...(request.region && {
       region: {

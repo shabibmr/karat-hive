@@ -32,9 +32,6 @@ _ConnectionRequestSnapshot _$ConnectionRequestSnapshotFromJson(
   ),
   direction: const _DirectionConverter().fromJson(json['direction'] as String?),
   reference: json['reference'] as String?,
-  category: json['category'] == null
-      ? null
-      : CategorySummary.fromJson(json['category'] as Map<String, dynamic>),
   region: json['region'] == null
       ? null
       : RegionSummary.fromJson(json['region'] as Map<String, dynamic>),
@@ -47,7 +44,6 @@ Map<String, dynamic> _$ConnectionRequestSnapshotToJson(
   'requestType': const _RequestTypeConverter().toJson(instance.requestType),
   'direction': const _DirectionConverter().toJson(instance.direction),
   'reference': instance.reference,
-  'category': instance.category?.toJson(),
   'region': instance.region?.toJson(),
 };
 

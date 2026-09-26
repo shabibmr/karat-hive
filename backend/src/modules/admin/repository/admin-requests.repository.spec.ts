@@ -21,7 +21,6 @@ describe('AdminRequestsRepository', () => {
     requestType: RequestType.FIND_ORNAMENT,
     direction: Direction.BUY,
     state: RequestState.PUBLISHED,
-    categoryId: 'cat-1',
     regionId: 'reg-1',
     notes: 'Looking for 22k necklace',
     indicativeValue: '5000.00',
@@ -43,11 +42,6 @@ describe('AdminRequestsRepository', () => {
         email: 'fatima@example.com',
         accountState: 'ACTIVE',
       },
-    },
-    category: {
-      id: 'cat-1',
-      nameEn: 'Necklaces',
-      nameAr: 'قلائد',
     },
     region: {
       id: 'reg-1',
@@ -99,7 +93,6 @@ describe('AdminRequestsRepository', () => {
           requestType: RequestType.FIND_ORNAMENT,
           direction: Direction.BUY,
           state: RequestState.PUBLISHED,
-          categoryId: 'cat-1',
           regionId: 'reg-1',
           valueMin: 1000,
           valueMax: 10000,
@@ -116,7 +109,6 @@ describe('AdminRequestsRepository', () => {
             requestType: RequestType.FIND_ORNAMENT,
             direction: Direction.BUY,
             state: RequestState.PUBLISHED,
-            categoryId: 'cat-1',
             regionId: 'reg-1',
             OR: [
               { reference: { contains: 'necklace', mode: 'insensitive' } },

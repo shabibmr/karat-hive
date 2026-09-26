@@ -22,11 +22,7 @@ class SpecificationGrid extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     final entries = <MapEntry<String, String>>[
-      MapEntry(
-        l10n?.category ?? 'Category',
-        item.categoryName ?? item.categoryId,
-      ),
-      MapEntry(
+MapEntry(
         l10n?.region ?? 'Region',
         item.regionName ?? item.regionId,
       ),
@@ -149,3 +145,4 @@ class SpecificationGrid extends StatelessWidget {
     return l10n?.budgetOpen ?? 'Open';
   }
 }
+

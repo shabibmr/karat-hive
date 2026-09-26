@@ -146,7 +146,7 @@ void main() {
       expect(body['challengeId'], 'chal-1');
     });
 
-    test('categoryIds and servedRegionIds default to empty/derived lists', () {
+    test('servedRegionIds defaults to derived list', () {
       const form = RegisterFormState(
         contactPersonName: 'Ali',
         mobileNumber: '+971501234567',
@@ -158,7 +158,6 @@ void main() {
 
       final body = form.toRegisterBody();
 
-      expect(body['categoryIds'], isEmpty);
       expect(body['servedRegionIds'], ['region-1']);
     });
 

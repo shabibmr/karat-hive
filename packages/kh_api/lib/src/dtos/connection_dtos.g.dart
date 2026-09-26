@@ -79,9 +79,6 @@ _ConnectionRequestRefDto _$ConnectionRequestRefDtoFromJson(
   reference: json['reference'] as String?,
   requestType: json['requestType'] as String,
   direction: json['direction'] as String,
-  category: CategorySummaryDto.fromJson(
-    json['category'] as Map<String, dynamic>,
-  ),
   region: RegionSummaryDto.fromJson(json['region'] as Map<String, dynamic>),
 );
 
@@ -92,7 +89,6 @@ Map<String, dynamic> _$ConnectionRequestRefDtoToJson(
   'reference': instance.reference,
   'requestType': instance.requestType,
   'direction': instance.direction,
-  'category': instance.category,
   'region': instance.region,
 };
 

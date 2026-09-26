@@ -6,8 +6,8 @@ part of 'taxonomy_node.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$TaxonomyNodeImpl _$$TaxonomyNodeImplFromJson(Map<String, dynamic> json) =>
-    _$TaxonomyNodeImpl(
+_TaxonomyNode _$TaxonomyNodeFromJson(Map<String, dynamic> json) =>
+    _TaxonomyNode(
       id: json['id'] as String,
       nameEn: json['nameEn'] as String,
       nameAr: json['nameAr'] as String,
@@ -16,7 +16,7 @@ _$TaxonomyNodeImpl _$$TaxonomyNodeImplFromJson(Map<String, dynamic> json) =>
       isActive: json['isActive'] as bool? ?? true,
     );
 
-Map<String, dynamic> _$$TaxonomyNodeImplToJson(_$TaxonomyNodeImpl instance) =>
+Map<String, dynamic> _$TaxonomyNodeToJson(_TaxonomyNode instance) =>
     <String, dynamic>{
       'id': instance.id,
       'nameEn': instance.nameEn,

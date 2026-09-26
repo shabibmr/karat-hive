@@ -219,13 +219,11 @@ void main() {
         from: DateTime.utc(2026, 9, 1),
         to: now,
         regionId: 'reg-1',
-        categoryId: 'cat-1',
       );
       final f2 = ReportFilters(
         from: DateTime.utc(2026, 9, 1),
         to: now,
         regionId: 'reg-1',
-        categoryId: 'cat-1',
       );
       expect(f1, equals(f2));
       expect(f1.hashCode, equals(f2.hashCode));

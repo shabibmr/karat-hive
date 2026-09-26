@@ -459,9 +459,8 @@ model VendorProfile {
   logoMediaId          String?                  @map("logo_media_id") @db.Uuid
   description          String?
   verificationState    VendorVerificationState  @map("verification_state")
-  /// Marketplace-access state (SRS §5.4). Non-null once the Vendor is VERIFIED and
-  /// has declared >=1 Category and >=1 Region (FR-VEN-025 AC1). The composed
-  /// VendorAccountState "ACTIVE" is `verificationState = VERIFIED && activatedAt != null`.
+  /// Marketplace-access state (SRS §5.4). Non-null once the Vendor is VERIFIED.
+  /// The composed VendorAccountState "ACTIVE" is `verificationState = VERIFIED && activatedAt != null`.
   activatedAt          DateTime?                @map("activated_at") @db.Timestamptz(6)
   verifiedAt           DateTime?                @map("verified_at") @db.Timestamptz(6)
   verifiedByAdminId    String?                  @map("verified_by_admin_id") @db.Uuid
@@ -492,7 +491,6 @@ model VendorProfile {
   defaultFilterPreset  FilterPreset?            @relation("VendorDefaultFilterPreset", fields: [defaultFilterPresetId], references: [id], onDelete: SetNull)
   documents            VendorDocument[]
   subscriptions        VendorTypeSubscription[]
-  categories           VendorCategory[]
   regions              VendorRegion[]
   matches              RequestMatch[]
   offers               Offer[]
@@ -547,23 +545,6 @@ model VendorTypeSubscription {
 // taxonomy
 // ---------------------------------------------------------------------------
 
-model Category {
-  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nameEn       String     @map("name_en") @db.VarChar(100)
-  nameAr       String     @map("name_ar") @db.VarChar(100)
-  icon         String?    @db.VarChar(100)
-  displayOrder Int        @map("display_order")
-  isActive     Boolean    @default(true) @map("is_active")
-  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  requests     Request[]
-  vendors      VendorCategory[]
-
-  @@index([displayOrder])
-  @@map("category")
-}
-
 model Region {
   id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nameEn       String     @map("name_en") @db.VarChar(100)
@@ -579,18 +560,6 @@ model Region {
 
   @@index([displayOrder])
   @@map("region")
-}
-
-model VendorCategory {
-  vendorProfileId String        @map("vendor_profile_id") @db.Uuid
-  categoryId      String        @map("category_id") @db.Uuid
-
-  vendorProfile   VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
-  category        Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-
-  @@id([vendorProfileId, categoryId])
-  @@index([categoryId, vendorProfileId])
-  @@map("vendor_category")
 }
 
 model VendorRegion {
@@ -649,7 +618,6 @@ model Request {
   requestType          RequestType    @map("request_type")
   direction            Direction
   state                RequestState
-  categoryId           String         @map("category_id") @db.Uuid
   regionId             String         @map("region_id") @db.Uuid
   notes                String?
   weightGrams          Decimal?       @map("weight_grams") @db.Decimal(10, 2)
@@ -679,7 +647,6 @@ model Request {
   updatedAt            DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   customerProfile      CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Restrict)
-  category             Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   region               Region          @relation(fields: [regionId], references: [id], onDelete: Restrict)
   goldRate             GoldRate?       @relation(fields: [goldRateId], references: [id], onDelete: SetNull)
   acceptedOffer        Offer?          @relation("RequestAcceptedOffer", fields: [acceptedOfferId], references: [id], onDelete: Restrict)
@@ -692,7 +659,7 @@ model Request {
   @@index([state, publishedAt])
   @@index([state, expiresAt])
   @@index([requestType, state, publishedAt])
-  @@index([categoryId, regionId, state])
+  @@index([regionId, state])
   @@map("request")
 }
 

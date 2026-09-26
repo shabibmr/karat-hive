@@ -371,11 +371,6 @@ class _VerificationDetailPaneState
             label: 'Business Email',
             value: detail.businessEmail,
           ),
-          if (detail.categories.isNotEmpty)
-            _ProfileRow(
-              label: 'Categories',
-              value: detail.categories.join(', '),
-            ),
           if (detail.regions.isNotEmpty)
             _ProfileRow(
               label: l10n?.emirateLabel ?? 'Regions',

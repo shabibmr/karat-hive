@@ -52,7 +52,6 @@ class RequestDetailHeader extends StatelessWidget {
       purityKarat: detail.purityKarat,
       denominationGrams: detail.denominationGrams,
       quantity: detail.quantity,
-      categoryName: detail.categoryName,
       fallback: '${detail.requestType.label} (${detail.direction.label})',
     );
 

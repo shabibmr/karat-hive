@@ -6,42 +6,38 @@ part of 'taxonomy_dto.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$CreateTaxonomyDtoImpl _$$CreateTaxonomyDtoImplFromJson(
-  Map<String, dynamic> json,
-) => _$CreateTaxonomyDtoImpl(
-  nameEn: json['nameEn'] as String,
-  nameAr: json['nameAr'] as String,
-  icon: json['icon'] as String?,
-  displayOrder: (json['displayOrder'] as num?)?.toInt() ?? 0,
-  isActive: json['isActive'] as bool? ?? true,
-);
+_CreateTaxonomyDto _$CreateTaxonomyDtoFromJson(Map<String, dynamic> json) =>
+    _CreateTaxonomyDto(
+      nameEn: json['nameEn'] as String,
+      nameAr: json['nameAr'] as String,
+      icon: json['icon'] as String?,
+      displayOrder: (json['displayOrder'] as num?)?.toInt() ?? 0,
+      isActive: json['isActive'] as bool? ?? true,
+    );
 
-Map<String, dynamic> _$$CreateTaxonomyDtoImplToJson(
-  _$CreateTaxonomyDtoImpl instance,
-) => <String, dynamic>{
-  'nameEn': instance.nameEn,
-  'nameAr': instance.nameAr,
-  'icon': instance.icon,
-  'displayOrder': instance.displayOrder,
-  'isActive': instance.isActive,
-};
+Map<String, dynamic> _$CreateTaxonomyDtoToJson(_CreateTaxonomyDto instance) =>
+    <String, dynamic>{
+      'nameEn': instance.nameEn,
+      'nameAr': instance.nameAr,
+      'icon': instance.icon,
+      'displayOrder': instance.displayOrder,
+      'isActive': instance.isActive,
+    };
 
-_$UpdateTaxonomyDtoImpl _$$UpdateTaxonomyDtoImplFromJson(
-  Map<String, dynamic> json,
-) => _$UpdateTaxonomyDtoImpl(
-  nameEn: json['nameEn'] as String?,
-  nameAr: json['nameAr'] as String?,
-  icon: json['icon'] as String?,
-  displayOrder: (json['displayOrder'] as num?)?.toInt(),
-  isActive: json['isActive'] as bool?,
-);
+_UpdateTaxonomyDto _$UpdateTaxonomyDtoFromJson(Map<String, dynamic> json) =>
+    _UpdateTaxonomyDto(
+      nameEn: json['nameEn'] as String?,
+      nameAr: json['nameAr'] as String?,
+      icon: json['icon'] as String?,
+      displayOrder: (json['displayOrder'] as num?)?.toInt(),
+      isActive: json['isActive'] as bool?,
+    );
 
-Map<String, dynamic> _$$UpdateTaxonomyDtoImplToJson(
-  _$UpdateTaxonomyDtoImpl instance,
-) => <String, dynamic>{
-  'nameEn': instance.nameEn,
-  'nameAr': instance.nameAr,
-  'icon': instance.icon,
-  'displayOrder': instance.displayOrder,
-  'isActive': instance.isActive,
-};
+Map<String, dynamic> _$UpdateTaxonomyDtoToJson(_UpdateTaxonomyDto instance) =>
+    <String, dynamic>{
+      'nameEn': instance.nameEn,
+      'nameAr': instance.nameAr,
+      'icon': instance.icon,
+      'displayOrder': instance.displayOrder,
+      'isActive': instance.isActive,
+    };

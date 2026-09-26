@@ -195,7 +195,7 @@ class _ApproveVerificationDialogState
                 widget.vendorName != null
                     ? 'Approve verification for "${widget.vendorName}". Approval advances vendor toward ACTIVE marketplace status.'
                     : (l10n?.approveConfirmBody ??
-                        'This will mark the vendor as VERIFIED and may advance them to ACTIVE if categories and regions are already declared. The decision is audit-logged.'),
+                        'This will mark the vendor as VERIFIED and may advance them to ACTIVE if regions are already declared. The decision is audit-logged.'),
                 style: typography.bodySmall.copyWith(color: colors.textSecondary),
               ),
               if (_errorMessage != null) ...[

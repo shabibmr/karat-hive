@@ -5,7 +5,6 @@ export type MatchSortOrder = 'NEWEST' | 'EXPIRING' | 'HIGHEST_VALUE' | 'FEWEST_O
 export type MatchFilters = {
   requestType?: RequestType;
   direction?: Direction;
-  categoryId?: string;
   regionId?: string;
   purityKarat?: Karat;
   weightMin?: number;

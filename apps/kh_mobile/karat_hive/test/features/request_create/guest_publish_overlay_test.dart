@@ -35,7 +35,6 @@ void main() {
     when(() => repo.platformConfig()).thenAnswer(
       (_) async => const Ok(PlatformConfig(requestLifetimeHours: 48)),
     );
-    when(() => repo.categories()).thenAnswer((_) async => const Ok([]));
     when(() => repo.regions()).thenAnswer((_) async => const Ok([]));
     when(() => repo.goldRates()).thenAnswer(
       (_) async => const Ok(GoldRateSnapshot(rates: [], available: false, stale: false)),

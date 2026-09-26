@@ -12,7 +12,6 @@ class RequestListFilters with _$RequestListFilters {
     RequestType? requestType,
     Direction? direction,
     RequestState? state,
-    String? categoryId,
     String? regionId,
     @Default(false) bool zeroOffersOnly,
     double? minValue,

@@ -98,17 +98,6 @@ void main() {
                         },
                       },
                     ],
-                    'categories': [
-                      {
-                        'vendorProfileId': 'vendor-1',
-                        'categoryId': 'cat-1',
-                        'category': {
-                          'id': 'cat-1',
-                          'nameEn': 'Gold Jewellery',
-                          'nameAr': 'مجوهرات ذهبية',
-                        },
-                      },
-                    ],
                     'regions': [
                       {
                         'vendorProfileId': 'vendor-1',
@@ -164,10 +153,9 @@ void main() {
     expect(queue.first.submittedAt, isNotNull);
   });
 
-  test('fetchVendorDetail flattens nested category/region names', () async {
+  test('fetchVendorDetail flattens nested region names', () async {
     final detail = await repository.fetchVendorDetail('vendor-1');
 
-    expect(detail.categories, ['Gold Jewellery']);
     expect(detail.regions, ['Dubai (Deira)']);
   });
 

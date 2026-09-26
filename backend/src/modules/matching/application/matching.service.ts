@@ -31,13 +31,8 @@ export class MatchingService {
     return viewer.vendorProfileId;
   }
 
-  async fanOutForRequest(
-    requestId: string,
-    requestType: RequestType,
-    categoryId: string,
-    regionId: string,
-  ): Promise<number> {
-    return this.repo.fanOutMatches(requestId, requestType, categoryId, regionId, this.clock.now());
+  async fanOutForRequest(requestId: string, requestType: RequestType): Promise<number> {
+    return this.repo.fanOutMatches(requestId, requestType, this.clock.now());
   }
 
   async recomputeForVendor(vendorProfileId: string): Promise<number> {

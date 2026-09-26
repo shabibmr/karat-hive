@@ -903,7 +903,7 @@ as String?,
 /// @nodoc
 mixin _$ConnectionRequestRefDto {
 
- String get id; String? get reference; String get requestType; String get direction; CategorySummaryDto get category; RegionSummaryDto get region;
+ String get id; String? get reference; String get requestType; String get direction; RegionSummaryDto get region;
 /// Create a copy of ConnectionRequestRefDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -916,16 +916,16 @@ $ConnectionRequestRefDtoCopyWith<ConnectionRequestRefDto> get copyWith => _$Conn
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConnectionRequestRefDto&&(identical(other.id, id) || other.id == id)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.category, category) || other.category == category)&&(identical(other.region, region) || other.region == region));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConnectionRequestRefDto&&(identical(other.id, id) || other.id == id)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.region, region) || other.region == region));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,reference,requestType,direction,category,region);
+int get hashCode => Object.hash(runtimeType,id,reference,requestType,direction,region);
 
 @override
 String toString() {
-  return 'ConnectionRequestRefDto(id: $id, reference: $reference, requestType: $requestType, direction: $direction, category: $category, region: $region)';
+  return 'ConnectionRequestRefDto(id: $id, reference: $reference, requestType: $requestType, direction: $direction, region: $region)';
 }
 
 
@@ -936,11 +936,11 @@ abstract mixin class $ConnectionRequestRefDtoCopyWith<$Res>  {
   factory $ConnectionRequestRefDtoCopyWith(ConnectionRequestRefDto value, $Res Function(ConnectionRequestRefDto) _then) = _$ConnectionRequestRefDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String? reference, String requestType, String direction, CategorySummaryDto category, RegionSummaryDto region
+ String id, String? reference, String requestType, String direction, RegionSummaryDto region
 });
 
 
-$CategorySummaryDtoCopyWith<$Res> get category;$RegionSummaryDtoCopyWith<$Res> get region;
+$RegionSummaryDtoCopyWith<$Res> get region;
 
 }
 /// @nodoc
@@ -953,27 +953,17 @@ class _$ConnectionRequestRefDtoCopyWithImpl<$Res>
 
 /// Create a copy of ConnectionRequestRefDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? reference = freezed,Object? requestType = null,Object? direction = null,Object? category = null,Object? region = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? reference = freezed,Object? requestType = null,Object? direction = null,Object? region = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,reference: freezed == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
 as String?,requestType: null == requestType ? _self.requestType : requestType // ignore: cast_nullable_to_non_nullable
 as String,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
-as String,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as CategorySummaryDto,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
+as String,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
 as RegionSummaryDto,
   ));
 }
 /// Create a copy of ConnectionRequestRefDto
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$CategorySummaryDtoCopyWith<$Res> get category {
-  
-  return $CategorySummaryDtoCopyWith<$Res>(_self.category, (value) {
-    return _then(_self.copyWith(category: value));
-  });
-}/// Create a copy of ConnectionRequestRefDto
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -1064,10 +1054,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? reference,  String requestType,  String direction,  CategorySummaryDto category,  RegionSummaryDto region)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? reference,  String requestType,  String direction,  RegionSummaryDto region)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ConnectionRequestRefDto() when $default != null:
-return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.category,_that.region);case _:
+return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.region);case _:
   return orElse();
 
 }
@@ -1085,10 +1075,10 @@ return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? reference,  String requestType,  String direction,  CategorySummaryDto category,  RegionSummaryDto region)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? reference,  String requestType,  String direction,  RegionSummaryDto region)  $default,) {final _that = this;
 switch (_that) {
 case _ConnectionRequestRefDto():
-return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.category,_that.region);case _:
+return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.region);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1105,10 +1095,10 @@ return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? reference,  String requestType,  String direction,  CategorySummaryDto category,  RegionSummaryDto region)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? reference,  String requestType,  String direction,  RegionSummaryDto region)?  $default,) {final _that = this;
 switch (_that) {
 case _ConnectionRequestRefDto() when $default != null:
-return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.category,_that.region);case _:
+return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.region);case _:
   return null;
 
 }
@@ -1120,14 +1110,13 @@ return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that
 @JsonSerializable()
 
 class _ConnectionRequestRefDto implements ConnectionRequestRefDto {
-  const _ConnectionRequestRefDto({required this.id, this.reference, required this.requestType, required this.direction, required this.category, required this.region});
+  const _ConnectionRequestRefDto({required this.id, this.reference, required this.requestType, required this.direction, required this.region});
   factory _ConnectionRequestRefDto.fromJson(Map<String, dynamic> json) => _$ConnectionRequestRefDtoFromJson(json);
 
 @override final  String id;
 @override final  String? reference;
 @override final  String requestType;
 @override final  String direction;
-@override final  CategorySummaryDto category;
 @override final  RegionSummaryDto region;
 
 /// Create a copy of ConnectionRequestRefDto
@@ -1143,16 +1132,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConnectionRequestRefDto&&(identical(other.id, id) || other.id == id)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.category, category) || other.category == category)&&(identical(other.region, region) || other.region == region));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConnectionRequestRefDto&&(identical(other.id, id) || other.id == id)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.region, region) || other.region == region));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,reference,requestType,direction,category,region);
+int get hashCode => Object.hash(runtimeType,id,reference,requestType,direction,region);
 
 @override
 String toString() {
-  return 'ConnectionRequestRefDto(id: $id, reference: $reference, requestType: $requestType, direction: $direction, category: $category, region: $region)';
+  return 'ConnectionRequestRefDto(id: $id, reference: $reference, requestType: $requestType, direction: $direction, region: $region)';
 }
 
 
@@ -1163,11 +1152,11 @@ abstract mixin class _$ConnectionRequestRefDtoCopyWith<$Res> implements $Connect
   factory _$ConnectionRequestRefDtoCopyWith(_ConnectionRequestRefDto value, $Res Function(_ConnectionRequestRefDto) _then) = __$ConnectionRequestRefDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? reference, String requestType, String direction, CategorySummaryDto category, RegionSummaryDto region
+ String id, String? reference, String requestType, String direction, RegionSummaryDto region
 });
 
 
-@override $CategorySummaryDtoCopyWith<$Res> get category;@override $RegionSummaryDtoCopyWith<$Res> get region;
+@override $RegionSummaryDtoCopyWith<$Res> get region;
 
 }
 /// @nodoc
@@ -1180,28 +1169,18 @@ class __$ConnectionRequestRefDtoCopyWithImpl<$Res>
 
 /// Create a copy of ConnectionRequestRefDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? reference = freezed,Object? requestType = null,Object? direction = null,Object? category = null,Object? region = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? reference = freezed,Object? requestType = null,Object? direction = null,Object? region = null,}) {
   return _then(_ConnectionRequestRefDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,reference: freezed == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
 as String?,requestType: null == requestType ? _self.requestType : requestType // ignore: cast_nullable_to_non_nullable
 as String,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
-as String,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as CategorySummaryDto,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
+as String,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
 as RegionSummaryDto,
   ));
 }
 
 /// Create a copy of ConnectionRequestRefDto
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$CategorySummaryDtoCopyWith<$Res> get category {
-  
-  return $CategorySummaryDtoCopyWith<$Res>(_self.category, (value) {
-    return _then(_self.copyWith(category: value));
-  });
-}/// Create a copy of ConnectionRequestRefDto
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')

@@ -146,7 +146,6 @@ void main() {
           from: DateTime.utc(2026, 8, 1),
           to: DateTime.utc(2026, 9, 1),
           regionId: 'reg-1',
-          categoryId: 'cat-9',
         ),
       );
 
@@ -154,7 +153,6 @@ void main() {
       expect(captured!.queryParameters['from'], '2026-08-01');
       expect(captured!.queryParameters['to'], '2026-09-01');
       expect(captured!.queryParameters['regionId'], 'reg-1');
-      expect(captured!.queryParameters['categoryId'], 'cat-9');
       expect(result.name, ReportName.requestVolume);
       expect(result.rows, hasLength(2));
       expect(result.rows.first['state'], 'OPEN');

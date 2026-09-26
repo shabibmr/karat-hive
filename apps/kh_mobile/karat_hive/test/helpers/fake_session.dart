@@ -3,7 +3,6 @@ import 'package:kh_domain/kh_domain.dart';
 
 VendorMe testVendorMe({
   VendorLifecycle lifecycle = VendorLifecycle.pendingVerification,
-  List<String> categoryIds = const [],
   List<String> regionIds = const [],
   bool awayMode = false,
   AwaitingApprovalReason? awaitingApprovalReason =
@@ -16,9 +15,7 @@ VendorMe testVendorMe({
     awaitingApproval: lifecycle != VendorLifecycle.active,
     tradingName: 'Al Noor',
     legalBusinessName: 'Al Noor LLC',
-    categoryCount: categoryIds.length,
     regionCount: regionIds.length,
-    categoryIds: categoryIds,
     regionIds: regionIds,
     awayMode: awayMode,
     awaitingApprovalReason: awaitingApprovalReason,

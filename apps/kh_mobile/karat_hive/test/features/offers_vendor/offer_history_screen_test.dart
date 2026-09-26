@@ -43,14 +43,12 @@ class FakeOfferHistoryRepository implements OfferHistoryRepository {
   DateTime? lastFrom;
   DateTime? lastTo;
   String? lastRequestType;
-  String? lastCategoryId;
   String? lastRegionId;
 
   int exportCalls = 0;
   DateTime? lastExportFrom;
   DateTime? lastExportTo;
   String? lastExportRequestType;
-  String? lastExportCategoryId;
   String? lastExportRegionId;
 
   int terminalCalls = 0;
@@ -66,14 +64,12 @@ class FakeOfferHistoryRepository implements OfferHistoryRepository {
     DateTime? from,
     DateTime? to,
     String? requestType,
-    String? categoryId,
     String? regionId,
   }) async {
     calls++;
     lastFrom = from;
     lastTo = to;
     lastRequestType = requestType;
-    lastCategoryId = categoryId;
     lastRegionId = regionId;
     if (hang) await Completer<void>().future;
     if (failure != null) return Err(failure!);
@@ -106,14 +102,12 @@ class FakeOfferHistoryRepository implements OfferHistoryRepository {
     DateTime? from,
     DateTime? to,
     String? requestType,
-    String? categoryId,
     String? regionId,
   }) async {
     exportCalls++;
     lastExportFrom = from;
     lastExportTo = to;
     lastExportRequestType = requestType;
-    lastExportCategoryId = categoryId;
     lastExportRegionId = regionId;
     if (hangExport) await Completer<void>().future;
     if (exportFailure != null) return Err(exportFailure!);
@@ -131,8 +125,6 @@ OfferForVendor _testOffer({
   String id = 'off-1',
   OfferState state = OfferState.accepted,
   String reference = 'KH-RQ-24A1',
-  String categoryName = 'Bangles',
-  String? categoryId,
   String? regionId,
   String offeredPrice = '5200.00',
   String? makingCharges,
@@ -170,8 +162,6 @@ OfferForVendor _testOffer({
       requestType: RequestType.findOrnament,
       direction: Direction.buy,
       customerLabel: 'Customer · Deira',
-      categoryId: categoryId,
-      categoryName: categoryName,
       regionId: regionId,
     ),
   );
@@ -188,7 +178,6 @@ Widget _host({
       offerHistoryClockProvider.overrideWithValue(
         clock ?? DateTime(2026, 9, 8),
       ),
-      categoriesProvider.overrideWith((ref) async => const <TaxonomyNode>[]),
       regionsProvider.overrideWith((ref) async => const <TaxonomyNode>[]),
     ],
     child: MaterialApp(
@@ -389,7 +378,6 @@ void main() {
             id: 'off-1',
             state: OfferState.accepted,
             reference: 'KH-RQ-001',
-            categoryName: 'Necklaces',
             offeredPrice: '14850.00',
             submittedAt: DateTime(2026, 9, 1, 10, 0),
             decidedAt: DateTime(2026, 9, 3, 15, 30),
@@ -399,7 +387,6 @@ void main() {
             id: 'off-2',
             state: OfferState.rejected,
             reference: 'KH-RQ-002',
-            categoryName: 'Bangles',
             offeredPrice: '8200.00',
             submittedAt: DateTime(2026, 9, 2, 9, 0),
             expiresAt: DateTime(2026, 9, 4, 9, 0),
@@ -419,11 +406,9 @@ void main() {
       expect(find.byKey(const Key('offer-card-off-1')), findsOneWidget);
       expect(find.byKey(const Key('offer-card-off-2')), findsOneWidget);
 
-      // Specs titles (category fallback when summary has no weight/ornament)
+      // Specs titles
       expect(find.byKey(const Key('offer-title-off-1')), findsOneWidget);
-      expect(find.text('Necklaces'), findsWidgets);
       expect(find.byKey(const Key('offer-title-off-2')), findsOneWidget);
-      expect(find.text('Bangles'), findsWidgets);
 
       // Submission date and closed date
       expect(find.text('Submitted: 1 Sep 2026'), findsOneWidget);

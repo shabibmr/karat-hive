@@ -12,7 +12,6 @@ Map<String, dynamic> _rawListRow({int offerCount = 0}) => {
       'requestType': 'FIND_ORNAMENT',
       'direction': 'BUY',
       'state': 'PUBLISHED',
-      'categoryId': 'cat-1',
       'regionId': 'reg-1',
       'notes': 'Looking for a 22K bangle set',
       'weightGrams': '45.50',
@@ -44,7 +43,6 @@ Map<String, dynamic> _rawListRow({int offerCount = 0}) => {
           'email': 'aisha@example.com',
         },
       },
-      'category': {'id': 'cat-1', 'nameEn': 'Bangles', 'nameAr': 'اساور'},
       'region': {'id': 'reg-1', 'nameEn': 'Dubai', 'nameAr': 'دبي'},
     };
 
@@ -117,7 +115,6 @@ void main() {
 
       expect(item.customerName, 'Aisha Rahman');
       expect(item.customerPhone, '+971501234567');
-      expect(item.categoryName, 'Bangles');
       expect(item.regionName, 'Dubai');
     });
 

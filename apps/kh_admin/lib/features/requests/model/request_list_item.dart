@@ -22,7 +22,6 @@ class RequestListItem with _$RequestListItem {
     @Default('Unknown Customer') String customerName,
     String? customerId,
     String? customerPhone,
-    @Default('—') String categoryName,
     @Default('—') String regionName,
     double? indicativeValue,
     double? budgetMin,
@@ -71,17 +70,6 @@ class RequestListItem with _$RequestListItem {
           : 'Unmasked Customer';
     }
 
-    final categoryObj = json['category'];
-    String catName = json['categoryName']?.toString() ?? '';
-    if (categoryObj is Map<String, dynamic>) {
-      catName = categoryObj['nameEn']?.toString() ??
-          categoryObj['name']?.toString() ??
-          catName;
-    } else if (categoryObj is String && categoryObj.isNotEmpty) {
-      catName = categoryObj;
-    }
-    if (catName.isEmpty) catName = '—';
-
     final regionObj = json['region'];
     String regName = json['regionName']?.toString() ?? '';
     if (regionObj is Map<String, dynamic>) {
@@ -97,7 +85,6 @@ class RequestListItem with _$RequestListItem {
     map['customerName'] = custName;
     if (custId != null) map['customerId'] = custId;
     if (custPhone != null) map['customerPhone'] = custPhone;
-    map['categoryName'] = catName;
     map['regionName'] = regName;
 
     if (map['indicativeValue'] is String) {

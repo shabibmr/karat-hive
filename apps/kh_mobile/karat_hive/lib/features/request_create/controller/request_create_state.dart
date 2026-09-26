@@ -77,7 +77,6 @@ class RequestCreateState {
     this.requestType,
     this.direction,
     this.draftId,
-    this.categoryId,
     this.regionId,
     this.notes = '',
     this.weightGrams,
@@ -107,7 +106,6 @@ class RequestCreateState {
     this.lookupsReady = false,
     this.config,
     this.rates,
-    this.categories = const [],
     this.regions = const [],
     this.canCreateRequest = true,
     this.oauthBound = false,
@@ -121,7 +119,6 @@ class RequestCreateState {
   final RequestType? requestType;
   final Direction? direction;
   final String? draftId;
-  final String? categoryId;
   final String? regionId;
   final String notes;
   final String? weightGrams;
@@ -151,7 +148,6 @@ class RequestCreateState {
   final bool lookupsReady;
   final PlatformConfig? config;
   final GoldRateSnapshot? rates;
-  final List<TaxonomyNode> categories;
   final List<TaxonomyNode> regions;
   final bool canCreateRequest;
   final bool oauthBound;
@@ -211,7 +207,6 @@ class RequestCreateState {
     RequestType? requestType,
     Direction? direction,
     String? draftId,
-    String? categoryId,
     String? regionId,
     String? notes,
     String? weightGrams,
@@ -241,7 +236,6 @@ class RequestCreateState {
     bool? lookupsReady,
     PlatformConfig? config,
     GoldRateSnapshot? rates,
-    List<TaxonomyNode>? categories,
     List<TaxonomyNode>? regions,
     bool? canCreateRequest,
     bool? oauthBound,
@@ -271,7 +265,6 @@ class RequestCreateState {
         requestType: clearType ? null : (requestType ?? this.requestType),
         direction: clearDirection ? null : (direction ?? this.direction),
         draftId: clearDraft ? null : (draftId ?? this.draftId),
-        categoryId: categoryId ?? this.categoryId,
         regionId: regionId ?? this.regionId,
         notes: notes ?? this.notes,
         weightGrams: clearWeight ? null : (weightGrams ?? this.weightGrams),
@@ -308,7 +301,6 @@ class RequestCreateState {
         lookupsReady: lookupsReady ?? this.lookupsReady,
         config: config ?? this.config,
         rates: rates ?? this.rates,
-        categories: categories ?? this.categories,
         regions: regions ?? this.regions,
         canCreateRequest: canCreateRequest ?? this.canCreateRequest,
         oauthBound: oauthBound ?? this.oauthBound,
@@ -320,3 +312,4 @@ class RequestCreateState {
             awaitingLoginToPublish ?? this.awaitingLoginToPublish,
       );
 }
+

@@ -11,7 +11,6 @@ String adminRequestDisplayTitle({
   String? purityKarat,
   Object? denominationGrams,
   int? quantity,
-  String? categoryName,
   String fallback = 'Request',
 }) {
   final parsedType = requestType != null
@@ -26,7 +25,6 @@ String adminRequestDisplayTitle({
     purityKaratLabel: purityKarat,
     denominationGrams: denominationGrams?.toString(),
     quantity: quantity,
-    categoryName: categoryName,
     fallback: fallback,
   );
 }

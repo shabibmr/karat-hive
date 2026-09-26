@@ -89,12 +89,11 @@ export class DevRequestsController {
 
       const customerProfileId = user.customerProfile.id;
 
-      // Get existing category and region
-      const category = await tx.category.findFirst();
+      // Get an existing region
       const region = await tx.region.findFirst();
 
-      if (!category || !region) {
-        throw new Error('Categories and regions must be seeded before seeding requests.');
+      if (!region) {
+        throw new Error('Regions must be seeded before seeding requests.');
       }
 
       const types: RequestType[] = [
@@ -114,7 +113,6 @@ export class DevRequestsController {
             requestType: reqType,
             direction: reqType === RequestType.SELL_OLD_GOLD ? Direction.SELL : Direction.BUY,
             state: RequestState.PUBLISHED,
-            categoryId: category.id,
             regionId: region.id,
             purityKarat: Karat.K22,
             weightGrams: new Prisma.Decimal('15.50'),
@@ -135,7 +133,6 @@ export class DevRequestsController {
             reference: req.reference,
             customerProfileId: req.customerProfileId,
             requestType: req.requestType,
-            categoryId: req.categoryId,
             regionId: req.regionId,
             purityKarat: req.purityKarat,
             weightGrams: req.weightGrams ? req.weightGrams.toString() : null,

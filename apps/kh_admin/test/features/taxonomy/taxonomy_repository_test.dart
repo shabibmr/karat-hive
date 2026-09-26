@@ -83,11 +83,11 @@ void main() {
   setUp(() => repository = TaxonomyRepository(buildClient()));
 
   group('TR-S7-06 · TaxonomyRepository', () {
-    test('fetchCategories unwraps the double-wrapped list and maps nodes', () async {
-      final nodes = await repository.fetchCategories();
+    test('fetchRegions unwraps the double-wrapped list and maps nodes', () async {
+      final nodes = await repository.fetchRegions();
 
       expect(nodes, hasLength(2));
-      expect(nodes.first.id, 'cat-1');
+      expect(nodes.first.id, 'reg-1');
       expect(nodes.first.nameEn, 'Gold Bars');
       expect(nodes[1].isActive, isFalse);
       expect(seen.single.queryParameters['includeInactive'], 'true');
@@ -98,15 +98,15 @@ void main() {
       expect(seen.single.queryParameters['includeInactive'], 'false');
     });
 
-    test('createCategory posts the DTO and returns the created node', () async {
-      final node = await repository.createCategory(
-        const CreateTaxonomyDto(nameEn: 'Coins', nameAr: 'عملات'),
+    test('createRegion posts the DTO and returns the created node', () async {
+      final node = await repository.createRegion(
+        const CreateTaxonomyDto(nameEn: 'Dubai', nameAr: 'دبي'),
       );
 
-      expect(node.nameEn, 'Coins');
+      expect(node.nameEn, 'Dubai');
       expect(seen.single.method, 'POST');
-      expect(seen.single.path, '/v1/admin/categories');
-      expect((seen.single.data as Map)['nameEn'], 'Coins');
+      expect(seen.single.path, '/v1/admin/regions');
+      expect((seen.single.data as Map)['nameEn'], 'Dubai');
     });
 
     test('updateRegion strips null fields from the PATCH payload', () async {
@@ -118,10 +118,10 @@ void main() {
       expect(body.containsKey('nameAr'), isFalse);
     });
 
-    test('deactivateCategory hits the deactivate route', () async {
-      final node = await repository.deactivateCategory('cat-2');
+    test('deactivateRegion hits the deactivate route', () async {
+      final node = await repository.deactivateRegion('reg-2');
 
-      expect(seen.single.path, '/v1/admin/categories/cat-2/deactivate');
+      expect(seen.single.path, '/v1/admin/regions/reg-2/deactivate');
       expect(node.isActive, isFalse);
     });
 
@@ -131,8 +131,8 @@ void main() {
     });
 
     test('generic deactivateNode dispatches by kind', () async {
-      await repository.deactivateNode(TaxonomyKind.category, 'cat-9');
-      expect(seen.single.path, '/v1/admin/categories/cat-9/deactivate');
+      await repository.deactivateNode(TaxonomyKind.region, 'reg-9');
+      expect(seen.single.path, '/v1/admin/regions/reg-9/deactivate');
     });
   });
 }

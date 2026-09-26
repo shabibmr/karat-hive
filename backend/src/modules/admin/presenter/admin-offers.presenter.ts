@@ -1,7 +1,6 @@
 import type {
   AdminNote,
   AdminProfile,
-  Category,
   Connection,
   CustomerProfile,
   DeclineReason,
@@ -54,7 +53,6 @@ export type AdminOfferListItem = {
     state: RequestState;
     indicativeValue?: number | null;
     customer?: UnmaskedCustomerView;
-    category?: { id: string; nameEn: string; nameAr: string };
     region?: { id: string; nameEn: string; nameAr: string };
   };
 };
@@ -106,7 +104,6 @@ export type OfferListRow = Offer & {
   vendorProfile: VendorProfile & { user?: User };
   request: Request & {
     customerProfile?: CustomerProfile & { user?: User };
-    category?: Category;
     region?: Region;
   };
 };
@@ -115,7 +112,6 @@ export type OfferDetailRow = Offer & {
   vendorProfile: VendorProfile & { user?: User };
   request: Request & {
     customerProfile?: CustomerProfile & { user?: User };
-    category?: Category;
     region?: Region;
     acceptedOffer?: Offer | null;
   };
@@ -177,13 +173,6 @@ export function presentAdminOfferListItem(row: OfferListRow): AdminOfferListItem
             mobileNumber: row.request.customerProfile.user?.mobileNumber,
             email: row.request.customerProfile.user?.email,
             accountState: row.request.customerProfile.user?.accountState,
-          }
-        : undefined,
-      category: row.request.category
-        ? {
-            id: row.request.category.id,
-            nameEn: row.request.category.nameEn,
-            nameAr: row.request.category.nameAr,
           }
         : undefined,
       region: row.request.region

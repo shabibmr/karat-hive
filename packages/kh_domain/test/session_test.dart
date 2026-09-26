@@ -76,7 +76,6 @@ void main() {
           'awaitingApprovalReason': 'PENDING_DOCUMENTS',
           'tradingName': 'Al Noor',
           'legalBusinessName': 'Al Noor LLC',
-          'categoryCount': 1,
           'regionCount': 2,
           'verificationMessage': 'Upload a clearer licence.',
         },
@@ -97,7 +96,6 @@ void main() {
         'lifecycle': 'ACTIVE',
         'tradingName': 'Al Noor',
         'legalBusinessName': 'Al Noor LLC',
-        'categoryCount': 1,
         'regionCount': 1,
       });
       expect(vendor.logoUrl, isNull);
@@ -109,7 +107,6 @@ void main() {
         'lifecycle': 'ACTIVE',
         'tradingName': 'Al Noor',
         'legalBusinessName': 'Al Noor LLC',
-        'categoryCount': 1,
         'regionCount': 1,
         'logoUrl': '/v1/media/logo-key-abc',
       });
@@ -123,7 +120,6 @@ void main() {
         awaitingApproval: false,
         tradingName: 'Al Noor',
         legalBusinessName: 'Al Noor LLC',
-        categoryCount: 1,
         regionCount: 1,
         logoUrl: '/v1/media/logo-key-abc',
       );

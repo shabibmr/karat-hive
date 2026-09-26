@@ -58,7 +58,6 @@ Future<RemoveRequestOutcome?> showRemoveRequestDialog(
                     purityKarat: detail.purityKarat,
                     denominationGrams: detail.denominationGrams,
                     quantity: detail.quantity,
-                    categoryName: detail.categoryName,
                     fallback: detail.requestType.label,
                   );
                   return l10n?.requestsDetailRemoveDialogBody(label) ??

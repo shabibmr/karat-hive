@@ -1,0 +1,77 @@
+<section class="screen" data-screen="CUS-S01" data-title="Login / Customer signup">
+  <div class="section-label">CUS-S01 - customer</div>
+  <h1 class="screen-heading">Login / Customer signup</h1>
+  <p class="field-hint" style="margin-bottom:1.25rem">Google-only login (<code>adr/0010</code>). OTP proves mobile; it is not a login. Cold start is <code>CUS-S23</code>, not this screen.</p>
+
+  <div class="field" data-kind="action">
+    <div class="field-label">OAuth provider (Google) - Action</div>
+    <button type="button" class="btn btn-gold btn-block gold-light">Continue with Google</button>
+    <div class="field-hint">Only login. Same control for corner Log in and publish gate</div>
+  </div>
+
+  <div class="field" data-kind="display">
+    <div class="field-label">OAuth binding status - Display</div>
+    <div class="field-value">not bound</div>
+    <div class="field-hint">bound / not bound — shown when the publish gate is hit</div>
+  </div>
+
+  <div class="field" data-kind="input">
+    <div class="field-label">Display name <span class="field-hint">*</span></div>
+    <input type="text" value="Sara Al Maktoum" readonly />
+    <div class="field-hint">string ≤ 100 — registration only</div>
+  </div>
+  <div class="field" data-kind="input">
+    <div class="field-label">Email</div>
+    <input type="email" value="sara@example.ae" readonly />
+    <div class="field-hint">optional at register</div>
+  </div>
+  <div class="field" data-kind="input">
+    <div class="field-label">Mobile number <span class="field-hint">*</span></div>
+    <input type="text" value="+971 50 123 4567" readonly />
+    <div class="field-hint">UAE-format / E.164 — phone proof, not login</div>
+  </div>
+  <div class="field" data-kind="action">
+    <div class="field-label">Send OTP - Action</div>
+    <button type="button" class="btn btn-secondary btn-block">Send OTP</button>
+    <div class="field-hint">Max 5 OTP requests per number per hour</div>
+  </div>
+  <div class="field" data-kind="input">
+    <div class="field-label">OTP code <span class="field-hint">*</span></div>
+    <input type="text" value="482910" readonly />
+    <div class="field-hint">Numeric — expires 5 minutes. Proves mobile; not a login</div>
+  </div>
+  <div class="field" data-kind="input">
+    <label class="field-check">
+      <input type="checkbox" checked disabled />
+      <span><span class="field-label" style="text-transform:none;letter-spacing:0;font-size:0.95rem;color:var(--text-primary)">Accept Terms of Service <span class="field-hint">*</span></span>
+      <span class="field-hint">checkbox + version</span></span>
+    </label>
+  </div>
+  <div class="field" data-kind="input">
+    <label class="field-check">
+      <input type="checkbox" checked disabled />
+      <span><span class="field-label" style="text-transform:none;letter-spacing:0;font-size:0.95rem;color:var(--text-primary)">Accept Privacy Policy <span class="field-hint">*</span></span>
+      <span class="field-hint">checkbox + version</span></span>
+    </label>
+  </div>
+  <div class="field" data-kind="action">
+    <div class="field-label">Create account / Continue - Action</div>
+    <button type="button" class="btn btn-gold btn-block gold-light" data-nav="CUS-S02">Create account / Continue</button>
+  </div>
+  <div class="field" data-kind="input">
+    <label class="field-check">
+      <input type="checkbox" checked disabled />
+      <span><span class="field-label" style="text-transform:none;letter-spacing:0;font-size:0.95rem;color:var(--text-primary)">Biometric unlock</span>
+      <span class="field-hint">Face ID / fingerprint — convenience over valid session</span></span>
+    </label>
+  </div>
+  <div class="field" data-kind="action">
+    <div class="field-label">Logout (from session) - Action</div>
+    <button type="button" class="btn btn-secondary btn-block">Logout (from session)</button>
+  </div>
+  <div class="field" data-kind="display">
+    <div class="field-label">Exit blocked - Display</div>
+    <div class="field-value">Account suspended / Account deactivated</div>
+    <div class="field-hint">Distinct refusal messages</div>
+  </div>
+</section>

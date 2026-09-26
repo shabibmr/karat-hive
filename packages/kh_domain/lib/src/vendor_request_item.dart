@@ -21,10 +21,6 @@ Map<String, dynamic> _normalizeVendorRequestItemJson(Map<String, dynamic> json) 
     'requestType': json['requestType'] as String? ?? 'FIND_ORNAMENT',
     'direction': json['direction'] as String? ?? 'BUY',
     'state': json['state'] as String? ?? 'PUBLISHED',
-    'categoryId': json['categoryId'] as String? ?? '',
-    'categoryName':
-        (json['category'] as Map<String, dynamic>?)?['nameEn'] as String? ??
-            json['categoryName'] as String?,
     'regionId': json['regionId'] as String? ?? '',
     'regionName':
         (json['region'] as Map<String, dynamic>?)?['nameEn'] as String? ??
@@ -61,8 +57,6 @@ abstract class VendorRequestItem with _$VendorRequestItem {
     required String requestType,
     required String direction,
     required String state,
-    required String categoryId,
-    String? categoryName,
     required String regionId,
     String? regionName,
     double? weightGrams,

@@ -40,7 +40,6 @@ export type PerformanceExportFilters = {
   from?: Date;
   to?: Date;
   requestType?: RequestType;
-  categoryId?: string;
   regionId?: string;
 };
 
@@ -65,20 +64,18 @@ export class VendorOnboardingService {
   ) {}
 
   /**
-   * module-public. Creates the vendor_profile plus its declared categories/regions
+   * module-public. Creates the vendor_profile plus its declared served Regions
    * inside the caller's transaction (identity's register/vendor). Emits vendor.registered.
    */
   async createProfile(
     tx: DbTx,
     input: CreateVendorProfileInput & {
-      categoryIds: string[];
       servedRegionIds: string[];
       ipAddress?: string | null;
       userAgent?: string | null;
     },
   ): Promise<VendorProfile> {
     const profile = await this.repo.createProfile(tx, input);
-    await this.repo.replaceCategories(tx, profile.id, unique(input.categoryIds));
     await this.repo.replaceRegions(tx, profile.id, unique(input.servedRegionIds));
     await enqueueOutbox(tx, {
       eventType: 'vendor.registered',
@@ -122,21 +119,9 @@ export class VendorOnboardingService {
     const id = viewer.vendorProfileId;
     const profile = id ? await this.repo.findByIdWithLogo(id) : null;
     if (!profile) throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN);
-    const { input, categoryCount, regionCount } = await buildLifecycleInput(
-      this.repo,
-      profile,
-      viewer.accountState,
-    );
-    const [categoryIds, regionIds] = await Promise.all([
-      this.repo.listCategoryIds(profile.id),
-      this.repo.listRegionIds(profile.id),
-    ]);
-    return presentVendorMe(profile, input, {
-      categoryCount,
-      regionCount,
-      categoryIds,
-      regionIds,
-    });
+    const { input, regionCount } = await buildLifecycleInput(this.repo, profile, viewer.accountState);
+    const regionIds = await this.repo.listRegionIds(profile.id);
+    return presentVendorMe(profile, input, { regionCount, regionIds });
   }
 
   async patchProfile(
@@ -266,7 +251,6 @@ export class VendorOnboardingService {
         include: {
           request: {
             include: {
-              category: true,
               region: true,
               media: { include: { media: true } },
               customerProfile: {
@@ -370,7 +354,6 @@ export class VendorOnboardingService {
           from: filters.from?.toISOString() ?? null,
           to: filters.to?.toISOString() ?? null,
           requestType: filters.requestType ?? null,
-          categoryId: filters.categoryId ?? null,
           regionId: filters.regionId ?? null,
         },
       },
@@ -396,11 +379,10 @@ export class VendorOnboardingService {
             },
           }
         : {}),
-      ...(filters.requestType || filters.categoryId || filters.regionId
+      ...(filters.requestType || filters.regionId
         ? {
             request: {
               ...(filters.requestType ? { requestType: filters.requestType } : {}),
-              ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
               ...(filters.regionId ? { regionId: filters.regionId } : {}),
             },
           }
@@ -416,7 +398,6 @@ export class VendorOnboardingService {
             reference: true,
             requestType: true,
             publishedAt: true,
-            category: { select: { nameEn: true } },
             region: { select: { nameEn: true } },
           },
         },
@@ -435,7 +416,6 @@ export class VendorOnboardingService {
         offerId: o.id,
         requestReference: o.request.reference ?? '',
         requestType: o.request.requestType,
-        categoryNameEn: o.request.category.nameEn,
         regionNameEn: o.request.region.nameEn,
         state: o.state,
         offeredPriceAed: Number(o.offeredPrice).toFixed(2),
@@ -455,21 +435,9 @@ export class VendorOnboardingService {
   ): Promise<VendorMe | null> {
     const profile = await this.repo.findByUserIdWithLogo(userId);
     if (!profile) return null;
-    const { input, categoryCount, regionCount } = await buildLifecycleInput(
-      this.repo,
-      profile,
-      accountState,
-    );
-    const [categoryIds, regionIds] = await Promise.all([
-      this.repo.listCategoryIds(profile.id),
-      this.repo.listRegionIds(profile.id),
-    ]);
-    return presentVendorMe(profile, input, {
-      categoryCount,
-      regionCount,
-      categoryIds,
-      regionIds,
-    });
+    const { input, regionCount } = await buildLifecycleInput(this.repo, profile, accountState);
+    const regionIds = await this.repo.listRegionIds(profile.id);
+    return presentVendorMe(profile, input, { regionCount, regionIds });
   }
 }
 

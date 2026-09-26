@@ -4,7 +4,6 @@ export type CreateRequestDraftInput = {
   customerProfileId: string;
   requestType: RequestType;
   direction?: Direction;
-  categoryId: string;
   regionId: string;
   notes?: string | null;
   weightGrams?: number | string | null;

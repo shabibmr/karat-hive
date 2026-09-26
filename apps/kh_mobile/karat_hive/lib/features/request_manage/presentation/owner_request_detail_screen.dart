@@ -65,7 +65,6 @@ class _OwnerRequestDetailScreenState
           final specs = <(String, String)>[
             ('Type', requestTypeLabel(s, req.requestType)),
             ('Direction', req.direction.wire),
-            ('Category', req.category.nameEn),
             ('Region', req.region.nameEn),
             if (req.weightGrams != null) ('Weight', '${req.weightGrams} g'),
             if (req.purityKarat != null) ('Purity', req.purityKarat!.wire),

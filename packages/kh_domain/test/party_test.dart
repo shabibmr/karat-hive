@@ -525,7 +525,6 @@ void main() {
         'requestType': 'FIND_ORNAMENT',
         'direction': 'BUY',
         'state': 'PUBLISHED',
-        'categoryId': 'cat-ring',
         'regionId': 'reg-dxb',
         'customer': {
           'name': 'Fatima Al Zahra',

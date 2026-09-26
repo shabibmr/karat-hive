@@ -62,8 +62,6 @@ class RequestSpecificationsCard extends StatelessWidget {
           RequestDetailRow(
               l10n?.requestsDetailLabelMarketDirection ?? 'Market Direction',
               '${detail.direction.label} (${detail.direction.name.toUpperCase()})'),
-          RequestDetailRow(l10n?.requestsDetailLabelCategory ?? 'Category',
-              detail.categoryName),
           RequestDetailRow(l10n?.requestsDetailLabelRegion ?? 'Region',
               detail.regionName),
           if (detail.ornamentType != null && detail.ornamentType!.isNotEmpty)

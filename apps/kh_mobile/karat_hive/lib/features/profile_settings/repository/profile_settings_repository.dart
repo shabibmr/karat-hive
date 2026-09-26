@@ -62,9 +62,6 @@ class ProfileSettingsRepository {
         notifications: notifications,
       );
 
-  Future<Result<VendorMe>> setCategories(List<String> ids) =>
-      _api.setCategories(ids);
-
   Future<Result<VendorMe>> setRegions(List<String> ids) =>
       _api.setRegions(ids);
 

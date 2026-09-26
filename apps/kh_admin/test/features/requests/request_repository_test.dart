@@ -61,7 +61,6 @@ Map<String, dynamic> _rawRow({
         'displayName': 'Customer $id',
         'user': {'mobileNumber': '+9715000000$id'},
       },
-      'category': {'nameEn': 'Coins'},
       'region': {'nameEn': 'Sharjah'},
     };
 
@@ -86,7 +85,6 @@ void main() {
       expect(page.items.length, 2);
       expect(page.items.first.customerName, 'Customer 1');
       expect(page.items.first.customerPhone, '+97150000001');
-      expect(page.items.first.categoryName, 'Coins');
       expect(page.nextCursor, 'req-2');
       expect(page.hasMore, isTrue);
     });
@@ -109,7 +107,6 @@ void main() {
           state: RequestState.published,
           requestType: RequestType.goldCoin,
           direction: Direction.sell,
-          categoryId: 'cat-1',
           regionId: 'reg-dubai',
           zeroOffersOnly: true,
           minValue: 1000.0,
@@ -123,7 +120,6 @@ void main() {
       expect(q['state'], 'PUBLISHED');
       expect(q['requestType'], 'GOLD_COIN');
       expect(q['direction'], 'SELL');
-      expect(q['categoryId'], 'cat-1');
       expect(q['regionId'], 'reg-dubai');
       expect(q['zeroOffers'], 'true');
       expect(q['minValue'], '1000.0');
@@ -145,7 +141,6 @@ void main() {
             'displayName': 'Aisha Rahman',
             'user': {'mobileNumber': '+971501234567'},
           },
-          'category': {'nameEn': 'Bangles'},
           'region': {'nameEn': 'Dubai'},
           'media': const <Map<String, dynamic>>[],
           'offers': const <Map<String, dynamic>>[],
@@ -178,7 +173,6 @@ void main() {
           'direction': 'BUY',
           'state': 'PUBLISHED',
           'customerProfile': {'id': 'cp-1', 'displayName': 'Aisha Rahman'},
-          'category': {'nameEn': 'Bangles'},
           'region': {'nameEn': 'Dubai'},
         },
         // no '/notes' entry -> _FakeApiClient.get throws -> swallowed by repo

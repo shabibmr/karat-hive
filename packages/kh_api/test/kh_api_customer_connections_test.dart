@@ -83,7 +83,6 @@ void main() {
           'reference': 'KH-RQ-2026-001',
           'requestType': 'FIND_ORNAMENT',
           'direction': 'BUY',
-          'category': {'id': 'c-bangles', 'nameEn': 'Bangles', 'nameAr': 'أساور'},
           'region': {'id': 'r-dxb', 'nameEn': 'Deira', 'nameAr': 'ديرة'},
         },
         'acceptedOffer': {
@@ -470,3 +469,4 @@ void main() {
     });
   });
 }
+

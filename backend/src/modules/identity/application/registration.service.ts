@@ -42,7 +42,6 @@ export type RegisterVendorInput = {
   businessEmail: string;
   contactWhatsApp?: string;
   regionId: string;
-  categoryIds: string[];
   servedRegionIds: string[];
   termsVersion: string;
   privacyVersion: string;
@@ -144,7 +143,6 @@ export class RegistrationService {
         : input.servedRegionIds;
 
     await this.taxonomy.assertActive({
-      categoryIds: input.categoryIds,
       regionIds: [input.regionId, ...servedRegionIds],
     });
 
@@ -171,7 +169,6 @@ export class RegistrationService {
         contactPersonName: input.contactPersonName,
         businessEmail: input.businessEmail,
         contactWhatsApp: input.contactWhatsApp,
-        categoryIds: input.categoryIds,
         servedRegionIds,
         ipAddress: client.ip ?? null,
         userAgent: client.userAgent ?? null,

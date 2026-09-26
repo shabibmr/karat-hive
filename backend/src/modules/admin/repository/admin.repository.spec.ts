@@ -57,13 +57,12 @@ describe('AdminRepository', () => {
       repo = new AdminRepository(prisma);
     });
 
-    it('applies requestType, direction, category, region, value range, and q in Prisma where', async () => {
+    it('applies requestType, direction, region, value range, and q in Prisma where', async () => {
       await repo.listRequests({
         q: 'necklace',
         state: 'PUBLISHED',
         requestType: 'FIND_ORNAMENT',
         direction: 'BUY',
-        categoryId: 'cat-1',
         regionId: 'reg-1',
         minValue: 1000,
         maxValue: 10000,
@@ -76,7 +75,6 @@ describe('AdminRepository', () => {
             state: 'PUBLISHED',
             requestType: 'FIND_ORNAMENT',
             direction: 'BUY',
-            categoryId: 'cat-1',
             regionId: 'reg-1',
             OR: [
               { reference: { contains: 'necklace' } },
@@ -187,7 +185,6 @@ describe('AdminRepository', () => {
         displayName: 'Fatima Al-Nuaimi',
         user: { id: 'user-c-1', mobileNumber: '+971501234567', email: 'fatima@example.com' },
       },
-      category: { id: 'cat-1', nameEn: 'Necklaces' },
       region: { id: 'reg-1', nameEn: 'Dubai' },
       media: [],
       matches: [

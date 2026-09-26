@@ -159,11 +159,9 @@ void main() {
     test('toJson omits every field left unset', () {
       const draft = RequestDraftInput(
         requestType: 'FIND_ORNAMENT',
-        categoryId: 'c1',
       );
       expect(draft.toJson(), {
         'requestType': 'FIND_ORNAMENT',
-        'categoryId': 'c1',
       });
     });
 

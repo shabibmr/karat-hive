@@ -1162,7 +1162,7 @@ as List<ReviewExcerpt>,
 /// @nodoc
 mixin _$OfferRequestSummary {
 
- String get id;@_RequestTypeConverter() RequestType get requestType;@_DirectionConverter() Direction get direction; String get customerLabel; String? get reference; String? get categoryId; String? get categoryName; String? get regionId; String? get regionName; String? get purityKarat; String? get weightGrams; String? get budgetMax; DateTime? get expiresAt;
+ String get id;@_RequestTypeConverter() RequestType get requestType;@_DirectionConverter() Direction get direction; String get customerLabel; String? get reference; String? get regionId; String? get regionName; String? get purityKarat; String? get weightGrams; String? get budgetMax; DateTime? get expiresAt;
 /// Create a copy of OfferRequestSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1175,16 +1175,16 @@ $OfferRequestSummaryCopyWith<OfferRequestSummary> get copyWith => _$OfferRequest
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OfferRequestSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.customerLabel, customerLabel) || other.customerLabel == customerLabel)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.regionId, regionId) || other.regionId == regionId)&&(identical(other.regionName, regionName) || other.regionName == regionName)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.budgetMax, budgetMax) || other.budgetMax == budgetMax)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OfferRequestSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.customerLabel, customerLabel) || other.customerLabel == customerLabel)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.regionId, regionId) || other.regionId == regionId)&&(identical(other.regionName, regionName) || other.regionName == regionName)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.budgetMax, budgetMax) || other.budgetMax == budgetMax)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,requestType,direction,customerLabel,reference,categoryId,categoryName,regionId,regionName,purityKarat,weightGrams,budgetMax,expiresAt);
+int get hashCode => Object.hash(runtimeType,id,requestType,direction,customerLabel,reference,regionId,regionName,purityKarat,weightGrams,budgetMax,expiresAt);
 
 @override
 String toString() {
-  return 'OfferRequestSummary(id: $id, requestType: $requestType, direction: $direction, customerLabel: $customerLabel, reference: $reference, categoryId: $categoryId, categoryName: $categoryName, regionId: $regionId, regionName: $regionName, purityKarat: $purityKarat, weightGrams: $weightGrams, budgetMax: $budgetMax, expiresAt: $expiresAt)';
+  return 'OfferRequestSummary(id: $id, requestType: $requestType, direction: $direction, customerLabel: $customerLabel, reference: $reference, regionId: $regionId, regionName: $regionName, purityKarat: $purityKarat, weightGrams: $weightGrams, budgetMax: $budgetMax, expiresAt: $expiresAt)';
 }
 
 
@@ -1195,7 +1195,7 @@ abstract mixin class $OfferRequestSummaryCopyWith<$Res>  {
   factory $OfferRequestSummaryCopyWith(OfferRequestSummary value, $Res Function(OfferRequestSummary) _then) = _$OfferRequestSummaryCopyWithImpl;
 @useResult
 $Res call({
- String id,@_RequestTypeConverter() RequestType requestType,@_DirectionConverter() Direction direction, String customerLabel, String? reference, String? categoryId, String? categoryName, String? regionId, String? regionName, String? purityKarat, String? weightGrams, String? budgetMax, DateTime? expiresAt
+ String id,@_RequestTypeConverter() RequestType requestType,@_DirectionConverter() Direction direction, String customerLabel, String? reference, String? regionId, String? regionName, String? purityKarat, String? weightGrams, String? budgetMax, DateTime? expiresAt
 });
 
 
@@ -1212,15 +1212,13 @@ class _$OfferRequestSummaryCopyWithImpl<$Res>
 
 /// Create a copy of OfferRequestSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? requestType = null,Object? direction = null,Object? customerLabel = null,Object? reference = freezed,Object? categoryId = freezed,Object? categoryName = freezed,Object? regionId = freezed,Object? regionName = freezed,Object? purityKarat = freezed,Object? weightGrams = freezed,Object? budgetMax = freezed,Object? expiresAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? requestType = null,Object? direction = null,Object? customerLabel = null,Object? reference = freezed,Object? regionId = freezed,Object? regionName = freezed,Object? purityKarat = freezed,Object? weightGrams = freezed,Object? budgetMax = freezed,Object? expiresAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,requestType: null == requestType ? _self.requestType : requestType // ignore: cast_nullable_to_non_nullable
 as RequestType,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as Direction,customerLabel: null == customerLabel ? _self.customerLabel : customerLabel // ignore: cast_nullable_to_non_nullable
 as String,reference: freezed == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
-as String?,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
-as String?,categoryName: freezed == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable
 as String?,regionId: freezed == regionId ? _self.regionId : regionId // ignore: cast_nullable_to_non_nullable
 as String?,regionName: freezed == regionName ? _self.regionName : regionName // ignore: cast_nullable_to_non_nullable
 as String?,purityKarat: freezed == purityKarat ? _self.purityKarat : purityKarat // ignore: cast_nullable_to_non_nullable
@@ -1312,10 +1310,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String customerLabel,  String? reference,  String? categoryId,  String? categoryName,  String? regionId,  String? regionName,  String? purityKarat,  String? weightGrams,  String? budgetMax,  DateTime? expiresAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String customerLabel,  String? reference,  String? regionId,  String? regionName,  String? purityKarat,  String? weightGrams,  String? budgetMax,  DateTime? expiresAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OfferRequestSummary() when $default != null:
-return $default(_that.id,_that.requestType,_that.direction,_that.customerLabel,_that.reference,_that.categoryId,_that.categoryName,_that.regionId,_that.regionName,_that.purityKarat,_that.weightGrams,_that.budgetMax,_that.expiresAt);case _:
+return $default(_that.id,_that.requestType,_that.direction,_that.customerLabel,_that.reference,_that.regionId,_that.regionName,_that.purityKarat,_that.weightGrams,_that.budgetMax,_that.expiresAt);case _:
   return orElse();
 
 }
@@ -1333,10 +1331,10 @@ return $default(_that.id,_that.requestType,_that.direction,_that.customerLabel,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String customerLabel,  String? reference,  String? categoryId,  String? categoryName,  String? regionId,  String? regionName,  String? purityKarat,  String? weightGrams,  String? budgetMax,  DateTime? expiresAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String customerLabel,  String? reference,  String? regionId,  String? regionName,  String? purityKarat,  String? weightGrams,  String? budgetMax,  DateTime? expiresAt)  $default,) {final _that = this;
 switch (_that) {
 case _OfferRequestSummary():
-return $default(_that.id,_that.requestType,_that.direction,_that.customerLabel,_that.reference,_that.categoryId,_that.categoryName,_that.regionId,_that.regionName,_that.purityKarat,_that.weightGrams,_that.budgetMax,_that.expiresAt);case _:
+return $default(_that.id,_that.requestType,_that.direction,_that.customerLabel,_that.reference,_that.regionId,_that.regionName,_that.purityKarat,_that.weightGrams,_that.budgetMax,_that.expiresAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1353,10 +1351,10 @@ return $default(_that.id,_that.requestType,_that.direction,_that.customerLabel,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String customerLabel,  String? reference,  String? categoryId,  String? categoryName,  String? regionId,  String? regionName,  String? purityKarat,  String? weightGrams,  String? budgetMax,  DateTime? expiresAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String customerLabel,  String? reference,  String? regionId,  String? regionName,  String? purityKarat,  String? weightGrams,  String? budgetMax,  DateTime? expiresAt)?  $default,) {final _that = this;
 switch (_that) {
 case _OfferRequestSummary() when $default != null:
-return $default(_that.id,_that.requestType,_that.direction,_that.customerLabel,_that.reference,_that.categoryId,_that.categoryName,_that.regionId,_that.regionName,_that.purityKarat,_that.weightGrams,_that.budgetMax,_that.expiresAt);case _:
+return $default(_that.id,_that.requestType,_that.direction,_that.customerLabel,_that.reference,_that.regionId,_that.regionName,_that.purityKarat,_that.weightGrams,_that.budgetMax,_that.expiresAt);case _:
   return null;
 
 }
@@ -1368,7 +1366,7 @@ return $default(_that.id,_that.requestType,_that.direction,_that.customerLabel,_
 @JsonSerializable()
 
 class _OfferRequestSummary implements OfferRequestSummary {
-  const _OfferRequestSummary({required this.id, @_RequestTypeConverter() required this.requestType, @_DirectionConverter() required this.direction, required this.customerLabel, this.reference, this.categoryId, this.categoryName, this.regionId, this.regionName, this.purityKarat, this.weightGrams, this.budgetMax, this.expiresAt});
+  const _OfferRequestSummary({required this.id, @_RequestTypeConverter() required this.requestType, @_DirectionConverter() required this.direction, required this.customerLabel, this.reference, this.regionId, this.regionName, this.purityKarat, this.weightGrams, this.budgetMax, this.expiresAt});
   factory _OfferRequestSummary.fromJson(Map<String, dynamic> json) => _$OfferRequestSummaryFromJson(json);
 
 @override final  String id;
@@ -1376,8 +1374,6 @@ class _OfferRequestSummary implements OfferRequestSummary {
 @override@_DirectionConverter() final  Direction direction;
 @override final  String customerLabel;
 @override final  String? reference;
-@override final  String? categoryId;
-@override final  String? categoryName;
 @override final  String? regionId;
 @override final  String? regionName;
 @override final  String? purityKarat;
@@ -1398,16 +1394,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OfferRequestSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.customerLabel, customerLabel) || other.customerLabel == customerLabel)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.regionId, regionId) || other.regionId == regionId)&&(identical(other.regionName, regionName) || other.regionName == regionName)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.budgetMax, budgetMax) || other.budgetMax == budgetMax)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OfferRequestSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.customerLabel, customerLabel) || other.customerLabel == customerLabel)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.regionId, regionId) || other.regionId == regionId)&&(identical(other.regionName, regionName) || other.regionName == regionName)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.budgetMax, budgetMax) || other.budgetMax == budgetMax)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,requestType,direction,customerLabel,reference,categoryId,categoryName,regionId,regionName,purityKarat,weightGrams,budgetMax,expiresAt);
+int get hashCode => Object.hash(runtimeType,id,requestType,direction,customerLabel,reference,regionId,regionName,purityKarat,weightGrams,budgetMax,expiresAt);
 
 @override
 String toString() {
-  return 'OfferRequestSummary(id: $id, requestType: $requestType, direction: $direction, customerLabel: $customerLabel, reference: $reference, categoryId: $categoryId, categoryName: $categoryName, regionId: $regionId, regionName: $regionName, purityKarat: $purityKarat, weightGrams: $weightGrams, budgetMax: $budgetMax, expiresAt: $expiresAt)';
+  return 'OfferRequestSummary(id: $id, requestType: $requestType, direction: $direction, customerLabel: $customerLabel, reference: $reference, regionId: $regionId, regionName: $regionName, purityKarat: $purityKarat, weightGrams: $weightGrams, budgetMax: $budgetMax, expiresAt: $expiresAt)';
 }
 
 
@@ -1418,7 +1414,7 @@ abstract mixin class _$OfferRequestSummaryCopyWith<$Res> implements $OfferReques
   factory _$OfferRequestSummaryCopyWith(_OfferRequestSummary value, $Res Function(_OfferRequestSummary) _then) = __$OfferRequestSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@_RequestTypeConverter() RequestType requestType,@_DirectionConverter() Direction direction, String customerLabel, String? reference, String? categoryId, String? categoryName, String? regionId, String? regionName, String? purityKarat, String? weightGrams, String? budgetMax, DateTime? expiresAt
+ String id,@_RequestTypeConverter() RequestType requestType,@_DirectionConverter() Direction direction, String customerLabel, String? reference, String? regionId, String? regionName, String? purityKarat, String? weightGrams, String? budgetMax, DateTime? expiresAt
 });
 
 
@@ -1435,15 +1431,13 @@ class __$OfferRequestSummaryCopyWithImpl<$Res>
 
 /// Create a copy of OfferRequestSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? requestType = null,Object? direction = null,Object? customerLabel = null,Object? reference = freezed,Object? categoryId = freezed,Object? categoryName = freezed,Object? regionId = freezed,Object? regionName = freezed,Object? purityKarat = freezed,Object? weightGrams = freezed,Object? budgetMax = freezed,Object? expiresAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? requestType = null,Object? direction = null,Object? customerLabel = null,Object? reference = freezed,Object? regionId = freezed,Object? regionName = freezed,Object? purityKarat = freezed,Object? weightGrams = freezed,Object? budgetMax = freezed,Object? expiresAt = freezed,}) {
   return _then(_OfferRequestSummary(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,requestType: null == requestType ? _self.requestType : requestType // ignore: cast_nullable_to_non_nullable
 as RequestType,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as Direction,customerLabel: null == customerLabel ? _self.customerLabel : customerLabel // ignore: cast_nullable_to_non_nullable
 as String,reference: freezed == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
-as String?,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
-as String?,categoryName: freezed == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable
 as String?,regionId: freezed == regionId ? _self.regionId : regionId // ignore: cast_nullable_to_non_nullable
 as String?,regionName: freezed == regionName ? _self.regionName : regionName // ignore: cast_nullable_to_non_nullable
 as String?,purityKarat: freezed == purityKarat ? _self.purityKarat : purityKarat // ignore: cast_nullable_to_non_nullable

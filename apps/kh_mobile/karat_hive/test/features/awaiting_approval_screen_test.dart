@@ -56,7 +56,7 @@ void main() {
                 testVendorUser(
                   vendor: testVendorMe(
                     lifecycle: VendorLifecycle.verified,
-                    awaitingApprovalReason: AwaitingApprovalReason.categoriesRequired,
+                    awaitingApprovalReason: AwaitingApprovalReason.activationPending,
                     verificationMessage: null,
                   ),
                 ),
@@ -66,7 +66,7 @@ void main() {
           vendorMeProvider.overrideWith(
             (ref) async => testVendorMe(
               lifecycle: VendorLifecycle.verified,
-              awaitingApprovalReason: AwaitingApprovalReason.categoriesRequired,
+              awaitingApprovalReason: AwaitingApprovalReason.activationPending,
               verificationMessage: null,
             ),
           ),
@@ -77,7 +77,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('Choose the categories and regions you serve.'), findsOneWidget);
-    expect(find.text('Categories & regions'), findsOneWidget);
+    expect(find.text('Regions'), findsOneWidget);
   });
 
   testWidgets('renders SH-FND-13 when vendor me fails', (tester) async {

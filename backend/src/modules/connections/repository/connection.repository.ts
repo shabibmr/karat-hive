@@ -28,7 +28,6 @@ export class ConnectionRepository {
         offer: true,
         request: {
           include: {
-            category: true,
             region: true,
           },
         },
@@ -60,7 +59,6 @@ export class ConnectionRepository {
         offer: true,
         request: {
           include: {
-            category: true,
             region: true,
           },
         },
@@ -104,7 +102,6 @@ export class ConnectionRepository {
         offer: true,
         request: {
           include: {
-            category: true,
             region: true,
           },
         },
@@ -160,7 +157,6 @@ export class ConnectionRepository {
         offer: true,
         request: {
           include: {
-            category: true,
             region: true,
           },
         },
@@ -211,7 +207,6 @@ export class ConnectionRepository {
         offer: true,
         request: {
           include: {
-            category: true,
             region: true,
           },
         },

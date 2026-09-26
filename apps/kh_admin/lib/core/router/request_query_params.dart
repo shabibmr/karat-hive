@@ -13,14 +13,12 @@ class RequestQueryParamsCodec extends QueryParamsCodec<RequestListFilters> {
   @override
   RequestListFilters decodeFilters(Map<String, String> query) {
     final q = query['q'];
-    final categoryId = query['categoryId'];
     final regionId = query['regionId'];
     return RequestListFilters(
       query: (q == null || q.isEmpty) ? '' : q,
       requestType: RequestType.fromApi(query['requestType']),
       direction: Direction.fromApi(query['direction']),
       state: RequestState.fromApi(query['state']),
-      categoryId: (categoryId == null || categoryId.isEmpty) ? null : categoryId,
       regionId: (regionId == null || regionId.isEmpty) ? null : regionId,
       zeroOffersOnly: query['zeroOffers'] == 'true',
       minValue: _parseDecimal(query['minValue']),
@@ -42,9 +40,6 @@ class RequestQueryParamsCodec extends QueryParamsCodec<RequestListFilters> {
     }
     if (filters.state != null) {
       params['state'] = filters.state!.apiValue;
-    }
-    if (filters.categoryId != null && filters.categoryId!.isNotEmpty) {
-      params['categoryId'] = filters.categoryId!;
     }
     if (filters.regionId != null && filters.regionId!.isNotEmpty) {
       params['regionId'] = filters.regionId!;
@@ -71,7 +66,6 @@ class RequestQueryParams {
     this.requestType,
     this.direction,
     this.state,
-    this.categoryId,
     this.regionId,
     this.zeroOffersOnly = false,
     this.minValue,
@@ -84,7 +78,6 @@ class RequestQueryParams {
   final RequestType? requestType;
   final Direction? direction;
   final RequestState? state;
-  final String? categoryId;
   final String? regionId;
   final bool zeroOffersOnly;
   final double? minValue;
@@ -99,7 +92,6 @@ class RequestQueryParams {
       requestType: state.filters.requestType,
       direction: state.filters.direction,
       state: state.filters.state,
-      categoryId: state.filters.categoryId,
       regionId: state.filters.regionId,
       zeroOffersOnly: state.filters.zeroOffersOnly,
       minValue: state.filters.minValue,
@@ -122,7 +114,6 @@ class RequestQueryParams {
       requestType: filters.requestType,
       direction: filters.direction,
       state: filters.state,
-      categoryId: filters.categoryId,
       regionId: filters.regionId,
       zeroOffersOnly: filters.zeroOffersOnly,
       minValue: filters.minValue,
@@ -138,7 +129,6 @@ class RequestQueryParams {
       requestType: requestType,
       direction: direction,
       state: state,
-      categoryId: categoryId,
       regionId: regionId,
       zeroOffersOnly: zeroOffersOnly,
       minValue: minValue,
@@ -161,7 +151,6 @@ class RequestQueryParams {
     RequestType? requestType,
     Direction? direction,
     RequestState? state,
-    String? categoryId,
     String? regionId,
     bool? zeroOffersOnly,
     double? minValue,
@@ -172,7 +161,6 @@ class RequestQueryParams {
     bool clearRequestType = false,
     bool clearDirection = false,
     bool clearState = false,
-    bool clearCategoryId = false,
     bool clearRegionId = false,
     bool clearMinValue = false,
     bool clearMaxValue = false,
@@ -184,7 +172,6 @@ class RequestQueryParams {
       requestType: clearRequestType ? null : (requestType ?? this.requestType),
       direction: clearDirection ? null : (direction ?? this.direction),
       state: clearState ? null : (state ?? this.state),
-      categoryId: clearCategoryId ? null : (categoryId ?? this.categoryId),
       regionId: clearRegionId ? null : (regionId ?? this.regionId),
       zeroOffersOnly: zeroOffersOnly ?? this.zeroOffersOnly,
       minValue: clearMinValue ? null : (minValue ?? this.minValue),

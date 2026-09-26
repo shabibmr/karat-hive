@@ -48,7 +48,6 @@ describe('ConnectionService', () => {
       reference: 'KH-2026-0001',
       requestType: 'FIND_ORNAMENT',
       direction: 'BUY',
-      category: { id: 'cat-1', nameEn: 'Rings', nameAr: 'خواتم', isActive: true, displayOrder: 1 },
       region: { id: 'reg-1', nameEn: 'Dubai', nameAr: 'دبي', isActive: true, displayOrder: 1 },
     },
     customerProfile: {

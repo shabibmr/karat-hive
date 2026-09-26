@@ -11,7 +11,6 @@ void main() {
         'requestType': 'FIND_ORNAMENT',
         'direction': 'BUY',
         'state': 'ACCEPTED',
-        'category': {'id': 'c1', 'nameEn': 'Rings', 'nameAr': 'خواتم', 'isActive': true, 'displayOrder': 1},
         'region': {'id': 'r1', 'nameEn': 'Deira', 'nameAr': 'ديرة', 'isActive': true, 'displayOrder': 1},
         'weightIsApproximate': true,
         'budgetIsFlexible': false,
@@ -28,7 +27,6 @@ void main() {
 
       expect(dto.reference, 'KH-RQ-0001');
       expect(dto.state, 'ACCEPTED');
-      expect(dto.category.nameEn, 'Rings');
       expect(dto.offerCount, 3);
       expect(dto.unreadOfferCount, 2);
       expect(dto.connectionId, 'con-9');
@@ -82,7 +80,6 @@ void main() {
           'id': 'req-1',
           'requestType': 'FIND_ORNAMENT',
           'direction': 'BUY',
-          'category': {'id': 'c1', 'nameEn': 'Rings', 'nameAr': 'خواتم', 'isActive': true, 'displayOrder': 1},
           'region': {'id': 'r1', 'nameEn': 'Deira', 'nameAr': 'ديرة', 'isActive': true, 'displayOrder': 1},
         },
         'talk': {

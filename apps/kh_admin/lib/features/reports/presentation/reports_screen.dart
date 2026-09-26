@@ -29,7 +29,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   late final TextEditingController _fromController;
   late final TextEditingController _toController;
   late final TextEditingController _regionController;
-  late final TextEditingController _categoryController;
   Uri? _lastSyncedUri;
 
   @override
@@ -43,7 +42,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       text: filters.to != null ? ReportFilters.toIsoDate(filters.to!) : '',
     );
     _regionController = TextEditingController(text: filters.regionId ?? '');
-    _categoryController = TextEditingController(text: filters.categoryId ?? '');
   }
 
   @override
@@ -77,9 +75,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     if (_regionController.text != (parsed.regionId ?? '')) {
       _regionController.text = parsed.regionId ?? '';
     }
-    if (_categoryController.text != (parsed.categoryId ?? '')) {
-      _categoryController.text = parsed.categoryId ?? '';
-    }
   }
 
   @override
@@ -87,7 +82,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     _fromController.dispose();
     _toController.dispose();
     _regionController.dispose();
-    _categoryController.dispose();
     super.dispose();
   }
 
@@ -302,16 +296,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             ),
           ),
         ),
-        SizedBox(
-          width: 180,
-          child: TextField(
-            key: const Key('reports-category-field'),
-            controller: _categoryController,
-            decoration: InputDecoration(
-              labelText: l10n?.reportsCategoryId ?? 'Category ID (optional)',
-            ),
-          ),
-        ),
         ElevatedButton(
           key: const Key('reports-apply-button'),
           onPressed: state.isLoading
@@ -498,7 +482,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       from: DateTime.tryParse(_fromController.text.trim()),
       to: DateTime.tryParse(_toController.text.trim()),
       regionId: _regionController.text.trim(),
-      categoryId: _categoryController.text.trim(),
     );
   }
 

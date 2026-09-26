@@ -100,16 +100,12 @@ export async function inject(
 /** taxonomy is required by register/vendor — seed a minimal tree if empty. */
 export async function ensureTaxonomy(
   prisma: PrismaClient,
-): Promise<{ categoryId: string; regionId: string }> {
-  let category = await prisma.category.findFirst({ where: { isActive: true } });
-  category ??= await prisma.category.create({
-    data: { nameEn: 'Rings', nameAr: 'خواتم', displayOrder: 0 },
-  });
+): Promise<{ regionId: string }> {
   let region = await prisma.region.findFirst({ where: { isActive: true } });
   region ??= await prisma.region.create({
     data: { nameEn: 'Dubai', nameAr: 'دبي', displayOrder: 0 },
   });
-  return { categoryId: category.id, regionId: region.id };
+  return { regionId: region.id };
 }
 
 export async function issueSession(ctx: TestApp, user: User): Promise<string> {
@@ -143,7 +139,6 @@ export async function insertVendor(
   prisma: PrismaClient,
   opts: {
     state: 'PENDING' | 'VERIFIED' | 'ACTIVE' | 'REJECTED';
-    categoryId?: string;
     regionId?: string;
   },
 ): Promise<{ user: User; vendorProfileId: string }> {
@@ -182,12 +177,8 @@ export async function insertVendor(
     include: { vendorProfile: true },
   });
   const vendorProfileId = user.vendorProfile!.id;
-  if ((opts.state === 'VERIFIED' || opts.state === 'ACTIVE') && opts.categoryId && opts.regionId) {
-    await prisma.vendorCategory.create({ data: { vendorProfileId, categoryId: opts.categoryId } });
+  if ((opts.state === 'VERIFIED' || opts.state === 'ACTIVE') && opts.regionId) {
     await prisma.vendorRegion.create({ data: { vendorProfileId, regionId: opts.regionId } });
-  }
-  if (opts.state === 'ACTIVE' && opts.categoryId && opts.regionId) {
-    // already set activatedAt
   }
   return { user, vendorProfileId };
 }
@@ -221,7 +212,6 @@ export async function insertPublishedRequest(
   prisma: PrismaClient,
   opts: {
     customerProfileId: string;
-    categoryId: string;
     regionId: string;
     requestType?: 'FIND_ORNAMENT' | 'SELL_OLD_GOLD' | 'GOLD_COIN' | 'GOLD_BULLION';
     budgetMin?: number;
@@ -238,7 +228,6 @@ export async function insertPublishedRequest(
       requestType: opts.requestType ?? 'FIND_ORNAMENT',
       direction: 'BUY',
       state: 'PUBLISHED',
-      categoryId: opts.categoryId,
       regionId: opts.regionId,
       reference: `KH-RQ-${randomUUID().slice(0, 4).toUpperCase()}`,
       budgetMin: opts.budgetMin ?? 1000,

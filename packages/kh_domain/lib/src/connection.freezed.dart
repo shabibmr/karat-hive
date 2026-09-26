@@ -290,7 +290,7 @@ as String,
 /// @nodoc
 mixin _$ConnectionRequestSnapshot {
 
- String get id;@_RequestTypeConverter() RequestType get requestType;@_DirectionConverter() Direction get direction; String? get reference; CategorySummary? get category; RegionSummary? get region;
+ String get id;@_RequestTypeConverter() RequestType get requestType;@_DirectionConverter() Direction get direction; String? get reference; RegionSummary? get region;
 /// Create a copy of ConnectionRequestSnapshot
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -303,16 +303,16 @@ $ConnectionRequestSnapshotCopyWith<ConnectionRequestSnapshot> get copyWith => _$
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConnectionRequestSnapshot&&(identical(other.id, id) || other.id == id)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.category, category) || other.category == category)&&(identical(other.region, region) || other.region == region));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConnectionRequestSnapshot&&(identical(other.id, id) || other.id == id)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.region, region) || other.region == region));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,requestType,direction,reference,category,region);
+int get hashCode => Object.hash(runtimeType,id,requestType,direction,reference,region);
 
 @override
 String toString() {
-  return 'ConnectionRequestSnapshot(id: $id, requestType: $requestType, direction: $direction, reference: $reference, category: $category, region: $region)';
+  return 'ConnectionRequestSnapshot(id: $id, requestType: $requestType, direction: $direction, reference: $reference, region: $region)';
 }
 
 
@@ -323,11 +323,11 @@ abstract mixin class $ConnectionRequestSnapshotCopyWith<$Res>  {
   factory $ConnectionRequestSnapshotCopyWith(ConnectionRequestSnapshot value, $Res Function(ConnectionRequestSnapshot) _then) = _$ConnectionRequestSnapshotCopyWithImpl;
 @useResult
 $Res call({
- String id,@_RequestTypeConverter() RequestType requestType,@_DirectionConverter() Direction direction, String? reference, CategorySummary? category, RegionSummary? region
+ String id,@_RequestTypeConverter() RequestType requestType,@_DirectionConverter() Direction direction, String? reference, RegionSummary? region
 });
 
 
-$CategorySummaryCopyWith<$Res>? get category;$RegionSummaryCopyWith<$Res>? get region;
+$RegionSummaryCopyWith<$Res>? get region;
 
 }
 /// @nodoc
@@ -340,30 +340,17 @@ class _$ConnectionRequestSnapshotCopyWithImpl<$Res>
 
 /// Create a copy of ConnectionRequestSnapshot
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? requestType = null,Object? direction = null,Object? reference = freezed,Object? category = freezed,Object? region = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? requestType = null,Object? direction = null,Object? reference = freezed,Object? region = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,requestType: null == requestType ? _self.requestType : requestType // ignore: cast_nullable_to_non_nullable
 as RequestType,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as Direction,reference: freezed == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
-as String?,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as CategorySummary?,region: freezed == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
+as String?,region: freezed == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
 as RegionSummary?,
   ));
 }
 /// Create a copy of ConnectionRequestSnapshot
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$CategorySummaryCopyWith<$Res>? get category {
-    if (_self.category == null) {
-    return null;
-  }
-
-  return $CategorySummaryCopyWith<$Res>(_self.category!, (value) {
-    return _then(_self.copyWith(category: value));
-  });
-}/// Create a copy of ConnectionRequestSnapshot
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -457,10 +444,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String? reference,  CategorySummary? category,  RegionSummary? region)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String? reference,  RegionSummary? region)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ConnectionRequestSnapshot() when $default != null:
-return $default(_that.id,_that.requestType,_that.direction,_that.reference,_that.category,_that.region);case _:
+return $default(_that.id,_that.requestType,_that.direction,_that.reference,_that.region);case _:
   return orElse();
 
 }
@@ -478,10 +465,10 @@ return $default(_that.id,_that.requestType,_that.direction,_that.reference,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String? reference,  CategorySummary? category,  RegionSummary? region)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String? reference,  RegionSummary? region)  $default,) {final _that = this;
 switch (_that) {
 case _ConnectionRequestSnapshot():
-return $default(_that.id,_that.requestType,_that.direction,_that.reference,_that.category,_that.region);case _:
+return $default(_that.id,_that.requestType,_that.direction,_that.reference,_that.region);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -498,10 +485,10 @@ return $default(_that.id,_that.requestType,_that.direction,_that.reference,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String? reference,  CategorySummary? category,  RegionSummary? region)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @_RequestTypeConverter()  RequestType requestType, @_DirectionConverter()  Direction direction,  String? reference,  RegionSummary? region)?  $default,) {final _that = this;
 switch (_that) {
 case _ConnectionRequestSnapshot() when $default != null:
-return $default(_that.id,_that.requestType,_that.direction,_that.reference,_that.category,_that.region);case _:
+return $default(_that.id,_that.requestType,_that.direction,_that.reference,_that.region);case _:
   return null;
 
 }
@@ -513,14 +500,13 @@ return $default(_that.id,_that.requestType,_that.direction,_that.reference,_that
 @JsonSerializable()
 
 class _ConnectionRequestSnapshot implements ConnectionRequestSnapshot {
-  const _ConnectionRequestSnapshot({required this.id, @_RequestTypeConverter() required this.requestType, @_DirectionConverter() required this.direction, this.reference, this.category, this.region});
+  const _ConnectionRequestSnapshot({required this.id, @_RequestTypeConverter() required this.requestType, @_DirectionConverter() required this.direction, this.reference, this.region});
   factory _ConnectionRequestSnapshot.fromJson(Map<String, dynamic> json) => _$ConnectionRequestSnapshotFromJson(json);
 
 @override final  String id;
 @override@_RequestTypeConverter() final  RequestType requestType;
 @override@_DirectionConverter() final  Direction direction;
 @override final  String? reference;
-@override final  CategorySummary? category;
 @override final  RegionSummary? region;
 
 /// Create a copy of ConnectionRequestSnapshot
@@ -536,16 +522,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConnectionRequestSnapshot&&(identical(other.id, id) || other.id == id)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.category, category) || other.category == category)&&(identical(other.region, region) || other.region == region));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConnectionRequestSnapshot&&(identical(other.id, id) || other.id == id)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.region, region) || other.region == region));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,requestType,direction,reference,category,region);
+int get hashCode => Object.hash(runtimeType,id,requestType,direction,reference,region);
 
 @override
 String toString() {
-  return 'ConnectionRequestSnapshot(id: $id, requestType: $requestType, direction: $direction, reference: $reference, category: $category, region: $region)';
+  return 'ConnectionRequestSnapshot(id: $id, requestType: $requestType, direction: $direction, reference: $reference, region: $region)';
 }
 
 
@@ -556,11 +542,11 @@ abstract mixin class _$ConnectionRequestSnapshotCopyWith<$Res> implements $Conne
   factory _$ConnectionRequestSnapshotCopyWith(_ConnectionRequestSnapshot value, $Res Function(_ConnectionRequestSnapshot) _then) = __$ConnectionRequestSnapshotCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@_RequestTypeConverter() RequestType requestType,@_DirectionConverter() Direction direction, String? reference, CategorySummary? category, RegionSummary? region
+ String id,@_RequestTypeConverter() RequestType requestType,@_DirectionConverter() Direction direction, String? reference, RegionSummary? region
 });
 
 
-@override $CategorySummaryCopyWith<$Res>? get category;@override $RegionSummaryCopyWith<$Res>? get region;
+@override $RegionSummaryCopyWith<$Res>? get region;
 
 }
 /// @nodoc
@@ -573,31 +559,18 @@ class __$ConnectionRequestSnapshotCopyWithImpl<$Res>
 
 /// Create a copy of ConnectionRequestSnapshot
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? requestType = null,Object? direction = null,Object? reference = freezed,Object? category = freezed,Object? region = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? requestType = null,Object? direction = null,Object? reference = freezed,Object? region = freezed,}) {
   return _then(_ConnectionRequestSnapshot(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,requestType: null == requestType ? _self.requestType : requestType // ignore: cast_nullable_to_non_nullable
 as RequestType,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as Direction,reference: freezed == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
-as String?,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as CategorySummary?,region: freezed == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
+as String?,region: freezed == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
 as RegionSummary?,
   ));
 }
 
 /// Create a copy of ConnectionRequestSnapshot
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$CategorySummaryCopyWith<$Res>? get category {
-    if (_self.category == null) {
-    return null;
-  }
-
-  return $CategorySummaryCopyWith<$Res>(_self.category!, (value) {
-    return _then(_self.copyWith(category: value));
-  });
-}/// Create a copy of ConnectionRequestSnapshot
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')

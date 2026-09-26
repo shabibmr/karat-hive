@@ -36,7 +36,6 @@ import { RequestRepository } from '../repository/request.repository';
 export type CreateRequestDto = {
   requestType: RequestType;
   direction?: Direction;
-  categoryId?: string;
   regionId?: string;
   notes?: string;
   weightGrams?: number | string;
@@ -96,19 +95,7 @@ export class RequestService {
   ): Promise<{ data: RequestForCustomer; warnings: string[] }> {
     const customerProfileId = this.assertCustomer(viewer);
 
-    // Resolve category and region (or fallbacks for draft)
-    let categoryId = dto.categoryId;
-    if (!categoryId) {
-      const firstCat = await this.prisma.category.findFirst({
-        where: { isActive: true },
-        orderBy: { displayOrder: 'asc' },
-      });
-      if (!firstCat) {
-        throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL);
-      }
-      categoryId = firstCat.id;
-    }
-
+    // Resolve region (or fallback for draft)
     let regionId = dto.regionId;
     if (!regionId) {
       const customer = await this.prisma.customerProfile.findUnique({
@@ -154,7 +141,6 @@ export class RequestService {
           customerProfileId,
           requestType: dto.requestType,
           direction,
-          categoryId,
           regionId,
           notes: dto.notes,
           weightGrams: dto.weightGrams,
@@ -218,7 +204,6 @@ export class RequestService {
       const structuralFields = [
         'requestType',
         'direction',
-        'categoryId',
         'regionId',
         'weightGrams',
         'weightIsApproximate',
@@ -301,7 +286,6 @@ export class RequestService {
         updateData.direction = resolveRequestDirection(existing.requestType, dto.direction);
       }
 
-      if (dto.categoryId !== undefined) updateData.category = { connect: { id: dto.categoryId } };
       if (dto.regionId !== undefined) updateData.region = { connect: { id: dto.regionId } };
       if (dto.weightGrams !== undefined) {
         updateData.weightGrams = dto.weightGrams ? new PrismaNamespace.Decimal(dto.weightGrams) : null;
@@ -495,7 +479,6 @@ export class RequestService {
           customerProfileId: row.customerProfileId,
           requestType: row.requestType,
           direction: row.direction,
-          categoryId: row.categoryId,
           regionId: row.regionId,
           publishedAt: row.publishedAt?.toISOString(),
           expiresAt: row.expiresAt?.toISOString(),
@@ -611,7 +594,6 @@ export class RequestService {
           customerProfileId,
           requestType: existing.requestType,
           direction: existing.direction,
-          categoryId: existing.categoryId,
           regionId: existing.regionId,
           notes: existing.notes ?? undefined,
           weightGrams: existing.weightGrams ?? undefined,

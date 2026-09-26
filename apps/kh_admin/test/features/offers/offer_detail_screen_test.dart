@@ -57,7 +57,6 @@ class _FakeOfferDetailRepository extends OfferRepository {
               mobile: '+971501234567',
               role: UserRole.customer,
             ),
-            categoryName: 'Bridal Set',
             regionName: 'Dubai',
             indicativeValue: 15000.0,
             notes: 'Looking for an 18K necklace and earrings set',
@@ -219,7 +218,6 @@ void main() {
 
     // Parent request card
     expect(find.text('Parent Request Reference'), findsOneWidget);
-    expect(find.text('Bridal Set'), findsWidgets);
     expect(
       find.text('Sara Al Maktoum · +971501234567'),
       findsOneWidget,

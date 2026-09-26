@@ -22,17 +22,15 @@ export class MatchingRepository {
   async fanOutMatches(
     requestId: string,
     requestType: RequestType,
-    categoryId: string,
-    regionId: string,
     now: Date = new Date(),
   ): Promise<number> {
+    // Eligibility gates on VERIFIED + ACTIVE + an active Type Subscription only
+    // (BR-002) — every subscribed Vendor sees every Request of that type.
     const eligibleVendors = await this.prisma.vendorProfile.findMany({
       where: {
         verificationState: 'VERIFIED',
         activatedAt: { not: null },
         user: { accountState: 'ACTIVE', deletedAt: null },
-        categories: { some: { categoryId } },
-        regions: { some: { regionId } },
         subscriptions: {
           some: liveSubscriptionWhere(now, requestType),
         },
@@ -60,8 +58,6 @@ export class MatchingRepository {
       where: { id: vendorProfileId },
       include: {
         user: true,
-        categories: true,
-        regions: true,
         subscriptions: {
           where: liveSubscriptionWhere(now),
         },
@@ -77,11 +73,9 @@ export class MatchingRepository {
       return 0;
     }
 
-    const categoryIds = vendor.categories.map((c) => c.categoryId);
-    const regionIds = vendor.regions.map((r) => r.regionId);
     const subTypes = vendor.subscriptions.map((s) => s.requestType);
 
-    if (categoryIds.length === 0 || regionIds.length === 0 || subTypes.length === 0) {
+    if (subTypes.length === 0) {
       return 0;
     }
 
@@ -89,8 +83,6 @@ export class MatchingRepository {
       where: {
         state: 'PUBLISHED',
         expiresAt: { gt: now },
-        categoryId: { in: categoryIds },
-        regionId: { in: regionIds },
         requestType: { in: subTypes },
       },
       select: { id: true },
@@ -143,7 +135,6 @@ export class MatchingRepository {
         expiresAt: { gt: now },
         ...(filter.requestType ? { requestType: filter.requestType } : {}),
         ...(filter.direction ? { direction: filter.direction } : {}),
-        ...(filter.categoryId ? { categoryId: filter.categoryId } : {}),
         ...(filter.regionId ? { regionId: filter.regionId } : {}),
         ...(filter.purityKarat ? { purityKarat: filter.purityKarat } : {}),
         ...(filter.weightMin || filter.weightMax
@@ -211,7 +202,6 @@ export class MatchingRepository {
       include: {
         request: {
           include: {
-            category: true,
             region: true,
             media: { include: { media: true } },
             offers: {

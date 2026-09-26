@@ -13,7 +13,6 @@ import { RequestService } from './request.service';
 
 type MockPrisma = {
   $transaction: ReturnType<typeof vi.fn>;
-  category: { findFirst: ReturnType<typeof vi.fn> };
   customerProfile: { findUnique: ReturnType<typeof vi.fn> };
   region: { findFirst: ReturnType<typeof vi.fn> };
   outboxEvent: { create: ReturnType<typeof vi.fn> };
@@ -73,7 +72,6 @@ describe('RequestService', () => {
     requestType: 'FIND_ORNAMENT',
     direction: 'BUY',
     state: 'DRAFT',
-    categoryId: 'cat-1',
     regionId: 'reg-1',
     notes: 'A sample ring request',
     weightGrams: null,
@@ -99,17 +97,6 @@ describe('RequestService', () => {
     cancellationReason: null,
     createdAt: new Date('2026-01-01T10:00:00Z'),
     updatedAt: new Date('2026-01-01T10:00:00Z'),
-    category: {
-      id: 'cat-1',
-      nameEn: 'Jewellery',
-      nameAr: 'مجوهرات',
-      parentId: null,
-      icon: null,
-      displayOrder: 1,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
     region: {
       id: 'reg-1',
       nameEn: 'Dubai',
@@ -148,9 +135,6 @@ describe('RequestService', () => {
   beforeEach(() => {
     mockPrisma = {
       $transaction: vi.fn((cb) => cb(mockPrisma)),
-      category: {
-        findFirst: vi.fn().mockResolvedValue({ id: 'cat-1' }),
-      },
       customerProfile: {
         findUnique: vi.fn().mockResolvedValue({ defaultRegionId: 'reg-1', connectionCount: 2 }),
       },
@@ -217,7 +201,6 @@ describe('RequestService', () => {
       const res = await service.createDraft(customerViewer, {
         requestType: 'FIND_ORNAMENT',
         notes: 'Call me at 0501234567',
-        categoryId: 'cat-1',
         regionId: 'reg-1',
       });
 

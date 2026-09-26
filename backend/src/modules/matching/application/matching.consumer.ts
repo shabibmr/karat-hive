@@ -17,11 +17,9 @@ export class MatchingConsumer implements OnModuleInit {
       const payload = event.payload as {
         requestId?: string;
         requestType?: RequestType;
-        categoryId?: string;
-        regionId?: string;
       };
 
-      if (!payload.requestId || !payload.requestType || !payload.categoryId || !payload.regionId) {
+      if (!payload.requestId || !payload.requestType) {
         this.logger.warn(`Incomplete payload for request.published: eventId=${event.id}`);
         return;
       }
@@ -29,8 +27,6 @@ export class MatchingConsumer implements OnModuleInit {
       const matchCount = await this.matching.fanOutForRequest(
         payload.requestId,
         payload.requestType,
-        payload.categoryId,
-        payload.regionId,
       );
 
       this.logger.log(`Materialised ${matchCount} matches for request ${payload.requestId}`);

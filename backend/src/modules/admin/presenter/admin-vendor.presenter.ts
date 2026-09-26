@@ -1,13 +1,11 @@
 import type {
   AdminNote,
   AdminProfile,
-  Category,
   Media,
   Offer,
   Region,
   User,
   UserAccountState,
-  VendorCategory,
   VendorDocument,
   VendorProfile,
   VendorRegion,
@@ -95,8 +93,6 @@ export type VendorVerificationDetail = {
   verificationNotes?: string | null;
   verificationMessage?: string | null;
   documents: VendorDocumentDetail[];
-  categories: string[];
-  categoryDetails?: Array<{ id: string; nameEn: string; nameAr: string }>;
   regions: string[];
   regionDetails?: Array<{ id: string; nameEn: string; nameAr: string }>;
   tradingName?: string;
@@ -141,7 +137,6 @@ export type VendorDetailRow = VendorProfile & {
   user: User;
   logoMedia?: Media | null;
   documents?: VendorDocumentRow[];
-  categories?: Array<VendorCategory & { category: Category }>;
   regions?: Array<VendorRegion & { region: Region }>;
   verifiedByAdmin?: (AdminProfile & { user?: User }) | null;
   notes?: Array<AdminNote & { author?: AdminProfile & { user?: User } }>;
@@ -215,7 +210,6 @@ export function presentVendorDocumentDetail(row: VendorDocumentRow): VendorDocum
 export function presentVendorVerificationDetail(
   profile: VendorWithUser,
   documents: VendorDocumentRow[],
-  categories: Category[],
   regions: Region[],
   now: Date,
 ): VendorVerificationDetail {
@@ -226,8 +220,6 @@ export function presentVendorVerificationDetail(
     verificationState: profile.verificationState,
     activatedAt: profile.activatedAt,
     hasMandatoryDocuments: documents.length > 0,
-    hasCategories: categories.length > 0,
-    hasRegions: regions.length > 0,
   });
 
   const aggregateRatingNum = profile.aggregateRating !== null ? Number(profile.aggregateRating) : null;
@@ -254,8 +246,6 @@ export function presentVendorVerificationDetail(
     verificationNotes: profile.verificationNotes,
     verificationMessage: profile.verificationMessage,
     documents: documents.map(presentVendorDocumentDetail),
-    categories: categories.map((c) => c.nameEn),
-    categoryDetails: categories.map((c) => ({ id: c.id, nameEn: c.nameEn, nameAr: c.nameAr })),
     regions: regions.map((r) => r.nameEn),
     regionDetails: regions.map((r) => ({ id: r.id, nameEn: r.nameEn, nameAr: r.nameAr })),
     tradingName: profile.tradingName,
@@ -288,9 +278,8 @@ export function presentVendorVerificationDetail(
 
 export function presentVendorDetail(row: VendorDetailRow, now: Date): VendorVerificationDetail {
   const documents = row.documents ?? [];
-  const categories = (row.categories ?? []).map((vc) => vc.category);
   const regions = (row.regions ?? []).map((vr) => vr.region);
-  const base = presentVendorVerificationDetail(row, documents, categories, regions, now);
+  const base = presentVendorVerificationDetail(row, documents, regions, now);
   base.logoUrl = row.logoMedia ? `/v1/media/${row.logoMedia.key}` : null;
 
   if (row.verifiedByAdmin) {

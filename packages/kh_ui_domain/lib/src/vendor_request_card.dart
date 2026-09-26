@@ -91,9 +91,7 @@ class VendorRequestCard extends StatelessWidget {
                               spacing: 6,
                               runSpacing: 4,
                               children: [
-                                if (item.categoryName != null)
-                                  _Tag(text: item.categoryName!, color: tokens.ink),
-                                if (item.regionName != null)
+if (item.regionName != null)
                                   _Tag(
                                     text: item.regionName!,
                                     color: tokens.ink.withValues(alpha: 0.7),
@@ -270,3 +268,4 @@ class _Tag extends StatelessWidget {
     );
   }
 }
+

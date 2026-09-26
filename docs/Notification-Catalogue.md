@@ -7,7 +7,7 @@
 | **Version** | 0.3-remaining-rows |
 | **Status** | Draft — all §7.2 trigger copy authored (CP5-I01.2 Vendor/Admin; CP5-I01.3 Customer, dual-role Customer, announcement, security). |
 | **Date** | 8 September 2026 |
-| **Source of truth** | [`docs/Async-Contract.md`](Async-Contract.md) §7 (triggers, recipients, channels, deep links, `is_critical`) · [`docs/Spec-Document-Sequence.md`](Spec-Document-Sequence.md) §4.4 · [`docs/Requirements-Spec-v1.4.md`](Requirements-Spec-v1.4.md) `FR-CUS-032`, `FR-VEN-026`, `FR-SYS-008` · [`CONTEXT.md`](../CONTEXT.md) |
+| **Source of truth** | [`docs/Async-Contract.md`](Async-Contract.md) §7 (triggers, recipients, channels, deep links, `is_critical`) · [`docs/Spec-Document-Sequence.md`](Spec-Document-Sequence.md) §4.4 · [`docs/Requirements-Spec-v1.5.md`](Requirements-Spec-v1.5.md) `FR-CUS-032`, `FR-VEN-026`, `FR-SYS-008` · [`CONTEXT.md`](../CONTEXT.md) |
 | **Companion** | [`docs/Async-Contract.md`](Async-Contract.md) owns *when* and *to whom*; this document owns *wording*. |
 | **Encoding target** | `notification.title_en` / `title_ar` / `body_en` / `body_ar` / `deep_link` · `kh_l10n` template keys |
 

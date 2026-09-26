@@ -74,7 +74,6 @@ class OfferParentRequestCard extends StatelessWidget {
               label: l10n?.offersDetailLabelRequestReference ?? 'Request',
               value: adminRequestDisplayTitle(
                 requestTypeRaw: request!.requestType?.apiValue,
-                categoryName: request!.categoryName,
                 fallback: request!.requestType?.displayName ?? 'Request',
               ),
               isStrong: true,
@@ -97,11 +96,6 @@ class OfferParentRequestCard extends StatelessWidget {
               OfferDetailRow(
                 label: l10n?.offersDetailLabelCustomerMobile ?? 'Customer',
                 value: masked.displayPseudonym,
-              ),
-            if (request!.categoryName != null)
-              OfferDetailRow(
-                label: l10n?.offersDetailLabelCategory ?? 'Category',
-                value: request!.categoryName!,
               ),
             if (request!.regionName != null)
               OfferDetailRow(

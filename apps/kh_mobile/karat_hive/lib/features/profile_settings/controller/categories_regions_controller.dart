@@ -8,52 +8,42 @@ import 'business_profile_controller.dart';
 
 class CategoriesRegionsState {
   const CategoriesRegionsState({
-    this.categoryIds = const {},
     this.regionIds = const {},
     this.awayMode = false,
     this.busy = false,
     this.failure,
-    this.savedCategoryIds = const {},
     this.savedRegionIds = const {},
   });
 
-  final Set<String> categoryIds;
   final Set<String> regionIds;
   final bool awayMode;
   final bool busy;
   final Failure? failure;
 
-  /// Last server-confirmed selection — compared against [categoryIds] and
-  /// [regionIds] to drive the discard-changes confirmation on back
-  /// navigation. `awayMode` isn't included: it saves immediately on toggle.
-  final Set<String> savedCategoryIds;
+  /// Last server-confirmed selection — compared against [regionIds] to drive
+  /// the discard-changes confirmation on back navigation. `awayMode` isn't
+  /// included: it saves immediately on toggle.
   final Set<String> savedRegionIds;
 
-  bool get canSave => categoryIds.isNotEmpty && regionIds.isNotEmpty && !busy;
+  bool get canSave => regionIds.isNotEmpty && !busy;
 
-  bool get isDirty =>
-      !_setEquals(categoryIds, savedCategoryIds) ||
-      !_setEquals(regionIds, savedRegionIds);
+  bool get isDirty => !_setEquals(regionIds, savedRegionIds);
 
   static bool _setEquals(Set<String> a, Set<String> b) =>
       a.length == b.length && a.containsAll(b);
 
   CategoriesRegionsState copyWith({
-    Set<String>? categoryIds,
     Set<String>? regionIds,
     bool? awayMode,
     bool? busy,
     Failure? failure,
     bool clearFailure = false,
-    Set<String>? savedCategoryIds,
     Set<String>? savedRegionIds,
   }) => CategoriesRegionsState(
-    categoryIds: categoryIds ?? this.categoryIds,
     regionIds: regionIds ?? this.regionIds,
     awayMode: awayMode ?? this.awayMode,
     busy: busy ?? this.busy,
     failure: clearFailure ? null : (failure ?? this.failure),
-    savedCategoryIds: savedCategoryIds ?? this.savedCategoryIds,
     savedRegionIds: savedRegionIds ?? this.savedRegionIds,
   );
 }
@@ -64,12 +54,10 @@ class CategoriesRegionsController
   CategoriesRegionsState build() {
     ref.listen(vendorMeProvider, (_, next) {
       next.whenData((me) {
-        if (state.categoryIds.isEmpty && state.regionIds.isEmpty) {
+        if (state.regionIds.isEmpty) {
           state = state.copyWith(
-            categoryIds: me.categoryIds.toSet(),
             regionIds: me.regionIds.toSet(),
             awayMode: me.awayMode,
-            savedCategoryIds: me.categoryIds.toSet(),
             savedRegionIds: me.regionIds.toSet(),
           );
         }
@@ -79,10 +67,8 @@ class CategoriesRegionsController
     if (session is SignedIn && session.user.vendor != null) {
       final me = session.user.vendor!;
       return CategoriesRegionsState(
-        categoryIds: me.categoryIds.toSet(),
         regionIds: me.regionIds.toSet(),
         awayMode: me.awayMode,
-        savedCategoryIds: me.categoryIds.toSet(),
         savedRegionIds: me.regionIds.toSet(),
       );
     }
@@ -91,11 +77,6 @@ class CategoriesRegionsController
 
   ProfileSettingsRepository get _repo =>
       ref.read(profileSettingsRepositoryProvider);
-
-  void toggleCategory(String id) => state = state.copyWith(
-    categoryIds: _toggle(state.categoryIds, id),
-    clearFailure: true,
-  );
 
   void toggleRegion(String id) => state = state.copyWith(
     regionIds: _toggle(state.regionIds, id),
@@ -110,12 +91,6 @@ class CategoriesRegionsController
 
   Future<bool> save() async {
     state = state.copyWith(busy: true, clearFailure: true);
-    final cat = await _repo.setCategories(state.categoryIds.toList());
-    final catFail = cat.failureOrNull;
-    if (catFail != null) {
-      state = state.copyWith(busy: false, failure: catFail);
-      return false;
-    }
     final reg = await _repo.setRegions(state.regionIds.toList());
     final regFail = reg.failureOrNull;
     if (regFail != null) {
@@ -127,7 +102,6 @@ class CategoriesRegionsController
     await ref.read(sessionProvider.notifier).refreshUser();
     state = state.copyWith(
       busy: false,
-      savedCategoryIds: state.categoryIds,
       savedRegionIds: state.regionIds,
     );
     return true;

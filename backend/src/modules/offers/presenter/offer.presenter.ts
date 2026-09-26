@@ -1,5 +1,4 @@
 import type {
-  Category,
   DeclineReason,
   Media,
   Offer,
@@ -11,9 +10,7 @@ import type {
   VendorRegion,
 } from '@prisma/client';
 import {
-  presentCategory,
   presentRegion,
-  type CategorySummary,
   type RegionSummary,
 } from '../../requests/presenter/request.presenter';
 
@@ -76,7 +73,6 @@ export type OfferForVendor = {
     reference?: string;
     requestType: string;
     direction: string;
-    category: CategorySummary;
     region: RegionSummary;
     customerLabel: string;
     purityKarat?: string;
@@ -115,7 +111,6 @@ export type PrismaOfferWithDetails = Offer & {
     regions?: Array<VendorRegion & { region: Region }>;
   };
   request?: Request & {
-    category?: Category;
     region?: Region;
   };
   connection?: { id: string } | null;
@@ -192,21 +187,20 @@ export function presentOfferForCustomer(offer: PrismaOfferWithDetails): OfferFor
 export function presentOfferForVendor(
   offer: PrismaOfferWithDetails,
   options?: {
-    request?: Request & { category: Category; region: Region };
+    request?: Request & { region: Region };
     awardedElsewhere?: boolean;
   },
 ): OfferForVendor {
   const req = options?.request ?? offer.request;
   let requestSummary: OfferForVendor['requestSummary'] = undefined;
 
-  if (req && req.category && req.region) {
+  if (req && req.region) {
     const regionDto = presentRegion(req.region);
     requestSummary = {
       id: req.id,
       reference: req.reference ?? undefined,
       requestType: req.requestType,
       direction: req.direction,
-      category: presentCategory(req.category),
       region: regionDto,
       customerLabel: `Customer · ${regionDto.nameEn}`,
       purityKarat: req.purityKarat ?? undefined,

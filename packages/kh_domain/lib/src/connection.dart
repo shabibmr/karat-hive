@@ -129,7 +129,6 @@ Map<String, dynamic> _normalizeConnectionRequestSnapshotJson(
       'reference': json['reference'] as String?,
       'requestType': json['requestType']?.toString(),
       'direction': json['direction']?.toString(),
-      'category': CategorySummary.tryParse(json['category'])?.toJson(),
       'region': RegionSummary.tryParse(json['region'])?.toJson(),
     };
 
@@ -160,7 +159,6 @@ abstract class ConnectionRequestSnapshot with _$ConnectionRequestSnapshot {
     @_RequestTypeConverter() required RequestType requestType,
     @_DirectionConverter() required Direction direction,
     String? reference,
-    CategorySummary? category,
     RegionSummary? region,
   }) = _ConnectionRequestSnapshot;
 

@@ -30,8 +30,6 @@ class RequestCreateRepository {
 
   Future<Result<GoldRateSnapshot>> goldRates() => _api.goldRates();
 
-  Future<Result<List<TaxonomyNode>>> categories() => _api.categories();
-
   Future<Result<List<TaxonomyNode>>> regions() => _api.regions();
 
   Future<Result<MeUser>> me() => _api.me();

@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,475 +9,795 @@ part of 'verification_decision_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
-VerifyDecisionDto _$VerifyDecisionDtoFromJson(Map<String, dynamic> json) {
-  return _VerifyDecisionDto.fromJson(json);
-}
 
 /// @nodoc
 mixin _$VerifyDecisionDto {
-  String get rationale => throw _privateConstructorUsedError;
+
+ String get rationale;
+/// Create a copy of VerifyDecisionDto
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$VerifyDecisionDtoCopyWith<VerifyDecisionDto> get copyWith => _$VerifyDecisionDtoCopyWithImpl<VerifyDecisionDto>(this as VerifyDecisionDto, _$identity);
 
   /// Serializes this VerifyDecisionDto to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of VerifyDecisionDto
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $VerifyDecisionDtoCopyWith<VerifyDecisionDto> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VerifyDecisionDto&&(identical(other.rationale, rationale) || other.rationale == rationale));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,rationale);
+
+@override
+String toString() {
+  return 'VerifyDecisionDto(rationale: $rationale)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $VerifyDecisionDtoCopyWith<$Res> {
-  factory $VerifyDecisionDtoCopyWith(
-    VerifyDecisionDto value,
-    $Res Function(VerifyDecisionDto) then,
-  ) = _$VerifyDecisionDtoCopyWithImpl<$Res, VerifyDecisionDto>;
-  @useResult
-  $Res call({String rationale});
-}
+abstract mixin class $VerifyDecisionDtoCopyWith<$Res>  {
+  factory $VerifyDecisionDtoCopyWith(VerifyDecisionDto value, $Res Function(VerifyDecisionDto) _then) = _$VerifyDecisionDtoCopyWithImpl;
+@useResult
+$Res call({
+ String rationale
+});
 
+
+
+
+}
 /// @nodoc
-class _$VerifyDecisionDtoCopyWithImpl<$Res, $Val extends VerifyDecisionDto>
+class _$VerifyDecisionDtoCopyWithImpl<$Res>
     implements $VerifyDecisionDtoCopyWith<$Res> {
-  _$VerifyDecisionDtoCopyWithImpl(this._value, this._then);
+  _$VerifyDecisionDtoCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final VerifyDecisionDto _self;
+  final $Res Function(VerifyDecisionDto) _then;
 
-  /// Create a copy of VerifyDecisionDto
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? rationale = null}) {
-    return _then(
-      _value.copyWith(
-            rationale: null == rationale
-                ? _value.rationale
-                : rationale // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of VerifyDecisionDto
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? rationale = null,}) {
+  return _then(_self.copyWith(
+rationale: null == rationale ? _self.rationale : rationale // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
 }
 
-/// @nodoc
-abstract class _$$VerifyDecisionDtoImplCopyWith<$Res>
-    implements $VerifyDecisionDtoCopyWith<$Res> {
-  factory _$$VerifyDecisionDtoImplCopyWith(
-    _$VerifyDecisionDtoImpl value,
-    $Res Function(_$VerifyDecisionDtoImpl) then,
-  ) = __$$VerifyDecisionDtoImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({String rationale});
 }
 
-/// @nodoc
-class __$$VerifyDecisionDtoImplCopyWithImpl<$Res>
-    extends _$VerifyDecisionDtoCopyWithImpl<$Res, _$VerifyDecisionDtoImpl>
-    implements _$$VerifyDecisionDtoImplCopyWith<$Res> {
-  __$$VerifyDecisionDtoImplCopyWithImpl(
-    _$VerifyDecisionDtoImpl _value,
-    $Res Function(_$VerifyDecisionDtoImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of VerifyDecisionDto
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? rationale = null}) {
-    return _then(
-      _$VerifyDecisionDtoImpl(
-        rationale: null == rationale
-            ? _value.rationale
-            : rationale // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [VerifyDecisionDto].
+extension VerifyDecisionDtoPatterns on VerifyDecisionDto {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _VerifyDecisionDto value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _VerifyDecisionDto() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _VerifyDecisionDto value)  $default,){
+final _that = this;
+switch (_that) {
+case _VerifyDecisionDto():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _VerifyDecisionDto value)?  $default,){
+final _that = this;
+switch (_that) {
+case _VerifyDecisionDto() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String rationale)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _VerifyDecisionDto() when $default != null:
+return $default(_that.rationale);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String rationale)  $default,) {final _that = this;
+switch (_that) {
+case _VerifyDecisionDto():
+return $default(_that.rationale);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String rationale)?  $default,) {final _that = this;
+switch (_that) {
+case _VerifyDecisionDto() when $default != null:
+return $default(_that.rationale);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$VerifyDecisionDtoImpl implements _VerifyDecisionDto {
-  const _$VerifyDecisionDtoImpl({required this.rationale});
 
-  factory _$VerifyDecisionDtoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$VerifyDecisionDtoImplFromJson(json);
+class _VerifyDecisionDto implements VerifyDecisionDto {
+  const _VerifyDecisionDto({required this.rationale});
+  factory _VerifyDecisionDto.fromJson(Map<String, dynamic> json) => _$VerifyDecisionDtoFromJson(json);
 
-  @override
-  final String rationale;
+@override final  String rationale;
 
-  @override
-  String toString() {
-    return 'VerifyDecisionDto(rationale: $rationale)';
-  }
+/// Create a copy of VerifyDecisionDto
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$VerifyDecisionDtoCopyWith<_VerifyDecisionDto> get copyWith => __$VerifyDecisionDtoCopyWithImpl<_VerifyDecisionDto>(this, _$identity);
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$VerifyDecisionDtoImpl &&
-            (identical(other.rationale, rationale) ||
-                other.rationale == rationale));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, rationale);
-
-  /// Create a copy of VerifyDecisionDto
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$VerifyDecisionDtoImplCopyWith<_$VerifyDecisionDtoImpl> get copyWith =>
-      __$$VerifyDecisionDtoImplCopyWithImpl<_$VerifyDecisionDtoImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$VerifyDecisionDtoImplToJson(this);
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$VerifyDecisionDtoToJson(this, );
 }
 
-abstract class _VerifyDecisionDto implements VerifyDecisionDto {
-  const factory _VerifyDecisionDto({required final String rationale}) =
-      _$VerifyDecisionDtoImpl;
-
-  factory _VerifyDecisionDto.fromJson(Map<String, dynamic> json) =
-      _$VerifyDecisionDtoImpl.fromJson;
-
-  @override
-  String get rationale;
-
-  /// Create a copy of VerifyDecisionDto
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$VerifyDecisionDtoImplCopyWith<_$VerifyDecisionDtoImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerifyDecisionDto&&(identical(other.rationale, rationale) || other.rationale == rationale));
 }
 
-RejectDecisionDto _$RejectDecisionDtoFromJson(Map<String, dynamic> json) {
-  return _RejectDecisionDto.fromJson(json);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,rationale);
+
+@override
+String toString() {
+  return 'VerifyDecisionDto(rationale: $rationale)';
 }
+
+
+}
+
+/// @nodoc
+abstract mixin class _$VerifyDecisionDtoCopyWith<$Res> implements $VerifyDecisionDtoCopyWith<$Res> {
+  factory _$VerifyDecisionDtoCopyWith(_VerifyDecisionDto value, $Res Function(_VerifyDecisionDto) _then) = __$VerifyDecisionDtoCopyWithImpl;
+@override @useResult
+$Res call({
+ String rationale
+});
+
+
+
+
+}
+/// @nodoc
+class __$VerifyDecisionDtoCopyWithImpl<$Res>
+    implements _$VerifyDecisionDtoCopyWith<$Res> {
+  __$VerifyDecisionDtoCopyWithImpl(this._self, this._then);
+
+  final _VerifyDecisionDto _self;
+  final $Res Function(_VerifyDecisionDto) _then;
+
+/// Create a copy of VerifyDecisionDto
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? rationale = null,}) {
+  return _then(_VerifyDecisionDto(
+rationale: null == rationale ? _self.rationale : rationale // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$RejectDecisionDto {
-  String get rationale => throw _privateConstructorUsedError;
+
+ String get rationale;
+/// Create a copy of RejectDecisionDto
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RejectDecisionDtoCopyWith<RejectDecisionDto> get copyWith => _$RejectDecisionDtoCopyWithImpl<RejectDecisionDto>(this as RejectDecisionDto, _$identity);
 
   /// Serializes this RejectDecisionDto to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of RejectDecisionDto
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $RejectDecisionDtoCopyWith<RejectDecisionDto> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RejectDecisionDto&&(identical(other.rationale, rationale) || other.rationale == rationale));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,rationale);
+
+@override
+String toString() {
+  return 'RejectDecisionDto(rationale: $rationale)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $RejectDecisionDtoCopyWith<$Res> {
-  factory $RejectDecisionDtoCopyWith(
-    RejectDecisionDto value,
-    $Res Function(RejectDecisionDto) then,
-  ) = _$RejectDecisionDtoCopyWithImpl<$Res, RejectDecisionDto>;
-  @useResult
-  $Res call({String rationale});
-}
+abstract mixin class $RejectDecisionDtoCopyWith<$Res>  {
+  factory $RejectDecisionDtoCopyWith(RejectDecisionDto value, $Res Function(RejectDecisionDto) _then) = _$RejectDecisionDtoCopyWithImpl;
+@useResult
+$Res call({
+ String rationale
+});
 
+
+
+
+}
 /// @nodoc
-class _$RejectDecisionDtoCopyWithImpl<$Res, $Val extends RejectDecisionDto>
+class _$RejectDecisionDtoCopyWithImpl<$Res>
     implements $RejectDecisionDtoCopyWith<$Res> {
-  _$RejectDecisionDtoCopyWithImpl(this._value, this._then);
+  _$RejectDecisionDtoCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final RejectDecisionDto _self;
+  final $Res Function(RejectDecisionDto) _then;
 
-  /// Create a copy of RejectDecisionDto
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? rationale = null}) {
-    return _then(
-      _value.copyWith(
-            rationale: null == rationale
-                ? _value.rationale
-                : rationale // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of RejectDecisionDto
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? rationale = null,}) {
+  return _then(_self.copyWith(
+rationale: null == rationale ? _self.rationale : rationale // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
 }
 
-/// @nodoc
-abstract class _$$RejectDecisionDtoImplCopyWith<$Res>
-    implements $RejectDecisionDtoCopyWith<$Res> {
-  factory _$$RejectDecisionDtoImplCopyWith(
-    _$RejectDecisionDtoImpl value,
-    $Res Function(_$RejectDecisionDtoImpl) then,
-  ) = __$$RejectDecisionDtoImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({String rationale});
 }
 
-/// @nodoc
-class __$$RejectDecisionDtoImplCopyWithImpl<$Res>
-    extends _$RejectDecisionDtoCopyWithImpl<$Res, _$RejectDecisionDtoImpl>
-    implements _$$RejectDecisionDtoImplCopyWith<$Res> {
-  __$$RejectDecisionDtoImplCopyWithImpl(
-    _$RejectDecisionDtoImpl _value,
-    $Res Function(_$RejectDecisionDtoImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of RejectDecisionDto
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? rationale = null}) {
-    return _then(
-      _$RejectDecisionDtoImpl(
-        rationale: null == rationale
-            ? _value.rationale
-            : rationale // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [RejectDecisionDto].
+extension RejectDecisionDtoPatterns on RejectDecisionDto {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RejectDecisionDto value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _RejectDecisionDto() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RejectDecisionDto value)  $default,){
+final _that = this;
+switch (_that) {
+case _RejectDecisionDto():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RejectDecisionDto value)?  $default,){
+final _that = this;
+switch (_that) {
+case _RejectDecisionDto() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String rationale)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _RejectDecisionDto() when $default != null:
+return $default(_that.rationale);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String rationale)  $default,) {final _that = this;
+switch (_that) {
+case _RejectDecisionDto():
+return $default(_that.rationale);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String rationale)?  $default,) {final _that = this;
+switch (_that) {
+case _RejectDecisionDto() when $default != null:
+return $default(_that.rationale);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$RejectDecisionDtoImpl implements _RejectDecisionDto {
-  const _$RejectDecisionDtoImpl({required this.rationale});
 
-  factory _$RejectDecisionDtoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$RejectDecisionDtoImplFromJson(json);
+class _RejectDecisionDto implements RejectDecisionDto {
+  const _RejectDecisionDto({required this.rationale});
+  factory _RejectDecisionDto.fromJson(Map<String, dynamic> json) => _$RejectDecisionDtoFromJson(json);
 
-  @override
-  final String rationale;
+@override final  String rationale;
 
-  @override
-  String toString() {
-    return 'RejectDecisionDto(rationale: $rationale)';
-  }
+/// Create a copy of RejectDecisionDto
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RejectDecisionDtoCopyWith<_RejectDecisionDto> get copyWith => __$RejectDecisionDtoCopyWithImpl<_RejectDecisionDto>(this, _$identity);
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$RejectDecisionDtoImpl &&
-            (identical(other.rationale, rationale) ||
-                other.rationale == rationale));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, rationale);
-
-  /// Create a copy of RejectDecisionDto
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$RejectDecisionDtoImplCopyWith<_$RejectDecisionDtoImpl> get copyWith =>
-      __$$RejectDecisionDtoImplCopyWithImpl<_$RejectDecisionDtoImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$RejectDecisionDtoImplToJson(this);
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$RejectDecisionDtoToJson(this, );
 }
 
-abstract class _RejectDecisionDto implements RejectDecisionDto {
-  const factory _RejectDecisionDto({required final String rationale}) =
-      _$RejectDecisionDtoImpl;
-
-  factory _RejectDecisionDto.fromJson(Map<String, dynamic> json) =
-      _$RejectDecisionDtoImpl.fromJson;
-
-  @override
-  String get rationale;
-
-  /// Create a copy of RejectDecisionDto
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$RejectDecisionDtoImplCopyWith<_$RejectDecisionDtoImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RejectDecisionDto&&(identical(other.rationale, rationale) || other.rationale == rationale));
 }
 
-RequestInfoDto _$RequestInfoDtoFromJson(Map<String, dynamic> json) {
-  return _RequestInfoDto.fromJson(json);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,rationale);
+
+@override
+String toString() {
+  return 'RejectDecisionDto(rationale: $rationale)';
 }
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RejectDecisionDtoCopyWith<$Res> implements $RejectDecisionDtoCopyWith<$Res> {
+  factory _$RejectDecisionDtoCopyWith(_RejectDecisionDto value, $Res Function(_RejectDecisionDto) _then) = __$RejectDecisionDtoCopyWithImpl;
+@override @useResult
+$Res call({
+ String rationale
+});
+
+
+
+
+}
+/// @nodoc
+class __$RejectDecisionDtoCopyWithImpl<$Res>
+    implements _$RejectDecisionDtoCopyWith<$Res> {
+  __$RejectDecisionDtoCopyWithImpl(this._self, this._then);
+
+  final _RejectDecisionDto _self;
+  final $Res Function(_RejectDecisionDto) _then;
+
+/// Create a copy of RejectDecisionDto
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? rationale = null,}) {
+  return _then(_RejectDecisionDto(
+rationale: null == rationale ? _self.rationale : rationale // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$RequestInfoDto {
-  String get message => throw _privateConstructorUsedError;
+
+ String get message;
+/// Create a copy of RequestInfoDto
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RequestInfoDtoCopyWith<RequestInfoDto> get copyWith => _$RequestInfoDtoCopyWithImpl<RequestInfoDto>(this as RequestInfoDto, _$identity);
 
   /// Serializes this RequestInfoDto to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of RequestInfoDto
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $RequestInfoDtoCopyWith<RequestInfoDto> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RequestInfoDto&&(identical(other.message, message) || other.message == message));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,message);
+
+@override
+String toString() {
+  return 'RequestInfoDto(message: $message)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $RequestInfoDtoCopyWith<$Res> {
-  factory $RequestInfoDtoCopyWith(
-    RequestInfoDto value,
-    $Res Function(RequestInfoDto) then,
-  ) = _$RequestInfoDtoCopyWithImpl<$Res, RequestInfoDto>;
-  @useResult
-  $Res call({String message});
-}
+abstract mixin class $RequestInfoDtoCopyWith<$Res>  {
+  factory $RequestInfoDtoCopyWith(RequestInfoDto value, $Res Function(RequestInfoDto) _then) = _$RequestInfoDtoCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
 
+
+
+
+}
 /// @nodoc
-class _$RequestInfoDtoCopyWithImpl<$Res, $Val extends RequestInfoDto>
+class _$RequestInfoDtoCopyWithImpl<$Res>
     implements $RequestInfoDtoCopyWith<$Res> {
-  _$RequestInfoDtoCopyWithImpl(this._value, this._then);
+  _$RequestInfoDtoCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final RequestInfoDto _self;
+  final $Res Function(RequestInfoDto) _then;
 
-  /// Create a copy of RequestInfoDto
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? message = null}) {
-    return _then(
-      _value.copyWith(
-            message: null == message
-                ? _value.message
-                : message // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of RequestInfoDto
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? message = null,}) {
+  return _then(_self.copyWith(
+message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
 }
 
-/// @nodoc
-abstract class _$$RequestInfoDtoImplCopyWith<$Res>
-    implements $RequestInfoDtoCopyWith<$Res> {
-  factory _$$RequestInfoDtoImplCopyWith(
-    _$RequestInfoDtoImpl value,
-    $Res Function(_$RequestInfoDtoImpl) then,
-  ) = __$$RequestInfoDtoImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({String message});
 }
 
-/// @nodoc
-class __$$RequestInfoDtoImplCopyWithImpl<$Res>
-    extends _$RequestInfoDtoCopyWithImpl<$Res, _$RequestInfoDtoImpl>
-    implements _$$RequestInfoDtoImplCopyWith<$Res> {
-  __$$RequestInfoDtoImplCopyWithImpl(
-    _$RequestInfoDtoImpl _value,
-    $Res Function(_$RequestInfoDtoImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of RequestInfoDto
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? message = null}) {
-    return _then(
-      _$RequestInfoDtoImpl(
-        message: null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [RequestInfoDto].
+extension RequestInfoDtoPatterns on RequestInfoDto {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RequestInfoDto value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _RequestInfoDto() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RequestInfoDto value)  $default,){
+final _that = this;
+switch (_that) {
+case _RequestInfoDto():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RequestInfoDto value)?  $default,){
+final _that = this;
+switch (_that) {
+case _RequestInfoDto() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String message)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _RequestInfoDto() when $default != null:
+return $default(_that.message);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String message)  $default,) {final _that = this;
+switch (_that) {
+case _RequestInfoDto():
+return $default(_that.message);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String message)?  $default,) {final _that = this;
+switch (_that) {
+case _RequestInfoDto() when $default != null:
+return $default(_that.message);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$RequestInfoDtoImpl implements _RequestInfoDto {
-  const _$RequestInfoDtoImpl({required this.message});
 
-  factory _$RequestInfoDtoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$RequestInfoDtoImplFromJson(json);
+class _RequestInfoDto implements RequestInfoDto {
+  const _RequestInfoDto({required this.message});
+  factory _RequestInfoDto.fromJson(Map<String, dynamic> json) => _$RequestInfoDtoFromJson(json);
 
-  @override
-  final String message;
+@override final  String message;
 
-  @override
-  String toString() {
-    return 'RequestInfoDto(message: $message)';
-  }
+/// Create a copy of RequestInfoDto
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RequestInfoDtoCopyWith<_RequestInfoDto> get copyWith => __$RequestInfoDtoCopyWithImpl<_RequestInfoDto>(this, _$identity);
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$RequestInfoDtoImpl &&
-            (identical(other.message, message) || other.message == message));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  /// Create a copy of RequestInfoDto
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$RequestInfoDtoImplCopyWith<_$RequestInfoDtoImpl> get copyWith =>
-      __$$RequestInfoDtoImplCopyWithImpl<_$RequestInfoDtoImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$RequestInfoDtoImplToJson(this);
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$RequestInfoDtoToJson(this, );
 }
 
-abstract class _RequestInfoDto implements RequestInfoDto {
-  const factory _RequestInfoDto({required final String message}) =
-      _$RequestInfoDtoImpl;
-
-  factory _RequestInfoDto.fromJson(Map<String, dynamic> json) =
-      _$RequestInfoDtoImpl.fromJson;
-
-  @override
-  String get message;
-
-  /// Create a copy of RequestInfoDto
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$RequestInfoDtoImplCopyWith<_$RequestInfoDtoImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RequestInfoDto&&(identical(other.message, message) || other.message == message));
 }
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,message);
+
+@override
+String toString() {
+  return 'RequestInfoDto(message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RequestInfoDtoCopyWith<$Res> implements $RequestInfoDtoCopyWith<$Res> {
+  factory _$RequestInfoDtoCopyWith(_RequestInfoDto value, $Res Function(_RequestInfoDto) _then) = __$RequestInfoDtoCopyWithImpl;
+@override @useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class __$RequestInfoDtoCopyWithImpl<$Res>
+    implements _$RequestInfoDtoCopyWith<$Res> {
+  __$RequestInfoDtoCopyWithImpl(this._self, this._then);
+
+  final _RequestInfoDto _self;
+  final $Res Function(_RequestInfoDto) _then;
+
+/// Create a copy of RequestInfoDto
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(_RequestInfoDto(
+message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

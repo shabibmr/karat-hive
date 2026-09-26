@@ -8,7 +8,6 @@ class RequestFiltersState {
   const RequestFiltersState({
     this.sort = 'NEWEST',
     this.requestType,
-    this.categoryId,
     this.regionId,
     this.purityKarat,
     this.minBudget,
@@ -20,7 +19,6 @@ class RequestFiltersState {
 
   final String sort; // NEWEST | EXPIRING | HIGHEST_VALUE | FEWEST_OFFERS
   final String? requestType;
-  final String? categoryId;
   final String? regionId;
   final String? purityKarat;
   final double? minBudget;
@@ -31,7 +29,6 @@ class RequestFiltersState {
 
   bool get hasActiveFilters =>
       requestType != null ||
-      categoryId != null ||
       regionId != null ||
       purityKarat != null ||
       minBudget != null ||
@@ -43,7 +40,6 @@ class RequestFiltersState {
   int get activeFilterCount {
     var count = 0;
     if (requestType != null) count++;
-    if (categoryId != null) count++;
     if (regionId != null) count++;
     if (purityKarat != null) count++;
     if (minBudget != null || maxBudget != null) count++;
@@ -56,8 +52,6 @@ class RequestFiltersState {
     String? sort,
     String? requestType,
     bool clearRequestType = false,
-    String? categoryId,
-    bool clearCategoryId = false,
     String? regionId,
     bool clearRegionId = false,
     String? purityKarat,
@@ -74,7 +68,6 @@ class RequestFiltersState {
     return RequestFiltersState(
       sort: sort ?? this.sort,
       requestType: clearRequestType ? null : (requestType ?? this.requestType),
-      categoryId: clearCategoryId ? null : (categoryId ?? this.categoryId),
       regionId: clearRegionId ? null : (regionId ?? this.regionId),
       purityKarat: clearPurityKarat ? null : (purityKarat ?? this.purityKarat),
       minBudget: clearMinBudget ? null : (minBudget ?? this.minBudget),
@@ -89,7 +82,6 @@ class RequestFiltersState {
     return {
       if (sort != 'NEWEST') 'sort': sort,
       if (requestType != null) 'requestType': requestType,
-      if (categoryId != null) 'categoryId': categoryId,
       if (regionId != null) 'regionId': regionId,
       if (purityKarat != null) 'purityKarat': purityKarat,
       if (minBudget != null) 'minBudget': minBudget,
@@ -128,7 +120,6 @@ class RequestFeedController
           cursor: cursor,
           sort: filters.sort,
           requestType: filters.requestType,
-          categoryId: filters.categoryId,
           regionId: filters.regionId,
           purityKarat: filters.purityKarat,
           minBudget: filters.minBudget,

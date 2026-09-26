@@ -30,12 +30,7 @@ RequestForCustomer _sampleOwnerRequest({
       requestType: RequestType.findOrnament,
       direction: direction,
       state: state,
-      category: const CategorySummary(
-        id: 'cat-1',
-        nameEn: 'Bangles',
-        nameAr: 'أساور',
-      ),
-      region: const RegionSummary(
+region: const RegionSummary(
         id: 'reg-1',
         nameEn: 'Dubai',
         nameAr: 'دبي',
@@ -75,7 +70,6 @@ void main() {
       expect(find.text('Bangle 25.5gm 22K'), findsOneWidget);
       expect(find.text('PUBLISHED'), findsOneWidget);
       expect(find.text('BUY'), findsOneWidget);
-      expect(find.text('Bangles'), findsOneWidget);
       expect(find.text('22K'), findsOneWidget);
 
       // Verify weight with approximate marker
@@ -266,3 +260,4 @@ void main() {
     });
   });
 }
+

@@ -42,21 +42,10 @@ describe('MatchingService', () => {
   });
 
   it('fans out matches on request publish (G2-M01)', async () => {
-    const count = await service.fanOutForRequest(
-      'req-1',
-      'FIND_ORNAMENT',
-      'cat-1',
-      'reg-1',
-    );
+    const count = await service.fanOutForRequest('req-1', 'FIND_ORNAMENT');
 
     expect(count).toBe(5);
-    expect(repo.fanOutMatches).toHaveBeenCalledWith(
-      'req-1',
-      'FIND_ORNAMENT',
-      'cat-1',
-      'reg-1',
-      mockNow,
-    );
+    expect(repo.fanOutMatches).toHaveBeenCalledWith('req-1', 'FIND_ORNAMENT', mockNow);
   });
 
   it('recomputes matches for vendor on eligibility change (G2-M05)', async () => {
@@ -86,15 +75,6 @@ describe('MatchingService', () => {
       requestType: 'FIND_ORNAMENT' as const,
       direction: 'BUY' as const,
       state: 'PUBLISHED' as const,
-      category: {
-        id: 'cat-1',
-        nameEn: 'Gold Ring',
-        nameAr: 'خاتم ذهب',
-        parentId: null,
-        isActive: true,
-        displayOrder: 1,
-        icon: null,
-      },
       region: {
         id: 'reg-1',
         nameEn: 'Dubai',

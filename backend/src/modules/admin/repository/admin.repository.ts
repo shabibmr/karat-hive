@@ -243,7 +243,6 @@ export class AdminRepository {
             media: true,
           },
         },
-        categories: { include: { category: true } },
         regions: { include: { region: true } },
         subscriptions: true,
       },
@@ -334,7 +333,6 @@ export class AdminRepository {
     state?: RequestState;
     requestType?: string;
     direction?: string;
-    categoryId?: string;
     regionId?: string;
     zeroOffers?: boolean;
     minValue?: number;
@@ -358,7 +356,6 @@ export class AdminRepository {
       ...(options.state ? { state: options.state } : {}),
       ...(options.requestType ? { requestType: options.requestType as RequestType } : {}),
       ...(options.direction ? { direction: options.direction as Direction } : {}),
-      ...(options.categoryId ? { categoryId: options.categoryId } : {}),
       ...(options.regionId ? { regionId: options.regionId } : {}),
       ...(options.zeroOffers === true ? { offerCount: 0 } : {}),
       ...(indicativeValue ? { indicativeValue } : {}),
@@ -388,7 +385,6 @@ export class AdminRepository {
             },
           },
         },
-        category: true,
         region: true,
       },
     });
@@ -410,7 +406,6 @@ export class AdminRepository {
           customerProfile: {
             include: { user: true },
           },
-          category: true,
           region: true,
           media: { include: { media: true } },
           matches: {
@@ -591,7 +586,6 @@ export class AdminRepository {
           request: {
             include: {
               customerProfile: { include: { user: true } },
-              category: true,
               region: true,
               acceptedOffer: true,
             },
@@ -1114,7 +1108,6 @@ export class AdminRepository {
       from?: string;
       to?: string;
       regionId?: string;
-      categoryId?: string;
       groupBy?: string;
     },
   ) {

@@ -1,5 +1,4 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import type { Category, Region } from '@prisma/client';
 import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
@@ -10,15 +9,11 @@ import { AuditWriter } from '../../audit';
 import {
   TaxonomyRepository,
   type CreateTaxonomyInput,
-  type TaxonomyKind,
   type UpdateTaxonomyInput,
 } from '../repository/taxonomy.repository';
 import {
-  presentCategories,
-  presentCategorySummary,
   presentRegions,
   presentRegionSummary,
-  type CategorySummary,
   type RegionSummary,
   type TaxonomyNode,
 } from '../presenter/taxonomy.presenter';
@@ -31,23 +26,8 @@ export class TaxonomyService {
     private readonly audit: AuditWriter,
   ) {}
 
-  async listTree(
-    kind: TaxonomyKind,
-    options?: { includeInactive?: boolean },
-  ): Promise<TaxonomyNode[]> {
-    const rows = await this.repo.list(kind, options);
-    return kind === 'category'
-      ? presentCategories(rows as Category[])
-      : presentRegions(rows as Region[]);
-  }
-
-  async createCategory(
-    input: CreateTaxonomyInput & { icon?: string },
-    viewer: ViewerContext,
-    client: ClientInfo,
-  ): Promise<CategorySummary> {
-    const result = await this.create('category', input, viewer, client);
-    return result as CategorySummary;
+  async listRegions(options?: { includeInactive?: boolean }): Promise<TaxonomyNode[]> {
+    return presentRegions(await this.repo.listRegions(options));
   }
 
   async createRegion(
@@ -55,96 +35,29 @@ export class TaxonomyService {
     viewer: ViewerContext,
     client: ClientInfo,
   ): Promise<RegionSummary> {
-    const result = await this.create('region', input, viewer, client);
-    return result as RegionSummary;
-  }
-
-  async updateCategory(
-    id: string,
-    input: UpdateTaxonomyInput & { icon?: string },
-    viewer: ViewerContext,
-    client: ClientInfo,
-  ): Promise<CategorySummary> {
-    const result = await this.update('category', id, input, viewer, client);
-    return result as CategorySummary;
-  }
-
-  async updateRegion(
-    id: string,
-    input: UpdateTaxonomyInput,
-    viewer: ViewerContext,
-    client: ClientInfo,
-  ): Promise<RegionSummary> {
-    const result = await this.update('region', id, input, viewer, client);
-    return result as RegionSummary;
-  }
-
-  async deactivateCategory(
-    id: string,
-    viewer: ViewerContext,
-    client: ClientInfo,
-  ): Promise<CategorySummary> {
-    const result = await this.deactivate('category', id, viewer, client);
-    return result as CategorySummary;
-  }
-
-  async deactivateRegion(
-    id: string,
-    viewer: ViewerContext,
-    client: ClientInfo,
-  ): Promise<RegionSummary> {
-    const result = await this.deactivate('region', id, viewer, client);
-    return result as RegionSummary;
-  }
-
-  async create(
-    kind: TaxonomyKind,
-    input: CreateTaxonomyInput,
-    viewer: ViewerContext,
-    client: ClientInfo,
-  ): Promise<CategorySummary | RegionSummary> {
     const nameEn = input.nameEn?.trim();
     const nameAr = input.nameAr?.trim();
     if (!nameEn || !nameAr) {
       throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.VALIDATION_FAILED, [
         ...(!nameEn
-          ? [
-              {
-                path: 'nameEn',
-                code: 'REQUIRED',
-                message: 'nameEn is mandatory and cannot be blank.',
-              },
-            ]
+          ? [{ path: 'nameEn', code: 'REQUIRED', message: 'nameEn is mandatory and cannot be blank.' }]
           : []),
         ...(!nameAr
-          ? [
-              {
-                path: 'nameAr',
-                code: 'REQUIRED',
-                message: 'nameAr is mandatory and cannot be blank.',
-              },
-            ]
+          ? [{ path: 'nameAr', code: 'REQUIRED', message: 'nameAr is mandatory and cannot be blank.' }]
           : []),
       ]);
     }
 
     return withTx(this.prisma, async (tx) => {
-      const created = await this.repo.create(
-        kind,
-        {
-          nameEn,
-          nameAr,
-          displayOrder: input.displayOrder,
-          isActive: input.isActive ?? true,
-          ...(kind === 'category' && input.icon !== undefined ? { icon: input.icon } : {}),
-        },
+      const created = await this.repo.createRegion(
+        { nameEn, nameAr, displayOrder: input.displayOrder, isActive: input.isActive ?? true },
         tx,
       );
 
       await this.audit.append(tx, {
         actorUserId: viewer.userId,
-        action: kind === 'category' ? 'CATEGORY_CREATE' : 'REGION_CREATE',
-        entityType: kind,
+        action: 'REGION_CREATE',
+        entityType: 'region',
         entityId: created.id,
         beforeValue: null,
         afterValue: {
@@ -158,20 +71,17 @@ export class TaxonomyService {
         userAgent: client.userAgent ?? null,
       });
 
-      return kind === 'category'
-        ? presentCategorySummary(created as Category)
-        : presentRegionSummary(created as Region);
+      return presentRegionSummary(created);
     });
   }
 
-  async update(
-    kind: TaxonomyKind,
+  async updateRegion(
     id: string,
     input: UpdateTaxonomyInput,
     viewer: ViewerContext,
     client: ClientInfo,
-  ): Promise<CategorySummary | RegionSummary> {
-    const existing = await this.repo.findById(kind, id);
+  ): Promise<RegionSummary> {
+    const existing = await this.repo.findRegionById(id);
     if (!existing) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
@@ -197,12 +107,12 @@ export class TaxonomyService {
     }
 
     return withTx(this.prisma, async (tx) => {
-      const updated = await this.repo.update(kind, id, input, tx);
+      const updated = await this.repo.updateRegion(id, input, tx);
 
       await this.audit.append(tx, {
         actorUserId: viewer.userId,
-        action: kind === 'category' ? 'CATEGORY_UPDATE' : 'REGION_UPDATE',
-        entityType: kind,
+        action: 'REGION_UPDATE',
+        entityType: 'region',
         entityId: updated.id,
         beforeValue: {
           id: existing.id,
@@ -222,30 +132,27 @@ export class TaxonomyService {
         userAgent: client.userAgent ?? null,
       });
 
-      return kind === 'category'
-        ? presentCategorySummary(updated as Category)
-        : presentRegionSummary(updated as Region);
+      return presentRegionSummary(updated);
     });
   }
 
-  async deactivate(
-    kind: TaxonomyKind,
+  async deactivateRegion(
     id: string,
     viewer: ViewerContext,
     client: ClientInfo,
-  ): Promise<CategorySummary | RegionSummary> {
-    const existing = await this.repo.findById(kind, id);
+  ): Promise<RegionSummary> {
+    const existing = await this.repo.findRegionById(id);
     if (!existing) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
 
     return withTx(this.prisma, async (tx) => {
-      const deactivated = await this.repo.deactivate(kind, id, tx);
+      const deactivated = await this.repo.deactivateRegion(id, tx);
 
       await this.audit.append(tx, {
         actorUserId: viewer.userId,
-        action: kind === 'category' ? 'CATEGORY_DEACTIVATE' : 'REGION_DEACTIVATE',
-        entityType: kind,
+        action: 'REGION_DEACTIVATE',
+        entityType: 'region',
         entityId: deactivated.id,
         beforeValue: { isActive: existing.isActive },
         afterValue: { isActive: false },
@@ -253,35 +160,28 @@ export class TaxonomyService {
         userAgent: client.userAgent ?? null,
       });
 
-      return kind === 'category'
-        ? presentCategorySummary(deactivated as Category)
-        : presentRegionSummary(deactivated as Region);
+      return presentRegionSummary(deactivated);
     });
   }
 
-  async delete(
-    kind: TaxonomyKind,
-    id: string,
-    viewer: ViewerContext,
-    client: ClientInfo,
-  ): Promise<void> {
-    const existing = await this.repo.findById(kind, id);
+  async deleteRegion(id: string, viewer: ViewerContext, client: ClientInfo): Promise<void> {
+    const existing = await this.repo.findRegionById(id);
     if (!existing) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
 
-    const refCount = await this.repo.countReferences(kind, id);
+    const refCount = await this.repo.countReferences(id);
     if (refCount > 0) {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.TAXONOMY_IN_USE);
     }
 
     await withTx(this.prisma, async (tx) => {
-      await this.repo.delete(kind, id, tx);
+      await this.repo.deleteRegion(id, tx);
 
       await this.audit.append(tx, {
         actorUserId: viewer.userId,
-        action: kind === 'category' ? 'CATEGORY_DELETE' : 'REGION_DELETE',
-        entityType: kind,
+        action: 'REGION_DELETE',
+        entityType: 'region',
         entityId: id,
         beforeValue: {
           id: existing.id,

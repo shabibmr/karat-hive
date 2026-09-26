@@ -151,12 +151,11 @@ describe('AdminService', () => {
     );
   });
 
-  it('verifies a vendor and sets state to ACTIVE when taxonomy exists', async () => {
+  it('verifies a vendor and sets state to ACTIVE (BR-002: type subscription only)', async () => {
     vi.mocked(mockRepo.findVendor).mockResolvedValueOnce({
       id: 'ven-1',
-      categories: [{ id: 'cat-1' }],
       regions: [{ id: 'reg-1' }],
-    } as unknown as VendorProfile & { categories: { id: string }[]; regions: { id: string }[] });
+    } as unknown as VendorProfile & { regions: { id: string }[] });
     vi.mocked(mockRepo.updateVendorVerification).mockResolvedValueOnce({
       id: 'ven-1',
       verificationState: 'VERIFIED',
@@ -440,7 +439,6 @@ describe('AdminService', () => {
       state: 'PUBLISHED' as const,
       requestType: 'FIND_ORNAMENT',
       direction: 'BUY',
-      categoryId: 'cat-1',
       regionId: 'reg-1',
       zeroOffers: true,
       minValue: 1000,

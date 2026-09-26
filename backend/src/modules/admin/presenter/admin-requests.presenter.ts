@@ -1,7 +1,6 @@
 import type {
   AdminNote,
   AdminProfile,
-  Category,
   Connection,
   CustomerProfile,
   Direction,
@@ -63,11 +62,6 @@ export type AdminRequestListItem = {
   direction: Direction;
   state: RequestState;
   customer: UnmaskedCustomerView;
-  category: {
-    id: string;
-    nameEn: string;
-    nameAr: string;
-  };
   region: {
     id: string;
     nameEn: string;
@@ -129,11 +123,6 @@ export type AdminRequestDetail = {
   direction: Direction;
   state: RequestState;
   customer: UnmaskedCustomerView;
-  category: {
-    id: string;
-    nameEn: string;
-    nameAr: string;
-  };
   region: {
     id: string;
     nameEn: string;
@@ -192,13 +181,11 @@ export type AdminRequestDetail = {
 
 export type RequestListRow = Request & {
   customerProfile: CustomerProfile & { user?: User };
-  category: Category;
   region: Region;
 };
 
 export type RequestDetailRow = Request & {
   customerProfile: CustomerProfile & { user?: User };
-  category: Category;
   region: Region;
   media?: Array<RequestMedia & { media?: Media }>;
   matches?: Array<RequestMatch & { vendorProfile?: VendorProfile & { user?: User } }>;
@@ -223,11 +210,6 @@ export function presentAdminRequestListItem(row: RequestListRow): AdminRequestLi
       mobileNumber: row.customerProfile.user?.mobileNumber,
       email: row.customerProfile.user?.email,
       accountState: row.customerProfile.user?.accountState,
-    },
-    category: {
-      id: row.category.id,
-      nameEn: row.category.nameEn,
-      nameAr: row.category.nameAr,
     },
     region: {
       id: row.region.id,

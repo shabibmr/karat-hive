@@ -401,7 +401,6 @@ describe('RegistrationService - registerVendor (G2-A11 Google completer)', () =>
     contactPersonName: 'Ali',
     businessEmail: 'shop@example.com',
     regionId: '11111111-1111-1111-1111-111111111111',
-    categoryIds: ['22222222-2222-2222-2222-222222222222'],
     servedRegionIds: ['11111111-1111-1111-1111-111111111111'],
     termsVersion: '1.0',
     privacyVersion: '1.0',
@@ -592,9 +591,9 @@ describe('RegistrationService - registerVendor (G2-A11 Google completer)', () =>
 
   it('registers a vendor with typed mobileNumber when OTP and Firebase are both skipped', async () => {
     // Typed mobile bypass leaves mobileVerifiedAt null (VO-05). Empty servedRegionIds
-    // seed from regionId (VO-20); categoryIds may still be deferred.
+    // seed from regionId (VO-20).
     await service.registerVendor(
-      { ...vendorBody, categoryIds: [], servedRegionIds: [], mobileNumber: '+971501234567' },
+      { ...vendorBody, servedRegionIds: [], mobileNumber: '+971501234567' },
       { ip: '127.0.0.1' },
     );
 
@@ -610,7 +609,6 @@ describe('RegistrationService - registerVendor (G2-A11 Google completer)', () =>
     expect(vendors.createProfile).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        categoryIds: [],
         servedRegionIds: [vendorBody.regionId],
       }),
     );

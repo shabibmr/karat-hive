@@ -12,7 +12,6 @@ const performanceQuerySchema = z.object({
   requestType: z
     .enum(['FIND_ORNAMENT', 'SELL_OLD_GOLD', 'GOLD_COIN', 'GOLD_BULLION'])
     .optional(),
-  categoryId: z.string().uuid().optional(),
   regionId: z.string().uuid().optional(),
 });
 

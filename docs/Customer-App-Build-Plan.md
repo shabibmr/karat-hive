@@ -6,8 +6,8 @@
 | **Document** | Customer mobile app build order and task register (`CUS-S01`…`CUS-S23`) |
 | **Status** | Working plan — `[PROPOSED]`. Front-end analogue of [`Backend-Implementation-Plan.md`](Backend-Implementation-Plan.md). Launch rule updated 11 September 2026 (`adr/0011`). |
 | **Date** | 11 September 2026 |
-| **Does not override** | SRS v1.4 · [`Architecture-Frontend.md`](Architecture-Frontend.md) · [`Screen-API-Map.md`](Screen-API-Map.md) · [`adr/0010`](adr/0010-google-signin-only-login.md) · [`adr/0011`](adr/0011-guest-first-landing.md) |
-| **Source of truth** | [`Requirements-Spec-v1.4.md`](Requirements-Spec-v1.4.md) · [`Architecture-Frontend.md`](Architecture-Frontend.md) §4–§7, §10, §11 · [`ui-screens/`](../ui-screens/) · [`ui-screens/component-widgets.md`](../ui-screens/component-widgets.md) |
+| **Does not override** | SRS v1.5 · [`Architecture-Frontend.md`](Architecture-Frontend.md) · [`Screen-API-Map.md`](Screen-API-Map.md) · [`adr/0010`](adr/0010-google-signin-only-login.md) · [`adr/0011`](adr/0011-guest-first-landing.md) |
+| **Source of truth** | [`Requirements-Spec-v1.5.md`](Requirements-Spec-v1.5.md) · [`Architecture-Frontend.md`](Architecture-Frontend.md) §4–§7, §10, §11 · [`ui-screens/`](../ui-screens/) · [`ui-screens/component-widgets.md`](../ui-screens/component-widgets.md) |
 | **Coverage inputs** | [`Screen-API-Map.md`](Screen-API-Map.md) §3 (`SAM-GAP-nn`) · [`Customer-App-Backend-Gaps.md`](Customer-App-Backend-Gaps.md) (`CBG-nn`) |
 | **Identifier prefix** | `CFE-nn` — Customer Front-End task. Stable, never reused. Distinct from `AD-FE-nn` (architecture decisions) and `ADM-FE-nnn` (Admin Checkpoint-1). |
 

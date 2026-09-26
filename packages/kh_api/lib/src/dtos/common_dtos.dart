@@ -26,29 +26,7 @@ class Paged<T> {
       );
 }
 
-Map<String, dynamic> _normalizeCategorySummaryJson(Map<String, dynamic> json) => {
-      ...json,
-      'nameEn': json['nameEn'] as String? ?? '',
-      'nameAr': json['nameAr'] as String? ?? '',
-      'isActive': json['isActive'] as bool? ?? true,
-      'displayOrder': json['displayOrder'] as int? ?? 0,
-    };
 
-/// `request.presenter.ts` `CategorySummary`.
-@freezed
-abstract class CategorySummaryDto with _$CategorySummaryDto {
-  const factory CategorySummaryDto({
-    required String id,
-    required String nameEn,
-    required String nameAr,
-    required bool isActive,
-    required int displayOrder,
-    String? icon,
-  }) = _CategorySummaryDto;
-
-  factory CategorySummaryDto.fromJson(Map<String, dynamic> json) =>
-      _$CategorySummaryDtoFromJson(_normalizeCategorySummaryJson(json));
-}
 
 Map<String, dynamic> _normalizeRegionSummaryJson(Map<String, dynamic> json) => {
       ...json,

@@ -72,7 +72,7 @@ class SubscriptionsScreen extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         l10n?.subscriptionsRequirementBanner ??
-                            'Each request category requires an active type subscription to receive matches and submit offers (BR-002).',
+                            'Each request type requires an active type subscription to receive matches and submit offers (BR-002).',
                         style: TextStyle(fontSize: 13, color: tokens.ink),
                       ),
                     ),
@@ -82,7 +82,7 @@ class SubscriptionsScreen extends ConsumerWidget {
               SizedBox(height: tokens.space.md),
 
               Text(
-                l10n?.categoryEntitlements ?? 'Category Entitlements',
+                l10n?.categoryEntitlements ?? 'Request Type Entitlements',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -304,7 +304,7 @@ class _SubscriptionCard extends StatelessWidget {
                 SizedBox(height: tokens.space.xs),
                 Text(
                   l10n?.subscriptionExpiredPaused ??
-                      'Subscription expired. Matching requests for this category are currently paused.',
+                      'Subscription expired. Matching requests for this request type are currently paused.',
                   style: TextStyle(
                     fontSize: 12,
                     color: tokens.danger,
@@ -315,7 +315,7 @@ class _SubscriptionCard extends StatelessWidget {
             ] else ...[
               Text(
                 l10n?.noActiveSubscription ??
-                    'No active subscription. You will not receive matches for this category.',
+                    'No active subscription. You will not receive matches for this request type.',
                 style: TextStyle(
                   fontSize: 12,
                   color: tokens.ink.withValues(alpha: 0.5),

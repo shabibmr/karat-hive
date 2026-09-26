@@ -12,7 +12,6 @@ export type AdminVendorListFilters = {
   verificationState?: VendorVerificationState;
   accountState?: UserAccountState;
   regionId?: string;
-  categoryId?: string;
   q?: string;
   cursor?: string;
   limit?: number;
@@ -41,7 +40,6 @@ export class AdminVendorRepository {
       where: { verificationState: 'PENDING_VERIFICATION' },
       include: {
         user: true,
-        categories: { include: { category: true } },
         regions: { include: { region: true } },
         documents: { include: { media: true } },
       },
@@ -80,9 +78,6 @@ export class AdminVendorRepository {
     if (filters.regionId) {
       where.regions = { some: { regionId: filters.regionId } };
     }
-    if (filters.categoryId) {
-      where.categories = { some: { categoryId: filters.categoryId } };
-    }
     if (filters.q) {
       const q = filters.q.trim();
       if (q.length > 0) {
@@ -113,7 +108,6 @@ export class AdminVendorRepository {
         where,
         include: {
           user: true,
-          categories: { include: { category: true } },
           regions: { include: { region: true } },
         },
         orderBy,
@@ -139,7 +133,6 @@ export class AdminVendorRepository {
           include: { media: true },
           orderBy: { uploadedAt: 'desc' },
         },
-        categories: { include: { category: true } },
         regions: { include: { region: true } },
         verifiedByAdmin: { include: { user: true } },
         subscriptions: true,
@@ -200,14 +193,7 @@ export class AdminVendorRepository {
       const actorUserId = admin?.userId ?? adminId;
 
       const now = new Date();
-      let activate = false;
-      if (state === 'VERIFIED') {
-        const [categoryCount, regionCount] = await Promise.all([
-          tx.vendorCategory.count({ where: { vendorProfileId: id } }),
-          tx.vendorRegion.count({ where: { vendorProfileId: id } }),
-        ]);
-        activate = categoryCount > 0 && regionCount > 0;
-      }
+      const activate = state === 'VERIFIED';
 
       const updateData: Prisma.VendorProfileUpdateInput = {
         verificationState: state,
@@ -220,9 +206,7 @@ export class AdminVendorRepository {
         }
         updateData.verificationNotes = rationale ?? profile.verificationNotes;
         updateData.verificationMessage = null;
-        if (activate) {
-          updateData.activatedAt = now;
-        }
+        updateData.activatedAt = now;
       } else if (state === 'REJECTED') {
         updateData.verificationNotes = rationale ?? null;
         updateData.verificationMessage = message ?? rationale ?? null;
@@ -282,7 +266,7 @@ export class AdminVendorRepository {
           payload: {
             vendorProfileId: id,
             vendorUserId: profile.userId,
-            reason: 'VERIFIED_WITH_TAXONOMY',
+            reason: 'VERIFIED',
           },
         });
         await this.audit.append(tx, {
@@ -356,16 +340,10 @@ export class AdminVendorRepository {
 
       const now = new Date();
       if (state === 'ACTIVE' && profile.verificationState === 'VERIFIED' && !profile.activatedAt) {
-        const [catCount, regCount] = await Promise.all([
-          tx.vendorCategory.count({ where: { vendorProfileId: id } }),
-          tx.vendorRegion.count({ where: { vendorProfileId: id } }),
-        ]);
-        if (catCount > 0 && regCount > 0) {
-          await tx.vendorProfile.update({
-            where: { id },
-            data: { activatedAt: now },
-          });
-        }
+        await tx.vendorProfile.update({
+          where: { id },
+          data: { activatedAt: now },
+        });
       }
 
       await enqueueOutbox(tx, {

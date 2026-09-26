@@ -6,9 +6,9 @@ part of 'verification_queue_item.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$VerificationQueueItemImpl _$$VerificationQueueItemImplFromJson(
+_VerificationQueueItem _$VerificationQueueItemFromJson(
   Map<String, dynamic> json,
-) => _$VerificationQueueItemImpl(
+) => _VerificationQueueItem(
   id: json['id'] as String,
   legalBusinessName: json['legalBusinessName'] as String,
   tradeLicenceNumber: json['tradeLicenceNumber'] as String,
@@ -19,8 +19,8 @@ _$VerificationQueueItemImpl _$$VerificationQueueItemImplFromJson(
       : DateTime.parse(json['submittedAt'] as String),
 );
 
-Map<String, dynamic> _$$VerificationQueueItemImplToJson(
-  _$VerificationQueueItemImpl instance,
+Map<String, dynamic> _$VerificationQueueItemToJson(
+  _VerificationQueueItem instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'legalBusinessName': instance.legalBusinessName,

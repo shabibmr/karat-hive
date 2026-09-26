@@ -11,15 +11,13 @@ export type VendorAccountState =
   | 'DEACTIVATED';
 
 export type AwaitingApprovalReason =
-  'PENDING_DOCUMENTS' | 'PENDING_ADMIN' | 'CATEGORIES_REQUIRED' | 'REJECTED';
+  'PENDING_DOCUMENTS' | 'PENDING_ADMIN' | 'ACTIVATION_PENDING' | 'REJECTED';
 
 export type VendorLifecycleInput = {
   accountState: UserAccountState;
   verificationState: VendorVerificationState;
   activatedAt: Date | null;
   hasMandatoryDocuments: boolean;
-  hasCategories: boolean;
-  hasRegions: boolean;
 };
 
 export function composeVendorLifecycle(input: VendorLifecycleInput): VendorAccountState {
@@ -46,7 +44,9 @@ export function awaitingApprovalReason(
     case 'REJECTED':
       return 'REJECTED';
     case 'VERIFIED':
-      return 'CATEGORIES_REQUIRED';
+      // Defensive/transient only: activation is unconditional on verification
+      // (see VendorVerificationService), so this composed state should not persist.
+      return 'ACTIVATION_PENDING';
     case 'PENDING_VERIFICATION':
       return input.hasMandatoryDocuments ? 'PENDING_ADMIN' : 'PENDING_DOCUMENTS';
     default:
@@ -54,17 +54,10 @@ export function awaitingApprovalReason(
   }
 }
 
-/** Whether declaring categories/regions should now flip the Vendor to ACTIVE. */
+/** Vendor marketplace access now gates on VERIFIED + a Type Subscription (BR-002), not taxonomy declarations. */
 export function shouldActivate(input: {
   verificationState: VendorVerificationState;
   activatedAt: Date | null;
-  hasCategories: boolean;
-  hasRegions: boolean;
 }): boolean {
-  return (
-    input.verificationState === 'VERIFIED' &&
-    input.activatedAt === null &&
-    input.hasCategories &&
-    input.hasRegions
-  );
+  return input.verificationState === 'VERIFIED' && input.activatedAt === null;
 }

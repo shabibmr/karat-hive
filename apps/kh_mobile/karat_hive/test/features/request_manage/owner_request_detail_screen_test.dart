@@ -68,7 +68,6 @@ RequestForCustomer _testRequest({
     requestType: RequestType.findOrnament,
     direction: Direction.buy,
     state: state,
-    category: const CategorySummary(id: 'cat-ring', nameEn: 'Rings', nameAr: 'خواتم'),
     region: const RegionSummary(id: 'reg-dxb', nameEn: 'Dubai', nameAr: 'دبي'),
     weightIsApproximate: false,
     budgetIsFlexible: false,
@@ -134,7 +133,6 @@ void main() {
       expect(find.byKey(const Key('owner-request-detail-screen')), findsOneWidget);
       expect(find.byKey(const Key('offer-count')), findsOneWidget);
       expect(find.textContaining('2'), findsWidgets);
-      expect(find.text('Rings'), findsWidgets);
       expect(find.text('Dubai'), findsOneWidget);
     });
 

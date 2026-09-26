@@ -50,24 +50,26 @@ class OfferParentRequestSummary with _$OfferParentRequestSummary {
     @JsonKey(unknownEnumValue: RequestType.findOrnament)
     RequestType? requestType,
     @_PartyConverter() Party? customer,
-    String? categoryName,
     String? regionName,
     double? indicativeValue,
     String? notes,
   }) = _OfferParentRequestSummary;
 
-  factory OfferParentRequestSummary.fromJson(Map<String, dynamic> json) {
-    final modified = Map<String, dynamic>.from(json);
-    if (modified['customer'] == null &&
-        (modified['customerName'] != null || modified['customerMobile'] != null)) {
-      modified['customer'] = {
-        'name': modified['customerName'],
-        'mobile': modified['customerMobile'],
-        'isMasked': modified['isMasked'] ?? false,
-      };
-    }
-    return _$OfferParentRequestSummaryFromJson(modified);
+  factory OfferParentRequestSummary.fromJson(Map<String, dynamic> json) =>
+      _$OfferParentRequestSummaryFromJson(_sanitizeParentRequestJson(json));
+}
+
+Map<String, dynamic> _sanitizeParentRequestJson(Map<String, dynamic> json) {
+  final modified = Map<String, dynamic>.from(json);
+  if (modified['customer'] == null &&
+      (modified['customerName'] != null || modified['customerMobile'] != null)) {
+    modified['customer'] = {
+      'name': modified['customerName'],
+      'mobile': modified['customerMobile'],
+      'isMasked': modified['isMasked'] ?? false,
+    };
   }
+  return modified;
 }
 
 /// Unmasked vendor profile summary embedded in [OfferDetail] (ADM-S11).

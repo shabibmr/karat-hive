@@ -112,9 +112,9 @@ class _AwaitingApprovalScreenState extends ConsumerState<AwaitingApprovalScreen>
         AwaitingApprovalReason.pendingAdmin =>
           l10n?.onboardingPendingAdmin ??
               'Our team is reviewing your documents.',
-        AwaitingApprovalReason.categoriesRequired =>
+        AwaitingApprovalReason.activationPending =>
           l10n?.onboardingCategoriesRequired ??
-              'Choose the categories and regions you serve.',
+              'Choose the regions you serve.',
         AwaitingApprovalReason.rejected =>
           l10n?.onboardingRejected ?? 'Your application needs changes.',
         _ => l10n?.onboardingPendingAdmin ??
@@ -128,7 +128,7 @@ class _AwaitingApprovalScreenState extends ConsumerState<AwaitingApprovalScreen>
       case VendorLifecycle.verified:
         buttons.add(
           KhButton(
-            label: l10n?.onboardingCategoriesRegions ?? 'Categories & regions',
+            label: l10n?.onboardingRegionsHeading ?? 'Regions',
             onPressed: () => c.go(AppGuards.categories),
           ),
         );

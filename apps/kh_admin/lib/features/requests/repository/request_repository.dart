@@ -29,8 +29,6 @@ class RequestRepository {
       if (filters.state != null) 'state': filters.state!.apiValue,
       if (filters.requestType != null) 'requestType': filters.requestType!.apiValue,
       if (filters.direction != null) 'direction': filters.direction!.apiValue,
-      if (filters.categoryId != null && filters.categoryId!.isNotEmpty)
-        'categoryId': filters.categoryId,
       if (filters.regionId != null && filters.regionId!.isNotEmpty)
         'regionId': filters.regionId,
       if (filters.zeroOffersOnly) 'zeroOffers': 'true',

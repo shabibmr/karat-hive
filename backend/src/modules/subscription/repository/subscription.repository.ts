@@ -16,7 +16,6 @@ export interface PerformanceFilters {
   from?: Date;
   to?: Date;
   requestType?: RequestType;
-  categoryId?: string;
   regionId?: string;
 }
 
@@ -151,11 +150,10 @@ export class SubscriptionRepository {
             },
           }
         : {}),
-      ...(filters.requestType || filters.categoryId || filters.regionId
+      ...(filters.requestType || filters.regionId
         ? {
             request: {
               ...(filters.requestType ? { requestType: filters.requestType } : {}),
-              ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
               ...(filters.regionId ? { regionId: filters.regionId } : {}),
             },
           }

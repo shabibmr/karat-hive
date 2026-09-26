@@ -45,7 +45,7 @@ class PendingPublishDraftSnapshot {
   });
 
   /// Raw field map mirroring the subset of [RequestCreateState] worth
-  /// restoring (requestType, direction, category/region, specs, budget…).
+  /// restoring (requestType, direction, region, specs, budget…).
   final Map<String, dynamic> fields;
 
   /// Server-side media keys only — local bytes/paths are not persisted

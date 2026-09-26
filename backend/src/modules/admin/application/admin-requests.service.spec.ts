@@ -15,7 +15,6 @@ describe('AdminRequestsService', () => {
     requestType: RequestType.FIND_ORNAMENT,
     direction: Direction.BUY,
     state: RequestState.PUBLISHED,
-    categoryId: 'cat-1',
     regionId: 'reg-1',
     notes: 'Looking for gold ring',
     indicativeValue: '3500.00',
@@ -37,11 +36,6 @@ describe('AdminRequestsService', () => {
         email: 'sara@example.com',
         accountState: 'ACTIVE',
       },
-    },
-    category: {
-      id: 'cat-1',
-      nameEn: 'Rings',
-      nameAr: 'خواتم',
     },
     region: {
       id: 'reg-1',

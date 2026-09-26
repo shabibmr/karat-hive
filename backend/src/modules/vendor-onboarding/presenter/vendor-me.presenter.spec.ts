@@ -26,11 +26,9 @@ describe('presentVendorMe logoUrl (Phase 0 fix)', () => {
     verificationState: 'VERIFIED',
     activatedAt: new Date('2026-09-01T00:00:00Z'),
     hasMandatoryDocuments: true,
-    hasCategories: true,
-    hasRegions: true,
   };
 
-  const counts = { categoryCount: 1, regionCount: 1, categoryIds: ['cat-1'], regionIds: ['reg-1'] };
+  const counts = { regionCount: 1, regionIds: ['reg-1'] };
 
   it('is null when the vendor has no logo', () => {
     const result = presentVendorMe({ ...profile, logoMedia: null }, lifecycleInput, counts);

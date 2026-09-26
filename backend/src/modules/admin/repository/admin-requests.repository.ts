@@ -22,7 +22,6 @@ export type AdminRequestListFilters = {
   requestType?: RequestType;
   direction?: Direction;
   state?: RequestState;
-  categoryId?: string;
   regionId?: string;
   valueMin?: number;
   valueMax?: number;
@@ -82,9 +81,6 @@ export class AdminRequestsRepository {
     if (filters.state) {
       where.state = filters.state;
     }
-    if (filters.categoryId) {
-      where.categoryId = filters.categoryId;
-    }
     if (filters.regionId) {
       where.regionId = filters.regionId;
     }
@@ -123,7 +119,6 @@ export class AdminRequestsRepository {
         where,
         include: {
           customerProfile: { include: { user: true } },
-          category: true,
           region: true,
         },
         orderBy,
@@ -146,7 +141,6 @@ export class AdminRequestsRepository {
         where: { id },
         include: {
           customerProfile: { include: { user: true } },
-          category: true,
           region: true,
           media: {
             include: { media: true },
@@ -236,7 +230,6 @@ export class AdminRequestsRepository {
         where: { id },
         include: {
           customerProfile: { include: { user: true } },
-          category: true,
           region: true,
         },
       });
@@ -262,7 +255,6 @@ export class AdminRequestsRepository {
         },
         include: {
           customerProfile: { include: { user: true } },
-          category: true,
           region: true,
         },
       });

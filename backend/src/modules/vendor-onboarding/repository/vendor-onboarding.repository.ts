@@ -83,20 +83,8 @@ export class VendorOnboardingRepository {
     });
   }
 
-  countCategories(vendorProfileId: string): Promise<number> {
-    return this.prisma.vendorCategory.count({ where: { vendorProfileId } });
-  }
-
   countRegions(vendorProfileId: string): Promise<number> {
     return this.prisma.vendorRegion.count({ where: { vendorProfileId } });
-  }
-
-  async listCategoryIds(vendorProfileId: string): Promise<string[]> {
-    const rows = await this.prisma.vendorCategory.findMany({
-      where: { vendorProfileId },
-      select: { categoryId: true },
-    });
-    return rows.map((r) => r.categoryId);
   }
 
   async listRegionIds(vendorProfileId: string): Promise<string[]> {
@@ -105,14 +93,6 @@ export class VendorOnboardingRepository {
       select: { regionId: true },
     });
     return rows.map((r) => r.regionId);
-  }
-
-  async replaceCategories(tx: DbTx, vendorProfileId: string, categoryIds: string[]): Promise<void> {
-    await tx.vendorCategory.deleteMany({ where: { vendorProfileId } });
-    await tx.vendorCategory.createMany({
-      data: categoryIds.map((categoryId) => ({ vendorProfileId, categoryId })),
-      skipDuplicates: true,
-    });
   }
 
   async replaceRegions(tx: DbTx, vendorProfileId: string, regionIds: string[]): Promise<void> {

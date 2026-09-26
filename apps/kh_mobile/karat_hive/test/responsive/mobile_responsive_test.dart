@@ -46,26 +46,12 @@ const List<({String name, Size size})> _viewports = [
 /// Real-shaped taxonomy so list rows render at full length. Overriding the
 /// providers also keeps the HTTP client — and its pending timeout timer — out
 /// of the test.
-const _categories = [
-  TaxonomyNode(
-    id: 'cat-necklaces',
-    nameEn: 'Bridal & Fine Necklaces',
-    nameAr: 'قلائد مجوهرات',
-  ),
-  TaxonomyNode(
-    id: 'cat-old-gold',
-    nameEn: 'Sell Old Gold Scrap',
-    nameAr: 'بيع الذهب القديم',
-  ),
-];
-
 const _regions = [
   TaxonomyNode(id: 'reg-dubai', nameEn: 'Dubai', nameAr: 'دبي'),
 ];
 
 Widget _host(Widget child) => ProviderScope(
       overrides: [
-        categoriesProvider.overrideWith((ref) async => _categories),
         regionsProvider.overrideWith((ref) async => _regions),
         khApiProvider.overrideWithValue(_stubApi()),
       ],

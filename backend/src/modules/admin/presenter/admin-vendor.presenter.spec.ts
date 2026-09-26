@@ -36,7 +36,6 @@ function baseRow(overrides: Partial<VendorDetailRow> = {}): VendorDetailRow {
       lastLoginAt: null,
     },
     documents: [],
-    categories: [],
     regions: [],
     ...overrides,
   } as unknown as VendorDetailRow;

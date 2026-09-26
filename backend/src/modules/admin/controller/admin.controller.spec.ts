@@ -177,13 +177,12 @@ describe('AdminController', () => {
   it('getReport forwards groupBy parameter (ADM-API-GAP-09)', async () => {
     service.getReport = vi.fn().mockResolvedValue({ name: 'request-volume', series: [] });
 
-    const res = await controller.getReport('request-volume', '2026-09-01', '2026-09-20', undefined, undefined, 'week');
+    const res = await controller.getReport('request-volume', '2026-09-01', '2026-09-20', undefined, 'week');
 
     expect(service.getReport).toHaveBeenCalledWith('request-volume', {
       from: '2026-09-01',
       to: '2026-09-20',
       regionId: undefined,
-      categoryId: undefined,
       groupBy: 'week',
     });
     expect(res).toEqual({ data: { name: 'request-volume', series: [] } });

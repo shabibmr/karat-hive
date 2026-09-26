@@ -57,7 +57,6 @@ export class OfferRepository {
             user: true,
           },
         },
-        category: true,
         region: true,
       },
     });
@@ -231,7 +230,6 @@ export class OfferRepository {
         },
         request: {
           include: {
-            category: true,
             region: true,
           },
         },
@@ -317,7 +315,6 @@ export class OfferRepository {
         },
         request: {
           include: {
-            category: true,
             region: true,
           },
         },
@@ -467,7 +464,6 @@ export class OfferRepository {
         media: { include: { media: true } },
         request: {
           include: {
-            category: true,
             region: true,
           },
         },

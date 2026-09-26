@@ -319,7 +319,6 @@ export class AdminController {
     @Query('state') state?: RequestState,
     @Query('requestType') requestType?: string,
     @Query('direction') direction?: string,
-    @Query('categoryId') categoryId?: string,
     @Query('regionId') regionId?: string,
     @Query('zeroOffers') zeroOffers?: string,
     @Query('minValue') minValue?: string,
@@ -334,7 +333,6 @@ export class AdminController {
       state,
       requestType,
       direction,
-      categoryId,
       regionId,
       zeroOffers: parseOptionalBoolean(zeroOffers),
       minValue: parseOptionalNumber(minValue),
@@ -700,10 +698,9 @@ export class AdminController {
     @Query('from') from?: string,
     @Query('to') to?: string,
     @Query('regionId') regionId?: string,
-    @Query('categoryId') categoryId?: string,
     @Query('groupBy') groupBy?: string,
   ) {
-    const data = await this.service.getReport(name, { from, to, regionId, categoryId, groupBy });
+    const data = await this.service.getReport(name, { from, to, regionId, groupBy });
     return { data };
   }
 

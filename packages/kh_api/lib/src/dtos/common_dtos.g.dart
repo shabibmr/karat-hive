@@ -6,26 +6,6 @@ part of 'common_dtos.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_CategorySummaryDto _$CategorySummaryDtoFromJson(Map<String, dynamic> json) =>
-    _CategorySummaryDto(
-      id: json['id'] as String,
-      nameEn: json['nameEn'] as String,
-      nameAr: json['nameAr'] as String,
-      isActive: json['isActive'] as bool,
-      displayOrder: (json['displayOrder'] as num).toInt(),
-      icon: json['icon'] as String?,
-    );
-
-Map<String, dynamic> _$CategorySummaryDtoToJson(_CategorySummaryDto instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'nameEn': instance.nameEn,
-      'nameAr': instance.nameAr,
-      'isActive': instance.isActive,
-      'displayOrder': instance.displayOrder,
-      'icon': instance.icon,
-    };
-
 _RegionSummaryDto _$RegionSummaryDtoFromJson(Map<String, dynamic> json) =>
     _RegionSummaryDto(
       id: json['id'] as String,

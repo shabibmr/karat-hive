@@ -179,8 +179,6 @@ export class AdminVendorService {
       verificationState: updated.verificationState,
       activatedAt: updated.activatedAt,
       hasMandatoryDocuments: (profile.documents ?? []).length > 0,
-      hasCategories: (profile.categories ?? []).length > 0,
-      hasRegions: (profile.regions ?? []).length > 0,
     });
 
     return { lifecycle };
@@ -220,8 +218,6 @@ export class AdminVendorService {
       verificationState: updated.verificationState,
       activatedAt: updated.activatedAt,
       hasMandatoryDocuments: (profile.documents ?? []).length > 0,
-      hasCategories: (profile.categories ?? []).length > 0,
-      hasRegions: (profile.regions ?? []).length > 0,
     });
 
     return { lifecycle };
@@ -261,8 +257,6 @@ export class AdminVendorService {
       verificationState: updated.verificationState,
       activatedAt: updated.activatedAt,
       hasMandatoryDocuments: (profile.documents ?? []).length > 0,
-      hasCategories: (profile.categories ?? []).length > 0,
-      hasRegions: (profile.regions ?? []).length > 0,
     });
 
     return { lifecycle };
@@ -291,8 +285,6 @@ export class AdminVendorService {
       verificationState: profile.verificationState,
       activatedAt: profile.activatedAt,
       hasMandatoryDocuments: (profile.documents ?? []).length > 0,
-      hasCategories: (profile.categories ?? []).length > 0,
-      hasRegions: (profile.regions ?? []).length > 0,
     });
 
     return {
@@ -364,8 +356,6 @@ export class AdminVendorService {
       verificationState: profile.verificationState,
       activatedAt: profile.activatedAt,
       hasMandatoryDocuments: (profile.documents ?? []).length > 0,
-      hasCategories: (profile.categories ?? []).length > 0,
-      hasRegions: (profile.regions ?? []).length > 0,
     });
 
     return {

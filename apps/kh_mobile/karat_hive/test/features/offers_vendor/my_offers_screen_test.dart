@@ -35,7 +35,6 @@ OfferForVendor _testOffer({
       requestType: RequestType.findOrnament,
       direction: Direction.buy,
       customerLabel: 'Customer · Deira',
-      categoryName: 'Bangles',
     ),
   );
 }
@@ -191,7 +190,6 @@ void main() {
       expect(find.byType(OfferSummaryCard), findsNWidgets(2));
       expect(find.byKey(const Key('offer-summary-off-1')), findsOneWidget);
       expect(find.byKey(const Key('offer-summary-off-2')), findsOneWidget);
-      expect(find.text('Bangles'), findsNWidgets(2));
       expect(find.text('Customer · Deira'), findsNWidgets(2));
       expect(find.textContaining('AED'), findsWidgets);
 

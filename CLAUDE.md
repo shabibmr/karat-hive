@@ -14,8 +14,8 @@ When a decision needs tracing back, read in this order. Later documents may not 
 |---|---|
 | `docs/Requirements-raw.txt` | **Sole source input.** Never edit. Every requirement traces to a line number here |
 | `CONTEXT.md` | Ubiquitous language — binding vocabulary, including the `_Avoid_` list under each term |
-| `docs/Requirements-Spec-v1.4.md` | **Authoritative SRS.** What the system must do |
-| `docs/adr/0001`–`0013` | Why the shape is this shape, one decision each. `0010` Google-only login; `0011` Guest-first launch; `0013` object storage on Oracle S3 (`ap-hyderabad-1`; supersedes `0012` R2 KYC) |
+| `docs/Requirements-Spec-v1.5.md` | **Authoritative SRS.** What the system must do |
+| `docs/adr/0001`–`0014` | Why the shape is this shape, one decision each. `0010` Google-only login; `0011` Guest-first launch; `0013` object storage on Oracle S3 (`ap-hyderabad-1`; supersedes `0012` R2 KYC); `0014` Category taxonomy entity removed |
 | `docs/Architecture-Backend.md`, `docs/Architecture-Frontend.md` | How it gets built. Derived from the SRS; cite it, never restate it |
 | `docs/API-Route-Inventory.md` | Pre-code HTTP catalogue (`[PROPOSED]`). Superseded by generated OpenAPI (`NFR-030`) once code exists |
 | `docs/Physical-Data-Model.md` | Pre-code Postgres schema (`[PROPOSED]`). Encoded in `backend/prisma/schema.prisma` |
@@ -75,7 +75,7 @@ Load-bearing. Any document or code that weakens one is wrong regardless of what 
 1. **Identity masking until Acceptance** — masking is enforced server-side (`edge/masking`); reveal is scoped to the single Connection that produced it (`BR-007`), never generalised.
 2. **Vendor never learns a competitor's identity, price, or terms** — before, during, or after (`BR-008`). Only the Offer count.
 3. **A Vendor needs three things**, not one: verification, `ACTIVE`, and an active Type Subscription for that Request type.
-4. **Taxonomy is flat.** `Category` and `Region` are single-level lists — no `parentId`, no depth, sort by `display_order` only (migration `20260915120000_flatten_taxonomy`). Don't reintroduce hierarchy without a new ADR.
+4. **Category entity removed; Region is flat display/filter.** The `Category` taxonomy entity has been completely removed (`adr/0014`). `Region` remains a flat display and feed filter taxonomy — no `parentId`, no depth, sort by `display_order` only. Matching depends strictly on `VERIFIED` + `ACTIVE` status and an active Type Subscription for the Request type (`BR-002`).
 5. **Units:** AED, grams, karat/fineness. Timestamps stored UTC, displayed Gulf Standard Time (`BR-021`).
 
 ## Fixed technology stack
