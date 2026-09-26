@@ -6,7 +6,6 @@ export type CustomerRequestView = {
   requestType: string;
   direction: string;
   state: string;
-  categoryId: string;
   regionId: string;
   notes: string | null;
   weightGrams: string | null;
@@ -36,7 +35,6 @@ export function presentCustomerRequest(request: Request): CustomerRequestView {
     requestType: request.requestType,
     direction: request.direction,
     state: request.state,
-    categoryId: request.categoryId,
     regionId: request.regionId,
     notes: request.notes,
     weightGrams: request.weightGrams ? request.weightGrams.toFixed(2) : null,

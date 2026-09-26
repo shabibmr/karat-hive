@@ -128,25 +128,6 @@ describe('AdminVendorService', () => {
         },
       },
     ],
-    categories: [
-      {
-        id: 'vc-1',
-        vendorProfileId: 'vendor-1',
-        categoryId: 'cat-1',
-        createdAt: new Date(),
-        category: {
-          id: 'cat-1',
-          parentId: null,
-          nameEn: 'Gold Bars',
-          nameAr: 'سبائك ذهبية',
-          icon: null,
-          displayOrder: 1,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      },
-    ],
     regions: [
       {
         id: 'vr-1',
@@ -260,7 +241,6 @@ describe('AdminVendorService', () => {
       expect(result.mobileNumber).toBe('+971501234567');
       expect(result.documents).toHaveLength(1);
       expect(result.documents[0]!.documentType).toBe('TRADE_LICENCE');
-      expect(result.categories).toEqual(['Gold Bars']);
       expect(result.regions).toEqual(['Dubai']);
     });
 

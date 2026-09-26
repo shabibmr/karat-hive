@@ -180,7 +180,6 @@ class OfferRepository {
               'reference': request['reference'],
               'requestType': request['requestType'],
               'customer': _buildCustomerParty(customerProfile, customerUser, raw['state'])?.toJson(),
-              'categoryName': null,
               'regionName': null,
               'indicativeValue': toDoubleOrNull(request['indicativeValue']),
               'notes': request['notes'],

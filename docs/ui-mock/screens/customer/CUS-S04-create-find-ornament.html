@@ -1,0 +1,126 @@
+<section class="screen" data-screen="CUS-S04" data-title="Find An Ornament">
+  <div class="screen-block">
+    <div class="section-label">Create Request · Step 1 of 2</div>
+    <h1 class="screen-heading">Find An Ornament</h1>
+    <div class="progress-bar" style="margin-bottom:1.25rem"><span style="width:50%"></span></div>
+  </div>
+
+  <div class="card frame-deco" style="margin-bottom:1.5rem">
+    <div class="field-row">
+      <span class="field-label">Request Type</span>
+      <span class="status-chip status-published">Find An Ornament (BUY)</span>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Target Region</span>
+      <select style="width:auto;min-height:36px;padding:0.25rem 0.5rem">
+        <option selected>Dubai</option>
+        <option>Abu Dhabi</option>
+        <option>Sharjah</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2 class="section-title">1. Item Specifications</h2>
+    
+    <div class="field">
+      <label class="field-label">Ornament Type <span class="field-hint">*</span></label>
+      <select>
+        <option selected>Necklace</option>
+        <option>Ring</option>
+        <option>Chain</option>
+        <option>Bangle</option>
+        <option>Earring</option>
+        <option>Bracelet</option>
+        <option>Pendant</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Estimated Weight (g) <span class="field-hint">*</span></label>
+      <input type="number" step="0.1" value="18.50" placeholder="e.g. 18.5" />
+      <label class="field-check" style="margin-top:4px">
+        <input type="checkbox" checked />
+        <span class="field-hint">Weight is approximate (jewellers will quote exact weight)</span>
+      </label>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Target Purity <span class="field-hint">*</span></label>
+      <select id="ornament-purity">
+        <option>24K Pure Gold</option>
+        <option selected>22K Gold (AED 469.53 / g)</option>
+        <option>21K Gold (AED 448.35 / g)</option>
+        <option>18K Gold (AED 384.30 / g)</option>
+      </select>
+    </div>
+
+    <div class="card card-gold-rate" style="padding:0.75rem;margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="field-hint">Indicative 22K Rate:</span>
+        <strong style="color:var(--gold-200)">AED 469.53 / g</strong>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-check">
+        <input type="checkbox" checked />
+        <span>Include Gemstones (Diamonds, Sapphires, Rubies)</span>
+      </label>
+    </div>
+    
+    <div class="field" style="grid-template-columns: 1fr 1fr; display: grid; gap: 8px;">
+      <div>
+        <label class="field-label">Gemstone Type</label>
+        <input type="text" value="Diamond" />
+      </div>
+      <div>
+        <label class="field-label">Count / Carat</label>
+        <input type="text" value="3 stones (approx 0.5 ct)" />
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2 class="section-title">2. Budget & Details</h2>
+
+    <div class="field" style="grid-template-columns: 1fr 1fr; display: grid; gap: 8px;">
+      <div>
+        <label class="field-label">Min Budget (AED)</label>
+        <input type="number" value="14000" />
+      </div>
+      <div>
+        <label class="field-label">Max Budget (AED) <span class="field-hint">*</span></label>
+        <input type="number" value="16000" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-check">
+        <input type="checkbox" checked />
+        <span class="field-hint">Budget is flexible for extraordinary design/craftsmanship</span>
+      </label>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Design Notes & Preferences</label>
+      <textarea rows="3" placeholder="Describe the style, finish (mat/polished), or custom details...">Looking for an elegant 22K Art Deco necklace with diamond accents. Flexible on timeline.</textarea>
+      <div class="field-hint">Do not include phone numbers or personal contact details.</div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2 class="section-title">3. Reference Photos</h2>
+    <div class="media-grid" style="margin-bottom:8px">
+      <img src="assets/images/ornament.jpg" alt="Reference photo 1" />
+      <div class="slot-upload" data-nav="CUS-S08">+ Add Photo</div>
+      <div class="slot-upload" data-nav="CUS-S08">+ Add Photo</div>
+    </div>
+    <div class="field-hint">Upload 1 to 5 reference photos. Jewellers use these to match or manufacture your piece.</div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn btn-gold btn-block gold-light" data-nav="CUS-S09">Continue to Review &amp; Publish →</button>
+    <button type="button" class="btn btn-secondary btn-block">Save as Draft</button>
+  </div>
+</section>

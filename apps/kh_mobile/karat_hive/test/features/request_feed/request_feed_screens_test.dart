@@ -28,8 +28,6 @@ VendorRequestItem _testRequest({
     requestType: 'FIND_ORNAMENT',
     direction: 'BUY',
     state: 'PUBLISHED',
-    categoryId: 'cat-ring',
-    categoryName: 'Rings',
     regionId: 'reg-dxb',
     regionName: 'Dubai',
     purityKarat: '22',
@@ -200,8 +198,6 @@ void main() {
       expect(find.byType(VendorRequestCard), findsOneWidget);
       // Specs-based display title, not the system KH-RQ reference.
       expect(find.text(item.displayTitle()), findsOneWidget);
-      expect(find.text('REQ-2026-0001'), findsNothing);
-      expect(find.text('Rings'), findsOneWidget);
       expect(find.text('22K'), findsOneWidget);
       expect(find.text('3 offers'), findsOneWidget);
 
@@ -219,8 +215,6 @@ void main() {
         requestType: 'FIND_ORNAMENT',
         direction: 'BUY',
         state: 'PUBLISHED',
-        categoryId: 'cat-ring',
-        categoryName: 'Rings',
         regionId: 'reg-dxb',
         regionName: 'Dubai',
         purityKarat: '22',
@@ -290,7 +284,7 @@ void main() {
       expect(find.byKey(const Key('empty-feed-subscriptions-cta')), findsOneWidget);
       expect(find.text('Reset Filters'), findsNothing);
       expect(
-        find.textContaining('Broaden your Categories and Regions'),
+        find.textContaining('Broaden your Regions'),
         findsOneWidget,
       );
     });
@@ -302,11 +296,6 @@ void main() {
         ProviderScope(
           overrides: [
             requestFeedRepositoryProvider.overrideWithValue(fakeRepo),
-            categoriesProvider.overrideWith(
-              (ref) async => const [
-                TaxonomyNode(id: 'cat-ring', nameEn: 'Rings', nameAr: 'خواتم'),
-              ],
-            ),
             regionsProvider.overrideWith(
               (ref) async => const [
                 TaxonomyNode(id: 'reg-dxb', nameEn: 'Dubai', nameAr: 'دبي'),

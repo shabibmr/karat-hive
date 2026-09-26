@@ -31,7 +31,6 @@ const karatEnum = z.enum(['24K', '22K', '21K', '18K', 'K24', 'K22', 'K21', 'K18'
 const createRequestSchema = z.object({
   requestType: z.enum(['FIND_ORNAMENT', 'SELL_OLD_GOLD', 'GOLD_COIN', 'GOLD_BULLION']),
   direction: z.enum(['BUY', 'SELL']).optional(),
-  categoryId: z.string().uuid().optional(),
   regionId: z.string().uuid().optional(),
   notes: z.string().max(2000).optional(),
   weightGrams: z.union([z.number().positive(), z.string()]).optional(),

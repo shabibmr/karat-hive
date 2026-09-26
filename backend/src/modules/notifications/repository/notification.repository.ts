@@ -33,7 +33,6 @@ export type AnnouncementAudience = {
   userTypes?: UserType[];
   accountStates?: UserAccountState[];
   regionIds?: string[];
-  categoryIds?: string[];
 };
 
 @Injectable()
@@ -295,21 +294,11 @@ export class NotificationRepository {
     };
 
     const regionIds = audience.regionIds ?? [];
-    const categoryIds = audience.categoryIds ?? [];
-    if (regionIds.length > 0 || categoryIds.length > 0) {
-      const or: Prisma.UserWhereInput[] = [];
-      if (regionIds.length > 0) {
-        or.push({ customerProfile: { defaultRegionId: { in: regionIds } } });
-        or.push({
-          vendorProfile: { regions: { some: { regionId: { in: regionIds } } } },
-        });
-      }
-      if (categoryIds.length > 0) {
-        or.push({
-          vendorProfile: { categories: { some: { categoryId: { in: categoryIds } } } },
-        });
-      }
-      where.OR = or;
+    if (regionIds.length > 0) {
+      where.OR = [
+        { customerProfile: { defaultRegionId: { in: regionIds } } },
+        { vendorProfile: { regions: { some: { regionId: { in: regionIds } } } } },
+      ];
     }
 
     const rows = await this.prisma.user.findMany({

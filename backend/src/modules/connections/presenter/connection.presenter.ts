@@ -1,5 +1,4 @@
 import type {
-  Category,
   ClosedBy,
   Connection,
   ConnectionState,
@@ -13,9 +12,7 @@ import type {
   VendorRegion,
 } from '@prisma/client';
 import {
-  presentCategory,
   presentRegion,
-  type CategorySummary,
   type RegionSummary,
 } from '../../requests/presenter/request.presenter';
 
@@ -64,7 +61,6 @@ export type ConnectionForCustomer = {
     reference?: string;
     requestType: string;
     direction: string;
-    category: CategorySummary;
     region: RegionSummary;
   };
   talk: TalkDto;
@@ -104,7 +100,6 @@ export type ConnectionForVendor = {
     reference?: string;
     requestType: string;
     direction: string;
-    category: CategorySummary;
     region: RegionSummary;
   };
   talk: TalkDto;
@@ -113,7 +108,6 @@ export type ConnectionForVendor = {
 export type PrismaConnectionWithDetails = Connection & {
   offer: Offer;
   request: Request & {
-    category: Category;
     region: Region;
   };
   customerProfile: CustomerProfile & {
@@ -214,7 +208,6 @@ export function presentConnectionForCustomer(
       reference: conn.request.reference ?? undefined,
       requestType: conn.request.requestType,
       direction: conn.request.direction,
-      category: presentCategory(conn.request.category),
       region: presentRegion(conn.request.region),
     },
     talk: buildTalkDto(conn.state, vp.user.mobileNumber, conn.request.reference, priceStr, language),
@@ -269,7 +262,6 @@ export function presentConnectionForVendor(
       reference: conn.request.reference ?? undefined,
       requestType: conn.request.requestType,
       direction: conn.request.direction,
-      category: presentCategory(conn.request.category),
       region: presentRegion(conn.request.region),
     },
     talk: buildTalkDto(conn.state, cp.user.mobileNumber, conn.request.reference, priceStr, language),

@@ -23,9 +23,7 @@ export type VendorMe = {
   description: string | null;
   businessHours: unknown | null;
   verifiedAt: string | null;
-  categoryCount: number;
   regionCount: number;
-  categoryIds: string[];
   regionIds: string[];
   awayMode: boolean;
 };
@@ -42,9 +40,7 @@ export function presentVendorMe(
   profile: VendorProfile & { logoMedia?: Media | null },
   lifecycleInput: VendorLifecycleInput,
   counts: {
-    categoryCount: number;
     regionCount: number;
-    categoryIds?: string[];
     regionIds?: string[];
   },
 ): VendorMe {
@@ -68,9 +64,7 @@ export function presentVendorMe(
     description: profile.description ?? null,
     businessHours: profile.businessHours ?? null,
     verifiedAt: profile.verifiedAt ? profile.verifiedAt.toISOString() : null,
-    categoryCount: counts.categoryCount,
     regionCount: counts.regionCount,
-    categoryIds: counts.categoryIds ?? [],
     regionIds: counts.regionIds ?? [],
     awayMode: profile.awayMode,
   };

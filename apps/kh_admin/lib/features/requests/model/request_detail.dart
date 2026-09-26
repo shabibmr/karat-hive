@@ -421,7 +421,6 @@ class RequestDetail with _$RequestDetail {
     @Default(RequestState.draft)
     RequestState state,
     required CustomerProfileSummary customer,
-    @Default('—') String categoryName,
     @Default('—') String regionName,
     String? ornamentType,
     double? weightGrams,
@@ -473,18 +472,6 @@ class RequestDetail with _$RequestDetail {
         email: json['customerEmail']?.toString(),
       );
     }
-
-    final categoryObj = json['category'];
-    String catName = json['categoryName']?.toString() ?? '';
-    if (categoryObj is Map<String, dynamic>) {
-      catName = categoryObj['nameEn']?.toString() ??
-          categoryObj['name']?.toString() ??
-          catName;
-    } else if (categoryObj is String && categoryObj.isNotEmpty) {
-      catName = categoryObj;
-    }
-    if (catName.isEmpty) catName = '—';
-
     final regionObj = json['region'];
     String regName = json['regionName']?.toString() ?? '';
     if (regionObj is Map<String, dynamic>) {
@@ -591,7 +578,6 @@ class RequestDetail with _$RequestDetail {
       direction: dir,
       state: st,
       customer: customerSummary,
-      categoryName: catName,
       regionName: regName,
       ornamentType: json['ornamentType']?.toString(),
       weightGrams: parseNum(json['weightGrams']),

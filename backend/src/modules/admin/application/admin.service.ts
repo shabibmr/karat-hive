@@ -152,7 +152,6 @@ export class AdminService {
       adminProfileId,
     );
 
-    const hasTaxonomy = vendor.categories.length > 0 && vendor.regions.length > 0;
     const now = new Date();
 
     const updated = await this.repo.updateVendorVerification(id, {
@@ -161,19 +160,17 @@ export class AdminService {
       verificationMessage: null,
       verifiedByAdminId: resolvedAdminProfileId,
       verifiedAt: now,
-      ...(hasTaxonomy ? { activatedAt: now } : {}),
+      activatedAt: now,
     });
 
-    if (hasTaxonomy) {
-      await this.repo.updateVendorAccountState(id, 'ACTIVE');
-    }
+    await this.repo.updateVendorAccountState(id, 'ACTIVE');
 
     await this.audit.append(this.prisma, {
       actorUserId,
       action: 'VENDOR_VERIFIED',
       entityType: 'vendor_profile',
       entityId: id,
-      afterValue: { rationale: dto.rationale, accountState: hasTaxonomy ? 'ACTIVE' : 'REGISTERED' },
+      afterValue: { rationale: dto.rationale, accountState: 'ACTIVE' },
     });
 
     return updated;
@@ -305,7 +302,6 @@ export class AdminService {
     state?: RequestState;
     requestType?: string;
     direction?: string;
-    categoryId?: string;
     regionId?: string;
     zeroOffers?: boolean;
     minValue?: number;
@@ -792,7 +788,6 @@ export class AdminService {
       from?: string;
       to?: string;
       regionId?: string;
-      categoryId?: string;
       groupBy?: string;
     },
   ) {
@@ -893,7 +888,7 @@ export class AdminService {
   }
 }
 
-type ReportFilters = { from?: string; to?: string; regionId?: string; categoryId?: string };
+type ReportFilters = { from?: string; to?: string; regionId?: string };
 
 function asReportFilters(value: unknown): ReportFilters {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
@@ -902,7 +897,6 @@ function asReportFilters(value: unknown): ReportFilters {
     ...(typeof rec.from === 'string' ? { from: rec.from } : {}),
     ...(typeof rec.to === 'string' ? { to: rec.to } : {}),
     ...(typeof rec.regionId === 'string' ? { regionId: rec.regionId } : {}),
-    ...(typeof rec.categoryId === 'string' ? { categoryId: rec.categoryId } : {}),
   };
 }
 

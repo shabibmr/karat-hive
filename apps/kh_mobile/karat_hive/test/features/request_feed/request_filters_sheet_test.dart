@@ -9,10 +9,6 @@ import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
-const _categories = [
-  TaxonomyNode(id: 'cat-ring', nameEn: 'Rings', nameAr: 'خواتم'),
-];
-
 const _regions = [
   TaxonomyNode(id: 'reg-dxb', nameEn: 'Dubai', nameAr: 'دبي'),
 ];
@@ -32,7 +28,6 @@ class _FakeRequestFeedRepository implements RequestFeedRepository {
     int limit = 20,
     String? sort,
     String? requestType,
-    String? categoryId,
     String? regionId,
     double? minBudget,
     double? maxBudget,
@@ -125,7 +120,6 @@ Future<ProviderContainer> _openSheet(
   final container = ProviderContainer(
     overrides: [
       requestFeedRepositoryProvider.overrideWithValue(repo),
-      categoriesProvider.overrideWith((ref) async => _categories),
       regionsProvider.overrideWith((ref) async => _regions),
     ],
   );

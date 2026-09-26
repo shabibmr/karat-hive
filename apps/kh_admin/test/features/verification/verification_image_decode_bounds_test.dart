@@ -91,7 +91,6 @@ class _FakeVendorRepo extends VendorRepository {
       mobileNumber: '+971 50 123 4567',
       verificationState: VendorVerificationState.pendingVerification,
       accountState: VendorAccountState.active,
-      categories: const ['Gold Jewellery'],
       regions: const ['Dubai'],
       documents: [
         VendorDocumentDetail(

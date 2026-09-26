@@ -25,8 +25,8 @@ void main() {
   });
 
   test('AwaitingApprovalReason.parse', () {
-    expect(AwaitingApprovalReason.parse('CATEGORIES_REQUIRED'),
-        AwaitingApprovalReason.categoriesRequired);
+    expect(AwaitingApprovalReason.parse('ACTIVATION_PENDING'),
+        AwaitingApprovalReason.activationPending);
     expect(AwaitingApprovalReason.parse('???'), AwaitingApprovalReason.unknown);
   });
 
@@ -38,7 +38,6 @@ void main() {
       'awaitingApprovalReason': 'PENDING_DOCUMENTS',
       'tradingName': 'Al Noor',
       'legalBusinessName': 'Al Noor LLC',
-      'categoryCount': 1,
       'regionCount': 2,
       'verificationMessage': 'Upload a clearer licence.',
     });
@@ -59,7 +58,6 @@ void main() {
       'awaitingApproval': false,
       'tradingName': 'Al Noor',
       'legalBusinessName': 'Al Noor LLC',
-      'categoryCount': 1,
       'regionCount': 1,
       'verifiedAt': '2026-01-15T10:00:00.000Z',
       'rating': {
@@ -93,7 +91,6 @@ void main() {
       'awaitingApproval': false,
       'tradingName': 'Al Noor',
       'legalBusinessName': 'Al Noor LLC',
-      'categoryCount': 0,
       'regionCount': 0,
       'offersSubmittedCount': 3,
       'offersAcceptedCount': 2,
@@ -108,7 +105,6 @@ void main() {
       'awaitingApproval': false,
       'tradingName': 'Al Noor',
       'legalBusinessName': 'Al Noor LLC',
-      'categoryCount': 0,
       'regionCount': 0,
       'description': 'Bridal sets and bullion.',
       'contactPersonName': 'Sara',

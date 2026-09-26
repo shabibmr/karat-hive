@@ -98,7 +98,6 @@ Map<String, dynamic> _normalizeConnectionRequestRefJson(
       'direction': json['direction'] as String? ?? '',
       // required-but-possibly-absent nested objects default to {} like the
       // original manual parser, then get auto-delegated to their own fromJson.
-      'category': (json['category'] as Map<String, dynamic>?) ?? const {},
       'region': (json['region'] as Map<String, dynamic>?) ?? const {},
     };
 
@@ -109,7 +108,6 @@ abstract class ConnectionRequestRefDto with _$ConnectionRequestRefDto {
     String? reference,
     required String requestType,
     required String direction,
-    required CategorySummaryDto category,
     required RegionSummaryDto region,
   }) = _ConnectionRequestRefDto;
 

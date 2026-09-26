@@ -73,7 +73,6 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final presetsAsync = ref.watch(filterPresetsListProvider);
-    final categoriesAsync = ref.watch(categoriesProvider);
     final regionsAsync = ref.watch(regionsProvider);
 
     // Material (not DecoratedBox) so SwitchListTile ink/background resolve correctly.
@@ -215,55 +214,6 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
                       });
                     });
                   }).toList(growable: false),
-                ),
-                SizedBox(height: tokens.space.md),
-
-                // --- Category ---
-                Text(l10n?.category ?? 'Category', style: theme.textTheme.titleSmall),
-                SizedBox(height: tokens.space.xs),
-                categoriesAsync.when(
-                  loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => Text(
-                    l10n?.couldNotLoadCategories ?? 'Could not load categories',
-                  ),
-                  data: (nodes) {
-                    final leaves = nodes;
-                    final anyCategory = l10n?.anyCategory ?? 'Any category';
-                    return DropdownButtonFormField<String?>(
-                      key: ValueKey('filter-category-${_draft.categoryId}'),
-                      initialValue: _draft.categoryId,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
-                        hintText: anyCategory,
-                      ),
-                      items: [
-                        DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text(anyCategory),
-                        ),
-                        ...leaves.map(
-                          (n) => DropdownMenuItem<String?>(
-                            value: n.id,
-                            child: Text(n.nameEn),
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _draft = value == null
-                              ? _draft.copyWith(
-                                  clearCategoryId: true,
-                                  clearActivePreset: true,
-                                )
-                              : _draft.copyWith(
-                                  categoryId: value,
-                                  clearActivePreset: true,
-                                );
-                        });
-                      },
-                    );
-                  },
                 ),
                 SizedBox(height: tokens.space.md),
 
@@ -506,7 +456,6 @@ class _RequestFiltersSheetState extends ConsumerState<RequestFiltersSheet> {
         activePresetName: preset.name,
         sort: f['sort']?.toString() ?? 'NEWEST',
         requestType: f['requestType']?.toString(),
-        categoryId: f['categoryId']?.toString(),
         regionId: f['regionId']?.toString(),
         purityKarat: f['purityKarat']?.toString(),
         minBudget: minBudget,

@@ -39,7 +39,6 @@ VendorMe _headerVendor() => VendorMe(
       legalBusinessName: 'Al Noor LLC',
       tradeLicenceNumber: 'TL-12345',
       registeredAddress: 'Gold Souk, Deira, Unit 12',
-      categoryCount: 1,
       regionCount: 1,
       verifiedAt: DateTime.utc(2026, 1, 15),
       rating: const RatingSummary(
@@ -149,7 +148,6 @@ void main() {
       awaitingApproval: false,
       tradingName: 'Al Noor',
       legalBusinessName: 'Al Noor LLC',
-      categoryCount: 1,
       regionCount: 1,
       logoUrl: '/v1/media/logo-key-abc',
     );

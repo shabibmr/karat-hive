@@ -31,9 +31,6 @@ describe('AdminVendorRepository', () => {
       adminProfile: {
         findFirst: vi.fn(),
       },
-      vendorCategory: {
-        count: vi.fn(),
-      },
       vendorRegion: {
         count: vi.fn(),
       },
@@ -82,7 +79,7 @@ describe('AdminVendorRepository', () => {
   });
 
   describe('listVendors', () => {
-    it('applies filters for verificationState, accountState, regionId, categoryId, and q', async () => {
+    it('applies filters for verificationState, accountState, regionId, and q', async () => {
       vi.mocked(prisma.vendorProfile.count).mockResolvedValue(1);
       vi.mocked(prisma.vendorProfile.findMany).mockResolvedValue([
         {
@@ -97,7 +94,6 @@ describe('AdminVendorRepository', () => {
           verificationState: 'VERIFIED',
           accountState: 'ACTIVE',
           regionId: 'reg-uuid-1',
-          categoryId: 'cat-uuid-1',
           q: 'Baraka',
         },
         { limit: 10, page: 1 },
@@ -109,7 +105,6 @@ describe('AdminVendorRepository', () => {
             verificationState: 'VERIFIED',
             user: { accountState: 'ACTIVE' },
             regions: { some: { regionId: 'reg-uuid-1' } },
-            categories: { some: { categoryId: 'cat-uuid-1' } },
             OR: expect.arrayContaining([
               { legalBusinessName: { contains: 'Baraka', mode: 'insensitive' } },
             ]),
@@ -123,13 +118,12 @@ describe('AdminVendorRepository', () => {
   });
 
   describe('findVendorById', () => {
-    it('loads vendor profile unmasked with user, documents, categories, regions, verifiedByAdmin, and notes', async () => {
+    it('loads vendor profile unmasked with user, documents, regions, verifiedByAdmin, and notes', async () => {
       const mockVendor = {
         id: 'v-1',
         legalBusinessName: 'Emirates Gold',
         user: { id: 'u-1', mobileNumber: '+971500000000' },
         documents: [],
-        categories: [],
         regions: [],
         verifiedByAdmin: { id: 'ap-1', displayName: 'Super Admin' },
       };
@@ -152,7 +146,6 @@ describe('AdminVendorRepository', () => {
           include: expect.objectContaining({
             user: true,
             documents: expect.anything(),
-            categories: expect.anything(),
             regions: expect.anything(),
             verifiedByAdmin: expect.anything(),
           }),
@@ -184,7 +177,6 @@ describe('AdminVendorRepository', () => {
         id: 'ap-1',
         userId: 'admin-u-1',
       } as any);
-      vi.mocked(prisma.vendorCategory.count).mockResolvedValue(1);
       vi.mocked(prisma.vendorRegion.count).mockResolvedValue(1);
       vi.mocked(prisma.vendorProfile.update).mockResolvedValue({
         id: 'v-1',

@@ -184,7 +184,6 @@ void main() {
             'awaitingApproval': false,
             'tradingName': 'Al Noor',
             'legalBusinessName': 'Al Noor LLC',
-            'categoryCount': 2,
             'regionCount': 1,
           },
         ),
@@ -361,7 +360,6 @@ void main() {
               'awaitingApproval': true,
               'tradingName': 'Al Noor',
               'legalBusinessName': 'Al Noor LLC',
-              'categoryCount': 0,
               'regionCount': 0,
             },
           ),
@@ -378,7 +376,6 @@ void main() {
         'contactPersonName': 'Omar',
         'businessEmail': 'omar@example.com',
         'regionId': 'reg-1',
-        'categoryIds': ['c-1'],
         'servedRegionIds': ['reg-1'],
         'termsVersion': '1.0',
         'privacyVersion': '1.0',
@@ -400,3 +397,4 @@ const _customerJson = {
   'liveRequestCount': 1,
   'canCreateRequest': true,
 };
+

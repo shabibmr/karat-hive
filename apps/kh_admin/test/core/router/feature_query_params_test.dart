@@ -187,7 +187,7 @@ void main() {
       final from = DateTime.utc(2026, 1, 1);
       final to = DateTime.utc(2026, 1, 31);
       final state = ListUrlState<ReportFilters>(
-        filters: ReportFilters(from: from, to: to, regionId: 'reg_dubai', categoryId: 'cat_gold'),
+        filters: ReportFilters(from: from, to: to, regionId: 'reg_dubai'),
         cursor: 'rep_cur_8',
         selectedId: 'report_x',
       );
@@ -196,7 +196,6 @@ void main() {
       expect(encoded['from'], '2026-01-01');
       expect(encoded['to'], '2026-01-31');
       expect(encoded['regionId'], 'reg_dubai');
-      expect(encoded['categoryId'], 'cat_gold');
       expect(encoded['cursor'], 'rep_cur_8');
       expect(encoded['selected'], 'report_x');
 
@@ -204,7 +203,6 @@ void main() {
       expect(decoded.filters.from, from);
       expect(decoded.filters.to, to);
       expect(decoded.filters.regionId, 'reg_dubai');
-      expect(decoded.filters.categoryId, 'cat_gold');
       expect(decoded.cursor, 'rep_cur_8');
       expect(decoded.selectedId, 'report_x');
     });

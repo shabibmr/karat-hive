@@ -22,7 +22,6 @@ class VendorVerificationDetail with _$VendorVerificationDetail {
     required String contactPersonName,
     required String businessEmail,
     @Default(<VendorDocumentDetail>[]) List<VendorDocumentDetail> documents,
-    @Default(<String>[]) List<String> categories,
     @Default(<String>[]) List<String> regions,
     String? tradingName,
     String? mobileNumber,

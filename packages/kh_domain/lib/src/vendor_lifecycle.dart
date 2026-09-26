@@ -28,14 +28,14 @@ enum VendorLifecycle {
 enum AwaitingApprovalReason {
   pendingDocuments,
   pendingAdmin,
-  categoriesRequired,
+  activationPending,
   rejected,
   unknown;
 
   static AwaitingApprovalReason parse(String? raw) => switch (raw) {
         'PENDING_DOCUMENTS' => pendingDocuments,
         'PENDING_ADMIN' => pendingAdmin,
-        'CATEGORIES_REQUIRED' => categoriesRequired,
+        'ACTIVATION_PENDING' => activationPending,
         'REJECTED' => rejected,
         _ => unknown,
       };

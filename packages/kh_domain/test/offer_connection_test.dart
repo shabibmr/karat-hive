@@ -84,7 +84,6 @@ void main() {
           'requestType': 'FIND_ORNAMENT',
           'direction': 'BUY',
           'customerLabel': 'Customer · Deira',
-          'category': {'id': 'c1', 'nameEn': 'Bangles'},
           'region': {'id': 'r1', 'nameEn': 'Deira'},
           'budgetMax': '10000.00',
         },
@@ -97,7 +96,6 @@ void main() {
       expect(offer.revisionsRemaining, 0);
       expect(offer.canRevise, isFalse);
       expect(offer.requestSummary?.customerLabel, 'Customer · Deira');
-      expect(offer.requestSummary?.categoryName, 'Bangles');
       expect(offer.awardedElsewhere, isFalse);
     });
 
@@ -221,7 +219,6 @@ void main() {
           'reference': 'KH-RQ-24A1',
           'requestType': 'FIND_ORNAMENT',
           'direction': 'BUY',
-          'category': {'id': 'c1', 'nameEn': 'Bangles', 'nameAr': 'أساور'},
           'region': {'id': 'r1', 'nameEn': 'Deira', 'nameAr': 'ديرة'},
         },
         'offer': {

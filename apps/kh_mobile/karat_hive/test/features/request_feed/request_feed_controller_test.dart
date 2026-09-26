@@ -28,7 +28,6 @@ class _RecordingFeedRepository implements RequestFeedRepository {
     int limit = 20,
     String? sort,
     String? requestType,
-    String? categoryId,
     String? regionId,
     double? minBudget,
     double? maxBudget,
@@ -92,7 +91,7 @@ void main() {
       var state = const RequestFiltersState();
       state = state.copyWith(
         requestType: 'FIND_ORNAMENT',
-        categoryId: 'cat-ring',
+        regionId: 'reg-dxb',
         purityKarat: '22',
         sort: 'HIGHEST_VALUE',
         includeResponded: true,
@@ -104,7 +103,7 @@ void main() {
       final map = state.toFilterMap();
       expect(map['sort'], 'HIGHEST_VALUE');
       expect(map['requestType'], 'FIND_ORNAMENT');
-      expect(map['categoryId'], 'cat-ring');
+      expect(map['regionId'], 'reg-dxb');
       expect(map['purityKarat'], '22');
       expect(map['includeResponded'], isTrue);
     });
@@ -112,14 +111,14 @@ void main() {
     test('clearing specific filters works as expected', () {
       var state = const RequestFiltersState(
         requestType: 'BULLION',
-        categoryId: 'cat-bars',
+        regionId: 'reg-dxb',
       );
 
       expect(state.activeFilterCount, 2);
 
       state = state.copyWith(clearRequestType: true);
       expect(state.requestType, isNull);
-      expect(state.categoryId, 'cat-bars');
+      expect(state.regionId, 'reg-dxb');
       expect(state.activeFilterCount, 1);
     });
 

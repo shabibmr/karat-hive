@@ -95,7 +95,6 @@ class OwnerRequestCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
 
-    final catName = request.category.name(locale);
     final title = request.displayTitle(
       locale: locale,
       fallback: l10n?.requestFallback ?? 'Request',
@@ -178,12 +177,7 @@ class OwnerRequestCard extends StatelessWidget {
                                       ? tokens.danger
                                       : tokens.gold,
                                 ),
-                                if (catName.isNotEmpty)
-                                  _Tag(
-                                    text: catName,
-                                    color: tokens.ink,
-                                  ),
-                                if (request.region.name(locale).isNotEmpty)
+if (request.region.name(locale).isNotEmpty)
                                   _Tag(
                                     text: request.region.name(locale),
                                     color: tokens.ink.withValues(alpha: 0.7),
@@ -360,3 +354,4 @@ class _Tag extends StatelessWidget {
     );
   }
 }
+

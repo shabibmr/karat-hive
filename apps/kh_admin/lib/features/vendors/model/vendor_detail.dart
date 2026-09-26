@@ -58,7 +58,6 @@ class VendorDetail {
     this.logoUrl,
     this.verificationState = VendorVerificationState.registered,
     this.accountState = VendorAccountState.active,
-    this.categories = const [],
     this.regions = const [],
     this.documents = const [],
     this.subscriptions = const [],
@@ -78,7 +77,6 @@ class VendorDetail {
   final String? logoUrl;
   final VendorVerificationState verificationState;
   final VendorAccountState accountState;
-  final List<String> categories;
   final List<String> regions;
   final List<VendorDocumentDetail> documents;
   final List<VendorSubscriptionSummary> subscriptions;
@@ -107,7 +105,6 @@ class VendorDetail {
     String? logoUrl,
     VendorVerificationState? verificationState,
     VendorAccountState? accountState,
-    List<String>? categories,
     List<String>? regions,
     List<VendorDocumentDetail>? documents,
     List<VendorSubscriptionSummary>? subscriptions,
@@ -127,7 +124,6 @@ class VendorDetail {
       logoUrl: logoUrl ?? this.logoUrl,
       verificationState: verificationState ?? this.verificationState,
       accountState: accountState ?? this.accountState,
-      categories: categories ?? this.categories,
       regions: regions ?? this.regions,
       documents: documents ?? this.documents,
       subscriptions: subscriptions ?? this.subscriptions,
@@ -153,9 +149,8 @@ class VendorDetail {
             if (item is String) return item;
             if (item is Map<String, dynamic>) {
               // origin/main sends raw join rows:
-              // `{ categoryId, category: { nameEn, nameAr } }` /
               // `{ regionId, region: { nameEn, nameAr } }`.
-              final nested = item['category'] ?? item['region'];
+              final nested = item['region'];
               if (nested is Map<String, dynamic>) {
                 return nested['nameEn']?.toString() ??
                     nested['nameAr']?.toString() ??
@@ -221,7 +216,6 @@ class VendorDetail {
               VendorVerificationState.registered,
       accountState: VendorAccountState.fromApi(accountStateStr) ??
           VendorAccountState.suspended,
-      categories: parseStringList(json['categories']),
       regions: parseStringList(json['regions']),
       documents: parseDocs(json['documents']),
       subscriptions: VendorSubscriptionSummary.parseList(json['subscriptions']),

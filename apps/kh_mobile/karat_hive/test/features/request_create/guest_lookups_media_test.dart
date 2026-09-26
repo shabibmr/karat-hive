@@ -94,11 +94,6 @@ void main() {
     when(
       () => repo.platformConfig(),
     ).thenAnswer((_) async => const Ok(PlatformConfig()));
-    when(() => repo.categories()).thenAnswer(
-      (_) async => const Ok([
-        TaxonomyNode(id: 'cat-1', nameEn: 'Rings', nameAr: 'خواتم'),
-      ]),
-    );
     when(() => repo.regions()).thenAnswer(
       (_) async =>
           const Ok([TaxonomyNode(id: 'reg-1', nameEn: 'Dubai', nameAr: 'دبي')]),
@@ -120,7 +115,7 @@ void main() {
       );
     });
 
-    test('lookupsReady without me when config/categories/regions ok', () async {
+    test('lookupsReady without me when config/regions ok', () async {
       stubGuestLookups();
       final container = containerWith(const SignedOut());
       final ctrl = container.read(requestCreateControllerProvider.notifier);
@@ -130,7 +125,6 @@ void main() {
       final state = container.read(requestCreateControllerProvider);
       expect(state.lookupsReady, isTrue);
       expect(state.config, isNotNull);
-      expect(state.categories, isNotEmpty);
       expect(state.regions, isNotEmpty);
       expect(state.rates, isNull);
       verifyNever(() => repo.me());

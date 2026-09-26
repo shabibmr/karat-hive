@@ -1,5 +1,4 @@
 import type {
-  Category,
   Direction,
   ItemCondition,
   Karat,
@@ -12,16 +11,6 @@ import type {
   RequestState,
   RequestType,
 } from '@prisma/client';
-
-export type CategorySummary = {
-  id: string;
-  nameEn: string;
-  nameAr: string;
-  parentId?: string | null;
-  isActive: boolean;
-  displayOrder: number;
-  icon?: string | null;
-};
 
 export type RegionSummary = {
   id: string;
@@ -62,7 +51,6 @@ export type RequestBaseDto = {
   requestType: RequestType;
   direction: Direction;
   state: RequestState;
-  category: CategorySummary;
   region: RegionSummary;
   notes?: string;
   weightGrams?: string;
@@ -148,7 +136,6 @@ export type AcceptedOfferConnectionJoin = {
 };
 
 export type FullPrismaRequest = Request & {
-  category: Category;
   region: Region;
   media: Array<RequestMedia & { media: Media }>;
   offers?: Offer[];
@@ -169,18 +156,6 @@ export function connectionIdForAcceptedRequest(
     return undefined;
   }
   return request.acceptedOffer?.connection?.id ?? fallback;
-}
-
-export function presentCategory(c: Category): CategorySummary {
-  return {
-    id: c.id,
-    nameEn: c.nameEn,
-    nameAr: c.nameAr,
-    parentId: undefined,
-    isActive: c.isActive,
-    displayOrder: c.displayOrder,
-    icon: c.icon ?? undefined,
-  };
 }
 
 export function presentRegion(r: Region): RegionSummary {
@@ -227,7 +202,6 @@ export function presentRequestForCustomer(
     requestType: request.requestType,
     direction: request.direction,
     state: request.state,
-    category: presentCategory(request.category),
     region: presentRegion(request.region),
     notes: request.notes ?? undefined,
     weightGrams: request.weightGrams ? request.weightGrams.toString() : undefined,
@@ -287,7 +261,6 @@ export function presentRequestForVendor(
     requestType: request.requestType,
     direction: request.direction,
     state: request.state,
-    category: presentCategory(request.category),
     region,
     notes: request.notes ?? undefined,
     weightGrams: request.weightGrams ? request.weightGrams.toString() : undefined,

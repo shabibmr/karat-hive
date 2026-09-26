@@ -101,7 +101,6 @@ export class AdminOffersRepository {
           request: {
             include: {
               customerProfile: { include: { user: true } },
-              category: true,
               region: true,
             },
           },
@@ -129,7 +128,6 @@ export class AdminOffersRepository {
           request: {
             include: {
               customerProfile: { include: { user: true } },
-              category: true,
               region: true,
               acceptedOffer: true,
             },

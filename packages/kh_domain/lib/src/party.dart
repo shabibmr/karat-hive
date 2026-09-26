@@ -100,45 +100,7 @@ abstract class RegionSummary with _$RegionSummary {
   String toString() => nameEn;
 }
 
-Map<String, dynamic> _normalizeCategorySummaryJson(Map<String, dynamic> json) => {
-      'id': json['id'] as String? ?? '',
-      'nameEn': json['nameEn'] as String? ?? '',
-      'nameAr': json['nameAr'] as String? ?? '',
-      'isActive': json['isActive'] as bool? ?? true,
-      'displayOrder': json['displayOrder'] as int? ?? 0,
-      'icon': json['icon'] as String?,
-    };
 
-@freezed
-abstract class CategorySummary with _$CategorySummary {
-  const CategorySummary._();
-
-  const factory CategorySummary({
-    required String id,
-    required String nameEn,
-    required String nameAr,
-    @Default(true) bool isActive,
-    @Default(0) int displayOrder,
-    String? icon,
-  }) = _CategorySummary;
-
-  factory CategorySummary.fromJson(Map<String, dynamic> json) =>
-      _$CategorySummaryFromJson(_normalizeCategorySummaryJson(json));
-
-  String name(String locale) => locale == 'ar' ? nameAr : nameEn;
-
-  static CategorySummary? tryParse(Object? raw) {
-    if (raw is CategorySummary) return raw;
-    if (raw is Map<String, dynamic>) return CategorySummary.fromJson(raw);
-    if (raw is Map) {
-      return CategorySummary.fromJson(Map<String, dynamic>.from(raw));
-    }
-    return null;
-  }
-
-  @override
-  String toString() => nameEn;
-}
 
 /// Rating summary model carrying average score and review counts (SH-ID-03).
 class RatingSummary {

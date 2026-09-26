@@ -13,7 +13,6 @@ class OfferHistoryFilters {
     required this.range,
     required this.preset,
     this.requestType,
-    this.categoryId,
     this.regionId,
     this.outcome,
   });
@@ -33,7 +32,6 @@ class OfferHistoryFilters {
   final DateTimeRange range;
   final KhDateRangePreset preset;
   final String? requestType;
-  final String? categoryId;
   final String? regionId;
 
   /// Terminal [OfferState.wire] value, or null for all outcomes.
@@ -52,8 +50,6 @@ class OfferHistoryFilters {
     KhDateRangePreset? preset,
     String? requestType,
     bool clearRequestType = false,
-    String? categoryId,
-    bool clearCategoryId = false,
     String? regionId,
     bool clearRegionId = false,
     String? outcome,
@@ -64,7 +60,6 @@ class OfferHistoryFilters {
       preset: preset ?? this.preset,
       requestType:
           clearRequestType ? null : (requestType ?? this.requestType),
-      categoryId: clearCategoryId ? null : (categoryId ?? this.categoryId),
       regionId: clearRegionId ? null : (regionId ?? this.regionId),
       outcome: clearOutcome ? null : (outcome ?? this.outcome),
     );
@@ -106,10 +101,6 @@ class OfferHistoryFiltersController
       ? state.copyWith(clearRequestType: true)
       : state.copyWith(requestType: type);
 
-  void setCategoryId(String? id) => state = id == null
-      ? state.copyWith(clearCategoryId: true)
-      : state.copyWith(categoryId: id);
-
   void setRegionId(String? id) => state = id == null
       ? state.copyWith(clearRegionId: true)
       : state.copyWith(regionId: id);
@@ -137,7 +128,6 @@ final offerHistoryPerformanceProvider =
         from: f.fromStart,
         to: f.toInclusive,
         requestType: f.requestType,
-        categoryId: f.categoryId,
         regionId: f.regionId,
       ),
     ),
@@ -147,14 +137,13 @@ final offerHistoryPerformanceProvider =
     from: query.from,
     to: query.to,
     requestType: query.requestType,
-    categoryId: query.categoryId,
     regionId: query.regionId,
   );
   return r.when(ok: (v) => v, err: (f) => throw f);
 });
 
 /// Loads terminal offers for current filters via [OffersClient].
-/// Outcome, categoryId, and regionId are client-side filtered per VEN-S14 / BR-008.
+/// Outcome and regionId are client-side filtered per VEN-S14 / BR-008.
 final rawTerminalOffersProvider =
     FutureProvider.autoDispose<List<OfferForVendor>>((ref) async {
   final query = ref.watch(
@@ -184,10 +173,6 @@ final offerHistoryListProvider =
   final items = await ref.watch(rawTerminalOffersProvider.future);
   final filters = ref.watch(offerHistoryFiltersProvider);
   return items.where((offer) {
-    if (filters.categoryId != null &&
-        offer.requestSummary?.categoryId != filters.categoryId) {
-      return false;
-    }
     if (filters.regionId != null &&
         offer.requestSummary?.regionId != filters.regionId) {
       return false;

@@ -138,13 +138,13 @@ void main() {
       expect(find.byKey(const Key('dashboard-queue-table')), findsOneWidget);
     });
 
-    testWidgets('category management lays out cleanly on ${viewport.name}',
+    testWidgets('region management lays out cleanly on ${viewport.name}',
         (tester) async {
       await pumpAt(
         tester,
         viewport.size,
         _app(
-          const TaxonomyScreen(kind: TaxonomyKind.category),
+          const TaxonomyScreen(kind: TaxonomyKind.region),
           overrides: [
             taxonomyRepositoryProvider
                 .overrideWithValue(_FakeTaxonomyRepository()),
@@ -152,7 +152,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Product Categories'), findsOneWidget);
+      expect(find.text('Regions'), findsOneWidget);
       expect(find.byKey(const Key('taxonomy-add-root-button')), findsOneWidget);
     });
 

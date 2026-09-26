@@ -6,8 +6,8 @@ part of 'vendor_list_item.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$VendorListItemImpl _$$VendorListItemImplFromJson(Map<String, dynamic> json) =>
-    _$VendorListItemImpl(
+_VendorListItem _$VendorListItemFromJson(Map<String, dynamic> json) =>
+    _VendorListItem(
       id: json['id'] as String,
       legalBusinessName: json['legalBusinessName'] as String,
       tradingName: json['tradingName'] as String,
@@ -32,23 +32,22 @@ _$VendorListItemImpl _$$VendorListItemImplFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['createdAt'] as String),
     );
 
-Map<String, dynamic> _$$VendorListItemImplToJson(
-  _$VendorListItemImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'legalBusinessName': instance.legalBusinessName,
-  'tradingName': instance.tradingName,
-  'verificationState':
-      _$VendorVerificationStateEnumMap[instance.verificationState]!,
-  'accountState': _$VendorAccountStateEnumMap[instance.accountState]!,
-  'tradeLicenceNumber': instance.tradeLicenceNumber,
-  'region': instance.region,
-  'offerCount': instance.offerCount,
-  'acceptanceRate': instance.acceptanceRate,
-  'rating': instance.rating,
-  'oldestWaitingHours': instance.waitingHours,
-  'createdAt': instance.registeredAt?.toIso8601String(),
-};
+Map<String, dynamic> _$VendorListItemToJson(_VendorListItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'legalBusinessName': instance.legalBusinessName,
+      'tradingName': instance.tradingName,
+      'verificationState':
+          _$VendorVerificationStateEnumMap[instance.verificationState]!,
+      'accountState': _$VendorAccountStateEnumMap[instance.accountState]!,
+      'tradeLicenceNumber': instance.tradeLicenceNumber,
+      'region': instance.region,
+      'offerCount': instance.offerCount,
+      'acceptanceRate': instance.acceptanceRate,
+      'rating': instance.rating,
+      'oldestWaitingHours': instance.waitingHours,
+      'createdAt': instance.registeredAt?.toIso8601String(),
+    };
 
 const _$VendorVerificationStateEnumMap = {
   VendorVerificationState.registered: 'REGISTERED',

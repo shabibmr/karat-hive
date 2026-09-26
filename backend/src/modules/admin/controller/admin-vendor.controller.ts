@@ -24,7 +24,6 @@ const vendorListQuerySchema = z.object({
   verificationState: z.nativeEnum(VendorVerificationState).optional(),
   accountState: z.nativeEnum(UserAccountState).optional(),
   regionId: z.string().uuid().optional(),
-  categoryId: z.string().uuid().optional(),
   q: z.string().max(200).optional(),
   cursor: z.string().uuid().optional(),
   limit: z.coerce.number().int().min(1).max(50).optional(),

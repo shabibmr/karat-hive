@@ -78,13 +78,6 @@ const List<AdminNavItem> kAdminNavItems = [
     isLive: true,
   ),
   AdminNavItem(
-    id: 'ADM-S14',
-    title: 'Categories',
-    icon: Icons.category_outlined,
-    route: AdminRoutes.categories,
-    isLive: true,
-  ),
-  AdminNavItem(
     id: 'ADM-S15',
     title: 'Regions',
     icon: Icons.public_outlined,

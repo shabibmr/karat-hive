@@ -143,7 +143,6 @@ describe('VendorOnboardingService dashboard + export (G2-M06 / G2-P07)', () => {
           reference: 'KH-2026-9',
           requestType: 'GOLD_COIN',
           publishedAt: new Date('2026-09-06T09:00:00Z'),
-          category: { nameEn: 'Coins' },
           region: { nameEn: 'Dubai' },
         },
       },
@@ -245,9 +244,7 @@ describe('VendorOnboardingService.patchProfile (VO-06 / BR-004)', () => {
       findByIdWithLogo: vi.fn().mockResolvedValue({ ...baseProfile, logoMedia: null }),
       update,
       distinctDocumentTypes: vi.fn().mockResolvedValue(['TRADE_LICENCE', 'EMIRATES_ID']),
-      countCategories: vi.fn().mockResolvedValue(1),
       countRegions: vi.fn().mockResolvedValue(1),
-      listCategoryIds: vi.fn().mockResolvedValue(['cat-1']),
       listRegionIds: vi.fn().mockResolvedValue(['reg-1']),
     } as unknown as VendorOnboardingRepository;
 

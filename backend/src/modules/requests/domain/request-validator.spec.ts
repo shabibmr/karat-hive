@@ -12,7 +12,6 @@ describe('request-validator', () => {
     requestType: 'FIND_ORNAMENT',
     direction: 'BUY',
     state: 'DRAFT',
-    categoryId: 'cat-1',
     regionId: 'reg-1',
     notes: 'A simple note',
     weightGrams: null,

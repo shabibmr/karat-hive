@@ -14,18 +14,18 @@ import 'package:kh_admin/l10n/app_localizations.dart';
 class _FakeTaxonomyRepository extends TaxonomyRepository {
   _FakeTaxonomyRepository() : super(ApiClient());
 
-  List<TaxonomyNode> categories = [
+  List<TaxonomyNode> regions = [
     const TaxonomyNode(
-      id: 'cat-jewellery',
-      nameEn: 'Jewellery',
-      nameAr: 'مجوهرات',
+      id: 'reg-dubai',
+      nameEn: 'Dubai',
+      nameAr: 'دبي',
       displayOrder: 1,
       isActive: true,
     ),
     const TaxonomyNode(
-      id: 'cat-rings',
-      nameEn: 'Rings',
-      nameAr: 'خواتم',
+      id: 'reg-sharjah',
+      nameEn: 'Sharjah',
+      nameAr: 'الشارقة',
       displayOrder: 2,
       isActive: false, // Inactive node for testing
     ),
@@ -36,43 +36,38 @@ class _FakeTaxonomyRepository extends TaxonomyRepository {
   String? lastDeactivatedId;
 
   @override
-  Future<List<TaxonomyNode>> fetchCategories({bool includeInactive = true}) async {
-    if (failNext) throw Exception('Category service unavailable');
-    if (empty) return const [];
-    return categories;
-  }
-
-  @override
   Future<List<TaxonomyNode>> fetchRegions({bool includeInactive = true}) async {
-    return const [];
+    if (failNext) throw Exception('Region service unavailable');
+    if (empty) return const [];
+    return regions;
   }
 
   @override
-  Future<TaxonomyNode> deactivateCategory(String id) async {
+  Future<TaxonomyNode> deactivateRegion(String id) async {
     lastDeactivatedId = id;
-    categories = categories.map((c) {
+    regions = regions.map((c) {
       if (c.id == id) return c.copyWith(isActive: false);
       return c;
     }).toList();
-    return categories.firstWhere((c) => c.id == id);
+    return regions.firstWhere((c) => c.id == id);
   }
 
   @override
-  Future<TaxonomyNode> createCategory(CreateTaxonomyDto dto) async {
+  Future<TaxonomyNode> createRegion(CreateTaxonomyDto dto) async {
     final newNode = TaxonomyNode(
-      id: 'cat-new-2',
+      id: 'reg-new-2',
       nameEn: dto.nameEn,
       nameAr: dto.nameAr,
       displayOrder: dto.displayOrder,
       isActive: dto.isActive,
     );
-    categories = [...categories, newNode];
+    regions = [...regions, newNode];
     return newNode;
   }
 
   @override
-  Future<TaxonomyNode> updateCategory(String id, UpdateTaxonomyDto dto) async {
-    categories = categories.map((c) {
+  Future<TaxonomyNode> updateRegion(String id, UpdateTaxonomyDto dto) async {
+    regions = regions.map((c) {
       if (c.id == id) {
         return c.copyWith(
           nameEn: dto.nameEn ?? c.nameEn,
@@ -81,7 +76,7 @@ class _FakeTaxonomyRepository extends TaxonomyRepository {
       }
       return c;
     }).toList();
-    return categories.firstWhere((c) => c.id == id);
+    return regions.firstWhere((c) => c.id == id);
   }
 }
 
@@ -93,7 +88,7 @@ void main() {
   });
 
   Widget createTaxonomyWidget({
-    TaxonomyKind kind = TaxonomyKind.category,
+    TaxonomyKind kind = TaxonomyKind.region,
     bool initialShowInactive = false,
   }) {
     return ProviderScope(
@@ -119,7 +114,7 @@ void main() {
     );
   }
 
-  testWidgets('TaxonomyScreen renders category tree with Inactive text badge (accessibility §40/§56)',
+  testWidgets('TaxonomyScreen renders region tree with Inactive text badge (accessibility §40/§56)',
       (tester) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -131,14 +126,14 @@ void main() {
     await tester.pumpWidget(createTaxonomyWidget(initialShowInactive: true));
     await tester.pumpAndSettle();
 
-    // ADM-S14 header: gold eyebrow above the mock's screen heading.
+    // ADM-S15 header: gold eyebrow above the mock's screen heading.
     expect(find.text('TAXONOMY CONFIG'), findsOneWidget);
-    expect(find.text('Product Categories'), findsOneWidget);
-    expect(find.text('Jewellery'), findsOneWidget);
-    expect(find.text('Rings'), findsOneWidget);
+    expect(find.text('Regions'), findsOneWidget);
+    expect(find.text('Dubai'), findsOneWidget);
+    expect(find.text('Sharjah'), findsOneWidget);
 
-    // Inactive text badge is present for inactive 'Rings' node
-    expect(find.byKey(const Key('inactive-badge-cat-rings')), findsOneWidget);
+    // Inactive text badge is present for inactive 'Sharjah' node
+    expect(find.byKey(const Key('inactive-badge-reg-sharjah')), findsOneWidget);
     expect(find.text('Inactive'), findsWidgets);
   });
 
@@ -150,7 +145,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('empty-view')), findsOneWidget);
-    expect(find.text('No Categories Found'), findsOneWidget);
+    expect(find.text('No Regions Found'), findsOneWidget);
     expect(find.byKey(const Key('empty-state-cta-button')), findsOneWidget);
   });
 
@@ -174,7 +169,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('error-view')), findsOneWidget);
-    expect(find.text('Category service unavailable'), findsOneWidget);
+    expect(find.text('Region service unavailable'), findsOneWidget);
     expect(find.text('Try Again'), findsOneWidget);
   });
 
@@ -190,8 +185,8 @@ void main() {
     await tester.pumpWidget(createTaxonomyWidget());
     await tester.pumpAndSettle();
 
-    // Select the root Jewellery node
-    await tester.tap(find.byKey(const Key('taxonomy-node-cat-jewellery')));
+    // Select the root Dubai node
+    await tester.tap(find.byKey(const Key('taxonomy-node-reg-dubai')));
     await tester.pumpAndSettle();
 
     // Verify "Deactivate" button exists and "Delete" does NOT exist
@@ -203,7 +198,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify SH-FND-15 confirmation dialog title and action
-    expect(find.text('Deactivate Jewellery?'), findsOneWidget);
+    expect(find.text('Deactivate Dubai?'), findsOneWidget);
     expect(find.byKey(const Key('confirm-deactivate-button')), findsOneWidget);
     expect(find.text('Delete'), findsNothing);
 
@@ -211,7 +206,7 @@ void main() {
     await tester.tap(find.byKey(const Key('confirm-deactivate-button')));
     await tester.pumpAndSettle();
 
-    expect(fakeRepository.lastDeactivatedId, 'cat-jewellery');
+    expect(fakeRepository.lastDeactivatedId, 'reg-dubai');
     // Success toast shown (SH-FND-17)
     expect(find.byKey(const Key('taxonomy-success-toast')), findsOneWidget);
   });

@@ -168,7 +168,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   Map<String, dynamic> _persistedFields() => {
         if (state.requestType != null) 'requestType': state.requestType!.wire,
         if (state.direction != null) 'direction': state.direction!.wire,
-        if (state.categoryId != null) 'categoryId': state.categoryId,
         if (state.regionId != null) 'regionId': state.regionId,
         'notes': state.notes,
         if (state.weightGrams != null) 'weightGrams': state.weightGrams,
@@ -209,7 +208,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       direction: f['direction'] == null
           ? null
           : Direction.parse(f['direction'] as String?),
-      categoryId: f['categoryId'] as String?,
       regionId: f['regionId'] as String?,
       notes: f['notes'] as String? ?? '',
       weightGrams: f['weightGrams'] as String?,
@@ -305,7 +303,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   Future<void> loadLookups() async {
     state = state.copyWith(lookupsLoading: true, clearFailure: true);
     final configR = await _repo.platformConfig();
-    final catR = await _repo.categories();
     final regR = await _repo.regions();
 
     // Guest has no token — do not require GET /v1/me (`adr/0011`).
@@ -315,7 +312,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     }
 
     final fail = configR.failureOrNull ??
-        catR.failureOrNull ??
         regR.failureOrNull ??
         meR?.failureOrNull;
 
@@ -325,7 +321,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       lookupsReady: fail == null,
       failure: fail,
       config: configR.valueOrNull,
-      categories: catR.valueOrNull ?? const [],
       regions: regR.valueOrNull ?? const [],
       canCreateRequest: me?.canCreateRequest ?? state.canCreateRequest,
       oauthBound: me?.oauthBound ?? state.oauthBound,
@@ -399,7 +394,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       draftId: req.id,
       requestType: req.requestType,
       direction: req.direction,
-      categoryId: req.category.id,
       regionId: req.region.id,
       notes: req.notes ?? '',
       weightGrams: req.weightGrams,
@@ -434,9 +428,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     }
     state = state.copyWith(direction: value, clearFailure: true);
   }
-
-  void setCategory(String id) =>
-      state = state.copyWith(categoryId: id, clearFailure: true);
 
   void setRegion(String id) =>
       state = state.copyWith(regionId: id, clearFailure: true);
@@ -1014,7 +1005,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       oauthBound: keep.oauthBound,
       config: keep.config,
       rates: keep.rates,
-      categories: keep.categories,
       regions: keep.regions,
       lookupsReady: keep.lookupsReady,
       regionId: keep.regionId,
@@ -1027,7 +1017,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     return {
       'requestType': type.wire,
       if (dir != null) 'direction': dir.wire,
-      if (state.categoryId != null) 'categoryId': state.categoryId,
       if (state.regionId != null) 'regionId': state.regionId,
       if (state.notes.trim().isNotEmpty) 'notes': state.notes.trim(),
       if (state.weightGrams != null && state.weightGrams!.isNotEmpty)
@@ -1116,3 +1105,4 @@ final requestCreateControllerProvider =
     NotifierProvider<RequestCreateController, RequestCreateState>(
   RequestCreateController.new,
 );
+

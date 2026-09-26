@@ -37,13 +37,6 @@ describe('OfferService', () => {
     customerProfile: {
       userId: 'user-c1',
     },
-    category: {
-      id: 'cat-1',
-      nameEn: 'Rings',
-      nameAr: 'خواتم',
-      isActive: true,
-      displayOrder: 1,
-    },
     region: {
       id: 'reg-1',
       nameEn: 'Dubai',

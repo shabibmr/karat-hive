@@ -4,13 +4,11 @@ class ReportFilters {
     this.from,
     this.to,
     this.regionId,
-    this.categoryId,
   });
 
   final DateTime? from;
   final DateTime? to;
   final String? regionId;
-  final String? categoryId;
 
   static ReportFilters lastThirtyDays({DateTime? now}) {
     final gstNow = (now ?? DateTime.now().toUtc()).toUtc().add(const Duration(hours: 4));
@@ -23,17 +21,14 @@ class ReportFilters {
     DateTime? from,
     DateTime? to,
     String? regionId,
-    String? categoryId,
     bool clearFrom = false,
     bool clearTo = false,
     bool clearRegionId = false,
-    bool clearCategoryId = false,
   }) {
     return ReportFilters(
       from: clearFrom ? null : (from ?? this.from),
       to: clearTo ? null : (to ?? this.to),
       regionId: clearRegionId ? null : (regionId ?? this.regionId),
-      categoryId: clearCategoryId ? null : (categoryId ?? this.categoryId),
     );
   }
 
@@ -43,8 +38,6 @@ class ReportFilters {
       if (to != null) 'to': toIsoDate(to!),
       if (regionId != null && regionId!.trim().isNotEmpty)
         'regionId': regionId!.trim(),
-      if (categoryId != null && categoryId!.trim().isNotEmpty)
-        'categoryId': categoryId!.trim(),
     };
   }
 
@@ -65,13 +58,12 @@ class ReportFilters {
           runtimeType == other.runtimeType &&
           from == other.from &&
           to == other.to &&
-          regionId == other.regionId &&
-          categoryId == other.categoryId;
+          regionId == other.regionId;
 
   @override
-  int get hashCode => Object.hash(from, to, regionId, categoryId);
+  int get hashCode => Object.hash(from, to, regionId);
 
   @override
   String toString() =>
-      'ReportFilters(from: $from, to: $to, regionId: $regionId, categoryId: $categoryId)';
+      'ReportFilters(from: $from, to: $to, regionId: $regionId)';
 }

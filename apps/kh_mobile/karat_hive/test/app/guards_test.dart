@@ -15,7 +15,6 @@ SignedIn _signedIn(VendorLifecycle lifecycle) => SignedIn(
           awaitingApproval: lifecycle != VendorLifecycle.active,
           tradingName: 'Al Noor',
           legalBusinessName: 'Al Noor LLC',
-          categoryCount: 1,
           regionCount: 1,
         ),
       ),

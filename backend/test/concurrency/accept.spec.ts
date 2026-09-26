@@ -44,7 +44,6 @@ describe('Acceptance Concurrency (G2-C06 / BR-011)', () => {
       reference: 'KH-001',
       requestType: 'FIND_ORNAMENT',
       direction: 'BUY',
-      category: { id: 'c-1', nameEn: 'Rings', nameAr: 'خواتم', isActive: true, displayOrder: 1 },
       region: { id: 'r-1', nameEn: 'Dubai', nameAr: 'دبي', isActive: true, displayOrder: 1 },
     },
     customerProfile: {

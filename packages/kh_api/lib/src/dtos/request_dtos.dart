@@ -12,7 +12,6 @@ Map<String, dynamic> _normalizeCustomerRequestJson(Map<String, dynamic> json) =>
       'requestType': json['requestType'] as String? ?? '',
       'direction': json['direction'] as String? ?? '',
       'state': json['state'] as String? ?? '',
-      'category': (json['category'] as Map<String, dynamic>?) ?? const {},
       'region': (json['region'] as Map<String, dynamic>?) ?? const {},
       'weightGrams': json['weightGrams']?.toString(),
       'weightIsApproximate': json['weightIsApproximate'] as bool? ?? false,
@@ -39,7 +38,6 @@ abstract class CustomerRequestDto with _$CustomerRequestDto {
     required String requestType,
     required String direction,
     required String state,
-    required CategorySummaryDto category,
     required RegionSummaryDto region,
     String? notes,
     String? weightGrams,
@@ -84,7 +82,6 @@ abstract class RequestDraftInput with _$RequestDraftInput {
   const factory RequestDraftInput({
     @JsonKey(includeIfNull: false) String? requestType,
     @JsonKey(includeIfNull: false) String? direction,
-    @JsonKey(includeIfNull: false) String? categoryId,
     @JsonKey(includeIfNull: false) String? regionId,
     @JsonKey(includeIfNull: false) String? notes,
     @JsonKey(includeIfNull: false) Object? weightGrams,

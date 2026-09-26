@@ -115,7 +115,7 @@ export async function resetCustomerDb(prisma: PrismaClient): Promise<void> {
       review, abuse_report, contact_event, filter_preset,
       connection, offer_media, offer_revision, offer,
       request_match, request_media, request,
-      vendor_document, vendor_category, vendor_region, vendor_type_subscription,
+      vendor_document, vendor_region, vendor_type_subscription,
       media, vendor_profile, customer_profile, admin_profile, "user",
       rate_limit_bucket, idempotency_key
     RESTART IDENTITY CASCADE

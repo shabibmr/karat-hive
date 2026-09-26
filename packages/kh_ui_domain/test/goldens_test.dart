@@ -23,8 +23,6 @@ VendorRequestItem get _requestItem => VendorRequestItem(
   requestType: 'FIND_ORNAMENT',
   direction: 'BUY',
   state: 'PUBLISHED',
-  categoryId: 'cat-1',
-  categoryName: 'Bangles',
   regionId: 'reg-1',
   regionName: 'Deira',
   weightGrams: 25.5,
@@ -47,8 +45,6 @@ VendorRequestItem get _cardItem => VendorRequestItem(
   requestType: _requestItem.requestType,
   direction: _requestItem.direction,
   state: _requestItem.state,
-  categoryId: _requestItem.categoryId,
-  categoryName: _requestItem.categoryName,
   regionId: _requestItem.regionId,
   regionName: _requestItem.regionName,
   purityKarat: _requestItem.purityKarat,
@@ -170,7 +166,6 @@ void main() {
               requestType: RequestType.findOrnament,
               direction: Direction.buy,
               customerLabel: 'Customer · Deira',
-              categoryName: 'Bangles',
             ),
           ),
         ),
@@ -535,3 +530,4 @@ void main() {
 void _noopStar(int _) {}
 
 void _noopComment(String _) {}
+

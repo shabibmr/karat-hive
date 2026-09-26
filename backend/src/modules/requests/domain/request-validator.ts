@@ -12,9 +12,6 @@ export function validateRequestForPublish(input: RequestPublishCheckInput): void
   const { request, mediaCount } = input;
   const errors: Array<{ path?: string; code: string; message: string }> = [];
 
-  if (!request.categoryId) {
-    errors.push({ path: 'categoryId', code: 'REQUIRED', message: 'Category is required.' });
-  }
   if (!request.regionId) {
     errors.push({ path: 'regionId', code: 'REQUIRED', message: 'Region is required.' });
   }

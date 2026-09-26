@@ -21,18 +21,6 @@ import { assertIdentityKeysAbsent } from './assert-identity-absent';
 describe('Masking: reveal is scoped to this Connection (G2-C07 / BR-007)', () => {
   const now = new Date('2026-09-07T12:00:00Z');
 
-  const category = {
-    id: 'cat-1',
-    nameEn: 'Jewellery',
-    nameAr: 'مجوهرات',
-    parentId: null,
-    icon: null,
-    displayOrder: 1,
-    isActive: true,
-    createdAt: now,
-    updatedAt: now,
-  };
-
   const region = {
     id: 'reg-1',
     nameEn: 'Dubai',
@@ -72,7 +60,6 @@ describe('Masking: reveal is scoped to this Connection (G2-C07 / BR-007)', () =>
       reference: 'KH-RQ-2026-000001',
       requestType: 'FIND_ORNAMENT',
       direction: 'BUY',
-      category,
       region,
     },
     customerProfile: {
@@ -109,7 +96,6 @@ describe('Masking: reveal is scoped to this Connection (G2-C07 / BR-007)', () =>
     requestType: 'FIND_ORNAMENT',
     direction: 'BUY',
     state: 'PUBLISHED',
-    categoryId: 'cat-1',
     regionId: 'reg-1',
     notes: 'Another ring',
     weightGrams: new Prisma.Decimal(10),
@@ -135,7 +121,6 @@ describe('Masking: reveal is scoped to this Connection (G2-C07 / BR-007)', () =>
     cancellationReason: null,
     createdAt: now,
     updatedAt: now,
-    category,
     region,
     media: [],
   };

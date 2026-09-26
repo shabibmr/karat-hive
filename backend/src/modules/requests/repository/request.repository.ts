@@ -14,7 +14,6 @@ export type CreateDraftInput = {
   customerProfileId: string;
   requestType: RequestType;
   direction: Direction;
-  categoryId: string;
   regionId: string;
   notes?: string;
   weightGrams?: Prisma.Decimal | number | string;
@@ -88,7 +87,6 @@ export class RequestRepository {
         requestType: input.requestType,
         direction: input.direction,
         state: 'DRAFT',
-        categoryId: input.categoryId,
         regionId: input.regionId,
         notes: input.notes,
         weightGrams: input.weightGrams ? new Prisma.Decimal(input.weightGrams) : undefined,
@@ -115,7 +113,6 @@ export class RequestRepository {
           : undefined,
       },
       include: {
-        category: true,
         region: true,
         media: {
           include: {
@@ -132,7 +129,6 @@ export class RequestRepository {
     return db.request.findUnique({
       where: { id },
       include: {
-        category: true,
         region: true,
         media: {
           include: {
@@ -158,7 +154,6 @@ export class RequestRepository {
     return db.request.findFirst({
       where: { id, customerProfileId },
       include: {
-        category: true,
         region: true,
         media: {
           include: {
@@ -195,7 +190,6 @@ export class RequestRepository {
       where: { id },
       data,
       include: {
-        category: true,
         region: true,
         media: {
           include: {
@@ -269,7 +263,6 @@ export class RequestRepository {
       skip: params.cursor ? 1 : 0,
       orderBy: { createdAt: 'desc' },
       include: {
-        category: true,
         region: true,
         media: {
           include: {

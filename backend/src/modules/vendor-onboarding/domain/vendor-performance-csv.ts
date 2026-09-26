@@ -4,7 +4,6 @@ export type VendorPerformanceCsvRow = {
   offerId: string;
   requestReference: string;
   requestType: string;
-  categoryNameEn: string;
   regionNameEn: string;
   state: string;
   offeredPriceAed: string;
@@ -19,7 +18,6 @@ const HEADER = [
   'offerId',
   'requestReference',
   'requestType',
-  'category',
   'region',
   'state',
   'offeredPriceAed',
@@ -38,7 +36,6 @@ export function buildVendorPerformanceCsv(rows: VendorPerformanceCsvRow[]): stri
         csvCell(row.offerId),
         csvCell(row.requestReference),
         csvCell(row.requestType),
-        csvCell(row.categoryNameEn),
         csvCell(row.regionNameEn),
         csvCell(row.state),
         csvCell(row.offeredPriceAed),

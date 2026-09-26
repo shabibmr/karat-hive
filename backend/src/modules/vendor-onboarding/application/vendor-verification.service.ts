@@ -39,17 +39,14 @@ export class VendorVerificationService {
     const now = this.clock.now();
     const updated = await withTx(this.prisma, async (tx) => {
       if (input.decision === 'VERIFY') {
-        const [categoryCount, regionCount] = await Promise.all([
-          tx.vendorCategory.count({ where: { vendorProfileId } }),
-          tx.vendorRegion.count({ where: { vendorProfileId } }),
-        ]);
-        const activate = categoryCount > 0 && regionCount > 0;
+        // Activation is unconditional on VERIFY: marketplace access gates on
+        // VERIFIED + ACTIVE + a Type Subscription (BR-002), not taxonomy declarations.
         const row = await this.repo.update(tx, vendorProfileId, {
           verificationState: 'VERIFIED',
           verifiedAt: now,
           verificationMessage: null,
           verificationNotes: input.rationale ?? profile.verificationNotes,
-          ...(activate ? { activatedAt: now } : {}),
+          activatedAt: now,
         });
         await enqueueOutbox(tx, {
           eventType: 'vendor.verification.decided',
@@ -63,27 +60,25 @@ export class VendorVerificationService {
           entityType: 'vendor_profile',
           entityId: vendorProfileId,
           beforeValue: { verificationState: profile.verificationState },
-          afterValue: { verificationState: 'VERIFIED', activated: activate },
+          afterValue: { verificationState: 'VERIFIED', activated: true },
         });
-        if (activate) {
-          await enqueueOutbox(tx, {
-            eventType: 'vendor.eligibility.changed',
-            aggregateType: 'vendor_profile',
-            aggregateId: vendorProfileId,
-            payload: {
-              vendorProfileId,
-              vendorUserId: profile.userId,
-              reason: 'VERIFIED_WITH_TAXONOMY',
-            },
-          });
-          await this.audit.append(tx, {
-            actorUserId,
-            action: 'VENDOR_ACTIVATED',
-            entityType: 'vendor_profile',
-            entityId: vendorProfileId,
-            afterValue: { activatedAt: now.toISOString() },
-          });
-        }
+        await enqueueOutbox(tx, {
+          eventType: 'vendor.eligibility.changed',
+          aggregateType: 'vendor_profile',
+          aggregateId: vendorProfileId,
+          payload: {
+            vendorProfileId,
+            vendorUserId: profile.userId,
+            reason: 'VERIFIED',
+          },
+        });
+        await this.audit.append(tx, {
+          actorUserId,
+          action: 'VENDOR_ACTIVATED',
+          entityType: 'vendor_profile',
+          entityId: vendorProfileId,
+          afterValue: { activatedAt: now.toISOString() },
+        });
         return row;
       }
 
@@ -134,8 +129,6 @@ export class VendorVerificationService {
         verificationState: updated.verificationState,
         activatedAt: updated.activatedAt,
         hasMandatoryDocuments: true,
-        hasCategories: true,
-        hasRegions: true,
       }),
     };
   }

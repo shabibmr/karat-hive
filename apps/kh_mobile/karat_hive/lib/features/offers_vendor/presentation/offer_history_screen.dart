@@ -72,7 +72,6 @@ class _OfferHistoryScreenState extends ConsumerState<OfferHistoryScreen> {
       from: filters.fromStart,
       to: filters.toInclusive,
       requestType: filters.requestType,
-      categoryId: filters.categoryId,
       regionId: filters.regionId,
     );
     if (!mounted) return;
@@ -101,7 +100,6 @@ class _OfferHistoryScreenState extends ConsumerState<OfferHistoryScreen> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final filters = ref.watch(offerHistoryFiltersProvider);
-    final categoriesAsync = ref.watch(categoriesProvider);
     final regionsAsync = ref.watch(regionsProvider);
     final perfAsync = ref.watch(offerHistoryPerformanceProvider);
     final offersAsync = ref.watch(offerHistoryListProvider);
@@ -224,49 +222,6 @@ class _OfferHistoryScreenState extends ConsumerState<OfferHistoryScreen> {
                       .setRequestType(selected ? type.wire : null),
                 ),
             ],
-          ),
-          SizedBox(height: tokens.space.lg),
-
-          Text(
-            l10n?.category ?? 'Category',
-            style: theme.textTheme.titleSmall,
-          ),
-          SizedBox(height: tokens.space.xs),
-          categoriesAsync.when(
-            loading: () => const LinearProgressIndicator(
-              key: Key('offer-history-categories-loading'),
-            ),
-            error: (_, __) => Text(
-              l10n?.couldNotLoadCategories ?? 'Could not load categories',
-            ),
-            data: (nodes) {
-              final leaves = nodes;
-              final anyCategory = l10n?.anyCategory ?? 'Any category';
-              return DropdownButtonFormField<String?>(
-                key: ValueKey('offer-history-category-${filters.categoryId}'),
-                initialValue: filters.categoryId,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: anyCategory,
-                ),
-                items: [
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(anyCategory),
-                  ),
-                  ...leaves.map(
-                    (n) => DropdownMenuItem<String?>(
-                      value: n.id,
-                      child: Text(n.nameEn),
-                    ),
-                  ),
-                ],
-                onChanged: (value) => ref
-                    .read(offerHistoryFiltersProvider.notifier)
-                    .setCategoryId(value),
-              );
-            },
           ),
           SizedBox(height: tokens.space.lg),
 
@@ -616,26 +571,13 @@ class _TerminalOfferCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (summary?.categoryName != null) ...[
+            if (summary != null && summary.customerLabel.isNotEmpty) ...[
               SizedBox(height: tokens.space.xs),
-              Wrap(
-                spacing: tokens.space.xs,
-                runSpacing: tokens.space.xs,
-                children: [
-                  KhStatusChip(
-                    key: Key('category-badge-${offer.id}'),
-                    label: summary!.categoryName!,
-                    tone: KhStatusTone.neutral,
-                    compact: true,
-                  ),
-                  if (summary.customerLabel.isNotEmpty)
-                    Text(
-                      summary.customerLabel,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: tokens.ink.withValues(alpha: 0.7),
-                      ),
-                    ),
-                ],
+              Text(
+                summary.customerLabel,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: tokens.ink.withValues(alpha: 0.7),
+                ),
               ),
             ],
             SizedBox(height: tokens.space.sm),

@@ -39,7 +39,6 @@ class _FakeVendorDetailRepository extends VendorRepository {
           mobileNumber: '+971 4 555 0101',
           verificationState: VendorVerificationState.verified,
           accountState: VendorAccountState.active,
-          categories: const ['Gold Jewellery', 'Diamonds'],
           regions: const ['Dubai', 'Abu Dhabi'],
           documents: [
             VendorDocumentDetail(
@@ -139,7 +138,7 @@ void main() {
     );
   }
 
-  testWidgets('renders full profile, categories, regions, and KYC documents',
+  testWidgets('renders full profile, regions, and KYC documents',
       (tester) async {
     tester.view.physicalSize = const Size(1400, 1000);
     tester.view.devicePixelRatio = 1.0;
@@ -165,8 +164,6 @@ void main() {
     expect(find.text('+971 4 555 0101'), findsOneWidget);
 
     // Taxonomy chips
-    expect(find.byKey(const Key('category-chip-Gold Jewellery')), findsOneWidget);
-    expect(find.byKey(const Key('category-chip-Diamonds')), findsOneWidget);
     expect(find.byKey(const Key('region-chip-Dubai')), findsOneWidget);
     expect(find.byKey(const Key('region-chip-Abu Dhabi')), findsOneWidget);
 

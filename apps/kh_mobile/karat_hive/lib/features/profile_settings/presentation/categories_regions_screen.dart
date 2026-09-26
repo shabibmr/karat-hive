@@ -19,13 +19,12 @@ class CategoriesRegionsScreen extends ConsumerWidget {
     final locale = Localizations.localeOf(context);
     final state = ref.watch(categoriesRegionsControllerProvider);
     final controller = ref.read(categoriesRegionsControllerProvider.notifier);
-    final categories = ref.watch(categoriesProvider);
     final regions = ref.watch(regionsProvider);
 
     return KhDiscardGuard(
       isDirty: state.isDirty,
       child: KhScaffold(
-        title: l10n?.onboardingCategoriesRegions ?? 'Categories & regions',
+        title: l10n?.onboardingRegionsHeading ?? 'Regions',
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -37,23 +36,6 @@ class CategoriesRegionsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
             ],
-            Text(l10n?.onboardingCategoriesHeading ?? 'Categories'),
-            const SizedBox(height: 8),
-            categories.when(
-              data: (nodes) => CategoryRegionPicker(
-                nodes: nodes,
-                selected: state.categoryIds,
-                locale: locale.languageCode,
-                onToggle: controller.toggleCategory,
-              ),
-              loading: () => const KhLoadingView(),
-              error: (_, __) => KhInlineError(
-                message:
-                    l10n?.couldNotLoadCategories ??
-                    'Could not load categories.',
-              ),
-            ),
-            const SizedBox(height: 16),
             Text(l10n?.onboardingRegionsHeading ?? 'Regions'),
             const SizedBox(height: 8),
             regions.when(

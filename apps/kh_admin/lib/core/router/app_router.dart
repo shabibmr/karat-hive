@@ -149,10 +149,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const DashboardScreen(),
           ),
           GoRoute(
-            path: AdminRoutes.categories,
-            builder: (context, state) => const TaxonomyScreen(
-              kind: TaxonomyKind.category,
-            ),
+            path: '/taxonomy/categories',
+            redirect: (context, state) => AdminRoutes.regions,
           ),
           GoRoute(
             path: AdminRoutes.regions,

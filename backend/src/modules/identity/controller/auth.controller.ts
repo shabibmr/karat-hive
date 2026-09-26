@@ -70,8 +70,7 @@ const registerVendorSchema = z
       .regex(/^\+[1-9]\d{6,14}$/, 'Enter a valid WhatsApp number in E.164 format.')
       .optional(),
     regionId: z.string().uuid(),
-    // Categories/served regions are chosen later in the Categories & Regions step, not at registration.
-    categoryIds: z.array(z.string().uuid()).default([]),
+    // Served regions may be chosen later in the Regions step, not at registration.
     servedRegionIds: z.array(z.string().uuid()).default([]),
     termsVersion: z.string().min(1).max(32),
     privacyVersion: z.string().min(1).max(32),

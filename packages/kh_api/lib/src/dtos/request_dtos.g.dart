@@ -13,9 +13,6 @@ _CustomerRequestDto _$CustomerRequestDtoFromJson(Map<String, dynamic> json) =>
       requestType: json['requestType'] as String,
       direction: json['direction'] as String,
       state: json['state'] as String,
-      category: CategorySummaryDto.fromJson(
-        json['category'] as Map<String, dynamic>,
-      ),
       region: RegionSummaryDto.fromJson(json['region'] as Map<String, dynamic>),
       notes: json['notes'] as String?,
       weightGrams: json['weightGrams'] as String?,
@@ -61,7 +58,6 @@ Map<String, dynamic> _$CustomerRequestDtoToJson(_CustomerRequestDto instance) =>
       'requestType': instance.requestType,
       'direction': instance.direction,
       'state': instance.state,
-      'category': instance.category,
       'region': instance.region,
       'notes': instance.notes,
       'weightGrams': instance.weightGrams,
@@ -94,7 +90,6 @@ _RequestDraftInput _$RequestDraftInputFromJson(Map<String, dynamic> json) =>
     _RequestDraftInput(
       requestType: json['requestType'] as String?,
       direction: json['direction'] as String?,
-      categoryId: json['categoryId'] as String?,
       regionId: json['regionId'] as String?,
       notes: json['notes'] as String?,
       weightGrams: json['weightGrams'],
@@ -118,7 +113,6 @@ Map<String, dynamic> _$RequestDraftInputToJson(_RequestDraftInput instance) =>
     <String, dynamic>{
       'requestType': ?instance.requestType,
       'direction': ?instance.direction,
-      'categoryId': ?instance.categoryId,
       'regionId': ?instance.regionId,
       'notes': ?instance.notes,
       'weightGrams': ?instance.weightGrams,

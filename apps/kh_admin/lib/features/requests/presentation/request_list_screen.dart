@@ -345,7 +345,6 @@ class _RequestTable extends ConsumerWidget {
         KhTableColumn(l10n?.requestsColumnType ?? 'Type', flex: 2),
         KhTableColumn(l10n?.requestsColumnDirection ?? 'Direction', flex: 1),
         KhTableColumn(l10n?.requestsColumnCustomer ?? 'Customer', flex: 3),
-        KhTableColumn(l10n?.requestsColumnCategory ?? 'Category', flex: 2),
         KhTableColumn(l10n?.requestsColumnRegion ?? 'Region', flex: 2),
         KhTableColumn(
             l10n?.requestsColumnIndicativeValue ?? 'Indicative Value', flex: 2),
@@ -371,7 +370,6 @@ class _RequestTable extends ConsumerWidget {
                       ornamentType: item.ornamentType,
                       weightGrams: item.weightGrams,
                       purityKarat: item.purityKarat,
-                      categoryName: item.categoryName,
                       fallback: item.requestType.label,
                     ),
                     style: kh.typography.bodySmall.copyWith(
@@ -423,14 +421,6 @@ class _RequestTable extends ConsumerWidget {
                       ),
                     ),
                 ],
-              ),
-              // Category
-              Text(
-                item.categoryName,
-                style: kh.typography.bodySmall.copyWith(
-                  color: kh.colors.textSecondary,
-                  fontSize: 12.0,
-                ),
               ),
               // Region
               Text(

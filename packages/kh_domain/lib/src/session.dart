@@ -94,9 +94,7 @@ class VendorMe {
     required this.awaitingApproval,
     required this.tradingName,
     required this.legalBusinessName,
-    required this.categoryCount,
     required this.regionCount,
-    this.categoryIds = const [],
     this.regionIds = const [],
     this.awayMode = false,
     this.awaitingApprovalReason,
@@ -125,9 +123,7 @@ class VendorMe {
   final String tradeLicenceNumber;
   final String licenceExpiryDate;
   final String registeredAddress;
-  final int categoryCount;
   final int regionCount;
-  final List<String> categoryIds;
   final List<String> regionIds;
   final bool awayMode;
   final AwaitingApprovalReason? awaitingApprovalReason;
@@ -200,9 +196,7 @@ class VendorMe {
       awaitingApproval: j['awaitingApproval'] as bool? ?? true,
       tradingName: j['tradingName'] as String? ?? '',
       legalBusinessName: j['legalBusinessName'] as String? ?? '',
-      categoryCount: (j['categoryCount'] as num?)?.toInt() ?? 0,
       regionCount: (j['regionCount'] as num?)?.toInt() ?? 0,
-      categoryIds: strs(j['categoryIds']),
       regionIds: strs(j['regionIds']),
       awayMode: j['awayMode'] as bool? ?? false,
       awaitingApprovalReason:
@@ -236,9 +230,7 @@ class VendorMe {
         if (tradeLicenceNumber.isNotEmpty) 'tradeLicenceNumber': tradeLicenceNumber,
         if (licenceExpiryDate.isNotEmpty) 'licenceExpiryDate': licenceExpiryDate,
         if (registeredAddress.isNotEmpty) 'registeredAddress': registeredAddress,
-        'categoryCount': categoryCount,
         'regionCount': regionCount,
-        'categoryIds': categoryIds,
         'regionIds': regionIds,
         'awayMode': awayMode,
         if (awaitingApprovalReason != null)

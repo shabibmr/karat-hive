@@ -6,9 +6,9 @@ part of 'request_detail.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$CustomerProfileSummaryImpl _$$CustomerProfileSummaryImplFromJson(
+_CustomerProfileSummary _$CustomerProfileSummaryFromJson(
   Map<String, dynamic> json,
-) => _$CustomerProfileSummaryImpl(
+) => _CustomerProfileSummary(
   id: json['id'] as String,
   fullName: json['fullName'] as String,
   email: json['email'] as String?,
@@ -19,8 +19,8 @@ _$CustomerProfileSummaryImpl _$$CustomerProfileSummaryImplFromJson(
       : DateTime.parse(json['createdAt'] as String),
 );
 
-Map<String, dynamic> _$$CustomerProfileSummaryImplToJson(
-  _$CustomerProfileSummaryImpl instance,
+Map<String, dynamic> _$CustomerProfileSummaryToJson(
+  _CustomerProfileSummary instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'fullName': instance.fullName,
@@ -30,89 +30,83 @@ Map<String, dynamic> _$$CustomerProfileSummaryImplToJson(
   'createdAt': instance.createdAt?.toIso8601String(),
 };
 
-_$RequestMediaItemImpl _$$RequestMediaItemImplFromJson(
-  Map<String, dynamic> json,
-) => _$RequestMediaItemImpl(
-  id: json['id'] as String,
-  url: json['url'] as String,
-  thumbnailUrl: json['thumbnailUrl'] as String?,
-  fileName: json['fileName'] as String?,
-  mimeType: json['mimeType'] as String?,
-  sizeBytes: (json['sizeBytes'] as num?)?.toInt(),
-  displayOrder: (json['displayOrder'] as num?)?.toInt() ?? 0,
-);
+_RequestMediaItem _$RequestMediaItemFromJson(Map<String, dynamic> json) =>
+    _RequestMediaItem(
+      id: json['id'] as String,
+      url: json['url'] as String,
+      thumbnailUrl: json['thumbnailUrl'] as String?,
+      fileName: json['fileName'] as String?,
+      mimeType: json['mimeType'] as String?,
+      sizeBytes: (json['sizeBytes'] as num?)?.toInt(),
+      displayOrder: (json['displayOrder'] as num?)?.toInt() ?? 0,
+    );
 
-Map<String, dynamic> _$$RequestMediaItemImplToJson(
-  _$RequestMediaItemImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'url': instance.url,
-  'thumbnailUrl': instance.thumbnailUrl,
-  'fileName': instance.fileName,
-  'mimeType': instance.mimeType,
-  'sizeBytes': instance.sizeBytes,
-  'displayOrder': instance.displayOrder,
-};
+Map<String, dynamic> _$RequestMediaItemToJson(_RequestMediaItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'url': instance.url,
+      'thumbnailUrl': instance.thumbnailUrl,
+      'fileName': instance.fileName,
+      'mimeType': instance.mimeType,
+      'sizeBytes': instance.sizeBytes,
+      'displayOrder': instance.displayOrder,
+    };
 
-_$MatchedVendorItemImpl _$$MatchedVendorItemImplFromJson(
-  Map<String, dynamic> json,
-) => _$MatchedVendorItemImpl(
-  vendorId: json['vendorId'] as String,
-  businessName: json['businessName'] as String,
-  tradingName: json['tradingName'] as String?,
-  rating: (json['rating'] as num?)?.toDouble(),
-  isEligible: json['isEligible'] as bool? ?? true,
-  matchedAt: DateTime.parse(json['matchedAt'] as String),
-  viewedAt: json['viewedAt'] == null
-      ? null
-      : DateTime.parse(json['viewedAt'] as String),
-);
+_MatchedVendorItem _$MatchedVendorItemFromJson(Map<String, dynamic> json) =>
+    _MatchedVendorItem(
+      vendorId: json['vendorId'] as String,
+      businessName: json['businessName'] as String,
+      tradingName: json['tradingName'] as String?,
+      rating: (json['rating'] as num?)?.toDouble(),
+      isEligible: json['isEligible'] as bool? ?? true,
+      matchedAt: DateTime.parse(json['matchedAt'] as String),
+      viewedAt: json['viewedAt'] == null
+          ? null
+          : DateTime.parse(json['viewedAt'] as String),
+    );
 
-Map<String, dynamic> _$$MatchedVendorItemImplToJson(
-  _$MatchedVendorItemImpl instance,
-) => <String, dynamic>{
-  'vendorId': instance.vendorId,
-  'businessName': instance.businessName,
-  'tradingName': instance.tradingName,
-  'rating': instance.rating,
-  'isEligible': instance.isEligible,
-  'matchedAt': instance.matchedAt.toIso8601String(),
-  'viewedAt': instance.viewedAt?.toIso8601String(),
-};
+Map<String, dynamic> _$MatchedVendorItemToJson(_MatchedVendorItem instance) =>
+    <String, dynamic>{
+      'vendorId': instance.vendorId,
+      'businessName': instance.businessName,
+      'tradingName': instance.tradingName,
+      'rating': instance.rating,
+      'isEligible': instance.isEligible,
+      'matchedAt': instance.matchedAt.toIso8601String(),
+      'viewedAt': instance.viewedAt?.toIso8601String(),
+    };
 
-_$RequestOfferItemImpl _$$RequestOfferItemImplFromJson(
-  Map<String, dynamic> json,
-) => _$RequestOfferItemImpl(
-  id: json['id'] as String,
-  vendorId: json['vendorId'] as String,
-  vendorName: json['vendorName'] as String,
-  priceAED: (json['priceAED'] as num).toDouble(),
-  state:
-      $enumDecodeNullable(
-        _$OfferStateEnumMap,
-        json['state'],
-        unknownValue: OfferState.pending,
-      ) ??
-      OfferState.pending,
-  outcome: json['outcome'] as String?,
-  submittedAt: DateTime.parse(json['submittedAt'] as String),
-  notes: json['notes'] as String?,
-  estimatedDays: (json['estimatedDays'] as num?)?.toInt(),
-);
+_RequestOfferItem _$RequestOfferItemFromJson(Map<String, dynamic> json) =>
+    _RequestOfferItem(
+      id: json['id'] as String,
+      vendorId: json['vendorId'] as String,
+      vendorName: json['vendorName'] as String,
+      priceAED: (json['priceAED'] as num).toDouble(),
+      state:
+          $enumDecodeNullable(
+            _$OfferStateEnumMap,
+            json['state'],
+            unknownValue: OfferState.pending,
+          ) ??
+          OfferState.pending,
+      outcome: json['outcome'] as String?,
+      submittedAt: DateTime.parse(json['submittedAt'] as String),
+      notes: json['notes'] as String?,
+      estimatedDays: (json['estimatedDays'] as num?)?.toInt(),
+    );
 
-Map<String, dynamic> _$$RequestOfferItemImplToJson(
-  _$RequestOfferItemImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'vendorId': instance.vendorId,
-  'vendorName': instance.vendorName,
-  'priceAED': instance.priceAED,
-  'state': _$OfferStateEnumMap[instance.state]!,
-  'outcome': instance.outcome,
-  'submittedAt': instance.submittedAt.toIso8601String(),
-  'notes': instance.notes,
-  'estimatedDays': instance.estimatedDays,
-};
+Map<String, dynamic> _$RequestOfferItemToJson(_RequestOfferItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'vendorId': instance.vendorId,
+      'vendorName': instance.vendorName,
+      'priceAED': instance.priceAED,
+      'state': _$OfferStateEnumMap[instance.state]!,
+      'outcome': instance.outcome,
+      'submittedAt': instance.submittedAt.toIso8601String(),
+      'notes': instance.notes,
+      'estimatedDays': instance.estimatedDays,
+    };
 
 const _$OfferStateEnumMap = {
   OfferState.pending: 'PENDING',
@@ -123,9 +117,9 @@ const _$OfferStateEnumMap = {
   OfferState.withdrawnBySystem: 'WITHDRAWN_BY_SYSTEM',
 };
 
-_$RequestTimelineEventImpl _$$RequestTimelineEventImplFromJson(
+_RequestTimelineEvent _$RequestTimelineEventFromJson(
   Map<String, dynamic> json,
-) => _$RequestTimelineEventImpl(
+) => _RequestTimelineEvent(
   state:
       $enumDecodeNullable(
         _$RequestStateEnumMap,
@@ -138,8 +132,8 @@ _$RequestTimelineEventImpl _$$RequestTimelineEventImplFromJson(
   notes: json['notes'] as String?,
 );
 
-Map<String, dynamic> _$$RequestTimelineEventImplToJson(
-  _$RequestTimelineEventImpl instance,
+Map<String, dynamic> _$RequestTimelineEventToJson(
+  _RequestTimelineEvent instance,
 ) => <String, dynamic>{
   'state': _$RequestStateEnumMap[instance.state]!,
   'timestamp': instance.timestamp.toIso8601String(),
@@ -157,9 +151,9 @@ const _$RequestStateEnumMap = {
   RequestState.removed: 'REMOVED',
 };
 
-_$RequestConnectionSummaryImpl _$$RequestConnectionSummaryImplFromJson(
+_RequestConnectionSummary _$RequestConnectionSummaryFromJson(
   Map<String, dynamic> json,
-) => _$RequestConnectionSummaryImpl(
+) => _RequestConnectionSummary(
   id: json['id'] as String,
   vendorId: json['vendorId'] as String,
   vendorName: json['vendorName'] as String,
@@ -177,8 +171,8 @@ _$RequestConnectionSummaryImpl _$$RequestConnectionSummaryImplFromJson(
   channel: json['channel'] as String?,
 );
 
-Map<String, dynamic> _$$RequestConnectionSummaryImplToJson(
-  _$RequestConnectionSummaryImpl instance,
+Map<String, dynamic> _$RequestConnectionSummaryToJson(
+  _RequestConnectionSummary instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'vendorId': instance.vendorId,
@@ -193,17 +187,17 @@ Map<String, dynamic> _$$RequestConnectionSummaryImplToJson(
   'channel': instance.channel,
 };
 
-_$RequestInternalNoteItemImpl _$$RequestInternalNoteItemImplFromJson(
+_RequestInternalNoteItem _$RequestInternalNoteItemFromJson(
   Map<String, dynamic> json,
-) => _$RequestInternalNoteItemImpl(
+) => _RequestInternalNoteItem(
   id: json['id'] as String,
   authorName: json['authorName'] as String,
   text: json['text'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
 );
 
-Map<String, dynamic> _$$RequestInternalNoteItemImplToJson(
-  _$RequestInternalNoteItemImpl instance,
+Map<String, dynamic> _$RequestInternalNoteItemToJson(
+  _RequestInternalNoteItem instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'authorName': instance.authorName,
@@ -211,9 +205,9 @@ Map<String, dynamic> _$$RequestInternalNoteItemImplToJson(
   'createdAt': instance.createdAt.toIso8601String(),
 };
 
-_$RequestDetailImpl _$$RequestDetailImplFromJson(
+_RequestDetail _$RequestDetailFromJson(
   Map<String, dynamic> json,
-) => _$RequestDetailImpl(
+) => _RequestDetail(
   id: json['id'] as String,
   reference: json['reference'] as String?,
   requestType:
@@ -240,7 +234,6 @@ _$RequestDetailImpl _$$RequestDetailImplFromJson(
   customer: CustomerProfileSummary.fromJson(
     json['customer'] as Map<String, dynamic>,
   ),
-  categoryName: json['categoryName'] as String? ?? '—',
   regionName: json['regionName'] as String? ?? '—',
   ornamentType: json['ornamentType'] as String?,
   weightGrams: (json['weightGrams'] as num?)?.toDouble(),
@@ -305,7 +298,7 @@ _$RequestDetailImpl _$$RequestDetailImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$RequestDetailImplToJson(_$RequestDetailImpl instance) =>
+Map<String, dynamic> _$RequestDetailToJson(_RequestDetail instance) =>
     <String, dynamic>{
       'id': instance.id,
       'reference': instance.reference,
@@ -313,7 +306,6 @@ Map<String, dynamic> _$$RequestDetailImplToJson(_$RequestDetailImpl instance) =>
       'direction': _$DirectionEnumMap[instance.direction]!,
       'state': _$RequestStateEnumMap[instance.state]!,
       'customer': instance.customer,
-      'categoryName': instance.categoryName,
       'regionName': instance.regionName,
       'ornamentType': instance.ornamentType,
       'weightGrams': instance.weightGrams,

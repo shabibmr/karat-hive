@@ -38,7 +38,6 @@ class RegisterFormState {
     this.businessEmail = '',
     this.googleEmailLocked = false,
     this.regionId,
-    this.categoryIds = const [],
     this.servedRegionIds = const [],
     this.challengeId,
     this.firebaseIdToken = '',
@@ -69,7 +68,6 @@ class RegisterFormState {
   /// True when [businessEmail] came from Google sign-in — must not be edited.
   final bool googleEmailLocked;
   final String? regionId;
-  final List<String> categoryIds;
   final List<String> servedRegionIds;
   final String? challengeId;
   /// Firebase ID token from Google-first login (`adr/0010`). Bound on register.
@@ -130,7 +128,6 @@ class RegisterFormState {
         'contactWhatsApp':
             CustomerCompletionForm.normalizeMobile(whatsAppNumber),
       'regionId': regionId,
-      'categoryIds': categoryIds,
       'servedRegionIds': servedRegionIds.isNotEmpty
           ? servedRegionIds
           : [if (regionId != null) regionId!],
@@ -161,7 +158,6 @@ class RegisterFormState {
     String? businessEmail,
     bool? googleEmailLocked,
     String? regionId,
-    List<String>? categoryIds,
     List<String>? servedRegionIds,
     String? challengeId,
     String? firebaseIdToken,
@@ -198,7 +194,6 @@ class RegisterFormState {
           : (businessEmail ?? this.businessEmail),
       googleEmailLocked: locked,
       regionId: regionId ?? this.regionId,
-      categoryIds: categoryIds ?? this.categoryIds,
       servedRegionIds: servedRegionIds ?? this.servedRegionIds,
       challengeId: challengeId ?? this.challengeId,
       firebaseIdToken: firebaseIdToken ?? this.firebaseIdToken,

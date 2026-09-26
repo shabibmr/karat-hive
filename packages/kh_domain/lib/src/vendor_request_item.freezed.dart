@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$VendorRequestItem {
 
- String get id; String? get reference; String get requestType; String get direction; String get state; String get categoryId; String? get categoryName; String get regionId; String? get regionName; double? get weightGrams; bool get weightIsApproximate; String? get purityKarat; double? get budgetMin; double? get budgetMax; bool get budgetIsFlexible; String? get notes; DateTime? get publishedAt; DateTime? get expiresAt; int get offerCount; DateTime? get viewedAt; bool get hasResponded; MaskedParty get customer; List<RequestMediaRef> get media;
+ String get id; String? get reference; String get requestType; String get direction; String get state; String get regionId; String? get regionName; double? get weightGrams; bool get weightIsApproximate; String? get purityKarat; double? get budgetMin; double? get budgetMax; bool get budgetIsFlexible; String? get notes; DateTime? get publishedAt; DateTime? get expiresAt; int get offerCount; DateTime? get viewedAt; bool get hasResponded; MaskedParty get customer; List<RequestMediaRef> get media;
 /// Create a copy of VendorRequestItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $VendorRequestItemCopyWith<VendorRequestItem> get copyWith => _$VendorRequestIte
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VendorRequestItem&&(identical(other.id, id) || other.id == id)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.state, state) || other.state == state)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.regionId, regionId) || other.regionId == regionId)&&(identical(other.regionName, regionName) || other.regionName == regionName)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.weightIsApproximate, weightIsApproximate) || other.weightIsApproximate == weightIsApproximate)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.budgetMin, budgetMin) || other.budgetMin == budgetMin)&&(identical(other.budgetMax, budgetMax) || other.budgetMax == budgetMax)&&(identical(other.budgetIsFlexible, budgetIsFlexible) || other.budgetIsFlexible == budgetIsFlexible)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.offerCount, offerCount) || other.offerCount == offerCount)&&(identical(other.viewedAt, viewedAt) || other.viewedAt == viewedAt)&&(identical(other.hasResponded, hasResponded) || other.hasResponded == hasResponded)&&(identical(other.customer, customer) || other.customer == customer)&&const DeepCollectionEquality().equals(other.media, media));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VendorRequestItem&&(identical(other.id, id) || other.id == id)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.state, state) || other.state == state)&&(identical(other.regionId, regionId) || other.regionId == regionId)&&(identical(other.regionName, regionName) || other.regionName == regionName)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.weightIsApproximate, weightIsApproximate) || other.weightIsApproximate == weightIsApproximate)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.budgetMin, budgetMin) || other.budgetMin == budgetMin)&&(identical(other.budgetMax, budgetMax) || other.budgetMax == budgetMax)&&(identical(other.budgetIsFlexible, budgetIsFlexible) || other.budgetIsFlexible == budgetIsFlexible)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.offerCount, offerCount) || other.offerCount == offerCount)&&(identical(other.viewedAt, viewedAt) || other.viewedAt == viewedAt)&&(identical(other.hasResponded, hasResponded) || other.hasResponded == hasResponded)&&(identical(other.customer, customer) || other.customer == customer)&&const DeepCollectionEquality().equals(other.media, media));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,reference,requestType,direction,state,categoryId,categoryName,regionId,regionName,weightGrams,weightIsApproximate,purityKarat,budgetMin,budgetMax,budgetIsFlexible,notes,publishedAt,expiresAt,offerCount,viewedAt,hasResponded,customer,const DeepCollectionEquality().hash(media)]);
+int get hashCode => Object.hashAll([runtimeType,id,reference,requestType,direction,state,regionId,regionName,weightGrams,weightIsApproximate,purityKarat,budgetMin,budgetMax,budgetIsFlexible,notes,publishedAt,expiresAt,offerCount,viewedAt,hasResponded,customer,const DeepCollectionEquality().hash(media)]);
 
 @override
 String toString() {
-  return 'VendorRequestItem(id: $id, reference: $reference, requestType: $requestType, direction: $direction, state: $state, categoryId: $categoryId, categoryName: $categoryName, regionId: $regionId, regionName: $regionName, weightGrams: $weightGrams, weightIsApproximate: $weightIsApproximate, purityKarat: $purityKarat, budgetMin: $budgetMin, budgetMax: $budgetMax, budgetIsFlexible: $budgetIsFlexible, notes: $notes, publishedAt: $publishedAt, expiresAt: $expiresAt, offerCount: $offerCount, viewedAt: $viewedAt, hasResponded: $hasResponded, customer: $customer, media: $media)';
+  return 'VendorRequestItem(id: $id, reference: $reference, requestType: $requestType, direction: $direction, state: $state, regionId: $regionId, regionName: $regionName, weightGrams: $weightGrams, weightIsApproximate: $weightIsApproximate, purityKarat: $purityKarat, budgetMin: $budgetMin, budgetMax: $budgetMax, budgetIsFlexible: $budgetIsFlexible, notes: $notes, publishedAt: $publishedAt, expiresAt: $expiresAt, offerCount: $offerCount, viewedAt: $viewedAt, hasResponded: $hasResponded, customer: $customer, media: $media)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $VendorRequestItemCopyWith<$Res>  {
   factory $VendorRequestItemCopyWith(VendorRequestItem value, $Res Function(VendorRequestItem) _then) = _$VendorRequestItemCopyWithImpl;
 @useResult
 $Res call({
- String id, String? reference, String requestType, String direction, String state, String categoryId, String? categoryName, String regionId, String? regionName, double? weightGrams, bool weightIsApproximate, String? purityKarat, double? budgetMin, double? budgetMax, bool budgetIsFlexible, String? notes, DateTime? publishedAt, DateTime? expiresAt, int offerCount, DateTime? viewedAt, bool hasResponded, MaskedParty customer, List<RequestMediaRef> media
+ String id, String? reference, String requestType, String direction, String state, String regionId, String? regionName, double? weightGrams, bool weightIsApproximate, String? purityKarat, double? budgetMin, double? budgetMax, bool budgetIsFlexible, String? notes, DateTime? publishedAt, DateTime? expiresAt, int offerCount, DateTime? viewedAt, bool hasResponded, MaskedParty customer, List<RequestMediaRef> media
 });
 
 
@@ -65,16 +65,14 @@ class _$VendorRequestItemCopyWithImpl<$Res>
 
 /// Create a copy of VendorRequestItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? reference = freezed,Object? requestType = null,Object? direction = null,Object? state = null,Object? categoryId = null,Object? categoryName = freezed,Object? regionId = null,Object? regionName = freezed,Object? weightGrams = freezed,Object? weightIsApproximate = null,Object? purityKarat = freezed,Object? budgetMin = freezed,Object? budgetMax = freezed,Object? budgetIsFlexible = null,Object? notes = freezed,Object? publishedAt = freezed,Object? expiresAt = freezed,Object? offerCount = null,Object? viewedAt = freezed,Object? hasResponded = null,Object? customer = null,Object? media = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? reference = freezed,Object? requestType = null,Object? direction = null,Object? state = null,Object? regionId = null,Object? regionName = freezed,Object? weightGrams = freezed,Object? weightIsApproximate = null,Object? purityKarat = freezed,Object? budgetMin = freezed,Object? budgetMax = freezed,Object? budgetIsFlexible = null,Object? notes = freezed,Object? publishedAt = freezed,Object? expiresAt = freezed,Object? offerCount = null,Object? viewedAt = freezed,Object? hasResponded = null,Object? customer = null,Object? media = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,reference: freezed == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
 as String?,requestType: null == requestType ? _self.requestType : requestType // ignore: cast_nullable_to_non_nullable
 as String,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as String,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
-as String,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
-as String,categoryName: freezed == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable
-as String?,regionId: null == regionId ? _self.regionId : regionId // ignore: cast_nullable_to_non_nullable
+as String,regionId: null == regionId ? _self.regionId : regionId // ignore: cast_nullable_to_non_nullable
 as String,regionName: freezed == regionName ? _self.regionName : regionName // ignore: cast_nullable_to_non_nullable
 as String?,weightGrams: freezed == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
 as double?,weightIsApproximate: null == weightIsApproximate ? _self.weightIsApproximate : weightIsApproximate // ignore: cast_nullable_to_non_nullable
@@ -175,10 +173,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? reference,  String requestType,  String direction,  String state,  String categoryId,  String? categoryName,  String regionId,  String? regionName,  double? weightGrams,  bool weightIsApproximate,  String? purityKarat,  double? budgetMin,  double? budgetMax,  bool budgetIsFlexible,  String? notes,  DateTime? publishedAt,  DateTime? expiresAt,  int offerCount,  DateTime? viewedAt,  bool hasResponded,  MaskedParty customer,  List<RequestMediaRef> media)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? reference,  String requestType,  String direction,  String state,  String regionId,  String? regionName,  double? weightGrams,  bool weightIsApproximate,  String? purityKarat,  double? budgetMin,  double? budgetMax,  bool budgetIsFlexible,  String? notes,  DateTime? publishedAt,  DateTime? expiresAt,  int offerCount,  DateTime? viewedAt,  bool hasResponded,  MaskedParty customer,  List<RequestMediaRef> media)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VendorRequestItem() when $default != null:
-return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.state,_that.categoryId,_that.categoryName,_that.regionId,_that.regionName,_that.weightGrams,_that.weightIsApproximate,_that.purityKarat,_that.budgetMin,_that.budgetMax,_that.budgetIsFlexible,_that.notes,_that.publishedAt,_that.expiresAt,_that.offerCount,_that.viewedAt,_that.hasResponded,_that.customer,_that.media);case _:
+return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.state,_that.regionId,_that.regionName,_that.weightGrams,_that.weightIsApproximate,_that.purityKarat,_that.budgetMin,_that.budgetMax,_that.budgetIsFlexible,_that.notes,_that.publishedAt,_that.expiresAt,_that.offerCount,_that.viewedAt,_that.hasResponded,_that.customer,_that.media);case _:
   return orElse();
 
 }
@@ -196,10 +194,10 @@ return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? reference,  String requestType,  String direction,  String state,  String categoryId,  String? categoryName,  String regionId,  String? regionName,  double? weightGrams,  bool weightIsApproximate,  String? purityKarat,  double? budgetMin,  double? budgetMax,  bool budgetIsFlexible,  String? notes,  DateTime? publishedAt,  DateTime? expiresAt,  int offerCount,  DateTime? viewedAt,  bool hasResponded,  MaskedParty customer,  List<RequestMediaRef> media)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? reference,  String requestType,  String direction,  String state,  String regionId,  String? regionName,  double? weightGrams,  bool weightIsApproximate,  String? purityKarat,  double? budgetMin,  double? budgetMax,  bool budgetIsFlexible,  String? notes,  DateTime? publishedAt,  DateTime? expiresAt,  int offerCount,  DateTime? viewedAt,  bool hasResponded,  MaskedParty customer,  List<RequestMediaRef> media)  $default,) {final _that = this;
 switch (_that) {
 case _VendorRequestItem():
-return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.state,_that.categoryId,_that.categoryName,_that.regionId,_that.regionName,_that.weightGrams,_that.weightIsApproximate,_that.purityKarat,_that.budgetMin,_that.budgetMax,_that.budgetIsFlexible,_that.notes,_that.publishedAt,_that.expiresAt,_that.offerCount,_that.viewedAt,_that.hasResponded,_that.customer,_that.media);case _:
+return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.state,_that.regionId,_that.regionName,_that.weightGrams,_that.weightIsApproximate,_that.purityKarat,_that.budgetMin,_that.budgetMax,_that.budgetIsFlexible,_that.notes,_that.publishedAt,_that.expiresAt,_that.offerCount,_that.viewedAt,_that.hasResponded,_that.customer,_that.media);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -216,10 +214,10 @@ return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? reference,  String requestType,  String direction,  String state,  String categoryId,  String? categoryName,  String regionId,  String? regionName,  double? weightGrams,  bool weightIsApproximate,  String? purityKarat,  double? budgetMin,  double? budgetMax,  bool budgetIsFlexible,  String? notes,  DateTime? publishedAt,  DateTime? expiresAt,  int offerCount,  DateTime? viewedAt,  bool hasResponded,  MaskedParty customer,  List<RequestMediaRef> media)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? reference,  String requestType,  String direction,  String state,  String regionId,  String? regionName,  double? weightGrams,  bool weightIsApproximate,  String? purityKarat,  double? budgetMin,  double? budgetMax,  bool budgetIsFlexible,  String? notes,  DateTime? publishedAt,  DateTime? expiresAt,  int offerCount,  DateTime? viewedAt,  bool hasResponded,  MaskedParty customer,  List<RequestMediaRef> media)?  $default,) {final _that = this;
 switch (_that) {
 case _VendorRequestItem() when $default != null:
-return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.state,_that.categoryId,_that.categoryName,_that.regionId,_that.regionName,_that.weightGrams,_that.weightIsApproximate,_that.purityKarat,_that.budgetMin,_that.budgetMax,_that.budgetIsFlexible,_that.notes,_that.publishedAt,_that.expiresAt,_that.offerCount,_that.viewedAt,_that.hasResponded,_that.customer,_that.media);case _:
+return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that.state,_that.regionId,_that.regionName,_that.weightGrams,_that.weightIsApproximate,_that.purityKarat,_that.budgetMin,_that.budgetMax,_that.budgetIsFlexible,_that.notes,_that.publishedAt,_that.expiresAt,_that.offerCount,_that.viewedAt,_that.hasResponded,_that.customer,_that.media);case _:
   return null;
 
 }
@@ -231,7 +229,7 @@ return $default(_that.id,_that.reference,_that.requestType,_that.direction,_that
 @JsonSerializable()
 
 class _VendorRequestItem extends VendorRequestItem {
-  const _VendorRequestItem({required this.id, this.reference, required this.requestType, required this.direction, required this.state, required this.categoryId, this.categoryName, required this.regionId, this.regionName, this.weightGrams, this.weightIsApproximate = false, this.purityKarat, this.budgetMin, this.budgetMax, this.budgetIsFlexible = false, this.notes, this.publishedAt, this.expiresAt, this.offerCount = 0, this.viewedAt, this.hasResponded = false, required this.customer, final  List<RequestMediaRef> media = const <RequestMediaRef>[]}): _media = media,super._();
+  const _VendorRequestItem({required this.id, this.reference, required this.requestType, required this.direction, required this.state, required this.regionId, this.regionName, this.weightGrams, this.weightIsApproximate = false, this.purityKarat, this.budgetMin, this.budgetMax, this.budgetIsFlexible = false, this.notes, this.publishedAt, this.expiresAt, this.offerCount = 0, this.viewedAt, this.hasResponded = false, required this.customer, final  List<RequestMediaRef> media = const <RequestMediaRef>[]}): _media = media,super._();
   factory _VendorRequestItem.fromJson(Map<String, dynamic> json) => _$VendorRequestItemFromJson(json);
 
 @override final  String id;
@@ -239,8 +237,6 @@ class _VendorRequestItem extends VendorRequestItem {
 @override final  String requestType;
 @override final  String direction;
 @override final  String state;
-@override final  String categoryId;
-@override final  String? categoryName;
 @override final  String regionId;
 @override final  String? regionName;
 @override final  double? weightGrams;
@@ -277,16 +273,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VendorRequestItem&&(identical(other.id, id) || other.id == id)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.state, state) || other.state == state)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.regionId, regionId) || other.regionId == regionId)&&(identical(other.regionName, regionName) || other.regionName == regionName)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.weightIsApproximate, weightIsApproximate) || other.weightIsApproximate == weightIsApproximate)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.budgetMin, budgetMin) || other.budgetMin == budgetMin)&&(identical(other.budgetMax, budgetMax) || other.budgetMax == budgetMax)&&(identical(other.budgetIsFlexible, budgetIsFlexible) || other.budgetIsFlexible == budgetIsFlexible)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.offerCount, offerCount) || other.offerCount == offerCount)&&(identical(other.viewedAt, viewedAt) || other.viewedAt == viewedAt)&&(identical(other.hasResponded, hasResponded) || other.hasResponded == hasResponded)&&(identical(other.customer, customer) || other.customer == customer)&&const DeepCollectionEquality().equals(other._media, _media));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VendorRequestItem&&(identical(other.id, id) || other.id == id)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.requestType, requestType) || other.requestType == requestType)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.state, state) || other.state == state)&&(identical(other.regionId, regionId) || other.regionId == regionId)&&(identical(other.regionName, regionName) || other.regionName == regionName)&&(identical(other.weightGrams, weightGrams) || other.weightGrams == weightGrams)&&(identical(other.weightIsApproximate, weightIsApproximate) || other.weightIsApproximate == weightIsApproximate)&&(identical(other.purityKarat, purityKarat) || other.purityKarat == purityKarat)&&(identical(other.budgetMin, budgetMin) || other.budgetMin == budgetMin)&&(identical(other.budgetMax, budgetMax) || other.budgetMax == budgetMax)&&(identical(other.budgetIsFlexible, budgetIsFlexible) || other.budgetIsFlexible == budgetIsFlexible)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.offerCount, offerCount) || other.offerCount == offerCount)&&(identical(other.viewedAt, viewedAt) || other.viewedAt == viewedAt)&&(identical(other.hasResponded, hasResponded) || other.hasResponded == hasResponded)&&(identical(other.customer, customer) || other.customer == customer)&&const DeepCollectionEquality().equals(other._media, _media));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,reference,requestType,direction,state,categoryId,categoryName,regionId,regionName,weightGrams,weightIsApproximate,purityKarat,budgetMin,budgetMax,budgetIsFlexible,notes,publishedAt,expiresAt,offerCount,viewedAt,hasResponded,customer,const DeepCollectionEquality().hash(_media)]);
+int get hashCode => Object.hashAll([runtimeType,id,reference,requestType,direction,state,regionId,regionName,weightGrams,weightIsApproximate,purityKarat,budgetMin,budgetMax,budgetIsFlexible,notes,publishedAt,expiresAt,offerCount,viewedAt,hasResponded,customer,const DeepCollectionEquality().hash(_media)]);
 
 @override
 String toString() {
-  return 'VendorRequestItem(id: $id, reference: $reference, requestType: $requestType, direction: $direction, state: $state, categoryId: $categoryId, categoryName: $categoryName, regionId: $regionId, regionName: $regionName, weightGrams: $weightGrams, weightIsApproximate: $weightIsApproximate, purityKarat: $purityKarat, budgetMin: $budgetMin, budgetMax: $budgetMax, budgetIsFlexible: $budgetIsFlexible, notes: $notes, publishedAt: $publishedAt, expiresAt: $expiresAt, offerCount: $offerCount, viewedAt: $viewedAt, hasResponded: $hasResponded, customer: $customer, media: $media)';
+  return 'VendorRequestItem(id: $id, reference: $reference, requestType: $requestType, direction: $direction, state: $state, regionId: $regionId, regionName: $regionName, weightGrams: $weightGrams, weightIsApproximate: $weightIsApproximate, purityKarat: $purityKarat, budgetMin: $budgetMin, budgetMax: $budgetMax, budgetIsFlexible: $budgetIsFlexible, notes: $notes, publishedAt: $publishedAt, expiresAt: $expiresAt, offerCount: $offerCount, viewedAt: $viewedAt, hasResponded: $hasResponded, customer: $customer, media: $media)';
 }
 
 
@@ -297,7 +293,7 @@ abstract mixin class _$VendorRequestItemCopyWith<$Res> implements $VendorRequest
   factory _$VendorRequestItemCopyWith(_VendorRequestItem value, $Res Function(_VendorRequestItem) _then) = __$VendorRequestItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? reference, String requestType, String direction, String state, String categoryId, String? categoryName, String regionId, String? regionName, double? weightGrams, bool weightIsApproximate, String? purityKarat, double? budgetMin, double? budgetMax, bool budgetIsFlexible, String? notes, DateTime? publishedAt, DateTime? expiresAt, int offerCount, DateTime? viewedAt, bool hasResponded, MaskedParty customer, List<RequestMediaRef> media
+ String id, String? reference, String requestType, String direction, String state, String regionId, String? regionName, double? weightGrams, bool weightIsApproximate, String? purityKarat, double? budgetMin, double? budgetMax, bool budgetIsFlexible, String? notes, DateTime? publishedAt, DateTime? expiresAt, int offerCount, DateTime? viewedAt, bool hasResponded, MaskedParty customer, List<RequestMediaRef> media
 });
 
 
@@ -314,16 +310,14 @@ class __$VendorRequestItemCopyWithImpl<$Res>
 
 /// Create a copy of VendorRequestItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? reference = freezed,Object? requestType = null,Object? direction = null,Object? state = null,Object? categoryId = null,Object? categoryName = freezed,Object? regionId = null,Object? regionName = freezed,Object? weightGrams = freezed,Object? weightIsApproximate = null,Object? purityKarat = freezed,Object? budgetMin = freezed,Object? budgetMax = freezed,Object? budgetIsFlexible = null,Object? notes = freezed,Object? publishedAt = freezed,Object? expiresAt = freezed,Object? offerCount = null,Object? viewedAt = freezed,Object? hasResponded = null,Object? customer = null,Object? media = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? reference = freezed,Object? requestType = null,Object? direction = null,Object? state = null,Object? regionId = null,Object? regionName = freezed,Object? weightGrams = freezed,Object? weightIsApproximate = null,Object? purityKarat = freezed,Object? budgetMin = freezed,Object? budgetMax = freezed,Object? budgetIsFlexible = null,Object? notes = freezed,Object? publishedAt = freezed,Object? expiresAt = freezed,Object? offerCount = null,Object? viewedAt = freezed,Object? hasResponded = null,Object? customer = null,Object? media = null,}) {
   return _then(_VendorRequestItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,reference: freezed == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
 as String?,requestType: null == requestType ? _self.requestType : requestType // ignore: cast_nullable_to_non_nullable
 as String,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as String,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
-as String,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
-as String,categoryName: freezed == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable
-as String?,regionId: null == regionId ? _self.regionId : regionId // ignore: cast_nullable_to_non_nullable
+as String,regionId: null == regionId ? _self.regionId : regionId // ignore: cast_nullable_to_non_nullable
 as String,regionName: freezed == regionName ? _self.regionName : regionName // ignore: cast_nullable_to_non_nullable
 as String?,weightGrams: freezed == weightGrams ? _self.weightGrams : weightGrams // ignore: cast_nullable_to_non_nullable
 as double?,weightIsApproximate: null == weightIsApproximate ? _self.weightIsApproximate : weightIsApproximate // ignore: cast_nullable_to_non_nullable

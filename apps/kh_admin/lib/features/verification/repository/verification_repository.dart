@@ -55,7 +55,6 @@ class VerificationRepository {
 
   static Map<String, dynamic> _normalizeVendorDetail(Map<String, dynamic> json) {
     final normalized = Map<String, dynamic>.from(json);
-    normalized['categories'] = _extractTaxonomyNames(json['categories']);
     normalized['regions'] = _extractTaxonomyNames(json['regions']);
     normalized['documents'] = _normalizeDocuments(json['documents']);
     if (json['user'] is Map<String, dynamic>) {
@@ -72,9 +71,8 @@ class VerificationRepository {
           if (item is String) return item;
           if (item is Map<String, dynamic>) {
             // origin/main shape: join rows carrying a nested taxonomy object,
-            // e.g. `{categoryId, category: {nameEn, nameAr}}` /
-            // `{regionId, region: {nameEn, nameAr}}`.
-            final nested = item['category'] ?? item['region'];
+            // e.g. `{regionId, region: {nameEn, nameAr}}`.
+            final nested = item['region'];
             if (nested is Map<String, dynamic>) {
               return nested['nameEn']?.toString() ??
                   nested['nameAr']?.toString() ??

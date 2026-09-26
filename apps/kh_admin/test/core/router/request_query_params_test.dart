@@ -7,7 +7,7 @@ void main() {
   test('RequestQueryParams parses from Uri correctly', () {
     final uri = Uri.parse(
       '/requests?q=KH-RQ-1&requestType=FIND_ORNAMENT&direction=BUY'
-      '&state=PUBLISHED&categoryId=cat-1&regionId=reg-2'
+      '&state=PUBLISHED&regionId=reg-2'
       '&zeroOffers=true&minValue=1000.5&maxValue=25000',
     );
     final params = RequestQueryParams.fromUri(uri);
@@ -16,7 +16,6 @@ void main() {
     expect(params.requestType, RequestType.findOrnament);
     expect(params.direction, Direction.buy);
     expect(params.state, RequestState.published);
-    expect(params.categoryId, 'cat-1');
     expect(params.regionId, 'reg-2');
     expect(params.zeroOffersOnly, isTrue);
     expect(params.minValue, 1000.5);
@@ -29,7 +28,6 @@ void main() {
       requestType: RequestType.goldCoin,
       direction: Direction.sell,
       state: RequestState.accepted,
-      categoryId: 'cat-9',
       regionId: 'reg-3',
       zeroOffersOnly: true,
       minValue: 10.5,
@@ -41,7 +39,6 @@ void main() {
     expect(map['requestType'], 'GOLD_COIN');
     expect(map['direction'], 'SELL');
     expect(map['state'], 'ACCEPTED');
-    expect(map['categoryId'], 'cat-9');
     expect(map['regionId'], 'reg-3');
     expect(map['zeroOffers'], 'true');
     expect(map['minValue'], '10.5');
@@ -79,7 +76,6 @@ void main() {
       requestType: RequestType.sellOldGold,
       direction: Direction.buy,
       state: RequestState.accepted,
-      categoryId: 'cat-x',
       regionId: 'reg-y',
       zeroOffersOnly: true,
       minValue: 12.25,

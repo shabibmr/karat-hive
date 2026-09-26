@@ -28,7 +28,7 @@ _Avoid_: post, listing, order, ticket, inquiry, RFQ (as primary term)
 
 **Request Type**:
 One of four kinds of Request: Find An Ornament, Sell Old Gold, Buy/Sell Gold Coin(s), Buy/Sell Gold Bullion. Immutable after publication; also the unit of Vendor subscription entitlement.
-_Avoid_: category (Category is a separate matching taxonomy), product type
+_Avoid_: category (Category taxonomy entity has been removed), product type
 
 **Direction**:
 Whether the Customer wants to buy or sell on a Request. Fixed by type for Find An Ornament (buy) and Sell Old Gold (sell); chosen by the Customer for coins and bullion.
@@ -57,7 +57,7 @@ _Avoid_: transaction, deal completion, conversion (when meaning a closed sale)
 ## Matching and eligibility
 
 **Match Set**:
-The set of Vendors eligible to see a given published Request, determined by verification, marketplace access, Category, Region, and active Type Subscription.
+The set of Vendors eligible to see a given published Request, determined by verification status (`VERIFIED`), account state (`ACTIVE`), and an active Type Subscription for the Request's type.
 _Avoid_: audience, fan list, subscribers
 
 **Fan-out**:
@@ -65,23 +65,23 @@ Distribution of a newly published Request to its Match Set, with notification to
 _Avoid_: broadcast, push (alone), publish (publish means a Request going live)
 
 **Category**:
-Admin-maintained classification of goods or specialisation. One of the two matching dimensions; Vendors declare which Categories they serve.
-_Avoid_: Request Type, tag, genre
+Removed entity (ADR 0014). Category taxonomy has been completely removed from matching, data model, APIs, and UI workflows. Do not reintroduce.
+_Avoid_: Category taxonomy, product taxonomy
 
 **Region**:
-Admin-maintained geographic area (for example emirate → area). The second matching dimension; Vendors declare which Regions they serve.
+Admin-maintained geographic area (for example emirate → area). Retained as an optional flat display and feed filter taxonomy, not a matching eligibility gate.
 _Avoid_: location, zone, city (unless as a Region leaf name)
 
 **Type Subscription**:
-A paid Vendor entitlement to be matched to and offer on Requests of one specific Request Type. Independent per type; required in addition to Verification and marketplace access.
+A paid Vendor entitlement to be matched to and offer on Requests of one specific Request Type. Independent per type; required in addition to Verification (`VERIFIED`) and `ACTIVE` account status.
 _Avoid_: plan, tier (alone), licence, package, membership (alone)
 
 **Verification**:
-Manual Platform Admin approval of a Vendor’s business credentials. Necessary but not sufficient for marketplace access; the Vendor must also have marketplace access and hold the relevant Type Subscription.
+Manual Platform Admin approval of a Vendor’s business credentials. Granting `VERIFIED` status unconditionally activates the Vendor (`ACTIVE`), enabling marketplace access subject to holding an active Type Subscription.
 _Avoid_: KYC (as the product term — documents support verification), auto-approval, onboarding (broader)
 
 **Marketplace Access**:
-The Vendor state in which they may see matched Requests and submit Offers (subject to Type Subscription). Distinct from Verification: credentials may be approved while access is not yet granted, or access may be suspended after verification.
+The Vendor state in which they may see matched Requests and submit Offers (subject to Type Subscription). Vendor activation occurs unconditionally upon reaching `VERIFIED` status.
 _Avoid_: active (as a vague adjective), enabled, live account (alone)
 
 **Awaiting Approval**:

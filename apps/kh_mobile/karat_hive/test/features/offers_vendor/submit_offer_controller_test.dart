@@ -17,8 +17,6 @@ VendorRequestItem _testRequest({
     requestType: 'FIND_ORNAMENT',
     direction: 'BUY',
     state: 'PUBLISHED',
-    categoryId: 'cat-ring',
-    categoryName: 'Rings',
     regionId: 'reg-dxb',
     regionName: 'Dubai',
     purityKarat: '22',

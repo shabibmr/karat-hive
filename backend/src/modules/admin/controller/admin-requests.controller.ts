@@ -34,7 +34,6 @@ export const adminRequestListQuerySchema = z.object({
   requestType: z.nativeEnum(RequestType).optional(),
   direction: z.nativeEnum(Direction).optional(),
   state: z.nativeEnum(RequestState).optional(),
-  categoryId: z.string().uuid().optional(),
   regionId: z.string().uuid().optional(),
   valueMin: z.coerce.number().min(0).optional(),
   valueMax: z.coerce.number().min(0).optional(),

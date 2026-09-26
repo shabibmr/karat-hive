@@ -80,8 +80,6 @@ void main() {
               'requestType': 'FIND_ORNAMENT',
               'direction': 'BUY',
               'state': 'PUBLISHED',
-              'categoryId': 'cat-ring',
-              'category': {'nameEn': 'Rings'},
               'regionId': 'reg-dxb',
               'region': {'nameEn': 'Dubai'},
               'weightGrams': 12.5,
@@ -122,8 +120,6 @@ void main() {
       expect(req.requestType, 'FIND_ORNAMENT');
       expect(req.direction, 'BUY');
       expect(req.state, 'PUBLISHED');
-      expect(req.categoryId, 'cat-ring');
-      expect(req.categoryName, 'Rings');
       expect(req.regionId, 'reg-dxb');
       expect(req.regionName, 'Dubai');
       expect(req.weightGrams, 12.5);
@@ -167,7 +163,6 @@ void main() {
         'requestType': 'FIND_ORNAMENT',
         'direction': 'BUY',
         'state': state,
-        'category': {'id': 'cat-1', 'nameEn': 'Necklace', 'nameAr': 'عقد'},
         'region': {'id': 'reg-dxb', 'nameEn': 'Dubai', 'nameAr': 'دبي'},
         'weightIsApproximate': false,
         'budgetIsFlexible': true,
@@ -189,7 +184,6 @@ void main() {
             'requestType': 'CUSTOM_DESIGN',
             'direction': 'BUY',
             'state': 'PUBLISHED',
-            'categoryId': 'cat-necklace',
             'regionId': 'reg-dxb',
             'weightGrams': 35.0,
             'purityKarat': '18',
@@ -267,7 +261,6 @@ void main() {
             const RequestDraftInput(
               requestType: 'FIND_ORNAMENT',
               direction: 'BUY',
-              categoryId: 'cat-1',
               regionId: 'reg-dxb',
             ),
           );
@@ -546,7 +539,6 @@ void main() {
         from: DateTime.utc(2026, 1, 1),
         to: DateTime.utc(2026, 6, 30, 23, 59, 59),
         requestType: 'FIND_ORNAMENT',
-        categoryId: '11111111-1111-1111-1111-111111111111',
         regionId: '22222222-2222-2222-2222-222222222222',
       );
       expect(res.isOk, isTrue);
@@ -563,7 +555,6 @@ void main() {
       expect(query!['from'], '2026-01-01T00:00:00.000Z');
       expect(query!['to'], '2026-06-30T23:59:59.000Z');
       expect(query!['requestType'], 'FIND_ORNAMENT');
-      expect(query!['categoryId'], '11111111-1111-1111-1111-111111111111');
       expect(query!['regionId'], '22222222-2222-2222-2222-222222222222');
     });
 
@@ -1033,9 +1024,7 @@ void main() {
             'contactPersonName': 'Sara',
             'businessEmail': 'sara@example.com',
             'description': 'Showroom',
-            'categoryCount': 1,
             'regionCount': 1,
-            'categoryIds': <String>[],
             'regionIds': <String>[],
             'awayMode': false,
           },
@@ -1080,9 +1069,7 @@ void main() {
             'businessAddress': 'Deira',
             'contactPersonName': 'Sara',
             'businessEmail': 'sara@example.com',
-            'categoryCount': 0,
             'regionCount': 0,
-            'categoryIds': <String>[],
             'regionIds': <String>[],
             'awayMode': false,
           },
@@ -1103,3 +1090,4 @@ void main() {
     });
   });
 }
+

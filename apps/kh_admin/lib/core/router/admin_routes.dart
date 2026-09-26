@@ -31,7 +31,7 @@ abstract final class AdminRoutes {
   static const connectionDetail = ':id';
 
   // Taxonomy
-  static const categories = '/taxonomy/categories';
+  static const categories = '/taxonomy/regions';
   static const regions = '/taxonomy/regions';
 
   // Operations & Governance

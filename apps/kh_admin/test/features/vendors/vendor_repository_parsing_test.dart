@@ -104,17 +104,6 @@ void main() {
             'email': 'contact@alnoor.ae',
             'accountState': 'SUSPENDED',
           },
-          'categories': <dynamic>[
-            <String, dynamic>{
-              'vendorProfileId': 'vendor-1',
-              'categoryId': 'cat-1',
-              'category': <String, dynamic>{
-                'id': 'cat-1',
-                'nameEn': 'Gold Jewellery',
-                'nameAr': 'مجوهرات ذهبية',
-              },
-            },
-          ],
           'regions': <dynamic>[
             <String, dynamic>{
               'vendorProfileId': 'vendor-1',
@@ -144,11 +133,10 @@ void main() {
           ],
         };
 
-    test('reads nested category/region names and user.accountState', () {
+    test('reads nested region names and user.accountState', () {
       final detail = VendorDetail.fromJson(rawDetail());
 
       expect(detail.legalBusinessName, 'Al Noor Jewellery LLC');
-      expect(detail.categories, ['Gold Jewellery']);
       expect(detail.regions, ['Dubai']);
       expect(detail.accountState, VendorAccountState.suspended);
       expect(detail.verificationState, VendorVerificationState.verified);

@@ -137,7 +137,7 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
                         ? (l10n?.emptyFeedResetFiltersHint ??
                             'Try resetting your active filters to see more requests.')
                         : (l10n?.emptyFeedBroadenHint ??
-                            'Broaden your Categories and Regions, or check that you have an active Type Subscription for the request types you want to see.'),
+                            'Broaden your Regions, or check that you have an active Type Subscription for the request types you want to see.'),
                     style: TextStyle(
                       color: tokens.ink.withValues(alpha: 0.7),
                       fontSize: 14,
@@ -160,7 +160,7 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
                         key: const Key('empty-feed-subscriptions-cta'),
                         icon: const Icon(Icons.card_membership_outlined),
                         label: Text(l10n?.viewSubscriptions ?? 'View Subscriptions'),
-                        // ACTIVE vendors edit Categories/Regions under
+                        // ACTIVE vendors edit Regions under
                         // AppGuards.vendorProfileCategories. Empty-feed CTA
                         // still points at subscriptions for entitlement gaps.
                         onPressed: () => context.push('/vendor/subscriptions'),

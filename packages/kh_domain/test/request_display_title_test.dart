@@ -50,13 +50,10 @@ void main() {
       );
     });
 
-    test('falls back to category then request type', () {
+    test('falls back to request type', () {
       expect(
-        formatRequestDisplayTitle(
-          requestType: RequestType.findOrnament,
-          categoryName: 'Jewellery',
-        ),
-        'Jewellery',
+        formatRequestDisplayTitle(requestType: RequestType.findOrnament),
+        'Find An Ornament',
       );
       expect(
         formatRequestDisplayTitle(requestType: RequestType.sellOldGold),
@@ -74,7 +71,6 @@ void main() {
         ornamentType: OrnamentType.bangle,
         weightGrams: '10.5',
         purityKarat: Karat.k21,
-        categoryName: 'KH-RQ-2026-000001',
       );
       expect(title, 'Bangle 10.5gm 21K');
       expect(title.contains('KH-RQ'), isFalse);

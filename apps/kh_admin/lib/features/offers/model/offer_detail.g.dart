@@ -6,9 +6,9 @@ part of 'offer_detail.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$OfferParentRequestSummaryImpl _$$OfferParentRequestSummaryImplFromJson(
+_OfferParentRequestSummary _$OfferParentRequestSummaryFromJson(
   Map<String, dynamic> json,
-) => _$OfferParentRequestSummaryImpl(
+) => _OfferParentRequestSummary(
   id: json['id'] as String,
   reference: json['reference'] as String?,
   requestType: $enumDecodeNullable(
@@ -17,20 +17,18 @@ _$OfferParentRequestSummaryImpl _$$OfferParentRequestSummaryImplFromJson(
     unknownValue: RequestType.findOrnament,
   ),
   customer: const _PartyConverter().fromJson(json['customer']),
-  categoryName: json['categoryName'] as String?,
   regionName: json['regionName'] as String?,
   indicativeValue: (json['indicativeValue'] as num?)?.toDouble(),
   notes: json['notes'] as String?,
 );
 
-Map<String, dynamic> _$$OfferParentRequestSummaryImplToJson(
-  _$OfferParentRequestSummaryImpl instance,
+Map<String, dynamic> _$OfferParentRequestSummaryToJson(
+  _OfferParentRequestSummary instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'reference': instance.reference,
   'requestType': _$RequestTypeEnumMap[instance.requestType],
   'customer': const _PartyConverter().toJson(instance.customer),
-  'categoryName': instance.categoryName,
   'regionName': instance.regionName,
   'indicativeValue': instance.indicativeValue,
   'notes': instance.notes,
@@ -43,87 +41,81 @@ const _$RequestTypeEnumMap = {
   RequestType.goldBullion: 'GOLD_BULLION',
 };
 
-_$OfferVendorSummaryImpl _$$OfferVendorSummaryImplFromJson(
+_OfferVendorSummary _$OfferVendorSummaryFromJson(Map<String, dynamic> json) =>
+    _OfferVendorSummary(
+      id: json['id'] as String,
+      legalBusinessName: json['legalBusinessName'] as String,
+      tradingName: json['tradingName'] as String?,
+      tradeLicenceNumber: json['tradeLicenceNumber'] as String?,
+      contactPersonName: json['contactPersonName'] as String?,
+      mobileNumber: json['mobileNumber'] as String?,
+      email: json['email'] as String?,
+      rating: (json['rating'] as num?)?.toDouble(),
+      completedDeals: (json['completedDeals'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$OfferVendorSummaryToJson(_OfferVendorSummary instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'legalBusinessName': instance.legalBusinessName,
+      'tradingName': instance.tradingName,
+      'tradeLicenceNumber': instance.tradeLicenceNumber,
+      'contactPersonName': instance.contactPersonName,
+      'mobileNumber': instance.mobileNumber,
+      'email': instance.email,
+      'rating': instance.rating,
+      'completedDeals': instance.completedDeals,
+    };
+
+_OfferAttachment _$OfferAttachmentFromJson(Map<String, dynamic> json) =>
+    _OfferAttachment(
+      id: json['id'] as String,
+      fileName: json['fileName'] as String,
+      url: json['url'] as String?,
+      mimeType: json['mimeType'] as String?,
+      sizeBytes: (json['sizeBytes'] as num?)?.toInt(),
+      uploadedAt: json['uploadedAt'] == null
+          ? null
+          : DateTime.parse(json['uploadedAt'] as String),
+    );
+
+Map<String, dynamic> _$OfferAttachmentToJson(_OfferAttachment instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'fileName': instance.fileName,
+      'url': instance.url,
+      'mimeType': instance.mimeType,
+      'sizeBytes': instance.sizeBytes,
+      'uploadedAt': instance.uploadedAt?.toIso8601String(),
+    };
+
+_OfferRevisionItem _$OfferRevisionItemFromJson(Map<String, dynamic> json) =>
+    _OfferRevisionItem(
+      revisionNumber: (json['revisionNumber'] as num).toInt(),
+      revisedAt: DateTime.parse(json['revisedAt'] as String),
+      offeredPrice: (json['offeredPrice'] as num).toDouble(),
+      makingCharges: (json['makingCharges'] as num?)?.toDouble(),
+      ratePerGram: (json['ratePerGram'] as num?)?.toDouble(),
+      deliveryTimeframe: json['deliveryTimeframe'] as String?,
+      vendorNote: json['vendorNote'] as String?,
+      changeSummary: json['changeSummary'] as String?,
+    );
+
+Map<String, dynamic> _$OfferRevisionItemToJson(_OfferRevisionItem instance) =>
+    <String, dynamic>{
+      'revisionNumber': instance.revisionNumber,
+      'revisedAt': instance.revisedAt.toIso8601String(),
+      'offeredPrice': instance.offeredPrice,
+      'makingCharges': instance.makingCharges,
+      'ratePerGram': instance.ratePerGram,
+      'deliveryTimeframe': instance.deliveryTimeframe,
+      'vendorNote': instance.vendorNote,
+      'changeSummary': instance.changeSummary,
+    };
+
+_OfferStateTransitionItem _$OfferStateTransitionItemFromJson(
   Map<String, dynamic> json,
-) => _$OfferVendorSummaryImpl(
-  id: json['id'] as String,
-  legalBusinessName: json['legalBusinessName'] as String,
-  tradingName: json['tradingName'] as String?,
-  tradeLicenceNumber: json['tradeLicenceNumber'] as String?,
-  contactPersonName: json['contactPersonName'] as String?,
-  mobileNumber: json['mobileNumber'] as String?,
-  email: json['email'] as String?,
-  rating: (json['rating'] as num?)?.toDouble(),
-  completedDeals: (json['completedDeals'] as num?)?.toInt(),
-);
-
-Map<String, dynamic> _$$OfferVendorSummaryImplToJson(
-  _$OfferVendorSummaryImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'legalBusinessName': instance.legalBusinessName,
-  'tradingName': instance.tradingName,
-  'tradeLicenceNumber': instance.tradeLicenceNumber,
-  'contactPersonName': instance.contactPersonName,
-  'mobileNumber': instance.mobileNumber,
-  'email': instance.email,
-  'rating': instance.rating,
-  'completedDeals': instance.completedDeals,
-};
-
-_$OfferAttachmentImpl _$$OfferAttachmentImplFromJson(
-  Map<String, dynamic> json,
-) => _$OfferAttachmentImpl(
-  id: json['id'] as String,
-  fileName: json['fileName'] as String,
-  url: json['url'] as String?,
-  mimeType: json['mimeType'] as String?,
-  sizeBytes: (json['sizeBytes'] as num?)?.toInt(),
-  uploadedAt: json['uploadedAt'] == null
-      ? null
-      : DateTime.parse(json['uploadedAt'] as String),
-);
-
-Map<String, dynamic> _$$OfferAttachmentImplToJson(
-  _$OfferAttachmentImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'fileName': instance.fileName,
-  'url': instance.url,
-  'mimeType': instance.mimeType,
-  'sizeBytes': instance.sizeBytes,
-  'uploadedAt': instance.uploadedAt?.toIso8601String(),
-};
-
-_$OfferRevisionItemImpl _$$OfferRevisionItemImplFromJson(
-  Map<String, dynamic> json,
-) => _$OfferRevisionItemImpl(
-  revisionNumber: (json['revisionNumber'] as num).toInt(),
-  revisedAt: DateTime.parse(json['revisedAt'] as String),
-  offeredPrice: (json['offeredPrice'] as num).toDouble(),
-  makingCharges: (json['makingCharges'] as num?)?.toDouble(),
-  ratePerGram: (json['ratePerGram'] as num?)?.toDouble(),
-  deliveryTimeframe: json['deliveryTimeframe'] as String?,
-  vendorNote: json['vendorNote'] as String?,
-  changeSummary: json['changeSummary'] as String?,
-);
-
-Map<String, dynamic> _$$OfferRevisionItemImplToJson(
-  _$OfferRevisionItemImpl instance,
-) => <String, dynamic>{
-  'revisionNumber': instance.revisionNumber,
-  'revisedAt': instance.revisedAt.toIso8601String(),
-  'offeredPrice': instance.offeredPrice,
-  'makingCharges': instance.makingCharges,
-  'ratePerGram': instance.ratePerGram,
-  'deliveryTimeframe': instance.deliveryTimeframe,
-  'vendorNote': instance.vendorNote,
-  'changeSummary': instance.changeSummary,
-};
-
-_$OfferStateTransitionItemImpl _$$OfferStateTransitionItemImplFromJson(
-  Map<String, dynamic> json,
-) => _$OfferStateTransitionItemImpl(
+) => _OfferStateTransitionItem(
   fromState: json['fromState'] as String?,
   toState: json['toState'] as String,
   transitionedAt: DateTime.parse(json['transitionedAt'] as String),
@@ -131,8 +123,8 @@ _$OfferStateTransitionItemImpl _$$OfferStateTransitionItemImplFromJson(
   reason: json['reason'] as String?,
 );
 
-Map<String, dynamic> _$$OfferStateTransitionItemImplToJson(
-  _$OfferStateTransitionItemImpl instance,
+Map<String, dynamic> _$OfferStateTransitionItemToJson(
+  _OfferStateTransitionItem instance,
 ) => <String, dynamic>{
   'fromState': instance.fromState,
   'toState': instance.toState,
@@ -141,17 +133,17 @@ Map<String, dynamic> _$$OfferStateTransitionItemImplToJson(
   'reason': instance.reason,
 };
 
-_$OfferInternalNoteItemImpl _$$OfferInternalNoteItemImplFromJson(
+_OfferInternalNoteItem _$OfferInternalNoteItemFromJson(
   Map<String, dynamic> json,
-) => _$OfferInternalNoteItemImpl(
+) => _OfferInternalNoteItem(
   id: json['id'] as String,
   author: json['author'] as String,
   text: json['text'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
 );
 
-Map<String, dynamic> _$$OfferInternalNoteItemImplToJson(
-  _$OfferInternalNoteItemImpl instance,
+Map<String, dynamic> _$OfferInternalNoteItemToJson(
+  _OfferInternalNoteItem instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'author': instance.author,
@@ -159,9 +151,7 @@ Map<String, dynamic> _$$OfferInternalNoteItemImplToJson(
   'createdAt': instance.createdAt.toIso8601String(),
 };
 
-_$OfferDetailImpl _$$OfferDetailImplFromJson(
-  Map<String, dynamic> json,
-) => _$OfferDetailImpl(
+_OfferDetail _$OfferDetailFromJson(Map<String, dynamic> json) => _OfferDetail(
   id: json['id'] as String,
   reference: json['reference'] as String?,
   state:
@@ -172,6 +162,8 @@ _$OfferDetailImpl _$$OfferDetailImplFromJson(
       ) ??
       OfferState.pending,
   offeredPrice: (json['offeredPrice'] as num).toDouble(),
+  weightGrams: (json['weightGrams'] as num?)?.toDouble(),
+  purityKarat: json['purityKarat'] as String?,
   makingCharges: (json['makingCharges'] as num?)?.toDouble(),
   ratePerGram: (json['ratePerGram'] as num?)?.toDouble(),
   goldPrice: (json['goldPrice'] as num?)?.toDouble(),
@@ -180,8 +172,6 @@ _$OfferDetailImpl _$$OfferDetailImplFromJson(
   deliveryTimeframe: json['deliveryTimeframe'] as String?,
   warrantyTerms: json['warrantyTerms'] as String?,
   vendorNote: json['vendorNote'] as String?,
-  weightGrams: (json['weightGrams'] as num?)?.toDouble(),
-  purityKarat: json['purityKarat'] as String?,
   expiresAt: json['expiresAt'] == null
       ? null
       : DateTime.parse(json['expiresAt'] as String),
@@ -229,7 +219,7 @@ _$OfferDetailImpl _$$OfferDetailImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$OfferDetailImplToJson(_$OfferDetailImpl instance) =>
+Map<String, dynamic> _$OfferDetailToJson(_OfferDetail instance) =>
     <String, dynamic>{
       'id': instance.id,
       'reference': instance.reference,

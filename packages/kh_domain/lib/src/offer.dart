@@ -276,7 +276,6 @@ class _DirectionConverter implements JsonConverter<Direction, String?> {
 /// Parent Request summary on a Vendor Offer (masked Customer label only).
 Map<String, dynamic> _normalizeOfferRequestSummaryJson(
     Map<String, dynamic> json) {
-  final category = _map(json['category']);
   final region = _map(json['region']);
   return {
     'id': json['id'] as String? ?? '',
@@ -284,9 +283,6 @@ Map<String, dynamic> _normalizeOfferRequestSummaryJson(
     'requestType': json['requestType']?.toString(),
     'direction': json['direction']?.toString(),
     'customerLabel': json['customerLabel'] as String? ?? 'Customer',
-    'categoryId': category['id'] as String? ?? json['categoryId'] as String?,
-    'categoryName':
-        category['nameEn'] as String? ?? json['categoryName'] as String?,
     'regionId': region['id'] as String? ?? json['regionId'] as String?,
     'regionName': region['nameEn'] as String? ?? json['regionName'] as String?,
     'purityKarat': json['purityKarat']?.toString(),
@@ -304,8 +300,6 @@ abstract class OfferRequestSummary with _$OfferRequestSummary {
     @_DirectionConverter() required Direction direction,
     required String customerLabel,
     String? reference,
-    String? categoryId,
-    String? categoryName,
     String? regionId,
     String? regionName,
     String? purityKarat,

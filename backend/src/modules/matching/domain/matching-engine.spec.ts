@@ -5,20 +5,16 @@ describe('MatchingEngine (FR-SYS-002)', () => {
   const sampleRequest: MatchingCriteria = {
     requestId: 'req-1',
     requestType: 'FIND_ORNAMENT',
-    categoryId: 'cat-gold-ring',
-    regionId: 'reg-dubai',
   };
 
   const fullyEligibleVendor: VendorEligibilitySnapshot = {
     vendorProfileId: 'vp-1',
     isVerified: true,
     isActive: true,
-    categoryIds: ['cat-gold-ring', 'cat-gold-chain'],
-    regionIds: ['reg-dubai', 'reg-sharjah'],
     activeSubscriptionTypes: ['FIND_ORNAMENT', 'SELL_OLD_GOLD'],
   };
 
-  it('matches when vendor meets all 5 eligibility criteria', () => {
+  it('matches when vendor is verified, active, and subscribed to the request type', () => {
     expect(isVendorEligibleForRequest(fullyEligibleVendor, sampleRequest)).toBe(true);
   });
 
@@ -29,16 +25,6 @@ describe('MatchingEngine (FR-SYS-002)', () => {
 
   it('rejects inactive vendor', () => {
     const vendor = { ...fullyEligibleVendor, isActive: false };
-    expect(isVendorEligibleForRequest(vendor, sampleRequest)).toBe(false);
-  });
-
-  it('rejects vendor lacking the category', () => {
-    const vendor = { ...fullyEligibleVendor, categoryIds: ['cat-gold-necklace'] };
-    expect(isVendorEligibleForRequest(vendor, sampleRequest)).toBe(false);
-  });
-
-  it('rejects vendor lacking the region', () => {
-    const vendor = { ...fullyEligibleVendor, regionIds: ['reg-abu-dhabi'] };
     expect(isVendorEligibleForRequest(vendor, sampleRequest)).toBe(false);
   });
 

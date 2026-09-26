@@ -14,7 +14,6 @@ export type MatchesListView = {
 export function presentMatch(
   match: RequestMatch & {
     request: Request & {
-      category?: { nameEn?: string; nameAr?: string };
       region?: { nameEn?: string; nameAr?: string };
       offers?: Array<{ id: string }>;
     };

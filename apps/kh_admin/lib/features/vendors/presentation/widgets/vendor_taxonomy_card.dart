@@ -28,49 +28,6 @@ class VendorTaxonomyCard extends StatelessWidget {
           const KhSectionLabel('Taxonomy & Coverage'),
           SizedBox(height: kh.spacing.md),
           Text(
-            'Categories Served',
-            style: kh.typography.caption.copyWith(
-              color: kh.colors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: kh.spacing.xs),
-          if (detail.categories.isEmpty)
-            Text(
-              'No categories declared.',
-              style: kh.typography.bodySmall.copyWith(color: kh.colors.textMuted),
-            )
-          else
-            Wrap(
-              spacing: kh.spacing.xs,
-              runSpacing: kh.spacing.xs,
-              children: [
-                for (final category in detail.categories)
-                  Container(
-                    key: Key('category-chip-$category'),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: kh.spacing.sm,
-                      vertical: kh.spacing.xxs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: kh.colors.goldPrimary.withValues(alpha: 0.1),
-                      borderRadius: kh.shapes.pill,
-                      border: Border.all(
-                        color: kh.colors.goldPrimary.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Text(
-                      category,
-                      style: kh.typography.caption.copyWith(
-                        color: kh.colors.goldPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          SizedBox(height: kh.spacing.md),
-          Text(
             'Regions Served',
             style: kh.typography.caption.copyWith(
               color: kh.colors.textSecondary,

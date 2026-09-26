@@ -1,0 +1,49 @@
+<section class="screen" data-screen="ADM-S12" data-title="Connection List">
+  <div class="screen-block">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div>
+        <div class="section-label">Audit Trail</div>
+        <h1 class="screen-heading" style="margin:0">Revealed Connections (640 Active)</h1>
+      </div>
+      <div class="filter-bar" style="margin:0">
+        <input type="text" placeholder="Search ref / customer / vendor..." style="width:240px;min-height:36px;padding:0.3rem 0.6rem" />
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Connection Ref</th>
+          <th>Customer</th>
+          <th>Vendor</th>
+          <th>Agreed Price</th>
+          <th>Created Date</th>
+          <th>Talk Started</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>KH-CN-2026-00881</strong></td>
+          <td>Sara Al Maktoum</td>
+          <td>Al Noor Jewellery LLC</td>
+          <td class="price-aed" style="font-size:0.85rem">AED 14,850</td>
+          <td>10 Aug 2026</td>
+          <td><span class="status-chip status-success">YES (WhatsApp)</span></td>
+          <td><button type="button" class="btn btn-sm btn-secondary" data-nav="ADM-S13">Inspect</button></td>
+        </tr>
+        <tr>
+          <td><strong>KH-CN-2026-00790</strong></td>
+          <td>Ahmed Al Mansoori</td>
+          <td>Dubai Gold Crafts</td>
+          <td class="price-aed" style="font-size:0.85rem">AED 19,200</td>
+          <td>08 Aug 2026</td>
+          <td><span class="status-chip status-draft">NO</span></td>
+          <td><button type="button" class="btn btn-sm btn-secondary" data-nav="ADM-S13">Inspect</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

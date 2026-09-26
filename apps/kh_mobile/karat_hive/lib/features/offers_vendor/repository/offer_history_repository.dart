@@ -19,14 +19,12 @@ class OfferHistoryRepository {
     DateTime? from,
     DateTime? to,
     String? requestType,
-    String? categoryId,
     String? regionId,
   }) =>
       _api.performance.getPerformance(
         from: from,
         to: to,
         requestType: requestType,
-        categoryId: categoryId,
         regionId: regionId,
       );
 
@@ -34,14 +32,12 @@ class OfferHistoryRepository {
     DateTime? from,
     DateTime? to,
     String? requestType,
-    String? categoryId,
     String? regionId,
   }) =>
       _api.performance.exportPerformance(
         from: from,
         to: to,
         requestType: requestType,
-        categoryId: categoryId,
         regionId: regionId,
       );
 

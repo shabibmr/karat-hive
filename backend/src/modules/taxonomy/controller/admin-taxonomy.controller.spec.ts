@@ -28,10 +28,7 @@ describe('AdminTaxonomyController', () => {
 
   beforeEach(() => {
     service = {
-      listTree: vi.fn(),
-      createCategory: vi.fn(),
-      updateCategory: vi.fn(),
-      deactivateCategory: vi.fn(),
+      listRegions: vi.fn(),
       createRegion: vi.fn(),
       updateRegion: vi.fn(),
       deactivateRegion: vi.fn(),
@@ -40,88 +37,20 @@ describe('AdminTaxonomyController', () => {
     controller = new AdminTaxonomyController(service);
   });
 
-  it('getCategories delegates to taxonomyService.listTree with default includeInactive=true', async () => {
-    vi.mocked(service.listTree).mockResolvedValue([]);
-
-    await controller.getCategories();
-
-    expect(service.listTree).toHaveBeenCalledWith('category', { includeInactive: true });
-  });
-
-  it('getCategories supports includeInactive=false query param', async () => {
-    vi.mocked(service.listTree).mockResolvedValue([]);
-
-    await controller.getCategories('false');
-
-    expect(service.listTree).toHaveBeenCalledWith('category', { includeInactive: false });
-  });
-
-  it('createCategory delegates to taxonomyService.createCategory', async () => {
-    const dto = { nameEn: 'Jewellery', nameAr: 'مجوهرات' };
-    vi.mocked(service.createCategory).mockResolvedValue({
-      id: 'cat-1',
-      nameEn: 'Jewellery',
-      nameAr: 'مجوهرات',
-      isActive: true,
-      displayOrder: 0,
-    });
-
-    const result = await controller.createCategory(mockViewer, mockRequest, dto);
-
-    expect(result.id).toBe('cat-1');
-    expect(service.createCategory).toHaveBeenCalledWith(
-      dto,
-      mockViewer,
-      expect.objectContaining({ ip: '127.0.0.1', userAgent: 'admin-web' }),
-    );
-  });
-
-  it('updateCategory delegates to taxonomyService.updateCategory', async () => {
-    const dto = { nameEn: 'Fine Jewellery' };
-    vi.mocked(service.updateCategory).mockResolvedValue({
-      id: 'cat-1',
-      nameEn: 'Fine Jewellery',
-      nameAr: 'مجوهرات',
-      isActive: true,
-      displayOrder: 0,
-    });
-
-    const result = await controller.updateCategory('cat-1', mockViewer, mockRequest, dto);
-
-    expect(result.nameEn).toBe('Fine Jewellery');
-    expect(service.updateCategory).toHaveBeenCalledWith(
-      'cat-1',
-      dto,
-      mockViewer,
-      expect.objectContaining({ ip: '127.0.0.1' }),
-    );
-  });
-
-  it('deactivateCategory delegates to taxonomyService.deactivateCategory', async () => {
-    vi.mocked(service.deactivateCategory).mockResolvedValue({
-      id: 'cat-1',
-      nameEn: 'Jewellery',
-      nameAr: 'مجوهرات',
-      isActive: false,
-      displayOrder: 0,
-    });
-
-    const result = await controller.deactivateCategory('cat-1', mockViewer, mockRequest);
-
-    expect(result.isActive).toBe(false);
-    expect(service.deactivateCategory).toHaveBeenCalledWith(
-      'cat-1',
-      mockViewer,
-      expect.objectContaining({ ip: '127.0.0.1' }),
-    );
-  });
-
-  it('getRegions delegates to taxonomyService.listTree with default includeInactive=true', async () => {
-    vi.mocked(service.listTree).mockResolvedValue([]);
+  it('getRegions delegates to taxonomyService.listRegions with default includeInactive=true', async () => {
+    vi.mocked(service.listRegions).mockResolvedValue([]);
 
     await controller.getRegions();
 
-    expect(service.listTree).toHaveBeenCalledWith('region', { includeInactive: true });
+    expect(service.listRegions).toHaveBeenCalledWith({ includeInactive: true });
+  });
+
+  it('getRegions supports includeInactive=false query param', async () => {
+    vi.mocked(service.listRegions).mockResolvedValue([]);
+
+    await controller.getRegions('false');
+
+    expect(service.listRegions).toHaveBeenCalledWith({ includeInactive: false });
   });
 
   it('createRegion delegates to taxonomyService.createRegion', async () => {

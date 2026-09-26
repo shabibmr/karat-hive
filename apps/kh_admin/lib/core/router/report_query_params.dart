@@ -15,7 +15,6 @@ class ReportQueryParamsCodec extends QueryParamsCodec<ReportFilters> {
       from: _parseDate(query['from']),
       to: _parseDate(query['to']),
       regionId: query['regionId'],
-      categoryId: query['categoryId'],
     );
   }
 
@@ -30,9 +29,6 @@ class ReportQueryParamsCodec extends QueryParamsCodec<ReportFilters> {
     }
     if (filters.regionId != null && filters.regionId!.trim().isNotEmpty) {
       params['regionId'] = filters.regionId!.trim();
-    }
-    if (filters.categoryId != null && filters.categoryId!.trim().isNotEmpty) {
-      params['categoryId'] = filters.categoryId!.trim();
     }
     return params;
   }

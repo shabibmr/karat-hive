@@ -6,9 +6,9 @@ part of 'vendor_verification_detail.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$VendorVerificationDetailImpl _$$VendorVerificationDetailImplFromJson(
+_VendorVerificationDetail _$VendorVerificationDetailFromJson(
   Map<String, dynamic> json,
-) => _$VendorVerificationDetailImpl(
+) => _VendorVerificationDetail(
   id: json['id'] as String,
   legalBusinessName: json['legalBusinessName'] as String,
   tradeLicenceNumber: json['tradeLicenceNumber'] as String,
@@ -21,11 +21,6 @@ _$VendorVerificationDetailImpl _$$VendorVerificationDetailImplFromJson(
           ?.map((e) => VendorDocumentDetail.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const <VendorDocumentDetail>[],
-  categories:
-      (json['categories'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const <String>[],
   regions:
       (json['regions'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const <String>[],
@@ -37,8 +32,8 @@ _$VendorVerificationDetailImpl _$$VendorVerificationDetailImplFromJson(
       : DateTime.parse(json['submittedAt'] as String),
 );
 
-Map<String, dynamic> _$$VendorVerificationDetailImplToJson(
-  _$VendorVerificationDetailImpl instance,
+Map<String, dynamic> _$VendorVerificationDetailToJson(
+  _VendorVerificationDetail instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'legalBusinessName': instance.legalBusinessName,
@@ -48,7 +43,6 @@ Map<String, dynamic> _$$VendorVerificationDetailImplToJson(
   'contactPersonName': instance.contactPersonName,
   'businessEmail': instance.businessEmail,
   'documents': instance.documents,
-  'categories': instance.categories,
   'regions': instance.regions,
   'tradingName': instance.tradingName,
   'mobileNumber': instance.mobileNumber,
@@ -56,9 +50,9 @@ Map<String, dynamic> _$$VendorVerificationDetailImplToJson(
   'submittedAt': instance.submittedAt?.toIso8601String(),
 };
 
-_$VendorDocumentDetailImpl _$$VendorDocumentDetailImplFromJson(
+_VendorDocumentDetail _$VendorDocumentDetailFromJson(
   Map<String, dynamic> json,
-) => _$VendorDocumentDetailImpl(
+) => _VendorDocumentDetail(
   id: json['id'] as String,
   documentType: json['documentType'] as String,
   uploadedAt: DateTime.parse(json['uploadedAt'] as String),
@@ -71,8 +65,8 @@ _$VendorDocumentDetailImpl _$$VendorDocumentDetailImplFromJson(
   verified: json['verified'] as bool? ?? false,
 );
 
-Map<String, dynamic> _$$VendorDocumentDetailImplToJson(
-  _$VendorDocumentDetailImpl instance,
+Map<String, dynamic> _$VendorDocumentDetailToJson(
+  _VendorDocumentDetail instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'documentType': instance.documentType,

@@ -19,7 +19,6 @@ class OnboardingRepository {
   final KhApi _api;
   final MediaPickController _media;
 
-  Future<Result<List<TaxonomyNode>>> categories() => _api.categories();
   Future<Result<List<TaxonomyNode>>> regions() => _api.regions();
   Future<Result<VendorMe>> vendorMe() => _api.vendorMe();
   Future<Result<List<VendorDocument>>> documents() => _api.documents();
@@ -88,11 +87,6 @@ class OnboardingRepository {
 
 final onboardingRepositoryProvider =
     Provider<OnboardingRepository>((ref) => OnboardingRepository(ref.watch(khApiProvider)));
-
-final categoriesProvider = FutureProvider<List<TaxonomyNode>>((ref) async {
-  final r = await ref.watch(onboardingRepositoryProvider).categories();
-  return r.when(ok: (v) => v, err: (f) => throw f);
-});
 
 final regionsProvider = FutureProvider<List<TaxonomyNode>>((ref) async {
   final r = await ref.watch(onboardingRepositoryProvider).regions();

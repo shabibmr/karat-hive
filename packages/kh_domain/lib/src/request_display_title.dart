@@ -14,7 +14,6 @@ String formatRequestDisplayTitle({
   String? purityKaratLabel,
   String? denominationGrams,
   int? quantity,
-  String? categoryName,
   String fallback = 'Request',
 }) {
   final karat = _karatLabel(purityKarat, purityKaratLabel);
@@ -51,9 +50,6 @@ String formatRequestDisplayTitle({
     if (parts.isNotEmpty) return parts.join(' ');
   }
 
-  final category = categoryName?.trim();
-  if (category != null && category.isNotEmpty) return category;
-
   final typeLabel = _requestTypeFallback(requestType);
   if (typeLabel != null) return typeLabel;
 
@@ -69,7 +65,6 @@ extension RequestForCustomerDisplayTitle on RequestForCustomer {
         purityKarat: purityKarat,
         denominationGrams: denominationGrams,
         quantity: quantity,
-        categoryName: category.name(locale),
         fallback: fallback,
       );
 }
@@ -80,7 +75,6 @@ extension VendorRequestItemDisplayTitle on VendorRequestItem {
         requestType: RequestType.parse(requestType),
         weightGrams: weightGrams,
         purityKaratLabel: purityKarat,
-        categoryName: categoryName,
         fallback: fallback,
       );
 }
@@ -91,7 +85,6 @@ extension OfferRequestSummaryDisplayTitle on OfferRequestSummary {
         requestType: requestType,
         weightGrams: weightGrams,
         purityKaratLabel: purityKarat,
-        categoryName: categoryName,
         fallback: fallback,
       );
 }
@@ -100,7 +93,6 @@ extension ConnectionRequestSnapshotDisplayTitle on ConnectionRequestSnapshot {
   String displayTitle({String locale = 'en', String fallback = 'Request'}) =>
       formatRequestDisplayTitle(
         requestType: requestType,
-        categoryName: category?.name(locale),
         fallback: fallback,
       );
 }

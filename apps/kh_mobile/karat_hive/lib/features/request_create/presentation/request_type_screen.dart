@@ -380,7 +380,7 @@ class _TypeTile extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Direction / Category Pill
+                    // Direction Pill
                     Expanded(
                       child: Align(
                         alignment: Alignment.centerLeft,

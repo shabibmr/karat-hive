@@ -15,7 +15,6 @@ describe('request.presenter', () => {
     requestType: 'FIND_ORNAMENT',
     direction: 'BUY',
     state: 'PUBLISHED',
-    categoryId: 'cat-1',
     regionId: 'reg-1',
     notes: 'Looking for a ring',
     weightGrams: new Prisma.Decimal(8.5),
@@ -41,17 +40,6 @@ describe('request.presenter', () => {
     cancellationReason: null,
     createdAt: new Date('2026-01-01T09:00:00Z'),
     updatedAt: new Date('2026-01-01T10:00:00Z'),
-    category: {
-      id: 'cat-1',
-      nameEn: 'Jewellery',
-      nameAr: 'مجوهرات',
-      parentId: null,
-      icon: 'sparkle',
-      displayOrder: 1,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
     region: {
       id: 'reg-1',
       nameEn: 'Dubai',
@@ -93,7 +81,6 @@ describe('request.presenter', () => {
     expect(leakedKey).toBeNull();
     expect(presented.id).toBe(mockFullRequest.id);
     expect(presented.reference).toBe('KH-RQ-2026-001234');
-    expect(presented.category.nameEn).toBe('Jewellery');
     expect(presented.region.nameEn).toBe('Dubai');
     expect(presented.media).toHaveLength(1);
     expect(presented.media[0].key).toBe('med-key-1');

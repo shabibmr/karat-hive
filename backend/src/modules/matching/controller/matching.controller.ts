@@ -38,7 +38,6 @@ const karatEnum = z.enum(['24K', '22K', '21K', '18K', 'K24', 'K22', 'K21', 'K18'
 const matchesQuerySchema = z.object({
   requestType: z.enum(['FIND_ORNAMENT', 'SELL_OLD_GOLD', 'GOLD_COIN', 'GOLD_BULLION']).optional(),
   direction: z.enum(['BUY', 'SELL']).optional(),
-  categoryId: z.string().uuid().optional(),
   regionId: z.string().uuid().optional(),
   purityKarat: karatEnum.optional(),
   weightMin: z.coerce.number().positive().optional(),
