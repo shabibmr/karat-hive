@@ -217,13 +217,16 @@ void main() {
     testWidgets('renders empty compose form with request context (empty/data)',
         (tester) async {
       await setTallSurface(tester);
-      final repo = FakeOffersVendorRepository(request: _testRequest());
+      final request = _testRequest();
+      final repo = FakeOffersVendorRepository(request: request);
 
       await tester.pumpWidget(_host(repo: repo));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('submit-offer-screen')), findsOneWidget);
-      expect(find.text('REQ-2026-0099'), findsOneWidget);
+      // Specs-based display title, not the system KH-RQ reference (BR-006-adjacent UX rule).
+      expect(find.text(request.displayTitle()), findsOneWidget);
+      expect(find.text('REQ-2026-0099'), findsNothing);
       expect(find.text('Customer in Dubai'), findsOneWidget);
       expect(find.byType(OfferTermsForm), findsOneWidget);
       expect(find.byKey(const Key('offer-price-field')), findsOneWidget);

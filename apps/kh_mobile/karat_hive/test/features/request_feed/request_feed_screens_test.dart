@@ -181,7 +181,8 @@ void main() {
     });
 
     testWidgets('renders request items with masked customer and expiry countdown', (tester) async {
-      final fakeRepo = FakeRequestFeedRepository(requests: [_testRequest()]);
+      final item = _testRequest();
+      final fakeRepo = FakeRequestFeedRepository(requests: [item]);
 
       await tester.pumpWidget(
         ProviderScope(
@@ -197,7 +198,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(VendorRequestCard), findsOneWidget);
-      expect(find.text('REQ-2026-0001'), findsOneWidget);
+      // Specs-based display title, not the system KH-RQ reference.
+      expect(find.text(item.displayTitle()), findsOneWidget);
+      expect(find.text('REQ-2026-0001'), findsNothing);
       expect(find.text('Rings'), findsOneWidget);
       expect(find.text('22K'), findsOneWidget);
       expect(find.text('3 offers'), findsOneWidget);
@@ -389,7 +392,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('request-detail-screen')), findsOneWidget);
-      expect(find.text('REQ-DETAIL-999'), findsOneWidget);
+      // Specs-based display title, not the system KH-RQ reference.
+      expect(find.text(item.displayTitle()), findsOneWidget);
+      expect(find.text('REQ-DETAIL-999'), findsNothing);
       expect(find.byType(SpecificationGrid), findsOneWidget);
       expect(find.byType(MaskedPartyLabel), findsOneWidget);
       expect(find.textContaining('Competitor pricing and terms are hidden'), findsOneWidget);
