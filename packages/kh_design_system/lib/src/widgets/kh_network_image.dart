@@ -3,7 +3,22 @@ import 'package:flutter_avif/flutter_avif.dart';
 
 /// Network image that routes AVIF through `flutter_avif` (libavif).
 /// Flutter's built-in codecs do not reliably decode AVIF across platforms.
+///
+/// Backend media URLs are relative (`/v1/media/<key>`); each app sets
+/// [urlResolver] once at bootstrap to resolve them against its API base URL.
 class KhNetworkImage extends StatelessWidget {
+  static String? Function(String url)? urlResolver;
+
+  /// [url] resolved through [urlResolver]; absolute URLs pass through.
+  static String resolve(String url) {
+    if (url.isEmpty ||
+        url.startsWith('http://') ||
+        url.startsWith('https://')) {
+      return url;
+    }
+    return urlResolver?.call(url) ?? url;
+  }
+
   const KhNetworkImage({
     super.key,
     required this.url,
@@ -28,10 +43,11 @@ class KhNetworkImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final onError = errorBuilder ??
         (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined));
+    final resolved = resolve(url);
 
     if (_isAvif) {
       return AvifImage.network(
-        url,
+        resolved,
         fit: fit,
         width: width,
         height: height,
@@ -40,7 +56,7 @@ class KhNetworkImage extends StatelessWidget {
     }
 
     return Image.network(
-      url,
+      resolved,
       fit: fit,
       width: width,
       height: height,

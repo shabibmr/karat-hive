@@ -47,7 +47,7 @@ class GoogleContinuePanel extends ConsumerWidget {
               key: const Key('switch-to-vendor-btn'),
               label: 'Switch to Vendor Sign In',
               secondary: true,
-              onPressed: () => context.go(AppGuards.vendorLogin),
+              onPressed: () => context.go(AppGuards.login),
             ),
           ],
           const SizedBox(height: 16),

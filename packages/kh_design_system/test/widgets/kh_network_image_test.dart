@@ -78,4 +78,28 @@ void main() {
     expect(find.text('custom-error'), findsOneWidget);
     expect(find.byIcon(Icons.broken_image_outlined), findsNothing);
   });
+
+  group('resolve', () {
+    tearDown(() => KhNetworkImage.urlResolver = null);
+
+    test('resolves relative backend media paths through urlResolver', () {
+      KhNetworkImage.urlResolver = (p) => 'https://api.example$p';
+      expect(
+        KhNetworkImage.resolve('/v1/media/abc.thumb'),
+        'https://api.example/v1/media/abc.thumb',
+      );
+    });
+
+    test('passes absolute URLs through untouched', () {
+      KhNetworkImage.urlResolver = (p) => 'https://api.example$p';
+      expect(
+        KhNetworkImage.resolve('https://cdn.example/x.jpg'),
+        'https://cdn.example/x.jpg',
+      );
+    });
+
+    test('returns the input when no resolver is set', () {
+      expect(KhNetworkImage.resolve('/v1/media/abc'), '/v1/media/abc');
+    });
+  });
 }

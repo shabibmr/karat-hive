@@ -91,7 +91,7 @@ class _CustomerCompletionViewState
               key: const Key('switch-to-vendor-conflict-btn'),
               label: 'Switch to Vendor Sign In',
               secondary: true,
-              onPressed: () => context.go(AppGuards.vendorLogin),
+              onPressed: () => context.go(AppGuards.login),
             ),
           ],
           const SizedBox(height: 16),

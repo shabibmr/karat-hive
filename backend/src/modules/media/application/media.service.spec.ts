@@ -324,6 +324,50 @@ describe('MediaService.complete (G2-P02)', () => {
       });
     });
 
+    describe('thumbnail keys', () => {
+      const thumbRow = mediaRow({
+        key: 'img-3',
+        state: 'READY',
+        purpose: 'REQUEST_IMAGE',
+        uploadedByUserId: 'user-1',
+        thumbnailKey: 'img-3.thumb',
+      });
+
+      beforeEach(() => {
+        vi.mocked(repo.findByKey).mockResolvedValue(null);
+        vi.mocked(prisma.media.findFirst).mockResolvedValue(thumbRow);
+        vi.mocked(storage.createSignedDownloadUrl).mockImplementation(async (_b, key) => ({
+          url: `https://storage.example/${key}`,
+          expiresAt: new Date(),
+        }));
+      });
+
+      it('signs the thumbnail stored beside the original object', async () => {
+        const result = await build({}).resolveMediaUrlOrStream('img-3.thumb');
+        expect(result).toEqual({
+          type: 'redirect',
+          url: 'https://storage.example/user/user-1/REQUEST_IMAGE/img-3.thumb',
+        });
+      });
+
+      it('falls back to a legacy bucket-root thumbnail', async () => {
+        vi.mocked(storage.headObject)
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce({ exists: true, size: 12, contentType: 'image/jpeg' });
+        const result = await build({}).resolveMediaUrlOrStream('img-3.thumb');
+        expect(result).toEqual({ type: 'redirect', url: 'https://storage.example/img-3.thumb' });
+      });
+
+      it('falls back to the original when no thumbnail object exists', async () => {
+        vi.mocked(storage.headObject).mockResolvedValue(null);
+        const result = await build({}).resolveMediaUrlOrStream('img-3.thumb');
+        expect(result).toEqual({
+          type: 'redirect',
+          url: 'https://storage.example/user/user-1/REQUEST_IMAGE/img-3',
+        });
+      });
+    });
+
     it('throws 404 if media is missing', async () => {
       vi.mocked(repo.findByKey).mockResolvedValue(null);
       const svc = build({});

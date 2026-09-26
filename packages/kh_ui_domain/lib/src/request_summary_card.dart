@@ -136,8 +136,9 @@ class OwnerRequestCard extends StatelessWidget {
                 ),
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
-                  child: Image.network(
-                    imageUrl,
+                  child: KhNetworkImage(
+                    url: imageUrl,
+                    contentType: firstMedia!.contentType,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const SizedBox.shrink(),

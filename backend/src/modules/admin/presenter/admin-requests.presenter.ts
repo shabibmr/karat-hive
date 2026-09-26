@@ -9,7 +9,6 @@ import type {
   Karat,
   Media,
   Offer,
-  OfferMedia,
   OfferRevision,
   OfferState,
   OrnamentType,

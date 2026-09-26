@@ -1,4 +1,4 @@
-import { Direction, ItemCondition, Karat, OrnamentType, RequestState, RequestType } from '@prisma/client';
+import { Direction, ItemCondition, Karat, OrnamentType, RequestType } from '@prisma/client';
 
 export type CreateRequestDraftInput = {
   customerProfileId: string;
