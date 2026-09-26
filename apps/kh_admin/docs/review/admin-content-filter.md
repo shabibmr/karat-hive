@@ -30,7 +30,7 @@
 | `docs/Architecture-Frontend.md` | 178–183 · 347–350 · 604–618 · **619–654** · 682–687 · 756–766 · 805–822 | §4.2 why admin is a separate app · §7.4 admin shell · §15.2 keyboard / a11y release gate · **§16 the entire Flutter Web chapter incl. `AD-FE-12`** · §17.4 web perf · §21.1 blockers · Appendix A screen→module map |
 | `ui-screens/admin/` | 23 files | Field-level inventory per screen (~1,050 lines) |
 | `ui-screens/admin/README.md` | 33 | Roles, primary destinations, the unmasked-identity rule |
-| `ui-screens/Karat_Hive_UI_Design_Context.md` | 2264–2327 · 2854–2865 | §79 Admin Portal · §80 Admin Dashboard · §81 Admin motion · §104 admin animation budget |
+| `docs/old/Karat_Hive_UI_Design_Context.md` | 2264–2327 · 2854–2865 | §79 Admin Portal · §80 Admin Dashboard · §81 Admin motion · §104 admin animation budget |
 | `docs/Admin-App-Completion-Plan.md` | 142 | Plan of record |
 | `docs/Admin-App-Completion-Tasks.md` | 60 | `ADM-C-*` register |
 | `docs/Admin-Backend-Followup-Tasks.md` | 54 | `ADM-C-70…76` |
@@ -88,7 +88,7 @@ Under `SDC-05` this is carved once into `docs/core/` rather than inlined per sur
 | Arch-Backend | 123–158 · 390–425 · 430–479 · 533–574 · 628–631 · 647–671 · 678–709 · 722–753 · 826–846 · 857–862 | Invariants · `AD-BE-01…16` · request lifecycle · **masking pipeline incl. §9.5 "admin always sees identity"** · outbox + event catalogue · volumes · `pg_trgm` search semantics · erasure · replica reads · envelope / errors / idempotency / pagination / rate-limit · auth paths, tokens, authorisation model · platform settings · **audit field set** · UTC↔GST |
 | `docs/Physical-Data-Model.md` | 22–55 · 56–87 · 111–135 · 198–209 | Conventions · table ownership (`admin_note`, `announcement`, `export_job` are the admin-write surface) · DB-enforced rules · Supabase RLS posture |
 | `ui-screens/component-widgets.md` | `SH-FND-*` · `SH-DOM-03/08/09` · `SH-TAX-01/02` · `SH-MED-03/04` · `SH-ID-02/03` | Shared widget contracts the admin screens reference |
-| `ui-screens/Karat_Hive_UI_Design_Context.md` | 114–160 · 409–498 · 499–592 · 1362–1429 · 1724–1786 · 2417–2515 · 2536–2551 · 2930–2980 | Palette / tokens · M3 + shape + borders · typography · status / empty / loading systems · responsive + RTL + a11y · consistency, spacing, buttons · dialogs · copywriting |
+| `docs/old/Karat_Hive_UI_Design_Context.md` | 114–160 · 409–498 · 499–592 · 1362–1429 · 1724–1786 · 2417–2515 · 2536–2551 · 2930–2980 | Palette / tokens · M3 + shape + borders · typography · status / empty / loading systems · responsive + RTL + a11y · consistency, spacing, buttons · dialogs · copywriting |
 | `docs/adr/0001`–`0010` | ~100 total | All ten are short and all bear on admin |
 
 ### 2.1 Minimum backend read-set for an admin frontend developer

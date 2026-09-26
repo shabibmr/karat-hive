@@ -3,7 +3,7 @@
 **Product:** Karat Hive  
 **Artifact:** Interactive HTML/CSS/JS mock of all inventory screens  
 **Location:** `ui-mock/`  
-**Visual authority:** `ui-screens/Karat_Hive_UI_Design_Context.md`  
+**Visual authority:** `docs/old/Karat_Hive_UI_Design_Context.md`  
 **Field authority:** `ui-screens/customer|vendor|admin/*.md`
 
 ---
@@ -216,7 +216,7 @@ All values are fictional.
 | Screen IDs & count | `ui-screens/README.md` |
 | Fields / entry-exit | Per-screen `*.md` |
 | Widgets | `ui-screens/component-widgets.md` |
-| Visual & motion | `ui-screens/Karat_Hive_UI_Design_Context.md` |
+| Visual & motion | `docs/old/Karat_Hive_UI_Design_Context.md` |
 | Domain language | Root `CONTEXT.md` |
 | ADRs | `docs/adr/` |
 

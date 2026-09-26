@@ -21,7 +21,8 @@ When a decision needs tracing back, read in this order. Later documents may not 
 | `docs/Physical-Data-Model.md` | Pre-code Postgres schema (`[PROPOSED]`). Encoded in `backend/prisma/schema.prisma` |
 | `docs/Backend-Implementation-Plan.md`, `docs/Backend-Gap-Fix-Plan.md` | Backend build order and gap fixes. Neither overrides the SRS |
 | `docs/Screen-API-Map.md` | Screen → endpoint coverage; gap register `SAM-GAP-nn` |
-| `ui-screens/` | Field-level inventory of the 68 screens, plus `component-widgets.md` (`SH-*` widgets) and the visual-system doc |
+| `ui-screens/` | Field-level inventory of the 68 screens, plus `component-widgets.md` (`SH-*` widgets) |
+| `apps/kh_mobile/karat_hive/docs/UI-Design-Context.md` | Visual system — fonts, colour, spacing, components, motion ("1a Classic", from `docs/design_handoff_karat_hive/`) for `kh_mobile`. The older dark-theme doc is archived in `docs/old/`; `kh_admin` deliberately keeps its own theme in `lib/core/design/theme/` |
 | `ui-mock/` | Interactive realisation of `ui-screens/` |
 | `docs/old/` | Superseded versions — read-only history |
 

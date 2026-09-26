@@ -323,7 +323,7 @@ Tracked in [`Customer-App-Backend-Gaps.md`](Customer-App-Backend-Gaps.md). Clien
 ## Explicitly not in this plan
 
 - Vendor mode (`VEN-S01`–`VEN-S22`), the Admin Portal, and any backend route.
-- The dark-mode palette and the full visual system — [`Karat_Hive_UI_Design_Context.md`](../ui-screens/Karat_Hive_UI_Design_Context.md) and `kh_design_system` tokens are a separate track.
+- The dark-mode palette and the full visual system — [`Karat_Hive_UI_Design_Context.md`](old/Karat_Hive_UI_Design_Context.md) and `kh_design_system` tokens are a separate track.
 - Notification copy (EN/AR strings, deep-link wording) — `Notification-Catalogue.md`, not yet written; ship placeholder strings.
 - A WebSocket for the Offers list — push + foreground polling meets `NFR-003` (§11.3); revisit in v1.1.
 - The QA case list — `CFE-42` builds the e2e path; `Release-Gate-Tests.md` enumerates the cases.
