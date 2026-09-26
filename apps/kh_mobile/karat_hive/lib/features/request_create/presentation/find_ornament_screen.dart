@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
-import 'package:kh_ui_domain/kh_ui_domain.dart' hide BudgetEditor;
 
 import '../../../app/guards.dart';
 import '../controller/request_create_controller.dart';
@@ -17,16 +16,21 @@ class ComposeScreenHost extends ConsumerStatefulWidget {
   const ComposeScreenHost({
     super.key,
     required this.title,
+    this.eyebrow,
     required this.stepLabel,
     required this.fields,
     this.combineImages = false,
+    this.showActualItemNotice = false,
   });
 
   final String title;
+  final String? eyebrow;
   final String stepLabel;
   final Widget fields;
+
   /// Find Jewellery / Sell Gold: details + photos on one page → review.
   final bool combineImages;
+  final bool showActualItemNotice;
 
   @override
   ConsumerState<ComposeScreenHost> createState() => _ComposeScreenHostState();
@@ -64,8 +68,14 @@ class _ComposeScreenHostState extends ConsumerState<ComposeScreenHost> {
       }
     }
 
+    final String effectiveEyebrow = widget.eyebrow ??
+        (state.direction == Direction.sell
+            ? createCopy(context, 'create.eyebrow.sell', 'SPECIFY THE PIECE · SELL')
+            : createCopy(context, 'create.eyebrow.buy', 'SPECIFY THE PIECE · BUY'));
+
     return CreateFlowChrome(
       title: widget.title,
+      eyebrow: effectiveEyebrow,
       stepLabel: widget.stepLabel,
       bottom: DraftActions(
         busy: state.busy || state.uploading,
@@ -103,22 +113,28 @@ class _ComposeScreenHostState extends ConsumerState<ComposeScreenHost> {
         },
       ),
       child: ListView(
-        padding: EdgeInsets.all(tokens.space.md),
+        padding: EdgeInsets.symmetric(
+          horizontal: tokens.space.md,
+          vertical: tokens.space.sm,
+        ),
         children: [
           if (state.failure != null) ...[
             KhInlineError(
               message: state.failure!.message ??
                   createCopy(context, 'create.saveFailed', 'Could not save.'),
             ),
-            SizedBox(height: tokens.space.sm),
+            SizedBox(height: tokens.space.xs),
           ],
           for (final w in state.warnings) ...[
             KhInlineError(message: w),
-            SizedBox(height: tokens.space.sm),
+            SizedBox(height: tokens.space.xs),
           ],
           if (widget.combineImages) ...[
-            const RequestImagesSection(),
-            SizedBox(height: tokens.space.lg),
+            RequestImagesSection(
+              showHint: true,
+              showActualItemNotice: widget.showActualItemNotice,
+            ),
+            SizedBox(height: tokens.space.md),
           ],
           widget.fields,
           SizedBox(height: tokens.space.md),
@@ -139,10 +155,13 @@ class FindOrnamentScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = context.tokens;
     final state = ref.watch(requestCreateControllerProvider);
     final controller = ref.read(requestCreateControllerProvider.notifier);
+
     return ComposeScreenHost(
       title: createCopy(context, 'create.type.ornament', 'Find An Ornament'),
+      eyebrow: createCopy(context, 'create.eyebrow.buy', 'SPECIFY THE PIECE · BUY'),
       stepLabel: createCopy(context, 'create.stepCompose', 'Specify the piece'),
       combineImages: true,
       fields: Column(
@@ -154,12 +173,14 @@ class FindOrnamentScreen extends ConsumerWidget {
             onChanged: controller.setOrnamentType,
             optional: true,
           ),
+          SizedBox(height: tokens.space.md),
           WeightPurityFields(
             state: state,
             controller: controller,
             purityAsChips: true,
             purityOptional: true,
           ),
+          SizedBox(height: tokens.space.sm),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
@@ -169,11 +190,13 @@ class FindOrnamentScreen extends ConsumerWidget {
             onChanged: controller.setGemstonesPresent,
           ),
           if (state.gemstonesPresent) ...[
+            SizedBox(height: tokens.space.xs),
             KhTextField(
               label: createCopy(context, 'create.gemstoneType', 'Gemstone type'),
               initialValue: state.gemstoneType,
               onChanged: controller.setGemstoneType,
             ),
+            SizedBox(height: tokens.space.xs),
             KhNumericField(
               label: createCopy(context, 'create.gemstoneCount', 'Gemstone count'),
               decimalPlaces: 0,
@@ -182,6 +205,7 @@ class FindOrnamentScreen extends ConsumerWidget {
               onChanged: (v) => controller.setGemstoneCount(v?.toInt()),
             ),
           ],
+          SizedBox(height: tokens.space.md),
           BudgetEditor(
             state: state,
             controller: controller,
@@ -197,51 +221,33 @@ class FindOrnamentScreen extends ConsumerWidget {
 class SellOldGoldScreen extends ConsumerWidget {
   const SellOldGoldScreen({super.key});
 
-  /// Indicative scrap valuation: hidden per review (preserved in code, not displayed).
-  static bool showIndicativeValuation = false;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
     final state = ref.watch(requestCreateControllerProvider);
     final controller = ref.read(requestCreateControllerProvider.notifier);
-    final value = controller.indicativeValueAed();
+
     return ComposeScreenHost(
       title: createCopy(context, 'create.type.sellGold', 'Sell Old Gold'),
+      eyebrow: createCopy(context, 'create.eyebrow.sell', 'SPECIFY THE PIECE · SELL'),
       stepLabel: createCopy(context, 'create.stepCompose', 'Specify the piece'),
       combineImages: true,
+      showActualItemNotice: true,
       fields: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          KhInlineError(
-            message: createCopy(
-              context,
-              'create.actualItemPhotos',
-              'Photos must be of the actual item — stock or catalogue images are not accepted.',
-            ),
-          ),
-          SizedBox(height: tokens.space.md),
           OrnamentTypeChips(
             value: state.ornamentType,
             onChanged: controller.setOrnamentType,
           ),
+          SizedBox(height: tokens.space.md),
           WeightPurityFields(
             state: state,
             controller: controller,
             weightRequired: true,
             purityAsChips: true,
           ),
-          if (showIndicativeValuation && value != null) ...[
-            Text(
-              createCopy(
-                context,
-                'create.indicative',
-                'Indicative valuation (estimate, not an offer)',
-              ),
-            ),
-            MoneyDisplay(amount: value),
-            SizedBox(height: tokens.space.md),
-          ],
+          SizedBox(height: tokens.space.md),
           KhSelectField<ItemCondition>(
             label: createCopy(
               context,
@@ -257,6 +263,7 @@ class SellOldGoldScreen extends ConsumerWidget {
             ],
             onChanged: controller.setCondition,
           ),
+          SizedBox(height: tokens.space.sm),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
@@ -284,8 +291,7 @@ class GoldCoinsScreen extends ConsumerWidget {
     final tokens = context.tokens;
     final state = ref.watch(requestCreateControllerProvider);
     final controller = ref.read(requestCreateControllerProvider.notifier);
-    const denoms = ['1', '2.5', '5', '10', '20', '50', '100'];
-    final total = controller.totalWeightGrams();
+
     return ComposeScreenHost(
       title: createCopy(context, 'create.type.coins', 'Buy/Sell Gold Coins'),
       stepLabel: createCopy(context, 'create.stepCompose', 'Specify the piece'),
@@ -296,41 +302,25 @@ class GoldCoinsScreen extends ConsumerWidget {
             value: state.direction,
             onChanged: controller.setDirection,
           ),
-          KhSelectField<String>(
-            label: createCopy(
-              context,
-              'create.denomination',
-              'Coin denomination',
-            ),
+          CoinDenominationChips(
             value: state.denominationGrams,
             errorText: state.fieldError('denominationGrams'),
-            searchable: false,
-            options: [
-              for (final d in denoms) KhSelectOption(value: d, label: '$d g'),
-            ],
             onChanged: controller.setDenomination,
           ),
-          KhNumericField(
-            label: createCopy(context, 'create.quantity', 'Quantity'),
-            decimalPlaces: 0,
-            min: 1,
-            errorText: state.fieldError('quantity'),
-            rangeErrorText: createCopy(
-              context,
-              'create.quantityPositive',
-              'Quantity must be greater than 0',
-            ),
-            initialValue: state.quantity?.toString(),
-            onChanged: (v) => controller.setQuantity(v?.toInt()),
+          SizedBox(height: tokens.space.md),
+          QuantityStepper(
+            value: state.quantity ?? 1,
+            onChanged: controller.setQuantity,
+            totalWeightGrams: controller.totalWeightGrams(),
           ),
-          if (total != null) ...[
-            Text(
-              createCopy(context, 'create.totalWeight', 'Total weight'),
-            ),
-            Text('${total.toStringAsFixed(2)} g'),
-            SizedBox(height: tokens.space.md),
-          ],
-          WeightPurityFields(state: state, controller: controller),
+          SizedBox(height: tokens.space.md),
+          WeightPurityFields(
+            state: state,
+            controller: controller,
+            showWeight: false,
+            purityAsChips: true,
+          ),
+          SizedBox(height: tokens.space.md),
           KhTextField(
             label: createCopy(
               context,
@@ -340,6 +330,7 @@ class GoldCoinsScreen extends ConsumerWidget {
             initialValue: state.mintOrRefiner,
             onChanged: controller.setMint,
           ),
+          SizedBox(height: tokens.space.sm),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
@@ -348,8 +339,10 @@ class GoldCoinsScreen extends ConsumerWidget {
             value: state.packagingSealed ?? false,
             onChanged: controller.setPackagingSealed,
           ),
-          if (state.direction == Direction.buy)
+          if (state.direction == Direction.buy) ...[
+            SizedBox(height: tokens.space.md),
             BudgetEditor(state: state, controller: controller),
+          ],
         ],
       ),
     );
@@ -362,8 +355,10 @@ class GoldBullionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = context.tokens;
     final state = ref.watch(requestCreateControllerProvider);
     final controller = ref.read(requestCreateControllerProvider.notifier);
+
     return ComposeScreenHost(
       title: createCopy(context, 'create.type.bullion', 'Buy/Sell Bullions'),
       stepLabel: createCopy(context, 'create.stepCompose', 'Specify the piece'),
@@ -374,25 +369,67 @@ class GoldBullionScreen extends ConsumerWidget {
             value: state.direction,
             onChanged: controller.setDirection,
           ),
-          KhNumericField(
-            label: createCopy(context, 'create.barWeight', 'Bar weight'),
-            unit: 'g',
-            min: 0.10,
-            max: 5000,
-            initialValue: state.weightGrams,
-            errorText: state.fieldError('weightGrams'),
-            onChanged: (v) =>
-                controller.setWeightGrams(v?.toStringAsFixed(2)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: KhNumericField(
+                  label: createCopy(context, 'create.barWeight', 'Bar weight'),
+                  unit: 'g',
+                  min: 0.10,
+                  max: 5000,
+                  initialValue: state.weightGrams,
+                  errorText: state.fieldError('weightGrams'),
+                  onChanged: (v) =>
+                      controller.setWeightGrams(v?.toStringAsFixed(2)),
+                ),
+              ),
+              SizedBox(width: tokens.space.md),
+              Expanded(
+                child: QuantityStepper(
+                  value: state.quantity ?? 1,
+                  onChanged: controller.setQuantity,
+                ),
+              ),
+            ],
           ),
-          KhNumericField(
-            label: createCopy(context, 'create.quantity', 'Quantity'),
-            decimalPlaces: 0,
-            min: 1,
-            errorText: state.fieldError('quantity'),
-            initialValue: state.quantity?.toString(),
-            onChanged: (v) => controller.setQuantity(v?.toInt()),
+          SizedBox(height: tokens.space.md),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                createCopy(context, 'create.purity', 'Purity'),
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              SizedBox(height: tokens.space.xs),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: tokens.space.md,
+                  vertical: tokens.space.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: tokens.goldWash,
+                  borderRadius: BorderRadius.circular(tokens.radius.md),
+                  border: Border.all(color: tokens.goldRing),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.verified, size: 16, color: tokens.goldDark),
+                    SizedBox(width: tokens.space.xs),
+                    Text(
+                      '24K · 999.9',
+                      style: context.typography.fieldInlineLabel.copyWith(
+                        color: tokens.goldDark,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          WeightPurityFields(state: state, controller: controller),
+          SizedBox(height: tokens.space.md),
           KhTextField(
             label: createCopy(
               context,
@@ -402,6 +439,7 @@ class GoldBullionScreen extends ConsumerWidget {
             initialValue: state.mintOrRefiner,
             onChanged: controller.setMint,
           ),
+          SizedBox(height: tokens.space.sm),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
@@ -414,8 +452,10 @@ class GoldBullionScreen extends ConsumerWidget {
             value: state.hasAssayCertificate,
             onChanged: controller.setHasAssayCertificate,
           ),
-          if (state.direction == Direction.buy)
+          if (state.direction == Direction.buy) ...[
+            SizedBox(height: tokens.space.md),
             BudgetEditor(state: state, controller: controller),
+          ],
         ],
       ),
     );

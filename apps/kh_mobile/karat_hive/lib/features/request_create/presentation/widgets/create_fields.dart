@@ -41,7 +41,60 @@ class TaxonomySinglePick extends StatelessWidget {
   }
 }
 
-/// Buy / Sell chooser for Coins & Bullion — one split container, not a TabBar.
+/// Reusable Ink Pill Chip for selection rows (Ornament types, Purity, Denominations).
+/// Active state = `#1C1B1A` ink pill background with white text; inactive state = outlined pill background.
+class _InkPillChip extends StatelessWidget {
+  const _InkPillChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  static const _inkColor = Color(0xFF1C1B1A);
+  static const _outlineBorder = Color(0xFFE6E4E0);
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(tokens.radius.full),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: EdgeInsets.symmetric(
+            horizontal: tokens.space.md,
+            vertical: tokens.space.xs + 2,
+          ),
+          decoration: BoxDecoration(
+            color: selected ? _inkColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(tokens.radius.full),
+            border: Border.all(
+              color: selected ? _inkColor : _outlineBorder,
+              width: 1.5,
+            ),
+          ),
+          child: Text(
+            label,
+            style: (Theme.of(context).textTheme.labelMedium ?? const TextStyle()).copyWith(
+              color: selected ? Colors.white : _inkColor,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 46px height segmented pill control for Buy / Sell direction.
+/// Animated Buy (`#C8A046` gold fill) and Sell (`#1C1B1A` ink fill) state transitions.
 class DirectionControl extends StatelessWidget {
   const DirectionControl({
     super.key,
@@ -52,107 +105,102 @@ class DirectionControl extends StatelessWidget {
   final Direction? value;
   final ValueChanged<Direction> onChanged;
 
-  static const _buyFill = Color(0xFFC8A046);
-  static const _sellFill = Color(0xFF1A2744);
-  static const _idleBuy = Color(0x33C8A046);
-  static const _idleSell = Color(0x331A2744);
+  static const _goldFill = Color(0xFFC8A046);
+  static const _inkFill = Color(0xFF1C1B1A);
+  static const _trackBg = Color(0xFFF5F4F0);
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final selected = value ?? Direction.buy;
-    final buyOn = selected == Direction.buy;
-    final sellOn = selected == Direction.sell;
+    final isBuy = selected == Direction.buy;
 
     return Padding(
       padding: EdgeInsets.only(bottom: tokens.space.lg),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
-          child: DecoratedBox(
+          child: Container(
+            height: 46,
+            padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(tokens.radius.lg),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+              color: _trackBg,
+              borderRadius: BorderRadius.circular(23),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    key: const Key('direction-buy'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => onChanged(Direction.buy),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      decoration: BoxDecoration(
+                        color: isBuy ? _goldFill : Colors.transparent,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: isBuy
+                            ? [
+                                BoxShadow(
+                                  color: _goldFill.withValues(alpha: 0.3),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        createCopy(context, 'create.buy', 'Buy'),
+                        style: (Theme.of(context).textTheme.titleMedium ??
+                                const TextStyle())
+                            .copyWith(
+                          fontWeight: isBuy ? FontWeight.w700 : FontWeight.w600,
+                          color: isBuy ? const Color(0xFF1C1B1A) : const Color(0xFF5C5A57),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    key: const Key('direction-sell'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => onChanged(Direction.sell),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      decoration: BoxDecoration(
+                        color: !isBuy ? _inkFill : Colors.transparent,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: !isBuy
+                            ? [
+                                BoxShadow(
+                                  color: _inkFill.withValues(alpha: 0.3),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        createCopy(context, 'create.sell', 'Sell'),
+                        style: (Theme.of(context).textTheme.titleMedium ??
+                                const TextStyle())
+                            .copyWith(
+                          fontWeight: !isBuy ? FontWeight.w700 : FontWeight.w600,
+                          color: !isBuy ? Colors.white : const Color(0xFF5C5A57),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(tokens.radius.lg),
-              child: SizedBox(
-                height: 52,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _DirectionHalf(
-                        key: const Key('direction-buy'),
-                        label: createCopy(context, 'create.buy', 'Buy'),
-                        selected: buyOn,
-                        fill: _buyFill,
-                        idle: _idleBuy,
-                        foreground: const Color(0xFF1C1B1A),
-                        onTap: () => onChanged(Direction.buy),
-                      ),
-                    ),
-                    Expanded(
-                      child: _DirectionHalf(
-                        key: const Key('direction-sell'),
-                        label: createCopy(context, 'create.sell', 'Sell'),
-                        selected: sellOn,
-                        fill: _sellFill,
-                        idle: _idleSell,
-                        foreground: Colors.white,
-                        onTap: () => onChanged(Direction.sell),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DirectionHalf extends StatelessWidget {
-  const _DirectionHalf({
-    super.key,
-    required this.label,
-    required this.selected,
-    required this.fill,
-    required this.idle,
-    required this.foreground,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final Color fill;
-  final Color idle;
-  final Color foreground;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: selected ? fill : idle,
-      child: InkWell(
-        onTap: onTap,
-        child: Center(
-          child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 160),
-            style: (Theme.of(context).textTheme.titleMedium ?? const TextStyle())
-                .copyWith(
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-              color: selected ? foreground : const Color(0xFF5C5A57),
-              letterSpacing: 0.8,
-            ),
-            child: Text(label),
           ),
         ),
       ),
@@ -192,6 +240,7 @@ class CommonCreateFields extends StatelessWidget {
   }
 }
 
+/// 2-up grid row pairing Weight (grams numeric input, 48px height) with 4-up Purity chip row (24K, 22K, 21K, 18K).
 class WeightPurityFields extends StatelessWidget {
   const WeightPurityFields({
     super.key,
@@ -215,38 +264,30 @@ class WeightPurityFields extends StatelessWidget {
     final tokens = context.tokens;
     final karats = state.config?.karatList ?? const ['24', '22', '21', '18'];
     final purityError = state.fieldError('purityKarat');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (showWeight) ...[
-          KhNumericField(
-            label: createCopy(context, 'create.weight', 'Weight'),
-            unit: 'g',
-            min: 0.10,
-            max: 5000,
-            decimalPlaces: 2,
-            initialValue: state.weightGrams,
-            errorText: state.fieldError('weightGrams'),
-            rangeErrorText: createCopy(
-              context,
-              'create.weightRange',
-              'Weight must be between 0.10 g and 5000.00 g',
-            ),
-            onChanged: (v) => controller.setWeightGrams(
-              v?.toStringAsFixed(2),
-            ),
-          ),
-          CheckboxListTile(
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
-            title: Text(
-              createCopy(context, 'create.weightApprox', 'Weight is approximate'),
-            ),
-            value: state.weightIsApproximate,
-            onChanged: (v) => controller.setWeightApproximate(v ?? false),
-          ),
-        ],
-        if (purityAsChips) ...[
+
+    final weightWidget = KhNumericField(
+      label: createCopy(context, 'create.weight', 'Weight'),
+      unit: 'g',
+      min: 0.10,
+      max: 5000,
+      decimalPlaces: 2,
+      initialValue: state.weightGrams,
+      errorText: state.fieldError('weightGrams'),
+      rangeErrorText: createCopy(
+        context,
+        'create.weightRange',
+        'Weight must be between 0.10 g and 5000.00 g',
+      ),
+      onChanged: (v) => controller.setWeightGrams(
+        v?.toStringAsFixed(2),
+      ),
+    );
+
+    Widget purityWidget;
+    if (purityAsChips) {
+      purityWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
             purityOptional
                 ? createCopy(
@@ -259,19 +300,19 @@ class WeightPurityFields extends StatelessWidget {
           ),
           SizedBox(height: tokens.space.sm),
           Wrap(
-            spacing: tokens.space.sm,
-            runSpacing: tokens.space.sm,
+            spacing: tokens.space.xs,
+            runSpacing: tokens.space.xs,
             children: [
               for (final raw in karats)
                 Builder(
                   builder: (context) {
                     final karat = karatFromConfig(raw);
                     final selected = state.purityKarat == karat;
-                    return ChoiceChip(
+                    return _InkPillChip(
                       key: Key('purity-chip-${karat.wire}'),
-                      label: Text(karat.wire),
+                      label: karat.wire,
                       selected: selected,
-                      onSelected: (_) => controller.setPurity(karat),
+                      onTap: () => controller.setPurity(karat),
                     );
                   },
                 ),
@@ -286,26 +327,59 @@ class WeightPurityFields extends StatelessWidget {
                   ),
             ),
           ],
-        ] else
-          KhSelectField<Karat>(
-            label: createCopy(context, 'create.purity', 'Purity'),
-            value: state.purityKarat,
-            errorText: purityError,
-            searchable: false,
-            options: [
-              for (final raw in karats)
-                KhSelectOption(
-                  value: karatFromConfig(raw),
-                  label: karatFromConfig(raw).wire,
-                ),
+        ],
+      );
+    } else {
+      purityWidget = KhSelectField<Karat>(
+        label: createCopy(context, 'create.purity', 'Purity'),
+        value: state.purityKarat,
+        errorText: purityError,
+        searchable: false,
+        options: [
+          for (final raw in karats)
+            KhSelectOption(
+              value: karatFromConfig(raw),
+              label: karatFromConfig(raw).wire,
+            ),
+        ],
+        onChanged: controller.setPurity,
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (showWeight && purityAsChips)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: weightWidget),
+              SizedBox(width: tokens.space.md),
+              Expanded(child: purityWidget),
             ],
-            onChanged: controller.setPurity,
+          )
+        else ...[
+          if (showWeight) weightWidget,
+          if (showWeight) SizedBox(height: tokens.space.sm),
+          purityWidget,
+        ],
+        if (showWeight)
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            title: Text(
+              createCopy(context, 'create.weightApprox', 'Weight is approximate'),
+            ),
+            value: state.weightIsApproximate,
+            onChanged: (v) => controller.setWeightApproximate(v ?? false),
           ),
       ],
     );
   }
 }
 
+/// 9 ornament type chips (Ring, Necklace, Bracelet, Bangle, Earrings, Pendant, Chain, Anklet, Other).
+/// Active state = `#1C1B1A` ink pill background with white text; inactive state = outlined pill background.
 class OrnamentTypeChips extends StatelessWidget {
   const OrnamentTypeChips({
     super.key,
@@ -320,9 +394,25 @@ class OrnamentTypeChips extends StatelessWidget {
   final String? errorText;
   final bool optional;
 
+  String _displayName(BuildContext context, OrnamentType t) {
+    return switch (t) {
+      OrnamentType.ring => createCopy(context, 'create.ornament.ring', 'Ring'),
+      OrnamentType.necklace => createCopy(context, 'create.ornament.necklace', 'Necklace'),
+      OrnamentType.bracelet => createCopy(context, 'create.ornament.bracelet', 'Bracelet'),
+      OrnamentType.bangle => createCopy(context, 'create.ornament.bangle', 'Bangle'),
+      OrnamentType.earring => createCopy(context, 'create.ornament.earring', 'Earrings'),
+      OrnamentType.pendant => createCopy(context, 'create.ornament.pendant', 'Pendant'),
+      OrnamentType.chain => createCopy(context, 'create.ornament.chain', 'Chain'),
+      OrnamentType.other => createCopy(context, 'create.ornament.other', 'Other'),
+      _ => ornamentWire(t),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final types = OrnamentType.values.where((t) => t != OrnamentType.unknown).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -337,19 +427,21 @@ class OrnamentTypeChips extends StatelessWidget {
           style: Theme.of(context).textTheme.titleSmall,
         ),
         SizedBox(height: tokens.space.sm),
-        Wrap(
-          spacing: tokens.space.sm,
-          runSpacing: tokens.space.sm,
-          children: [
-            for (final t in OrnamentType.values)
-              if (t != OrnamentType.unknown)
-                ChoiceChip(
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (final t in types) ...[
+                _InkPillChip(
                   key: Key('ornament-type-chip-${t.name}'),
-                  label: Text(ornamentWire(t)),
+                  label: _displayName(context, t),
                   selected: value == t,
-                  onSelected: (_) => onChanged(t),
+                  onTap: () => onChanged(t),
                 ),
-          ],
+                SizedBox(width: tokens.space.xs),
+              ],
+            ],
+          ),
         ),
         if (errorText != null) ...[
           SizedBox(height: tokens.space.xs),
@@ -365,6 +457,7 @@ class OrnamentTypeChips extends StatelessWidget {
   }
 }
 
+/// Segmented control switching between "Maximum only" (1-up Max field) and "Min–max range" (2-up Min + Max fields).
 class BudgetEditor extends StatelessWidget {
   const BudgetEditor({
     super.key,
@@ -377,9 +470,14 @@ class BudgetEditor extends StatelessWidget {
   final RequestCreateController controller;
   final bool mandatory;
 
+  static const _inkColor = Color(0xFF1C1B1A);
+  static const _trackBg = Color(0xFFF5F4F0);
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final isRange = state.budgetMode == BudgetMode.range;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -392,43 +490,96 @@ class BudgetEditor extends StatelessWidget {
           style: Theme.of(context).textTheme.titleSmall,
         ),
         SizedBox(height: tokens.space.sm),
-        Row(
-          children: [
-            Expanded(
-              child: _BudgetModeOption(
-                label: createCopy(context, 'create.budgetMaxOnly', 'Maximum only'),
-                value: BudgetMode.maxOnly,
-                groupValue: state.budgetMode,
-                onChanged: controller.setBudgetMode,
-              ),
-            ),
-            Expanded(
-              child: _BudgetModeOption(
-                label: createCopy(context, 'create.budgetRange', 'Min–max range'),
-                value: BudgetMode.range,
-                groupValue: state.budgetMode,
-                onChanged: controller.setBudgetMode,
-              ),
-            ),
-          ],
-        ),
-        if (state.budgetMode == BudgetMode.range)
-          KhNumericField(
-            key: const ValueKey('create-field-budgetMin'),
-            label: createCopy(context, 'create.budgetMin', 'Budget min'),
-            unit: 'AED',
-            initialValue: state.budgetMin,
-            errorText: state.fieldError('budgetMin'),
-            onChanged: (v) => controller.setBudgetMin(v?.toStringAsFixed(2)),
+        Container(
+          height: 40,
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: _trackBg,
+            borderRadius: BorderRadius.circular(tokens.radius.lg),
           ),
-        KhNumericField(
-          key: const ValueKey('create-field-budgetMax'),
-          label: createCopy(context, 'create.budgetMax', 'Budget max'),
-          unit: 'AED',
-          initialValue: state.budgetMax,
-          errorText: state.fieldError('budgetMax'),
-          onChanged: (v) => controller.setBudgetMax(v?.toStringAsFixed(2)),
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => controller.setBudgetMode(BudgetMode.maxOnly),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    decoration: BoxDecoration(
+                      color: !isRange ? _inkColor : Colors.transparent,
+                      borderRadius: BorderRadius.circular(tokens.radius.md),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      createCopy(context, 'create.budgetMaxOnly', 'Maximum only'),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: !isRange ? FontWeight.w700 : FontWeight.w600,
+                        color: !isRange ? Colors.white : const Color(0xFF5C5A57),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => controller.setBudgetMode(BudgetMode.range),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    decoration: BoxDecoration(
+                      color: isRange ? _inkColor : Colors.transparent,
+                      borderRadius: BorderRadius.circular(tokens.radius.md),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      createCopy(context, 'create.budgetRange', 'Min–max range'),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isRange ? FontWeight.w700 : FontWeight.w600,
+                        color: isRange ? Colors.white : const Color(0xFF5C5A57),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+        SizedBox(height: tokens.space.md),
+        if (isRange)
+          Row(
+            children: [
+              Expanded(
+                child: KhNumericField(
+                  key: const ValueKey('create-field-budgetMin'),
+                  label: createCopy(context, 'create.budgetMin', 'Budget min'),
+                  unit: 'AED',
+                  initialValue: state.budgetMin,
+                  errorText: state.fieldError('budgetMin'),
+                  onChanged: (v) => controller.setBudgetMin(v?.toStringAsFixed(2)),
+                ),
+              ),
+              SizedBox(width: tokens.space.md),
+              Expanded(
+                child: KhNumericField(
+                  key: const ValueKey('create-field-budgetMax'),
+                  label: createCopy(context, 'create.budgetMax', 'Budget max'),
+                  unit: 'AED',
+                  initialValue: state.budgetMax,
+                  errorText: state.fieldError('budgetMax'),
+                  onChanged: (v) => controller.setBudgetMax(v?.toStringAsFixed(2)),
+                ),
+              ),
+            ],
+          )
+        else
+          KhNumericField(
+            key: const ValueKey('create-field-budgetMax'),
+            label: createCopy(context, 'create.budgetMax', 'Budget max'),
+            unit: 'AED',
+            initialValue: state.budgetMax,
+            errorText: state.fieldError('budgetMax'),
+            onChanged: (v) => controller.setBudgetMax(v?.toStringAsFixed(2)),
+          ),
         CheckboxListTile(
           contentPadding: EdgeInsets.zero,
           controlAffinity: ListTileControlAffinity.leading,
@@ -447,38 +598,176 @@ class BudgetEditor extends StatelessWidget {
   }
 }
 
-class _BudgetModeOption extends StatelessWidget {
-  const _BudgetModeOption({
-    required this.label,
+/// 7-up Denomination chips (1, 2.5, 5, 10, 20, 50, 100 g). Active state ink pill.
+class CoinDenominationChips extends StatelessWidget {
+  const CoinDenominationChips({
+    super.key,
     required this.value,
-    required this.groupValue,
     required this.onChanged,
+    this.errorText,
+    this.optional = false,
   });
 
-  final String label;
-  final BudgetMode value;
-  final BudgetMode? groupValue;
-  final ValueChanged<BudgetMode> onChanged;
+  final String? value;
+  final ValueChanged<String> onChanged;
+  final String? errorText;
+  final bool optional;
+
+  static const denoms = ['1', '2.5', '5', '10', '20', '50', '100'];
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => onChanged(value),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Radio<BudgetMode>(
-              value: value,
-              groupValue: groupValue,
-              onChanged: (v) {
-                if (v != null) onChanged(v);
-              },
-            ),
-            Flexible(child: Text(label)),
-          ],
+    final tokens = context.tokens;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          optional
+              ? createCopy(
+                  context,
+                  'create.denominationOptional',
+                  'Coin denomination (optional)',
+                )
+              : createCopy(context, 'create.denomination', 'Coin denomination'),
+          style: Theme.of(context).textTheme.titleSmall,
         ),
+        SizedBox(height: tokens.space.sm),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (final d in denoms) ...[
+                _InkPillChip(
+                  key: Key('denom-chip-$d'),
+                  label: '$d g',
+                  selected: value == d,
+                  onTap: () => onChanged(d),
+                ),
+                SizedBox(width: tokens.space.xs),
+              ],
+            ],
+          ),
+        ),
+        if (errorText != null) ...[
+          SizedBox(height: tokens.space.xs),
+          Text(
+            errorText!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Compact stepper (– / + buttons with quantity integer display) with optional live total weight badge.
+class QuantityStepper extends StatelessWidget {
+  const QuantityStepper({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.min = 1,
+    this.max = 999,
+    this.label,
+    this.totalWeightGrams,
+  });
+
+  final int value;
+  final ValueChanged<int> onChanged;
+  final int min;
+  final int max;
+  final String? label;
+  final double? totalWeightGrams;
+
+  static const _inkColor = Color(0xFF1C1B1A);
+  static const _goldFill = Color(0xFFC8A046);
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final fieldLabel = label ?? createCopy(context, 'create.quantity', 'Quantity');
+    final canDecrement = value > min;
+    final canIncrement = value < max;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: tokens.space.xs),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  fieldLabel,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                if (totalWeightGrams != null && totalWeightGrams! > 0) ...[
+                  SizedBox(height: tokens.space.xxs),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _goldFill.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(tokens.radius.sm),
+                      border: Border.all(color: _goldFill.withValues(alpha: 0.4)),
+                    ),
+                    child: Text(
+                      '${createCopy(context, 'create.totalWeight', 'Total weight')}: ${totalWeightGrams!.toStringAsFixed(2)} g',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF8C6B1B),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F4F0),
+              borderRadius: BorderRadius.circular(tokens.radius.full),
+              border: Border.all(color: const Color(0xFFE6E4E0)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove, size: 18),
+                  onPressed: canDecrement ? () => onChanged(value - 1) : null,
+                  color: _inkColor,
+                  disabledColor: Colors.grey.shade400,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  padding: EdgeInsets.zero,
+                ),
+                Container(
+                  constraints: const BoxConstraints(minWidth: 32),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '$value',
+                    style: (Theme.of(context).textTheme.titleMedium ??
+                            const TextStyle())
+                        .copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: _inkColor,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add, size: 18),
+                  onPressed: canIncrement ? () => onChanged(value + 1) : null,
+                  color: _inkColor,
+                  disabledColor: Colors.grey.shade400,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  padding: EdgeInsets.zero,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

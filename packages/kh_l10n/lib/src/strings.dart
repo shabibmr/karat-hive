@@ -312,6 +312,14 @@ class KhStrings {
       'abuse.offPlatform': 'Off-platform solicitation',
       'abuse.misleadingTerms': 'Misleading terms',
       'abuse.other': 'Other',
+      'create.eyebrow.buy': 'SPECIFY THE PIECE · BUY',
+      'create.eyebrow.sell': 'SPECIFY THE PIECE · SELL',
+      'create.actualItemPhotos':
+          'Photos must be of the actual item — stock or catalogue images are not accepted.',
+      'create.budgetMaxOnly': 'Maximum only',
+      'create.budgetRange': 'Min–max range',
+      'create.packagingSealed': 'Sealed packaging',
+      'create.assay': 'Serial / assay certificate present',
     },
     'ar': {
       'app.title': 'كارات هايف',
@@ -572,6 +580,14 @@ class KhStrings {
       'abuse.offPlatform': 'التواصل خارج المنصة',
       'abuse.misleadingTerms': 'شروط مضللة',
       'abuse.other': 'أخرى',
+      'create.eyebrow.buy': 'حدّد القطعة · شراء',
+      'create.eyebrow.sell': 'حدّد القطعة · بيع',
+      'create.actualItemPhotos':
+          'يجب أن تكون الصور للقطعة الحقيقية — لا تقبل صور الكتالوجات.',
+      'create.budgetMaxOnly': 'الحد الأقصى فقط',
+      'create.budgetRange': 'نطاق الأدنى والأقصى',
+      'create.packagingSealed': 'غلاف مختوم',
+      'create.assay': 'شهادة الفحص / الرقم التسلسلي متوفرة',
     },
   };
 }

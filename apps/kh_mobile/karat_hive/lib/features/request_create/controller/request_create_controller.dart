@@ -1085,8 +1085,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     final type = state.requestType;
     if (type == RequestType.goldCoin) {
       final d = double.tryParse(state.denominationGrams ?? '');
-      final q = state.quantity;
-      if (d == null || q == null) return null;
+      final q = state.quantity ?? 1;
+      if (d == null) return null;
       return d * q;
     }
     if (type == RequestType.goldBullion) {
