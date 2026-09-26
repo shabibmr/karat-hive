@@ -2,6 +2,7 @@ library kh_design_system;
 
 export 'src/tokens.dart';
 export 'src/theme.dart';
+export 'src/typography.dart';
 export 'src/widgets/kh_scaffold.dart';
 export 'src/widgets/kh_app_bar.dart';
 export 'src/widgets/kh_bottom_nav.dart';

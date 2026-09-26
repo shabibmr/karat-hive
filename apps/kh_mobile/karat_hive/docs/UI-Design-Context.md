@@ -93,7 +93,7 @@ On-ink tint: inactive carousel dot = `ivory @ 0.45`.
 
 ### 2.4 Semantic mapping to Material 3
 
-`khTheme()` builds a `ColorScheme.fromSeed(seedColor: gold)`. Override these roles so M3 widgets pick up the 1a palette without per-widget styling:
+`KhTheme.light()` builds a `ColorScheme.fromSeed(seedColor: gold)` and overrides these roles so M3 widgets pick up the 1a palette without per-widget styling:
 
 | `ColorScheme` role | Value |
 |---|---|
@@ -137,7 +137,7 @@ On-ink tint: inactive carousel dot = `ivory @ 0.45`.
 Implementation:
 
 - Bundle the font files as assets in `packages/kh_design_system/fonts/` and declare them in its `pubspec.yaml` `fonts:` block. Reference them with `fontFamily: 'CormorantGaramond', package: 'kh_design_system'`. **Don't fetch fonts at runtime** (`google_fonts` HTTP), because the app must render correctly offline and on first launch.
-- Arabic fallback via `fontFamilyFallback: ['NotoNaskhArabic']` / `['IBMPlexSansArabic']`, or switch the family by locale in `khTheme(locale)`. Locale switching is preferred: Cormorant's Latin metrics shouldn't set the line height for Arabic runs.
+- Arabic fallback via `fontFamilyFallback: ['NotoNaskhArabic']` / `['IBMPlexSansArabic']`, or switch the family by locale in `KhTheme.light(locale:)`. Locale switching is preferred, and it's what `KhFonts.forLocale` does: Cormorant's Latin metrics shouldn't set the line height for Arabic runs.
 - The serif is a display face — never below 16 px, never in form values, prices-in-tables, or Vendor data screens.
 
 ### 3.2 Type scale
@@ -621,17 +621,17 @@ The handoff copy was written before the `CONTEXT.md` vocabulary review. When mov
 
 ## 13. Implementation checklist (`kh_design_system`)
 
-| # | Change | File |
-|---|---|---|
-| 1 | Add `goldDark`, `goldPressed`, `paper`, `navBackground` to `KhTokens`, plus the alpha-ramp getters (§2.3) | `lib/src/tokens.dart` |
-| 2 | Add spacing steps 2/6/10/12/14/22 and radii 5/10/16/24/999 (keep existing getters) | `lib/src/tokens.dart` |
-| 3 | Bundle the 4 font families; declare them in `pubspec.yaml` | `fonts/`, `pubspec.yaml` |
-| 4 | `khTheme(locale)` — ColorScheme overrides (§2.4), TextTheme (§3.3), `KhTypography` extension, Input/Filled/Outlined/Text button, Switch, Checkbox, NavigationBar, Divider themes | `lib/src/theme.dart` |
-| 5 | Restyle existing: `KhButton`, `KhTextField`, `KhNumericField`, `KhSelectField`, `KhToggle`, `KhBottomNav` | `lib/src/widgets/` |
-| 6 | New: `KhChoiceChip`, `KhSegmentedControl<T>`, `KhCheckRow`, `KhStepper`, `KhReadoutTile`, `KhActionBar`, `KhCircleIconButton`, `KhDashedTile`, `KhServiceCard`, `KhHeroCarousel`, `KhStatStrip`, `KhHowItWorks` (panel + accordion) | `lib/src/widgets/` |
-| 7 | Move the hardcoded colours out of `DirectionControl` (`#1A2744` etc.) and onto the tokens | `request_create/.../create_fields.dart` |
-| 8 | Add Home/Guest/carousel/guidance copy (EN + AR) and Create Request AR copy | `kh_l10n/lib/src/strings.dart` |
-| 9 | Golden tests for each new widget at 320 / 390 / 1024 widths, LTR + RTL | `packages/kh_design_system/test/` |
+| # | Change | File | Status |
+|---|---|---|---|
+| 1 | Add `goldDark`, `goldPressed`, `paper`, `navBackground` to `KhTokens`, plus the alpha-ramp getters (§2.3) | `lib/src/tokens.dart` | ✅ Done |
+| 2 | Add spacing steps 2/6/10/12/14/22 and radii 5/10/16/24/999 (keep existing getters) | `lib/src/tokens.dart` | ✅ Done |
+| 3 | Bundle the 4 font families; declare them in `pubspec.yaml` | `fonts/`, `pubspec.yaml` | ✅ Done — static TTFs + OFL licences in `fonts/` |
+| 4 | `KhTheme.light(locale:)` — ColorScheme overrides (§2.4), TextTheme (§3.3), `KhTypography` extension, Input/Filled/Outlined/Text button, Switch, Checkbox, NavigationBar, Divider themes | `lib/src/theme.dart` | ✅ Done — `KhTheme.light(locale:)` in `theme.dart`, `KhTypography`/`KhFonts` in `typography.dart`, `KhMotion` constants; used by `apps/kh_mobile/karat_hive/lib/app/app.dart`. `khTheme()` remains as an alias for tests |
+| 5 | Restyle existing: `KhButton`, `KhTextField`, `KhNumericField`, `KhSelectField`, `KhToggle`, `KhBottomNav` | `lib/src/widgets/` | Open |
+| 6 | New: `KhChoiceChip`, `KhSegmentedControl<T>`, `KhCheckRow`, `KhStepper`, `KhReadoutTile`, `KhActionBar`, `KhCircleIconButton`, `KhDashedTile`, `KhServiceCard`, `KhHeroCarousel`, `KhStatStrip`, `KhHowItWorks` (panel + accordion) | `lib/src/widgets/` | Open |
+| 7 | Move the hardcoded colours out of `DirectionControl` (`#1A2744` etc.) and onto the tokens | `request_create/.../create_fields.dart` | Open |
+| 8 | Add Home/Guest/carousel/guidance copy (EN + AR) and Create Request AR copy | `kh_l10n/lib/src/strings.dart` | Open |
+| 9 | Golden tests for each new widget at 320 / 390 / 1024 widths, LTR + RTL | `packages/kh_design_system/test/` | Open |
 
 ---
 

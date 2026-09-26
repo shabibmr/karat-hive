@@ -16,3 +16,48 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+
+flutter:
+  # Direction 1a "Classic" families (UI-Design-Context.md §3.1). Bundled, not
+  # fetched at runtime, so first launch and offline render correctly. OFL-1.1,
+  # licences alongside in fonts/.
+  fonts:
+    - family: CormorantGaramond
+      fonts:
+        - asset: fonts/CormorantGaramond-500.ttf
+          weight: 500
+        - asset: fonts/CormorantGaramond-500Italic.ttf
+          weight: 500
+          style: italic
+        - asset: fonts/CormorantGaramond-600.ttf
+          weight: 600
+        - asset: fonts/CormorantGaramond-700.ttf
+          weight: 700
+    - family: DMSans
+      fonts:
+        - asset: fonts/DMSans-400.ttf
+          weight: 400
+        - asset: fonts/DMSans-500.ttf
+          weight: 500
+        - asset: fonts/DMSans-600.ttf
+          weight: 600
+        - asset: fonts/DMSans-700.ttf
+          weight: 700
+    - family: NotoNaskhArabic
+      fonts:
+        - asset: fonts/NotoNaskhArabic-500.ttf
+          weight: 500
+        - asset: fonts/NotoNaskhArabic-600.ttf
+          weight: 600
+        - asset: fonts/NotoNaskhArabic-700.ttf
+          weight: 700
+    - family: IBMPlexSansArabic
+      fonts:
+        - asset: fonts/IBMPlexSansArabic-400.ttf
+          weight: 400
+        - asset: fonts/IBMPlexSansArabic-500.ttf
+          weight: 500
+        - asset: fonts/IBMPlexSansArabic-600.ttf
+          weight: 600
+        - asset: fonts/IBMPlexSansArabic-700.ttf
+          weight: 700

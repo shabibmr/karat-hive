@@ -16,15 +16,17 @@ class KaratHiveApp extends ConsumerWidget {
     ref.watch(pushInvalidationBinderProvider);
     final router = ref.watch(routerProvider);
     final backButtonDispatcher = ref.watch(backButtonDispatcherProvider);
+    final locale = ref.watch(appLocaleProvider);
     return MaterialApp.router(
       title: 'Karat Hive',
       debugShowCheckedModeBanner: false,
-      theme: khTheme(),
+      // 1a "Classic" (docs/UI-Design-Context.md); locale picks Latin vs Arabic fonts.
+      theme: KhTheme.light(locale: locale),
       routeInformationProvider: router.routeInformationProvider,
       routeInformationParser: router.routeInformationParser,
       routerDelegate: router.routerDelegate,
       backButtonDispatcher: backButtonDispatcher,
-      locale: ref.watch(appLocaleProvider),
+      locale: locale,
       supportedLocales: KhStrings.supportedLocales,
       localizationsDelegates: KhStrings.delegates,
     );
