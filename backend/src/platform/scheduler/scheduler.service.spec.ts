@@ -159,4 +159,58 @@ describe('SchedulerService', () => {
 
     await scheduler.onModuleDestroy();
   });
+
+  it('does not crash the process when lock acquisition throws (e.g. DB unreachable)', async () => {
+    const locks = createLockMock();
+    vi.mocked(locks.tryAcquire).mockRejectedValue(new Error('Cannot reach database server'));
+    const scheduler = new SchedulerService(locks);
+
+    let runCount = 0;
+    const job: ScheduledJob = {
+      name: 'leased.db-down',
+      intervalMs: 10_000,
+      run: async () => {
+        runCount++;
+      },
+    };
+
+    const privateScheduler = scheduler as unknown as {
+      runOnce: (job: ScheduledJob, owner: string) => Promise<void>;
+    };
+
+    await expect(privateScheduler.runOnce(job, 'test-worker')).resolves.toBeUndefined();
+    expect(runCount).toBe(0);
+    expect(locks.release).not.toHaveBeenCalled();
+
+    // A later tick, once the DB recovers, should run normally.
+    vi.mocked(locks.tryAcquire).mockResolvedValue(true);
+    await privateScheduler.runOnce(job, 'test-worker');
+    expect(runCount).toBe(1);
+
+    await scheduler.onModuleDestroy();
+  });
+
+  it('does not crash the process when lock release throws after a successful run', async () => {
+    const locks = createLockMock();
+    vi.mocked(locks.release).mockRejectedValue(new Error('Cannot reach database server'));
+    const scheduler = new SchedulerService(locks);
+
+    let runCount = 0;
+    const job: ScheduledJob = {
+      name: 'leased.release-fails',
+      intervalMs: 10_000,
+      run: async () => {
+        runCount++;
+      },
+    };
+
+    const privateScheduler = scheduler as unknown as {
+      runOnce: (job: ScheduledJob, owner: string) => Promise<void>;
+    };
+
+    await expect(privateScheduler.runOnce(job, 'test-worker')).resolves.toBeUndefined();
+    expect(runCount).toBe(1);
+
+    await scheduler.onModuleDestroy();
+  });
 });

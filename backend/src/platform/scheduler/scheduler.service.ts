@@ -59,14 +59,25 @@ export class SchedulerService implements OnModuleDestroy {
     }
 
     const leaseMs = job.leaseMs ?? Math.max(job.intervalMs * 2, 15_000);
-    const acquired = await this.locks.tryAcquire(job.name, owner, leaseMs);
+    let acquired: boolean;
+    try {
+      acquired = await this.locks.tryAcquire(job.name, owner, leaseMs);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Job ${job.name} lock acquisition failed: ${message}`);
+      this.inFlight.delete(job.name);
+      return;
+    }
     if (!acquired) {
       this.inFlight.delete(job.name);
       return;
     }
     const heartbeat = setInterval(
       () => {
-        void this.locks.renew(job.name, owner, leaseMs);
+        this.locks.renew(job.name, owner, leaseMs).catch((error: unknown) => {
+          const message = error instanceof Error ? error.message : String(error);
+          this.logger.error(`Job ${job.name} lock renewal failed: ${message}`);
+        });
       },
       Math.max(1_000, Math.floor(leaseMs / 3)),
     );
@@ -77,7 +88,12 @@ export class SchedulerService implements OnModuleDestroy {
       this.logger.error(`Job ${job.name} failed: ${message}`);
     } finally {
       clearInterval(heartbeat);
-      await this.locks.release(job.name, owner);
+      try {
+        await this.locks.release(job.name, owner);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Job ${job.name} lock release failed: ${message}`);
+      }
       this.inFlight.delete(job.name);
     }
   }
