@@ -34,8 +34,6 @@ dependencies:
     path: ../../packages/kh_domain
   kh_api:
     path: ../../packages/kh_api
-  kh_design_system:
-    path: ../../packages/kh_design_system
   kh_ui_domain:
     path: ../../packages/kh_ui_domain
   kh_l10n:

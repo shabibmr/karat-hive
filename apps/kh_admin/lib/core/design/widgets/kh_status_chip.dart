@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:kh_design_system/kh_design_system.dart' show KhStatusTone;
 
 import 'package:kh_admin/core/design/theme/kh_colors.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
+import 'package:kh_admin/core/design/widgets/kh_status_tone.dart';
 
-export 'package:kh_design_system/kh_design_system.dart' show KhStatusTone;
+export 'package:kh_admin/core/design/widgets/kh_status_tone.dart';
 
 /// Pill-shaped status badge with a leading dot.
 ///

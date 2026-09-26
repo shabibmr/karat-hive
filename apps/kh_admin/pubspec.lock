@@ -684,7 +684,7 @@ packages:
     source: path
     version: "0.1.0"
   kh_design_system:
-    dependency: "direct main"
+    dependency: transitive
     description:
       path: "../../packages/kh_design_system"
       relative: true
