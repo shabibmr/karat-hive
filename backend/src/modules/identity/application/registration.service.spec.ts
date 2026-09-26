@@ -102,6 +102,7 @@ describe('RegistrationService - registerCustomer', () => {
     users = {
       findByMobile: vi.fn().mockResolvedValue(null),
       findByEmail: vi.fn().mockResolvedValue(null),
+      findBindingBySubjectHash: vi.fn().mockResolvedValue(null),
       createCustomerUser: vi.fn().mockResolvedValue(mockCustomerUser),
       createCustomerProfile: vi.fn().mockResolvedValue({ id: 'cp-1' }),
     } as unknown as UserRepository;
@@ -193,6 +194,28 @@ describe('RegistrationService - registerCustomer', () => {
     });
   });
 
+  it('rejects if mobile number is registered with different role with 409 ACCOUNT_ROLE_CONFLICT', async () => {
+    vi.mocked(users.findByMobile).mockResolvedValue({
+      ...mockCustomerUser,
+      userType: 'VENDOR',
+    });
+
+    await expect(
+      service.registerCustomer(
+        {
+          challengeId: 'chal-1',
+          displayName: 'Fatima',
+          termsVersion: '1.0',
+          privacyVersion: '1.0',
+        },
+        {},
+      ),
+    ).rejects.toMatchObject({
+      status: HttpStatus.CONFLICT,
+      errorCode: ErrorCode.ACCOUNT_ROLE_CONFLICT,
+    });
+  });
+
   it('rejects if email is already registered with 409 EMAIL_ALREADY_REGISTERED', async () => {
     vi.mocked(users.findByEmail).mockResolvedValue(mockCustomerUser);
 
@@ -210,6 +233,62 @@ describe('RegistrationService - registerCustomer', () => {
     ).rejects.toMatchObject({
       status: HttpStatus.CONFLICT,
       errorCode: ErrorCode.EMAIL_ALREADY_REGISTERED,
+    });
+  });
+
+  it('rejects if email is registered with different role with 409 ACCOUNT_ROLE_CONFLICT', async () => {
+    vi.mocked(users.findByEmail).mockResolvedValue({
+      ...mockCustomerUser,
+      userType: 'VENDOR',
+    });
+
+    await expect(
+      service.registerCustomer(
+        {
+          challengeId: 'chal-1',
+          displayName: 'Fatima',
+          email: 'duplicate@example.com',
+          termsVersion: '1.0',
+          privacyVersion: '1.0',
+        },
+        {},
+      ),
+    ).rejects.toMatchObject({
+      status: HttpStatus.CONFLICT,
+      errorCode: ErrorCode.ACCOUNT_ROLE_CONFLICT,
+    });
+  });
+
+  it('rejects if firebaseUid is already bound with 409 OAUTH_ALREADY_BOUND', async () => {
+    vi.mocked(firebaseTokens.verify).mockResolvedValue({
+      uid: 'fb-user-already-bound',
+      email: 'bound@example.com',
+      emailVerified: true,
+      phoneNumber: '+971509998877',
+      name: 'Google Customer',
+    });
+    vi.mocked(users.findBindingBySubjectHash).mockResolvedValue({
+      id: 'ob-existing',
+      userId: 'other-user',
+      provider: 'GOOGLE',
+      subjectHash: 'hash',
+      boundAt: new Date(),
+      createdAt: new Date(),
+    });
+
+    await expect(
+      service.registerCustomer(
+        {
+          firebaseToken: 'valid-firebase-jwt',
+          displayName: 'Google Customer',
+          termsVersion: '1.0',
+          privacyVersion: '1.0',
+        },
+        { ip: '127.0.0.1' },
+      ),
+    ).rejects.toMatchObject({
+      status: HttpStatus.CONFLICT,
+      errorCode: ErrorCode.OAUTH_ALREADY_BOUND,
     });
   });
 
@@ -356,6 +435,7 @@ describe('RegistrationService - registerVendor (G2-A11 Google completer)', () =>
     users = {
       findByMobile: vi.fn().mockResolvedValue(null),
       findByEmail: vi.fn().mockResolvedValue(null),
+      findBindingBySubjectHash: vi.fn().mockResolvedValue(null),
       createVendorUser: vi.fn().mockResolvedValue(mockVendorUser),
     } as unknown as UserRepository;
 
@@ -382,6 +462,81 @@ describe('RegistrationService - registerVendor (G2-A11 Google completer)', () =>
       audit,
       firebaseTokens,
     );
+  });
+
+  it('rejects if vendor mobile is already registered with same role (409 MOBILE_ALREADY_REGISTERED)', async () => {
+    vi.mocked(users.findByMobile).mockResolvedValue(mockVendorUser);
+
+    await expect(
+      service.registerVendor({ ...vendorBody, challengeId: 'chal-v1' }, {}),
+    ).rejects.toMatchObject({
+      status: HttpStatus.CONFLICT,
+      errorCode: ErrorCode.MOBILE_ALREADY_REGISTERED,
+    });
+  });
+
+  it('rejects if vendor mobile is registered with different role (409 ACCOUNT_ROLE_CONFLICT)', async () => {
+    vi.mocked(users.findByMobile).mockResolvedValue({
+      ...mockVendorUser,
+      userType: 'CUSTOMER',
+    });
+
+    await expect(
+      service.registerVendor({ ...vendorBody, challengeId: 'chal-v1' }, {}),
+    ).rejects.toMatchObject({
+      status: HttpStatus.CONFLICT,
+      errorCode: ErrorCode.ACCOUNT_ROLE_CONFLICT,
+    });
+  });
+
+  it('rejects if vendor email is already registered with same role (409 EMAIL_ALREADY_REGISTERED)', async () => {
+    vi.mocked(users.findByEmail).mockResolvedValue(mockVendorUser);
+
+    await expect(
+      service.registerVendor({ ...vendorBody, challengeId: 'chal-v1' }, {}),
+    ).rejects.toMatchObject({
+      status: HttpStatus.CONFLICT,
+      errorCode: ErrorCode.EMAIL_ALREADY_REGISTERED,
+    });
+  });
+
+  it('rejects if vendor email is registered with different role (409 ACCOUNT_ROLE_CONFLICT)', async () => {
+    vi.mocked(users.findByEmail).mockResolvedValue({
+      ...mockVendorUser,
+      userType: 'CUSTOMER',
+    });
+
+    await expect(
+      service.registerVendor({ ...vendorBody, challengeId: 'chal-v1' }, {}),
+    ).rejects.toMatchObject({
+      status: HttpStatus.CONFLICT,
+      errorCode: ErrorCode.ACCOUNT_ROLE_CONFLICT,
+    });
+  });
+
+  it('rejects if firebaseUid is already bound for vendor with 409 OAUTH_ALREADY_BOUND', async () => {
+    vi.mocked(firebaseTokens.verify).mockResolvedValue({
+      uid: 'fb-vendor-already-bound',
+      email: 'shop@example.com',
+      emailVerified: true,
+      phoneNumber: '+971501234567',
+      name: 'Ali',
+    });
+    vi.mocked(users.findBindingBySubjectHash).mockResolvedValue({
+      id: 'ob-existing',
+      userId: 'other-user',
+      provider: 'GOOGLE',
+      subjectHash: 'hash',
+      boundAt: new Date(),
+      createdAt: new Date(),
+    });
+
+    await expect(
+      service.registerVendor({ ...vendorBody, firebaseToken: 'vendor-firebase-jwt' }, {}),
+    ).rejects.toMatchObject({
+      status: HttpStatus.CONFLICT,
+      errorCode: ErrorCode.OAUTH_ALREADY_BOUND,
+    });
   });
 
   it('registers a vendor with Firebase token and links OauthBinding', async () => {

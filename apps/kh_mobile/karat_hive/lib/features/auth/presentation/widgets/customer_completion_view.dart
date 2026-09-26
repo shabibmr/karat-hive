@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
+import '../../../../app/guards.dart';
 import '../../controller/customer_completion_controller.dart';
 import '../../model/customer_completion_form.dart';
 
@@ -83,6 +85,15 @@ class _CustomerCompletionViewState
           KhInlineError(
             message: form.failure!.message ?? l10n.authSignInFailed,
           ),
+          if (form.failure!.code == 'ACCOUNT_ROLE_CONFLICT') ...[
+            const SizedBox(height: 8),
+            KhButton(
+              key: const Key('switch-to-vendor-conflict-btn'),
+              label: 'Switch to Vendor Sign In',
+              secondary: true,
+              onPressed: () => context.go(AppGuards.vendorLogin),
+            ),
+          ],
           const SizedBox(height: 16),
         ],
         if (form.step == CompletionStep.code)

@@ -139,9 +139,11 @@ class CustomerCompletionController
         state = state.copyWith(busy: false, step: CompletionStep.done);
       },
       err: (f) async {
-        // A duplicate number is a details-level fix; other codes leave the user
-        // on the code step to retry.
-        final backTo = f.code == 'MOBILE_ALREADY_REGISTERED'
+        // A duplicate number or role/oauth conflict is a details-level fix;
+        // other codes leave the user on the code step to retry.
+        final backTo = (f.code == 'MOBILE_ALREADY_REGISTERED' ||
+                f.code == 'ACCOUNT_ROLE_CONFLICT' ||
+                f.code == 'OAUTH_ALREADY_BOUND')
             ? CompletionStep.details
             : CompletionStep.code;
         state = state.copyWith(busy: false, step: backTo, failure: f);

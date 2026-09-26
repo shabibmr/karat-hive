@@ -23,9 +23,13 @@ class CustomerAuthRepository {
   static const privacyVersion = '1.0';
 
   /// Exchanges a Firebase/Google ID token for a Karat Hive [SessionBundle].
+  /// Enforces Customer role expectation on the server.
   /// Unbound identity → `Err(UnauthorisedFailure(code: 'UNAUTHENTICATED'))`.
-  Future<Result<SessionBundle>> googleSession(String idToken) =>
-      _api.googleSession(idToken: idToken);
+  Future<Result<SessionBundle>> googleSession(
+    String idToken, {
+    String? expectedRole = 'CUSTOMER',
+  }) =>
+      _api.googleSession(idToken: idToken, expectedRole: expectedRole);
 
   /// Requests an OTP to prove a real mobile number for a new Customer.
   Future<Result<OtpChallenge>> requestOtp(String mobileNumber) =>

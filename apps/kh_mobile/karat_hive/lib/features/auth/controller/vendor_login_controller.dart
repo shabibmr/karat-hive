@@ -65,7 +65,7 @@ class VendorLoginController extends AutoDisposeNotifier<LoginState> {
     }
 
     final fbUser = _firebase.currentUser;
-    final result = await _repo.googleSession(idToken);
+    final result = await _repo.googleSession(idToken, expectedRole: 'VENDOR');
     if (_disposed) return;
     await result.when(
       ok: (bundle) async {
