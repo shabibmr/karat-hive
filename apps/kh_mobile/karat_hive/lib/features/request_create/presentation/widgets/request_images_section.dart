@@ -236,6 +236,8 @@ class _MediaTile extends StatelessWidget {
 }
 
 /// Shared thumbnail for compose tiles and Review gallery.
+/// Prefers local pick bytes (JPEG/PNG). Remote reopen slots are often AVIF
+/// and must go through [KhNetworkImage].
 Widget mediaSlotPreview(MediaSlot slot) {
   if (slot.localBytes != null && slot.localBytes!.isNotEmpty) {
     return Image.memory(
@@ -254,8 +256,9 @@ Widget mediaSlotPreview(MediaSlot slot) {
     );
   }
   if (slot.remoteUrl != null && slot.remoteUrl!.isNotEmpty) {
-    return Image.network(
-      slot.remoteUrl!,
+    return KhNetworkImage(
+      url: slot.remoteUrl!,
+      contentType: slot.contentType ?? 'image/jpeg',
       fit: BoxFit.cover,
       errorBuilder: (_, __, ___) =>
           const Center(child: Icon(Icons.broken_image_outlined)),

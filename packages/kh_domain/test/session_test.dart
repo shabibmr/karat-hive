@@ -90,6 +90,47 @@ void main() {
     });
   });
 
+  group('VendorMe.logoUrl (Phase 1 fix)', () {
+    test('is null when the wire omits logoUrl', () {
+      final vendor = VendorMe.fromJson({
+        'vendorProfileId': 'vp1',
+        'lifecycle': 'ACTIVE',
+        'tradingName': 'Al Noor',
+        'legalBusinessName': 'Al Noor LLC',
+        'categoryCount': 1,
+        'regionCount': 1,
+      });
+      expect(vendor.logoUrl, isNull);
+    });
+
+    test('parses the /v1/media/{key} proxy URL', () {
+      final vendor = VendorMe.fromJson({
+        'vendorProfileId': 'vp1',
+        'lifecycle': 'ACTIVE',
+        'tradingName': 'Al Noor',
+        'legalBusinessName': 'Al Noor LLC',
+        'categoryCount': 1,
+        'regionCount': 1,
+        'logoUrl': '/v1/media/logo-key-abc',
+      });
+      expect(vendor.logoUrl, '/v1/media/logo-key-abc');
+    });
+
+    test('round-trips through toJson', () {
+      const vendor = VendorMe(
+        vendorProfileId: 'vp1',
+        lifecycle: VendorLifecycle.active,
+        awaitingApproval: false,
+        tradingName: 'Al Noor',
+        legalBusinessName: 'Al Noor LLC',
+        categoryCount: 1,
+        regionCount: 1,
+        logoUrl: '/v1/media/logo-key-abc',
+      );
+      expect(vendor.toJson()['logoUrl'], '/v1/media/logo-key-abc');
+    });
+  });
+
   group('UserRole', () {
     test('parses the backend userType discriminator', () {
       expect(UserRole.parse('CUSTOMER'), UserRole.customer);

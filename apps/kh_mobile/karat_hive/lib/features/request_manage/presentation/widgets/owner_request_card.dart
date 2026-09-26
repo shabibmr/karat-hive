@@ -52,12 +52,14 @@ class OwnerRequestCard extends ConsumerWidget {
                   if (thumb != null && thumb.isNotEmpty)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(tokens.radius.sm),
-                      child: Image.network(
-                        thumb,
+                      child: KhNetworkImage(
+                        url: thumb,
+                        contentType: request.media.first.contentType,
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _ThumbPlaceholder(tokens: tokens),
+                        errorBuilder: (_, __, ___) =>
+                            _ThumbPlaceholder(tokens: tokens),
                       ),
                     )
                   else

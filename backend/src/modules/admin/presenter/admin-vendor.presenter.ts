@@ -101,6 +101,7 @@ export type VendorVerificationDetail = {
   regionDetails?: Array<{ id: string; nameEn: string; nameAr: string }>;
   tradingName?: string;
   mobileNumber?: string;
+  logoUrl?: string | null;
   user?: {
     id: string;
     mobileNumber: string;
@@ -138,6 +139,7 @@ export type VendorDocumentRow = VendorDocument & { media: Media };
 
 export type VendorDetailRow = VendorProfile & {
   user: User;
+  logoMedia?: Media | null;
   documents?: VendorDocumentRow[];
   categories?: Array<VendorCategory & { category: Category }>;
   regions?: Array<VendorRegion & { region: Region }>;
@@ -289,6 +291,7 @@ export function presentVendorDetail(row: VendorDetailRow, now: Date): VendorVeri
   const categories = (row.categories ?? []).map((vc) => vc.category);
   const regions = (row.regions ?? []).map((vr) => vr.region);
   const base = presentVendorVerificationDetail(row, documents, categories, regions, now);
+  base.logoUrl = row.logoMedia ? `/v1/media/${row.logoMedia.key}` : null;
 
   if (row.verifiedByAdmin) {
     base.verifiedByAdmin = {

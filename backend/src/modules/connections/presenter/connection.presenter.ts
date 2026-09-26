@@ -4,6 +4,7 @@ import type {
   Connection,
   ConnectionState,
   CustomerProfile,
+  Media,
   Offer,
   Region,
   Request,
@@ -41,6 +42,7 @@ export type ConnectionForCustomer = {
     phone: string;
     connectionCount: number;
     region?: RegionSummary;
+    logoUrl?: string | null;
     rating?: {
       average: string;
       count: number;
@@ -119,6 +121,7 @@ export type PrismaConnectionWithDetails = Connection & {
   };
   vendorProfile: VendorProfile & {
     user: User;
+    logoMedia?: Media | null;
     regions?: Array<VendorRegion & { region: Region }>;
   };
 };
@@ -192,6 +195,7 @@ export function presentConnectionForCustomer(
       phone: vp.user.mobileNumber,
       connectionCount: vp.offersAcceptedCount,
       region: regionDto,
+      logoUrl: vp.logoMedia ? `/v1/media/${vp.logoMedia.key}` : null,
       rating: vendorRating,
     },
     offer: {

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_avif/flutter_avif.dart';
 import '../../kh_design_system.dart';
 
 /// One image plus the content type it was uploaded as. AVIF renders through
-/// `flutter_avif` (libavif) rather than Flutter's built-in image codecs,
-/// which do not reliably decode AVIF across platforms; other formats use
-/// the platform's native `Image.network`.
+/// [KhNetworkImage] / `flutter_avif`; other formats use the platform codec.
 class GalleryImage {
   const GalleryImage({required this.url, this.contentType = 'image/jpeg'});
 
@@ -32,25 +29,6 @@ class KhImageGallery extends StatefulWidget {
 
 class _KhImageGalleryState extends State<KhImageGallery> {
   int _selectedIndex = 0;
-
-  Widget _networkImage(
-    GalleryImage image, {
-    required BoxFit fit,
-    required Widget Function(BuildContext, Object, StackTrace?) errorBuilder,
-  }) {
-    if (image.contentType == 'image/avif') {
-      return AvifImage.network(image.url, fit: fit, errorBuilder: errorBuilder);
-    }
-    return Image.network(
-      image.url,
-      fit: fit,
-      errorBuilder: errorBuilder,
-      loadingBuilder: (_, child, progress) {
-        if (progress == null) return child;
-        return const Center(child: CircularProgressIndicator(strokeWidth: 2));
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,8 +69,9 @@ class _KhImageGalleryState extends State<KhImageGallery> {
               height: widget.height,
               width: double.infinity,
               color: tokens.ink.withValues(alpha: 0.06),
-              child: _networkImage(
-                widget.images[_selectedIndex],
+              child: KhNetworkImage(
+                url: widget.images[_selectedIndex].url,
+                contentType: widget.images[_selectedIndex].contentType,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Center(
                   child: Icon(Icons.broken_image_outlined, size: 40, color: tokens.ink.withValues(alpha: 0.4)),
@@ -126,8 +105,9 @@ class _KhImageGalleryState extends State<KhImageGallery> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(tokens.radius.sm - 1),
-                      child: _networkImage(
-                        widget.images[idx],
+                      child: KhNetworkImage(
+                        url: widget.images[idx].url,
+                        contentType: widget.images[idx].contentType,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) =>
                             Icon(Icons.image, size: 20, color: tokens.ink.withValues(alpha: 0.3)),

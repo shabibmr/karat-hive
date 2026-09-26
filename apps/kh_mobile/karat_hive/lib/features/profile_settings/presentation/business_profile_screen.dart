@@ -1,3 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_design_system/kh_design_system.dart';
@@ -5,6 +10,7 @@ import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
+import '../../../app/di.dart';
 import '../controller/business_profile_controller.dart';
 
 /// Weekday keys for `businessHours` JSON (API inventory § VendorProfile).
@@ -54,6 +60,45 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
 
   String? _boundProfileId;
   var _seeded = false;
+
+  Uint8List? _pendingLogoBytes;
+  String? _pendingLogoMediaKey;
+
+  Future<void> _pickLogo() async {
+    final res = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+      withData: true,
+    );
+    final file = res?.files.single;
+    if (file == null) return;
+    final nativePath = kIsWeb ? null : file.path;
+    var bytes = file.bytes;
+    if ((bytes == null || bytes.isEmpty) &&
+        nativePath != null &&
+        nativePath.isNotEmpty) {
+      bytes = await File(nativePath).readAsBytes();
+    }
+    if (bytes == null || bytes.isEmpty) return;
+
+    final preview = Uint8List.fromList(bytes);
+    setState(() => _pendingLogoBytes = preview);
+    final key = await ref
+        .read(businessProfileSaveProvider.notifier)
+        .uploadLogo(preview);
+    if (!mounted) return;
+    setState(() {
+      _pendingLogoMediaKey = key;
+      if (key == null) _pendingLogoBytes = null;
+    });
+  }
+
+  void _removeLogo() {
+    setState(() {
+      _pendingLogoBytes = null;
+      _pendingLogoMediaKey = null;
+    });
+  }
 
   @override
   void initState() {
@@ -176,11 +221,16 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
           description: _description.text,
           contactPersonName: _contactPerson.text,
           businessEmail: _businessEmail.text,
+          logoMediaKey: _pendingLogoMediaKey,
           businessHours: _hoursPayload(),
         );
     if (!mounted) return;
     if (ok) {
       _seeded = false;
+      setState(() {
+        _pendingLogoBytes = null;
+        _pendingLogoMediaKey = null;
+      });
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Profile saved.')));
@@ -192,6 +242,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
     final l10n = AppLocalizations.of(context);
     final async = ref.watch(vendorProfileProvider);
     final save = ref.watch(businessProfileSaveProvider);
+    final env = ref.watch(envProvider);
     final tokens = context.tokens;
 
     ref.listen<AsyncValue<VendorMe>>(vendorProfileProvider, (prev, next) {
@@ -296,7 +347,13 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                       maxLines: 3,
                     ),
                     SizedBox(height: tokens.space.md),
-                    const _BrandingMediaSection(),
+                    _BrandingMediaSection(
+                      logoUrl: env.resolveUrl(vendor.logoUrl),
+                      previewBytes: _pendingLogoBytes,
+                      uploading: save.logoUploading,
+                      onPick: _pickLogo,
+                      onRemove: _pendingLogoBytes != null ? _removeLogo : null,
+                    ),
                     SizedBox(height: tokens.space.md),
                     const KhSectionHeader(title: 'Business hours'),
                     SizedBox(height: tokens.space.xs),
@@ -594,9 +651,22 @@ class _MaskedPublicPreviewCard extends StatelessWidget {
   }
 }
 
-/// VEN-S15 logo and shop photos placeholder citing the inventory gap (CP6-B02.3).
+/// VEN-S15 logo picker (CP6-B02.3) plus a storefront-photos inventory-gap
+/// notice — storefront photography upload still has no backend endpoint.
 class _BrandingMediaSection extends StatelessWidget {
-  const _BrandingMediaSection();
+  const _BrandingMediaSection({
+    required this.logoUrl,
+    required this.previewBytes,
+    required this.uploading,
+    required this.onPick,
+    required this.onRemove,
+  });
+
+  final String? logoUrl;
+  final Uint8List? previewBytes;
+  final bool uploading;
+  final VoidCallback onPick;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -630,10 +700,19 @@ class _BrandingMediaSection extends StatelessWidget {
             ),
             SizedBox(height: tokens.space.xs),
             Text(
-              'Showroom photos appear on your public merchant card once verified.',
+              'Your logo appears on your public merchant card once verified.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: tokens.ink.withValues(alpha: 0.7),
               ),
+            ),
+            SizedBox(height: tokens.space.sm),
+            KhLogoPicker(
+              size: 72,
+              logoUrl: logoUrl,
+              previewBytes: previewBytes,
+              busy: uploading,
+              onPick: onPick,
+              onRemove: onRemove,
             ),
             SizedBox(height: tokens.space.sm),
             Container(
@@ -649,7 +728,7 @@ class _BrandingMediaSection extends StatelessWidget {
                   SizedBox(width: tokens.space.xs),
                   Expanded(
                     child: Text(
-                      'Inventory gap: Media upload endpoints for merchant logo and storefront photography are pending backend inventory specification (SAM-GAP / AD-API-09). To update physical showroom assets, submit high-resolution files to Support.',
+                      'Inventory gap: Storefront photography upload is pending backend inventory specification (SAM-GAP / AD-API-09). To update physical showroom photos, submit high-resolution files to Support.',
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontSize: 11,
                         color: tokens.ink.withValues(alpha: 0.8),

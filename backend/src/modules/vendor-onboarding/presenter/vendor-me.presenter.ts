@@ -1,4 +1,4 @@
-import type { VendorDocument, VendorProfile } from '@prisma/client';
+import type { Media, VendorDocument, VendorProfile } from '@prisma/client';
 import {
   awaitingApprovalReason,
   composeVendorLifecycle,
@@ -19,6 +19,7 @@ export type VendorMe = {
   contactPersonName: string;
   businessEmail: string;
   contactWhatsApp: string | null;
+  logoUrl: string | null;
   description: string | null;
   businessHours: unknown | null;
   verifiedAt: string | null;
@@ -38,7 +39,7 @@ export type VendorDocumentView = {
 };
 
 export function presentVendorMe(
-  profile: VendorProfile,
+  profile: VendorProfile & { logoMedia?: Media | null },
   lifecycleInput: VendorLifecycleInput,
   counts: {
     categoryCount: number;
@@ -63,6 +64,7 @@ export function presentVendorMe(
     contactPersonName: profile.contactPersonName,
     businessEmail: profile.businessEmail,
     contactWhatsApp: profile.contactWhatsApp ?? null,
+    logoUrl: profile.logoMedia ? `/v1/media/${profile.logoMedia.key}` : null,
     description: profile.description ?? null,
     businessHours: profile.businessHours ?? null,
     verifiedAt: profile.verifiedAt ? profile.verifiedAt.toISOString() : null,

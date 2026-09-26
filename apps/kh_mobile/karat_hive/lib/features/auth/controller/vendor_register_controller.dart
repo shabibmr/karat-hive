@@ -129,10 +129,7 @@ class VendorRegisterController extends Notifier<RegisterFormState> {
     final bytes = state.logoBytes;
     if (bytes == null || bytes.isEmpty) return;
     final api = ref.read(khApiProvider);
-    final media = MediaPickController(
-      uploader: MediaUploader(api),
-      purpose: MediaUploadPurpose.vendorLogo,
-    );
+    final media = ref.read(vendorLogoMediaControllerProvider);
     final uploaded = await media.convertBytesAndUpload(
       bytes,
       correlationId: 'vendor-logo',
@@ -152,3 +149,13 @@ final vendorRegisterControllerProvider =
     NotifierProvider<VendorRegisterController, RegisterFormState>(
   VendorRegisterController.new,
 );
+
+/// Overridable in tests to avoid exercising real AVIF encoding and network
+/// upload from [VendorRegisterController._uploadLogoAfterRegister].
+final vendorLogoMediaControllerProvider = Provider<MediaPickController>((ref) {
+  final api = ref.watch(khApiProvider);
+  return MediaPickController(
+    uploader: MediaUploader(api),
+    purpose: MediaUploadPurpose.vendorLogo,
+  );
+});

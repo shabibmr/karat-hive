@@ -7,6 +7,7 @@ import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
+import '../../../app/di.dart';
 import '../../../app/platform/open_url.dart';
 import '../../../core/failure_copy.dart';
 import '../controller/connections_controller.dart';
@@ -116,6 +117,8 @@ class _Body extends ConsumerWidget {
     final price = num.tryParse(connection.acceptedOffer?.terms.offeredPrice ?? '');
     final notifier =
         ref.read(connectionDetailProvider(connection.id).notifier);
+    final env = ref.watch(envProvider);
+    final logoUrl = env.resolveUrl(vendor.photoUrl);
 
     return ListView(
       padding: EdgeInsets.all(tokens.space.md),
@@ -125,11 +128,34 @@ class _Body extends ConsumerWidget {
             padding: EdgeInsets.only(bottom: tokens.space.md),
             child: KhInlineError(message: s.s('connections.closedBanner')),
           ),
-        Text(
-          vendor.displayName,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
+        Row(
+          children: [
+            if (logoUrl != null && logoUrl.isNotEmpty) ...[
+              ClipOval(
+                child: KhNetworkImage(
+                  key: const Key('connection-vendor-logo'),
+                  url: logoUrl,
+                  width: 44,
+                  height: 44,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Icon(
+                    Icons.storefront_outlined,
+                    size: 28,
+                    color: tokens.gold,
+                  ),
+                ),
               ),
+              SizedBox(width: tokens.space.sm),
+            ],
+            Expanded(
+              child: Text(
+                vendor.displayName,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
+          ],
         ),
         SizedBox(height: tokens.space.xs),
         KhStatusChip(

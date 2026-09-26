@@ -55,6 +55,7 @@ class VendorDetail {
     required this.contactPersonName,
     required this.businessEmail,
     this.mobileNumber,
+    this.logoUrl,
     this.verificationState = VendorVerificationState.registered,
     this.accountState = VendorAccountState.active,
     this.categories = const [],
@@ -74,6 +75,7 @@ class VendorDetail {
   final String contactPersonName;
   final String businessEmail;
   final String? mobileNumber;
+  final String? logoUrl;
   final VendorVerificationState verificationState;
   final VendorAccountState accountState;
   final List<String> categories;
@@ -102,6 +104,7 @@ class VendorDetail {
     String? contactPersonName,
     String? businessEmail,
     String? mobileNumber,
+    String? logoUrl,
     VendorVerificationState? verificationState,
     VendorAccountState? accountState,
     List<String>? categories,
@@ -121,6 +124,7 @@ class VendorDetail {
       contactPersonName: contactPersonName ?? this.contactPersonName,
       businessEmail: businessEmail ?? this.businessEmail,
       mobileNumber: mobileNumber ?? this.mobileNumber,
+      logoUrl: logoUrl ?? this.logoUrl,
       verificationState: verificationState ?? this.verificationState,
       accountState: accountState ?? this.accountState,
       categories: categories ?? this.categories,
@@ -211,6 +215,7 @@ class VendorDetail {
           json['businessEmail']?.toString() ?? user?['email']?.toString() ?? '',
       mobileNumber:
           json['mobileNumber']?.toString() ?? user?['mobileNumber']?.toString(),
+      logoUrl: json['logoUrl']?.toString(),
       verificationState:
           VendorVerificationState.fromApi(verificationStateStr) ??
               VendorVerificationState.registered,

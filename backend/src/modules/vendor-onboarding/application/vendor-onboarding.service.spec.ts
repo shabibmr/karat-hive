@@ -242,6 +242,7 @@ describe('VendorOnboardingService.patchProfile (VO-06 / BR-004)', () => {
 
     repo = {
       findById: vi.fn().mockResolvedValue(baseProfile),
+      findByIdWithLogo: vi.fn().mockResolvedValue({ ...baseProfile, logoMedia: null }),
       update,
       distinctDocumentTypes: vi.fn().mockResolvedValue(['TRADE_LICENCE', 'EMIRATES_ID']),
       countCategories: vi.fn().mockResolvedValue(1),
@@ -316,5 +317,34 @@ describe('VendorOnboardingService.patchProfile (VO-06 / BR-004)', () => {
     expect(data).not.toHaveProperty('verificationState');
     expect(data).not.toHaveProperty('activatedAt');
     expect(audit.append).not.toHaveBeenCalled();
+  });
+
+  it('round-trips logoMediaKey into logoUrl on the returned VendorMe (Phase 0 fix)', async () => {
+    const media = {
+      getAttachable: vi.fn().mockResolvedValue({ id: 'media-1', purpose: 'VENDOR_LOGO' }),
+    } as unknown as MediaService;
+    service = new VendorOnboardingService(
+      prisma,
+      repo,
+      audit,
+      mockClock,
+      media,
+      new LocalDiskStorageAdapter(),
+    );
+    vi.mocked(repo.findByIdWithLogo).mockResolvedValue({
+      ...baseProfile,
+      logoMediaId: 'media-1',
+      logoMedia: { key: 'media-key-abc' },
+    } as unknown as VendorProfile & { logoMedia: { key: string } });
+
+    const result = await service.patchProfile(viewer, { logoMediaKey: 'logo-key-in' });
+
+    expect(media.getAttachable).toHaveBeenCalledWith('logo-key-in', 'usr-1');
+    expect(update).toHaveBeenCalledWith(
+      expect.anything(),
+      'vp-1',
+      expect.objectContaining({ logoMediaId: 'media-1' }),
+    );
+    expect(result.logoUrl).toBe('/v1/media/media-key-abc');
   });
 });

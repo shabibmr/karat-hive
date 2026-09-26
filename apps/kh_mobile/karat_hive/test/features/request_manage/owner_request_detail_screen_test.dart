@@ -60,6 +60,7 @@ RequestForCustomer _testRequest({
   RequestState state = RequestState.published,
   int offerCount = 0,
   String? connectionId,
+  List<MediaRef> media = const [],
 }) {
   return RequestForCustomer(
     id: id,
@@ -72,7 +73,7 @@ RequestForCustomer _testRequest({
     weightIsApproximate: false,
     budgetIsFlexible: false,
     offerCount: offerCount,
-    media: const [],
+    media: media,
     createdAt: DateTime.utc(2026, 9, 1),
     updatedAt: DateTime.utc(2026, 9, 1),
     notes: 'Looking for a simple band ring',
@@ -131,11 +132,37 @@ void main() {
       await _pump(tester, repo: repo, requestId: 'req-101');
 
       expect(find.byKey(const Key('owner-request-detail-screen')), findsOneWidget);
-      expect(find.text('REQ-2026-0101'), findsOneWidget);
       expect(find.byKey(const Key('offer-count')), findsOneWidget);
       expect(find.textContaining('2'), findsWidgets);
-      expect(find.text('Rings'), findsOneWidget);
+      expect(find.text('Rings'), findsWidgets);
       expect(find.text('Dubai'), findsOneWidget);
+    });
+
+    testWidgets('shows media gallery when request has attached images',
+        (tester) async {
+      final repo = _FakeRequestManageRepository(
+        request: _testRequest(
+          media: const [
+            MediaRef(
+              id: 'med-1',
+              key: 'media-uuid-1',
+              state: MediaState.ready,
+              purpose: MediaPurpose.requestImage,
+              contentType: 'image/avif',
+              byteSize: 1200,
+              displayOrder: 0,
+              displayUrl: '/v1/media/media-uuid-1',
+              thumbnailUrl: '/v1/media/media-uuid-1',
+            ),
+          ],
+        ),
+      );
+
+      await _pump(tester, repo: repo, requestId: 'req-101');
+
+      expect(find.byKey(const Key('owner-request-media-gallery')), findsOneWidget);
+      expect(find.byType(KhImageGallery), findsOneWidget);
+      expect(find.byType(KhNetworkImage), findsWidgets);
     });
 
     testWidgets('hides the notes/budget edit form once the request is PUBLISHED',

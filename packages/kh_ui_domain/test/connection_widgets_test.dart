@@ -145,6 +145,46 @@ void main() {
     expect(find.textContaining('+971501234567'), findsOneWidget);
   });
 
+  testWidgets('SH-ID-02 shows a network image avatar when photoUrl is set (Phase 4)',
+      (tester) async {
+    await tester.pumpWidget(
+      _host(
+        RevealedPartyCard(
+          party: RevealedParty(
+            displayName: 'Al Baraka Gold',
+            mobile: PhoneNumber.parse('+971509998877'),
+            role: UserRole.vendor,
+            dealCount: 5,
+          ),
+          photoUrl: 'https://cdn.example.com/v1/media/logo-key-abc',
+        ),
+      ),
+    );
+
+    expect(find.byType(KhNetworkImage), findsOneWidget);
+    expect(find.byType(CircleAvatar), findsNothing);
+  });
+
+  testWidgets('SH-ID-02 falls back to initials when photoUrl is absent',
+      (tester) async {
+    await tester.pumpWidget(
+      _host(
+        RevealedPartyCard(
+          party: RevealedParty(
+            displayName: 'Fatima Al Zahra',
+            mobile: PhoneNumber.parse('+971501234567'),
+            role: UserRole.customer,
+            dealCount: 3,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(KhNetworkImage), findsNothing);
+    expect(find.byType(CircleAvatar), findsOneWidget);
+    expect(find.text('F'), findsOneWidget);
+  });
+
   testWidgets('SH-CON-04 closed banner is visible', (tester) async {
     await tester.pumpWidget(const MaterialApp(
       home: Scaffold(body: ConnectionClosedBanner()),

@@ -107,6 +107,7 @@ class VendorMe {
     this.connectionCount = 0,
     this.maskedPreview,
     this.description,
+    this.logoUrl,
     this.tradeLicenceNumber = '',
     this.licenceExpiryDate = '',
     this.registeredAddress = '',
@@ -150,6 +151,9 @@ class VendorMe {
 
   /// Safe-edit showroom blurb (VEN-S15 / FR-VEN-024). Not a BR-004 field.
   final String? description;
+
+  /// `/v1/media/{key}` proxy URL for the uploaded logo, null when none set.
+  final String? logoUrl;
 
   /// Safe-edit contact name (VEN-S15).
   final String contactPersonName;
@@ -212,6 +216,7 @@ class VendorMe {
       connectionCount: connectionCount,
       maskedPreview: masked,
       description: j['description'] as String?,
+      logoUrl: j['logoUrl'] as String?,
       tradeLicenceNumber: j['tradeLicenceNumber'] as String? ?? '',
       licenceExpiryDate: j['licenceExpiryDate'] as String? ?? '',
       registeredAddress: (j['registeredAddress'] ?? j['businessAddress']) as String? ?? '',
@@ -246,6 +251,7 @@ class VendorMe {
         'connectionCount': connectionCount,
         if (maskedPreview != null) 'maskedPreview': maskedPreview!.toJson(),
         if (description != null) 'description': description,
+        if (logoUrl != null) 'logoUrl': logoUrl,
         'contactPersonName': contactPersonName,
         'businessEmail': businessEmail,
         if (contactWhatsApp.isNotEmpty) 'contactWhatsApp': contactWhatsApp,

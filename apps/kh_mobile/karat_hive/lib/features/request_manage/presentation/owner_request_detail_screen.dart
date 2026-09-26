@@ -6,6 +6,7 @@ import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
+import '../../../app/di.dart';
 import '../controller/owner_request_detail_controller.dart';
 import '../../request_create/controller/request_create_controller.dart';
 import '../../request_create/routes.dart';
@@ -51,6 +52,16 @@ class _OwnerRequestDetailScreenState
         ),
         data: (detail) {
           final req = detail.request;
+          final env = ref.watch(envProvider);
+          final galleryImages = req.media
+              .map(
+                (m) => GalleryImage(
+                  url: env.resolveUrl(m.displayUrl ?? m.thumbnailUrl) ?? '',
+                  contentType: m.contentType,
+                ),
+              )
+              .where((img) => img.url.isNotEmpty)
+              .toList(growable: false);
           final specs = <(String, String)>[
             ('Type', requestTypeLabel(s, req.requestType)),
             ('Direction', req.direction.wire),
@@ -64,6 +75,13 @@ class _OwnerRequestDetailScreenState
           return ListView(
             padding: EdgeInsets.all(tokens.space.md),
             children: [
+              if (galleryImages.isNotEmpty) ...[
+                KhImageGallery(
+                  key: const Key('owner-request-media-gallery'),
+                  images: galleryImages,
+                ),
+                SizedBox(height: tokens.space.lg),
+              ],
               Row(
                 children: [
                   Expanded(
