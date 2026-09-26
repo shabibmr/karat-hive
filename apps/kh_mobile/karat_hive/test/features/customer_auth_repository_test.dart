@@ -68,8 +68,11 @@ void main() {
         )).called(1);
   });
 
-  test('googleSession propagates an Err(Unauthorised) verbatim', () async {
-    when(() => api.googleSession(idToken: any(named: 'idToken'))).thenAnswer(
+  test('googleSession forwards expectedRole: CUSTOMER by default and propagates results', () async {
+    when(() => api.googleSession(
+          idToken: any(named: 'idToken'),
+          expectedRole: any(named: 'expectedRole'),
+        )).thenAnswer(
       (_) async => const Err(UnauthorisedFailure(code: 'UNAUTHENTICATED')),
     );
 
@@ -77,5 +80,40 @@ void main() {
 
     expect(result.failureOrNull, isA<UnauthorisedFailure>());
     expect(result.failureOrNull!.code, 'UNAUTHENTICATED');
+    verify(() => api.googleSession(idToken: 'tok', expectedRole: 'CUSTOMER')).called(1);
+  });
+
+  test('googleSession propagates ForbiddenFailure (ACCOUNT_ROLE_MISMATCH)', () async {
+    when(() => api.googleSession(
+          idToken: any(named: 'idToken'),
+          expectedRole: any(named: 'expectedRole'),
+        )).thenAnswer(
+      (_) async => const Err(ForbiddenFailure(
+        code: 'ACCOUNT_ROLE_MISMATCH',
+        message: 'Your account type does not match the requested role.',
+      )),
+    );
+
+    final result = await repo.googleSession('tok');
+
+    expect(result.failureOrNull, isA<ForbiddenFailure>());
+    expect(result.failureOrNull!.code, 'ACCOUNT_ROLE_MISMATCH');
+  });
+
+  test('googleSession propagates ConflictFailure (ACCOUNT_ROLE_CONFLICT / OAUTH_ALREADY_BOUND)', () async {
+    when(() => api.googleSession(
+          idToken: any(named: 'idToken'),
+          expectedRole: any(named: 'expectedRole'),
+        )).thenAnswer(
+      (_) async => const Err(ConflictFailure(
+        code: 'ACCOUNT_ROLE_CONFLICT',
+        message: 'An account already exists for this identity with a different role.',
+      )),
+    );
+
+    final result = await repo.googleSession('tok');
+
+    expect(result.failureOrNull, isA<ConflictFailure>());
+    expect(result.failureOrNull!.code, 'ACCOUNT_ROLE_CONFLICT');
   });
 }

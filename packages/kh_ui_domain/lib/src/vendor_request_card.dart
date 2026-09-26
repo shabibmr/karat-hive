@@ -55,10 +55,11 @@ class VendorRequestCard extends StatelessWidget {
                 ),
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
-                  child: Image.network(
-                    item.media.first.thumbnailUrl ??
+                  child: KhNetworkImage(
+                    url: item.media.first.thumbnailUrl ??
                         item.media.first.displayUrl ??
                         '',
+                    contentType: item.media.first.contentType,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const SizedBox.shrink(),

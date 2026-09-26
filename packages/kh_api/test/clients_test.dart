@@ -707,6 +707,130 @@ void main() {
       expect(err, isA<ValidationFailure>());
       expect((err as ValidationFailure).code, 'PASSWORD_POLICY');
     });
+
+    test('googleSession POST /v1/auth/google/session sends expectedRole if provided', () async {
+      Map<String, dynamic>? body;
+      final client = createClient((opts) async {
+        expect(opts.method, 'POST');
+        expect(opts.path, '/v1/auth/google/session');
+        body = Map<String, dynamic>.from(opts.data as Map);
+        return jsonBody({
+          'data': {
+            'accessToken': 'acc',
+            'refreshToken': 'ref',
+            'accessExpiresAt': '2026-09-07T13:00:00.000Z',
+            'refreshExpiresAt': '2026-10-07T13:00:00.000Z',
+            'user': {
+              'id': 'u1',
+              'userType': 'CUSTOMER',
+              'role': 'CUSTOMER',
+              'displayName': 'Test Customer',
+              'preferredLanguage': 'en',
+            },
+          },
+        });
+      });
+
+      final res = await KhApi(client).auth.googleSession(
+            idToken: 'token123',
+            expectedRole: 'CUSTOMER',
+          );
+      expect(res.isOk, isTrue);
+      expect(body, {'idToken': 'token123', 'expectedRole': 'CUSTOMER'});
+      expect(res.valueOrNull?.user.role, UserRole.customer);
+    });
+
+    test('firebaseSession POST /v1/auth/firebase/session sends expectedRole if provided', () async {
+      Map<String, dynamic>? body;
+      final client = createClient((opts) async {
+        expect(opts.method, 'POST');
+        expect(opts.path, '/v1/auth/firebase/session');
+        body = Map<String, dynamic>.from(opts.data as Map);
+        return jsonBody({
+          'data': {
+            'accessToken': 'acc',
+            'refreshToken': 'ref',
+            'accessExpiresAt': '2026-09-07T13:00:00.000Z',
+            'refreshExpiresAt': '2026-10-07T13:00:00.000Z',
+            'user': {
+              'id': 'u2',
+              'userType': 'VENDOR',
+              'role': 'VENDOR',
+              'displayName': 'Test Vendor',
+              'preferredLanguage': 'en',
+            },
+          },
+        });
+      });
+
+      final res = await KhApi(client).auth.firebaseSession(
+            idToken: 'token456',
+            expectedRole: 'VENDOR',
+          );
+      expect(res.isOk, isTrue);
+      expect(body, {'idToken': 'token456', 'expectedRole': 'VENDOR'});
+      expect(res.valueOrNull?.user.role, UserRole.vendor);
+    });
+
+    test('googleSession surfaces ACCOUNT_ROLE_MISMATCH as ForbiddenFailure', () async {
+      final client = createClient((opts) async {
+        expect(opts.path, '/v1/auth/google/session');
+        return jsonBody({
+          'error': {
+            'code': 'ACCOUNT_ROLE_MISMATCH',
+            'message': 'Your account type does not match the requested role.',
+          },
+        }, status: 403);
+      });
+
+      final res = await KhApi(client).auth.googleSession(
+            idToken: 'token123',
+            expectedRole: 'CUSTOMER',
+          );
+      expect(res.isOk, isFalse);
+      final err = (res as Err).failure;
+      expect(err, isA<ForbiddenFailure>());
+      expect(err.code, 'ACCOUNT_ROLE_MISMATCH');
+      expect(err.message, 'Your account type does not match the requested role.');
+    });
+
+    test('googleSession surfaces ACCOUNT_ROLE_CONFLICT as ConflictFailure', () async {
+      final client = createClient((opts) async {
+        expect(opts.path, '/v1/auth/google/session');
+        return jsonBody({
+          'error': {
+            'code': 'ACCOUNT_ROLE_CONFLICT',
+            'message': 'An account already exists for this identity with a different role.',
+          },
+        }, status: 409);
+      });
+
+      final res = await KhApi(client).auth.googleSession(idToken: 'token123');
+      expect(res.isOk, isFalse);
+      final err = (res as Err).failure;
+      expect(err, isA<ConflictFailure>());
+      expect(err.code, 'ACCOUNT_ROLE_CONFLICT');
+      expect(err.message, 'An account already exists for this identity with a different role.');
+    });
+
+    test('googleSession surfaces OAUTH_ALREADY_BOUND as ConflictFailure', () async {
+      final client = createClient((opts) async {
+        expect(opts.path, '/v1/auth/google/session');
+        return jsonBody({
+          'error': {
+            'code': 'OAUTH_ALREADY_BOUND',
+            'message': 'This social account is already linked to another user.',
+          },
+        }, status: 409);
+      });
+
+      final res = await KhApi(client).auth.googleSession(idToken: 'token123');
+      expect(res.isOk, isFalse);
+      final err = (res as Err).failure;
+      expect(err, isA<ConflictFailure>());
+      expect(err.code, 'OAUTH_ALREADY_BOUND');
+      expect(err.message, 'This social account is already linked to another user.');
+    });
   });
 
   group('KhApi aggregate', () {

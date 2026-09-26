@@ -1618,7 +1618,7 @@ VendorProfile = {
   businessAddress: string
   contactPersonName: string
   businessEmail: string
-  logo?: MediaRef
+  logoUrl?: string           // `/v1/media/{key}` proxy, null when no logo uploaded
   description?: string
   businessHours?: { [weekday: string]: { open: string, close: string, closed: boolean } }
   awayMode: boolean

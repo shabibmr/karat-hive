@@ -144,15 +144,18 @@ class KhApi {
 
   /// Exchanges a Google / Firebase ID token for a Karat Hive [SessionBundle]
   /// (`AD-API-13`, G2-A14). Does not create a User; unbound → 401.
-  Future<Result<SessionBundle>> googleSession({required String idToken}) async {
-    final r = await _client.send('POST', '/v1/auth/google/session', body: {
-      'idToken': idToken,
-    });
-    return r.when(
-      ok: (d) => Ok(SessionBundle.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
-  }
+  Future<Result<SessionBundle>> googleSession({
+    required String idToken,
+    String? expectedRole,
+  }) =>
+      auth.googleSession(idToken: idToken, expectedRole: expectedRole);
+
+  /// Alias for [googleSession] using `/v1/auth/firebase/session`.
+  Future<Result<SessionBundle>> firebaseSession({
+    required String idToken,
+    String? expectedRole,
+  }) =>
+      auth.firebaseSession(idToken: idToken, expectedRole: expectedRole);
 
   static Future<SessionTokens?> refresh(
     KhApiClient client,

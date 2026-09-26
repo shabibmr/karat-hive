@@ -43,8 +43,11 @@ class AuthRepository {
   Future<Result<SessionBundle>> loginPassword(String email, String password) =>
       _api.loginPassword(email: email, password: password);
 
-  Future<Result<SessionBundle>> googleSession(String idToken) =>
-      _api.googleSession(idToken: idToken);
+  Future<Result<SessionBundle>> googleSession(
+    String idToken, {
+    String? expectedRole,
+  }) =>
+      _api.googleSession(idToken: idToken, expectedRole: expectedRole);
 
   /// One-time Google bind (`POST /v1/auth/oauth/bind`). Not a login (`adr/0010`).
   Future<Result<bool>> bindGoogle(String identityToken) async {

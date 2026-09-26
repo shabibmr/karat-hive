@@ -16,6 +16,7 @@ class KhScreenHeader extends StatelessWidget {
     required this.heading,
     this.supportingText,
     this.trailing,
+    this.leading,
   });
 
   final String eyebrow;
@@ -25,6 +26,9 @@ class KhScreenHeader extends StatelessWidget {
   /// Status chip (dashboard) or primary action button (taxonomy screens).
   final Widget? trailing;
 
+  /// Optional avatar/icon placed to the left of the title block (e.g. vendor logo).
+  final Widget? leading;
+
   /// Below this width the trailing action squeezes the heading down to one
   /// word per line, so it moves underneath the title block instead.
   static const double stackBelowWidth = 620;
@@ -33,7 +37,7 @@ class KhScreenHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final kh = context.kh;
 
-    final titleBlock = Column(
+    final titleColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -51,6 +55,18 @@ class KhScreenHeader extends StatelessWidget {
         ],
       ],
     );
+
+    final titleBlock = leading == null
+        ? titleColumn
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              leading!,
+              SizedBox(width: kh.spacing.sm),
+              Flexible(child: titleColumn),
+            ],
+          );
 
     if (trailing == null) return titleBlock;
 

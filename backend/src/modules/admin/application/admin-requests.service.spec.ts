@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Direction, RequestState, RequestType } from '@prisma/client';
-import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import { AdminRequestsService } from './admin-requests.service';
 import type { AdminRequestsRepository } from '../repository/admin-requests.repository';

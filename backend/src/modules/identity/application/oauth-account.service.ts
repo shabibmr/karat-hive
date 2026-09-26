@@ -7,6 +7,7 @@ import { AuditWriter } from '../../audit';
 import { FirebaseTokenService } from './firebase-token.service';
 import { SessionService } from './session.service';
 import { hashToken } from './token.service';
+import type { User, UserType } from '@prisma/client';
 import type { SessionBundle } from '../presenter/session.presenter';
 
 @Injectable()
@@ -19,9 +20,28 @@ export class OAuthAccountService {
     private readonly audit: AuditWriter,
   ) {}
 
+  private assertUserCanLogin(user: User, expectedRole?: UserType): void {
+    if (user.deletedAt !== null) {
+      throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
+    }
+    if (expectedRole !== undefined && user.userType !== expectedRole) {
+      throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ACCOUNT_ROLE_MISMATCH);
+    }
+    if (user.accountState !== 'ACTIVE') {
+      if (user.accountState === 'SUSPENDED') {
+        throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ACCOUNT_SUSPENDED);
+      }
+      if (user.accountState === 'DEACTIVATED') {
+        throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ACCOUNT_DEACTIVATED);
+      }
+      throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN);
+    }
+  }
+
   async createSessionFromFirebase(
     token: string,
     client: { ip?: string | null; userAgent?: string | null; acceptLanguage?: string },
+    expectedRole?: UserType,
   ): Promise<SessionBundle> {
     const claims = await this.firebaseTokens.verify(token);
     const subjectHash = hashToken(claims.uid);
@@ -34,9 +54,7 @@ export class OAuthAccountService {
     });
 
     if (existingBinding && existingBinding.user) {
-      if (existingBinding.user.deletedAt !== null) {
-        throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
-      }
+      this.assertUserCanLogin(existingBinding.user, expectedRole);
       return this.sessionService.issueFor(existingBinding.user, client);
     }
 
@@ -47,7 +65,9 @@ export class OAuthAccountService {
         where: { email },
       });
 
-      if (matchedUser && matchedUser.deletedAt === null) {
+      if (matchedUser) {
+        this.assertUserCanLogin(matchedUser, expectedRole);
+
         await this.prisma.oauthBinding.upsert({
           where: {
             userId_provider: {
@@ -87,7 +107,9 @@ export class OAuthAccountService {
         where: { mobileNumber: claims.phoneNumber },
       });
 
-      if (matchedUser && matchedUser.deletedAt === null) {
+      if (matchedUser) {
+        this.assertUserCanLogin(matchedUser, expectedRole);
+
         await this.prisma.oauthBinding.upsert({
           where: {
             userId_provider: {

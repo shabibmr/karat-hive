@@ -53,6 +53,40 @@ class AuthClient {
     );
   }
 
+  /// Exchanges a Google ID token for a Karat Hive [SessionBundle] (`AD-API-13`).
+  ///
+  /// Optional [expectedRole] ('CUSTOMER', 'VENDOR', 'ADMIN') ensures role matching.
+  Future<Result<SessionBundle>> googleSession({
+    required String idToken,
+    String? expectedRole,
+  }) async {
+    final r = await _client.send('POST', '/v1/auth/google/session', body: {
+      'idToken': idToken,
+      if (expectedRole != null) 'expectedRole': expectedRole,
+    });
+    return r.when(
+      ok: (d) => Ok(SessionBundle.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
+  /// Exchanges a Firebase ID token for a Karat Hive [SessionBundle] (alias for googleSession).
+  ///
+  /// Optional [expectedRole] ('CUSTOMER', 'VENDOR', 'ADMIN') ensures role matching.
+  Future<Result<SessionBundle>> firebaseSession({
+    required String idToken,
+    String? expectedRole,
+  }) async {
+    final r = await _client.send('POST', '/v1/auth/firebase/session', body: {
+      'idToken': idToken,
+      if (expectedRole != null) 'expectedRole': expectedRole,
+    });
+    return r.when(
+      ok: (d) => Ok(SessionBundle.fromJson(d as Map<String, dynamic>)),
+      err: Err.new,
+    );
+  }
+
   static Future<SessionTokens?> refresh(
     KhApiClient client,
     String refreshToken,

@@ -214,8 +214,11 @@ class _VendorOfferSummaryCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(tokens.radius.sm),
                   child: AspectRatio(
                     aspectRatio: 16 / 9,
-                    child: Image.network(
-                      offer.terms.media.first.key,
+                    child: KhNetworkImage(
+                      url: offer.terms.media.first.thumbnailUrl ??
+                          offer.terms.media.first.displayUrl ??
+                          '',
+                      contentType: offer.terms.media.first.contentType,
                       width: double.infinity,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => const SizedBox.shrink(),
@@ -577,8 +580,9 @@ class OfferTermsReadOnly extends StatelessWidget {
                       borderRadius: BorderRadius.circular(tokens.radius.sm),
                       child: AspectRatio(
                         aspectRatio: 1,
-                        child: Image.network(
-                          url,
+                        child: KhNetworkImage(
+                          url: url,
+                          contentType: ref.contentType,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => ColoredBox(
                             color: tokens.ink.withValues(alpha: 0.06),

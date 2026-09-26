@@ -38,6 +38,10 @@ export class OtpService {
     const existingUser = await this.users.findByMobile(mobileNumber);
     if (purpose === 'REGISTER_VENDOR' || purpose === 'REGISTER_CUSTOMER') {
       if (existingUser) {
+        const expectedRole = purpose === 'REGISTER_CUSTOMER' ? 'CUSTOMER' : 'VENDOR';
+        if (existingUser.userType !== expectedRole) {
+          throw new ApiException(HttpStatus.CONFLICT, ErrorCode.ACCOUNT_ROLE_CONFLICT);
+        }
         throw new ApiException(HttpStatus.CONFLICT, ErrorCode.MOBILE_ALREADY_REGISTERED);
       }
     }

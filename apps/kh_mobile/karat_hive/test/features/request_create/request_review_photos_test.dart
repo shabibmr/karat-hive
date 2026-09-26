@@ -63,4 +63,31 @@ void main() {
     expect(find.byKey(const Key('review-photo-0')), findsNothing);
     expect(find.text('No photos attached'), findsOneWidget);
   });
+
+  testWidgets(
+      'RequestMediaGallery uses KhNetworkImage for remote AVIF reopen slots',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: khTheme(),
+        localizationsDelegates: KhStrings.delegates,
+        supportedLocales: KhStrings.supportedLocales,
+        home: const Scaffold(
+          body: RequestMediaGallery(
+            media: [
+              MediaSlot(
+                key: 'media-uuid-1',
+                contentType: 'image/avif',
+                remoteUrl: 'http://127.0.0.1:9/v1/media/media-uuid-1',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const Key('review-photo-0')), findsOneWidget);
+    expect(find.byType(KhNetworkImage), findsOneWidget);
+  });
 }

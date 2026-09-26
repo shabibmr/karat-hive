@@ -69,7 +69,15 @@ export class MediaProcessingService {
     let thumbnailKey: string | null = null;
     if (result.makeThumbnail) {
       thumbnailKey = thumbnailStorageKey(media.key);
-      await this.storage.putObject(bucket, thumbnailKey, result.cleaned, media.contentType);
+      // Object lives beside the original (`<storagePath>.thumb`), which is where
+      // MediaService.resolveMediaUrlOrStream reads it; the DB column keeps the
+      // short `<key>.thumb` form used in the public /v1/media/:key URL.
+      await this.storage.putObject(
+        bucket,
+        thumbnailStorageKey(objectKey),
+        result.cleaned,
+        media.contentType,
+      );
     }
 
     await this.repo.updateByKey(media.key, {

@@ -7,6 +7,7 @@ import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
+import '../../../app/di.dart';
 import '../../../app/platform/open_url.dart';
 import '../controller/connection_detail_controller.dart';
 import '../controller/connections_controller.dart';
@@ -99,6 +100,7 @@ class ConnectionDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(connectionDetailProvider(connectionId));
+    final env = ref.watch(envProvider);
     final l10n = AppLocalizations.of(context);
     final tokens = context.tokens;
 
@@ -133,6 +135,7 @@ class ConnectionDetailScreen extends ConsumerWidget {
               ],
               RevealedPartyCard(
                 party: conn.customer,
+                photoUrl: env.resolveUrl(conn.customer.photoUrl),
                 onTalk: (!closed && conn.talk.canOpenWhatsApp)
                     ? () => _talk(context, ref, conn, l10n)
                     : null,

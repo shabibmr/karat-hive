@@ -40,6 +40,7 @@ export class ConnectionRepository {
         vendorProfile: {
           include: {
             user: true,
+            logoMedia: true,
             regions: {
               include: { region: true },
             },
@@ -71,6 +72,7 @@ export class ConnectionRepository {
         vendorProfile: {
           include: {
             user: true,
+            logoMedia: true,
             regions: {
               include: { region: true },
             },
@@ -114,6 +116,7 @@ export class ConnectionRepository {
         vendorProfile: {
           include: {
             user: true,
+            logoMedia: true,
             regions: {
               include: { region: true },
             },
@@ -169,6 +172,7 @@ export class ConnectionRepository {
         vendorProfile: {
           include: {
             user: true,
+            logoMedia: true,
             regions: {
               include: { region: true },
             },
@@ -219,6 +223,7 @@ export class ConnectionRepository {
         vendorProfile: {
           include: {
             user: true,
+            logoMedia: true,
             regions: {
               include: { region: true },
             },

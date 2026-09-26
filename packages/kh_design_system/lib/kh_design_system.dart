@@ -15,6 +15,8 @@ export 'src/widgets/document_upload_tile.dart';
 export 'src/widgets/state_views.dart';
 export 'src/widgets/end_sentinel.dart';
 export 'src/widgets/kh_refresh.dart';
+export 'src/widgets/kh_network_image.dart';
+export 'src/widgets/kh_logo_picker.dart';
 export 'src/widgets/kh_image_gallery.dart';
 export 'src/widgets/kh_section_header.dart';
 export 'src/widgets/kh_numeric_field.dart';

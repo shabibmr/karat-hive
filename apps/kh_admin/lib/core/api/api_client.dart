@@ -84,6 +84,14 @@ class ApiClient {
         newBaseUrl.endsWith('/') ? newBaseUrl.substring(0, newBaseUrl.length - 1) : newBaseUrl;
   }
 
+  /// Resolves a server-relative path (e.g. `/v1/media/<key>`) against the
+  /// current base URL. Already-absolute URLs pass through unchanged.
+  String? resolveUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return Uri.parse(_dio.options.baseUrl).resolve(path).toString();
+  }
+
   /// Performs a GET request and unwraps the `{ data }` payload.
   Future<dynamic> get(
     String path, {

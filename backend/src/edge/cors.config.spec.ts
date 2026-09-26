@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   ALLOWED_HEADERS,
   ALLOWED_METHODS,
-  ALLOWED_ORIGIN_PATTERNS,
   EXPOSED_HEADERS,
   corsConfig,
   isOriginAllowed,

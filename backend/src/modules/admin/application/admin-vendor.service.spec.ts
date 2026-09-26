@@ -1,5 +1,4 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { HttpStatus } from '@nestjs/common';
 import type { User, VendorProfile } from '@prisma/client';
 import { AdminVendorService } from './admin-vendor.service';
 import type { AdminVendorRepository } from '../repository/admin-vendor.repository';

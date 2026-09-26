@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kh_admin/core/api/api_client.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_screen_header.dart';
 import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
 import 'package:kh_admin/features/vendors/model/vendor_detail.dart';
 import 'package:kh_admin/features/vendors/model/vendor_enums.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
+import 'package:kh_design_system/kh_design_system.dart' hide KhStatusChip;
 
 /// "Back to Vendors" button. Was `_VendorDetailScreenState._buildBackButton`
 /// (TR-S2-10).
@@ -34,17 +37,34 @@ class VendorDetailBackButton extends StatelessWidget {
 
 /// Screen header with verification + account state chips. Was
 /// `_VendorDetailScreenState._buildHeader` (TR-S2-10).
-class VendorDetailHeader extends StatelessWidget {
+class VendorDetailHeader extends ConsumerWidget {
   const VendorDetailHeader({super.key, required this.detail});
 
   final VendorDetail detail;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final kh = context.kh;
     final l10n = AppLocalizations.of(context);
+    final logoUrl = ref.watch(apiClientProvider).resolveUrl(detail.logoUrl);
 
     return KhScreenHeader(
+      leading: logoUrl == null
+          ? null
+          : ClipOval(
+              child: KhNetworkImage(
+                key: const Key('vendor-detail-logo'),
+                url: logoUrl,
+                width: 48,
+                height: 48,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Icon(
+                  Icons.storefront_outlined,
+                  size: 32,
+                  color: kh.colors.goldPrimary,
+                ),
+              ),
+            ),
       eyebrow: detail.tradingName != null && detail.tradingName!.isNotEmpty
           ? '${detail.tradingName!.toUpperCase()} · ${detail.id}'
           : 'VENDOR ID: ${detail.id}',

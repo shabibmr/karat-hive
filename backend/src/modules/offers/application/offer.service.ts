@@ -1,5 +1,4 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
@@ -140,8 +139,8 @@ export class OfferService {
 
   async reviseOffer(
     viewer: ViewerContext,
-    offerId: string,
-    input: ReviseOfferInput,
+    _offerId: string,
+    _input: ReviseOfferInput,
   ): Promise<OfferForVendor> {
     this.assertActiveVendor(viewer);
     throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.OFFER_REVISION_NOT_ALLOWED);

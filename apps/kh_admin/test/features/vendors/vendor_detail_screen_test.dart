@@ -178,6 +178,40 @@ void main() {
     // Active lifecycle action
     expect(find.byKey(const Key('vendor-suspend-button')), findsOneWidget);
     expect(find.byKey(const Key('vendor-deactivate-button')), findsOneWidget);
+
+    // No logo on this vendor: no logo avatar in the header (Phase 4).
+    expect(find.byKey(const Key('vendor-detail-logo')), findsNothing);
+  });
+
+  testWidgets('shows a logo avatar in the header when the vendor has a logoUrl (Phase 4)',
+      (tester) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    fakeRepo.detailToReturn = VendorDetail(
+      id: 'ven-logo',
+      legalBusinessName: 'Al Baraka Jewellery LLC',
+      tradingName: 'Al Baraka Gold',
+      tradeLicenceNumber: 'CN-9876543',
+      licenceExpiryDate: DateTime.now().add(const Duration(days: 365)),
+      businessAddress: 'Gold Souk, Deira, Dubai',
+      contactPersonName: 'Rashid Khan',
+      businessEmail: 'info@albaraka.ae',
+      mobileNumber: '+971 4 555 0202',
+      logoUrl: '/v1/media/logo-key-abc',
+      verificationState: VendorVerificationState.verified,
+      accountState: VendorAccountState.active,
+    );
+
+    await tester.pumpWidget(createVendorDetailWidget(vendorId: 'ven-logo'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byKey(const Key('vendor-detail-logo')), findsOneWidget);
   });
 
   testWidgets('prompts suspend dialog with reason code and text, then suspends',

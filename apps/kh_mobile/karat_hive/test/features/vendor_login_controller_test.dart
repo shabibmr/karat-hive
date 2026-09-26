@@ -35,7 +35,8 @@ void main() {
 
   test('a bound Google token authenticates and seeds the session', () async {
     final bundle = testCustomerBundle();
-    when(() => repo.googleSession(any())).thenAnswer((_) async => Ok(bundle));
+    when(() => repo.googleSession(any(), expectedRole: any(named: 'expectedRole')))
+        .thenAnswer((_) async => Ok(bundle));
     final c = container();
     addTearDown(c.dispose);
 
@@ -46,11 +47,13 @@ void main() {
       isA<LoginAuthenticated>(),
     );
     expect(session.authenticated.single, bundle);
+    verify(() => repo.googleSession(any(), expectedRole: 'VENDOR')).called(1);
   });
 
   test('an unbound Google token (401 UNAUTHENTICATED) needs registration',
       () async {
-    when(() => repo.googleSession(any())).thenAnswer(
+    when(() => repo.googleSession(any(), expectedRole: any(named: 'expectedRole')))
+        .thenAnswer(
       (_) async => const Err(UnauthorisedFailure(code: 'UNAUTHENTICATED')),
     );
     final c = container();
@@ -69,7 +72,7 @@ void main() {
   });
 
   test('a bare 401 with no code also needs registration', () async {
-    when(() => repo.googleSession(any()))
+    when(() => repo.googleSession(any(), expectedRole: any(named: 'expectedRole')))
         .thenAnswer((_) async => const Err(UnauthorisedFailure()));
     final c = container();
     addTearDown(c.dispose);
@@ -84,7 +87,8 @@ void main() {
   });
 
   test('other server failures surface as LoginError', () async {
-    when(() => repo.googleSession(any())).thenAnswer(
+    when(() => repo.googleSession(any(), expectedRole: any(named: 'expectedRole')))
+        .thenAnswer(
       (_) async => const Err(RateLimitedFailure(message: 'Too many codes.')),
     );
     final c = container();

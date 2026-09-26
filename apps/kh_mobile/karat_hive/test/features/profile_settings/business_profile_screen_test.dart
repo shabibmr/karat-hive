@@ -133,9 +133,38 @@ void main() {
     expect(find.text('Al Noor LLC'), findsOneWidget);
     expect(find.text('TL-12345'), findsOneWidget);
     expect(find.text('Gold Souk, Deira, Unit 12'), findsOneWidget);
-    // Media upload affordances are B02.3.
-    expect(find.text('Logo'), findsNothing);
+    // Media upload affordances are B02.3 — logo picker is wired; storefront
+    // photo upload is still an inventory gap (SAM-GAP / AD-API-09).
+    expect(find.byKey(const Key('business-profile-media-section')), findsOneWidget);
+    expect(find.byType(KhLogoPicker), findsOneWidget);
+    expect(find.text('Upload logo'), findsOneWidget);
     expect(find.text('Shop photographs'), findsNothing);
+  });
+
+  testWidgets('shows Change logo when the vendor already has a logoUrl',
+      (tester) async {
+    final vendor = VendorMe(
+      vendorProfileId: 'vp1',
+      lifecycle: VendorLifecycle.active,
+      awaitingApproval: false,
+      tradingName: 'Al Noor',
+      legalBusinessName: 'Al Noor LLC',
+      categoryCount: 1,
+      regionCount: 1,
+      logoUrl: '/v1/media/logo-key-abc',
+    );
+    await tester.pumpWidget(
+      _host(
+        overrides: [
+          vendorProfileProvider.overrideWith((ref) async => vendor),
+        ],
+        child: const BusinessProfileScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Change logo'), findsOneWidget);
+    expect(find.text('Upload logo'), findsNothing);
   });
 
   testWidgets('Save posts safe fields only and skips BR-004 keys', (tester) async {

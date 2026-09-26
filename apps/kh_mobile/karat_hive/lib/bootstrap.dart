@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
+import 'package:kh_design_system/kh_design_system.dart';
 
 import 'app/app.dart';
 import 'app/di.dart';
@@ -33,6 +34,9 @@ Future<void> bootstrap() async {
   } catch (e) {
     debugPrint('Firebase initialization warning: $e');
   }
+
+  final resolvedEnv = env;
+  KhNetworkImage.urlResolver = resolvedEnv.resolveUrl;
 
   runApp(
     ProviderScope(

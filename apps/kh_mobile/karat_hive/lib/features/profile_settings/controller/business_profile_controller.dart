@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
@@ -16,19 +18,23 @@ final vendorProfileProvider =
 class BusinessProfileSaveState {
   const BusinessProfileSaveState({
     this.busy = false,
+    this.logoUploading = false,
     this.failure,
   });
 
   final bool busy;
+  final bool logoUploading;
   final Failure? failure;
 
   BusinessProfileSaveState copyWith({
     bool? busy,
+    bool? logoUploading,
     Failure? failure,
     bool clearFailure = false,
   }) =>
       BusinessProfileSaveState(
         busy: busy ?? this.busy,
+        logoUploading: logoUploading ?? this.logoUploading,
         failure: clearFailure ? null : (failure ?? this.failure),
       );
 }
@@ -47,6 +53,7 @@ class BusinessProfileSaveController
     required String contactPersonName,
     required String businessEmail,
     String? description,
+    String? logoMediaKey,
     Map<String, BusinessDayHours>? businessHours,
   }) async {
     final name = tradingName.trim();
@@ -81,6 +88,7 @@ class BusinessProfileSaveController
       description: desc ?? '',
       contactPersonName: contact,
       businessEmail: email,
+      logoMediaKey: logoMediaKey,
     );
     final profileFail = profile.failureOrNull;
     if (profileFail != null) {
@@ -105,6 +113,25 @@ class BusinessProfileSaveController
     await ref.read(sessionProvider.notifier).refreshUser();
     state = state.copyWith(busy: false);
     return true;
+  }
+
+  /// Uploads a newly-picked logo (CP6-B02.3) and returns its media key, or
+  /// `null` on failure (surfaced via [state.failure]). Does not itself patch
+  /// the profile — the caller passes the returned key as `logoMediaKey` on
+  /// the next [saveSafeEdits].
+  Future<String?> uploadLogo(Uint8List bytes) async {
+    state = state.copyWith(logoUploading: true, clearFailure: true);
+    final result = await _repo.uploadLogo(bytes);
+    return result.when(
+      ok: (key) {
+        state = state.copyWith(logoUploading: false);
+        return key;
+      },
+      err: (f) {
+        state = state.copyWith(logoUploading: false, failure: f);
+        return null;
+      },
+    );
   }
 
   static bool _looksLikeEmail(String value) {

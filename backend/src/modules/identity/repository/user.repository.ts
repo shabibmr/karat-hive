@@ -166,6 +166,13 @@ export class UserRepository {
     return Boolean(binding);
   }
 
+  findBindingBySubjectHash(subjectHash: string) {
+    return this.prisma.oauthBinding.findUnique({
+      where: { subjectHash },
+      include: { user: true },
+    });
+  }
+
   async countLiveRequestsForCustomer(
     customerProfileId: string,
     now: Date = new Date(),

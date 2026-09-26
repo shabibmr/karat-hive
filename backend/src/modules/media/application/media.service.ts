@@ -19,6 +19,7 @@ import {
   isByteSizeAllowed,
   isContentTypeAllowed,
   storagePath,
+  thumbnailStorageKey,
 } from '../domain/media-rules';
 import { MediaRepository } from '../repository/media.repository';
 import { presentMediaRef, type MediaRef, type UploadIntent } from '../presenter/media.presenter';
@@ -241,11 +242,11 @@ export class MediaService {
       vendorProfileId,
       ownerUserId: media.uploadedByUserId ?? 'unknown',
     });
-    if (isThumbnail) {
-      objectKey = `${objectKey}.thumb`;
-    }
-
     const bucket = physicalBucketName(media.bucket, physicalBucketNamesFromEnv(this.env));
+
+    if (isThumbnail) {
+      objectKey = await this.resolveThumbnailObjectKey(bucket, objectKey, key);
+    }
 
     const signed = await this.storage.createSignedDownloadUrl(bucket, objectKey, 3600);
     if (signed.url.startsWith('http://') || signed.url.startsWith('https://')) {
@@ -257,5 +258,22 @@ export class MediaService {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
     return { type: 'stream', buffer, contentType: media.contentType };
+  }
+
+  /**
+   * Thumbnails live at `<storagePath>.thumb`. Rows processed before that fix
+   * wrote the object at the bucket root under `media.thumbnail_key`; fall back
+   * to that, then to the original, so a missing derivative never breaks the image.
+   */
+  private async resolveThumbnailObjectKey(
+    bucket: string,
+    originalObjectKey: string,
+    legacyThumbnailKey: string,
+  ): Promise<string> {
+    for (const candidate of [thumbnailStorageKey(originalObjectKey), legacyThumbnailKey]) {
+      const head = await this.storage.headObject(bucket, candidate);
+      if (head?.exists) return candidate;
+    }
+    return originalObjectKey;
   }
 }

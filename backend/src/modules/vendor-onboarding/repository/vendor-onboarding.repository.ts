@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import type { DocumentType, VendorDocument, VendorProfile } from '@prisma/client';
+import type { DocumentType, Media, VendorDocument, VendorProfile } from '@prisma/client';
 import { PrismaService } from '../../../platform/db/prisma.service';
 import type { DbTx } from '../../../platform/db/tx';
 
@@ -43,6 +43,24 @@ export class VendorOnboardingRepository {
 
   findByUserId(userId: string): Promise<VendorProfile | null> {
     return this.prisma.vendorProfile.findUnique({ where: { userId } });
+  }
+
+  /** Like {@link findById}, but also resolves the logo `Media` row for `logoUrl` presentation. */
+  findByIdWithLogo(id: string): Promise<(VendorProfile & { logoMedia: Media | null }) | null> {
+    return this.prisma.vendorProfile.findUnique({
+      where: { id },
+      include: { logoMedia: true },
+    });
+  }
+
+  /** Like {@link findByUserId}, but also resolves the logo `Media` row for `logoUrl` presentation. */
+  findByUserIdWithLogo(
+    userId: string,
+  ): Promise<(VendorProfile & { logoMedia: Media | null }) | null> {
+    return this.prisma.vendorProfile.findUnique({
+      where: { userId },
+      include: { logoMedia: true },
+    });
   }
 
   licenceExists(tradeLicenceNumber: string): Promise<VendorProfile | null> {

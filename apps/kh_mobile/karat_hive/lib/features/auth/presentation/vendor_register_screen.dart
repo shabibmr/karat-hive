@@ -164,9 +164,10 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
             const SizedBox(height: 16),
 
             // Logo Upload Section
-            _LogoPickerWidget(
-              logoPath: form.logoPath,
-              onPickLogo: () async {
+            KhLogoPicker(
+              previewBytes: form.logoBytes,
+              pickLabel: 'Upload Store Logo',
+              onPick: () async {
                 final res = await FilePicker.platform.pickFiles(
                   type: FileType.image,
                   allowMultiple: false,
@@ -207,7 +208,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
                   ),
                 );
               },
-              onRemoveLogo: () {
+              onRemove: () {
                 controller.patch((s) => s.copyWith(clearLogo: true));
               },
             ),
@@ -435,79 +436,6 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
               ),
             ),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-class _LogoPickerWidget extends StatelessWidget {
-  const _LogoPickerWidget({
-    required this.logoPath,
-    required this.onPickLogo,
-    required this.onRemoveLogo,
-  });
-
-  final String? logoPath;
-  final VoidCallback onPickLogo;
-  final VoidCallback onRemoveLogo;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasLogo = logoPath != null && logoPath!.isNotEmpty;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Center(
-      child: Column(
-        children: [
-          InkWell(
-            onTap: onPickLogo,
-            borderRadius: BorderRadius.circular(50),
-            child: Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: colorScheme.outlineVariant,
-                  width: 1.5,
-                ),
-              ),
-              child: hasLogo
-                  ? ClipOval(
-                      child: Center(
-                        child: Icon(Icons.business, size: 40, color: colorScheme.primary),
-                      ),
-                    )
-                  : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add_a_photo_outlined, size: 28, color: colorScheme.primary),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Logo',
-                          style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
-                        ),
-                      ],
-                    ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextButton(
-                onPressed: onPickLogo,
-                child: Text(hasLogo ? 'Change Logo' : 'Upload Store Logo'),
-              ),
-              if (hasLogo)
-                TextButton(
-                  onPressed: onRemoveLogo,
-                  child: const Text('Remove', style: TextStyle(color: Colors.red)),
-                ),
-            ],
-          ),
         ],
       ),
     );

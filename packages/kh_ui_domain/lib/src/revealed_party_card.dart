@@ -16,6 +16,7 @@ class RevealedPartyCard extends StatelessWidget {
     this.callLabel,
     this.talkLabel,
     this.copiedMessage,
+    this.photoUrl,
   });
 
   final RevealedParty party;
@@ -25,6 +26,11 @@ class RevealedPartyCard extends StatelessWidget {
   final String? callLabel;
   final String? talkLabel;
   final String? copiedMessage;
+
+  /// Absolute, already-resolved URL for [party]'s photo/logo (the caller
+  /// resolves `party.photoUrl`, a server-relative path, against the app's
+  /// API base URL — this package has no env config of its own).
+  final String? photoUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -51,18 +57,10 @@ class RevealedPartyCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: tokens.gold.withValues(alpha: 0.15),
-                  child: Text(
-                    party.displayName.isNotEmpty
-                        ? party.displayName.substring(0, 1).toUpperCase()
-                        : 'C',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: tokens.gold,
-                    ),
-                  ),
+                _PartyAvatar(
+                  displayName: party.displayName,
+                  photoUrl: photoUrl,
+                  goldColor: tokens.gold,
                 ),
                 SizedBox(width: tokens.space.sm),
                 Expanded(
@@ -155,6 +153,52 @@ class RevealedPartyCard extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _PartyAvatar extends StatelessWidget {
+  const _PartyAvatar({
+    required this.displayName,
+    required this.photoUrl,
+    required this.goldColor,
+  });
+
+  final String displayName;
+  final String? photoUrl;
+  final Color goldColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial =
+        displayName.isNotEmpty ? displayName.substring(0, 1).toUpperCase() : 'C';
+
+    if (photoUrl != null && photoUrl!.isNotEmpty) {
+      return ClipOval(
+        child: KhNetworkImage(
+          url: photoUrl!,
+          width: 36,
+          height: 36,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => CircleAvatar(
+            radius: 18,
+            backgroundColor: goldColor.withValues(alpha: 0.15),
+            child: Text(
+              initial,
+              style: TextStyle(fontWeight: FontWeight.bold, color: goldColor),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return CircleAvatar(
+      radius: 18,
+      backgroundColor: goldColor.withValues(alpha: 0.15),
+      child: Text(
+        initial,
+        style: TextStyle(fontWeight: FontWeight.bold, color: goldColor),
       ),
     );
   }

@@ -117,7 +117,7 @@ describe('MediaProcessingService (G2-P02)', () => {
     const thumbKey = thumbnailStorageKey('11111111-1111-1111-1111-111111111111');
     expect(storage.putObject).toHaveBeenCalledWith(
       'request-media',
-      thumbKey,
+      `${objectKey}.thumb`,
       expect.any(Buffer),
       'image/jpeg',
     );

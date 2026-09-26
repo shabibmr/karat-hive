@@ -171,4 +171,68 @@ void main() {
     expect(state, isA<OnboardingFailure>());
     expect((state as OnboardingFailure).failure, isA<NetworkFailure>());
   });
+
+  test('ACCOUNT_ROLE_MISMATCH surfaces as OnboardingFailure with ForbiddenFailure', () async {
+    when(() => repo.googleSession(any())).thenAnswer(
+      (_) async => const Err(ForbiddenFailure(
+        code: 'ACCOUNT_ROLE_MISMATCH',
+        message: 'Your account type does not match the requested role.',
+      )),
+    );
+    final c = container();
+    addTearDown(c.dispose);
+
+    await c
+        .read(customerOnboardingControllerProvider.notifier)
+        .signInWithGoogle();
+
+    final state = c.read(customerOnboardingControllerProvider);
+    expect(state, isA<OnboardingFailure>());
+    final failure = (state as OnboardingFailure).failure;
+    expect(failure, isA<ForbiddenFailure>());
+    expect(failure.code, 'ACCOUNT_ROLE_MISMATCH');
+    expect(failure.message, 'Your account type does not match the requested role.');
+  });
+
+  test('ACCOUNT_ROLE_CONFLICT surfaces as OnboardingFailure with ConflictFailure', () async {
+    when(() => repo.googleSession(any())).thenAnswer(
+      (_) async => const Err(ConflictFailure(
+        code: 'ACCOUNT_ROLE_CONFLICT',
+        message: 'An account already exists for this identity with a different role.',
+      )),
+    );
+    final c = container();
+    addTearDown(c.dispose);
+
+    await c
+        .read(customerOnboardingControllerProvider.notifier)
+        .signInWithGoogle();
+
+    final state = c.read(customerOnboardingControllerProvider);
+    expect(state, isA<OnboardingFailure>());
+    final failure = (state as OnboardingFailure).failure;
+    expect(failure, isA<ConflictFailure>());
+    expect(failure.code, 'ACCOUNT_ROLE_CONFLICT');
+  });
+
+  test('OAUTH_ALREADY_BOUND surfaces as OnboardingFailure with ConflictFailure', () async {
+    when(() => repo.googleSession(any())).thenAnswer(
+      (_) async => const Err(ConflictFailure(
+        code: 'OAUTH_ALREADY_BOUND',
+        message: 'This social account is already linked to another user.',
+      )),
+    );
+    final c = container();
+    addTearDown(c.dispose);
+
+    await c
+        .read(customerOnboardingControllerProvider.notifier)
+        .signInWithGoogle();
+
+    final state = c.read(customerOnboardingControllerProvider);
+    expect(state, isA<OnboardingFailure>());
+    final failure = (state as OnboardingFailure).failure;
+    expect(failure, isA<ConflictFailure>());
+    expect(failure.code, 'OAUTH_ALREADY_BOUND');
+  });
 }

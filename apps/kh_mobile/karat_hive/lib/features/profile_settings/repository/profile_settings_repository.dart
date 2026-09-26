@@ -1,7 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
+import 'package:kh_media/kh_media.dart';
 
 import '../../../app/di.dart';
 
@@ -22,13 +25,25 @@ class ProfileSettingsRepository {
     String? description,
     String? contactPersonName,
     String? businessEmail,
+    String? logoMediaKey,
   }) =>
       _api.patchVendorProfile(
         tradingName: tradingName,
         description: description,
         contactPersonName: contactPersonName,
         businessEmail: businessEmail,
+        logoMediaKey: logoMediaKey,
       );
+
+  /// Converts to AVIF and uploads a new store logo (CP6-B02.3). Returns the
+  /// media key to pass as `logoMediaKey` on the next [patchVendorProfile].
+  Future<Result<String>> uploadLogo(Uint8List bytes) {
+    final media = MediaPickController(
+      uploader: MediaUploader(_api),
+      purpose: MediaUploadPurpose.vendorLogo,
+    );
+    return media.convertBytesAndUpload(bytes, correlationId: 'vendor-logo');
+  }
 
   Future<Result<UserSettings>> settings() => _api.settings();
 

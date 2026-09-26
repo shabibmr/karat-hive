@@ -213,4 +213,158 @@ describe('OAuthAccountService', () => {
     });
     expect(prisma.user.findUnique).not.toHaveBeenCalled();
   });
+
+  it('throws 403 ACCOUNT_ROLE_MISMATCH when user role does not match expectedRole', async () => {
+    const firebaseTokens = {
+      verify: vi.fn().mockResolvedValue({
+        uid: 'google-uid-1',
+        email: 'test@example.com',
+        emailVerified: true,
+      }),
+    } as unknown as FirebaseTokenService;
+
+    const sessionService = { issueFor: vi.fn() } as unknown as SessionService;
+
+    const prisma = {
+      oauthBinding: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'ob-1',
+          userId: 'user-existing-1',
+          user: mockUser, // CUSTOMER
+        }),
+      },
+    } as unknown as PrismaService;
+
+    const audit = { append: vi.fn() } as unknown as AuditWriter;
+
+    const service = new OAuthAccountService(
+      prisma,
+      firebaseTokens,
+      sessionService,
+      mockClock,
+      audit,
+    );
+
+    await expect(
+      service.createSessionFromFirebase('valid-token', {}, 'VENDOR'),
+    ).rejects.toMatchObject({
+      status: HttpStatus.FORBIDDEN,
+      errorCode: ErrorCode.ACCOUNT_ROLE_MISMATCH,
+    });
+  });
+
+  it('succeeds when expectedRole matches userType', async () => {
+    const firebaseTokens = {
+      verify: vi.fn().mockResolvedValue({
+        uid: 'google-uid-1',
+        email: 'test@example.com',
+        emailVerified: true,
+      }),
+    } as unknown as FirebaseTokenService;
+
+    const sessionService = {
+      issueFor: vi.fn().mockResolvedValue(mockSessionBundle),
+    } as unknown as SessionService;
+
+    const prisma = {
+      oauthBinding: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'ob-1',
+          userId: 'user-existing-1',
+          user: mockUser, // CUSTOMER
+        }),
+      },
+    } as unknown as PrismaService;
+
+    const audit = { append: vi.fn() } as unknown as AuditWriter;
+
+    const service = new OAuthAccountService(
+      prisma,
+      firebaseTokens,
+      sessionService,
+      mockClock,
+      audit,
+    );
+
+    const res = await service.createSessionFromFirebase('valid-token', {}, 'CUSTOMER');
+    expect(res).toEqual(mockSessionBundle);
+  });
+
+  it('throws 403 ACCOUNT_SUSPENDED when accountState is SUSPENDED', async () => {
+    const firebaseTokens = {
+      verify: vi.fn().mockResolvedValue({
+        uid: 'google-uid-1',
+        email: 'test@example.com',
+        emailVerified: true,
+      }),
+    } as unknown as FirebaseTokenService;
+
+    const sessionService = { issueFor: vi.fn() } as unknown as SessionService;
+
+    const prisma = {
+      oauthBinding: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'ob-1',
+          userId: 'user-existing-1',
+          user: { ...mockUser, accountState: 'SUSPENDED' },
+        }),
+      },
+    } as unknown as PrismaService;
+
+    const audit = { append: vi.fn() } as unknown as AuditWriter;
+
+    const service = new OAuthAccountService(
+      prisma,
+      firebaseTokens,
+      sessionService,
+      mockClock,
+      audit,
+    );
+
+    await expect(
+      service.createSessionFromFirebase('valid-token', {}),
+    ).rejects.toMatchObject({
+      status: HttpStatus.FORBIDDEN,
+      errorCode: ErrorCode.ACCOUNT_SUSPENDED,
+    });
+  });
+
+  it('throws 403 ACCOUNT_DEACTIVATED when accountState is DEACTIVATED', async () => {
+    const firebaseTokens = {
+      verify: vi.fn().mockResolvedValue({
+        uid: 'google-uid-1',
+        email: 'test@example.com',
+        emailVerified: true,
+      }),
+    } as unknown as FirebaseTokenService;
+
+    const sessionService = { issueFor: vi.fn() } as unknown as SessionService;
+
+    const prisma = {
+      oauthBinding: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'ob-1',
+          userId: 'user-existing-1',
+          user: { ...mockUser, accountState: 'DEACTIVATED' },
+        }),
+      },
+    } as unknown as PrismaService;
+
+    const audit = { append: vi.fn() } as unknown as AuditWriter;
+
+    const service = new OAuthAccountService(
+      prisma,
+      firebaseTokens,
+      sessionService,
+      mockClock,
+      audit,
+    );
+
+    await expect(
+      service.createSessionFromFirebase('valid-token', {}),
+    ).rejects.toMatchObject({
+      status: HttpStatus.FORBIDDEN,
+      errorCode: ErrorCode.ACCOUNT_DEACTIVATED,
+    });
+  });
 });

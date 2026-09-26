@@ -104,18 +104,35 @@ export class RegistrationService {
       mobileVerifiedAt = null;
     }
 
+    if (firebaseUid) {
+      const existingBinding = await this.users.findBindingBySubjectHash(hashToken(firebaseUid));
+      if (existingBinding) {
+        throw new ApiException(HttpStatus.CONFLICT, ErrorCode.OAUTH_ALREADY_BOUND);
+      }
+    }
+
     if (!mobileNumber) {
       throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.VALIDATION_FAILED, [
         { path: 'mobileNumber', code: 'REQUIRED', message: 'Verified mobile number is required.' },
       ]);
     }
 
-    if (await this.users.findByMobile(mobileNumber)) {
+    const existingMobileUser = await this.users.findByMobile(mobileNumber);
+    if (existingMobileUser) {
+      if (existingMobileUser.userType !== 'VENDOR') {
+        throw new ApiException(HttpStatus.CONFLICT, ErrorCode.ACCOUNT_ROLE_CONFLICT);
+      }
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.MOBILE_ALREADY_REGISTERED);
     }
-    if (await this.users.findByEmail(input.businessEmail)) {
+
+    const existingEmailUser = await this.users.findByEmail(input.businessEmail);
+    if (existingEmailUser) {
+      if (existingEmailUser.userType !== 'VENDOR') {
+        throw new ApiException(HttpStatus.CONFLICT, ErrorCode.ACCOUNT_ROLE_CONFLICT);
+      }
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.EMAIL_ALREADY_REGISTERED);
     }
+
     if (await this.vendors.licenceExists(input.tradeLicenceNumber)) {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.LICENCE_ALREADY_REGISTERED);
     }
@@ -215,17 +232,35 @@ export class RegistrationService {
       mobileVerifiedAt = null;
     }
 
+    if (firebaseUid) {
+      const existingBinding = await this.users.findBindingBySubjectHash(hashToken(firebaseUid));
+      if (existingBinding) {
+        throw new ApiException(HttpStatus.CONFLICT, ErrorCode.OAUTH_ALREADY_BOUND);
+      }
+    }
+
     if (!mobileNumber) {
       throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.VALIDATION_FAILED, [
         { path: 'mobileNumber', code: 'REQUIRED', message: 'Verified mobile number is required.' },
       ]);
     }
 
-    if (await this.users.findByMobile(mobileNumber)) {
+    const existingMobileUser = await this.users.findByMobile(mobileNumber);
+    if (existingMobileUser) {
+      if (existingMobileUser.userType !== 'CUSTOMER') {
+        throw new ApiException(HttpStatus.CONFLICT, ErrorCode.ACCOUNT_ROLE_CONFLICT);
+      }
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.MOBILE_ALREADY_REGISTERED);
     }
-    if (email && (await this.users.findByEmail(email))) {
-      throw new ApiException(HttpStatus.CONFLICT, ErrorCode.EMAIL_ALREADY_REGISTERED);
+
+    if (email) {
+      const existingEmailUser = await this.users.findByEmail(email);
+      if (existingEmailUser) {
+        if (existingEmailUser.userType !== 'CUSTOMER') {
+          throw new ApiException(HttpStatus.CONFLICT, ErrorCode.ACCOUNT_ROLE_CONFLICT);
+        }
+        throw new ApiException(HttpStatus.CONFLICT, ErrorCode.EMAIL_ALREADY_REGISTERED);
+      }
     }
 
     if (input.defaultRegionId) {

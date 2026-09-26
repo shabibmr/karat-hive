@@ -87,6 +87,18 @@ const MESSAGES: Record<ErrorCode, Record<UiLanguage, string>> = {
     en: 'Choose a stronger password: at least 12 characters with mixed character classes.',
     ar: 'اختر كلمة مرور أقوى: 12 حرفًا على الأقل مع أنواع أحرف متعددة.',
   },
+  ACCOUNT_ROLE_MISMATCH: {
+    en: 'Your account type does not match the requested role.',
+    ar: 'نوع حسابك لا يتطابق مع الدور المطلوب.',
+  },
+  ACCOUNT_ROLE_CONFLICT: {
+    en: 'An account already exists for this identity with a different role.',
+    ar: 'يوجد حساب بالفعل لهذه الهوية بدور مختلف.',
+  },
+  OAUTH_ALREADY_BOUND: {
+    en: 'This social account is already linked to another user.',
+    ar: 'هذا الحساب مرتبط بالفعل بمستخدم آخر.',
+  },
   VENDOR_NOT_ACTIVE: {
     en: 'Your account is not yet active. Complete verification to continue.',
     ar: 'حسابك ليس نشطًا بعد. أكمل التحقق للمتابعة.',

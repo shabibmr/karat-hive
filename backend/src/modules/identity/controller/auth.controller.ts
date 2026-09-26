@@ -96,6 +96,7 @@ const firebaseSessionSchema = z
     idToken: z.string().min(1).optional(),
     token: z.string().min(1).optional(),
     firebaseToken: z.string().min(1).optional(),
+    expectedRole: z.enum(['CUSTOMER', 'VENDOR', 'ADMIN']).optional(),
   })
   .refine((v) => Boolean(v.idToken || v.token || v.firebaseToken), {
     message: 'idToken, token, or firebaseToken is required.',
@@ -120,7 +121,7 @@ export class AuthController {
     @Body(zodBody(firebaseSessionSchema)) body: z.infer<typeof firebaseSessionSchema>,
   ): Promise<SessionBundle> {
     const token = (body.idToken || body.token || body.firebaseToken)!;
-    return this.oauthAccount.createSessionFromFirebase(token, clientInfoOf(request));
+    return this.oauthAccount.createSessionFromFirebase(token, clientInfoOf(request), body.expectedRole);
   }
 
   @Public()
@@ -132,7 +133,7 @@ export class AuthController {
     @Body(zodBody(firebaseSessionSchema)) body: z.infer<typeof firebaseSessionSchema>,
   ): Promise<SessionBundle> {
     const token = (body.idToken || body.token || body.firebaseToken)!;
-    return this.oauthAccount.createSessionFromFirebase(token, clientInfoOf(request));
+    return this.oauthAccount.createSessionFromFirebase(token, clientInfoOf(request), body.expectedRole);
   }
 
   @Public()

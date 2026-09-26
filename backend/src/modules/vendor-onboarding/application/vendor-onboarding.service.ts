@@ -119,7 +119,9 @@ export class VendorOnboardingService {
   }
 
   async getVendorMe(viewer: ViewerContext): Promise<VendorMe> {
-    const profile = await this.requireProfile(viewer);
+    const id = viewer.vendorProfileId;
+    const profile = id ? await this.repo.findByIdWithLogo(id) : null;
+    if (!profile) throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN);
     const { input, categoryCount, regionCount } = await buildLifecycleInput(
       this.repo,
       profile,
@@ -451,7 +453,7 @@ export class VendorOnboardingService {
     userId: string,
     accountState: ViewerContext['accountState'],
   ): Promise<VendorMe | null> {
-    const profile = await this.repo.findByUserId(userId);
+    const profile = await this.repo.findByUserIdWithLogo(userId);
     if (!profile) return null;
     const { input, categoryCount, regionCount } = await buildLifecycleInput(
       this.repo,
