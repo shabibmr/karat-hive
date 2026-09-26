@@ -33,6 +33,10 @@ GoRouter _testRouter() => GoRouter(
           builder: (_, __) => const SizedBox(),
         ),
         GoRoute(
+          path: '/customer/alerts',
+          builder: (_, __) => const SizedBox(key: Key('alerts-route')),
+        ),
+        GoRoute(
           path: '/customer/requests/create/ornament',
           builder: (_, __) => const SizedBox(),
         ),
@@ -55,10 +59,16 @@ GoRouter _testRouter() => GoRouter(
       ],
     );
 
-Widget _host(List<Override> overrides, {GoRouter? router}) => ProviderScope(
+Widget _host(
+  List<Override> overrides, {
+  GoRouter? router,
+  Locale locale = const Locale('en'),
+}) =>
+    ProviderScope(
       overrides: overrides,
       child: MaterialApp.router(
-        theme: khTheme(),
+        theme: KhTheme.light(locale: locale),
+        locale: locale,
         routerConfig: router ?? _testRouter(),
         localizationsDelegates: const [
           ...KhStrings.delegates,
@@ -128,8 +138,106 @@ void main() {
     expect(find.byKey(const Key('summary-open')), findsOneWidget);
     expect(find.byKey(const Key('summary-offers')), findsOneWidget);
     expect(find.byKey(const Key('summary-connections')), findsOneWidget);
+    expect(find.byKey(const Key('customer-home-how')), findsOneWidget);
+    expect(find.text('Find an Ornament'), findsOneWidget);
+    expect(find.text('What would you like to do?'), findsOneWidget);
     expect(find.byKey(const Key('open-history')), findsNothing);
     expect(find.byKey(const Key('quick-create')), findsNothing);
+  });
+
+  testWidgets('Summary strip shows the session and offer counts',
+      (tester) async {
+    // Tall enough that the strip is inside the ListView's built range.
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(_host([
+      requestManageRepositoryProvider.overrideWithValue(repo),
+      sessionProvider.overrideWith(
+        () => FakeSessionController(_signedInCustomer()),
+      ),
+    ]));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('summary-open')),
+        matching: find.text('2'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('summary-connections')),
+        matching: find.text('3'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Bell opens Alerts', (tester) async {
+    await tester.pumpWidget(_host([
+      requestManageRepositoryProvider.overrideWithValue(repo),
+      sessionProvider.overrideWith(
+        () => FakeSessionController(_signedInCustomer()),
+      ),
+    ]));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('customer-home-alerts')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('alerts-route')), findsOneWidget);
+  });
+
+  testWidgets('Hero autoplays, and a dot tap jumps to that slide',
+      (tester) async {
+    await tester.pumpWidget(_host([
+      requestManageRepositoryProvider.overrideWithValue(repo),
+      sessionProvider.overrideWith(
+        () => FakeSessionController(_signedInCustomer()),
+      ),
+    ]));
+    await tester.pumpAndSettle();
+
+    PageController controller() => tester
+        .widget<PageView>(
+          find.descendant(
+            of: find.byKey(const Key('customer-home-hero')),
+            matching: find.byType(PageView),
+          ),
+        )
+        .controller!;
+
+    expect(controller().page, 0);
+    await tester.pump(KhMotion.carouselInterval);
+    await tester.pumpAndSettle();
+    expect(controller().page, 1);
+
+    await tester.tap(find.bySemanticsLabel('Slide 4 of 4'));
+    await tester.pumpAndSettle();
+    expect(controller().page, 3);
+  });
+
+  testWidgets('Hero does not autoplay under reduced motion', (tester) async {
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(disableAnimations: true),
+        child: _host([
+          requestManageRepositoryProvider.overrideWithValue(repo),
+          sessionProvider.overrideWith(
+            () => FakeSessionController(_signedInCustomer()),
+          ),
+        ]),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.pump(KhMotion.carouselInterval * 2);
+    await tester.pumpAndSettle();
+    final pageView = tester.widget<PageView>(find.byType(PageView));
+    expect(pageView.controller!.page, 0);
   });
 
   testWidgets('Tapping a request type updates requestCreateController',
@@ -203,4 +311,42 @@ void main() {
     expect(find.text('Your request could not be published yet.'), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
   });
+
+  for (final width in [320.0, 390.0, 1024.0]) {
+    for (final locale in const [Locale('en'), Locale('ar')]) {
+      testWidgets(
+        'lays out without overflow at ${width.toInt()} px (${locale.languageCode})',
+        (tester) async {
+          tester.view.physicalSize = Size(width, 844);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+
+          await tester.pumpWidget(
+            _host(
+              [
+                requestManageRepositoryProvider.overrideWithValue(repo),
+                sessionProvider.overrideWith(
+                  () => FakeSessionController(_signedInCustomer()),
+                ),
+              ],
+              locale: locale,
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          expect(find.byType(KhServiceCard), findsNWidgets(4));
+
+          // Every section below the grid must lay out too.
+          await tester.scrollUntilVisible(
+            find.byKey(const Key('customer-home-how')),
+            200,
+            scrollable: find.byType(Scrollable).first,
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
 }

@@ -126,10 +126,11 @@ void main() {
     expect(find.byKey(const Key('how-this-works')), findsOneWidget);
 
     expect(find.byType(FilledButton), findsNothing);
-    expect(find.text('Find jewellery'), findsOneWidget);
-    expect(find.text('Sell my gold'), findsOneWidget);
-    expect(find.text('Coins'), findsOneWidget);
-    expect(find.text('Bullion'), findsOneWidget);
+    expect(find.text('Find an Ornament'), findsOneWidget);
+    expect(find.text('Sell Old Gold'), findsOneWidget);
+    expect(find.text('Buy / Sell Gold Coin'), findsOneWidget);
+    expect(find.text('Buy / Sell Gold Bullion'), findsOneWidget);
+    expect(find.text('Request gold your way'), findsOneWidget);
     expect(find.text('Are you a jeweller? Register here.'), findsOneWidget);
   });
 
@@ -281,7 +282,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byKey(const Key('guest-type-ornament')),
-        matching: find.text('Find jewellery'),
+        matching: find.text('Find an Ornament'),
       ),
     );
     await tester.pumpAndSettle();
@@ -293,4 +294,44 @@ void main() {
     expect(find.text('ornament-compose'), findsOneWidget);
     expect(router.state.uri.path, RequestCreatePaths.ornament);
   });
+
+  // Narrow and wide viewports, LTR and RTL: no overflow (§10).
+  for (final width in [320.0, 390.0, 1024.0]) {
+    for (final locale in const [Locale('en'), Locale('ar')]) {
+      testWidgets(
+        'lays out without overflow at ${width.toInt()} px (${locale.languageCode})',
+        (tester) async {
+          tester.view.physicalSize = Size(width, 844);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                sessionProvider.overrideWith(
+                  () => FakeSessionController(const SignedOut()),
+                ),
+              ],
+              child: MaterialApp.router(
+                theme: KhTheme.light(locale: locale),
+                locale: locale,
+                localizationsDelegates: KhStrings.delegates,
+                supportedLocales: KhStrings.supportedLocales,
+                routerConfig: _landingRouter(),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(tester.takeException(), isNull);
+          expect(find.byType(KhServiceCard), findsNWidgets(4));
+
+          await tester.tap(find.byKey(const Key('how-this-works')).first);
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
 }

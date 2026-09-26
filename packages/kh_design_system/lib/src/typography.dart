@@ -69,6 +69,7 @@ class KhTypography extends ThemeExtension<KhTypography> {
     required this.displayGuest,
     required this.statNumber,
     required this.heroLead,
+    required this.blockTitle,
     required this.heroBody,
     required this.accordionTitle,
     required this.purityChip,
@@ -93,6 +94,7 @@ class KhTypography extends ThemeExtension<KhTypography> {
         displayGuest: f.serifStyle(30, FontWeight.w600, height: 1.10).copyWith(color: t.ink),
         statNumber: f.serifStyle(28, FontWeight.w700, height: 1.0).copyWith(color: t.ink),
         heroLead: f.serifStyle(23, FontWeight.w600, height: 1.15).copyWith(color: t.gold),
+        blockTitle: f.serifStyle(22, FontWeight.w600).copyWith(color: t.ink),
         heroBody: f.serifStyle(20, FontWeight.w500, height: 1.20).copyWith(color: t.surface),
         accordionTitle: f.serifStyle(19, FontWeight.w600).copyWith(color: t.ink),
         purityChip: f.serifStyle(16, FontWeight.w600).copyWith(color: t.ink),
@@ -122,6 +124,9 @@ class KhTypography extends ThemeExtension<KhTypography> {
   final TextStyle displayGuest;
   final TextStyle statNumber;
   final TextStyle heroLead;
+
+  /// "My activity" row header, serif 22/600 (§3.2).
+  final TextStyle blockTitle;
   final TextStyle heroBody;
   final TextStyle accordionTitle;
   final TextStyle purityChip;

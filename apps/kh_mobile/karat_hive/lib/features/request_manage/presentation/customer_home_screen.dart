@@ -11,293 +11,293 @@ import '../../request_create/pending_publish_intent.dart';
 import '../../request_create/routes.dart';
 import '../controller/customer_home_controller.dart';
 
-/// CUS-S02 — Customer Home / Dashboard (hero + services + activity summary).
+/// CUS-S02 Customer Home / Dashboard, Direction 1a
+/// (`docs/UI-Design-Context.md` §7.1).
+///
+/// Header (logo · bell) → hero carousel → service grid → My activity stats →
+/// "How this works" panel. The open-request list is not here; it lives under
+/// the My Requests tab.
 class CustomerHomeScreen extends ConsumerWidget {
   const CustomerHomeScreen({super.key});
+
+  /// Content column cap on tablet / landscape / web (§10).
+  static const _maxContentWidth = 560.0;
+
+  void _openService(BuildContext context, WidgetRef ref, RequestType type) {
+    ref.read(requestCreateControllerProvider.notifier).selectType(type);
+    context.push(RequestCreatePaths.composeFor(type));
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
+    final typography = context.typography;
+    final textTheme = Theme.of(context).textTheme;
     final s = KhStrings.of(context);
-    final theme = Theme.of(context);
     final summary = ref.watch(customerHomeControllerProvider);
 
-    final requestTypes = [
-      _RequestTypeTileData(
+    final slides = [
+      for (var i = 1; i <= 4; i++)
+        KhHeroSlide(
+          lead: s.s('cus.home.hero.$i.a'),
+          line2: s.s('cus.home.hero.$i.b'),
+          line3: s.s('cus.home.hero.$i.c'),
+        ),
+    ];
+
+    final services = [
+      (
         type: RequestType.findOrnament,
-        title: s.s('guest.service.ornament'),
-        subtitle: 'Bespoke & catalog',
-        icon: Icons.diamond_outlined,
         key: const Key('customer-type-ornament'),
+        title: s.s('service.card.ornament'),
+        icon: Icons.diamond_outlined,
       ),
-      _RequestTypeTileData(
+      (
         type: RequestType.sellOldGold,
-        title: s.s('guest.service.sellGold'),
-        subtitle: 'Instant jeweller bids',
-        icon: Icons.balance_rounded,
         key: const Key('customer-type-sell-gold'),
+        title: s.s('service.card.sellGold'),
+        icon: Icons.balance,
       ),
-      _RequestTypeTileData(
+      (
         type: RequestType.goldCoin,
-        title: s.s('guest.service.coins'),
-        subtitle: 'Standard weights',
-        icon: Icons.monetization_on_outlined,
         key: const Key('customer-type-coins'),
+        title: s.s('service.card.coins'),
+        icon: Icons.monetization_on_outlined,
       ),
-      _RequestTypeTileData(
+      (
         type: RequestType.goldBullion,
-        title: s.s('guest.service.bullion'),
-        subtitle: '24K investment bars',
-        icon: Icons.crop_landscape_rounded,
         key: const Key('customer-type-bullion'),
+        title: s.s('service.card.bullion'),
+        icon: Icons.crop_landscape_outlined,
       ),
     ];
 
+    // Counts show as "–" while loading so the strip doesn't jump in.
+    final data = summary.valueOrNull;
+    String count(int Function(CustomerHomeSummary d) pick) =>
+        data == null ? '–' : '${pick(data)}';
+
     return Scaffold(
       key: const Key('customer-home-screen'),
-      appBar: AppBar(
-        title: Text(s.s('shell.nav.home')),
-      ),
-      body: KhPullToRefresh(
-        onRefresh: () async {
-          await ref.read(customerHomeControllerProvider.notifier).refresh();
-        },
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(
-            tokens.space.md,
-            tokens.space.md,
-            tokens.space.md,
-            tokens.space.xl * 3,
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _HomeHeader(
+                  logoLabel: s.s('guest.title'),
+                  // No unread-count source on the client yet
+                  // (`GET /v1/notifications/unread-count` is [PROPOSED]), so
+                  // the badge stays hidden until one exists.
+                  alertsLabel: s.s('shell.nav.alerts'),
+                  onAlerts: () => context.go(AppGuards.customerAlerts),
+                ),
+                Expanded(
+                  child: KhPullToRefresh(
+                    onRefresh: () => ref
+                        .read(customerHomeControllerProvider.notifier)
+                        .refresh(),
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsetsDirectional.fromSTEB(
+                        tokens.space.md,
+                        tokens.space.xs,
+                        tokens.space.md,
+                        tokens.space.lg,
+                      ),
+                      children: [
+                        if (ref.watch(pendingPublishIntentProvider)) ...[
+                          _RetryPublicationBanner(
+                            key: const Key('retry-publication-banner'),
+                            onRetry: () => ref
+                                .read(requestCreateControllerProvider.notifier)
+                                .reconcilePendingPublish(),
+                          ),
+                          SizedBox(height: tokens.space.md),
+                        ],
+                        KhHeroCarousel(
+                          key: const Key('customer-home-hero'),
+                          slides: slides,
+                          dotLabel: (i, n) => s
+                              .s('cus.home.heroDot')
+                              .replaceAll('{n}', '${i + 1}')
+                              .replaceAll('{count}', '$n'),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top: tokens.space.lg,
+                            bottom: tokens.space.s12,
+                          ),
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              s.s('cus.home.whatTitle'),
+                              style: textTheme.headlineMedium,
+                            ),
+                          ),
+                        ),
+                        KhServiceGrid(
+                          children: [
+                            for (final service in services)
+                              KhServiceCard(
+                                key: service.key,
+                                expand: true,
+                                title: service.title,
+                                icon: service.icon,
+                                onTap: () =>
+                                    _openService(context, ref, service.type),
+                              ),
+                          ],
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top: tokens.space.s22,
+                            bottom: tokens.space.xs,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Semantics(
+                                  header: true,
+                                  child: Text(
+                                    s.s('cus.home.activity'),
+                                    style: typography.blockTitle,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                key: const Key('customer-home-view-all'),
+                                onPressed: () =>
+                                    context.go(AppGuards.customerRequests),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      s.s('cus.home.viewAll'),
+                                      style: typography.linkSmall,
+                                    ),
+                                    SizedBox(width: tokens.space.xxs),
+                                    // chevron_right mirrors in RTL.
+                                    const Icon(Icons.chevron_right, size: 18),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (summary.hasError && data == null)
+                          KhErrorView(
+                            message: s.s('cus.home.error'),
+                            onRetry: () => ref
+                                .read(customerHomeControllerProvider.notifier)
+                                .refresh(),
+                            retryLabel: s.s('common.retry'),
+                          )
+                        else
+                          KhStatStrip(
+                            items: [
+                              KhStatItem(
+                                key: const Key('summary-open'),
+                                icon: Icons.description_outlined,
+                                value: count((d) => d.openRequests),
+                                label: s.s('cus.home.summaryOpen'),
+                                onTap: () =>
+                                    context.go(AppGuards.customerRequests),
+                              ),
+                              KhStatItem(
+                                key: const Key('summary-offers'),
+                                icon: Icons.local_offer_outlined,
+                                value: count((d) => d.offersWaiting),
+                                label: s.s('cus.home.summaryOffers'),
+                                onTap: () =>
+                                    context.go(AppGuards.customerRequests),
+                              ),
+                              KhStatItem(
+                                key: const Key('summary-connections'),
+                                icon: Icons.handshake_outlined,
+                                value: count((d) => d.connections),
+                                label: s.s('cus.home.summaryConnections'),
+                                onTap: () =>
+                                    context.go(AppGuards.customerConnections),
+                              ),
+                            ],
+                          ),
+                        SizedBox(height: tokens.space.s22),
+                        KhHowItWorksPanel(
+                          key: const Key('customer-home-how'),
+                          title: s.s('cus.home.howTitle'),
+                          steps: [
+                            KhHowStep(
+                              icon: Icons.post_add,
+                              label: s.s('cus.home.step.post'),
+                            ),
+                            KhHowStep(
+                              icon: Icons.groups_outlined,
+                              label: s.s('cus.home.step.offers'),
+                            ),
+                            KhHowStep(
+                              icon: Icons.balance,
+                              label: s.s('cus.home.step.accept'),
+                            ),
+                            KhHowStep(
+                              icon: Icons.handshake_outlined,
+                              label: s.s('cus.home.step.whatsApp'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          children: [
-            if (ref.watch(pendingPublishIntentProvider)) ...[
-              _RetryPublicationBanner(
-                key: const Key('retry-publication-banner'),
-                onRetry: () => ref
-                    .read(requestCreateControllerProvider.notifier)
-                    .reconcilePendingPublish(),
-              ),
-              SizedBox(height: tokens.space.lg),
-            ],
-            _HeroBanner(
-              title: s.s('cus.home.heroTitle'),
-              subtitle: s.s('cus.home.heroSub'),
-              ctaLabel: s.s('cus.home.create'),
-              onCreate: () => context.push(RequestCreatePaths.type),
-            ),
-            SizedBox(height: tokens.space.lg),
-            _RequestTypesSection(
-              title: s.s('guest.headline'),
-              types: requestTypes,
-              onSelect: (type) {
-                ref
-                    .read(requestCreateControllerProvider.notifier)
-                    .selectType(type);
-                context.push(RequestCreatePaths.composeFor(type));
-              },
-            ),
-            SizedBox(height: tokens.space.lg),
-            KhSectionHeader(title: s.s('cus.home.activity')),
-            SizedBox(height: tokens.space.sm),
-            summary.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (_, __) => KhErrorView(
-                message: s.s('cus.home.error'),
-                onRetry: () =>
-                    ref.read(customerHomeControllerProvider.notifier).refresh(),
-                retryLabel: s.s('common.retry'),
-              ),
-              data: (data) => _ActivitySummaryRow(
-                openLabel: s.s('cus.home.summaryOpen'),
-                offersLabel: s.s('cus.home.summaryOffers'),
-                connectionsLabel: s.s('cus.home.summaryConnections'),
-                openCount: data.openRequests,
-                offersCount: data.offersWaiting,
-                connectionsCount: data.connections,
-                onOpenTap: () => context.go(AppGuards.customerRequests),
-                onOffersTap: () => context.go(AppGuards.customerRequests),
-                onConnectionsTap: () =>
-                    context.go(AppGuards.customerConnections),
-              ),
-            ),
-            SizedBox(height: tokens.space.md),
-            Text(
-              s.s('cus.home.dashboardHint'),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: tokens.ink.withValues(alpha: 0.55),
-              ),
-            ),
-          ],
         ),
       ),
     );
   }
 }
 
-class _HeroBanner extends StatelessWidget {
-  const _HeroBanner({
-    required this.title,
-    required this.subtitle,
-    required this.ctaLabel,
-    required this.onCreate,
+/// 60 px header: logo at the start, alerts bell at the end (§6.14).
+class _HomeHeader extends StatelessWidget {
+  const _HomeHeader({
+    required this.logoLabel,
+    required this.alertsLabel,
+    required this.onAlerts,
   });
 
-  final String title;
-  final String subtitle;
-  final String ctaLabel;
-  final VoidCallback onCreate;
+  final String logoLabel;
+  final String alertsLabel;
+  final VoidCallback onAlerts;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final theme = Theme.of(context);
-
-    return Material(
-      key: const Key('customer-home-hero'),
-      color: tokens.gold.withValues(alpha: 0.12),
-      borderRadius: BorderRadius.circular(tokens.radius.md),
+    return SizedBox(
+      height: 60,
       child: Padding(
-        padding: EdgeInsets.all(tokens.space.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: EdgeInsets.symmetric(horizontal: tokens.space.md),
+        child: Row(
           children: [
-            Text(
-              title,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
+            Image.asset(
+              'assets/karat-hive-logo.png',
+              height: 44,
+              semanticLabel: logoLabel,
+              errorBuilder: (_, __, ___) => Text(
+                logoLabel,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
-            SizedBox(height: tokens.space.xs),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: tokens.ink.withValues(alpha: 0.7),
-              ),
-            ),
-            SizedBox(height: tokens.space.md),
-            KhButton(
-              key: const Key('customer-home-hero-cta'),
-              label: ctaLabel,
-              width: null,
-              onPressed: onCreate,
+            const Spacer(),
+            KhBellButton(
+              key: const Key('customer-home-alerts'),
+              semanticLabel: alertsLabel,
+              onPressed: onAlerts,
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ActivitySummaryRow extends StatelessWidget {
-  const _ActivitySummaryRow({
-    required this.openLabel,
-    required this.offersLabel,
-    required this.connectionsLabel,
-    required this.openCount,
-    required this.offersCount,
-    required this.connectionsCount,
-    required this.onOpenTap,
-    required this.onOffersTap,
-    required this.onConnectionsTap,
-  });
-
-  final String openLabel;
-  final String offersLabel;
-  final String connectionsLabel;
-  final int openCount;
-  final int offersCount;
-  final int connectionsCount;
-  final VoidCallback onOpenTap;
-  final VoidCallback onOffersTap;
-  final VoidCallback onConnectionsTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _SummaryCard(
-            key: const Key('summary-open'),
-            label: openLabel,
-            value: '$openCount',
-            onTap: onOpenTap,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _SummaryCard(
-            key: const Key('summary-offers'),
-            label: offersLabel,
-            value: '$offersCount',
-            onTap: onOffersTap,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _SummaryCard(
-            key: const Key('summary-connections'),
-            label: connectionsLabel,
-            value: '$connectionsCount',
-            onTap: onConnectionsTap,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    super.key,
-    required this.label,
-    required this.value,
-    required this.onTap,
-  });
-
-  final String label;
-  final String value;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    final theme = Theme.of(context);
-
-    return Material(
-      color: tokens.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        side: BorderSide(color: tokens.ink.withValues(alpha: 0.12)),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.sm),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: tokens.ink.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
@@ -334,133 +334,6 @@ class _RetryPublicationBanner extends StatelessWidget {
               onPressed: onRetry,
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RequestTypeTileData {
-  const _RequestTypeTileData({
-    required this.type,
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.key,
-  });
-
-  final RequestType type;
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Key key;
-}
-
-class _RequestTypesSection extends StatelessWidget {
-  const _RequestTypesSection({
-    required this.title,
-    required this.types,
-    required this.onSelect,
-  });
-
-  final String title;
-  final List<_RequestTypeTileData> types;
-  final ValueChanged<RequestType> onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        KhSectionHeader(title: title),
-        SizedBox(height: tokens.space.sm),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: tokens.space.sm,
-          mainAxisSpacing: tokens.space.sm,
-          childAspectRatio: 1.45,
-          children: [
-            for (final item in types)
-              _RequestTypeTile(
-                data: item,
-                onTap: () => onSelect(item.type),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _RequestTypeTile extends StatelessWidget {
-  const _RequestTypeTile({
-    required this.data,
-    required this.onTap,
-  });
-
-  final _RequestTypeTileData data;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    final theme = Theme.of(context);
-
-    return Material(
-      key: data.key,
-      color: tokens.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        side: BorderSide(
-          color: tokens.ink.withValues(alpha: 0.12),
-        ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.sm),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: tokens.gold.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(tokens.radius.sm),
-                ),
-                child: Icon(data.icon, color: tokens.gold, size: 20),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    data.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    data.subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: tokens.ink.withValues(alpha: 0.55),
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ),
       ),
     );

@@ -628,9 +628,9 @@ The handoff copy was written before the `CONTEXT.md` vocabulary review. When mov
 | 3 | Bundle the 4 font families; declare them in `pubspec.yaml` | `fonts/`, `pubspec.yaml` | ✅ Done — static TTFs + OFL licences in `fonts/` |
 | 4 | `KhTheme.light(locale:)` — ColorScheme overrides (§2.4), TextTheme (§3.3), `KhTypography` extension, Input/Filled/Outlined/Text button, Switch, Checkbox, NavigationBar, Divider themes | `lib/src/theme.dart` | ✅ Done — `KhTheme.light(locale:)` in `theme.dart`, `KhTypography`/`KhFonts` in `typography.dart`, `KhMotion` constants; used by `apps/kh_mobile/karat_hive/lib/app/app.dart`. `khTheme()` remains as an alias for tests |
 | 5 | Restyle existing: `KhButton`, `KhTextField`, `KhNumericField`, `KhSelectField`, `KhToggle`, `KhBottomNav` | `lib/src/widgets/` | Open |
-| 6 | New: `KhChoiceChip`, `KhSegmentedControl<T>`, `KhCheckRow`, `KhStepper`, `KhReadoutTile`, `KhActionBar`, `KhCircleIconButton`, `KhDashedTile`, `KhServiceCard`, `KhHeroCarousel`, `KhStatStrip`, `KhHowItWorks` (panel + accordion) | `lib/src/widgets/` | Open |
+| 6 | New: `KhChoiceChip`, `KhSegmentedControl<T>`, `KhCheckRow`, `KhStepper`, `KhReadoutTile`, `KhActionBar`, `KhCircleIconButton`, `KhDashedTile`, `KhServiceCard`, `KhHeroCarousel`, `KhStatStrip`, `KhHowItWorks` (panel + accordion) | `lib/src/widgets/` | Partial — `KhServiceCard` (+ `KhStripePainter`, `KhServiceGrid`), `KhHowItWorksAccordion`, `KhHowItWorksPanel`, `KhHeroCarousel`, `KhStatStrip` and `KhBellButton` done, used by Guest Landing (CUS-S23) and Customer Home (CUS-S02); the compose widgets are open |
 | 7 | Move the hardcoded colours out of `DirectionControl` (`#1A2744` etc.) and onto the tokens | `request_create/.../create_fields.dart` | Open |
-| 8 | Add Home/Guest/carousel/guidance copy (EN + AR) and Create Request AR copy | `kh_l10n/lib/src/strings.dart` | Open |
+| 8 | Add Home/Guest/carousel/guidance copy (EN + AR) and Create Request AR copy | `kh_l10n/lib/src/strings.dart` | Partial — Home and Guest copy done (`service.card.*`, `cus.home.*`); Create Request AR open |
 | 9 | Golden tests for each new widget at 320 / 390 / 1024 widths, LTR + RTL | `packages/kh_design_system/test/` | Open |
 
 ---
