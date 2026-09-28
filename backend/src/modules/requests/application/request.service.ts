@@ -521,7 +521,7 @@ export class RequestService {
       return row;
     });
     perf.lap('tx');
-    perf.done({ outcome: 'published', reference: published.reference });
+    perf.done({ outcome: 'published', reference: published.reference ?? undefined });
 
     return {
       data: presentRequestForCustomer(published),
