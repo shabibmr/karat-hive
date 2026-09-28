@@ -25,6 +25,7 @@ DO_BUILD=1
 DO_DEPLOY=1
 SKIP_MIGRATE=0
 SKIP_NPM_CI=0
+PERF_LOG=0
 TS="$(date +%Y%m%d_%H%M%S)"
 
 usage() {
@@ -46,6 +47,11 @@ Options:
   --skip-deploy        Build only (no rsync / pm2)
   --skip-migrate       Skip prisma migrate deploy
   --skip-npm-ci        Skip npm ci on the deploy host
+  --perf-log           Turn on the dev-only Request-flow timing logs
+                        (docs/Request-Perf-Logging-Plan.md): sets
+                        PERF_LOG=true in the deployed backend's .env, and
+                        builds both Flutter web apps with
+                        --dart-define=KH_PERF_LOG=true.
   -h, --help           Show this help
 
 Environment:
@@ -57,6 +63,7 @@ Examples:
   $(basename "$0") --backend-only
   $(basename "$0") --skip-build          # redeploy last build artifacts
   $(basename "$0") --skip-deploy         # compile only
+  $(basename "$0") --perf-log            # also enable perf timing logs
 EOF
   exit 0
 }
@@ -74,6 +81,7 @@ while [[ $# -gt 0 ]]; do
     --skip-deploy) DO_DEPLOY=0; shift ;;
     --skip-migrate) SKIP_MIGRATE=1; shift ;;
     --skip-npm-ci) SKIP_NPM_CI=1; shift ;;
+    --perf-log) PERF_LOG=1; shift ;;
     *) die "Unknown option: $1 (try --help)" ;;
   esac
 done
@@ -128,6 +136,24 @@ build_backend() {
   [[ -f dist/main.js ]] || die "backend build missing dist/main.js"
 }
 
+# Sets PERF_LOG=true in the deployed backend's .env (docs/Request-Perf-Logging-Plan.md),
+# replacing an existing PERF_LOG line or appending one. Leaves every other
+# .env value untouched.
+set_perf_log_env() {
+  local env_file="$1"
+  if [[ ! -f "${env_file}" ]]; then
+    log "No .env at ${env_file}; creating one with PERF_LOG=true"
+    printf 'PERF_LOG=true\n' >> "${env_file}"
+    return
+  fi
+  if grep -q '^PERF_LOG=' "${env_file}"; then
+    sed -i 's/^PERF_LOG=.*/PERF_LOG=true/' "${env_file}"
+  else
+    printf '\nPERF_LOG=true\n' >> "${env_file}"
+  fi
+  log "Set PERF_LOG=true in ${env_file}"
+}
+
 deploy_backend() {
   local dest="${DEPLOY_ROOT}/kh_api"
   [[ -d "${dest}" ]] || die "Backend deploy dir missing: ${dest}"
@@ -144,6 +170,8 @@ deploy_backend() {
   cp -a "${BACKEND_DIR}/package.json" "${dest}/package.json"
   cp -a "${BACKEND_DIR}/package-lock.json" "${dest}/package-lock.json"
   rsync -a --delete "${BACKEND_DIR}/prisma/" "${dest}/prisma/"
+
+  [[ "${PERF_LOG}" -eq 1 ]] && set_perf_log_env "${dest}/.env"
 
   cd "${dest}"
   if [[ "${SKIP_NPM_CI}" -eq 0 ]]; then
@@ -186,7 +214,9 @@ build_admin() {
   export BASE_HREF="/hive_admin/"
   export KH_API_BASE
   export KH_FLAVOR
-  bash "${ADMIN_DIR}/build_web.sh"
+  local extra_args=()
+  [[ "${PERF_LOG}" -eq 1 ]] && extra_args+=(--dart-define=KH_PERF_LOG=true)
+  bash "${ADMIN_DIR}/build_web.sh" "${extra_args[@]}"
   [[ -f "${ADMIN_DIR}/build/web/index.html" ]] || die "admin build missing index.html"
 }
 
@@ -196,7 +226,9 @@ build_karat() {
   export KH_API_BASE
   export KH_API_BASE_URL="${KH_API_BASE}"
   export KH_FLAVOR
-  bash "${KARAT_DIR}/build_web.sh"
+  local extra_args=()
+  [[ "${PERF_LOG}" -eq 1 ]] && extra_args+=(--dart-define=KH_PERF_LOG=true)
+  bash "${KARAT_DIR}/build_web.sh" "${extra_args[@]}"
   [[ -f "${KARAT_DIR}/build/web/index.html" ]] || die "karat_hive build missing index.html"
 }
 
@@ -236,6 +268,7 @@ echo " Backup root : ${BACKUP_ROOT}"
 echo " Timestamp   : ${TS}"
 echo " Surfaces    : backend=${DO_BACKEND} admin=${DO_ADMIN} karat_hive=${DO_KARAT}"
 echo " Build/Deploy: build=${DO_BUILD} deploy=${DO_DEPLOY}"
+echo " Perf logs   : ${PERF_LOG}"
 echo " API base    : ${KH_API_BASE}"
 echo "============================================================"
 
