@@ -1,6 +1,7 @@
 import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
 import { OutboxClaimer, type ClaimedOutboxEvent } from './outbox.claimer';
 import type { OutboxEventType } from './outbox.events';
+import { PerfTimer, perfLogEnabled } from '../perf/perf-timer';
 
 export type OutboxHandler = (event: ClaimedOutboxEvent) => Promise<void>;
 
@@ -46,7 +47,17 @@ export class OutboxDispatcher implements BeforeApplicationShutdown {
 
   private async drainBatch(workerId: string, batchSize: number): Promise<number> {
     const batch = await this.claimer.claimBatch(workerId, batchSize);
+    if (perfLogEnabled && batch.length > 0) {
+      this.logger.log(`[Perf] outbox.drain batchSize=${batch.length}`);
+    }
     for (const event of batch) {
+      // Queue wait = how long the event sat PENDING before this worker claimed it —
+      // directly measures the outbox.drain poll interval's contribution to latency.
+      const queueWaitMs = Date.now() - event.createdAt.getTime();
+      const perf = new PerfTimer(`[Perf] outbox.event ${event.eventType}`, {
+        eventId: event.id,
+        queueWaitMs,
+      });
       const consumers = this.handlers.get(event.eventType as OutboxEventType) ?? [];
       try {
         if (consumers.length === 0) {
@@ -57,13 +68,16 @@ export class OutboxDispatcher implements BeforeApplicationShutdown {
         for (const { consumer, handler } of consumers) {
           if (await this.claimer.hasConsumed(event.id, consumer)) continue;
           await handler(event);
+          perf.lap(consumer);
           await this.claimer.markConsumed(event.id, consumer);
         }
         await this.claimer.markDone(event.id);
+        perf.done({ outcome: 'done' });
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         this.logger.warn(`Outbox event ${event.id} failed: ${message}`);
         await this.claimer.markFailure(event.id, message);
+        perf.done({ outcome: 'failed' });
       }
     }
     return batch.length;

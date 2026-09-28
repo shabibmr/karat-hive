@@ -13,6 +13,8 @@ import { ALLOW_SUSPENDED_KEY } from './allow-suspended.decorator';
 import { IS_ADMIN_ONLY_KEY } from './admin-only.decorator';
 import { IS_PUBLIC_KEY } from './public.decorator';
 import { VIEWER_CONTEXT_KEY, viewerOf, type ViewerContext } from './viewer-context';
+import { PerfTimer } from '../../platform/perf/perf-timer';
+import { requestIdOf } from '../request-id';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -44,6 +46,7 @@ export class AuthGuard implements CanActivate {
     if (!token) {
       throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
     }
+    const perf = new PerfTimer('[Perf] edge.auth', { rid: requestIdOf(request) });
     try {
       // G2-A12: domain routes accept only the Karat Hive access token.
       // Google / Firebase ID tokens are valid solely on the public session-exchange routes.
@@ -51,7 +54,10 @@ export class AuthGuard implements CanActivate {
         throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
       }
       const claims = await this.tokens.verifyAccess(token);
+      perf.lap('verifyAccess');
       const user: UserForViewer | null = await this.sessions.findUserForViewer(claims.sub);
+      perf.lap('findUserForViewer');
+      perf.done();
       if (user && (user.tokenVersion !== claims.ver || user.userType !== claims.role)) {
         throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
       }

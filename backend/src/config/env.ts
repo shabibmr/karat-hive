@@ -68,6 +68,12 @@ const envSchema = z
       .default('false')
       .transform((v) => v === 'true'),
     DEV_VERIFY_KEY: optionalString,
+
+    // --- dev-only per-phase timing logs (docs/Request-Perf-Logging-Plan.md) ---
+    PERF_LOG: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
   })
   .superRefine((value, ctx) => {
     if (value.JWT_ACCESS_SECRET === BANNED_JWT_SECRET) {

@@ -15,6 +15,7 @@ import { clientIpOf } from '../client-ip';
 import { ApiException } from '../errors/api-exception';
 import { ErrorCode } from '../errors/error-codes';
 import { requestIdOf } from '../request-id';
+import { PerfTimer } from '../../platform/perf/perf-timer';
 import {
   hashBody,
   IDEMPOTENCY_IN_FLIGHT,
@@ -59,6 +60,7 @@ export class IdempotencyInterceptor implements NestInterceptor {
     const bodyHash = hashBody(request.body);
     const unique = { key_route_callerSubject: { key, route, callerSubject } };
 
+    const perf = new PerfTimer('[Perf] edge.idempotency', { rid: requestIdOf(request), route });
     const claimed = await this.claimOrReplay({
       unique,
       key,
@@ -68,17 +70,22 @@ export class IdempotencyInterceptor implements NestInterceptor {
       bodyHash,
       reply,
     });
+    perf.lap('claimOrReplay');
     if (claimed.kind === 'replay') {
+      perf.done({ kind: 'replay' });
       reply.header('x-request-id', requestIdOf(request));
       return of(claimed.body);
     }
 
     try {
       const responseBody = await lastValueFrom(next.handle());
+      perf.lap('handler');
       await this.prisma.idempotencyKey.update({
         where: unique,
         data: { statusCode: reply.statusCode, responseBody: responseBody as object },
       });
+      perf.lap('update');
+      perf.done({ kind: 'claimed' });
       return of(responseBody);
     } catch (error: unknown) {
       await this.prisma.idempotencyKey.deleteMany({

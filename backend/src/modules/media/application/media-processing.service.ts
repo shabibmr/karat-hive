@@ -9,6 +9,7 @@ import {
 } from '../../../platform/adapters/storage/physical-buckets';
 import { storagePath, thumbnailStorageKey } from '../domain/media-rules';
 import { MediaRepository } from '../repository/media.repository';
+import { PerfTimer } from '../../../platform/perf/perf-timer';
 
 export type MediaUploadedEvent = {
   id: string;
@@ -31,8 +32,10 @@ export class MediaProcessingService {
   ) {}
 
   async processUploaded(event: MediaUploadedEvent): Promise<void> {
+    const perf = new PerfTimer('[Perf] media.process', { eventId: event.id });
     const payload = asRecord(event.payload);
     const media = await this.loadMedia(event.aggregateId, payload);
+    perf.lap('loadMedia');
     if (!media) {
       this.logger.warn(
         `media.uploaded with no row: eventId=${event.id} aggregate=${event.aggregateId}`,
@@ -40,6 +43,7 @@ export class MediaProcessingService {
       return;
     }
     if (media.state === 'READY' || media.state === 'QUARANTINED') {
+      perf.done({ outcome: 'noop', state: media.state });
       return;
     }
     if (media.state !== 'PENDING_PROCESSING') {
@@ -50,21 +54,25 @@ export class MediaProcessingService {
     const objectKey = this.objectKeyOf(media, payload);
     const bucket = physicalBucketName(media.bucket, physicalBucketNamesFromEnv(this.env));
     const bytes = await this.storage.getObject(bucket, objectKey);
+    perf.lap('getObject');
     if (!bytes) {
       throw new Error(`media object missing bucket=${bucket} key=${objectKey}`);
     }
 
     const result = processMediaBytes(bytes, media.contentType);
+    perf.lap('processMediaBytes');
     if (result.action === 'quarantine') {
       await this.repo.updateByKey(media.key, {
         state: 'QUARANTINED',
         malwareScanState: 'QUARANTINED',
       });
       this.logger.warn(`Quarantined media ${media.id} reason=${result.reason}`);
+      perf.done({ outcome: 'quarantined' });
       return;
     }
 
     await this.storage.putObject(bucket, objectKey, result.cleaned, media.contentType);
+    perf.lap('putObject');
 
     let thumbnailKey: string | null = null;
     if (result.makeThumbnail) {
@@ -78,6 +86,7 @@ export class MediaProcessingService {
         result.cleaned,
         media.contentType,
       );
+      perf.lap('putThumbnail');
     }
 
     await this.repo.updateByKey(media.key, {
@@ -87,6 +96,8 @@ export class MediaProcessingService {
       thumbnailKey,
       byteSize: result.cleaned.length,
     });
+    perf.lap('updateByKey');
+    perf.done({ outcome: 'ready', bytes: result.cleaned.length });
   }
 
   private async loadMedia(

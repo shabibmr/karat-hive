@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
@@ -26,6 +27,43 @@ class OwnerRequestDetailScreen extends ConsumerStatefulWidget {
 class _OwnerRequestDetailScreenState
     extends ConsumerState<OwnerRequestDetailScreen> {
   String? _cancelReason;
+
+  /// Guards [_trackImagesLoaded] so it only runs once per screen instance —
+  /// `data` rebuilds again after save/cancel, which must not restart the
+  /// `request.open_draft` / `request.open_published` flow.
+  bool _imagesTracked = false;
+
+  /// Closes out the open flow once every gallery photo has finished loading
+  /// (or immediately if there are none) — see
+  /// `docs/Request-Perf-Logging-Plan.md`.
+  void _trackImagesLoaded(List<GalleryImage> images) {
+    if (_imagesTracked) return;
+    _imagesTracked = true;
+    final controller =
+        ref.read(ownerRequestDetailProvider(widget.requestId).notifier);
+    if (images.isEmpty) {
+      controller.markImagesLoaded(0);
+      return;
+    }
+    if (!perfLogEnabled) {
+      controller.markImagesLoaded(images.length);
+      return;
+    }
+    Future.wait(
+      images.map(
+        // `onError` both resolves this future instead of throwing and
+        // suppresses Flutter's separate FlutterError.reportError for the
+        // image stream — a slow/broken photo must never fail the screen.
+        (img) => precacheImage(
+          NetworkImage(img.url),
+          context,
+          onError: (_, __) {},
+        ),
+      ),
+    ).then((_) {
+      if (mounted) controller.markImagesLoaded(images.length);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +100,8 @@ class _OwnerRequestDetailScreenState
               )
               .where((img) => img.url.isNotEmpty)
               .toList(growable: false);
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => _trackImagesLoaded(galleryImages));
           final specs = <(String, String)>[
             ('Type', requestTypeLabel(s, req.requestType)),
             ('Direction', req.direction.wire),

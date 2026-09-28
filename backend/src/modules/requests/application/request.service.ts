@@ -32,6 +32,7 @@ import {
   type RequestForVendor,
 } from '../presenter/request.presenter';
 import { RequestRepository } from '../repository/request.repository';
+import { PerfTimer } from '../../../platform/perf/perf-timer';
 
 export type CreateRequestDto = {
   requestType: RequestType;
@@ -185,8 +186,10 @@ export class RequestService {
     id: string,
     dto: UpdateRequestDto,
   ): Promise<{ data: RequestForCustomer; warnings: string[] }> {
+    const perf = new PerfTimer('[Perf] request.update', { requestId: id });
     const customerProfileId = this.assertCustomer(viewer);
     const existing = await this.repo.findByIdForCustomer(id, customerProfileId);
+    perf.lap('findById');
     if (!existing) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
@@ -265,6 +268,7 @@ export class RequestService {
         const attachable = await this.mediaService.getAttachable(key, viewer.userId);
         newMediaIds.push(attachable.id);
       }
+      perf.lap('getAttachable');
     }
 
     // For draft only: allow editing structural fields
@@ -349,6 +353,8 @@ export class RequestService {
 
       return res;
     });
+    perf.lap('tx');
+    perf.done();
 
     return {
       data: presentRequestForCustomer(updated),
@@ -360,14 +366,17 @@ export class RequestService {
     viewer: ViewerContext,
     id: string,
   ): Promise<{ data: RequestForCustomer; matchCount: number }> {
+    const perf = new PerfTimer('[Perf] request.publish', { requestId: id });
     const customerProfileId = this.assertCustomer(viewer);
     const existing = await this.repo.findByIdForCustomer(id, customerProfileId);
+    perf.lap('findById');
     if (!existing) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
 
     // Idempotent success if already published
     if (existing.state === 'PUBLISHED') {
+      perf.done({ outcome: 'already-published' });
       return {
         data: presentRequestForCustomer(existing),
         matchCount: 0,
@@ -382,13 +391,16 @@ export class RequestService {
 
     // 1. Check OAuth gate (BR-001)
     const hasOauth = await this.repo.hasOauthBinding(viewer.userId);
+    perf.lap('oauth');
     if (!hasOauth) {
       throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.OAUTH_REQUIRED);
     }
 
     // 2. Check concurrent live request limit (FR-CUS-005)
     const config = await this.platformConfig.getPlatformConfig();
+    perf.lap('platformConfig');
     const liveCount = await this.repo.countLiveRequestsForCustomer(customerProfileId);
+    perf.lap('liveCount');
     if (liveCount >= config.maxConcurrentLiveRequests) {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.CONCURRENT_REQUEST_LIMIT);
     }
@@ -411,9 +423,15 @@ export class RequestService {
         throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.MEDIA_QUARANTINED);
       }
       if (rm.media.state !== 'READY') {
+        perf.done({
+          outcome: 'MEDIA_NOT_READY',
+          mediaKey: rm.media.key,
+          mediaState: rm.media.state,
+        });
         throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.MEDIA_NOT_READY);
       }
     }
+    perf.lap('mediaValidation');
 
     // 6. Gold rate & indicative valuation
     let goldRateId: string | null = null;
@@ -421,6 +439,7 @@ export class RequestService {
 
     if (existing.purityKarat) {
       const latestRate = await this.repo.getLatestGoldRate(existing.purityKarat);
+      perf.lap('goldRate');
       if (!latestRate && existing.requestType === 'GOLD_BULLION') {
         throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, ErrorCode.GOLD_RATE_UNAVAILABLE);
       }
@@ -501,6 +520,8 @@ export class RequestService {
 
       return row;
     });
+    perf.lap('tx');
+    perf.done({ outcome: 'published', reference: published.reference });
 
     return {
       data: presentRequestForCustomer(published),
@@ -634,7 +655,9 @@ export class RequestService {
     viewer: ViewerContext,
     id: string,
   ): Promise<RequestForCustomer | RequestForVendor> {
+    const perf = new PerfTimer('[Perf] request.getById', { requestId: id });
     const request = await this.repo.findById(id);
+    perf.lap('findById');
     if (!request) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
@@ -644,7 +667,10 @@ export class RequestService {
       if (viewer.customerProfileId !== request.customerProfileId) {
         throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
       }
-      return presentRequestForCustomer(request, { includeOffers: true });
+      const presented = presentRequestForCustomer(request, { includeOffers: true });
+      perf.lap('present');
+      perf.done({ state: request.state, mediaCount: request.media?.length ?? 0 });
+      return presented;
     }
 
     // 2. Vendor

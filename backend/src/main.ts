@@ -16,6 +16,8 @@ import { AdminService } from './modules/admin';
 import { GoldRateService } from './modules/gold-rate';
 import { SubscriptionService } from './modules/subscription';
 import { corsConfig } from './edge/cors.config';
+import { perfLogEnabled } from './platform/perf/perf-timer';
+import { REQUEST_ID_HEADER } from './edge/request-id';
 
 async function bootstrap(): Promise<void> {
   loadDotenvFile();
@@ -36,6 +38,19 @@ async function bootstrap(): Promise<void> {
   // Nest/Fastify otherwise defaults to GET,HEAD,POST and browsers reject those
   // preflights as CORS failures.
   app.enableCors(corsConfig);
+
+  // Dev-only per-request timing line (docs/Request-Perf-Logging-Plan.md).
+  // `reply.elapsedTime` covers guards + interceptors, not just the handler.
+  if (perfLogEnabled) {
+    app.getHttpAdapter().getInstance().addHook('onResponse', (request, reply, done) => {
+      const rid = request.headers[REQUEST_ID_HEADER];
+      logger.log(
+        `[Perf] http ${request.method} ${request.url} status=${reply.statusCode} ` +
+          `ms=${reply.elapsedTime.toFixed(1)} rid=${typeof rid === 'string' ? rid : ''}`,
+      );
+      done();
+    });
+  }
 
   if (env.NODE_ENV === 'production') {
     await app.get(PrismaService).assertReady();

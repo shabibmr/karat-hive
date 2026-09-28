@@ -7,4 +7,5 @@ export 'src/clock.dart';
 export 'src/token_storage.dart';
 export 'src/api_client.dart';
 export 'src/app_logger.dart';
+export 'src/perf_log.dart';
 export 'src/paged_list_controller.dart';

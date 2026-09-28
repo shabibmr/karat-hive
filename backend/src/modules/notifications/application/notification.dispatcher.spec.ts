@@ -14,6 +14,7 @@ function event(overrides: Partial<ClaimedOutboxEvent> = {}): ClaimedOutboxEvent 
     aggregateId: 'off-1',
     payload: {},
     attempts: 0,
+    createdAt: new Date(),
     ...overrides,
   };
 }

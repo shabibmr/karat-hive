@@ -11,6 +11,7 @@ import 'package:kh_media/kh_media.dart';
 
 import '../../../app/di.dart';
 import '../../../app/session/session_controller.dart';
+import '../../../core/firebase/perf_log_sink.dart';
 import '../pending_publish_intent.dart';
 import '../repository/request_create_repository.dart';
 import 'request_create_state.dart';
@@ -293,6 +294,14 @@ class RequestCreateController extends Notifier<RequestCreateState> {
 
   bool get _isGuest => ref.read(sessionProvider) is! SignedIn;
 
+  /// Ends a [PerfLog] flow and hands the summary to [PerfLogSink] for
+  /// Firestore persistence (docs/Request-Perf-Logging-Plan.md).
+  PerfLogResult _finish(PerfLog perf, {Map<String, Object?> extra = const {}}) {
+    final result = perf.done(extra: extra);
+    ref.read(perfLogSinkProvider).record(result, requestId: state.draftId);
+    return result;
+  }
+
   /// Guest: local AVIF is enough. Signed-in: every slot must have a READY key.
   bool get canContinuePhotos {
     if (!state.photosAttachedReady) return false;
@@ -494,7 +503,17 @@ class RequestCreateController extends Notifier<RequestCreateState> {
 
   /// Draft PATCH/POST — no mandatory-field validation (FR-CUS-015).
   /// Guest: in-memory only — no HTTP (`adr/0011`).
+  /// Direct "Save as draft" — timed as its own `request.save_draft` flow.
+  /// [persistAndGo] and [publish] call [_saveDraftCore] instead so their
+  /// save doesn't double-count as a separate flow.
   Future<bool> saveDraft() async {
+    final perf = PerfLog('request.save_draft');
+    final ok = await _saveDraftCore(perf: perf);
+    _finish(perf, extra: {'outcome': ok ? 'ok' : 'error'});
+    return ok;
+  }
+
+  Future<bool> _saveDraftCore({PerfLog? perf}) async {
     if (state.requestType == null) return false;
     if (_isGuest) {
       state = state.copyWith(busy: false, clearFailure: true);
@@ -506,8 +525,10 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     final id = state.draftId;
     if (id == null) {
       result = await _repo.createDraft(body);
+      perf?.lap('create');
     } else {
       result = await _repo.patchDraft(id, body);
+      perf?.lap('patch');
     }
     return result.when(
       ok: (saved) {
@@ -530,8 +551,10 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   }
 
   Future<bool> persistAndGo(RequestCreateStep next) async {
-    final ok = await saveDraft();
+    final perf = PerfLog('request.continue', context: {'nextStep': next.name});
+    final ok = await _saveDraftCore(perf: perf);
     if (ok) goTo(next);
+    _finish(perf, extra: {'outcome': ok ? 'ok' : 'error'});
     return ok;
   }
 
@@ -556,6 +579,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   }) async {
     if (state.media.length >= state.maxImages) return;
     if (bytes.isEmpty) return;
+    final perf = PerfLog('request.image_attach', context: {'bytes': bytes.length});
     final label = filename.trim().isEmpty ? 'photo.jpg' : filename;
     final token = Object.hash(path ?? label, bytes.length);
     final key = _isGuest ? 'local:$token' : 'pending:$token';
@@ -577,6 +601,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     );
 
     final prepared = await _prepareForUpload(bytes, contentType);
+    perf.lap('prepare');
     if (prepared == null) {
       state = state.copyWith(
         uploading: state.media.any((m) => m.key != key && m.uploading),
@@ -593,6 +618,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
               m,
         ],
       );
+      _finish(perf, extra: {'outcome': 'convert-error'});
       return;
     }
 
@@ -612,6 +638,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
               m,
         ],
       );
+      _finish(perf, extra: {'outcome': 'guest-deferred'});
       return;
     }
 
@@ -624,7 +651,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
             m,
       ],
     );
-    await _uploadConvertedSlot(key);
+    final ok = await _uploadConvertedSlot(key, perf: perf);
+    _finish(perf, extra: {'outcome': ok ? 'ok' : 'error'});
   }
 
   Future<void> retryFailedMediaAt(int index) async {
@@ -725,6 +753,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
 
   /// Create/patch draft + publish. Upload only leftover local slots.
   Future<bool> publish() async {
+    final perf = PerfLog('request.publish', context: {'photoCount': state.media.length});
     state = state.copyWith(busy: true, clearFailure: true, fieldErrors: const {});
 
     if (state.media.any((m) => m.uploading)) {
@@ -734,30 +763,37 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           message: 'Wait for photos to finish uploading.',
         ),
       );
+      _finish(perf, extra: {'outcome': 'still-uploading'});
       return false;
     }
 
     if (state.media.any((m) => m.isLocalOnly)) {
       final uploaded = await _uploadPendingLocalMedia();
+      perf.lap('flushLocalMedia');
       if (!uploaded) {
         state = state.copyWith(busy: false);
+        _finish(perf, extra: {'outcome': 'flush-failed'});
         return false;
       }
     }
 
-    final saved = await saveDraft();
+    final saved = await _saveDraftCore(perf: perf);
+    perf.lap('saveDraft');
     if (!saved) {
       state = state.copyWith(busy: false);
+      _finish(perf, extra: {'outcome': 'save-failed'});
       return false;
     }
     final id = state.draftId;
     if (id == null) {
       state = state.copyWith(busy: false);
+      _finish(perf, extra: {'outcome': 'no-draft-id'});
       return false;
     }
     state = state.copyWith(busy: true);
     final key = _ensurePublishKey();
-    final result = await _publishWhenMediaReady(id, key);
+    final retry = await _publishWhenMediaReady(id, key, perf: perf);
+    final result = retry.result;
     return result.when(
       ok: (req) {
         state = state.copyWith(
@@ -767,6 +803,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           awaitingLoginToPublish: false,
         );
         unawaited(_clearPersistedDraft());
+        _finish(perf, extra: {'outcome': 'ok', ...retry.perfExtra});
         return true;
       },
       err: (f) {
@@ -775,6 +812,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           failure: f,
           fieldErrors: f.fieldErrors,
         );
+        _finish(perf, extra: {'outcome': f.code ?? 'error', ...retry.perfExtra});
         return false;
       },
     );
@@ -783,20 +821,35 @@ class RequestCreateController extends Notifier<RequestCreateState> {
   /// Photos upload without waiting for server processing (`READY`), so a
   /// fast publish can see `MEDIA_NOT_READY`; retry with the same idempotency
   /// key — failed attempts are not cached against it.
-  Future<Result<RequestForCustomer>> _publishWhenMediaReady(
+  Future<({Result<RequestForCustomer> result, Map<String, Object?> perfExtra})>
+      _publishWhenMediaReady(
     String id,
-    String idempotencyKey,
-  ) async {
+    String idempotencyKey, {
+    PerfLog? perf,
+  }) async {
     final delay = ref.read(mediaReadyRetryDelayProvider);
+    var attempts = 1;
+    var mediaNotReadyCount = 0;
     var result = await _repo.publish(id, idempotencyKey: idempotencyKey);
+    perf?.lap('publish#1');
     for (var n = 0;
         n < _mediaReadyMaxRetries &&
             result.failureOrNull?.code == 'MEDIA_NOT_READY';
         n++) {
+      mediaNotReadyCount++;
       await Future<void>.delayed(delay);
       result = await _repo.publish(id, idempotencyKey: idempotencyKey);
+      attempts++;
+      perf?.lap('publish#$attempts');
     }
-    return result;
+    return (
+      result: result,
+      perfExtra: {
+        'publishAttempts': attempts,
+        'mediaNotReadyCount': mediaNotReadyCount,
+        'retrySleepMs': mediaNotReadyCount * delay.inMilliseconds,
+      },
+    );
   }
 
   /// Flush guest-local AVIF slots (also used after sign-in). Safe to call twice.
@@ -897,7 +950,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     return (bytes: converted, contentType: 'image/avif');
   }
 
-  Future<bool> _uploadConvertedSlot(String placeholderKey) async {
+  Future<bool> _uploadConvertedSlot(String placeholderKey, {PerfLog? perf}) async {
     MediaSlot? slot;
     for (final m in state.media) {
       if (m.key == placeholderKey) {
@@ -922,6 +975,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
         );
       },
     );
+    perf?.lap('upload');
     final fail = result.failureOrNull;
     if (fail != null) {
       state = state.copyWith(
@@ -955,6 +1009,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       ],
     );
     await _syncDraftMediaKeys();
+    perf?.lap('syncDraftMediaKeys');
     return true;
   }
 

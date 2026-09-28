@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'clock.dart';
 import 'failure.dart';
+import 'perf_log.dart';
 import 'result.dart';
 import 'token_storage.dart';
 
@@ -246,7 +247,21 @@ class _ChainInterceptor extends Interceptor {
     if (token != null && token.isNotEmpty) {
       options.headers['authorization'] = 'Bearer $token';
     }
+    if (perfLogEnabled) {
+      options.extra['kh.perfStartMs'] = DateTime.now().millisecondsSinceEpoch;
+    }
     handler.next(options);
+  }
+
+  void _logHttpPerf(RequestOptions options, int? statusCode) {
+    final startMs = options.extra['kh.perfStartMs'] as int?;
+    if (startMs == null) return;
+    final ms = DateTime.now().millisecondsSinceEpoch - startMs;
+    final rid = options.headers['x-request-id'];
+    debugPrint(
+      '[Perf] http ${options.method} ${options.path} status=${statusCode ?? '-'} '
+      'ms=$ms rid=$rid',
+    );
   }
 
   @override
@@ -259,6 +274,7 @@ class _ChainInterceptor extends Interceptor {
       final t = DateTime.tryParse(data['meta']['serverTime'].toString());
       if (t != null) _client.serverClock.syncFrom(t.toUtc());
     }
+    _logHttpPerf(response.requestOptions, response.statusCode);
     final path = response.requestOptions.path;
     final alreadyRetried = response.requestOptions.extra['kh.retried'] == true;
     final noRefresh = response.requestOptions.extra['kh.noRefresh'] == true;
@@ -285,6 +301,7 @@ class _ChainInterceptor extends Interceptor {
   @override
   Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
     final res = err.response;
+    _logHttpPerf(err.requestOptions, res?.statusCode);
     final path = err.requestOptions.path;
     final alreadyRetried = err.requestOptions.extra['kh.retried'] == true;
     final noRefresh = err.requestOptions.extra['kh.noRefresh'] == true;

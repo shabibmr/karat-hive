@@ -6,6 +6,8 @@ import { ApiException } from '../errors/api-exception';
 import { ErrorCode } from '../errors/error-codes';
 import { scopeFor } from './rate-limit.policy';
 import { RateLimitService } from './rate-limit.service';
+import { PerfTimer } from '../../platform/perf/perf-timer';
+import { requestIdOf } from '../request-id';
 
 @Injectable()
 export class RateLimitGuard implements CanActivate {
@@ -20,7 +22,10 @@ export class RateLimitGuard implements CanActivate {
 
     const viewer = viewerOf(request);
     const subject = viewer?.userId ?? clientIpOf(request);
+    const perf = new PerfTimer('[Perf] edge.rateLimit', { rid: requestIdOf(request), scope });
     const decision = await this.limiter.take(scope, subject);
+    perf.lap('take');
+    perf.done();
     void reply.header('x-ratelimit-limit', String(decision.limit));
     void reply.header('x-ratelimit-remaining', String(decision.remaining));
     void reply.header('x-ratelimit-reset', decision.resetAt.toISOString());

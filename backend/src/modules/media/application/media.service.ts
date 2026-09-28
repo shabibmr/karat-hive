@@ -23,6 +23,7 @@ import {
 } from '../domain/media-rules';
 import { MediaRepository } from '../repository/media.repository';
 import { presentMediaRef, type MediaRef, type UploadIntent } from '../presenter/media.presenter';
+import { PerfTimer } from '../../../platform/perf/perf-timer';
 
 @Injectable()
 export class MediaService {
@@ -105,11 +106,14 @@ export class MediaService {
   }
 
   async complete(viewer: ViewerContext, key: string): Promise<MediaRef> {
+    const perf = new PerfTimer('[Perf] media.complete', { key });
     const media = await this.repo.findByKey(key);
+    perf.lap('findByKey');
     if (!media || media.uploadedByUserId !== viewer.userId) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
     if (media.state === 'READY' || media.state === 'PENDING_PROCESSING') {
+      perf.done({ outcome: media.state });
       return presentMediaRef(media);
     }
     if (media.state !== 'PENDING_UPLOAD') {
@@ -119,6 +123,7 @@ export class MediaService {
     const objectKey = this.objectKeyFor(media.purpose, key, viewer);
     const bucket = physicalBucketName(media.bucket, physicalBucketNamesFromEnv(this.env));
     const head = await this.storage.headObject(bucket, objectKey);
+    perf.lap('headObject');
     if (!head || !head.exists) {
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.UPLOAD_NOT_COMPLETED);
     }
@@ -163,6 +168,8 @@ export class MediaService {
       });
       return row;
     });
+    perf.lap('tx');
+    perf.done({ outcome: 'PENDING_PROCESSING', state: updated.state });
     return presentMediaRef(updated);
   }
 
@@ -207,12 +214,14 @@ export class MediaService {
   ): Promise<
     { type: 'redirect'; url: string } | { type: 'stream'; buffer: Buffer; contentType: string }
   > {
+    const perf = new PerfTimer('[Perf] media.resolve', { key });
     let media = await this.repo.findByKey(key);
     let isThumbnail = false;
     if (!media && this.prisma.media?.findFirst) {
       media = await this.prisma.media.findFirst({ where: { thumbnailKey: key } });
       if (media) isThumbnail = true;
     }
+    perf.lap('findByKey');
     if (!media) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
@@ -235,6 +244,7 @@ export class MediaService {
       });
       vendorProfileId = vp?.id;
     }
+    perf.lap('vendorProfileLookup');
 
     let objectKey = storagePath({
       purpose: media.purpose,
@@ -246,17 +256,22 @@ export class MediaService {
 
     if (isThumbnail) {
       objectKey = await this.resolveThumbnailObjectKey(bucket, objectKey, key);
+      perf.lap('resolveThumbnailObjectKey');
     }
 
     const signed = await this.storage.createSignedDownloadUrl(bucket, objectKey, 3600);
+    perf.lap('createSignedDownloadUrl');
     if (signed.url.startsWith('http://') || signed.url.startsWith('https://')) {
+      perf.done({ outcome: 'redirect' });
       return { type: 'redirect', url: signed.url };
     }
 
     const buffer = await this.storage.getObject(bucket, objectKey);
+    perf.lap('getObject');
     if (!buffer) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
+    perf.done({ outcome: 'stream', bytes: buffer.length });
     return { type: 'stream', buffer, contentType: media.contentType };
   }
 

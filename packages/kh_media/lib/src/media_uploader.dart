@@ -98,6 +98,10 @@ class MediaUploader {
     bool awaitReady = true,
   }) async {
     final length = bytes.length;
+    final perf = PerfLog(
+      'media.upload',
+      context: {'purpose': purpose.wire, 'bytes': length},
+    );
     final canReusePrefetched =
         prefetchedIntent != null && prefetchedIntent.maxBytes >= length;
     final Result<UploadIntent> intent = canReusePrefetched
@@ -107,6 +111,7 @@ class MediaUploader {
             contentType: contentType,
             byteSize: length,
           );
+    perf.lap(canReusePrefetched ? 'intent(prefetched)' : 'intent');
     return intent.when(
       ok: (i) async {
         final Response<dynamic> res;
@@ -129,27 +134,41 @@ class MediaUploader {
                   },
           );
         } on DioException catch (e) {
+          perf.done(extra: {'outcome': 'put-error'});
           return Err<String>(ServerFailure(message: e.message ?? 'Upload failed. Try again.'));
         } catch (e) {
+          perf.done(extra: {'outcome': 'put-error'});
           return Err<String>(ServerFailure(message: e.toString()));
         }
+        perf.lap('put');
         if ((res.statusCode ?? 0) >= 300) {
+          perf.done(extra: {'outcome': 'put-failed', 'status': res.statusCode});
           return const Err<String>(ServerFailure(message: 'Upload failed. Try again.'));
         }
         onProgress?.call(1);
         final done = await _api.completeUpload(i.key);
+        perf.lap('complete');
         final fail = done.failureOrNull;
-        if (fail != null) return Err<String>(fail);
+        if (fail != null) {
+          perf.done(extra: {'outcome': 'complete-error'});
+          return Err<String>(fail);
+        }
         var currentState = done.valueOrNull;
+        var polls = 0;
         if (awaitReady && currentState != 'READY') {
           for (var n = 0; n < maxPolls; n++) {
+            polls++;
             await _sleep(pollInterval);
             final again = await _api.completeUpload(i.key);
             final againFail = again.failureOrNull;
-            if (againFail != null) return Err<String>(againFail);
+            if (againFail != null) {
+              perf.done(extra: {'outcome': 'poll-error', 'polls': polls});
+              return Err<String>(againFail);
+            }
             currentState = again.valueOrNull;
             if (currentState == 'READY') break;
             if (currentState == 'QUARANTINED') {
+              perf.done(extra: {'outcome': 'quarantined', 'polls': polls});
               return const Err<String>(
                 ValidationFailure(
                   code: 'MEDIA_QUARANTINED',
@@ -158,10 +177,15 @@ class MediaUploader {
               );
             }
           }
+          perf.lap('poll');
         }
+        perf.done(extra: {'outcome': 'ready', 'polls': polls});
         return Ok<String>(i.key);
       },
-      err: Err<String>.new,
+      err: (f) {
+        perf.done(extra: {'outcome': 'intent-error'});
+        return Err<String>(f);
+      },
     );
   }
 }

@@ -15,6 +15,8 @@ export type ClaimedOutboxEvent = {
   aggregateId: string;
   payload: Prisma.JsonValue;
   attempts: number;
+  /** When the event was enqueued — diffed against claim time for the perf log's queue-wait. */
+  createdAt: Date;
 };
 
 @Injectable()
@@ -51,7 +53,7 @@ export class OutboxClaimer {
         LIMIT ${limit}
       )
       RETURNING id, event_type AS "eventType", aggregate_type AS "aggregateType",
-                aggregate_id AS "aggregateId", payload, attempts
+                aggregate_id AS "aggregateId", payload, attempts, created_at AS "createdAt"
     `;
     return rows;
   }

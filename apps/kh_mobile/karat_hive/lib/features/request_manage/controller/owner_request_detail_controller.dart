@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+import '../../../core/firebase/perf_log_sink.dart';
 import '../repository/request_manage_repository.dart';
 
 class OwnerRequestDetailState {
@@ -34,14 +35,44 @@ class OwnerRequestDetailState {
 
 class OwnerRequestDetailController
     extends AutoDisposeFamilyAsyncNotifier<OwnerRequestDetailState, String> {
+  /// Started in [build], ended by [markImagesLoaded] once the detail screen's
+  /// gallery has finished loading (or immediately if there are no photos).
+  /// `request.open_draft` / `request.open_published` — flow chosen once the
+  /// Request's state is known (docs/Request-Perf-Logging-Plan.md).
+  PerfLog? _openPerf;
+
   @override
   Future<OwnerRequestDetailState> build(String arg) async {
+    final perf = PerfLog('request.open', context: {'requestId': arg});
     final repo = ref.watch(requestManageRepositoryProvider);
     final res = await repo.getMine(arg);
+    perf.lap('getMine');
     return res.when(
-      ok: (req) => OwnerRequestDetailState(request: req),
-      err: (f) => throw f,
+      ok: (req) {
+        perf.flow =
+            req.state == RequestState.published ? 'request.open_published' : 'request.open_draft';
+        _openPerf = perf;
+        return OwnerRequestDetailState(request: req);
+      },
+      err: (f) {
+        _finish(perf, arg, extra: {'outcome': 'error'});
+        throw f;
+      },
     );
+  }
+
+  /// Called by the detail screen once every gallery photo has finished
+  /// loading (or immediately when the Request has none), closing out the
+  /// `request.open_draft` / `request.open_published` flow started in [build].
+  void markImagesLoaded(int count) {
+    final perf = _openPerf;
+    _openPerf = null;
+    if (perf != null) _finish(perf, arg, extra: {'imagesLoaded': count});
+  }
+
+  void _finish(PerfLog perf, String requestId, {Map<String, Object?> extra = const {}}) {
+    final result = perf.done(extra: extra);
+    ref.read(perfLogSinkProvider).record(result, requestId: requestId);
   }
 
   Future<void> reload() async {
