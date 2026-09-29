@@ -7,7 +7,7 @@ import '../repository/reviews_repository.dart';
 
 /// Paged reviews about this Vendor (VEN-S20). List UI lands in CP5-B04.
 class MyReviewsController
-    extends AutoDisposeNotifier<PagedListController<Review>> {
+    extends Notifier<PagedListController<Review>> {
   @override
   PagedListController<Review> build() {
     final repo = ref.watch(reviewsRepositoryProvider);
@@ -34,7 +34,7 @@ class MyReviewsController
   Future<void> retry() => state.retry();
 }
 
-final myReviewsControllerProvider = AutoDisposeNotifierProvider<
+final myReviewsControllerProvider = NotifierProvider.autoDispose<
     MyReviewsController, PagedListController<Review>>(
   MyReviewsController.new,
 );

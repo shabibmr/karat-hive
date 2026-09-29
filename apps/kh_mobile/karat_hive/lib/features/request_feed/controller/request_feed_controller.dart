@@ -91,7 +91,7 @@ class RequestFiltersState {
   }
 }
 
-class RequestFiltersController extends AutoDisposeNotifier<RequestFiltersState> {
+class RequestFiltersController extends Notifier<RequestFiltersState> {
   @override
   RequestFiltersState build() => const RequestFiltersState();
 
@@ -101,13 +101,13 @@ class RequestFiltersController extends AutoDisposeNotifier<RequestFiltersState> 
 }
 
 final requestFiltersProvider =
-    AutoDisposeNotifierProvider<RequestFiltersController, RequestFiltersState>(
+    NotifierProvider.autoDispose<RequestFiltersController, RequestFiltersState>(
   RequestFiltersController.new,
 );
 
 /// Owns the feed [PagedListController] and rebuilds it when filters change.
 class RequestFeedController
-    extends AutoDisposeNotifier<PagedListController<VendorRequestItem>> {
+    extends Notifier<PagedListController<VendorRequestItem>> {
   @override
   PagedListController<VendorRequestItem> build() {
     final repo = ref.watch(requestFeedRepositoryProvider);
@@ -145,7 +145,7 @@ class RequestFeedController
   Future<void> retry() => state.retry();
 }
 
-final requestFeedControllerProvider = AutoDisposeNotifierProvider<
+final requestFeedControllerProvider = NotifierProvider.autoDispose<
     RequestFeedController, PagedListController<VendorRequestItem>>(
   RequestFeedController.new,
 );

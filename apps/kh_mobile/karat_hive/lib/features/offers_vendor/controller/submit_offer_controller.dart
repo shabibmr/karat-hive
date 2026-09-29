@@ -69,11 +69,14 @@ class SubmitOfferSucceeded extends SubmitOfferState {
   final OfferForVendor offer;
 }
 
-class SubmitOfferController extends AutoDisposeFamilyNotifier<SubmitOfferState, String> {
+class SubmitOfferController extends Notifier<SubmitOfferState> {
+  SubmitOfferController(this.arg);
+
+  final String arg;
   late final MediaPickController _media;
 
   @override
-  SubmitOfferState build(String requestId) {
+  SubmitOfferState build() {
     _media = MediaPickController(
       uploader: MediaUploader(ref.read(khApiProvider)),
       purpose: MediaUploadPurpose.offerImage,
@@ -212,7 +215,7 @@ class SubmitOfferController extends AutoDisposeFamilyNotifier<SubmitOfferState, 
   }
 }
 
-final submitOfferControllerProvider = AutoDisposeNotifierProvider.family<
+final submitOfferControllerProvider = NotifierProvider.autoDispose.family<
     SubmitOfferController, SubmitOfferState, String>(
   SubmitOfferController.new,
 );

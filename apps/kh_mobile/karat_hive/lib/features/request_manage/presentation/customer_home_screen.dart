@@ -73,7 +73,7 @@ class CustomerHomeScreen extends ConsumerWidget {
     ];
 
     // Counts show as "–" while loading so the strip doesn't jump in.
-    final data = summary.valueOrNull;
+    final data = summary.value;
     String count(int Function(CustomerHomeSummary d) pick) =>
         data == null ? '–' : '${pick(data)}';
 

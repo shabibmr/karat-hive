@@ -6,7 +6,7 @@ import '../repository/reviews_repository.dart';
 
 /// Vendor respond / flag on a published review (VEN-S20). UI lands in CP5-B04.3.
 class ReviewActionsController
-    extends AutoDisposeNotifier<AsyncValue<Review?>> {
+    extends Notifier<AsyncValue<Review?>> {
   @override
   AsyncValue<Review?> build() => const AsyncData(null);
 
@@ -37,7 +37,7 @@ class ReviewActionsController
   }
 }
 
-final reviewActionsControllerProvider = AutoDisposeNotifierProvider<
+final reviewActionsControllerProvider = NotifierProvider.autoDispose<
     ReviewActionsController, AsyncValue<Review?>>(
   ReviewActionsController.new,
 );

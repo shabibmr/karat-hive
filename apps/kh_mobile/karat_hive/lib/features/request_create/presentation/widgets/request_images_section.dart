@@ -27,22 +27,20 @@ class RequestImagesSection extends ConsumerWidget {
   final bool showActualItemNotice;
 
   Future<void> _pick(WidgetRef ref) async {
-    final res = await FilePicker.platform.pickFiles(
+    final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['jpg', 'jpeg', 'png'],
-      allowMultiple: true,
-      withData: true,
     );
-    if (res == null) return;
+    if (files.isEmpty) return;
     final controller = ref.read(requestCreateControllerProvider.notifier);
-    for (final f in res.files) {
+    for (final f in files) {
       // On web, PlatformFile.path throws — use bytes + name only.
       final path = kIsWeb ? null : f.path;
-      Uint8List? data = f.bytes;
-      if (data == null && path != null) {
+      Uint8List data = await f.readAsBytes();
+      if (data.isEmpty && path != null) {
         data = Uint8List.fromList(await File(path).readAsBytes());
       }
-      if (data == null || data.isEmpty) continue;
+      if (data.isEmpty) continue;
       final name = f.name.isNotEmpty
           ? f.name
           : (path?.split(RegExp(r'[/\\]')).last ?? 'photo.jpg');

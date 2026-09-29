@@ -34,7 +34,6 @@ void main() {
   setUp(() {
     repo = _MockRepo();
     when(() => repo.platformConfig()).thenAnswer((_) async => const Ok(PlatformConfig()));
-    when(() => repo.categories()).thenAnswer((_) async => const Ok([]));
     when(() => repo.regions()).thenAnswer((_) async => const Ok([]));
   });
 

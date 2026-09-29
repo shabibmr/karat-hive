@@ -41,7 +41,7 @@ class BusinessProfileSaveState {
 
 /// VEN-S15 safe edits (CP6-B02.2). Never sends BR-004 legal-identity keys.
 class BusinessProfileSaveController
-    extends AutoDisposeNotifier<BusinessProfileSaveState> {
+    extends Notifier<BusinessProfileSaveState> {
   @override
   BusinessProfileSaveState build() => const BusinessProfileSaveState();
 
@@ -141,7 +141,7 @@ class BusinessProfileSaveController
   }
 }
 
-final businessProfileSaveProvider = AutoDisposeNotifierProvider<
+final businessProfileSaveProvider = NotifierProvider.autoDispose<
     BusinessProfileSaveController, BusinessProfileSaveState>(
   BusinessProfileSaveController.new,
 );

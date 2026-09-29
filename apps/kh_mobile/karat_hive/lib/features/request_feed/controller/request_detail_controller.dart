@@ -4,9 +4,13 @@ import 'package:kh_domain/kh_domain.dart';
 import '../repository/request_feed_repository.dart';
 
 class RequestDetailController
-    extends AutoDisposeFamilyAsyncNotifier<VendorRequestItem, String> {
+    extends AsyncNotifier<VendorRequestItem> {
+  RequestDetailController(this.arg);
+
+  final String arg;
+
   @override
-  Future<VendorRequestItem> build(String arg) async {
+  Future<VendorRequestItem> build() async {
     final repo = ref.watch(requestFeedRepositoryProvider);
     // Mark viewed in background when detail opens (CP2-B05 / BR-006)
     repo.markViewed(arg);

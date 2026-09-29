@@ -168,12 +168,9 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
               previewBytes: form.logoBytes,
               pickLabel: 'Upload Store Logo',
               onPick: () async {
-                final res = await FilePicker.platform.pickFiles(
+                final file = await FilePicker.pickFile(
                   type: FileType.image,
-                  allowMultiple: false,
-                  withData: true,
                 );
-                final file = res?.files.single;
                 if (file == null) return;
                 final nativePath = kIsWeb ? null : file.path;
                 final String marker;
@@ -190,15 +187,12 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
                     : name.endsWith('.webp')
                         ? 'image/webp'
                         : 'image/jpeg';
-                Uint8List? logoBytes;
-                if (file.bytes != null && file.bytes!.isNotEmpty) {
-                  logoBytes = Uint8List.fromList(file.bytes!);
-                } else if (!kIsWeb &&
+                var logoBytes = await file.readAsBytes();
+                if (logoBytes.isEmpty &&
+                    !kIsWeb &&
                     nativePath != null &&
                     nativePath.isNotEmpty) {
-                  logoBytes = Uint8List.fromList(
-                    await File(nativePath).readAsBytes(),
-                  );
+                  logoBytes = await File(nativePath).readAsBytes();
                 }
                 controller.patch(
                   (s) => s.copyWith(
@@ -384,7 +378,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
                         InkWell(
                           onTap: () async {
                             final config =
-                                ref.read(platformConfigProvider).valueOrNull;
+                                ref.read(platformConfigProvider).value;
                             final url = config?.termsUrl ??
                                 'https://karathive.ae/terms';
                             await openExternalUrl(url);
@@ -402,7 +396,7 @@ class _VendorRegisterScreenState extends ConsumerState<VendorRegisterScreen> {
                         InkWell(
                           onTap: () async {
                             final config =
-                                ref.read(platformConfigProvider).valueOrNull;
+                                ref.read(platformConfigProvider).value;
                             final url = config?.privacyUrl ??
                                 'https://karathive.ae/privacy';
                             await openExternalUrl(url);

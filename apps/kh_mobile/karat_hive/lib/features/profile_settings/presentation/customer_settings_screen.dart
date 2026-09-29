@@ -149,8 +149,8 @@ class CustomerSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLocale = ref.watch(appLocaleProvider).languageCode;
-    final patchedSettings = ref.watch(settingsControllerProvider).valueOrNull;
-    final serverSettings = ref.watch(userSettingsProvider).valueOrNull;
+    final patchedSettings = ref.watch(settingsControllerProvider).value;
+    final serverSettings = ref.watch(userSettingsProvider).value;
     final settings = patchedSettings ?? serverSettings;
     final notifications =
         settings?.notifications ?? const <String, NotificationChannelPref>{};
@@ -158,7 +158,7 @@ class CustomerSettingsScreen extends ConsumerWidget {
 
     final regionsAsync = ref.watch(regionsProvider);
     final configAsync = ref.watch(platformConfigProvider);
-    final config = configAsync.valueOrNull;
+    final config = configAsync.value;
 
     final categories = [
       NotificationPreferenceCategory(

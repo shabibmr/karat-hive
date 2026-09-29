@@ -33,9 +33,13 @@ class OwnerRequestDetailState {
 }
 
 class OwnerRequestDetailController
-    extends AutoDisposeFamilyAsyncNotifier<OwnerRequestDetailState, String> {
+    extends AsyncNotifier<OwnerRequestDetailState> {
+  OwnerRequestDetailController(this.arg);
+
+  final String arg;
+
   @override
-  Future<OwnerRequestDetailState> build(String arg) async {
+  Future<OwnerRequestDetailState> build() async {
     final repo = ref.watch(requestManageRepositoryProvider);
     final res = await repo.getMine(arg);
     return res.when(
@@ -46,7 +50,7 @@ class OwnerRequestDetailController
 
   Future<void> reload() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => build(arg));
+    state = await AsyncValue.guard(build);
   }
 
   Future<bool> save({
@@ -55,7 +59,7 @@ class OwnerRequestDetailController
     String? budgetMax,
     bool? budgetIsFlexible,
   }) async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return false;
     state = AsyncData(current.copyWith(saving: true, clearError: true));
     final repo = ref.read(requestManageRepositoryProvider);
@@ -79,7 +83,7 @@ class OwnerRequestDetailController
   }
 
   Future<bool> cancel({String? reason}) async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return false;
     state = AsyncData(current.copyWith(cancelling: true, clearError: true));
     final repo = ref.read(requestManageRepositoryProvider);

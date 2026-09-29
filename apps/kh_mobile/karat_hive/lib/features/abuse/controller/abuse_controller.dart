@@ -5,7 +5,7 @@ import 'package:kh_domain/kh_domain.dart';
 import '../repository/abuse_repository.dart';
 
 /// Submit abuse report (CUS-S22 / VEN-S21). Form UI lands in CP5-B05.2.
-class AbuseController extends AutoDisposeNotifier<AsyncValue<AbuseReport?>> {
+class AbuseController extends Notifier<AsyncValue<AbuseReport?>> {
   @override
   AsyncValue<AbuseReport?> build() => const AsyncData(null);
 
@@ -31,6 +31,6 @@ class AbuseController extends AutoDisposeNotifier<AsyncValue<AbuseReport?>> {
 }
 
 final abuseControllerProvider =
-    AutoDisposeNotifierProvider<AbuseController, AsyncValue<AbuseReport?>>(
+    NotifierProvider.autoDispose<AbuseController, AsyncValue<AbuseReport?>>(
   AbuseController.new,
 );

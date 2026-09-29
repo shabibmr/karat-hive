@@ -6,7 +6,7 @@ import '../repository/notifications_repository.dart';
 
 /// Paged notification list (CUS-S19 / VEN-S17).
 class NotificationsController
-    extends AutoDisposeNotifier<PagedListController<AppNotification>> {
+    extends Notifier<PagedListController<AppNotification>> {
   @override
   PagedListController<AppNotification> build() {
     final repo = ref.watch(notificationsRepositoryProvider);
@@ -92,7 +92,7 @@ class NotificationsController
   }
 }
 
-final notificationsControllerProvider = AutoDisposeNotifierProvider<
+final notificationsControllerProvider = NotifierProvider.autoDispose<
     NotificationsController, PagedListController<AppNotification>>(
   NotificationsController.new,
 );

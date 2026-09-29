@@ -49,7 +49,7 @@ class CategoriesRegionsState {
 }
 
 class CategoriesRegionsController
-    extends AutoDisposeNotifier<CategoriesRegionsState> {
+    extends Notifier<CategoriesRegionsState> {
   @override
   CategoriesRegionsState build() {
     ref.listen(vendorMeProvider, (_, next) {
@@ -115,7 +115,7 @@ class CategoriesRegionsController
 }
 
 final categoriesRegionsControllerProvider =
-    AutoDisposeNotifierProvider<
+    NotifierProvider.autoDispose<
       CategoriesRegionsController,
       CategoriesRegionsState
     >(CategoriesRegionsController.new);

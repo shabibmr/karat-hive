@@ -51,7 +51,7 @@ class SubscriptionsScreen extends ConsumerWidget {
         ),
         data: (activeSubs) {
           final subMap = {for (final s in activeSubs) s.requestType: s};
-          final contactUrl = configAsync.valueOrNull?.subscriptionContactUrl ??
+          final contactUrl = configAsync.value?.subscriptionContactUrl ??
               'https://karathive.ae/subscriptions';
 
           return ListView(

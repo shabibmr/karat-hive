@@ -20,7 +20,7 @@ class AppLocaleNotifier extends Notifier<Locale> {
   @override
   Locale build() {
     final settingsAsync = ref.watch(userSettingsProvider);
-    final serverLang = settingsAsync.valueOrNull?.preferredLanguage;
+    final serverLang = settingsAsync.value?.preferredLanguage;
     if (serverLang != null) {
       _manualLocale =
           serverLang == 'ar' ? const Locale('ar') : const Locale('en');
@@ -43,7 +43,7 @@ final appLocaleProvider =
     NotifierProvider<AppLocaleNotifier, Locale>(AppLocaleNotifier.new);
 
 /// Settings / sessions / password mutations (VEN-S18). UI lands in CP6-B03.
-class SettingsController extends AutoDisposeNotifier<AsyncValue<UserSettings?>> {
+class SettingsController extends Notifier<AsyncValue<UserSettings?>> {
   @override
   AsyncValue<UserSettings?> build() => const AsyncData(null);
 
@@ -114,7 +114,7 @@ class SettingsController extends AutoDisposeNotifier<AsyncValue<UserSettings?>> 
           );
 }
 
-final settingsControllerProvider = AutoDisposeNotifierProvider<
+final settingsControllerProvider = NotifierProvider.autoDispose<
     SettingsController, AsyncValue<UserSettings?>>(
   SettingsController.new,
 );

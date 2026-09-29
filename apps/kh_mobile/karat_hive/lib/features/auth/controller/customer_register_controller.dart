@@ -6,7 +6,7 @@ import '../../../core/firebase/firebase_auth_service.dart';
 import '../model/customer_register_form_state.dart';
 import '../repository/auth_repository.dart';
 
-class CustomerRegisterController extends AutoDisposeNotifier<CustomerRegisterFormState> {
+class CustomerRegisterController extends Notifier<CustomerRegisterFormState> {
   bool _disposed = false;
 
   @override
@@ -94,7 +94,7 @@ class CustomerRegisterController extends AutoDisposeNotifier<CustomerRegisterFor
   }
 }
 
-final customerRegisterControllerProvider = AutoDisposeNotifierProvider<
+final customerRegisterControllerProvider = NotifierProvider.autoDispose<
     CustomerRegisterController, CustomerRegisterFormState>(
   CustomerRegisterController.new,
 );

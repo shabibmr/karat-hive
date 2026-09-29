@@ -17,7 +17,7 @@ class CustomerHomeSummary {
 }
 
 class CustomerHomeController
-    extends AutoDisposeAsyncNotifier<CustomerHomeSummary> {
+    extends AsyncNotifier<CustomerHomeSummary> {
   @override
   Future<CustomerHomeSummary> build() => _load();
 
@@ -50,7 +50,7 @@ class CustomerHomeController
   }
 }
 
-final customerHomeControllerProvider = AutoDisposeAsyncNotifierProvider<
+final customerHomeControllerProvider = AsyncNotifierProvider.autoDispose<
     CustomerHomeController, CustomerHomeSummary>(
   CustomerHomeController.new,
 );

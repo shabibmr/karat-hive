@@ -70,7 +70,7 @@ class OfferHistoryFilters {
 final offerHistoryClockProvider = Provider<DateTime>((_) => DateTime.now());
 
 class OfferHistoryFiltersController
-    extends AutoDisposeNotifier<OfferHistoryFilters> {
+    extends Notifier<OfferHistoryFilters> {
   @override
   OfferHistoryFilters build() =>
       OfferHistoryFilters.initial(now: ref.watch(offerHistoryClockProvider));
@@ -113,7 +113,7 @@ class OfferHistoryFiltersController
       state = OfferHistoryFilters.initial(now: ref.read(offerHistoryClockProvider));
 }
 
-final offerHistoryFiltersProvider = AutoDisposeNotifierProvider<
+final offerHistoryFiltersProvider = NotifierProvider.autoDispose<
     OfferHistoryFiltersController, OfferHistoryFilters>(
   OfferHistoryFiltersController.new,
 );
