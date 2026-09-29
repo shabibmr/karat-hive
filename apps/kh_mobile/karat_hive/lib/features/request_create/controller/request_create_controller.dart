@@ -16,7 +16,7 @@ import '../repository/request_create_repository.dart';
 import 'request_create_state.dart';
 
 final requestImageConverterProvider = Provider<ImageConverter>(
-  (ref) => const AvifImageConverter(),
+  (ref) => const WebpImageConverter(),
 );
 
 /// Overridable so tests can exercise the web upload branch without the web
@@ -293,7 +293,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
 
   bool get _isGuest => ref.read(sessionProvider) is! SignedIn;
 
-  /// Guest: local AVIF is enough. Signed-in: every slot must have a READY key.
+  /// Guest: local converted bytes are enough. Signed-in: every slot must have a READY key.
   bool get canContinuePhotos {
     if (!state.photosAttachedReady) return false;
     if (_isGuest) return true;
@@ -799,7 +799,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     return result;
   }
 
-  /// Flush guest-local AVIF slots (also used after sign-in). Safe to call twice.
+  /// Flush guest-local converted slots (also used after sign-in). Safe to call twice.
   Future<bool> flushPendingLocalMedia() => _uploadPendingLocalMedia();
 
   Future<bool> _uploadPendingLocalMedia() async {
@@ -821,8 +821,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       final slot = state.media[i];
       if (!slot.isLocalOnly) continue;
       final key = slot.key;
-      Uint8List? avif = slot.uploadBytes;
-      if (avif == null || avif.isEmpty) {
+      final converted = slot.uploadBytes;
+      if (converted == null || converted.isEmpty) {
         Uint8List? source = slot.localBytes;
         if (source == null && !kIsWeb && slot.localPath != null) {
           try {
@@ -854,7 +854,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           );
           return false;
         }
-        avif = prepared.bytes;
         state = state.copyWith(
           media: [
             for (final m in state.media)
@@ -872,19 +871,9 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     return true;
   }
 
-  Future<Uint8List?> _convertToAvif(Uint8List bytes) async {
-    try {
-      final asset =
-          await ref.read(requestImageConverterProvider).convertBytesToAvif(bytes);
-      return asset.readBytes();
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /// Native: converts to AVIF on-device. Web: the WASM AVIF encoder is the
-  /// slowest step in the picker flow, so web uploads the original bytes
-  /// as-is and skips it — `REQUEST_IMAGE` already accepts JPEG/PNG/WebP.
+  /// Native: re-encodes to WebP on-device. Web: the encoder plugin has no
+  /// web WebP support, so web uploads the original bytes as-is —
+  /// `REQUEST_IMAGE` already accepts JPEG/PNG/WebP.
   Future<({Uint8List bytes, String contentType})?> _prepareForUpload(
     Uint8List bytes,
     String contentType,
@@ -892,9 +881,13 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     if (ref.read(isWebPlatformProvider)) {
       return (bytes: bytes, contentType: contentType);
     }
-    final converted = await _convertToAvif(bytes);
-    if (converted == null) return null;
-    return (bytes: converted, contentType: 'image/avif');
+    try {
+      final asset =
+          await ref.read(requestImageConverterProvider).convertBytes(bytes);
+      return (bytes: await asset.readBytes(), contentType: asset.contentType);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<bool> _uploadConvertedSlot(String placeholderKey) async {
@@ -907,11 +900,11 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     }
     if (slot == null) return false;
     final uploadSlot = slot;
-    final avif = uploadSlot.uploadBytes;
-    if (avif == null || avif.isEmpty) return false;
-    final uploadContentType = uploadSlot.contentType ?? 'image/avif';
+    final uploadBytes = uploadSlot.uploadBytes;
+    if (uploadBytes == null || uploadBytes.isEmpty) return false;
+    final uploadContentType = uploadSlot.contentType ?? 'image/webp';
     final result = await _repo.uploadRequestImageBytes(
-      avif,
+      uploadBytes,
       uploadContentType,
       onProgress: (p) {
         state = state.copyWith(
@@ -947,7 +940,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
               localLabel: uploadSlot.localLabel,
               localPath: uploadSlot.localPath,
               localBytes: uploadSlot.localBytes,
-              uploadBytes: avif,
+              uploadBytes: uploadBytes,
               contentType: uploadContentType,
             )
           else

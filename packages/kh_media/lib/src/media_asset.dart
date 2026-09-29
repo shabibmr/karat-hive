@@ -5,7 +5,7 @@ import 'dart:typed_data';
 /// converted/compressed result.
 ///
 /// [file] is omitted on web (no `dart:io` temp path). [bytes] is always
-/// populated by the AVIF converter so callers can upload without a File.
+/// populated by the image converters so callers can upload without a File.
 class MediaAsset {
   const MediaAsset({
     this.file,

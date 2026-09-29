@@ -163,7 +163,7 @@ void main() {
       expect(state.media, hasLength(1));
       expect(state.media.single.isLocalOnly, isTrue);
       expect(state.media.single.localPath, imageFile.path);
-      expect(state.media.single.contentType, 'image/avif');
+      expect(state.media.single.contentType, 'image/webp');
       expect(state.media.single.uploadBytes, isNotNull);
       expect(state.uploading, isFalse);
       verifyNever(

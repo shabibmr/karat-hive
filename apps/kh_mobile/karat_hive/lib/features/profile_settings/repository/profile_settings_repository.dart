@@ -35,7 +35,7 @@ class ProfileSettingsRepository {
         logoMediaKey: logoMediaKey,
       );
 
-  /// Converts to AVIF and uploads a new store logo (CP6-B02.3). Returns the
+  /// Converts to WebP (AVIF on web) and uploads a new store logo (CP6-B02.3). Returns the
   /// media key to pass as `logoMediaKey` on the next [patchVendorProfile].
   Future<Result<String>> uploadLogo(Uint8List bytes) {
     final media = MediaPickController(
