@@ -20,7 +20,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
 flutter:
-  # Direction 1a "Classic" families (UI-Design-Context.md §3.1). Bundled, not
+  # Display and UI families (UI-Design-Context.md §3.1). Bundled, not
   # fetched at runtime, so first launch and offline render correctly. OFL-1.1,
   # licences alongside in fonts/.
   fonts:

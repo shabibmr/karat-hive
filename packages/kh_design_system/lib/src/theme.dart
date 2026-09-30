@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:kh_design_system/src/tokens.dart';
 import 'package:kh_design_system/src/typography.dart';
 
-/// Karat Hive mobile theme — Direction 1a "Classic"
+/// Karat Hive mobile theme — Modern Luxury Jewellery Editorial
 /// (`apps/kh_mobile/karat_hive/docs/UI-Design-Context.md`).
 ///
 /// Warm, light and flat: ivory paper, ink type, gold as a signal. Depth comes
@@ -268,7 +268,7 @@ abstract final class KhTheme {
     );
   }
 
-  /// Material roles mapped onto the 1a scale (§3.3). Serif for titles, sans
+  /// Material roles mapped onto the type scale (§3.3). Serif for titles, sans
   /// for everything read or typed.
   static TextTheme _textTheme(KhFonts f, KhTokens t) {
     TextStyle ink(TextStyle s) => s.copyWith(color: t.ink);

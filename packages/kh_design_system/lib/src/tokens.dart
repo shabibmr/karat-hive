@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Design tokens exposed through a ThemeExtension so feature code reads
 /// `context.tokens.space.md`, never a raw value (Architecture-Frontend §8.1).
 ///
-/// Values follow Direction 1a "Classic"
+/// Values follow the Modern Luxury Jewellery Editorial system
 /// (`apps/kh_mobile/karat_hive/docs/UI-Design-Context.md` §2, §4).
 @immutable
 class KhTokens extends ThemeExtension<KhTokens> {
@@ -25,7 +25,7 @@ class KhTokens extends ThemeExtension<KhTokens> {
   });
 
   /// Accent signal: Home icons, carousel, tile arrows, selected nav.
-  /// Never text on ivory (~2.4:1) — icons ≥ 24 px or fills only (§2.5).
+  /// Never text on ivory (~2.1:1) — icons ≥ 24 px or fills only (§2.5).
   final Color gold;
 
   /// Links, eyebrows, small labels, glyphs inside soft-gold circles.
