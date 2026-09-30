@@ -49,3 +49,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/karat-hive-logo.png
+    - assets/images/
