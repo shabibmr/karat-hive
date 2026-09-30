@@ -4,8 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:karat_hive/app/session/session_controller.dart';
 import 'package:karat_hive/features/request_create/controller/request_create_controller.dart';
 import 'package:karat_hive/features/request_create/presentation/find_ornament_screen.dart';
+import 'package:karat_hive/features/request_create/presentation/request_review_publish_screen.dart';
 import 'package:karat_hive/features/request_create/presentation/widgets/create_fields.dart';
+import 'package:karat_hive/features/request_create/presentation/widgets/create_flow_chrome.dart';
+import 'package:karat_hive/features/request_create/presentation/widgets/request_images_section.dart';
 import 'package:karat_hive/features/request_create/repository/request_create_repository.dart';
+
+
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
@@ -35,7 +40,14 @@ void main() {
     repo = _MockRepo();
     when(() => repo.platformConfig()).thenAnswer((_) async => const Ok(PlatformConfig()));
     when(() => repo.regions()).thenAnswer((_) async => const Ok([]));
+    when(() => repo.goldRates()).thenAnswer(
+      (_) async => const Ok(
+        GoldRateSnapshot(available: false, stale: true, rates: []),
+      ),
+    );
   });
+
+
 
   ProviderContainer createContainer() {
     return ProviderContainer(
@@ -71,14 +83,56 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Sell Old Gold'), findsOneWidget);
-      expect(find.text('SPECIFY THE PIECE · SELL'), findsOneWidget);
+      expect(find.text('DESCRIBE YOUR ITEM'), findsOneWidget);
       expect(
         find.textContaining('Photos must be of the actual item'),
         findsOneWidget,
       );
       expect(find.byType(OrnamentTypeChips), findsOneWidget);
+      expect(find.byType(ConditionChips), findsOneWidget);
+      expect(find.byType(SellIconFieldGroup), findsOneWidget);
       expect(find.byType(BudgetEditor), findsNothing);
     });
+
+    testWidgets('Sell condition chip uses ctaFill when selected', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      when(() => repo.goldRates()).thenAnswer(
+        (_) async => const Ok(
+          GoldRateSnapshot(
+            available: true,
+            stale: false,
+            rates: [
+              GoldRateRow(karat: Karat.k22, ratePerGramAed: '200'),
+            ],
+          ),
+        ),
+      );
+
+
+      final container = createContainer();
+      final ctrl = container.read(requestCreateControllerProvider.notifier);
+      ctrl.selectType(RequestType.sellOldGold);
+      ctrl.setWeightGrams('45');
+      ctrl.setPurity(Karat.k22);
+
+      await tester.pumpWidget(_buildTestApp(const SellOldGoldScreen(), container));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('condition-chip-USED')));
+      await tester.pumpAndSettle();
+
+      expect(
+        container.read(requestCreateControllerProvider).condition,
+        ItemCondition.used,
+      );
+      expect(find.byKey(const Key('sell-indicative-panel')), findsOneWidget);
+      expect(find.textContaining('AED'), findsWidgets);
+    });
+
 
     testWidgets(
         'GoldCoinsScreen updates total weight when denomination/quantity changes, and toggles budget editor visibility based on Direction',
@@ -147,5 +201,111 @@ void main() {
       expect(find.text('24K · 999.9'), findsOneWidget);
       expect(find.text('Serial / assay certificate present'), findsOneWidget);
     });
+
+    testWidgets(
+        'compose screens share formSurface chrome and ctaFill primary CTA',
+        (tester) async {
+      Future<void> expectC01Chrome(Widget screen, ProviderContainer container) async {
+        await tester.pumpWidget(_buildTestApp(screen, container));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(CreateFlowChrome), findsOneWidget);
+        expect(find.byType(DraftActions), findsOneWidget);
+
+        final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
+        expect(scaffold.backgroundColor, KhTokens.light.formSurface);
+
+        expect(find.byKey(const Key('create-save-draft')), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('create-save-draft')),
+            matching: find.byType(Text),
+          ),
+          findsOneWidget,
+        );
+        expect(find.byType(FilledButton), findsOneWidget);
+
+        final theme = Theme.of(tester.element(find.byType(FilledButton)));
+        final bg = theme.filledButtonTheme.style?.backgroundColor?.resolve({});
+        expect(bg, KhTokens.light.ctaFill);
+        final shape = theme.filledButtonTheme.style?.shape?.resolve({});
+        expect(
+          shape,
+          isA<RoundedRectangleBorder>().having(
+            (b) => b.borderRadius,
+            'borderRadius',
+            BorderRadius.circular(KhTokens.light.radius.button),
+          ),
+        );
+      }
+
+      final findContainer = createContainer();
+      findContainer
+          .read(requestCreateControllerProvider.notifier)
+          .selectType(RequestType.findOrnament);
+      await expectC01Chrome(const FindOrnamentScreen(), findContainer);
+
+      final coinsContainer = createContainer();
+      coinsContainer
+          .read(requestCreateControllerProvider.notifier)
+          .selectType(RequestType.goldCoin);
+      await expectC01Chrome(const GoldCoinsScreen(), coinsContainer);
+      expect(find.byType(DirectionControl), findsOneWidget);
+      expect(find.byType(CoinDenominationChips), findsOneWidget);
+      expect(find.byType(BudgetEditor), findsOneWidget);
+      expect(find.byType(SellIconFieldGroup), findsNothing);
+      expect(find.byType(SellIndicativeValuePanel), findsNothing);
+      expect(find.byType(ConditionChips), findsNothing);
+
+      final bullionContainer = createContainer();
+      bullionContainer
+          .read(requestCreateControllerProvider.notifier)
+          .selectType(RequestType.goldBullion);
+      await expectC01Chrome(const GoldBullionScreen(), bullionContainer);
+      expect(find.byType(DirectionControl), findsOneWidget);
+      expect(find.byType(BudgetEditor), findsOneWidget);
+      expect(find.byType(SellIconFieldGroup), findsNothing);
+      expect(find.byType(SellIndicativeValuePanel), findsNothing);
+    });
+
+    testWidgets(
+        'Find review shows mosaic, icon rows, Edit text, Publish Request only',
+        (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final container = createContainer();
+      final ctrl = container.read(requestCreateControllerProvider.notifier);
+      ctrl.selectType(RequestType.findOrnament);
+      ctrl.setOrnamentType(OrnamentType.necklace);
+      ctrl.setWeightGrams('45');
+      ctrl.setWeightApproximate(true);
+      ctrl.setPurity(Karat.k22);
+      ctrl.setBudgetMax('12000');
+      ctrl.setNotes('Bridal set notes');
+
+      await tester.pumpWidget(
+        _buildTestApp(const RequestReviewPublishScreen(), container),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Find An Ornament'), findsOneWidget);
+      expect(find.text('REVIEW YOUR REQUEST'), findsOneWidget);
+      expect(find.byType(RequestReviewMosaic), findsOneWidget);
+      expect(find.text('Necklace'), findsOneWidget);
+      expect(find.text('Approx. 45 grams'), findsOneWidget);
+      expect(find.text('22 Karat'), findsOneWidget);
+      expect(find.text('Up to AED 12000'), findsOneWidget);
+      expect(find.text('Bridal set notes'), findsOneWidget);
+      expect(find.byKey(const Key('review-edit')), findsOneWidget);
+      expect(find.text('Publish Request'), findsOneWidget);
+      expect(find.byKey(const Key('create-save-draft')), findsNothing);
+      expect(find.byKey(const Key('review-notes-field')), findsNothing);
+    });
   });
 }
+
+
+

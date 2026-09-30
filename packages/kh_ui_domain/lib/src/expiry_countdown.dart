@@ -191,7 +191,7 @@ class _ExpiryCountdownState extends State<ExpiryCountdown> {
 
     final (Color color, IconData icon) = switch (_urgency) {
       ExpiryUrgency.normal => (tokens.ink.withValues(alpha: 0.75), Icons.access_time),
-      ExpiryUrgency.warning => (const Color(0xFFC8A046), Icons.access_time_filled),
+      ExpiryUrgency.warning => (tokens.goldDark, Icons.access_time_filled),
       ExpiryUrgency.critical => (tokens.danger, Icons.warning_amber_rounded),
       ExpiryUrgency.expired => (tokens.danger, Icons.timer_off_outlined),
     };

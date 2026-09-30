@@ -140,11 +140,13 @@ void main() {
     expect(find.byKey(const Key('summary-offers')), findsOneWidget);
     expect(find.byKey(const Key('summary-connections')), findsOneWidget);
     expect(find.byKey(const Key('customer-home-how')), findsOneWidget);
-    expect(find.text('Find an Ornament'), findsOneWidget);
+    expect(find.text('Find An Ornament'), findsOneWidget);
     expect(find.text('What would you like to do?'), findsOneWidget);
+    expect(find.text('KARAT HIVE'), findsOneWidget);
     expect(find.byKey(const Key('open-history')), findsNothing);
     expect(find.byKey(const Key('quick-create')), findsNothing);
   });
+
 
   testWidgets('Summary strip shows the session and offer counts',
       (tester) async {

@@ -218,6 +218,7 @@ class FindOrnamentScreen extends ConsumerWidget {
 }
 
 /// CUS-S05 — Sell Old Gold (CU-05). Direction fixed SELL.
+/// Visual pass C03 / `sell-my-create.png`: icon rows, ctaFill condition, indicative value.
 class SellOldGoldScreen extends ConsumerWidget {
   const SellOldGoldScreen({super.key});
 
@@ -226,45 +227,102 @@ class SellOldGoldScreen extends ConsumerWidget {
     final tokens = context.tokens;
     final state = ref.watch(requestCreateControllerProvider);
     final controller = ref.read(requestCreateControllerProvider.notifier);
+    final karats = state.config?.karatList ?? const ['24', '22', '21', '18'];
 
     return ComposeScreenHost(
-      title: createCopy(context, 'create.type.sellGold', 'Sell Old Gold'),
-      eyebrow: createCopy(context, 'create.eyebrow.sell', 'SPECIFY THE PIECE · SELL'),
+      title: createCopy(context, 'service.card.sellGold', 'Sell Old Gold'),
+      eyebrow: createCopy(
+        context,
+        'create.eyebrow.describe',
+        'DESCRIBE YOUR ITEM',
+      ),
       stepLabel: createCopy(context, 'create.stepCompose', 'Specify the piece'),
       combineImages: true,
       showActualItemNotice: true,
       fields: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          OrnamentTypeChips(
-            value: state.ornamentType,
-            onChanged: controller.setOrnamentType,
-          ),
-          SizedBox(height: tokens.space.md),
-          WeightPurityFields(
-            state: state,
-            controller: controller,
-            weightRequired: true,
-            purityAsChips: true,
-          ),
-          SizedBox(height: tokens.space.md),
-          KhSelectField<ItemCondition>(
-            label: createCopy(
-              context,
-              'create.condition',
-              'Condition (optional)',
-            ),
-            value: state.condition,
-            searchable: false,
-            options: [
-              for (final c in ItemCondition.values)
-                if (c != ItemCondition.unknown)
-                  KhSelectOption(value: c, label: conditionWire(c)),
+          SellIconFieldGroup(
+            children: [
+              SellIconFieldRow(
+                icon: Icons.diamond_outlined,
+                label: createCopy(context, 'create.row.type', 'TYPE'),
+                child: OrnamentTypeChips(
+                  value: state.ornamentType,
+                  onChanged: controller.setOrnamentType,
+                  showLabel: false,
+                ),
+              ),
+              SellIconFieldRow(
+                icon: Icons.scale_outlined,
+                label: createCopy(context, 'create.row.weight', 'WEIGHT'),
+                child: KhNumericField(
+                  label: createCopy(context, 'create.weight', 'Weight'),
+                  unit: 'g',
+                  min: 0.10,
+                  max: 5000,
+                  decimalPlaces: 2,
+                  initialValue: state.weightGrams,
+                  errorText: state.fieldError('weightGrams'),
+                  rangeErrorText: createCopy(
+                    context,
+                    'create.weightRange',
+                    'Weight must be between 0.10 g and 5000.00 g',
+                  ),
+                  onChanged: (v) => controller.setWeightGrams(
+                    v?.toStringAsFixed(2),
+                  ),
+                ),
+              ),
+              SellIconFieldRow(
+                icon: Icons.verified_outlined,
+                label: createCopy(context, 'create.row.purity', 'PURITY'),
+                child: Wrap(
+                  spacing: tokens.space.xs,
+                  runSpacing: tokens.space.xs,
+                  children: [
+                    for (final raw in karats)
+                      Builder(
+                        builder: (context) {
+                          final karat = karatFromConfig(raw);
+                          final selected = state.purityKarat == karat;
+                          return _SellPurityChip(
+                            key: Key('purity-chip-${karat.wire}'),
+                            label: karat.wire,
+                            selected: selected,
+                            onTap: () => controller.setPurity(karat),
+                          );
+                        },
+                      ),
+                  ],
+                ),
+              ),
+              SellIconFieldRow(
+                icon: Icons.fact_check_outlined,
+                label: createCopy(context, 'create.row.condition', 'CONDITION'),
+                child: ConditionChips(
+                  value: state.condition,
+                  onChanged: controller.setCondition,
+                ),
+              ),
             ],
-            onChanged: controller.setCondition,
+          ),
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            title: Text(
+              createCopy(
+                context,
+                'create.weightApprox',
+                'Weight is approximate',
+              ),
+            ),
+            value: state.weightIsApproximate,
+            onChanged: (v) => controller.setWeightApproximate(v ?? false),
           ),
           SizedBox(height: tokens.space.sm),
           SwitchListTile(
+
             contentPadding: EdgeInsets.zero,
             title: Text(
               createCopy(
@@ -276,11 +334,61 @@ class SellOldGoldScreen extends ConsumerWidget {
             value: state.hasInvoice,
             onChanged: controller.setHasInvoice,
           ),
+          SizedBox(height: tokens.space.md),
+          SellIndicativeValuePanel(valueAed: controller.indicativeValueAed()),
         ],
       ),
     );
   }
 }
+
+/// Purity chip on Sell: selected uses ctaFill + ink (matches condition chrome).
+class _SellPurityChip extends StatelessWidget {
+  const _SellPurityChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(tokens.radius.button),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: EdgeInsets.symmetric(
+            horizontal: tokens.space.md,
+            vertical: tokens.space.sm,
+          ),
+          decoration: BoxDecoration(
+            color: selected ? tokens.ctaFill : Colors.transparent,
+            borderRadius: BorderRadius.circular(tokens.radius.button),
+            border: Border.all(
+              color: selected ? tokens.ctaFill : tokens.inkBorderSoft,
+            ),
+          ),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: tokens.ink,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
 /// CUS-S06 — Gold Coins (CU-06).
 class GoldCoinsScreen extends ConsumerWidget {

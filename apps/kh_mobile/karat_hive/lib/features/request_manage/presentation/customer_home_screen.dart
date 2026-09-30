@@ -14,9 +14,10 @@ import '../controller/customer_home_controller.dart';
 /// CUS-S02 Customer Home / Dashboard, Direction 1a
 /// (`docs/UI-Design-Context.md` §7.1).
 ///
-/// Header (logo · bell) → hero carousel → service grid → My activity stats →
-/// "How this works" panel. The open-request list is not here; it lives under
-/// the My Requests tab.
+/// Header (tracked KARAT HIVE · bell) → hero carousel → service grid →
+/// My activity stats → "How this works" panel. The open-request list is not
+/// here; it lives under the My Requests tab.
+
 class CustomerHomeScreen extends ConsumerWidget {
   const CustomerHomeScreen({super.key});
 
@@ -36,12 +37,15 @@ class CustomerHomeScreen extends ConsumerWidget {
     final s = KhStrings.of(context);
     final summary = ref.watch(customerHomeControllerProvider);
 
+    // Jewellery photography behind the display lines (visual pass H01 / Home-1).
+    const heroPhoto = AssetImage('assets/images/hero_jewellery.webp');
     final slides = [
       for (var i = 1; i <= 4; i++)
         KhHeroSlide(
           lead: s.s('cus.home.hero.$i.a'),
           line2: s.s('cus.home.hero.$i.b'),
           line3: s.s('cus.home.hero.$i.c'),
+          image: heroPhoto,
         ),
     ];
 
@@ -50,25 +54,25 @@ class CustomerHomeScreen extends ConsumerWidget {
         type: RequestType.findOrnament,
         key: const Key('customer-type-ornament'),
         title: s.s('service.card.ornament'),
-        icon: Icons.diamond_outlined,
+        image: const AssetImage('assets/images/tile_find_ornament.webp'),
       ),
       (
         type: RequestType.sellOldGold,
         key: const Key('customer-type-sell-gold'),
         title: s.s('service.card.sellGold'),
-        icon: Icons.balance,
+        image: const AssetImage('assets/images/tile_sell_old_gold.webp'),
       ),
       (
         type: RequestType.goldCoin,
         key: const Key('customer-type-coins'),
         title: s.s('service.card.coins'),
-        icon: Icons.monetization_on_outlined,
+        image: const AssetImage('assets/images/tile_gold_coin.webp'),
       ),
       (
         type: RequestType.goldBullion,
         key: const Key('customer-type-bullion'),
         title: s.s('service.card.bullion'),
-        icon: Icons.crop_landscape_outlined,
+        image: const AssetImage('assets/images/tile_gold_bullion.webp'),
       ),
     ];
 
@@ -125,6 +129,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                               .s('cus.home.heroDot')
                               .replaceAll('{n}', '${i + 1}')
                               .replaceAll('{count}', '$n'),
+                          nextLabel: s.s('cus.home.heroNext'),
                         ),
                         Padding(
                           padding: EdgeInsets.only(
@@ -144,9 +149,8 @@ class CustomerHomeScreen extends ConsumerWidget {
                             for (final service in services)
                               KhServiceCard(
                                 key: service.key,
-                                expand: true,
                                 title: service.title,
-                                icon: service.icon,
+                                image: service.image,
                                 onTap: () =>
                                     _openService(context, ref, service.type),
                               ),
@@ -231,20 +235,20 @@ class CustomerHomeScreen extends ConsumerWidget {
                           title: s.s('cus.home.howTitle'),
                           steps: [
                             KhHowStep(
-                              icon: Icons.post_add,
                               label: s.s('cus.home.step.post'),
+                              icon: Icons.post_add,
                             ),
                             KhHowStep(
-                              icon: Icons.groups_outlined,
                               label: s.s('cus.home.step.offers'),
+                              icon: Icons.groups_outlined,
                             ),
                             KhHowStep(
-                              icon: Icons.balance,
                               label: s.s('cus.home.step.accept'),
+                              icon: Icons.balance,
                             ),
                             KhHowStep(
-                              icon: Icons.handshake_outlined,
                               label: s.s('cus.home.step.whatsApp'),
+                              icon: Icons.handshake_outlined,
                             ),
                           ],
                         ),
@@ -261,7 +265,7 @@ class CustomerHomeScreen extends ConsumerWidget {
   }
 }
 
-/// 60 px header: logo at the start, alerts bell at the end (§6.14).
+/// 60 px header: tracked brand mark at the start, alerts bell at the end.
 class _HomeHeader extends StatelessWidget {
   const _HomeHeader({
     required this.logoLabel,
@@ -282,16 +286,12 @@ class _HomeHeader extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: tokens.space.md),
         child: Row(
           children: [
-            Image.asset(
-              'assets/karat-hive-logo.png',
-              height: 44,
-              semanticLabel: logoLabel,
-              errorBuilder: (_, __, ___) => Text(
-                logoLabel,
-                style: Theme.of(context).textTheme.titleLarge,
+            Expanded(
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: KhBrandMark(label: logoLabel),
               ),
             ),
-            const Spacer(),
             KhBellButton(
               key: const Key('customer-home-alerts'),
               semanticLabel: alertsLabel,
@@ -303,6 +303,7 @@ class _HomeHeader extends StatelessWidget {
     );
   }
 }
+
 
 /// GL-58: surfaced when a pending guest publish couldn't auto-complete
 /// (e.g. offline at the time) so the user can retry it manually.

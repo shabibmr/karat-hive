@@ -98,7 +98,13 @@ void main() {
       (_) async =>
           const Ok([TaxonomyNode(id: 'reg-1', nameEn: 'Dubai', nameAr: 'دبي')]),
     );
+    when(() => repo.goldRates()).thenAnswer(
+      (_) async => const Ok(
+        GoldRateSnapshot(available: false, stale: true, rates: []),
+      ),
+    );
   }
+
 
   group('GL-50…GL-52 guest lookups', () {
     test('loadLookups does not call me() when SignedOut', () async {
@@ -126,10 +132,11 @@ void main() {
       expect(state.lookupsReady, isTrue);
       expect(state.config, isNotNull);
       expect(state.regions, isNotEmpty);
-      expect(state.rates, isNull);
+      expect(state.rates, isNotNull);
       verifyNever(() => repo.me());
-      verifyNever(() => repo.goldRates());
+      verify(() => repo.goldRates()).called(1);
     });
+
 
     test('guest capBlocked stays false', () async {
       stubGuestLookups();

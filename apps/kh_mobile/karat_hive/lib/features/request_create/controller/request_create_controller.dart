@@ -304,6 +304,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     state = state.copyWith(lookupsLoading: true, clearFailure: true);
     final configR = await _repo.platformConfig();
     final regR = await _repo.regions();
+    // Best-effort: rates power Sell indicative value; failure must not block compose.
+    final ratesR = await _repo.goldRates();
 
     // Guest has no token — do not require GET /v1/me (`adr/0011`).
     Result<MeUser>? meR;
@@ -322,11 +324,13 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       failure: fail,
       config: configR.valueOrNull,
       regions: regR.valueOrNull ?? const [],
+      rates: ratesR.valueOrNull ?? state.rates,
       canCreateRequest: me?.canCreateRequest ?? state.canCreateRequest,
       oauthBound: me?.oauthBound ?? state.oauthBound,
       regionId: state.regionId ?? me?.customer?.defaultRegion?.id,
     );
   }
+
 
   void selectType(RequestType type) {
     final prev = state.requestType;

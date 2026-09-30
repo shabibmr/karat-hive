@@ -10,7 +10,8 @@ class KhTokens extends ThemeExtension<KhTokens> {
   const KhTokens({
     required this.gold,
     required this.goldDark,
-    required this.goldPressed,
+    required this.ctaFill,
+    required this.formSurface,
     required this.ink,
     required this.surface,
     required this.paper,
@@ -23,20 +24,27 @@ class KhTokens extends ThemeExtension<KhTokens> {
     required this.space,
   });
 
-  /// Primary accent: filled CTAs, active icons, toggles on. Never text on
-  /// ivory (~2.4:1) — icons ≥ 24 px or fills only (§2.5).
+  /// Accent signal: Home icons, carousel, tile arrows, selected nav.
+  /// Never text on ivory (~2.4:1) — icons ≥ 24 px or fills only (§2.5).
   final Color gold;
 
   /// Links, eyebrows, small labels, glyphs inside soft-gold circles.
   final Color goldDark;
 
-  /// Primary button pressed/hover.
-  final Color goldPressed;
+  /// Primary button / selected-chip / card CTA fill. Label is [ink].
+  final Color ctaFill;
 
-  /// All text, dark surfaces (hero), selected chips.
+  /// [ctaFill] pressed/hover — a relative darken (10% toward [ink]) so it
+  /// follows any [ctaFill] override.
+  Color get ctaFillPressed => Color.lerp(ctaFill, ink, 0.10)!;
+
+  /// Create and review scaffold background (Home keeps [surface]).
+  final Color formSurface;
+
+  /// All text, dark surfaces (hero), labels on gold fills.
   final Color ink;
 
-  /// Ivory screen background; also text on ink.
+  /// Ivory Home / shell background; also text on ink.
   final Color surface;
 
   /// White raised-on-ivory panels (stats strip, Guest accordion).
@@ -53,9 +61,10 @@ class KhTokens extends ThemeExtension<KhTokens> {
   final KhSpace space;
 
   static const light = KhTokens(
-    gold: Color(0xFFC8A046),
+    gold: Color(0xFFD8A858),
     goldDark: Color(0xFF8A6A1F),
-    goldPressed: Color(0xFFB8903A),
+    ctaFill: Color(0xFFD8C0A8),
+    formSurface: Color(0xFFF0E8E0),
     ink: Color(0xFF1C1B1A),
     surface: Color(0xFFFDFBF7),
     paper: Color(0xFFFFFFFF),
@@ -95,7 +104,6 @@ class KhTokens extends ThemeExtension<KhTokens> {
   Color get goldIconCircle => gold.withValues(alpha: 0.14);
   Color get goldNumber => gold.withValues(alpha: 0.16);
   Color get goldStepperPlus => gold.withValues(alpha: 0.22);
-  Color get goldNavPill => gold.withValues(alpha: 0.28);
   Color get goldRing => gold.withValues(alpha: 0.50);
   Color get goldDashed => gold.withValues(alpha: 0.70);
 
@@ -106,7 +114,8 @@ class KhTokens extends ThemeExtension<KhTokens> {
   KhTokens copyWith({
     Color? gold,
     Color? goldDark,
-    Color? goldPressed,
+    Color? ctaFill,
+    Color? formSurface,
     Color? ink,
     Color? surface,
     Color? paper,
@@ -121,7 +130,8 @@ class KhTokens extends ThemeExtension<KhTokens> {
       KhTokens(
         gold: gold ?? this.gold,
         goldDark: goldDark ?? this.goldDark,
-        goldPressed: goldPressed ?? this.goldPressed,
+        ctaFill: ctaFill ?? this.ctaFill,
+        formSurface: formSurface ?? this.formSurface,
         ink: ink ?? this.ink,
         surface: surface ?? this.surface,
         paper: paper ?? this.paper,
@@ -165,6 +175,9 @@ class KhRadius {
   /// Denomination chips, segmented track, service icon badge.
   double get chipMd => 10;
 
+  /// Primary filled / outlined buttons (48 px height, flat rectangle).
+  double get button => 10;
+
   /// Inputs, purity chips, thumbnails.
   double get md => 12;
 
@@ -177,7 +190,7 @@ class KhRadius {
   /// Kept for existing callers.
   double get lg => 20;
 
-  /// 48 px buttons (fully rounded).
+  /// Fully rounded chips and legacy callers. Primary buttons use [button].
   double get pill => 24;
 
   /// Circles, dots, badges.
