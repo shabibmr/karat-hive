@@ -121,11 +121,20 @@ class MediaUploader {
           );
     return intent.when(
       ok: (i) async {
+        final host = Uri.tryParse(i.uploadUrl)?.host;
         debugPrint(
-          '[MediaUploader] PUT ${Uri.tryParse(i.uploadUrl)?.host} key=${i.key} '
+          '[MediaUploader] PUT $host key=${i.key} '
           'type=$contentType bytes=$length declaredMax=${i.maxBytes} '
           'headers=${i.requiredHeaders.keys.toList()}',
         );
+        onDebug?.call('upload.put', {
+          'host': host,
+          'key': i.key,
+          'contentType': contentType,
+          'bytes': length,
+          'declaredMax': i.maxBytes,
+          'headers': i.requiredHeaders.keys.toList(),
+        });
         final Response<dynamic> res;
         try {
           res = await _dio.put<dynamic>(
@@ -150,15 +159,26 @@ class MediaUploader {
             '[MediaUploader] PUT DioException (${e.type}): ${e.message}, '
             'status=${e.response?.statusCode}, body=${e.response?.data}',
           );
+          onDebug?.call('upload.putDioException', {
+            'type': e.type.name,
+            'message': e.message,
+            'status': e.response?.statusCode,
+            'body': e.response?.data,
+          });
           return Err<String>(ServerFailure(message: e.message ?? 'Upload failed. Try again.'));
         } catch (e) {
           debugPrint('[MediaUploader] PUT error: $e');
+          onDebug?.call('upload.putError', {'error': e.toString()});
           return Err<String>(ServerFailure(message: e.toString()));
         }
         if ((res.statusCode ?? 0) >= 300) {
           debugPrint(
             '[MediaUploader] PUT rejected status=${res.statusCode}, body=${res.data}',
           );
+          onDebug?.call('upload.putRejected', {
+            'status': res.statusCode,
+            'body': res.data,
+          });
           return const Err<String>(ServerFailure(message: 'Upload failed. Try again.'));
         }
         onProgress?.call(1);
@@ -166,6 +186,7 @@ class MediaUploader {
         final fail = done.failureOrNull;
         if (fail != null) {
           debugPrint('[MediaUploader] complete failed key=${i.key}: $fail');
+          onDebug?.call('upload.completeFailed', {'key': i.key, 'failure': fail.toString()});
           return Err<String>(fail);
         }
         var currentState = done.valueOrNull;

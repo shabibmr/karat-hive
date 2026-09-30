@@ -298,4 +298,35 @@ void main() {
     expect(capturedPurpose, 'KYC_DOCUMENT');
     expect(result.valueOrNull, 'kyc-key');
   });
+
+  test('onDebug receives diagnostic events across upload lifecycle', () async {
+    when(
+      () => api.uploadIntent(
+        purpose: any(named: 'purpose'),
+        contentType: any(named: 'contentType'),
+        byteSize: any(named: 'byteSize'),
+      ),
+    ).thenAnswer((_) async => Ok(_intent(key: 'debug-key', uploadUrl: 'https://cdn.example.com/put')));
+    when(() => api.completeUpload('debug-key')).thenAnswer((_) async => const Ok('READY'));
+
+    final events = <String, Map<String, Object?>>{};
+    final up = MediaUploader(
+      api,
+      putClient: _putDio(statusCode: 403),
+      pollInterval: Duration.zero,
+      onDebug: (ev, data) => events[ev] = data,
+    );
+
+    final result = await up.upload(
+      file,
+      purpose: MediaUploadPurpose.requestImage,
+      contentType: 'image/png',
+    );
+
+    expect(result.failureOrNull, isNotNull);
+    expect(events.keys, containsAll(['upload.start', 'upload.put', 'upload.putRejected']));
+    expect(events['upload.putRejected']?['status'], 403);
+    expect(events['upload.put']?['host'], 'cdn.example.com');
+  });
 }
+
