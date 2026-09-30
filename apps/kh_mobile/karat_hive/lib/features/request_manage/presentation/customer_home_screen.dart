@@ -9,14 +9,13 @@ import '../../../app/guards.dart';
 import '../../request_create/controller/request_create_controller.dart';
 import '../../request_create/pending_publish_intent.dart';
 import '../../request_create/routes.dart';
-import '../controller/customer_home_controller.dart';
 
 /// CUS-S02 Customer Home / Dashboard, Direction 1a
 /// (`docs/UI-Design-Context.md` §7.1).
 ///
 /// Header (tracked KARAT HIVE · bell) → hero carousel → service grid →
-/// My activity stats → "How this works" panel. The open-request list is not
-/// here; it lives under the My Requests tab.
+/// "How this works" panel. The open-request list is not here; it lives under
+/// the My Requests tab.
 
 class CustomerHomeScreen extends ConsumerWidget {
   const CustomerHomeScreen({super.key});
@@ -32,10 +31,8 @@ class CustomerHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
-    final typography = context.typography;
     final textTheme = Theme.of(context).textTheme;
     final s = KhStrings.of(context);
-    final summary = ref.watch(customerHomeControllerProvider);
 
     // Jewellery photography behind the display lines (visual pass H01 / Home-1).
     const heroPhoto = AssetImage('assets/images/hero_jewellery.webp');
@@ -76,11 +73,6 @@ class CustomerHomeScreen extends ConsumerWidget {
       ),
     ];
 
-    // Counts show as "–" while loading so the strip doesn't jump in.
-    final data = summary.value;
-    String count(int Function(CustomerHomeSummary d) pick) =>
-        data == null ? '–' : '${pick(data)}';
-
     return Scaffold(
       key: const Key('customer-home-screen'),
       body: SafeArea(
@@ -100,160 +92,81 @@ class CustomerHomeScreen extends ConsumerWidget {
                   onAlerts: () => context.go(AppGuards.customerAlerts),
                 ),
                 Expanded(
-                  child: KhPullToRefresh(
-                    onRefresh: () => ref
-                        .read(customerHomeControllerProvider.notifier)
-                        .refresh(),
-                    child: ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsetsDirectional.fromSTEB(
-                        tokens.space.md,
-                        tokens.space.xs,
-                        tokens.space.md,
-                        tokens.space.lg,
-                      ),
-                      children: [
-                        if (ref.watch(pendingPublishIntentProvider)) ...[
-                          _RetryPublicationBanner(
-                            key: const Key('retry-publication-banner'),
-                            onRetry: () => ref
-                                .read(requestCreateControllerProvider.notifier)
-                                .reconcilePendingPublish(),
-                          ),
-                          SizedBox(height: tokens.space.md),
-                        ],
-                        KhHeroCarousel(
-                          key: const Key('customer-home-hero'),
-                          slides: slides,
-                          dotLabel: (i, n) => s
-                              .s('cus.home.heroDot')
-                              .replaceAll('{n}', '${i + 1}')
-                              .replaceAll('{count}', '$n'),
-                          nextLabel: s.s('cus.home.heroNext'),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(
-                            top: tokens.space.lg,
-                            bottom: tokens.space.s12,
-                          ),
-                          child: Semantics(
-                            header: true,
-                            child: Text(
-                              s.s('cus.home.whatTitle'),
-                              style: textTheme.headlineMedium,
-                            ),
-                          ),
-                        ),
-                        KhServiceGrid(
-                          children: [
-                            for (final service in services)
-                              KhServiceCard(
-                                key: service.key,
-                                title: service.title,
-                                image: service.image,
-                                onTap: () =>
-                                    _openService(context, ref, service.type),
-                              ),
-                          ],
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(
-                            top: tokens.space.s22,
-                            bottom: tokens.space.xs,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Semantics(
-                                  header: true,
-                                  child: Text(
-                                    s.s('cus.home.activity'),
-                                    style: typography.blockTitle,
-                                  ),
-                                ),
-                              ),
-                              TextButton(
-                                key: const Key('customer-home-view-all'),
-                                onPressed: () =>
-                                    context.go(AppGuards.customerRequests),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      s.s('cus.home.viewAll'),
-                                      style: typography.linkSmall,
-                                    ),
-                                    SizedBox(width: tokens.space.xxs),
-                                    // chevron_right mirrors in RTL.
-                                    const Icon(Icons.chevron_right, size: 18),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (summary.hasError && data == null)
-                          KhErrorView(
-                            message: s.s('cus.home.error'),
-                            onRetry: () => ref
-                                .read(customerHomeControllerProvider.notifier)
-                                .refresh(),
-                            retryLabel: s.s('common.retry'),
-                          )
-                        else
-                          KhStatStrip(
-                            items: [
-                              KhStatItem(
-                                key: const Key('summary-open'),
-                                icon: Icons.description_outlined,
-                                value: count((d) => d.openRequests),
-                                label: s.s('cus.home.summaryOpen'),
-                                onTap: () =>
-                                    context.go(AppGuards.customerRequests),
-                              ),
-                              KhStatItem(
-                                key: const Key('summary-offers'),
-                                icon: Icons.local_offer_outlined,
-                                value: count((d) => d.offersWaiting),
-                                label: s.s('cus.home.summaryOffers'),
-                                onTap: () =>
-                                    context.go(AppGuards.customerRequests),
-                              ),
-                              KhStatItem(
-                                key: const Key('summary-connections'),
-                                icon: Icons.handshake_outlined,
-                                value: count((d) => d.connections),
-                                label: s.s('cus.home.summaryConnections'),
-                                onTap: () =>
-                                    context.go(AppGuards.customerConnections),
-                              ),
-                            ],
-                          ),
-                        SizedBox(height: tokens.space.s22),
-                        KhHowItWorksPanel(
-                          key: const Key('customer-home-how'),
-                          title: s.s('cus.home.howTitle'),
-                          steps: [
-                            KhHowStep(
-                              label: s.s('cus.home.step.post'),
-                              icon: Icons.post_add,
-                            ),
-                            KhHowStep(
-                              label: s.s('cus.home.step.offers'),
-                              icon: Icons.groups_outlined,
-                            ),
-                            KhHowStep(
-                              label: s.s('cus.home.step.accept'),
-                              icon: Icons.balance,
-                            ),
-                            KhHowStep(
-                              label: s.s('cus.home.step.whatsApp'),
-                              icon: Icons.handshake_outlined,
-                            ),
-                          ],
-                        ),
-                      ],
+                  child: ListView(
+                    padding: EdgeInsetsDirectional.fromSTEB(
+                      tokens.space.md,
+                      tokens.space.xs,
+                      tokens.space.md,
+                      tokens.space.lg,
                     ),
+                    children: [
+                      if (ref.watch(pendingPublishIntentProvider)) ...[
+                        _RetryPublicationBanner(
+                          key: const Key('retry-publication-banner'),
+                          onRetry: () => ref
+                              .read(requestCreateControllerProvider.notifier)
+                              .reconcilePendingPublish(),
+                        ),
+                        SizedBox(height: tokens.space.md),
+                      ],
+                      KhHeroCarousel(
+                        key: const Key('customer-home-hero'),
+                        slides: slides,
+                        dotLabel: (i, n) => s
+                            .s('cus.home.heroDot')
+                            .replaceAll('{n}', '${i + 1}')
+                            .replaceAll('{count}', '$n'),
+                        nextLabel: s.s('cus.home.heroNext'),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: tokens.space.lg,
+                          bottom: tokens.space.s12,
+                        ),
+                        child: Semantics(
+                          header: true,
+                          child: Text(
+                            s.s('cus.home.whatTitle'),
+                            style: textTheme.headlineMedium,
+                          ),
+                        ),
+                      ),
+                      KhServiceGrid(
+                        children: [
+                          for (final service in services)
+                            KhServiceCard(
+                              key: service.key,
+                              title: service.title,
+                              image: service.image,
+                              onTap: () =>
+                                  _openService(context, ref, service.type),
+                            ),
+                        ],
+                      ),
+                      SizedBox(height: tokens.space.s22),
+                      KhHowItWorksPanel(
+                        key: const Key('customer-home-how'),
+                        title: s.s('cus.home.howTitle'),
+                        steps: [
+                          KhHowStep(
+                            label: s.s('cus.home.step.post'),
+                            icon: Icons.post_add,
+                          ),
+                          KhHowStep(
+                            label: s.s('cus.home.step.offers'),
+                            icon: Icons.groups_outlined,
+                          ),
+                          KhHowStep(
+                            label: s.s('cus.home.step.accept'),
+                            icon: Icons.balance,
+                          ),
+                          KhHowStep(
+                            label: s.s('cus.home.step.whatsApp'),
+                            icon: Icons.handshake_outlined,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
