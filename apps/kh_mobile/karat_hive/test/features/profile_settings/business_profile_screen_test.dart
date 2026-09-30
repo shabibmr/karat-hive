@@ -160,7 +160,10 @@ void main() {
         child: const BusinessProfileScreen(),
       ),
     );
-    await tester.pumpAndSettle();
+    // The logo's network placeholder spins until the (blocked) request ends,
+    // so pumpAndSettle would never return.
+    await tester.pump();
+    await tester.pump();
 
     expect(find.text('Change logo'), findsOneWidget);
     expect(find.text('Upload logo'), findsNothing);

@@ -14,6 +14,8 @@ import '../helpers/fake_session.dart';
 
 Widget _host({required List<Override> overrides}) {
   return ProviderScope(
+    // Riverpod 3 retries failed providers and stays in loading meanwhile.
+    retry: (_, _) => null,
     overrides: overrides,
     child: MaterialApp(
       theme: khTheme(),
