@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
 
@@ -18,6 +18,10 @@ enum MediaUploadPurpose {
   final String wire;
 }
 
+/// Receives diagnostic events from [MediaUploader]. Kept as a plain callback so
+/// this package stays free of any logging backend.
+typedef UploadDebugSink = void Function(String event, Map<String, Object?> data);
+
 /// Shared upload pipeline: intent → PUT bytes → complete → poll `READY`.
 ///
 /// Pass `awaitReady: false` to return as soon as the server has accepted the
@@ -30,6 +34,7 @@ class MediaUploader {
     this.pollInterval = const Duration(seconds: 2),
     this.maxPolls = 30,
     Future<void> Function(Duration duration)? sleep,
+    this.onDebug,
   })  : _putClient = putClient,
         _sleep = sleep ?? Future<void>.delayed;
 
@@ -37,6 +42,7 @@ class MediaUploader {
   final Dio? _putClient;
   final Duration pollInterval;
   final int maxPolls;
+  final UploadDebugSink? onDebug;
   final Future<void> Function(Duration duration) _sleep;
 
   Dio? _defaultPutClient;
@@ -98,6 +104,12 @@ class MediaUploader {
     bool awaitReady = true,
   }) async {
     final length = bytes.length;
+    onDebug?.call('upload.start', {
+      'purpose': purpose.wire,
+      'contentType': contentType,
+      'bytes': length,
+      'awaitReady': awaitReady,
+    });
     final canReusePrefetched =
         prefetchedIntent != null && prefetchedIntent.maxBytes >= length;
     final Result<UploadIntent> intent = canReusePrefetched
@@ -109,6 +121,11 @@ class MediaUploader {
           );
     return intent.when(
       ok: (i) async {
+        debugPrint(
+          '[MediaUploader] PUT ${Uri.tryParse(i.uploadUrl)?.host} key=${i.key} '
+          'type=$contentType bytes=$length declaredMax=${i.maxBytes} '
+          'headers=${i.requiredHeaders.keys.toList()}',
+        );
         final Response<dynamic> res;
         try {
           res = await _dio.put<dynamic>(
@@ -129,17 +146,28 @@ class MediaUploader {
                   },
           );
         } on DioException catch (e) {
+          debugPrint(
+            '[MediaUploader] PUT DioException (${e.type}): ${e.message}, '
+            'status=${e.response?.statusCode}, body=${e.response?.data}',
+          );
           return Err<String>(ServerFailure(message: e.message ?? 'Upload failed. Try again.'));
         } catch (e) {
+          debugPrint('[MediaUploader] PUT error: $e');
           return Err<String>(ServerFailure(message: e.toString()));
         }
         if ((res.statusCode ?? 0) >= 300) {
+          debugPrint(
+            '[MediaUploader] PUT rejected status=${res.statusCode}, body=${res.data}',
+          );
           return const Err<String>(ServerFailure(message: 'Upload failed. Try again.'));
         }
         onProgress?.call(1);
         final done = await _api.completeUpload(i.key);
         final fail = done.failureOrNull;
-        if (fail != null) return Err<String>(fail);
+        if (fail != null) {
+          debugPrint('[MediaUploader] complete failed key=${i.key}: $fail');
+          return Err<String>(fail);
+        }
         var currentState = done.valueOrNull;
         if (awaitReady && currentState != 'READY') {
           for (var n = 0; n < maxPolls; n++) {

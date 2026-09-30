@@ -8,6 +8,7 @@ import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_media/kh_media.dart';
 
 import '../../../app/di.dart';
+import '../../../core/firebase/firestore_debug_logger.dart';
 
 class DraftSaveResult {
   const DraftSaveResult({required this.request, this.warnings = const []});
@@ -134,5 +135,16 @@ class RequestCreateRepository {
 }
 
 final requestCreateRepositoryProvider = Provider<RequestCreateRepository>(
-  (ref) => RequestCreateRepository(ref.watch(khApiProvider)),
+  (ref) {
+    final api = ref.watch(khApiProvider);
+    return RequestCreateRepository(
+      api,
+      media: MediaUploader(
+        api,
+        onDebug: ref
+            .watch(firestoreDebugLoggerProvider)
+            .sinkFor('RequestImageUpload'),
+      ),
+    );
+  },
 );
