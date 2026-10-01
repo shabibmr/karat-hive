@@ -109,24 +109,27 @@ OfferTerms _offerTermsFromJsonWithMedia(
 }
 
 Map<String, dynamic> _normalizeOfferForCustomerJson(Map<String, dynamic> json) {
-  final mediaRaw = json['media'] as List?;
+  final root = _unwrapOfferResource(json);
+  final mediaRaw = root['media'] as List?;
   final media = (mediaRaw ?? const [])
       .map((e) => MediaRef.fromJson(_map(e)))
       .toList(growable: false);
   return {
-    ...json,
-    'state': json['state']?.toString(),
-    'terms': _offerTermsFromJsonWithMedia(_map(json['terms']), media: media).toJson(),
-    'vendor': MaskedParty.fromJson(_map(json['vendor']), role: PartyRole.vendor).toJson(),
+    ...root,
+    'id': root['id']?.toString() ?? '',
+    'requestId': root['requestId']?.toString() ?? '',
+    'state': root['state']?.toString(),
+    'terms': _offerTermsFromJsonWithMedia(_map(root['terms']), media: media).toJson(),
+    'vendor': MaskedParty.fromJson(_map(root['vendor']), role: PartyRole.vendor).toJson(),
     'submittedAt':
-        (_dt(json['submittedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+        (_dt(root['submittedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
             .toIso8601String(),
-    'expiresAt': (_dt(json['expiresAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+    'expiresAt': (_dt(root['expiresAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
         .toIso8601String(),
-    'decidedAt': _dt(json['decidedAt'])?.toIso8601String(),
-    'revisionCount': (json['revisionCount'] as num?)?.toInt() ?? 0,
-    'viewedByCustomerAt': _dt(json['viewedByCustomerAt'])?.toIso8601String(),
-    'viewedByCustomerAtPresent': json.containsKey('viewedByCustomerAt'),
+    'decidedAt': _dt(root['decidedAt'])?.toIso8601String(),
+    'revisionCount': (root['revisionCount'] as num?)?.toInt() ?? 0,
+    'viewedByCustomerAt': _dt(root['viewedByCustomerAt'])?.toIso8601String(),
+    'viewedByCustomerAtPresent': root.containsKey('viewedByCustomerAt'),
   };
 }
 
@@ -158,8 +161,10 @@ abstract class OfferForCustomer with _$OfferForCustomer {
 Map<String, dynamic> _normalizeReviewExcerptJson(Map<String, dynamic> json) => {
       'abbreviatedName': (json['abbreviatedName'] ??
               json['authorDisplayName'] ??
+              json['reviewerLabel'] ??
               json['reviewer'] ??
-              '') as String,
+              '')
+          .toString(),
       'rating': (json['rating'] as num?)?.toInt() ?? 0,
       'comment': json['comment'] as String?,
     };
@@ -184,14 +189,20 @@ Map<String, dynamic> _ratingSummaryToJson(RatingSummary summary) =>
 
 Map<String, dynamic> _normalizeVendorRatingDetailJson(
     Map<String, dynamic> json) {
-  final excerptsRaw = json['excerpts'] ?? json['reviews'] ?? json['recentReviews'];
+  final root = _unwrapOfferResource(json);
+  final excerptsRaw =
+      root['excerpts'] ?? root['reviews'] ?? root['recentReviews'];
   final excerpts = <Map<String, dynamic>>[];
   if (excerptsRaw is List) {
     for (final e in excerptsRaw.take(10)) {
       excerpts.add(_map(e));
     }
   }
-  final summaryJson = json['summary'] ?? json['rating'] ?? json;
+  final vendor = root['vendor'];
+  final vendorRating =
+      vendor is Map ? vendor['rating'] : null;
+  final summaryJson =
+      root['summary'] ?? root['rating'] ?? vendorRating ?? root;
   return {
     'summary': summaryJson,
     'excerpts': excerpts,
