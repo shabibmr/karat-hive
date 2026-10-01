@@ -41,8 +41,9 @@ const storageLog = new Logger('ObjectStorage');
 export function selectObjectStorage(env: Env) {
   if (env.NODE_ENV === 'test') return new LocalDiskStorageAdapter();
   if (ociS3Configured(env)) return new OciS3StorageAdapter(env);
+  if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) return new SupabaseStorageAdapter(env);
   storageLog.warn(
-    'OCI S3 credentials are unset. Object storage stays on Supabase until OCI_S3_NAMESPACE, OCI_S3_ACCESS_KEY_ID, and OCI_S3_SECRET_ACCESS_KEY are set (adr/0013).',
+    'Neither OCI S3 nor Supabase credentials are set. Object storage falling back to LocalDiskStorageAdapter.',
   );
-  return new SupabaseStorageAdapter(env);
+  return new LocalDiskStorageAdapter();
 }

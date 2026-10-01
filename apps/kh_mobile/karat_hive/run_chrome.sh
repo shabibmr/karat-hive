@@ -36,6 +36,7 @@ cd "${APP_DIR}"
 flutter run -d chrome \
   --web-port="${WEB_PORT}" \
   --base-href="${BASE_HREF}" \
+  --web-browser-flag="--disable-web-security" \
   --dart-define="KH_API_BASE_URL=${API_BASE}" \
   --dart-define="KH_API_BASE=${API_BASE}" \
   --dart-define="KH_FLAVOR=${FLAVOR}" \

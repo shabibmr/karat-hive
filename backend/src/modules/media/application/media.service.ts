@@ -88,7 +88,7 @@ export class MediaService {
       );
       await this.audit.append(tx, {
         actorUserId: viewer.userId,
-        action: 'KYC_UPLOAD_INTENT',
+        action: dto.purpose === 'KYC_DOCUMENT' ? 'KYC_UPLOAD_INTENT' : 'MEDIA_UPLOAD_INTENT',
         entityType: 'media',
         entityId: created.id,
         afterValue: { key, purpose: dto.purpose, objectKey },

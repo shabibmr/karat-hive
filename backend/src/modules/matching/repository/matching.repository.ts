@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma, RequestType } from '@prisma/client';
 import { PrismaService } from '../../../platform/db/prisma.service';
+import { withTx } from '../../../platform/db/tx';
+import { enqueueOutbox } from '../../../platform/outbox/outbox.producer';
 import type { MatchesFilterDto } from '../domain/matching-engine';
 
 /** Live Type Subscription: stored ACTIVE/GRACE and still within periodEnd or graceEndsAt. */
@@ -24,83 +26,130 @@ export class MatchingRepository {
     requestType: RequestType,
     now: Date = new Date(),
   ): Promise<number> {
-    // Eligibility gates on VERIFIED + ACTIVE + an active Type Subscription only
-    // (BR-002) — every subscribed Vendor sees every Request of that type.
-    const eligibleVendors = await this.prisma.vendorProfile.findMany({
-      where: {
-        verificationState: 'VERIFIED',
-        activatedAt: { not: null },
-        user: { accountState: 'ACTIVE', deletedAt: null },
-        subscriptions: {
-          some: liveSubscriptionWhere(now, requestType),
+    return withTx(this.prisma, async (tx) => {
+      // Eligibility gates on VERIFIED + ACTIVE + an active Type Subscription only
+      // (BR-002) — every subscribed Vendor sees every Request of that type.
+      const eligibleVendors = await tx.vendorProfile.findMany({
+        where: {
+          verificationState: 'VERIFIED',
+          activatedAt: { not: null },
+          user: { accountState: 'ACTIVE', deletedAt: null },
+          subscriptions: {
+            some: liveSubscriptionWhere(now, requestType),
+          },
         },
-      },
-      select: { id: true },
+        select: { id: true, user: { select: { id: true } } },
+      });
+
+      if (eligibleVendors.length === 0) return 0;
+
+      const res = await tx.requestMatch.createMany({
+        data: eligibleVendors.map((v) => ({
+          requestId,
+          vendorProfileId: v.id,
+          matchedAt: now,
+          isEligible: true,
+        })),
+        skipDuplicates: true,
+      });
+
+      if (res.count > 0) {
+        // matchedAt = now uniquely identifies rows this batch actually inserted,
+        // as opposed to ones skipDuplicates silently left untouched.
+        const newlyMatched = await tx.requestMatch.findMany({
+          where: {
+            requestId,
+            matchedAt: now,
+            vendorProfileId: { in: eligibleVendors.map((v) => v.id) },
+          },
+          select: { vendorProfileId: true },
+        });
+        const vendorUserIdByProfile = new Map(eligibleVendors.map((v) => [v.id, v.user.id]));
+        for (const m of newlyMatched) {
+          const vendorUserId = vendorUserIdByProfile.get(m.vendorProfileId);
+          if (!vendorUserId) continue;
+          await enqueueOutbox(tx, {
+            eventType: 'request.matched',
+            aggregateType: 'request_match',
+            aggregateId: `${requestId}:${m.vendorProfileId}`,
+            payload: { vendorUserId, requestId },
+          });
+        }
+      }
+
+      return res.count;
     });
-
-    if (eligibleVendors.length === 0) return 0;
-
-    const res = await this.prisma.requestMatch.createMany({
-      data: eligibleVendors.map((v) => ({
-        requestId,
-        vendorProfileId: v.id,
-        matchedAt: now,
-        isEligible: true,
-      })),
-      skipDuplicates: true,
-    });
-
-    return res.count;
   }
 
   async recomputeForVendor(vendorProfileId: string, now: Date = new Date()): Promise<number> {
-    const vendor = await this.prisma.vendorProfile.findUnique({
-      where: { id: vendorProfileId },
-      include: {
-        user: true,
-        subscriptions: {
-          where: liveSubscriptionWhere(now),
+    return withTx(this.prisma, async (tx) => {
+      const vendor = await tx.vendorProfile.findUnique({
+        where: { id: vendorProfileId },
+        include: {
+          user: true,
+          subscriptions: {
+            where: liveSubscriptionWhere(now),
+          },
         },
-      },
+      });
+
+      if (
+        !vendor ||
+        vendor.verificationState !== 'VERIFIED' ||
+        vendor.activatedAt === null ||
+        vendor.user.accountState !== 'ACTIVE'
+      ) {
+        return 0;
+      }
+
+      const subTypes = vendor.subscriptions.map((s) => s.requestType);
+
+      if (subTypes.length === 0) {
+        return 0;
+      }
+
+      const eligibleRequests = await tx.request.findMany({
+        where: {
+          state: 'PUBLISHED',
+          expiresAt: { gt: now },
+          requestType: { in: subTypes },
+        },
+        select: { id: true },
+      });
+
+      if (eligibleRequests.length === 0) return 0;
+
+      const res = await tx.requestMatch.createMany({
+        data: eligibleRequests.map((r) => ({
+          requestId: r.id,
+          vendorProfileId,
+          matchedAt: now,
+          isEligible: true,
+        })),
+        skipDuplicates: true,
+      });
+
+      if (res.count > 0) {
+        const newlyMatched = await tx.requestMatch.findMany({
+          where: {
+            vendorProfileId,
+            matchedAt: now,
+            requestId: { in: eligibleRequests.map((r) => r.id) },
+          },
+          select: { requestId: true },
+        });
+        for (const m of newlyMatched) {
+          await enqueueOutbox(tx, {
+            eventType: 'request.matched',
+            aggregateType: 'request_match',
+            aggregateId: `${m.requestId}:${vendorProfileId}`,
+            payload: { vendorUserId: vendor.user.id, requestId: m.requestId },
+          });
+        }
+      }
+
+      return res.count;
     });
-
-    if (
-      !vendor ||
-      vendor.verificationState !== 'VERIFIED' ||
-      vendor.activatedAt === null ||
-      vendor.user.accountState !== 'ACTIVE'
-    ) {
-      return 0;
-    }
-
-    const subTypes = vendor.subscriptions.map((s) => s.requestType);
-
-    if (subTypes.length === 0) {
-      return 0;
-    }
-
-    const eligibleRequests = await this.prisma.request.findMany({
-      where: {
-        state: 'PUBLISHED',
-        expiresAt: { gt: now },
-        requestType: { in: subTypes },
-      },
-      select: { id: true },
-    });
-
-    if (eligibleRequests.length === 0) return 0;
-
-    const res = await this.prisma.requestMatch.createMany({
-      data: eligibleRequests.map((r) => ({
-        requestId: r.id,
-        vendorProfileId,
-        matchedAt: now,
-        isEligible: true,
-      })),
-      skipDuplicates: true,
-    });
-
-    return res.count;
   }
 
   async markMatchViewed(

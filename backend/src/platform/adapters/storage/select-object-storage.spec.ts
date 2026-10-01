@@ -24,7 +24,7 @@ describe('selectObjectStorage', () => {
     expect(selectObjectStorage(env).constructor.name).toBe('OciS3StorageAdapter');
   });
 
-  it('falls back to Supabase when OCI credentials are unset', () => {
+  it('falls back to Supabase when OCI credentials are unset but Supabase credentials are present', () => {
     const env = {
       NODE_ENV: 'development',
       SUPABASE_URL: 'https://example.supabase.co',
@@ -33,5 +33,13 @@ describe('selectObjectStorage', () => {
     } as Env;
     expect(ociS3Configured(env)).toBe(false);
     expect(selectObjectStorage(env).constructor.name).toBe('SupabaseStorageAdapter');
+  });
+
+  it('falls back to local disk storage when both OCI and Supabase credentials are unset', () => {
+    const env = {
+      NODE_ENV: 'development',
+    } as Env;
+    expect(ociS3Configured(env)).toBe(false);
+    expect(selectObjectStorage(env).constructor.name).toBe('LocalDiskStorageAdapter');
   });
 });
