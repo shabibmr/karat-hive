@@ -209,23 +209,34 @@ RevealedParty _vendorPartyFromJson(Object? raw) =>
 RevealedParty _customerPartyFromJson(Object? raw) =>
     RevealedParty.fromCustomerJson(_map(raw));
 
+/// Peels a mistaken extra `{ data: connection }` layer from double-enveloped
+/// responses (controller returned `{ data }` and EnvelopeInterceptor wrapped
+/// again). Prefer fixing the controller; this keeps older deployments parseable.
+Map<String, dynamic> _unwrapConnectionResource(Map<String, dynamic> json) {
+  if (json['id'] != null) return json;
+  final nested = json['data'];
+  if (nested is Map) return _map(nested);
+  return json;
+}
+
 Map<String, dynamic> _normalizeConnectionForCustomerJson(
     Map<String, dynamic> json) {
-  final accepted = json['acceptedOffer'] ?? json['offer'];
+  final root = _unwrapConnectionResource(json);
+  final accepted = root['acceptedOffer'] ?? root['offer'];
   return {
-    ...json,
-    'state': json['state']?.toString(),
+    ...root,
+    'state': root['state']?.toString(),
     'identityRevealedAt':
-        (_dt(json['identityRevealedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+        (_dt(root['identityRevealedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
             .toIso8601String(),
     'request':
-        json['request'] == null ? null : _map(json['request']),
+        root['request'] == null ? null : _map(root['request']),
     'acceptedOffer': accepted == null ? null : _map(accepted),
-    'closedAt': _dt(json['closedAt'])?.toIso8601String(),
-    'closedBy': json['closedBy']?.toString(),
-    'createdAt': _dt(json['createdAt'])?.toIso8601String(),
-    'myReview': json['myReview'] is Map
-        ? Map<String, dynamic>.from(json['myReview'] as Map)
+    'closedAt': _dt(root['closedAt'])?.toIso8601String(),
+    'closedBy': root['closedBy']?.toString(),
+    'createdAt': _dt(root['createdAt'])?.toIso8601String(),
+    'myReview': root['myReview'] is Map
+        ? Map<String, dynamic>.from(root['myReview'] as Map)
         : null,
   };
 }
@@ -255,11 +266,19 @@ abstract class ConnectionForCustomer with _$ConnectionForCustomer {
 }
 
 Map<String, dynamic> _normalizeAcceptOfferResultJson(
-        Map<String, dynamic> json) =>
-    {
-      'offer': _map(json['offer']),
-      'connection': _map(json['connection']),
-    };
+    Map<String, dynamic> json) {
+  // Same double-envelope peel as offers: older deploys returned `{ data }`
+  // without `meta`, so clients that unwrap once still see `{ data: result }`.
+  final root = (json['offer'] == null &&
+          json['connection'] == null &&
+          json['data'] is Map)
+      ? _map(json['data'])
+      : json;
+  return {
+    'offer': _map(root['offer']),
+    'connection': _map(root['connection']),
+  };
+}
 
 /// `POST /v1/offers/{id}/accept` success body.
 @freezed
@@ -275,19 +294,20 @@ abstract class AcceptOfferResult with _$AcceptOfferResult {
 
 Map<String, dynamic> _normalizeConnectionForVendorJson(
     Map<String, dynamic> json) {
-  final accepted = json['acceptedOffer'] ?? json['offer'];
+  final root = _unwrapConnectionResource(json);
+  final accepted = root['acceptedOffer'] ?? root['offer'];
   return {
-    ...json,
-    'state': json['state']?.toString(),
+    ...root,
+    'state': root['state']?.toString(),
     'identityRevealedAt':
-        (_dt(json['identityRevealedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+        (_dt(root['identityRevealedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
             .toIso8601String(),
     'request':
-        json['request'] == null ? null : _map(json['request']),
+        root['request'] == null ? null : _map(root['request']),
     'acceptedOffer': accepted == null ? null : _map(accepted),
-    'closedAt': _dt(json['closedAt'])?.toIso8601String(),
-    'closedBy': json['closedBy']?.toString(),
-    'createdAt': _dt(json['createdAt'])?.toIso8601String(),
+    'closedAt': _dt(root['closedAt'])?.toIso8601String(),
+    'closedBy': root['closedBy']?.toString(),
+    'createdAt': _dt(root['createdAt'])?.toIso8601String(),
   };
 }
 

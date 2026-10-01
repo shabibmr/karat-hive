@@ -77,6 +77,23 @@ Result<VendorRatingDetail> _parseVendorRatingDetail(dynamic raw) {
   }
 }
 
+Result<AcceptOfferResult> _parseAcceptOfferResult(dynamic raw) {
+  try {
+    if (raw is! Map) {
+      return const Err(ServerFailure(
+        code: 'BAD_RESPONSE',
+        message: 'Accept response was not an object.',
+      ));
+    }
+    return Ok(AcceptOfferResult.fromJson(Map<String, dynamic>.from(raw)));
+  } catch (_) {
+    return const Err(ServerFailure(
+      code: 'BAD_RESPONSE',
+      message: 'Could not read accept response.',
+    ));
+  }
+}
+
 class OffersClient {
   const OffersClient(this._client);
   final KhApiClient _client;
@@ -225,10 +242,7 @@ class OffersClient {
       body: const {'confirmation': 'REVEAL_AND_CONNECT'},
       headers: {'idempotency-key': idempotencyKey},
     );
-    return r.when(
-      ok: (d) => Ok(AcceptOfferResult.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseAcceptOfferResult, err: Err.new);
   }
 
   Future<Result<OfferForCustomer>> decline(

@@ -45,12 +45,13 @@ export class ConnectionController {
     @Param('id') offerId: string,
     @Body(zodBody(acceptOfferSchema)) body: z.infer<typeof acceptOfferSchema>,
   ) {
-    const data = await this.connectionService.acceptOffer(
+    // Return the resource directly — EnvelopeInterceptor wraps `{ data, meta }`.
+    // Returning `{ data }` here double-wraps and breaks clients that unwrap once.
+    return this.connectionService.acceptOffer(
       viewer,
       offerId,
       body.confirmation,
     );
-    return { data };
   }
 
   @Get('me/connections')
@@ -71,8 +72,7 @@ export class ConnectionController {
     @Viewer() viewer: ViewerContext,
     @Param('id') connectionId: string,
   ) {
-    const data = await this.connectionService.getConnectionById(viewer, connectionId);
-    return { data };
+    return this.connectionService.getConnectionById(viewer, connectionId);
   }
 
   @Post('connections/:id/close')
@@ -82,12 +82,11 @@ export class ConnectionController {
     @Param('id') connectionId: string,
     @Body(zodBody(closeConnectionSchema)) body: z.infer<typeof closeConnectionSchema>,
   ) {
-    const data = await this.connectionService.closeConnection(
+    return this.connectionService.closeConnection(
       viewer,
       connectionId,
       body.reason,
     );
-    return { data };
   }
 
   @Post('connections/:id/contact-events')
@@ -102,6 +101,6 @@ export class ConnectionController {
       connectionId,
       body.channel,
     );
-    return { data: { success: true } };
+    return { success: true };
   }
 }
