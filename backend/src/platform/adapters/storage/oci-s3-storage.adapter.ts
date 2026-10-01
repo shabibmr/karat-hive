@@ -27,7 +27,8 @@ export function ociS3BucketNames(env: Env): string[] {
 @Injectable()
 export class OciS3StorageAdapter implements ObjectStorage {
   private readonly logger = new Logger(OciS3StorageAdapter.name);
-  private bucketsReady: Promise<void> | null = null;
+  /** Per-bucket ensure so a 403 on `kyc` cannot block `request-media` uploads. */
+  private readonly bucketReady = new Map<string, Promise<void>>();
 
   constructor(@Inject(ENV) private readonly env: Env) {}
 
@@ -49,47 +50,55 @@ export class OciS3StorageAdapter implements ObjectStorage {
     return new URL(`${this.endpoint()}/${bucket}/${encoded}`);
   }
 
+  /** Ensure every configured bucket exists (admin / boot probes). */
   ensureBuckets(): Promise<void> {
-    this.bucketsReady ??= this.createBuckets().catch((error: unknown) => {
-      this.bucketsReady = null;
-      throw error;
-    });
-    return this.bucketsReady;
+    return Promise.all(ociS3BucketNames(this.env).map((b) => this.ensureBucket(b))).then(() => undefined);
   }
 
-  private async createBuckets(): Promise<void> {
-    for (const bucket of ociS3BucketNames(this.env)) {
-      const url = new URL(`${this.endpoint()}/${bucket}`);
-      const headHeaders = signHeaders(this.identity(), {
-        method: 'HEAD',
-        url,
-        headers: { host: url.host },
-        body: new Uint8Array(),
-        now: new Date(),
+  /** Ensure only the bucket needed for the current object operation. */
+  ensureBucket(bucket: string): Promise<void> {
+    let pending = this.bucketReady.get(bucket);
+    if (!pending) {
+      pending = this.createBucketIfMissing(bucket).catch((error: unknown) => {
+        this.bucketReady.delete(bucket);
+        throw error;
       });
-      const head = await fetch(url, { method: 'HEAD', headers: headHeaders });
-      if (head.ok) continue;
-      if (head.status !== 404) {
-        throw new Error(
-          `OCI S3 head bucket ${bucket} failed: ${head.status} ${await head.text()}`,
-        );
-      }
-      const putHeaders = signHeaders(this.identity(), {
-        method: 'PUT',
-        url,
-        headers: { host: url.host },
-        body: '',
-        now: new Date(),
-      });
-      const res = await fetch(url, { method: 'PUT', headers: putHeaders });
-      if (res.ok || res.status === 409) continue;
-      const text = await res.text();
-      throw new Error(`OCI S3 create bucket ${bucket} failed: ${res.status} ${text}`);
+      this.bucketReady.set(bucket, pending);
     }
+    return pending;
+  }
+
+  private async createBucketIfMissing(bucket: string): Promise<void> {
+    const url = new URL(`${this.endpoint()}/${bucket}`);
+    const headHeaders = signHeaders(this.identity(), {
+      method: 'HEAD',
+      url,
+      headers: { host: url.host },
+      body: new Uint8Array(),
+      now: new Date(),
+    });
+    const head = await fetch(url, { method: 'HEAD', headers: headHeaders });
+    if (head.ok) return;
+    if (head.status !== 404) {
+      throw new Error(
+        `OCI S3 head bucket ${bucket} failed: ${head.status} ${await head.text()}`,
+      );
+    }
+    const putHeaders = signHeaders(this.identity(), {
+      method: 'PUT',
+      url,
+      headers: { host: url.host },
+      body: '',
+      now: new Date(),
+    });
+    const res = await fetch(url, { method: 'PUT', headers: putHeaders });
+    if (res.ok || res.status === 409) return;
+    const text = await res.text();
+    throw new Error(`OCI S3 create bucket ${bucket} failed: ${res.status} ${text}`);
   }
 
   async createSignedUploadUrl(input: CreateSignedUploadInput): Promise<SignedUpload> {
-    await this.ensureBuckets();
+    await this.ensureBucket(input.bucket);
     const url = this.objectUrl(input.bucket, input.key);
     const uploadUrl = presign(this.identity(), {
       method: 'PUT',
@@ -111,7 +120,7 @@ export class OciS3StorageAdapter implements ObjectStorage {
     key: string,
     ttlSeconds: number,
   ): Promise<SignedDownload> {
-    await this.ensureBuckets();
+    await this.ensureBucket(bucket);
     const url = this.objectUrl(bucket, key);
     return {
       url: presign(this.identity(), {
@@ -127,7 +136,7 @@ export class OciS3StorageAdapter implements ObjectStorage {
   }
 
   async headObject(bucket: string, key: string): Promise<ObjectHead | null> {
-    await this.ensureBuckets();
+    await this.ensureBucket(bucket);
     const url = this.objectUrl(bucket, key);
     const res = await this.signed('HEAD', url, {}, new Uint8Array());
     if (res.status === 404) return null;
@@ -141,7 +150,7 @@ export class OciS3StorageAdapter implements ObjectStorage {
   }
 
   async getObject(bucket: string, key: string): Promise<Buffer | null> {
-    await this.ensureBuckets();
+    await this.ensureBucket(bucket);
     const url = this.objectUrl(bucket, key);
     const res = await this.signed('GET', url, {}, new Uint8Array());
     if (res.status === 404) return null;
@@ -150,14 +159,14 @@ export class OciS3StorageAdapter implements ObjectStorage {
   }
 
   async putObject(bucket: string, key: string, body: Buffer, contentType: string): Promise<void> {
-    await this.ensureBuckets();
+    await this.ensureBucket(bucket);
     const url = this.objectUrl(bucket, key);
     const res = await this.signed('PUT', url, { 'content-type': contentType }, body);
     if (!res.ok) throw new Error(`OCI S3 put failed: ${res.status} ${await res.text()}`);
   }
 
   async deleteObject(bucket: string, key: string): Promise<void> {
-    await this.ensureBuckets();
+    await this.ensureBucket(bucket);
     const url = this.objectUrl(bucket, key);
     const res = await this.signed('DELETE', url, {}, new Uint8Array());
     if (res.status === 404) return;

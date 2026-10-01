@@ -112,105 +112,128 @@ class MediaUploader {
     });
     final canReusePrefetched =
         prefetchedIntent != null && prefetchedIntent.maxBytes >= length;
-    final Result<UploadIntent> intent = canReusePrefetched
-        ? Ok(prefetchedIntent)
-        : await _api.uploadIntent(
-            purpose: purpose.wire,
-            contentType: contentType,
-            byteSize: length,
-          );
-    return intent.when(
-      ok: (i) async {
-        final host = Uri.tryParse(i.uploadUrl)?.host;
-        debugPrint(
-          '[MediaUploader] PUT $host key=${i.key} '
-          'type=$contentType bytes=$length declaredMax=${i.maxBytes} '
-          'headers=${i.requiredHeaders.keys.toList()}',
-        );
-        onDebug?.call('upload.put', {
-          'host': host,
-          'key': i.key,
-          'contentType': contentType,
-          'bytes': length,
-          'declaredMax': i.maxBytes,
-          'headers': i.requiredHeaders.keys.toList(),
-        });
-        final Response<dynamic> res;
-        try {
-          res = await _dio.put<dynamic>(
-            i.uploadUrl,
-            data: bytes,
-            options: Options(
-              headers: {
-                ...i.requiredHeaders,
-                if (!kIsWeb) 'content-length': length,
-              },
+    final Result<UploadIntent> intent;
+    try {
+      intent = canReusePrefetched
+          ? Ok(prefetchedIntent)
+          : await _api.uploadIntent(
+              purpose: purpose.wire,
               contentType: contentType,
-            ),
-            onSendProgress: length == 0
-                ? null
-                : (sent, total) {
-                    final t = total > 0 ? total : length;
-                    onProgress?.call((sent / t).clamp(0, 1));
-                  },
-          );
-        } on DioException catch (e) {
-          debugPrint(
-            '[MediaUploader] PUT DioException (${e.type}): ${e.message}, '
-            'status=${e.response?.statusCode}, body=${e.response?.data}',
-          );
-          onDebug?.call('upload.putDioException', {
-            'type': e.type.name,
-            'message': e.message,
-            'status': e.response?.statusCode,
-            'body': e.response?.data,
-          });
-          return Err<String>(ServerFailure(message: e.message ?? 'Upload failed. Try again.'));
-        } catch (e) {
-          debugPrint('[MediaUploader] PUT error: $e');
-          onDebug?.call('upload.putError', {'error': e.toString()});
-          return Err<String>(ServerFailure(message: e.toString()));
-        }
-        if ((res.statusCode ?? 0) >= 300) {
-          debugPrint(
-            '[MediaUploader] PUT rejected status=${res.statusCode}, body=${res.data}',
-          );
-          onDebug?.call('upload.putRejected', {
-            'status': res.statusCode,
-            'body': res.data,
-          });
-          return const Err<String>(ServerFailure(message: 'Upload failed. Try again.'));
-        }
-        onProgress?.call(1);
-        final done = await _api.completeUpload(i.key);
-        final fail = done.failureOrNull;
-        if (fail != null) {
-          debugPrint('[MediaUploader] complete failed key=${i.key}: $fail');
-          onDebug?.call('upload.completeFailed', {'key': i.key, 'failure': fail.toString()});
-          return Err<String>(fail);
-        }
-        var currentState = done.valueOrNull;
-        if (awaitReady && currentState != 'READY') {
-          for (var n = 0; n < maxPolls; n++) {
-            await _sleep(pollInterval);
-            final again = await _api.completeUpload(i.key);
-            final againFail = again.failureOrNull;
-            if (againFail != null) return Err<String>(againFail);
-            currentState = again.valueOrNull;
-            if (currentState == 'READY') break;
-            if (currentState == 'QUARANTINED') {
-              return const Err<String>(
-                ValidationFailure(
-                  code: 'MEDIA_QUARANTINED',
-                  message: 'That file failed a safety check and cannot be used.',
-                ),
-              );
-            }
-          }
-        }
-        return Ok<String>(i.key);
-      },
-      err: Err<String>.new,
+              byteSize: length,
+            );
+    } catch (e) {
+      debugPrint('[MediaUploader] uploadIntent threw: $e');
+      onDebug?.call('upload.intentError', {'error': e.toString()});
+      return Err<String>(ServerFailure(message: e.toString()));
+    }
+    final intentFail = intent.failureOrNull;
+    if (intentFail != null) {
+      debugPrint(
+        '[MediaUploader] uploadIntent failed '
+        'type=${intentFail.runtimeType} code=${intentFail.code} '
+        'message=${intentFail.message}',
+      );
+      onDebug?.call('upload.intentFailed', {
+        'failureType': intentFail.runtimeType.toString(),
+        'code': intentFail.code,
+        'message': intentFail.message,
+        'fieldErrors': intentFail.fieldErrors,
+      });
+      return Err<String>(intentFail);
+    }
+    final i = intent.valueOrNull!;
+    final host = Uri.tryParse(i.uploadUrl)?.host;
+    debugPrint(
+      '[MediaUploader] PUT $host key=${i.key} '
+      'type=$contentType bytes=$length declaredMax=${i.maxBytes} '
+      'headers=${i.requiredHeaders.keys.toList()}',
     );
+    onDebug?.call('upload.put', {
+      'host': host,
+      'key': i.key,
+      'contentType': contentType,
+      'bytes': length,
+      'declaredMax': i.maxBytes,
+      'headers': i.requiredHeaders.keys.toList(),
+    });
+    final Response<dynamic> res;
+    try {
+      res = await _dio.put<dynamic>(
+        i.uploadUrl,
+        data: bytes,
+        options: Options(
+          headers: {
+            ...i.requiredHeaders,
+            if (!kIsWeb) 'content-length': length,
+          },
+          contentType: contentType,
+        ),
+        onSendProgress: length == 0
+            ? null
+            : (sent, total) {
+                final t = total > 0 ? total : length;
+                onProgress?.call((sent / t).clamp(0, 1));
+              },
+      );
+    } on DioException catch (e) {
+      debugPrint(
+        '[MediaUploader] PUT DioException (${e.type}): ${e.message}, '
+        'status=${e.response?.statusCode}, body=${e.response?.data}',
+      );
+      onDebug?.call('upload.putDioException', {
+        'type': e.type.name,
+        'message': e.message,
+        'status': e.response?.statusCode,
+        'body': e.response?.data,
+      });
+      return Err<String>(ServerFailure(message: e.message ?? 'Upload failed. Try again.'));
+    } catch (e) {
+      debugPrint('[MediaUploader] PUT error: $e');
+      onDebug?.call('upload.putError', {'error': e.toString()});
+      return Err<String>(ServerFailure(message: e.toString()));
+    }
+    if ((res.statusCode ?? 0) >= 300) {
+      debugPrint(
+        '[MediaUploader] PUT rejected status=${res.statusCode}, body=${res.data}',
+      );
+      onDebug?.call('upload.putRejected', {
+        'status': res.statusCode,
+        'body': res.data,
+      });
+      return const Err<String>(ServerFailure(message: 'Upload failed. Try again.'));
+    }
+    onProgress?.call(1);
+    final done = await _api.completeUpload(i.key);
+    final fail = done.failureOrNull;
+    if (fail != null) {
+      debugPrint('[MediaUploader] complete failed key=${i.key}: $fail');
+      onDebug?.call('upload.completeFailed', {
+        'key': i.key,
+        'failureType': fail.runtimeType.toString(),
+        'code': fail.code,
+        'message': fail.message,
+      });
+      return Err<String>(fail);
+    }
+    var currentState = done.valueOrNull;
+    if (awaitReady && currentState != 'READY') {
+      for (var n = 0; n < maxPolls; n++) {
+        await _sleep(pollInterval);
+        final again = await _api.completeUpload(i.key);
+        final againFail = again.failureOrNull;
+        if (againFail != null) return Err<String>(againFail);
+        currentState = again.valueOrNull;
+        if (currentState == 'READY') break;
+        if (currentState == 'QUARANTINED') {
+          return const Err<String>(
+            ValidationFailure(
+              code: 'MEDIA_QUARANTINED',
+              message: 'That file failed a safety check and cannot be used.',
+            ),
+          );
+        }
+      }
+    }
+    return Ok<String>(i.key);
   }
 }

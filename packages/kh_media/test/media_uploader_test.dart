@@ -71,7 +71,14 @@ void main() {
     ).thenAnswer((_) async => const Err(ValidationFailure(code: 'TOO_LARGE', message: 'too big')));
 
     var putCalled = false;
-    final result = await uploader(putClient: _putDio(onPut: (_) => putCalled = true)).upload(
+    final events = <String>[];
+    final result = await MediaUploader(
+      api,
+      putClient: _putDio(onPut: (_) => putCalled = true),
+      pollInterval: Duration.zero,
+      sleep: (_) async {},
+      onDebug: (event, _) => events.add(event),
+    ).upload(
       file,
       purpose: MediaUploadPurpose.kycDocument,
       contentType: 'application/pdf',
@@ -79,6 +86,7 @@ void main() {
 
     expect(putCalled, isFalse);
     expect(result.failureOrNull, isA<ValidationFailure>());
+    expect(events, ['upload.start', 'upload.intentFailed']);
     verifyNever(() => api.completeUpload(any()));
   });
 

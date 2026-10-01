@@ -67,6 +67,30 @@ describe('OciS3StorageAdapter', () => {
     expect(signed.uploadUrl).toContain('X-Amz-Signature=');
     expect(signed.uploadUrl).not.toContain('.r2.');
     expect(signed.requiredHeaders).toEqual({ 'Content-Type': 'application/pdf' });
+    // Only the target bucket is HEADed — not every configured bucket.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]![0])).toContain('/kyc');
+  });
+
+  it('signs request-media uploads even when the kyc bucket HEADs 403', async () => {
+    const fetchMock = vi.fn(async (url: unknown) => {
+      const path = String(url);
+      if (path.endsWith('/kyc')) return new Response('nope', { status: 403 });
+      return new Response(null, { status: 200 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const adapter = new OciS3StorageAdapter(env);
+    const signed = await adapter.createSignedUploadUrl({
+      bucket: 'request-media',
+      key: 'user/u1/REQUEST_IMAGE/img.png',
+      contentType: 'image/png',
+      ttlSeconds: 900,
+    });
+
+    expect(signed.uploadUrl).toContain('/request-media/');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]![0])).toContain('/request-media');
   });
 
   it('PUTs a bucket when HEAD returns 404', async () => {
