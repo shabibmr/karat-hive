@@ -6,7 +6,7 @@ part 'taxonomy_node.g.dart';
 /// Freezed model representing a flat, single-level taxonomy node.
 /// Mirrors backend `TaxonomyNode` and Prisma `Category`/`Region`.
 @freezed
-class TaxonomyNode with _$TaxonomyNode {
+abstract class TaxonomyNode with _$TaxonomyNode {
   const factory TaxonomyNode({
     required String id,
     required String nameEn,

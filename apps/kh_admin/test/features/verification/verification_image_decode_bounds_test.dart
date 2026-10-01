@@ -67,7 +67,7 @@ class _FakeVerificationRepo extends VerificationRepository {
     lastRequestedVendorId = vendorId;
     lastRequestedDocId = documentId;
     return DocumentUrlResponse(
-      url: 'https://cdn.karathive.ae/kyc/$vendorId/$documentId.pdf',
+      url: 'https://cdn.karathive.ae/kyc/$vendorId/$documentId.pdf?X-Amz-Signature=test',
       expiresAt: DateTime.utc(2026, 9, 9, 12),
     );
   }

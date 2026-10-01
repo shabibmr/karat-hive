@@ -7,7 +7,7 @@ part 'vendor_list_item.g.dart';
 
 /// One row in `GET /v1/admin/vendors` (ADM-S05).
 @freezed
-class VendorListItem with _$VendorListItem {
+abstract class VendorListItem with _$VendorListItem {
   const factory VendorListItem({
     required String id,
     required String legalBusinessName,

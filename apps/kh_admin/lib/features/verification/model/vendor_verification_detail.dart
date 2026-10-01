@@ -12,7 +12,7 @@ DateTime _dateFromJson(dynamic value) {
 
 /// Full vendor payload from `GET /v1/admin/vendors/{id}` for ADM-S07 review.
 @freezed
-class VendorVerificationDetail with _$VendorVerificationDetail {
+abstract class VendorVerificationDetail with _$VendorVerificationDetail {
   const factory VendorVerificationDetail({
     required String id,
     required String legalBusinessName,
@@ -35,7 +35,7 @@ class VendorVerificationDetail with _$VendorVerificationDetail {
 
 /// KYC document metadata returned on the admin vendor detail payload.
 @freezed
-class VendorDocumentDetail with _$VendorDocumentDetail {
+abstract class VendorDocumentDetail with _$VendorDocumentDetail {
   const factory VendorDocumentDetail({
     required String id,
     required String documentType,

@@ -294,7 +294,7 @@ void main() {
       expect(detail.parentRequest, isNotNull);
       expect(detail.parentRequest!.reference, 'KH-RQ-2026-01482');
       expect(detail.parentRequest!.customer, isA<MaskedParty>());
-      expect((detail.parentRequest!.customer as MaskedParty).displayPseudonym, 'Sara Al Maktoum');
+      expect((detail.parentRequest!.customer as MaskedParty).displayPseudonym, 'Customer'); // masked until ACCEPTED (BR-006)
       expect(detail.parentRequest!.indicativeValue, 15000.0);
     });
 

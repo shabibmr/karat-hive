@@ -7,7 +7,7 @@ part 'request_detail.g.dart';
 
 /// Unmasked customer profile overview on ADM-S09.
 @freezed
-class CustomerProfileSummary with _$CustomerProfileSummary {
+abstract class CustomerProfileSummary with _$CustomerProfileSummary {
   const factory CustomerProfileSummary({
     required String id,
     required String fullName,
@@ -60,7 +60,7 @@ class CustomerProfileSummary with _$CustomerProfileSummary {
 
 /// Image or document media uploaded for a request.
 @freezed
-class RequestMediaItem with _$RequestMediaItem {
+abstract class RequestMediaItem with _$RequestMediaItem {
   const factory RequestMediaItem({
     required String id,
     required String url,
@@ -116,7 +116,7 @@ class RequestMediaItem with _$RequestMediaItem {
 
 /// Vendor matched to this request by the matching engine.
 @freezed
-class MatchedVendorItem with _$MatchedVendorItem {
+abstract class MatchedVendorItem with _$MatchedVendorItem {
   const factory MatchedVendorItem({
     required String vendorId,
     required String businessName,
@@ -177,7 +177,7 @@ class MatchedVendorItem with _$MatchedVendorItem {
 
 /// An offer submitted by a vendor on this request.
 @freezed
-class RequestOfferItem with _$RequestOfferItem {
+abstract class RequestOfferItem with _$RequestOfferItem {
   const factory RequestOfferItem({
     required String id,
     required String vendorId,
@@ -244,7 +244,7 @@ class RequestOfferItem with _$RequestOfferItem {
 
 /// State transition audit entry.
 @freezed
-class RequestTimelineEvent with _$RequestTimelineEvent {
+abstract class RequestTimelineEvent with _$RequestTimelineEvent {
   const factory RequestTimelineEvent({
     @JsonKey(unknownEnumValue: RequestState.draft)
     @Default(RequestState.draft)
@@ -280,7 +280,7 @@ class RequestTimelineEvent with _$RequestTimelineEvent {
 
 /// Resulting accepted connection details.
 @freezed
-class RequestConnectionSummary with _$RequestConnectionSummary {
+abstract class RequestConnectionSummary with _$RequestConnectionSummary {
   const factory RequestConnectionSummary({
     required String id,
     required String vendorId,
@@ -363,7 +363,7 @@ class RequestConnectionSummary with _$RequestConnectionSummary {
 
 /// Admin internal context note.
 @freezed
-class RequestInternalNoteItem with _$RequestInternalNoteItem {
+abstract class RequestInternalNoteItem with _$RequestInternalNoteItem {
   const factory RequestInternalNoteItem({
     required String id,
     required String authorName,
@@ -405,7 +405,7 @@ class RequestInternalNoteItem with _$RequestInternalNoteItem {
 
 /// Full Request model for ADM-S09 Request Detail screen.
 @freezed
-class RequestDetail with _$RequestDetail {
+abstract class RequestDetail with _$RequestDetail {
   const RequestDetail._();
 
   const factory RequestDetail({

@@ -6,7 +6,7 @@ part 'request_list_filters.freezed.dart';
 
 /// Filter state for ADM-S08 Request List screen.
 @freezed
-class RequestListFilters with _$RequestListFilters {
+abstract class RequestListFilters with _$RequestListFilters {
   const factory RequestListFilters({
     @Default('') String query,
     RequestType? requestType,
