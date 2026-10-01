@@ -97,6 +97,7 @@ class PushInvalidationPlan {
       switch (target) {
         case PushInvalidationTarget.notifications:
           ref.invalidate(notificationsControllerProvider);
+          ref.invalidate(unreadNotificationsProvider);
         case PushInvalidationTarget.requestFeed:
           ref.invalidate(requestFeedControllerProvider);
         case PushInvalidationTarget.requestDetail:

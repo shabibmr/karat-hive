@@ -7,33 +7,44 @@ import 'package:kh_design_system/src/tokens.dart';
 /// tallest card's height, so titles that wrap don't stagger the arrows; pass
 /// cards built with `expand: true`.
 class KhServiceGrid extends StatelessWidget {
-  const KhServiceGrid({super.key, required this.children});
+  const KhServiceGrid({
+    super.key,
+    required this.children,
+    this.maxColumns = 4,
+    this.spacing,
+    this.equalizeHeight = true,
+  }) : assert(maxColumns >= 1);
 
   final List<Widget> children;
+  final int maxColumns;
+  final double? spacing;
+  final bool equalizeHeight;
 
   @override
   Widget build(BuildContext context) {
-    final gap = context.tokens.space.s10;
+    final gap = spacing ?? context.tokens.space.s10;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final perRow = constraints.maxWidth >= 520 ? 4 : 2;
+        final perRow = (constraints.maxWidth >= 520 ? 4 : 2).clamp(
+          1,
+          maxColumns,
+        );
         final rows = <Widget>[];
         for (var i = 0; i < children.length; i += perRow) {
           final slice = children.skip(i).take(perRow).toList();
           if (rows.isNotEmpty) rows.add(SizedBox(height: gap));
-          rows.add(
-            IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (var j = 0; j < slice.length; j++) ...[
-                    if (j > 0) SizedBox(width: gap),
-                    Expanded(child: slice[j]),
-                  ],
-                ],
-              ),
-            ),
+          final row = Row(
+            crossAxisAlignment: equalizeHeight
+                ? CrossAxisAlignment.stretch
+                : CrossAxisAlignment.start,
+            children: [
+              for (var j = 0; j < slice.length; j++) ...[
+                if (j > 0) SizedBox(width: gap),
+                Expanded(child: slice[j]),
+              ],
+            ],
           );
+          rows.add(equalizeHeight ? IntrinsicHeight(child: row) : row);
         }
         return Column(children: rows);
       },

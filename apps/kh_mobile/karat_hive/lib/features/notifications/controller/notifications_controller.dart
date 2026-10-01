@@ -4,6 +4,16 @@ import 'package:kh_domain/kh_domain.dart';
 
 import '../repository/notifications_repository.dart';
 
+/// The Home bell reflects real unread data, without loading the whole list.
+final unreadNotificationsProvider = FutureProvider.autoDispose<bool>((
+  ref,
+) async {
+  final result = await ref
+      .watch(notificationsRepositoryProvider)
+      .list(unread: true, limit: 1);
+  return result.when(ok: (page) => page.items.isNotEmpty, err: (_) => false);
+});
+
 /// Paged notification list (CUS-S19 / VEN-S17).
 class NotificationsController
     extends AutoDisposeNotifier<PagedListController<AppNotification>> {
@@ -15,10 +25,7 @@ class NotificationsController
       itemKey: (item) => item.id,
       fetcher: (cursor) async {
         final res = await repo.list(cursor: cursor);
-        return res.when(
-          ok: (page) => page,
-          err: (failure) => throw failure,
-        );
+        return res.when(ok: (page) => page, err: (failure) => throw failure);
       },
     );
 
@@ -43,6 +50,7 @@ class NotificationsController
     return res.when(
       ok: (updated) {
         _replaceItem(updated);
+        ref.invalidate(unreadNotificationsProvider);
         return Ok(updated);
       },
       err: Err.new,
@@ -55,6 +63,7 @@ class NotificationsController
     return res.when(
       ok: (_) {
         _markAllLocal(DateTime.now().toUtc());
+        ref.invalidate(unreadNotificationsProvider);
         return const Ok(null);
       },
       err: Err.new,
@@ -92,7 +101,8 @@ class NotificationsController
   }
 }
 
-final notificationsControllerProvider = AutoDisposeNotifierProvider<
-    NotificationsController, PagedListController<AppNotification>>(
-  NotificationsController.new,
-);
+final notificationsControllerProvider =
+    AutoDisposeNotifierProvider<
+      NotificationsController,
+      PagedListController<AppNotification>
+    >(NotificationsController.new);

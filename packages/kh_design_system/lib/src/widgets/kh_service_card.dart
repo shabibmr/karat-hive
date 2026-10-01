@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:kh_design_system/src/theme.dart';
 import 'package:kh_design_system/src/tokens.dart';
+import 'package:kh_design_system/src/typography.dart';
+import 'package:kh_design_system/src/widgets/kh_home_style.dart';
 
 /// Request-type service tile used in the 2×2 grid on Customer Home and Guest
 /// Landing (`UI-Design-Context.md` §6.10).
@@ -18,6 +20,7 @@ class KhServiceCard extends StatefulWidget {
     this.image,
     this.tapKey,
     this.expand = false,
+    this.editorial = false,
   });
 
   final String title;
@@ -34,6 +37,7 @@ class KhServiceCard extends StatefulWidget {
   /// Fill a height-constrained slot (a stretched grid row) and pin the arrow
   /// chip to the bottom edge, so wrapped titles don't stagger the arrows.
   final bool expand;
+  final bool editorial;
 
   @override
   State<KhServiceCard> createState() => _KhServiceCardState();
@@ -44,6 +48,14 @@ class _KhServiceCardState extends State<KhServiceCard> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.editorial) {
+      return _EditorialServiceCard(
+        title: widget.title,
+        image: widget.image,
+        onTap: widget.onTap,
+        tapKey: widget.tapKey,
+      );
+    }
     final t = context.tokens;
     final type = Theme.of(context).textTheme;
     final radius = BorderRadius.circular(t.radius.card);
@@ -140,6 +152,147 @@ class _KhServiceCardState extends State<KhServiceCard> {
       ),
     );
   }
+}
+
+class _EditorialServiceCard extends StatelessWidget {
+  const _EditorialServiceCard({
+    required this.title,
+    required this.image,
+    required this.onTap,
+    required this.tapKey,
+  });
+
+  final String title;
+  final ImageProvider? image;
+  final VoidCallback onTap;
+  final Key? tapKey;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final width = constraints.maxWidth;
+      final font = KhFonts.forLocale(Localizations.maybeLocaleOf(context));
+      final style = font
+          .serifStyle(
+            (width * 0.1).clamp(18, 25),
+            FontWeight.w500,
+            height: 1.08,
+          )
+          .copyWith(color: KhHomeStyle.ink);
+      final measure = TextPainter(
+        text: TextSpan(text: title, style: style),
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+      )..layout(maxWidth: width - 66);
+      final footerHeight = (measure.height + 20).clamp(58.0, double.infinity);
+      measure.dispose();
+      final imageHeight = width * 0.86;
+      return Semantics(
+        button: true,
+        label: title.replaceAll('\n', ' '),
+        onTap: onTap,
+        excludeSemantics: true,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(KhHomeStyle.radius),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x09000000),
+                blurRadius: 18,
+                offset: Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Material(
+            color: KhHomeStyle.cream,
+            borderRadius: BorderRadius.circular(KhHomeStyle.radius),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              key: tapKey,
+              onTap: onTap,
+              child: SizedBox(
+                height: imageHeight + footerHeight - 18,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      height: imageHeight,
+                      child: image == null
+                          ? const SizedBox.shrink()
+                          : Image(
+                              image: image!,
+                              fit: BoxFit.cover,
+                              excludeFromSemantics: true,
+                              errorBuilder: (_, __, ___) =>
+                                  const SizedBox.shrink(),
+                            ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: footerHeight,
+                      child: ClipPath(
+                        clipper: const _LabelPanelClipper(),
+                        child: ColoredBox(
+                          color: KhHomeStyle.background,
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                              14,
+                              12,
+                              12,
+                              8,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(child: Text(title, style: style)),
+                                const SizedBox(width: 8),
+                                Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: const BoxDecoration(
+                                    color: KhHomeStyle.cream,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_forward,
+                                    size: 21,
+                                    color: KhHomeStyle.gold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _LabelPanelClipper extends CustomClipper<Path> {
+  const _LabelPanelClipper();
+
+  @override
+  Path getClip(Size size) => Path()
+    ..moveTo(0, 16)
+    ..cubicTo(size.width * 0.10, -8, size.width * 0.32, 0, size.width * 0.54, 8)
+    ..cubicTo(size.width * 0.74, 16, size.width * 0.91, -1, size.width, 14)
+    ..lineTo(size.width, size.height)
+    ..lineTo(0, size.height)
+    ..close();
+
+  @override
+  bool shouldReclip(_LabelPanelClipper oldClipper) => false;
 }
 
 class _IconBadge extends StatelessWidget {
