@@ -15,7 +15,7 @@ Full Offer terms plus masked Vendor rating summary before Accept or Decline.
 | Direction | Path |
 |---|---|
 | Entry | CUS-S11 / CUS-S12 |
-| Exit | CUS-S14 Accept; decline; CUS-S31 ratings subset; CUS-S22 report |
+| Exit | CUS-S14 Accept; decline; Vendor ratings sheet (`FR-CUS-031`); CUS-S22 report |
 
 ## Fields
 

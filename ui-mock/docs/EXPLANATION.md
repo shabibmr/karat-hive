@@ -4,7 +4,8 @@
 **Artifact:** Interactive HTML/CSS/JS mock of all inventory screens  
 **Location:** `ui-mock/`  
 **Visual authority:** `docs/old/Karat_Hive_UI_Design_Context.md`  
-**Field authority:** `ui-screens/customer|vendor|admin/*.md`
+**Field authority:** `ui-screens/customer|vendor|admin/*.md`  
+**Status:** predates SRS v1.6 — see the note in [`../README.md`](../README.md)
 
 ---
 

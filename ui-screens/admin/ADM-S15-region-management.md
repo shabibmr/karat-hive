@@ -8,7 +8,7 @@
 
 ## Purpose
 
-Manage geographic matching taxonomy (emirate → area).
+Manage the flat Region list used for display and Vendor feed filtering (`adr/0014`). Regions do not gate matching.
 
 ## Entry / exit
 
@@ -21,9 +21,10 @@ Manage geographic matching taxonomy (emirate → area).
 
 | Field / UI element | Kind | Required | Type / options | Notes |
 |---|---|---|---|---|
-| Region tree | Display | — | emirate → area | |
+| Region list | Display | — | flat, by display order | Seeded with the seven Emirates |
 | Name (English) | Input | Yes | string | |
 | Name (Arabic) | Input | Yes | string | |
+| Display order | Input | Yes | integer | |
 | Active flag | Input | Yes | boolean | |
 | Create | Action | — | — | |
 | Rename | Action | — | — | |
@@ -31,7 +32,7 @@ Manage geographic matching taxonomy (emirate → area).
 
 ## Validation & rules
 
-- Matching uses Regions; taxonomy changes apply to Requests published thereafter.
+- Regions are display and filter only; they never gate matching (`FR-SYS-002`).
 
 ## Empty / error / edge states
 
@@ -39,4 +40,4 @@ Manage geographic matching taxonomy (emirate → area).
 
 ## Related screens
 
-ADM-S14
+ADM-S19

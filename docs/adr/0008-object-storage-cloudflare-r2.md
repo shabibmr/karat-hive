@@ -1,5 +1,7 @@
 # Object storage on Cloudflare R2, S3-compatible, MinIO for local and CI
 
+**Status: hosted provider superseded by `adr/0013` (25 Sep 2026).** The S3-compatible port and MinIO/disk for local and CI still stand.
+
 Request media, Vendor KYC documents, and processed derivatives are held in **S3-compatible object storage**, never in PostgreSQL (SRS §7.6). The provider is **Cloudflare R2** for hosted environments (staging, production, demo) and **MinIO** for local development and CI. All access goes through the storage port — `presignUpload`, `presignDownload`, `delete`, `head` (`Architecture-Backend.md` §15.3). `docs/Requirements-raw.txt` L102 ("Files Storage -") was left blank; this decision fills it and resolves constraint C-13 (Product Owner, 1 Sep 2026).
 
 **Why.** The MVP needs a zero-cost demo path that does not become a rewrite later. R2's free tier — 10 GB storage, 1M writes and 10M reads per month, and **no egress fees at any volume** — covers the demo outright, and R2 is a production-grade service, so there is no forced migration after launch. It exposes a genuine S3 API, so the adapter is the standard one and the rest of the backend is provider-agnostic. MinIO speaks the same API, so local and CI run without cloud credentials and without a second code path.

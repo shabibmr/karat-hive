@@ -11,7 +11,7 @@ npm run openapi:generate
 
 CI runs `npm run openapi:check`, which regenerates and fails if `openapi/` drifts from git.
 
-## Scope (G2-GR05 first cut)
+## Scope
 
 | Covered                                     | Not yet                                      |
 | ------------------------------------------- | -------------------------------------------- |
@@ -21,4 +21,4 @@ CI runs `npm run openapi:check`, which regenerates and fails if `openapi/` drift
 
 Generator: `scripts/generate-openapi.ts` + `scripts/openapi/*`. Add new controllers to `scripts/openapi/controllers.ts`.
 
-Until response Zod exists, success payloads are documented as the shared `SuccessEnvelope` placeholder. The pre-code catalogue remains [`docs/API-Route-Inventory.md`](../../docs/API-Route-Inventory.md).
+Until response Zod exists, success payloads are documented as the shared `SuccessEnvelope` placeholder, and [`docs/API-Route-Inventory.md`](../../docs/API-Route-Inventory.md) remains the catalogue of record.

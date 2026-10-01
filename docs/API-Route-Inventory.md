@@ -1874,7 +1874,7 @@ POST /v1/admin/abuse-reports/{id}/resolve   // legacy generic close, body: { res
 POST /v1/admin/abuse-reports/{id}/dismiss   // legacy generic close, body: { resolution: string }
 ```
 
-`/action` (built `TR-S6-07`): `SUSPEND` / `DEACTIVATE` move the reported user's `accountState` in the same transaction that closes the report and writes the party-facing audit entry (`FR-ADM-032` AC5); `WARN` records the caution without a state change; `DISMISS` closes with no sanction. Reporter is notified that it was resolved; resolution detail and reporter identity are never sent to the reported party.
+`/action`: `SUSPEND` / `DEACTIVATE` move the reported user's `accountState` in the same transaction that closes the report and writes the party-facing audit entry (`FR-ADM-032` AC5); `WARN` records the caution without a state change; `DISMISS` closes with no sanction. Reporter is notified that it was resolved; resolution detail and reporter identity are never sent to the reported party.
 
 ### 21.13 Audit log (`ADM-S22`, `FR-ADM-033`) `[ASSUMED]`
 

@@ -1,6 +1,8 @@
 # Karat Hive — UI Mock
 
-Interactive **HTML/CSS/JS** mock of all **67** screens from `ui-screens/`, styled with **`Karat_Hive_UI_Design_Context.md`** (luxury Art Deco · sapphire · metallic gold).
+Interactive **HTML/CSS/JS** mock of all **67** screens from `ui-screens/`, styled with the archived **`docs/old/Karat_Hive_UI_Design_Context.md`** (luxury Art Deco · sapphire · metallic gold).
+
+> **Behind the specs.** The mock predates SRS v1.6. It still uses the archived dark palette, has no `CUS-S23` Guest Landing or `CUS-S24` My Requests, combines Home with the Request list, and still shows Category pickers, Offer validity and Offer revision. Where it disagrees with `ui-screens/` or the apps, they win. Re-basing it is tracked as a GitHub issue.
 
 ## Explanation doc
 
