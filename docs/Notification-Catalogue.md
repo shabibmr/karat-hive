@@ -7,7 +7,7 @@
 | **Version** | 0.3-remaining-rows |
 | **Status** | Draft — all §7.2 trigger copy authored (CP5-I01.2 Vendor/Admin; CP5-I01.3 Customer, dual-role Customer, announcement, security). |
 | **Date** | 8 September 2026 |
-| **Source of truth** | [`docs/Async-Contract.md`](Async-Contract.md) §7 (triggers, recipients, channels, deep links, `is_critical`) · [`docs/Spec-Document-Sequence.md`](Spec-Document-Sequence.md) §4.4 · [`docs/Requirements-Spec-v1.5.md`](Requirements-Spec-v1.5.md) `FR-CUS-032`, `FR-VEN-026`, `FR-SYS-008` · [`CONTEXT.md`](../CONTEXT.md) |
+| **Source of truth** | [`docs/Async-Contract.md`](Async-Contract.md) §7 (triggers, recipients, channels, deep links, `is_critical`) · [`docs/Requirements-Spec-v1.5.md`](Requirements-Spec-v1.5.md) `FR-CUS-032`, `FR-VEN-026`, `FR-SYS-008` · [`CONTEXT.md`](../CONTEXT.md) |
 | **Companion** | [`docs/Async-Contract.md`](Async-Contract.md) owns *when* and *to whom*; this document owns *wording*. |
 | **Encoding target** | `notification.title_en` / `title_ar` / `body_en` / `body_ar` / `deep_link` · `kh_l10n` template keys |
 
@@ -29,7 +29,7 @@
 
 [`Async-Contract.md`](Async-Contract.md) §7 fixes the notification *mechanism*: which outbox event fires, who the recipient is, which channels run, whether `is_critical` bypasses preferences and quiet hours, and the client deep link. It deliberately does not write bodies.
 
-**This document is the missing copy layer** ([`Spec-Document-Sequence.md`](Spec-Document-Sequence.md) document #4). One catalogue row per trigger in Async-Contract §7.2. It supplies EN/AR title and body, the `kh_l10n` template key, placeholders, quiet-hours behaviour relative to §7.1, and whether a Vendor in `Vshell` (Awaiting-Approval) may receive the notification.
+**This document is the copy layer.** One catalogue row per trigger in Async-Contract §7.2. It supplies EN/AR title and body, the `kh_l10n` template key, placeholders, quiet-hours behaviour relative to §7.1, and whether a Vendor in `Vshell` (Awaiting-Approval) may receive the notification.
 
 **What this document does not do.** It does not invent event types, recipients, channels, deep links, or `is_critical` flags — those stay in Async-Contract §7.2. It does not restate dispatch retry or idempotency (`FR-SYS-008.3`, `FR-SYS-008.5`). It does not invent competing-Vendor identity or price in any payload (`BR-008`).
 

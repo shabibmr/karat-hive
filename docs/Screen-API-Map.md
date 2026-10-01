@@ -152,7 +152,7 @@ Severity: **H** blocks a screen · **M** screen degrades or needs a client worka
 
 | ID | Sev | Screens | Gap | Suggested resolution |
 |---|---|---|---|---|
-| `SAM-GAP-1` | M | CUS-S02, CUS-S11 | **OPEN — tracked as `Customer-App-Backend-Gaps.md` CBG-01.** Screens render an **unread-Offer marker** (per Request on Home, per Offer in the list). `OfferForCustomer.viewedByCustomerAt` and `POST /v1/offers/{id}/viewed` are built; `RequestForCustomer.unreadOfferCount` is still missing. | Add `unreadOfferCount` to `RequestForCustomer` list rows (`GET /v1/me/requests`) and `GET /v1/requests/{id}`, computed as `count(offers where state = PENDING and viewedByCustomerAt is null)`. |
+| `SAM-GAP-1` | M | CUS-S02, CUS-S11 | **RESOLVED**: Screens render an **unread-Offer marker** (per Request on Home, per Offer in the list). `OfferForCustomer.viewedByCustomerAt` and `POST /v1/offers/{id}/viewed` are built, and `RequestForCustomer` carries `unreadOfferCount`. | Resolved — `request.repository.ts` `unreadOfferCountInclude` counts `PENDING` Offers with `viewedByCustomerAt` null; `request.presenter.ts` exposes it on list rows and `GET /v1/requests/{id}`. |
 | `SAM-GAP-2` | L | CUS-S03 | Screen blocks *entry* to the create flow when the live-Request cap is hit, but the only signal is `→ CONCURRENT_REQUEST_LIMIT` at publish. Client must count `GET /v1/me/requests` itself. | Add `liveRequestCount` / `canCreateRequest` to `GET /v1/me` or `GET /v1/platform-config` response `meta`. Low cost, avoids a dead-end flow. |
 | `SAM-GAP-3` | M | CUS-S10 | **RESOLVED (Checkpoint-1)**: Screen offers a "Close Connection path" when the Request is `ACCEPTED`, i.e. it must deep-link to the Connection. `RequestForCustomer` now carries `connectionId?` when `state = ACCEPTED`, sourced from the unique `Connection.offer_id` join (no denormalised column). | Resolved — `backend/src/modules/requests/repository/request.repository.ts` applies `acceptedOfferConnectionInclude` on `findById` / `findByIdForCustomer` / `listForCustomer`; `connectionIdForAcceptedRequest()` in `request.presenter.ts` derives the field. |
 | `SAM-GAP-4` | M | CUS-S13, CUS-S22, VEN-S08, VEN-S21 | **RESOLVED (Checkpoint-1)**: The report screens let a user report a **Vendor** (CUS-S22) or a **Customer** (VEN-S21) directly, with no Request/Offer/Connection in hand. `AbuseEntityType` now includes `VENDOR` and `CUSTOMER`. | Resolved — `backend/src/modules/abuse/controller/abuse.controller.ts` enum includes `VENDOR` / `CUSTOMER`; `abuse.repository.ts` `resolveReportedUserId` switch handles both. |
@@ -181,8 +181,7 @@ Severity: **H** blocks a screen · **M** screen degrades or needs a client worka
 - **68 / 68 screens** have a defined load path and a defined endpoint (or explicit
   *client* behaviour) for every `Action` field. `CUS-S23` is client-only.
 - **13 gaps** (`SAM-GAP-1` … `13`). `SAM-GAP-3`, `4`, `5` are now resolved in the
-  Checkpoint-1 backend and `SAM-GAP-9` in the screen files; `SAM-GAP-1` is tracked as
-  `Customer-App-Backend-Gaps.md` CBG-01. Of the rest, `SAM-GAP-7` (High) is the only
+  Checkpoint-1 backend and `SAM-GAP-9` in the screen files; `SAM-GAP-1` is resolved too. Of the rest, `SAM-GAP-7` (High) is the only
   live contradiction. None require a new resource — all are additive fields, an
   auth-scope correction, one enum extension, or screen-file wording fixes.
 - **2 route-index hygiene items** — fixed in `API-Route-Inventory.md` (see above).

@@ -9,7 +9,7 @@
 | **Date** | 1 September 2026 |
 | **Source of truth** | [`docs/Requirements-Spec-v1.5.md`](Requirements-Spec-v1.5.md) §4.4, §5, §7.3 · [`CONTEXT.md`](../CONTEXT.md) · [`docs/Architecture-Backend.md`](Architecture-Backend.md) §9–§11, §15, §17 · [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) §12, §18 · [`docs/Physical-Data-Model.md`](Physical-Data-Model.md) §3 |
 | **Encoding** | [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma) — `outbox_event`, `outbox_consumer`, `job_lock`, `notification`, `notification_delivery` |
-| **Companion** | `docs/Notification-Catalogue.md` — EN/AR bodies per trigger ([`Spec-Document-Sequence.md`](Spec-Document-Sequence.md) document #4, not yet written). This document fixes the *trigger*, *recipient*, *channel* and *deep link*; it never writes copy. |
+| **Companion** | `docs/Notification-Catalogue.md` — EN/AR bodies per trigger. This document fixes the *trigger*, *recipient*, *channel* and *deep link*; it never writes copy. |
 | **Identifier prefix** | `AD-ASYNC-nn` — decisions made by *this* document. Stable, never reused. |
 
 ---
@@ -37,7 +37,7 @@
 
 [`Architecture-Backend.md`](Architecture-Backend.md) §11 *names* the outbox events (§11.2) and the scheduled jobs (§11.3). It does not give payload fields, consumer behaviour, or the retry contract a worker has to be written against. [`API-Route-Inventory.md`](API-Route-Inventory.md) says "emits outbox" in passing (§13) and lists notification *triggers* (§18) without an event behind each one. [`Physical-Data-Model.md`](Physical-Data-Model.md) §3 assigns the `outbox_event` / `outbox_consumer` / `job_lock` tables but not their contents.
 
-**This document is the missing middle.** It exists so the backend workers (`Backend-Implementation-Plan.md` tasks `T05`, `T21`, `T23`, `T28`, `T30`; phases `P2`, `P7`, `P10`, `P12`) can be implemented without inventing payload shapes independently.
+**This document is the missing middle.** It exists so the backend workers can be implemented without inventing payload shapes independently.
 
 **What this document does not do.** It does not restate the physical schema — [`Physical-Data-Model.md`](Physical-Data-Model.md) and [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma) own that. It does not hand-write OpenAPI (`NFR-030`, `AD-BE-14`). It does not write notification copy — that is `Notification-Catalogue.md` (document #4). It does not re-describe the media pipeline steps (inventory §12, architecture §16) — only the worker's input and output.
 

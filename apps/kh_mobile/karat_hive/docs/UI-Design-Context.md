@@ -1,6 +1,6 @@
 # Karat Hive Mobile — UI Design Context ("Modern Luxury Jewellery Editorial")
 
-The binding visual specification for `kh_mobile` Flutter UI: principles, colour, type, spacing, shape, components, screen layouts, motion, RTL and accessibility. It is built from the written design system [`designs/design-System.md`](../../../../designs/design-System.md), with the decisions locked by the champagne visual pass ([`apps/kh_mobile/designs/Implementation-Plan.md`](../../designs/Implementation-Plan.md) §3) applied on top. It maps everything onto the existing `kh_design_system` package.
+The binding visual specification for `kh_mobile` Flutter UI: principles, colour, type, spacing, shape, components, screen layouts, motion, RTL and accessibility. It is built from the written design system [`apps/kh_mobile/designs/design-System.md`](../../designs/design-System.md), with the decisions locked by the champagne visual pass (§0) applied on top. It maps everything onto the existing `kh_design_system` package.
 
 | | |
 |---|---|
@@ -16,11 +16,36 @@ The binding visual specification for `kh_mobile` Flutter UI: principles, colour,
 > | # | Source | Wins over |
 > |---|---|---|
 > | 1 | SRS v1.5, [`CONTEXT.md`](../../../../CONTEXT.md), `docs/Architecture-Frontend.md`, the Customer shell IA in `CLAUDE.md` | Everything below. A mock or written rule that shows a control the domain forbids loses |
-> | 2 | Locked decisions — `Implementation-Plan.md` §3 | `design-System.md` where they conflict (colour hexes, CTA colour, fonts, five tabs, nav selection) |
+> | 2 | Locked decisions — §0 | `design-System.md` where they conflict (colour hexes, CTA colour, fonts, five tabs, nav selection) |
 > | 3 | `design-System.md` | The mocks for anything they don't draw: spacing, type roles, borders, text actions, empty/loading/error rules |
 > | 4 | The mocks in `apps/kh_mobile/designs/` | — |
 >
-> Where this document states a target that the code doesn't meet yet, the gap is listed in §14.1. Treat the document as correct and the code as behind.
+> Where the code doesn't meet a target stated here, the document is correct and the code is behind.
+
+---
+
+## 0. Locked decisions
+
+Locked by the champagne visual pass (30 Sep 2026). Cited elsewhere as **lock #n**.
+
+| # | Topic | Lock |
+|---|---|---|
+| 1 | Accent | Champagne / gold only. No pink chrome |
+| 2 | Primary action | `ctaFill` fill, ink label, on Home, create, review, and the summary card. The written “charcoal button + white label” is not the default |
+| 3 | Hexes | §2.1. Do not add `#F84080` or `#906840` |
+| 4 | Button shape | Height 48. Radius **10**. Flat fill. Chips may stay fully rounded |
+| 5 | Navigation count | **Five** Customer tabs: Home, My Requests, Connections, Alerts, Profile. Home-1 draws four; Alerts stays |
+| 6 | Navigation selection | Selected icon and label use `goldDark` (`#8A6A1F`); `gold` `#D8A858` on the nav bar is ~1.9:1. No stadium pill, no charcoal-only item, no full-bar gold wash |
+| 7 | Type | Cormorant Garamond for display, DM Sans for Latin body, the existing Arabic pair. Inter is not added. Serif stays off form values and off sizes below 16 |
+| 8 | Home hero | Display type sits on the jewellery photo, as in Home-1 |
+| 9 | Create structure | The Find mock is the review step. The Sell mock is the Sell Old Gold compose screen. No new stepper. Coins and Bullion are chrome-only |
+| 10 | Screen title | **Sell Old Gold**. The mock headline “Sell My Gold” is not the product name |
+| 11 | Card talk control | No Message action on a Request or Offer card. Talk is a Connection, after Acceptance |
+| 12 | Card colour | View Details uses the same CTA fill as create. The sampled bronze is not a token |
+| 13 | Gold area | Icon rings on the Sell form may exceed the written “under 10%” guide. That screen follows the mock |
+| 14 | Admin | `kh_admin` is unchanged. It does not use `kh_design_system` |
+
+Ink stays `#1C1B1A`; charcoal `#242320` is close enough that a second near-black is not introduced. Ivory stays `#FDFBF7` on Home; create screens use `formSurface`. Pressed colours are computed in code by the same relative darken used from `#C8A046` to `#B8903A`; no extra sampled hex.
 
 ---
 
@@ -55,7 +80,7 @@ The binding visual specification for `kh_mobile` Flutter UI: principles, colour,
 
 ### 2.1 Palette
 
-The hexes are locked by the visual pass (`Implementation-Plan.md` §5) and live in `KhTokens.light`.
+The hexes are locked (lock #3) and live in `KhTokens.light`.
 
 | Token | Hex | Role |
 |---|---|---|
@@ -68,7 +93,7 @@ The hexes are locked by the visual pass (`Implementation-Plan.md` §5) and live 
 | `formSurface` | `#F0E8E0` | Create and review scaffolds only |
 | `paper` | `#FFFFFF` | Panels raised on ivory |
 | `navBackground` | `#F6F1E6` | Bottom navigation bar |
-| `danger` / `success` / `warning` / `info` | `#B3261E` / `#2E7D32` / `#D9A441` / `#6D9BCB` | Status only. Target is the muted set in §6.20 — see gap G-01 |
+| `danger` / `success` / `warning` / `info` | `#B3261E` / `#2E7D32` / `#D9A441` / `#6D9BCB` | Status only. Target is the muted set in §6.20 |
 
 **From `design-System.md`, not adopted:**
 
@@ -199,7 +224,7 @@ Editorial, elegant and quiet. Luxury comes from **scale + whitespace + contrast*
 
 ### 3.2 Type scale
 
-Target roles from `design-System.md` §7. The "Shipped" column is what `KhTheme` carries today; see gap G-02.
+Target roles from `design-System.md` §7. The "Shipped" column is what `KhTheme` carries today.
 
 | M3 role | Target size / weight | Family | Use | Shipped |
 |---|---|---|---|---|
@@ -266,7 +291,7 @@ An **8-point system** with 4 as the half-step (`design-System.md` §9). Code nam
 | 16 | `md` | Standard component padding, component gap, screen gutter |
 | 24 | `lg` | Section spacing |
 | 32 | `xl` | Major section spacing |
-| 40 / 48 / 64 / 80 | — | Page separation, hero separation, luxury whitespace. Not yet tokens (gap G-03) |
+| 40 / 48 / 64 / 80 | — | Page separation, hero separation, luxury whitespace. Not yet tokens |
 
 `xxs` (2), `s6`, `s10`, `s14` and `s22` are off-grid steps carried over from 1a. Existing callers keep them; new code uses the 8-point steps.
 
@@ -274,7 +299,7 @@ An **8-point system** with 4 as the half-step (`design-System.md` §9). Code nam
 
 | Element | Value |
 |---|---|
-| Screen gutter | 16 px (the written system allows 16–20 and prefers 20 — open item O-01) |
+| Screen gutter | 16 px (the written system allows 16–20 and prefers 20) |
 | Editorial / hero sections | Up to 24 px side padding |
 | Component gap / section gap | 16 / 24 px |
 | Photography grid | 2 columns, 8–12 px gap (service grid: 10) |
@@ -303,10 +328,10 @@ An **8-point system** with 4 as the half-step (`design-System.md` §9). Code nam
 | Segment thumb, small image | 8 | `sm` |
 | **Button** (primary and secondary) | **10** | `button` |
 | Denomination chip, segmented track | 10 | `chipMd` |
-| Input / field | 10 | `field` is 12 today (gap G-04) |
+| Input / field | 10 | `field` is 12 today |
 | Product / Request image, thumbnail, purity chip | 12 | `md` |
 | Card, tile, hero, panel | 12–16 | `card` (16) |
-| Bottom sheet | 20 (top corners) | `lg` — sheets use `card` today (gap G-04) |
+| Bottom sheet | 20 (top corners) | `lg` — sheets use `card` today |
 | Ornament-type chip, status chip, dots, badges | fully rounded | `full` |
 | Avatar | circle | `full` |
 
@@ -436,7 +461,7 @@ Full-bleed photograph (`assets/images/tile_*.webp`), serif title and a `gold` ar
 
 ### 6.12 Activity summary (`KhStatStrip`)
 
-3 equal columns, radius `card`, 1 px `inkBorderSoft`, `paper` fill. Each cell has a 32 px `goldIconCircle` with an 18 px `goldDark` icon, a `statNumber` and a `statLabel`, and deep-links to the filtered My Requests or Connections view. Where it belongs on Home is open item O-03.
+3 equal columns, radius `card`, 1 px `inkBorderSoft`, `paper` fill. Each cell has a 32 px `goldIconCircle` with an 18 px `goldDark` icon, a `statNumber` and a `statLabel`, and deep-links to the filtered My Requests or Connections view. Home does not mount it (it matches `Home-1.png`: hero, service grid, "How this works").
 
 ### 6.13 "How this works"
 
@@ -449,7 +474,7 @@ Full-bleed photograph (`assets/images/tile_*.webp`), serif title and a `gold` ar
 
 Clean and ivory: no elevation, minimal icons, the brand mark given breathing room. 56–64 px high, 16 px gutter.
 
-- **Brand mark:** the tracked "KARAT HIVE" wordmark set in Cormorant, standing in for the clover lockup from `Home-1.png` until that asset exists (open item O-02). The wordmark is text on ivory, so it uses `goldDark` or `ink`, never `gold` (§2.5; gap G-05).
+- **Brand mark:** the tracked "KARAT HIVE" wordmark set in Cormorant, standing in for the clover lockup from `Home-1.png` until that asset exists. The wordmark is text on ivory, so it uses `goldDark` or `ink`, never `gold` (§2.5).
 - **Home:** bell in a 44 px box with a `danger` count badge (min 16, 10/600 ivory), inset from the top-end corner.
 - **Guest:** a "Log in" text action.
 - The pink logo artwork is not used in the app bar (plan §2).
@@ -501,7 +526,7 @@ Small, muted, semantic — no rainbow. Colour is never the only signal; the labe
 | Rejected, Removed | muted red `#9B514A` |
 | Expired, Cancelled, Closed, Draft | grey (`inkFill` fill, `inkSecondary` label) |
 
-The muted hexes are targets from the written system; they are not tokens yet (gap G-01).
+The muted hexes are targets from the written system; they are not tokens yet.
 
 ### 6.21 Empty, loading and error states
 
@@ -514,7 +539,7 @@ The muted hexes are targets from the written system; they are not tokens yet (ga
 ### 6.22 Dialogs and bottom sheets
 
 - **Dialogs** only for destructive, irreversible or important decisions (Acceptance, Cancel a Request, discard a draft). Title, one or two short lines, then Cancel and a confirming action. Radius `card`, no elevation tint.
-- **Bottom sheets** for filters, sorting, choosing purity, choosing Region. Top radius 20 (gap G-04), floating shadow (§4.4), one Apply action.
+- **Bottom sheets** for filters, sorting, choosing purity, choosing Region. Top radius 20, floating shadow (§4.4), one Apply action.
 
 ---
 
@@ -557,7 +582,7 @@ No bottom nav. A Guest can browse and compose (`adr/0011`); sign-in is asked at 
 ```
 
 - **Progressive disclosure** (`design-System.md` §28): the Request Type is chosen first, on the Home / Guest tiles; the type's screen then shows only its own fields. No extra wizard or stepper (lock #9).
-- The **field list** for each Request Type is owned by [`implementation_plan_create_request_screens.md`](implementation_plan_create_request_screens.md); this document owns only the chrome.
+- The **field list** for each Request Type is owned by the SRS (`FR-CUS-006`–`FR-CUS-013`) and the screen specs [`CUS-S04`–`CUS-S07`](../../../../ui-screens/customer/); this document owns only the chrome.
 - One 48 px row per field; pair related fields two-up; chips on one scrolling line; conditional sections removed from the tree, not hidden.
 - One screen is the target, not a guarantee: with the keyboard open, larger text or Arabic, it scrolls rather than overflows.
 
@@ -569,7 +594,7 @@ From `Find-orna-create.png`: the photo mosaic with remaining count, labelled row
 
 From `sell-my-create.png`, titled **Sell Old Gold** (lock #10; the mock's "Sell My Gold" is not the product name). `formSurface`, hairline groups, a gold icon per row, condition chips (§6.4), an Indicative Value panel and a rectangular CTA. No budget.
 
-The Indicative Value panel is computed from the Customer's stated weight and karat (`CONTEXT.md` Indicative Value). With no karat chosen, the panel shows no figure rather than assuming 24K. Showing a reference-rate-derived figure to end users also depends on the open Yahoo Finance decision (O-04).
+The Indicative Value panel is computed from the Customer's stated weight and karat (`CONTEXT.md` Indicative Value). With no karat chosen, the panel shows no figure rather than assuming 24K. Showing a reference-rate-derived figure to end users also depends on the open Yahoo Finance decision (`CLAUDE.md` live open decisions).
 
 ### 7.6 Buy/Sell Gold Coin(s) and Gold Bullion
 
@@ -669,7 +694,7 @@ The written design system uses retail-catalogue words. UI copy uses `CONTEXT.md`
 | "category", "Category selector" | Ornament type, or Request Type | Category entity removed (`adr/0014`) |
 | "product", "collection", "new arrivals" | Request, ornament, piece | This is a Request-driven marketplace, not a catalogue |
 | "jeweller", "Verified Jeweller" | Vendor; "jeweller" only as a friendly synonym | Vendor `_Avoid_` list |
-| "Gold Coins", "Gold Bullion" tile labels | The Request Type names: Buy/Sell Gold Coin(s), Buy/Sell Gold Bullion | Request Type names are fixed (gap G-06) |
+| "Gold Coins", "Gold Bullion" tile labels | The Request Type names: Buy/Sell Gold Coin(s), Buy/Sell Gold Bullion | Request Type names are fixed |
 | "Sell My Gold", "Sell my Ornament" | Sell Old Gold | Request Type name |
 | "Estimated Value" | Indicative Value | `CONTEXT.md` Indicative Value (`_Avoid_`: price, valuation, appraisal, quote) |
 | "Mark as Interested" | Allowed as the label for Acceptance | `CONTEXT.md` Acceptance |
@@ -677,51 +702,3 @@ The written design system uses retail-catalogue words. UI copy uses `CONTEXT.md`
 | "deal", "bid", "listing", "chat", "order" | Never | `_Avoid_` lists for Offer, Request, Connection |
 | "Purity 24K · 999.9" | Karat *or* Fineness, labelled as such | They are distinct terms |
 | "Explore", "Activity" tab | Home · My Requests · Connections · Alerts · Profile | Customer shell IA |
-
----
-
-## 13. Implementation status (`kh_design_system`)
-
-| Area | File | Status |
-|---|---|---|
-| Palette, alpha ramp, spacing, radii (§2, §4) | `lib/src/tokens.dart` | Done: champagne hexes, `ctaFill`, `formSurface`, `button` radius |
-| Theme: ColorScheme, TextTheme, button/field/chip/toggle/checkbox/nav themes | `lib/src/theme.dart` | Done: radius-10 flat CTAs, `goldDark` nav, no indicator. Type sizes still 1a (G-02) |
-| Fonts and `KhTypography` | `fonts/`, `lib/src/typography.dart` | Done: Cormorant + DM Sans + Arabic pair, bundled |
-| Home and Guest widgets: `KhServiceCard`, `KhServiceGrid`, `KhHeroCarousel`, `KhHowItWorksPanel`, `KhHowItWorksAccordion`, `KhStatStrip`, `KhBellButton`, `KhBrandMark` | `lib/src/widgets/` | Done |
-| Compose widgets: choice chip, segmented control, check row, stepper, read-out tile, action bar, dashed tile | `lib/src/widgets/` | Partial — several still live in `request_create/.../create_fields.dart` |
-| Domain widgets: indicative valuation, purity picker | `packages/kh_ui_domain` | Exist; the Sell compose screen should reuse them rather than re-implement |
-| Status chip, empty/loading/error states, confirmation dialog | `kh_status_chip.dart`, `state_views.dart`, `kh_confirm_dialog.dart` | Exist; restyle to §6.20–§6.22 |
-| Goldens at 320 / 390 / 1024, LTR + RTL | `packages/kh_design_system/test/` | Partial |
-
-The package layout suggested at the end of `design-System.md` (`karat_hive_design/` with `tokens/`, `theme/`, `components/`) is not adopted: `packages/kh_design_system` already is that package (`docs/Architecture-Frontend.md`). Dark mode (`KhTheme.dark`) is not in scope.
-
----
-
-## 14. Gaps and open items
-
-### 14.1 Gaps — the code is behind this document
-
-| ID | Gap | Where |
-|---|---|---|
-| G-01 | Status colours are the saturated 1a set; the target is the muted set in §6.20 | `tokens.dart`, `kh_status_chip.dart` |
-| G-02 | `TextTheme` still carries 1a sizes and weights (§3.2); form input 14 → 16, labels 10.5 → 12–13, errors 11 → 12 | `theme.dart`, `typography.dart` |
-| G-03 | No spacing tokens for 40 / 48 / 64 / 80 | `tokens.dart` `KhSpace` |
-| G-04 | Field radius 12 → 10; bottom-sheet top radius 16 → 20 | `tokens.dart`, `theme.dart` |
-| G-05 | Brand wordmark renders in `gold` on ivory (2.1:1); must be `goldDark` or `ink` | `kh_brand_mark.dart` |
-| G-06 | Request-type tiles use shortened labels ("Gold Coin(s)", "Gold Bullion") instead of the Request Type names | `kh_l10n` `service.card.*` |
-
-### 14.2 Open items
-
-Recorded as open; don't resolve them by inference.
-
-| ID | Item | Blocks |
-|---|---|---|
-| O-01 | Screen gutter: shipped 16 vs the written system's preferred 20 | §4.2 |
-| O-02 | Clover brand-mark asset from `Home-1.png` | App header (wordmark stands in) |
-| O-03 | Activity summary on Home: the `CLAUDE.md` shell notes list it, `Home-1.png` doesn't show it, Home doesn't mount it today | §7.1 |
-| O-04 | Yahoo Finance redistribution terms (`CLAUDE.md` live open decisions) | Showing a reference-rate-derived Indicative Value to end users (§7.5) |
-| O-05 | **Anklet** chip — not in `OrnamentType` | Ornament-type chip row |
-| O-06 | Bullion purity: Karat or Fineness | Bullion purity label and values |
-| O-07 | Validation and error states for the four compose screens, including the bullion minimum (`BR-010`) | Compose error styling |
-| O-08 | Real photography for hero slides | Release build |
-| O-09 | `ui-mock/` still implements the archived dark palette | Prototype matching the app |

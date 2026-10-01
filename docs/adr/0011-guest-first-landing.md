@@ -2,7 +2,7 @@
 
 Cold start with no live session opens **Guest Landing** (`CUS-S23`) in Customer mode. Login is optional until the user publishes a Request or opens a private area. Google remains the only login (`adr/0010`).
 
-**Why.** Product froze this on 11 September 2026 in [`docs/reports/app-launch-flow-review.md`](../reports/app-launch-flow-review.md). Forced Google onboarding before anything useful is the wrong first impression. Browse and compose first; account at the moment it is required.
+**Why.** Product froze this on 11 September 2026 (app-launch flow review). Forced Google onboarding before anything useful is the wrong first impression. Browse and compose first; account at the moment it is required.
 
 **Launch**
 

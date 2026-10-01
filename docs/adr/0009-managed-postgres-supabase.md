@@ -14,7 +14,7 @@ Safe for the backend because it connects as `postgres`, which **owns** every tab
 
 **Consequences.**
 - Supabase Auth (GoTrue), Realtime, and Edge Functions are unused. Authentication is the backend's own JWT (`Architecture-Backend.md` §14); do not introduce a second identity system.
-- Storage stays on **Cloudflare R2 / MinIO** (`adr/0008`) — this decision does not move object storage onto Supabase Storage. (The KYC `kyc` bucket that currently lives in this Supabase project is a checkpoint-1 convenience noted in `docs/checkpoints/`, not the production target.)
+- Storage stays on **Cloudflare R2 / MinIO** (`adr/0008`) — this decision does not move object storage onto Supabase Storage. (Superseded for object storage by [`adr/0013`](0013-object-storage-oci-s3-hyderabad.md): Oracle Object Storage, with Supabase Storage only as a non-prod fallback.)
 - Region `ap-northeast-2` (Seoul) is **not** UAE-resident. Acceptable for non-production, which holds only synthetic data. Production database residency is part of the open "cloud provider and region" infrastructure item in `Architecture-Backend.md` §22.1 — resolved by either a UAE-region managed provider (e.g. Supabase does not currently offer one; AWS RDS/Aurora `me-central-1` does) or a documented legal basis.
 - Two migration ledgers coexist: Prisma's `_prisma_migrations` is authoritative for schema; the Supabase migration log holds only out-of-band changes (Storage bucket creation, the partial-index catch-up, this lockdown). Keep schema in Prisma; use Supabase migrations only for provider-level state.
 

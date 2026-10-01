@@ -19,10 +19,10 @@ When a decision needs tracing back, read in this order. Later documents may not 
 | `docs/Architecture-Backend.md`, `docs/Architecture-Frontend.md` | How it gets built. Derived from the SRS; cite it, never restate it |
 | `docs/API-Route-Inventory.md` | Pre-code HTTP catalogue (`[PROPOSED]`). Superseded by generated OpenAPI (`NFR-030`) once code exists |
 | `docs/Physical-Data-Model.md` | Pre-code Postgres schema (`[PROPOSED]`). Encoded in `backend/prisma/schema.prisma` |
-| `docs/Backend-Implementation-Plan.md`, `docs/Backend-Gap-Fix-Plan.md` | Backend build order and gap fixes. Neither overrides the SRS |
+| `docs/Async-Contract.md`, `docs/Notification-Catalogue.md` | Outbox events, scheduled jobs and notification triggers; EN/AR notification copy per trigger |
 | `docs/Screen-API-Map.md` | Screen → endpoint coverage; gap register `SAM-GAP-nn` |
 | `ui-screens/` | Field-level inventory of the 68 screens, plus `component-widgets.md` (`SH-*` widgets) |
-| `apps/kh_mobile/karat_hive/docs/UI-Design-Context.md` | Visual system for `kh_mobile` — principles, colour, type, spacing, components, screen layouts, motion, RTL ("Modern Luxury Jewellery Editorial"). Built from `designs/design-System.md` with the visual-pass locks in `apps/kh_mobile/designs/Implementation-Plan.md` §3 applied on top; its §14 lists where code still lags. The 1a Classic and older dark-theme docs are archived in `docs/old/`; `kh_admin` deliberately keeps its own theme in `lib/core/design/theme/` |
+| `apps/kh_mobile/karat_hive/docs/UI-Design-Context.md` | Visual system for `kh_mobile` — principles, colour, type, spacing, components, screen layouts, motion, RTL ("Modern Luxury Jewellery Editorial"). Built from `apps/kh_mobile/designs/design-System.md` with the visual-pass locks (its §0) applied on top. The 1a Classic and older dark-theme docs are archived in `docs/old/`; `kh_admin` deliberately keeps its own theme in `lib/core/design/theme/` |
 | `ui-mock/` | Interactive realisation of `ui-screens/` |
 | `docs/old/` | Superseded versions — read-only history |
 

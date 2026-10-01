@@ -6,8 +6,6 @@ Layout matches `docs/Architecture-Backend.md` §21. No npm workspaces inside thi
 
 Physical schema: `prisma/schema.prisma` (companion `docs/Physical-Data-Model.md`). Partial uniques and `pg_trgm` live in `prisma/sql/` because Prisma cannot express them. Those SQL files are folded into the initial Prisma migration.
 
-Build order and backlog: [`docs/Backend-Implementation-Plan.md`](../docs/Backend-Implementation-Plan.md). P0/P1 review fixes: [`docs/Backend-Gap-Fix-Plan.md`](../docs/Backend-Gap-Fix-Plan.md).
-
 ## Local run (no Docker)
 
 Needs Node 20+ and, for `/ready` and later domain work, a local PostgreSQL 16 with `pgcrypto` and `pg_trgm`. The API process itself starts without a database: `GET /health` is liveness, `GET /ready` is the DB check.

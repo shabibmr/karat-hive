@@ -17,7 +17,7 @@ This is **not** OpenAPI and **not** Nest. Identity masking is a presenter concer
 
 **Checkpoint-1 follow-up.** `category.icon VARCHAR(100)` is in `prisma/migrations/20260906120000_category_icon`. Optional; omitted from JSON when null. Regions have no icon.
 
-**Taxonomy flattened.** `category` and `region` are single-level: `prisma/migrations/20260915120000_flatten_taxonomy` drops `parent_id` (and its self-referential FK) from both tables and replaces the composite `(parent_id, display_order)` index with `(display_order)`. See [`Taxonomy-Simplification-Plan.md`](Taxonomy-Simplification-Plan.md).
+**Taxonomy.** `region` is single-level: `prisma/migrations/20260915120000_flatten_taxonomy` dropped `parent_id` and its self-referential FK and replaced the composite `(parent_id, display_order)` index with `(display_order)`. The `category` entity and its join tables were removed by `prisma/migrations/20260926140000_remove_category` ([`adr/0014`](adr/0014-remove-category-taxonomy-entity.md)).
 
 ---
 

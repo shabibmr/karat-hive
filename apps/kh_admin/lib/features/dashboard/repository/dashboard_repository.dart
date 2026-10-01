@@ -18,8 +18,7 @@ class DashboardRepository {
   /// Fetches platform statistics from `GET /v1/admin/dashboard`.
   ///
   /// [from]/[to] are sent as `yyyy-MM-dd` query params for the ADM-S02 date-range
-  /// selector (`TR-S6-03`). The endpoint currently ignores them and returns
-  /// all-time counts — see GAP-ADM-09 in `docs/admin-backend-api-gaps.md`.
+  /// selector (`TR-S6-03`); the endpoint scopes its counts to that range.
   Future<DashboardStats> fetchStats({DateTime? from, DateTime? to}) async {
     final query = <String, dynamic>{
       if (from != null) 'from': ReportFilters.toIsoDate(from),
