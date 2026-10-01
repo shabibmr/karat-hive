@@ -134,7 +134,7 @@
 | 78 | `GET` | `/v1/platform-config` | Config | Public | *No* |
 | 79 | `POST` | `/v1/media/upload-intent` | Media Upload | Authenticated | **Yes** |
 | 80 | `POST` | `/v1/media/{key}/complete` | Media Upload | Authenticated | *No* |
-| 81 | `GET` | `/v1/media/{key}` | Media Fetch | Authenticated | *No* |
+| 81 | `GET` | `/v1/media/{key}` | Media Fetch | **Public** (rate-limited; `REQUEST_IMAGE`/`OFFER_IMAGE`/`VENDOR_LOGO` in `READY` only, else `404`) | *No* |
 | 82 | `GET` | `/v1/admin/dashboard` | Admin Dashboard | Admin | *No* |
 | 83 | `GET` | `/v1/admin/verification-queue` | Admin KYC | Admin | *No* (Query) |
 | 84 | `GET` | `/v1/admin/vendors` | Admin Vendors | Admin | *No* (Query) |
