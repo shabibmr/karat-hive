@@ -6,7 +6,7 @@
 | **Document** | Software Architecture Document — **Backend** |
 | **Version** | 1.0 |
 | **Status** | Draft — for Technical Lead review. Contains `[PROPOSED]` decisions requiring sign-off. |
-| **Date** | 10 August 2026 (password hashing and login pointer updated 6 September 2026) |
+| **Date** | 10 August 2026 (login, storage, taxonomy and Offer sections updated 1 October 2026) |
 | **Companion** | [`docs/Architecture-Frontend.md`](Architecture-Frontend.md) — client architecture |
 | **Governs** | Node.js monolith, PostgreSQL, object storage, background workers, all server-side integrations |
 | **Source of truth** | [`docs/Requirements-Spec-v1.6.md`](Requirements-Spec-v1.6.md) · [`docs/adr/0001`–`0010`](adr/) · [`CONTEXT.md`](../CONTEXT.md) |
@@ -154,7 +154,7 @@ Decisions made by this document. Status `Proposed` means it needs Technical Lead
 | `AD-BE-13` | Anonymise-in-place for erasure of transactional records; hard-delete for object storage | `[PROPOSED]` |
 | `AD-BE-14` | OpenAPI generated from code, published as the client contract, and diffed in CI | `[PROPOSED]` |
 | `AD-BE-15` | Managed PostgreSQL on Supabase (`docs/adr/0009`); the monolith connects directly as `postgres` and the bundled PostgREST **Data API is locked down** — RLS deny-all on every `public` table, `anon`/`authenticated` grants revoked. No Supabase Auth, Realtime or Edge Functions | `[PROPOSED]` |
-| `AD-BE-16` | Leftover stored passwords (until Google-only login fully replaces them) are hashed with **scrypt** via `node:crypto` (`N=16384`, `r=8`, `p=1` in the current adapter). No Argon2 dependency. Login itself is Google (`adr/0010`). | Matches code |
+| `AD-BE-16` | *Retired.* Password hashing is not needed: no role has a password (`adr/0010`). | Retired 1 Oct 2026 |
 
 ### 3.1 Rationale for the contested ones
 
@@ -179,8 +179,8 @@ flowchart TB
     KH["<b>Karat Hive Backend</b><br/>Node.js monolith<br/>+ PostgreSQL + object storage"]
 
     subgraph External
-        OAUTH["OAuth providers<br/>Google / Apple"]
-        SMS["SMS gateway<br/><i>UAE coverage — OTP</i>"]
+        OAUTH["Firebase Authentication<br/><i>Google provider</i>"]
+        SMS["SMS gateway<br/><i>UAE coverage — mobile-number OTP</i>"]
         PUSH["APNs / FCM"]
         MAIL["Transactional email"]
         RATE["Yahoo Finance<br/><i>gold rate</i>"]
@@ -193,7 +193,7 @@ flowchart TB
     VEN -->|HTTPS / JSON| KH
     ADM -->|HTTPS / JSON| KH
 
-    KH -->|verify token| OAUTH
+    KH -->|verify ID token| OAUTH
     KH -->|send OTP| SMS
     KH -->|dispatch| PUSH
     KH -->|dispatch| MAIL
@@ -340,13 +340,13 @@ flowchart TB
 
 | Module | Owns | Principal requirements |
 |---|---|---|
-| `identity` | `USER`, `CUSTOMER_PROFILE`, `ADMIN_PROFILE`, sessions, OTP, OAuth binding, 2FA | `FR-CUS-001`–`004`, `FR-VEN-003`, `FR-ADM-001`, `FR-ADM-002` |
+| `identity` | `USER`, `CUSTOMER_PROFILE`, `ADMIN_PROFILE`, sessions, Google binding, mobile-number OTP | `FR-CUS-001`–`004`, `FR-VEN-003`, `FR-ADM-001`, `FR-ADM-002` |
 | `vendor-onboarding` | `VENDOR_PROFILE`, `VENDOR_DOCUMENT`, the vendor state machine, verification workflow | `FR-VEN-001`, `FR-VEN-002`, `FR-VEN-024`, `FR-ADM-015`, `FR-ADM-016`, SRS §5.4 |
 | `subscription` | `VENDOR_TYPE_SUBSCRIPTION`, per-Request-type entitlement checks | `FR-VEN-031`, C-09 |
 | `taxonomy` | `REGION` (flat display/filter), deactivate-never-delete (`CATEGORY` entity removed per ADR 0014) | `FR-ADM-025`, `BR-019` |
 | `requests` | `REQUEST`, `REQUEST_MEDIA` links, the Request state machine, four Request types, indicative valuation | `FR-CUS-005`–`018`, SRS §5.2 |
 | `matching` | `REQUEST_MATCH`, eligibility evaluation, fan-out orchestration | `FR-SYS-001`, `FR-SYS-002` |
-| `offers` | `OFFER`, `OFFER_REVISION`, the Offer state machine, validity clamping | `FR-VEN-012`–`019`, `FR-CUS-019`–`022`, SRS §5.3 |
+| `offers` | `OFFER`, the Offer state machine, expiry at the parent Request's hard expiry (`adr/0015`) | `FR-VEN-012`–`019`, `FR-CUS-019`–`022`, SRS §5.3 |
 | `connections` | `CONNECTION`, `CONTACT_EVENT`, **acceptance orchestration**, identity reveal, WhatsApp link construction | `FR-CUS-023`–`027`, `FR-VEN-020`–`022`, `FR-SYS-006`, `FR-SYS-007` |
 | `reviews` | `REVIEW`, moderation workflow, rating aggregates | `FR-CUS-029`–`031`, `FR-VEN-028`, `FR-ADM-026`, `FR-SYS-012` |
 | `abuse` | `ABUSE_REPORT`, the report queue | `FR-CUS-033`, `FR-VEN-030`, `FR-ADM-032` |
@@ -435,7 +435,7 @@ Identifying fields, by role:
 
 | Party | Masked before Acceptance | Visible after Acceptance |
 |---|---|---|
-| Customer | Name, mobile, email, exact address, OAuth subject, user id | All of the above, scoped to that Connection (`BR-007`) |
+| Customer | Name, mobile, email, exact address, Google subject, user id | All of the above, scoped to that Connection (`BR-007`) |
 | Vendor | Business name, trade licence, mobile, email, address, shop photos, vendor id | All of the above, scoped to that Connection |
 | Either | — | Pseudonymous label, Region, aggregate rating and deal count are visible throughout (`SH-ID-01`) |
 
@@ -494,8 +494,8 @@ sequenceDiagram
     S->>DB: INSERT idempotency_key (unique) — replay returns stored response
     S->>DB: SELECT … FROM request WHERE id = ? FOR UPDATE
     Note over S,DB: the serialisation point — all concurrent<br/>acceptances on this Request queue here
-    S->>DB: Re-read Offer; assert PENDING and not past validity
-    S->>DB: Assert Request ∈ {PUBLISHED, OFFERS_RECEIVED}
+    S->>DB: Re-read Offer; assert PENDING and not past expires_at
+    S->>DB: Assert Request is PUBLISHED
     S->>DB: UPDATE offer SET state = ACCEPTED
     S->>DB: UPDATE offer SET state = REJECTED WHERE request_id = ? AND state = PENDING
     S->>DB: INSERT connection (ACTIVE) — unique on offer_id
@@ -562,9 +562,9 @@ WHERE id IN (
 | `request.published` | `requests` | fan-out (`FR-SYS-001`), vendor notification |
 | `request.expired` | expiry sweep | offer cascade, notifications |
 | `request.expiry.warning` | expiry sweep | customer notification at T−6 h (`FR-SYS-005.2`) |
-| `offer.submitted` | `offers` | customer notification, Request → `OFFERS_RECEIVED` |
-| `offer.revised` / `offer.withdrawn` | `offers` | customer notification |
-| `offer.expired` | expiry sweep | both-party notification, Request state re-evaluation (`FR-SYS-004.4`) |
+| `offer.submitted` | `offers` | customer notification; Request `offer_count` incremented (state stays `PUBLISHED`) |
+| `offer.withdrawn` | `offers` | customer notification |
+| `offer.expired` | expiry sweep | both-party notification (`FR-SYS-004`) |
 | `offer.accepted` | `connections` | winner notification, loser notifications (price- and identity-free — §9.5) |
 | `connection.closed` | `connections` | review prompts to both parties |
 | `review.published` / `review.moderated` | `reviews` | rating aggregation (`FR-SYS-012`) |
@@ -596,7 +596,7 @@ The two expiry sweeps run every minute even though `FR-SYS-004` permits five, be
 
 ### 11.5 Fan-out at scale
 
-`FR-SYS-001` wants fan-out within 60 seconds for 99 % of Requests, idempotently. The worker resolves the match set with a single indexed query over `vendor_profile` joined to its Categories, Regions and active Type Subscriptions, then bulk-inserts `REQUEST_MATCH` rows with `ON CONFLICT DO NOTHING` — which is what makes a retry after partial failure harmless (`FR-SYS-001.4`). Notifications are emitted as a second outbox event per matched Vendor so a single failing device token cannot stall the batch. Zero matches is a valid outcome, not an error: the Request stays published, the Customer is told no vendor currently covers their Category and Region, and the gap is recorded for the liquidity report (`FR-SYS-001.3`, `FR-ADM-027`).
+`FR-SYS-001` wants fan-out within 60 seconds for 99 % of Requests, idempotently. The worker resolves the match set with a single indexed query over `vendor_profile` (`VERIFIED` + `ACTIVE`) joined to its active Type Subscriptions for the Request type (`adr/0014` — no Category, and Region is not a gate), then bulk-inserts `REQUEST_MATCH` rows with `ON CONFLICT DO NOTHING` — which is what makes a retry after partial failure harmless (`FR-SYS-001.4`). Notifications are emitted as a second outbox event per matched Vendor so a single failing device token cannot stall the batch. Zero matches is a valid outcome, not an error: the Request stays published, the Customer is told no Vendor currently serves that Request type, and the gap is recorded for the liquidity report (`FR-SYS-001.3`, `FR-ADM-027`).
 
 ---
 
@@ -639,8 +639,8 @@ Six queries carry `NFR-002`. Each is written as raw SQL, has a committed `EXPLAI
 | 2 | Customer's Offers on a Request | `offer(request_id, state, created_at DESC)` |
 | 3 | Vendor's My Offers, three tabs | `offer(vendor_id, state, created_at DESC)` |
 | 4 | Admin entity lists with arbitrary filters | Composite indexes on the filterable columns; **served from the read replica** |
-| 5 | Expiry sweeps | Partial index `WHERE state = 'PENDING'` / `WHERE state IN ('PUBLISHED','OFFERS_RECEIVED')` — small and hot regardless of table size |
-| 6 | Vendor eligibility for fan-out | `vendor_profile(verification_state, account_state)` plus join indexes on the Category, Region and Subscription link tables |
+| 5 | Expiry sweeps | Partial index `WHERE state = 'PENDING'` / `WHERE state = 'PUBLISHED'` — small and hot regardless of table size |
+| 6 | Vendor eligibility for fan-out | `vendor_profile(verification_state, account_state)` plus the Type Subscription link table |
 
 **Pagination is cursor-based everywhere** (`NFR-002`). Offset pagination is banned: page 900 of an Admin Offer list would scan nine million rows. Cursors are opaque, signed, and encode the sort key plus the tiebreak id.
 
@@ -685,7 +685,7 @@ Every response carries the same envelope; every error carries a machine-readable
   "meta": { "requestId": "…" } }
 ```
 
-`meta.serverTime` is present on every response for a specific reason: the 48-hour Request countdown and Offer validity timers are legally and commercially meaningful, and a device with a skewed clock must not render its own idea of the remaining time. The client computes an offset from this field (see the frontend document, §10).
+`meta.serverTime` is present on every response for a specific reason: the 48-hour Request countdown, which every Offer on the Request shares, is legally and commercially meaningful, and a device with a skewed clock must not render its own idea of the remaining time. The client computes an offset from this field (see the frontend document, §10).
 
 Error codes are a closed, documented enumeration. Internal identifiers, SQL fragments and stack traces never appear in a response (`NFR-024`).
 
@@ -711,21 +711,21 @@ Cursor pagination on every collection: `?limit=&cursor=`, returning `meta.nextCu
 
 `NFR-030`: OpenAPI generated from the code's schema definitions, published to the client teams as the authoritative reference, and diffed against the previous build in CI. A breaking change without a version bump fails the build. The frontend generates its client from this document (`AD-FE-06` in the [frontend architecture](Architecture-Frontend.md#3-decision-register)), so drift is caught at compile time on both sides.
 
-Until that generated document exists, the pre-code catalogue is [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) (`[PROPOSED]`). First implementation must diff the generated OpenAPI against that inventory. This section remains the style authority (envelope, idempotency, cursors, versioning, rate limiting); the inventory is the path and schema catalogue.
+Generated OpenAPI lives in `backend/openapi/` (`npm run openapi:generate` / `openapi:check`). Until response schemas are exported into it, [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) remains the catalogue of record. This section remains the style authority (envelope, idempotency, cursors, versioning, rate limiting); the inventory is the path and schema catalogue.
 
 ---
 
 ## 14. Identity, Authentication and Authorisation
 
-**Login (6 September 2026).** Customer, Vendor, and Admin all sign in with Google only — [`docs/adr/0010`](adr/0010-google-signin-only-login.md). Do not implement new OTP, password, or platform 2FA **login**. Admin still cannot self-register. The table’s “old SRS text” is leftover. This section will be rewritten in a later pass; the API list is also still the old model.
+Customer, Vendor and Admin all sign in with Google only ([`docs/adr/0010`](adr/0010-google-signin-only-login.md), `NFR-012`). The client signs in through Firebase Authentication's Google provider and sends the Firebase ID token to `POST /v1/auth/google/session` (`/v1/auth/firebase/session` is an alias). The backend verifies it (§15.4), looks up the bound account, and returns its own session. There is no password, no OTP login and no platform 2FA. OTP only proves a mobile number.
 
-### 14.1 Three authentication paths
+### 14.1 One authentication path, three outcomes
 
-| Actor | Mechanism | Requirements |
+| Actor | After the Google session exchange | Requirements |
 |---|---|---|
-| **Customer** | **Now:** Google Sign-In (`adr/0010`). Old SRS text: mobile OTP plus a one-time OAuth bind before publish | `FR-CUS-001`, `FR-CUS-002`, `BR-001`, A-08 — login part superseded by `adr/0010` |
-| **Vendor** | **Now:** Google Sign-In (`adr/0010`). Old SRS text: email + password. Stored passwords (if any leftover rows) use **scrypt** (`AD-BE-16`) | `FR-VEN-001`, `FR-VEN-003`, `NFR-012` — login part superseded by `adr/0010` |
-| **Admin** | **Now:** Google Sign-In (`adr/0010`). Provisioned internally; self-registration structurally impossible. A Google user is never auto-created as Admin. Old SRS text: email + password + 2FA. | `FR-ADM-001`, `FR-ADM-002` — login part superseded by `adr/0010` |
+| **Customer** | Bound → Customer session. Unbound → `POST /v1/auth/register/customer` (display name, terms, mobile number). A Guest at the publish gate completes as a Customer and the Request publishes automatically (`adr/0011`) | `FR-CUS-001`, `FR-CUS-002`, `FR-CUS-014`, `BR-001` |
+| **Vendor** | Bound → Vendor session, confined to the Awaiting-Approval shell until `ACTIVE`. Unbound → `POST /v1/auth/register/vendor` | `FR-VEN-001`, `FR-VEN-003` |
+| **Admin** | The Google email must match an Admin account provisioned by another Admin; otherwise refused. A Google user is never auto-created as Admin | `FR-ADM-001`, `FR-ADM-002` |
 
 Self-registration as an Admin is not merely unexposed — there is no code path that creates an `ADMIN_PROFILE` from an unauthenticated request. That is the difference between a missing endpoint and an enforced rule.
 
@@ -735,9 +735,9 @@ Short-lived access JWT (15 minutes) plus a long-lived, rotating, single-use refr
 
 The access token carries user id, role and token version only. It carries **no** entitlement, vendor state, or subscription claim — those change mid-session (an Admin suspends a Vendor; a subscription lapses) and a token that claimed them would keep granting access until expiry. Volatile authorisation facts are read from the database per request, cached only within that request. Suspension therefore takes effect on the very next call, as `FR-ADM-016` and `FR-SYS-002.2` require.
 
-### 14.3 The OAuth publish gate
+### 14.3 The publish gate
 
-`BR-001` is unusual and worth stating precisely: OAuth is not the login mechanism. A Customer authenticates by OTP and can browse, draft and manage an account without it. The OAuth binding gates exactly one action — **publishing a Request** (`FR-CUS-014`). The gate is enforced in the publish use case, not at the edge, so it cannot be routed around by a different endpoint reaching the same operation.
+A Guest can compose without an account (`adr/0011`); publishing needs a signed-in Customer whose account carries a Google binding (`BR-001`, `FR-CUS-014`). The publish use case checks the binding row itself, not only the session, so the gate cannot be routed around by a different endpoint reaching the same operation.
 
 ### 14.4 Authorisation model
 
@@ -775,9 +775,9 @@ Port: `presignUpload`, `presignDownload`, `delete`, `head`. The interface is spe
 
 All three buckets live in `ap-hyderabad-1`. That is India, not UAE. Production PostgreSQL region stays open in §22.1 (`NFR-020`). A later move to `me-abudhabi-1` / `me-dubai-1` is a config change.
 
-### 15.4 OAuth providers
+### 15.4 Firebase Authentication (Google)
 
-Port: `verifyIdentityToken(provider, token) → { subject, emailVerified }`. Verification is against the provider's published keys, server-side, always. A client-supplied profile is never trusted. The provider subject is stored hashed and bound to exactly one `USER`.
+Port: `verifyIdentityToken(token) → { subject, email, emailVerified }`. The token is a Firebase ID token from the Google provider: RS256, issuer `https://securetoken.google.com/<projectId>`, verified against Google's published keys server-side, always. An email match to an existing account requires `emailVerified`. A client-supplied profile is never trusted. The subject is stored hashed in `oauth_binding` and bound to exactly one `USER`. Firebase is also the FCM push provider (§15.1) and holds the clients' runtime API base URL ([`system_architecture.md`](system_architecture.md)); none of these is a system of record.
 
 ### 15.5 WhatsApp — a link builder, not an integration
 
@@ -832,7 +832,7 @@ Two distinct kinds, deliberately not merged:
 | Kind | Examples | Mechanism |
 |---|---|---|
 | **Infrastructure config** | Database URL, secrets, region, role | Environment + secret manager. Immutable per deployment. Validated at boot |
-| **Platform settings** (`FR-ADM-030`) | Request lifetime, offer validity options, purity factors, rate poll interval, notification thresholds | `PLATFORM_SETTING` rows, editable in the Admin Portal **without deployment or restart** (`NFR-026`) |
+| **Platform settings** (`FR-ADM-030`) | Request lifetime, purity factors, rate poll interval, notification thresholds | `PLATFORM_SETTING` rows, editable in the Admin Portal **without deployment or restart** (`NFR-026`) |
 
 Settings are cached per instance and invalidated by a monotonically increasing epoch that every instance checks cheaply; a change propagates within seconds without a restart. This is legitimate under `NFR-009` because it is reference data, not request state — an instance losing its cache re-reads and continues correctly.
 
@@ -864,7 +864,7 @@ All storage and all API timestamps are UTC (`BR-021`). GST (UTC+4) is a display 
 
 | Requirement | Implementation |
 |---|---|
-| `NFR-012` | Login is Google for Customer, Vendor, and Admin (`adr/0010`). Platform password + TOTP 2FA are not used. Any leftover stored password is hashed with **scrypt** (`AD-BE-16`) until those rows are gone |
+| `NFR-012` | Google Sign-In for every role through one session-exchange route (§14, §15.4). No password or platform 2FA exists |
 | `NFR-013` | §9 — four-layer masking with a release-gate test suite |
 | `NFR-014` | Random object keys; 15-minute signed URLs; no public bucket listing; EXIF stripped |
 | `NFR-015` | KYC and personal identifiers encrypted at rest; KYC readable only by authenticated Admins; every access audited individually |
@@ -1090,11 +1090,11 @@ These exist for architectural reasons, carry no domain meaning, and are listed s
 | `idempotency_key` | Stored responses for mutating-request replay | SRS §7.5, §13.3 |
 | `rate_limit_bucket` | Shared token buckets — required because C-12 forbids Redis | `AD-BE-10`, §13.6 |
 | `refresh_token` | Hashed rotating refresh tokens with reuse detection | §14.2 |
-| `otp_challenge` | OTP issuance, attempt counting, expiry | `FR-CUS-001`, `FR-CUS-002` |
+| `oauth_binding` | Hashed Google subject bound to one `USER` | §15.4 |
+| `otp_challenge` | Mobile-number OTP issuance, attempt counting, expiry | `FR-CUS-001`, `FR-CUS-003` |
 | `notification_delivery` | Per-channel delivery attempts and receipts | `FR-SYS-008.3`, SRS §7.3 |
 | `data_subject_request` | PDPL request tracking and completion certificate | `NFR-019`, §12.7 |
 
-**Recommendation:** fold these into SRS §6 at the next revision, or add a note there pointing here, so the data model has one home.
 
 Physical encoding (Prisma DSL + the SQL Prisma cannot express): [`docs/Physical-Data-Model.md`](Physical-Data-Model.md) and [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma). `[PROPOSED]` until `AD-BE-05` is signed off.
 
@@ -1107,6 +1107,7 @@ Physical encoding (Prisma DSL + the SQL Prisma cannot express): [`docs/Physical-
 | 1.2 | 6 Sep 2026 | `AD-BE-15` added — managed PostgreSQL on Supabase for non-production, PostgREST Data API locked down (new ADR `0009`). §12.1 gains the "monolith is the only database client" paragraph; §18 gains the managed-service attack-surface row; §22.1 item 2 notes the Supabase region is not UAE-resident |
 | 1.3 | 25 Sep 2026 | KYC objects: interim R2 location hint `apac` (`docs/adr/0012`). §22.1 item 2 narrowed to the production PostgreSQL region |
 | 1.4 | 25 Sep 2026 | Object storage: Oracle S3 Compatibility `ap-hyderabad-1` for all buckets (`docs/adr/0013`). Supersedes `0012` |
+| 1.5 | 1 Oct 2026 | Re-based on SRS v1.6. §14 and §15.4 rewritten for Google-only login through Firebase Authentication (`adr/0010`, `adr/0011`); `AD-BE-16` retired. Category removed from fan-out and indexes (`adr/0014`). Offers expire with their Request, no revision, no `OFFERS_RECEIVED` (`adr/0015`) — §7, §10, §11, §12.5, §13, §17 updated |
 
 | Role | Signs off on | Status |
 |---|---|---|

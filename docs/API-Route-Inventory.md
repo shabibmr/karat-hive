@@ -3,13 +3,13 @@
 | | |
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
-| **Document** | HTTP API Route Inventory (pre-code contract) |
-| **Version** | 0.3 |
-| **Status** | Draft — `[PROPOSED]`. Technical Lead sign-off required before it becomes binding. |
-| **Date** | 8 September 2026 |
+| **Document** | HTTP API Route Inventory |
+| **Version** | 0.4 |
+| **Status** | Draft — `[PROPOSED]`. Technical Lead sign-off required before it becomes binding. Route list checked against the backend controllers on 1 October 2026 |
+| **Date** | 1 October 2026 |
 | **Source of truth** | [`docs/Requirements-Spec-v1.6.md`](Requirements-Spec-v1.6.md) · [`CONTEXT.md`](../CONTEXT.md) · [`docs/Architecture-Backend.md`](Architecture-Backend.md) §13–§16 |
-| **Superseded by** | Generated OpenAPI (`NFR-030`, `AD-BE-14`) once application code exists. Until then this document is the catalogue the clients may design against. |
-| **Companion** | [`docs/Screen-API-Map.md`](Screen-API-Map.md) — screen-by-screen coverage check of this inventory; open gaps tracked as `SAM-GAP-nn`. |
+| **Superseded by** | Generated OpenAPI in `backend/openapi/` (`NFR-030`, `AD-BE-14`) once it carries response schemas. Until then this document is the catalogue the clients design against. |
+| **Companion** | [`docs/Screen-API-Map.md`](Screen-API-Map.md) — screen-by-screen coverage check of this inventory; gaps registered as `SAM-GAP-nn`. |
 | **Identifier prefix** | `AD-API-nn` — decisions made by *this* document. Stable, never reused. |
 
 ---
@@ -64,10 +64,10 @@ Decisions made by this document. Status `Proposed` needs Technical Lead sign-off
 | `AD-API-04` | Type Subscriptions are **Admin-granted** after off-platform payment. Vendors have a read-only collection. There is no in-app checkout. | `[PROPOSED]` (product mechanism not in the SRS) |
 | `AD-API-05` | Monetary amounts are JSON **strings** of decimal AED (`"1250.00"`), never native floats. Weights are strings of grams (`"12.50"`). | `[PROPOSED]` |
 | `AD-API-06` | State transitions are `POST` sub-resources (`/accept`, `/publish`, `/withdraw`), never a `PATCH` of `state`. | Locked (backend architecture §13.1) |
-| `AD-API-07` | Offer `validityHours` allowed values follow `FR-VEN-013` (default **12 / 24 / 48** hours, never later than the parent Request hard expiry). The entity dictionary’s `24 / 48 / 72 / 168` is treated as stale pending SRS alignment — see §23. | `[PROPOSED]` |
+| `AD-API-07` | *Retired.* Offers carry no validity choice; `expiresAt` equals the parent Request's hard expiry (`FR-VEN-013`, `adr/0015`). | Retired 1 Oct 2026 |
 | `AD-API-08` | Talk returns a constructed `wa.me` URL. The client opens it. The client then reports a `CONTACT_EVENT`. The server never calls WhatsApp. | Locked (`C-03`, SRS §7.2) |
 | `AD-API-09` | `GET /v1/gold-rates` exists for all authenticated Customer and Vendor callers. **Production display of those rates to end users remains `[BLOCKED]`** on Yahoo Finance redistribution terms. Admin configuration is not blocked. | Locked as a legal gate, not a missing route |
-| `AD-API-10` | Password-reset for Vendor (and Admin, via another Admin) is included. The SRS does not specify it; login with email/password (`FR-VEN-003`) is unusable without it. | `[ASSUMED]` |
+| `AD-API-10` | *Retired.* No role has a password (`adr/0010`), so there is no password reset. | Retired 1 Oct 2026 |
 | `AD-API-11` | Cursor pagination on every collection: `?limit=&cursor=`, returning `meta.nextCursor`. `limit` default 20, max 50 (Admin lists max 100). | `[PROPOSED]` (style is SRS/`NFR-002`; numbers are not) |
 | `AD-API-12` | Internal Admin notes are a nested resource `POST /v1/admin/{collection}/{id}/notes`. | `[PROPOSED]` |
 | `AD-API-13` | Google Sign-In is the **only** login for Customer, Vendor, and Admin. Clients exchange a verified Google ID token at `POST /v1/auth/google/session` (alias `POST /v1/auth/firebase/session`) for a Karat Hive `SessionBundle`. Domain routes accept **only** the Karat Hive access token. Unbound Google identity → `401 UNAUTHENTICATED` (no auto-provision). Admin still cannot self-register. | Locked (`adr/0010`, 6 Sep 2026) |
@@ -118,7 +118,7 @@ Error:
 }
 ```
 
-`meta.serverTime` is on **every** response. Clients compute clock offset from it and must not use the device clock for the 48-hour Request countdown or Offer validity (`C-07`, frontend architecture §10).
+`meta.serverTime` is on **every** response. Clients compute clock offset from it and must not use the device clock for the 48-hour Request countdown, which every Offer on the Request shares (`C-07`, frontend architecture §10).
 
 `data` is an object for a single resource and an array for a collection. Empty collections return `"data": []` with `nextCursor: null`, never `404`.
 
@@ -131,7 +131,6 @@ Every `POST`, `PATCH`, `PUT`, `DELETE` accepts `Idempotency-Key`. It is **requir
 - `POST /v1/requests/{id}/publish`
 - `POST /v1/requests/{id}/offers`
 - `POST /v1/offers/{id}/accept`
-- `POST /v1/offers/{id}/revise`
 - `POST /v1/media/upload-intent`
 - every Admin mutation that changes account or verification state
 
@@ -139,15 +138,15 @@ Replay within 24 hours of the same key + route + caller + body hash returns the 
 
 ### 3.4 Authentication and authorisation
 
-Login is Google Sign-In for every role (`AD-API-13`, [`adr/0010`](adr/0010-google-signin-only-login.md)). The SRS §7.5 OTP/password/2FA wording is superseded for marketplace login until the next SRS rewrite.
+Login is Google Sign-In for every role (`AD-API-13`, [`adr/0010`](adr/0010-google-signin-only-login.md), `NFR-012`). There is no password, OTP login or platform 2FA.
 
 | Actor | Mechanism | Session inactivity | Access JWT TTL `[PROPOSED]` |
 |---|---|---|---|
-| Customer | Google ID token → `POST /v1/auth/google/session` → Karat Hive `SessionBundle`. New users complete `POST /v1/auth/register/customer` (Google token or OTP phone proof). | 30 days (`FR-CUS-002`) | 15 minutes |
+| Customer | Google ID token → `POST /v1/auth/google/session` → Karat Hive `SessionBundle`. New users complete `POST /v1/auth/register/customer`. | 30 days (`FR-CUS-002`) | 15 minutes |
 | Vendor | Same Google session exchange. New shops complete `POST /v1/auth/register/vendor`. | 14 days | 15 minutes |
 | Admin | Same Google session exchange. **No self-registration** — Admin row must already exist (seed or another Admin). | 60 minutes (`FR-ADM-001`) | 15 minutes |
 
-OTP may still prove a mobile number (register / change-mobile). Password login and Admin 2FA routes remain in this catalogue as **leftover** until removed (`Backend-Gap-Tasks` G2-A15).
+OTP only proves a mobile number (register / change-mobile); it never issues a session.
 
 Access JWT claims `[PROPOSED]`: `sub` (user id), `role` (`CUSTOMER` \| `VENDOR` \| `ADMIN`), `ver` (token version). **No** entitlement, vendor state, or subscription claim — those are read from PostgreSQL per request (backend §14.2). Suspension takes effect on the next call (`FR-ADM-016`, `FR-SYS-002`).
 
@@ -195,7 +194,7 @@ A Customer’s aggregate rating is visible to Vendors and Admins only (`BR-018`)
 | 201 | POST that created a new resource |
 | 204 | DELETE with no body |
 | 400 | Schema / `IDEMPOTENCY_KEY_REQUIRED` / malformed |
-| 401 | Missing/expired/invalid token, OTP failure, 2FA failure |
+| 401 | Missing/expired/invalid token, OTP failure |
 | 403 | Authenticated but not permitted (role, account state, relationship, publish-gate, subscription) |
 | 404 | Unknown id **or** existence concealed by masking |
 | 409 | Conflict: uniqueness, illegal state transition, idempotency-key reuse with different body |
@@ -228,7 +227,7 @@ VendorVerification  = REGISTERED | PENDING_VERIFICATION | VERIFIED | REJECTED
 VendorAccountState  = REGISTERED | PENDING_VERIFICATION | VERIFIED | ACTIVE | SUSPENDED | REJECTED | DEACTIVATED
 RequestType         = FIND_ORNAMENT | SELL_OLD_GOLD | GOLD_COIN | GOLD_BULLION
 Direction           = BUY | SELL
-RequestState        = DRAFT | PUBLISHED | OFFERS_RECEIVED | ACCEPTED | CLOSED | EXPIRED | CANCELLED | REMOVED
+RequestState        = DRAFT | PUBLISHED | ACCEPTED | CLOSED | EXPIRED | CANCELLED | REMOVED   // no OFFERS_RECEIVED (adr/0015)
 OfferState          = PENDING | ACCEPTED | REJECTED | EXPIRED | WITHDRAWN | WITHDRAWN_BY_SYSTEM
 ConnectionState     = ACTIVE | CLOSED
 ReviewState         = PENDING_MODERATION | PUBLISHED | REJECTED | REDACTED | WITHDRAWN
@@ -239,8 +238,8 @@ DocumentType        = TRADE_LICENCE | EMIRATES_ID | VAT_CERT | TRADING_PERMIT | 
 Karat               = 24K | 22K | 21K | 18K
 OrnamentType        = RING | CHAIN | BANGLE | NECKLACE | EARRING | BRACELET | PENDANT | OTHER
 Condition           = NEW | LIKE_NEW | USED | DAMAGED          // SELL_OLD_GOLD
-OAuthProvider       = GOOGLE | APPLE
-AbuseEntityType     = REQUEST | OFFER | CONNECTION | REVIEW
+OAuthProvider       = GOOGLE             // APPLE exists in the schema enum but no route accepts it
+AbuseEntityType     = REQUEST | OFFER | CONNECTION | REVIEW | VENDOR | CUSTOMER
 ContactChannel      = WHATSAPP | PHONE
 ClosedBy            = CUSTOMER | VENDOR | ADMIN
 ```
@@ -305,7 +304,6 @@ RatingSummary = {
 ### 4.5 Taxonomy summaries
 
 ```
-CategorySummary = { id: UUID, nameEn: string, nameAr: string, isActive: boolean, displayOrder: integer, icon?: string }
 RegionSummary   = { id: UUID, nameEn: string, nameAr: string, isActive: boolean, displayOrder: integer }
 ```
 
@@ -338,7 +336,6 @@ RequestBase = {
   requestType: RequestType
   direction: Direction
   state: RequestState
-  category: CategorySummary
   region: RegionSummary
   notes?: string
   weightGrams?: WeightGrams
@@ -368,7 +365,7 @@ Presenter variants:
 RequestForCustomer = RequestBase & {
   cancellationReason?: string
   acceptedOfferId?: UUID
-  unreadOfferCount: integer     // PENDING offers with viewedByCustomerAt = null; on GET /v1/me/requests rows and GET /v1/requests/{id} (SAM-GAP-1 / CBG-01)
+  unreadOfferCount: integer     // PENDING offers with viewedByCustomerAt = null; on GET /v1/me/requests rows and GET /v1/requests/{id} (SAM-GAP-1)
   offers?: OfferForCustomer[]   // only on GET /requests/{id} for the owner, not on list rows
 }
 
@@ -392,13 +389,13 @@ RequestForAdmin = RequestBase & {
 ```
 OfferTerms = {
   offeredPrice: Money
+  weightGrams: WeightGrams      // weight the Offer prices (adr/0015)
+  purityKarat: Karat            // karat the Offer prices (adr/0015)
   makingCharges?: Money
   ratePerGram?: Money
   deliveryTimeframe?: string
   warrantyTerms?: string
   vendorNote?: string
-  validityHours: integer        // 12 | 24 | 48 (AD-API-07)
-  media: MediaRef[]             // max 3
 }
 
 OfferForCustomer = {
@@ -406,11 +403,12 @@ OfferForCustomer = {
   requestId: UUID
   state: OfferState
   terms: OfferTerms
+  media: MediaRef[]             // max 3
   vendor: MaskedVendor          // NEVER RevealedVendor until this Offer is ACCEPTED *and* viewed via the Connection
   submittedAt: DateTime
-  expiresAt: DateTime
+  expiresAt: DateTime           // = parent Request's expiresAt (FR-VEN-013)
   decidedAt?: DateTime
-  revisionCount: integer
+  viewedByCustomerAt?: DateTime
 }
 
 OfferForVendor = {
@@ -419,11 +417,11 @@ OfferForVendor = {
   request: RequestForVendor     // parent as it currently stands
   state: OfferState
   terms: OfferTerms
+  media: MediaRef[]
   submittedAt: DateTime
   expiresAt: DateTime
   decidedAt?: DateTime
   declineReason?: DeclineReason
-  revisionCount: integer
   awardedElsewhere: boolean     // true when REJECTED because a competitor was accepted; never includes winning price (BR-008)
   connectionId?: UUID           // when ACCEPTED
 }
@@ -519,15 +517,14 @@ Closed enumeration. Unknown codes must not be invented by clients. `message` is 
 | `EMAIL_ALREADY_REGISTERED` | 409 | |
 | `ACCOUNT_SUSPENDED` | 403 | Message distinguishes suspension (`FR-CUS-002`). |
 | `ACCOUNT_DEACTIVATED` | 403 | |
-| `ACCOUNT_LOCKED` | 423 | Vendor: 5 failures / 15 min (`FR-VEN-003`). Admin: 3 failures / 30 min (`FR-ADM-001`). |
-| `OAUTH_REQUIRED` | 403 | Publish without the one-time binding (`BR-001`). |
-| `OAUTH_ALREADY_BOUND` | 409 | |
-| `OAUTH_TOKEN_INVALID` | 401 | Provider token failed server-side verify. |
-| `TWO_FACTOR_REQUIRED` | 401 | Admin password accepted; 2FA pending. |
-| `TWO_FACTOR_INVALID` | 401 | |
+| `ACCOUNT_LOCKED` | 423 | Too many failed OTP attempts on a mobile number. |
+| `OAUTH_REQUIRED` | 403 | Publish by an account with no Google binding (`BR-001`). |
+| `OAUTH_ALREADY_BOUND` | 409 | This Google identity is already bound to another user. |
+| `ACCOUNT_ROLE_MISMATCH` | 403 | The account's type does not match the role the client asked for (`expectedRole`). |
+| `ACCOUNT_ROLE_CONFLICT` | 409 | Registering a role for an identity that already holds the other role. |
+| `LICENCE_ALREADY_REGISTERED` | 409 | Trade licence number already registered (`FR-VEN-001`). |
 | `VENDOR_NOT_ACTIVE` | 403 | Not `VERIFIED`+`ACTIVE`. Shell only (`BR-002`). |
 | `SUBSCRIPTION_REQUIRED` | 403 | No active Type Subscription for this Request type (`FR-VEN-031`). |
-| `PASSWORD_POLICY` | 400 | Failed `NFR-012`. |
 
 ### 5.3 Requests, Offers, Connections
 
@@ -540,10 +537,10 @@ Closed enumeration. Unknown codes must not be invented by clients. `message` is 
 | `STRUCTURAL_FIELD_IMMUTABLE` | 409 | Type/direction/weight/purity/quantity after publish (`BR-014`). |
 | `REQUEST_NOT_CANCELLABLE` | 409 | Already `ACCEPTED` (`BR-013`). |
 | `CONTACT_DETAILS_IN_TEXT` | 422 | Notes or vendor note tripped `BR-022`. |
-| `OFFER_NOT_OPEN` | 409 | Parent Request not `PUBLISHED`/`OFFERS_RECEIVED`. |
+| `OFFER_NOT_OPEN` | 409 | Parent Request not `PUBLISHED`. |
 | `OFFER_ALREADY_PENDING` | 409 | One non-terminal Offer per Vendor per Request (`BR-009`). |
-| `OFFER_REVISION_LIMIT` | 409 | Already revised 3 times (`FR-VEN-014`). |
-| `OFFER_NOT_PENDING` | 409 | Revise/withdraw/accept/decline against a terminal Offer. |
+| `OFFER_REVISION_NOT_ALLOWED` | 403 | Offers cannot be revised; withdraw and submit a new one (`FR-VEN-014`, `adr/0015`). |
+| `OFFER_NOT_PENDING` | 409 | Withdraw/accept/decline against a terminal Offer. |
 | `OFFER_EXPIRED` | 409 | Server-side expiry at accept time (`FR-SYS-004`). |
 | `OFFER_ALREADY_ACCEPTED` | 409 | Concurrent second accept (`BR-011`). |
 | `NOT_IN_MATCH_SET` | 403 | Vendor is not matched to this Request. |
@@ -584,18 +581,11 @@ Mutating routes require `Idempotency-Key`; a `*` marks it mandatory.
 | POST | `/v1/auth/otp/verify` | Pub | CUS-001, CUS-002, VEN-001 | phone proof, not login |
 | POST | `/v1/auth/register/customer` | Pub | CUS-001 | `[ASSUMED]` |
 | POST | `/v1/auth/register/vendor` | Pub | VEN-001 | `[ASSUMED]` |
-| POST | `/v1/auth/login/password` | Pub | — | leftover; remove G2-A15 |
-| POST | `/v1/auth/admin/2fa/setup` | A | — | leftover; remove G2-A15 |
-| POST | `/v1/auth/admin/2fa/confirm` | A | — | leftover; remove G2-A15 |
-| POST | `/v1/auth/admin/2fa/verify` | Pub (challenge) | — | leftover; remove G2-A15 |
-| POST | `/v1/auth/oauth/bind` | C | CUS-001, BR-001 | not login (`AD-API-13`) |
+| POST | `/v1/auth/register/admin` | Pub | ADM-002 | always `404 ADMIN_SELF_REGISTRATION_FORBIDDEN` |
 | POST | `/v1/auth/refresh` | Pub (refresh cookie/body) | CUS-002, VEN-003, ADM-001 | |
 | POST | `/v1/auth/logout` | C/V/A | CUS-002 | |
 | GET | `/v1/auth/sessions` | C/V/A | VEN-027 | |
 | DELETE | `/v1/auth/sessions/{id}` | C/V/A | VEN-027 | |
-| POST | `/v1/auth/password` | V/A | VEN-027 | |
-| POST | `/v1/auth/password/reset/request` | Pub | VEN-003 | `[ASSUMED]` `AD-API-10` |
-| POST | `/v1/auth/password/reset/confirm` | Pub | VEN-003 | `[ASSUMED]` `AD-API-10` |
 | POST | `/v1/devices` | C/V | SYS-008 | `[PROPOSED]` |
 | DELETE | `/v1/devices/{id}` | C/V | SYS-008 | `[PROPOSED]` |
 | GET | `/v1/me` | C/V/A | CUS-003, VEN-024, ADM-001 | |
@@ -606,8 +596,7 @@ Mutating routes require `Idempotency-Key`; a `*` marks it mandatory.
 | POST | `/v1/me/deletion-requests/{id}/confirm` | C | CUS-004, NFR-019 | `[ASSUMED]` |
 | GET | `/v1/me/settings` | C/V | CUS-034, VEN-027 | `[ASSUMED]` (C) |
 | PATCH | `/v1/me/settings` | C/V | CUS-034, VEN-027 | |
-| GET | `/v1/categories` | C/V/A | ADM-024, CUS-005, VEN-025 | |
-| GET | `/v1/regions` | C/V/A | ADM-025, CUS-005, VEN-025 | |
+| GET | `/v1/regions` | Pub | ADM-025, CUS-005, VEN-025 | |
 | GET | `/v1/platform-config` | C/V | ADM-030 | `[PROPOSED]` |
 | GET | `/v1/gold-rates` | C/V | CUS-018, SYS-010 | `[BLOCKED]` display |
 | POST* | `/v1/media/upload-intent` | C/V | CUS-007, VEN-002, SYS-009 | |
@@ -629,11 +618,12 @@ Mutating routes require `Idempotency-Key`; a `*` marks it mandatory.
 | PATCH | `/v1/filter-presets/{id}` | V | VEN-009 | `[ASSUMED]` |
 | DELETE | `/v1/filter-presets/{id}` | V | VEN-009 | `[ASSUMED]` |
 | GET | `/v1/me/dashboard` | V | VEN-004–007 | |
-| POST* | `/v1/requests/{id}/offers` | V | VEN-012, VEN-013, VEN-015 | `[ASSUMED]` validity |
+| POST* | `/v1/requests/{id}/offers` | V | VEN-012, VEN-013, VEN-015 | |
 | GET | `/v1/me/offers` | V | VEN-016–019, VEN-023 | |
 | GET | `/v1/offers/{id}` | C/V | CUS-022, VEN-010 | `[ASSUMED]` (C) |
 | GET | `/v1/offers/{id}/vendor-rating` | C | CUS-031 | `[ASSUMED]` |
-| POST* | `/v1/offers/{id}/revise` | V | VEN-014 | `[ASSUMED]` |
+| POST | `/v1/offers/{id}/revise` | V | VEN-014 | always `403 OFFER_REVISION_NOT_ALLOWED` (`adr/0015`) |
+| POST | `/v1/offers/{id}/viewed` | C | CUS-019 | sets `viewedByCustomerAt` (`SAM-GAP-1`) |
 | POST | `/v1/offers/{id}/withdraw` | V | VEN-014 | `[ASSUMED]` |
 | POST* | `/v1/offers/{id}/accept` | C | CUS-023, SYS-006, SYS-007 | |
 | POST | `/v1/offers/{id}/decline` | C | CUS-026 | `[ASSUMED]` |
@@ -657,7 +647,6 @@ Mutating routes require `Idempotency-Key`; a `*` marks it mandatory.
 | GET | `/v1/me/vendor/documents` | Vshell | VEN-002 | `[ASSUMED]` |
 | POST | `/v1/me/vendor/documents` | Vshell | VEN-002 | `[ASSUMED]` |
 | POST | `/v1/me/vendor/resubmit` | Vshell | VEN-002 | `[ASSUMED]` |
-| PUT | `/v1/me/vendor/categories` | V | VEN-025 | `[ASSUMED]` |
 | PUT | `/v1/me/vendor/regions` | V | VEN-025 | `[ASSUMED]` |
 | PATCH | `/v1/me/vendor/availability` | V | VEN-025 | `[ASSUMED]` |
 | GET | `/v1/me/subscriptions` | Vshell | VEN-031 | read-only |
@@ -690,10 +679,6 @@ Mutating routes require `Idempotency-Key`; a `*` marks it mandatory.
 | GET | `/v1/admin/connections` | A | ADM-022 | |
 | GET | `/v1/admin/connections/{id}` | A | ADM-023 | |
 | POST | `/v1/admin/connections/{id}/close` | A | ADM-023 | |
-| GET | `/v1/admin/categories` | A | ADM-024 | |
-| POST | `/v1/admin/categories` | A | ADM-024 | |
-| PATCH | `/v1/admin/categories/{id}` | A | ADM-024 | |
-| POST | `/v1/admin/categories/{id}/deactivate` | A | ADM-024 | |
 | GET | `/v1/admin/regions` | A | ADM-025 | |
 | POST | `/v1/admin/regions` | A | ADM-025 | |
 | PATCH | `/v1/admin/regions/{id}` | A | ADM-025 | |
@@ -705,6 +690,7 @@ Mutating routes require `Idempotency-Key`; a `*` marks it mandatory.
 | GET | `/v1/admin/reports/{name}` | A | ADM-027 | |
 | POST | `/v1/admin/exports` | A | ADM-028 | `[ASSUMED]` |
 | GET | `/v1/admin/exports/{id}` | A | ADM-028 | `[ASSUMED]` |
+| GET | `/v1/admin/exports/{id}/download` | A | ADM-028, NFR-016 | streams the finished artefact |
 | GET | `/v1/admin/announcements` | A | ADM-029 | |
 | POST | `/v1/admin/announcements` | A | ADM-029 | |
 | POST | `/v1/admin/announcements/{id}/cancel` | A | ADM-029 | |
@@ -719,12 +705,15 @@ Mutating routes require `Idempotency-Key`; a `*` marks it mandatory.
 | POST | `/v1/admin/abuse-reports/{id}/dismiss` | A | ADM-032 | `[ASSUMED]` |
 | POST | `/v1/admin/abuse-reports/{id}/action` | A | ADM-032 AC3 | `[ASSUMED]` — `{action: DISMISS\|WARN\|SUSPEND\|DEACTIVATE, rationale}`; atomic party sanction + report close + audit (AC5) |
 | GET | `/v1/admin/audit-log` | A | ADM-033, SYS-011 | `[ASSUMED]` |
+| POST | `/v1/admin/audit-log` | A | ADM-010, SYS-011 | records an Admin's read of a personal-data list (e.g. Customer list) |
 | GET | `/v1/admin/admins` | A | ADM-002 | `[ASSUMED]` coarse |
 | POST | `/v1/admin/admins` | A | ADM-002 | `[ASSUMED]` coarse |
 | POST | `/v1/admin/admins/{id}/suspend` | A | ADM-002 | `[ASSUMED]` |
 | POST | `/v1/admin/admins/{id}/revoke` | A | ADM-002 | `[ASSUMED]` |
-| POST | `/v1/admin/admins/{id}/password-reset` | A | ADM-002 | `[PROPOSED]` |
-| POST | `/v1/admin/{collection}/{id}/notes` | A | ADM-011, ADM-018 | `[PROPOSED]` `AD-API-12` |
+| GET | `/v1/admin/{collection}/{id}/notes` | A | ADM-011, ADM-018 | `[PROPOSED]` `AD-API-12` |
+| POST | `/v1/admin/{collection}/{id}/notes` | A | ADM-011, ADM-018 | `[PROPOSED]` `AD-API-12`; collections `customers`, `vendors`, `requests`, `offers`, `connections` |
+
+`POST /v1/dev/vendors/{id}/verify` and `POST /v1/dev/requests/seed` exist for local testing only: they need a dev flag and key, and return `404` when `NODE_ENV=production`.
 
 System jobs (fan-out, expiry, rate poll, media processing, rating aggregation, PDPL erasure) have **no public HTTP surface**. They run as workers inside the monolith (`NFR-009`, backend §11).
 
@@ -751,8 +740,15 @@ Screens: `CUS-S01`, `VEN-S01`, `VEN-S04`, `ADM-S01`.
 Public. `@RevealsIdentity`. Exchanges a verified Google ID token (Firebase Auth) for a Karat Hive `SessionBundle`. Does **not** create a User. Both paths are identical; `firebase/session` is an alias kept for existing clients.
 
 ```
-body: { idToken: string }       // also accepts token | firebaseToken
+body: { idToken: string, expectedRole?: CUSTOMER | VENDOR | ADMIN }   // also accepts token | firebaseToken
 200 data: SessionBundle
+SessionBundle = {
+  accessToken: string
+  accessExpiresAt: DateTime
+  refreshToken: string
+  refreshExpiresAt: DateTime
+  user: Me
+}
 ```
 
 Behaviour:
@@ -771,14 +767,14 @@ There is **no** `POST /v1/auth/oauth/login`. Google session exchange is the logi
 
 ### `POST /v1/auth/otp/request`
 
-Issues an SMS OTP. Rate-limited per number and per IP (`FR-CUS-001` AC2, SRS §7.5).
+Issues an SMS OTP that proves a mobile number. It never signs anyone in (`adr/0010`). Rate-limited per number and per IP (`FR-CUS-001` AC2, SRS §7.5).
 
 ```
-body: { mobileNumber: string, purpose: REGISTER_CUSTOMER | REGISTER_VENDOR | LOGIN | CHANGE_MOBILE }
+body: { mobileNumber: string, purpose: REGISTER_CUSTOMER | REGISTER_VENDOR | CHANGE_MOBILE }
 201 data: { challengeId: UUID, expiresAt: DateTime, retryAfterSeconds: integer }
 ```
 
-Errors: `OTP_RATE_LIMITED`, `MOBILE_ALREADY_REGISTERED` (when `purpose = REGISTER_*` and the number is live), `NOT_FOUND` (when `purpose = LOGIN` and the number is unknown — **do not** distinguish “unknown” from “wrong” beyond a generic failure if that would enumerate accounts; `[PROPOSED]`: LOGIN against an unknown number still returns 201 with a dummy `challengeId` that will fail verify, to avoid enumeration).
+Errors: `OTP_RATE_LIMITED`, `MOBILE_ALREADY_REGISTERED` (when `purpose = REGISTER_*` and the number is live).
 
 OTP TTL: 5 minutes. Max 5 issuances per number per hour.
 
@@ -786,24 +782,10 @@ OTP TTL: 5 minutes. Max 5 issuances per number per hour.
 
 ```
 body: { challengeId: UUID, code: string }
+200 data: { challengeId: UUID, mobileVerified: true }
 ```
 
-When `purpose` was `LOGIN` or a completed `REGISTER_*` that already created the user, returns a session:
-
-```
-200 data: SessionBundle
-SessionBundle = {
-  accessToken: string
-  accessExpiresAt: DateTime
-  refreshToken: string
-  refreshExpiresAt: DateTime
-  user: Me
-}
-```
-
-When `purpose` was `REGISTER_CUSTOMER` / `REGISTER_VENDOR`, returns `{ challengeId, mobileVerified: true }` and the client proceeds to the register endpoint, sending `challengeId`.
-
-Errors: `OTP_INVALID`, `OTP_EXPIRED`.
+The client then sends `challengeId` to the register route or to `POST /v1/me/mobile/change`. Errors: `OTP_INVALID`, `OTP_EXPIRED`, `ACCOUNT_LOCKED` (too many attempts).
 
 ### `POST /v1/auth/register/customer` `[ASSUMED]` (`FR-CUS-001`)
 
@@ -821,7 +803,7 @@ body: {
 201 data: SessionBundle          // accountState = ACTIVE
 ```
 
-Exactly one of `challengeId` or `firebaseToken` is required. Acceptance of ToS/Privacy is persisted with version + timestamp. Duplicate mobile → `MOBILE_ALREADY_REGISTERED`. Google completer still requires a real E.164 mobile (OTP or verified Google phone).
+A verified Google identity (`firebaseToken`) and the OTP proof of the mobile number (`challengeId`) are both expected; at least one is required. Acceptance of ToS/Privacy is persisted with version + timestamp. Duplicate mobile → `MOBILE_ALREADY_REGISTERED`. Google completer still requires a real E.164 mobile (OTP or verified Google phone).
 
 ### `POST /v1/auth/register/vendor` `[ASSUMED]` (`FR-VEN-001`)
 
@@ -836,9 +818,9 @@ body: {
   businessAddress: string
   contactPersonName: string
   businessEmail: string
+  contactWhatsApp?: string       // E.164, if different from the mobile number
   regionId: UUID
-  categoryIds: UUID[]            // ≥ 1
-  servedRegionIds: UUID[]        // ≥ 1
+  servedRegionIds?: UUID[]       // may be empty; set later on VEN-S16
   termsVersion: string
   privacyVersion: string
 }
@@ -846,45 +828,6 @@ body: {
 ```
 
 The session is real; marketplace collections will return `403 VENDOR_NOT_ACTIVE`. KYC documents are uploaded next via the media pipeline. Role is the route, never inferred from the Google token. **No Admin register via Google.**
-
-### `POST /v1/auth/login/password`
-
-Vendor email+password (`FR-VEN-003`) and Admin email+password (`FR-ADM-001`) share this route. The server branches on `user_type`.
-
-```
-body: { email: string, password: string }
-```
-
-Vendor `ACTIVE` / `PENDING_VERIFICATION` / `VERIFIED` → `200 SessionBundle`.
-Vendor `REJECTED` / `SUSPENDED` / `DEACTIVATED` → `403` with the matching account-state code.
-Admin → `401 TWO_FACTOR_REQUIRED` with `{ challengeId, expiresAt }` (password verified, 2FA not yet).
-> *[DEVIATION AD-API: 2FA deferred — checkpoint-1]*: Admin login returns `200 SessionBundle` directly in Checkpoint-1; 2FA endpoints are deferred. Built in Checkpoint-1.
-Five consecutive Vendor failures → `423 ACCOUNT_LOCKED` (15 minutes) and a security notification.
-Three consecutive Admin failures → `423 ACCOUNT_LOCKED` (30 minutes) and an audit entry (`FR-ADM-001`).
-
-### `POST /v1/auth/admin/2fa/verify`
-
-```
-body: { challengeId: UUID, code: string }     // TOTP or SMS
-200 data: SessionBundle
-```
-
-Every attempt is audited with IP and user agent (`FR-SYS-011`).
-
-Admin 2FA enrolment (first login after provisioning) is `POST /v1/auth/admin/2fa/setup` (authenticated, returns `{ otpauthUri, backupCodes }`) and `POST /v1/auth/admin/2fa/confirm`. `[PROPOSED]` — the SRS requires 2FA but not the enrolment wire format.
-
-### `POST /v1/auth/oauth/bind`
-
-Customer only. Server verifies the provider identity token; a client-supplied profile is never trusted (backend §15.4).
-
-```
-body: { provider: GOOGLE | APPLE, identityToken: string }
-200 data: { bound: true, provider: OAuthProvider, boundAt: DateTime }
-```
-
-Errors: `OAUTH_TOKEN_INVALID`, `OAUTH_ALREADY_BOUND`. Binding is one-time; subsequent publishes do not re-prompt (`FR-CUS-001` AC6).
-
-There is **no** `POST /v1/auth/oauth/login`. Login is `POST /v1/auth/google/session` (`AD-API-13`). This bind route remains only as a one-time publish-gate helper until the SRS `BR-001` rewrite; new Google-session users already carry a binding from exchange or register.
 
 ### `POST /v1/auth/refresh`
 
@@ -907,21 +850,6 @@ Invalidates the presented refresh token (or the whole family when `allDevices`).
 ### `GET /v1/auth/sessions` · `DELETE /v1/auth/sessions/{id}`
 
 Lists active refresh-token families (device label, last IP, last used). Revoke one. (`FR-VEN-027` AC2; offered to Customers as well `[PROPOSED]`.)
-
-### `POST /v1/auth/password`
-
-Vendor (and Admin, for self-change) set or change email/password.
-
-```
-body: { currentPassword?: string, newPassword: string }
-204
-```
-
-Password policy: `NFR-012`. Setting a password the first time omits `currentPassword`.
-
-### `POST /v1/auth/password/reset/request` · `…/confirm` `[ASSUMED]` `AD-API-10`
-
-Email a one-time reset token (Vendor). Confirm sets a new password and revokes all sessions. Admin password reset is performed by another Admin (`POST /v1/admin/admins/{id}` does not set a password in the body; a separate `POST /v1/admin/admins/{id}/password-reset` emails the Admin). `[PROPOSED]`
 
 ### `POST /v1/devices` · `DELETE /v1/devices/{id}` `[PROPOSED]`
 
@@ -999,7 +927,7 @@ body: { challengeId: UUID }            // purpose = CHANGE_MOBILE, OTP of the *n
 
 ### `POST /v1/me/deactivate` `[ASSUMED]` (`FR-CUS-004`)
 
-Closes all `PUBLISHED` / `OFFERS_RECEIVED` Requests, blocks login. Vendors: equivalent of a self-requested deactivation; Admin still owns the terminal `DEACTIVATED` state (`FR-ADM-016`). `[PROPOSED]` for Vendor self-deactivation: same route, `403` if any `ACTIVE` Connection exists.
+Closes all `PUBLISHED` Requests, blocks login. Vendors: equivalent of a self-requested deactivation; Admin still owns the terminal `DEACTIVATED` state (`FR-ADM-016`). `[PROPOSED]` for Vendor self-deactivation: same route, `403` if any `ACTIVE` Connection exists.
 
 ### `POST /v1/me/deletion-requests` `[ASSUMED]` (`FR-CUS-004`, `NFR-019`)
 
@@ -1025,21 +953,19 @@ Security-critical categories cannot be disabled (`FR-CUS-032` AC4, `FR-SYS-008` 
 
 ## 10. Taxonomy and platform config
 
-Active nodes only for Customer/Vendor. Admins use `/v1/admin/categories` (includes inactive).
+Active Regions only for Customer/Vendor. Admins use `/v1/admin/regions` (includes inactive). There is no Category resource (`adr/0014`).
 
-### `GET /v1/categories` · `GET /v1/regions`
+### `GET /v1/regions`
 
-Returns the flat list (`CategorySummary[]` / `RegionSummary[]`), sorted by `displayOrder`. No pagination (bounded reference data).
+Public. Returns the flat list (`RegionSummary[]`), sorted by `displayOrder`. No pagination (bounded reference data).
 
 ### `GET /v1/platform-config` `[PROPOSED]`
 
-Read-only snapshot of the settings a client needs to render forms without an Admin round-trip. Sourced from `PLATFORM_SETTING` (`FR-ADM-030`).
+Public. Read-only snapshot of the settings a client needs to render forms without an Admin round-trip. Sourced from `PLATFORM_SETTING` (`FR-ADM-030`).
 
 ```
 data: {
   requestLifetimeHours: integer         // default 48 (C-07)
-  offerValidityHours: integer[]         // default [12, 24, 48]
-  defaultOfferValidityHours: integer    // 24
   bullionMinimumAed: Money              // "500.00"
   maxConcurrentLiveRequests: integer    // 10
   maxRequestImages: integer             // 5
@@ -1159,7 +1085,6 @@ Creates a `DRAFT`. Mandatory-field validation is **not** applied (`FR-CUS-015`).
 body: {
   requestType: RequestType
   direction?: Direction          // required for GOLD_COIN, GOLD_BULLION; ignored otherwise
-  categoryId?: UUID
   regionId?: UUID
   notes?: string
   weightGrams?: WeightGrams
@@ -1188,7 +1113,7 @@ Drafts older than 30 days are purged by a worker after a T−3-day notification 
 Customer collection. Query:
 
 ```
-state?: RequestState[]           // default: DRAFT, PUBLISHED, OFFERS_RECEIVED, ACCEPTED
+state?: RequestState[]           // default: DRAFT, PUBLISHED, ACCEPTED
 requestType?: RequestType
 direction?: Direction
 q?: string                       // reference
@@ -1199,7 +1124,7 @@ limit, cursor
 
 `state` including terminal values is the History screen (`CUS-S17`, `FR-CUS-028`). History is read-only; the same list endpoint serves it.
 
-Each row is `RequestForCustomer` **without** nested `offers` (use the offers sub-collection). Rows still carry `unreadOfferCount` (PENDING offers not yet marked viewed) so `CUS-S02` / `CUS-S11` can badge without fetching the offers (`SAM-GAP-1` / `CBG-01`; presenter-time aggregate, no denormalised column).
+Each row is `RequestForCustomer` **without** nested `offers` (use the offers sub-collection). Rows still carry `unreadOfferCount` (PENDING offers not yet marked viewed) so `CUS-S02` / `CUS-S11` can badge without fetching the offers (`SAM-GAP-1`; presenter-time aggregate, no denormalised column).
 
 ### `GET /v1/requests/{id}`
 
@@ -1208,7 +1133,7 @@ Shared resource, presenter selected by viewer:
 | Viewer | Presenter | 404 when |
 |---|---|---|
 | Owning Customer | `RequestForCustomer` (offers nested on this GET) | not owner |
-| Matched Vendor, Request `PUBLISHED` or `OFFERS_RECEIVED` | `RequestForVendor` | not in match set, or Request terminal to them |
+| Matched Vendor, Request `PUBLISHED` | `RequestForVendor` | not in match set, or Request terminal to them |
 | Winning Vendor after accept | `RequestForVendor` plus `connectionId` | other Vendors see `404` |
 | Anyone else | `404` | |
 
@@ -1228,7 +1153,7 @@ Transitions `DRAFT` → `PUBLISHED`. Server-side validation of type-specific man
 
 Refused when:
 
-- OAuth not bound → `403 OAUTH_REQUIRED` (`BR-001`)
+- account has no Google binding → `403 OAUTH_REQUIRED` (`BR-001`)
 - media not `READY` → `422 MEDIA_NOT_READY` / `MEDIA_QUARANTINED`
 - contact details in notes → `422 CONTACT_DETAILS_IN_TEXT`
 - live Request count ≥ configured max → `409 CONCURRENT_REQUEST_LIMIT`
@@ -1248,7 +1173,7 @@ body: { reason?: string }        // configured list
 200 data: RequestForCustomer     // state = CANCELLED
 ```
 
-Allowed from `DRAFT`, `PUBLISHED`, `OFFERS_RECEIVED`. `ACCEPTED` → `409 REQUEST_NOT_CANCELLABLE`. Pending Offers become `WITHDRAWN_BY_SYSTEM`; those Vendors are notified.
+Allowed from `DRAFT` and `PUBLISHED`. `ACCEPTED` → `409 REQUEST_NOT_CANCELLABLE`. Pending Offers become `WITHDRAWN_BY_SYSTEM`; those Vendors are notified.
 
 ### `POST /v1/requests/{id}/duplicate` `[PROPOSED]` (`FR-SYS-005` AC4)
 
@@ -1266,7 +1191,7 @@ The feed is **this Vendor’s match set**, not the world’s open Requests (`FR-
 
 ```
 query: {
-  requestType?, direction?, categoryId?, regionId?,
+  requestType?, direction?, regionId?,
   purityKarat?,
   weightMin?, weightMax?,
   budgetMin?, budgetMax?,
@@ -1336,7 +1261,8 @@ Vendor submits against a matched, open Request (`FR-VEN-012`).
 ```
 body: {
   offeredPrice: Money            // mandatory
-  validityHours: integer         // 12 | 24 | 48, default 24; capped by Request remaining life (FR-VEN-013)
+  weightGrams: WeightGrams       // mandatory (adr/0015)
+  purityKarat: Karat             // mandatory (adr/0015)
   makingCharges?: Money
   ratePerGram?: Money
   deliveryTimeframe?: string     // max 100
@@ -1353,10 +1279,10 @@ Refused when:
 - no Type Subscription for this Request type → `403 SUBSCRIPTION_REQUIRED`
 - not in match set → `403 NOT_IN_MATCH_SET`
 - Request not open → `409 OFFER_NOT_OPEN`
-- already holds a `PENDING` Offer → `409 OFFER_ALREADY_PENDING` (client should revise, `BR-009`)
+- already holds a `PENDING` Offer → `409 OFFER_ALREADY_PENDING` (withdraw it first, `BR-009`)
 - contact details in `vendorNote` → `422 CONTACT_DETAILS_IN_TEXT`
 
-On success the parent Request moves `PUBLISHED` → `OFFERS_RECEIVED` if it was the first Offer. Customer is notified (`FR-SYS-008`). **Vendor identity is not in the Customer payload** (`BR-006`).
+On success the Offer's `expiresAt` is set to the parent Request's `expiresAt` (`FR-VEN-013`) and the Request's `offerCount` increases; the Request stays `PUBLISHED`. Customer is notified (`FR-SYS-008`). **Vendor identity is not in the Customer payload** (`BR-006`).
 
 A previous Offer in a terminal state on the same Request does **not** block a new submission if the Request is still open (`FR-VEN-015` AC2).
 
@@ -1402,16 +1328,9 @@ Default sort: `PRICE_ASC` for `BUY`, `PRICE_DESC` for `SELL` (`FR-CUS-021` AC3).
 
 Customer, on an Offer they can see. Returns `RatingSummary` plus up to 10 most recent **published** review excerpts with abbreviated reviewer names. **No business identity.** Vendors with `< 3` reviews have `limitedHistory: true` and the client copy is “New vendor — limited rating history”.
 
-### `POST /v1/offers/{id}/revise` *Idempotency-Key required* `[ASSUMED]` (`FR-VEN-014`)
+### `POST /v1/offers/{id}/revise` (`FR-VEN-014`)
 
-```
-body: OfferTerms                 // full replacement of terms
-200 data: OfferForVendor         // revisionCount += 1, expiresAt reset, still PENDING
-```
-
-Max 3 revisions → `409 OFFER_REVISION_LIMIT`. Blocked unless `PENDING`. Previous terms stored on `OFFER_REVISION`. Customer is notified with previous and new price.
-
-Expiry reset still cannot exceed the parent Request hard expiry (`FR-VEN-013` AC4).
+Always `403 OFFER_REVISION_NOT_ALLOWED`. Offers cannot be revised (`adr/0015`); the Vendor withdraws and submits a new Offer.
 
 ### `POST /v1/offers/{id}/withdraw` `[ASSUMED]` (`FR-VEN-014`)
 
@@ -1569,7 +1488,7 @@ data: [{
 }]
 ```
 
-Customer triggers (`FR-CUS-032`): first Offer, subsequent Offer, Request T−6 h, Request expired, Offer withdrawn/revised, review reminder, announcement.
+Customer triggers (`FR-CUS-032`): first Offer, subsequent Offer, Request T−6 h, Request expired, Offer withdrawn, review reminder, announcement.
 
 Vendor triggers (`FR-VEN-026`): new matched Request, Offer accepted, Offer rejected, Offer T−6 h, Offer expired, Request edited, Request cancelled, verification outcome, KYC nearing expiry, new review, announcement.
 
@@ -1630,7 +1549,6 @@ VendorProfile = {
   rating: RatingSummary
   offersSubmittedCount: integer
   offersAcceptedCount: integer
-  categories: CategorySummary[]
   regions: RegionSummary[]
 }
 ```
@@ -1651,17 +1569,14 @@ Returned metadata never includes a download URL for the Vendor of the raw KYC ob
 
 `POST /v1/me/vendor/resubmit` after `REJECTED` returns the account to `PENDING_VERIFICATION` (`FR-VEN-002` AC6, §5.4).
 
-### Categories, Regions, availability `[ASSUMED]` (`FR-VEN-025`) — `ACTIVE` to change; required before first activation
+### Served Regions, availability `[ASSUMED]` (`FR-VEN-025`)
 
 ```
-// PUT /v1/me/vendor/categories [REMOVED - ADR 0014]
 PUT   /v1/me/vendor/regions        body: { regionIds: UUID[] }      // ≥ 1
 PATCH /v1/me/vendor/availability   body: { awayMode?: boolean, businessHours?: … }
 ```
 
-Category selection is removed. Vendor activation is unconditional upon VERIFIED status (`FR-VEN-025`, ADR 0014). and ≥ 1 Region (`FR-VEN-025` AC1). `awayMode` suspends new-request notifications only; it does not deactivate the account.
-
-`PUT` responses include `{ estimatedMatchVolume?: integer }` when the platform can estimate (`FR-VEN-025` AC4). `[PROPOSED]` algorithm: count of currently `PUBLISHED`/`OFFERS_RECEIVED` Requests matching the new set. Indicative only.
+Served Regions are the Vendor's default feed filter; they never gate matching or activation (`adr/0014`). There is no Category resource. `awayMode` suspends new-request notifications only; it does not deactivate the account.
 
 ### `GET /v1/me/subscriptions` — read-only (`FR-VEN-031`, `AD-API-04`)
 
@@ -1681,7 +1596,7 @@ There is **no** Vendor POST to subscribe. Entitlements are granted by Admin afte
 ### `GET /v1/me/vendor/performance` (`FR-VEN-023`)
 
 ```
-query: { from?, to?, requestType?, categoryId?, regionId? }
+query: { from?, to?, requestType?, regionId? }
 data: {
   offersSubmitted: integer
   acceptanceRate: string         // decimal
@@ -1730,7 +1645,7 @@ data: {
   offers: { submittedInPeriod, byState, meanPerRequest, meanMinutesToFirst, acceptanceRate, expiryRate }
   connections: { createdInPeriod, active, closed, meanMinutesRequestToConnection, talkUsedProportion }
   queues: { pendingVerifications, openAbuseReports, reviewsPendingModeration }
-  platform: { indicativeGoldWeightTransacted, meanRequestValue, funnel, byCategory, byRegion }
+  platform: { indicativeGoldWeightTransacted, meanRequestValue, funnel, byRegion }
 }
 ```
 
@@ -1750,7 +1665,7 @@ GET /v1/admin/customers/{id}
 
 POST /v1/admin/customers/{id}/suspend          [ASSUMED] FR-ADM-012
   body: { reasonCode: string, reasonText: string }
-  Immediate: block login, close PUBLISHED/OFFERS_RECEIVED Requests, WITHDRAWN_BY_SYSTEM on pending Offers,
+  Immediate: block login, close PUBLISHED Requests, WITHDRAWN_BY_SYSTEM on pending Offers,
   notify Customer and affected Vendors.
 
 POST /v1/admin/customers/{id}/reactivate
@@ -1766,11 +1681,11 @@ POST /v1/admin/customers/{id}/erasure          [ASSUMED] NFR-019
 
 ```
 GET /v1/admin/vendors
-  filters: verificationState, accountState, regionId, categoryId, q (business name|licence|mobile)
+  filters: verificationState, accountState, regionId, q (business name|licence|mobile)
   default sort for PENDING_VERIFICATION: oldest first (FR-ADM-015 AC8; no SLA)
 
 GET /v1/admin/vendors/{id}
-  data: VendorProfile unmasked, documents[], verificationHistory[], categories, regions,
+  data: VendorProfile unmasked, documents[], verificationHistory[], regions,
         offers[], connections[], reviews[], performance, subscriptions[], notes[]
 
 GET /v1/admin/vendors/{id}/documents/{docId}/url
@@ -1782,8 +1697,7 @@ GET /v1/admin/verification-queue
 
 POST /v1/admin/vendors/{id}/verify
   body: { rationale: string }                        // mandatory
-  → verificationState VERIFIED. ACTIVE still requires Categories + Regions (FR-ADM-015 AC5, §5.4).
-  If those are already declared, the same transaction advances to ACTIVE.
+  → verificationState VERIFIED and ACTIVE in the same transaction (SRS §5.4, adr/0014).
 
 POST /v1/admin/vendors/{id}/reject
   body: { rationale: string }                        // sent to the Vendor; resubmission allowed
@@ -1830,7 +1744,7 @@ Admin presenters are fully unmasked. Admin **cannot** alter a Customer’s requi
 
 ```
 GET /v1/admin/requests
-  filters: requestType, direction, state, categoryId, regionId, valueMin, valueMax,
+  filters: requestType, direction, state, regionId, valueMin, valueMax,
            zeroOffers=true, q (reference|notes)
 
 GET /v1/admin/requests/{id}
@@ -1846,11 +1760,11 @@ GET /v1/admin/offers
   filters: state, vendorId, requestType, priceMin, priceMax
 
 GET /v1/admin/offers/{id}
-  data: OfferForAdmin, revisionHistory[], transitions[], parent Request, winningOfferId?
+  data: OfferForAdmin, transitions[], parent Request, winningOfferId?
 
 GET /v1/admin/connections
   default filter state=ACTIVE
-  filters: state, regionId, categoryId, noContact=true
+  filters: state, regionId, noContact=true
   48h-without-Talk is a derived flag (FR-ADM-022 AC3)
 
 GET /v1/admin/connections/{id}
@@ -1861,20 +1775,14 @@ POST /v1/admin/connections/{id}/close
   body: { reasonText: string }     // notifies both parties
 ```
 
-### 21.6 Taxonomy (`ADM-S14`, `ADM-S15`, `FR-ADM-024`, `FR-ADM-025`) — [BUILT - Checkpoint-1]
+### 21.6 Regions (`ADM-S15`, `FR-ADM-025`)
 
 ```
-GET / POST / PATCH  /v1/admin/categories
-POST                /v1/admin/categories/{id}/deactivate
 GET / POST / PATCH  /v1/admin/regions
 POST                /v1/admin/regions/{id}/deactivate
 ```
 
-Create/rename/reorder/activate/deactivate. Flat, single-level list — no `parentId`, no nested children. `nameEn` and `nameAr` mandatory. Category `icon` is optional (`VARCHAR(100)`). In-use categories cannot be deleted (`BR-019`) → `409 TAXONOMY_IN_USE`. Deactivate hides from new selection; existing associations remain. Changes apply to subsequent Requests only. Built and audited via `AuditWriter`.
-
-Regions: identical implementation at `/v1/admin/regions`. Flat list of the 7 Emirates only — no area/souk-level entries.
-
-There is no DELETE route (deactivate only).
+Create/rename/reorder/activate/deactivate. Flat, single-level list — no `parentId`, no nested children; sorted by `displayOrder`. `nameEn` and `nameAr` mandatory. In-use Regions cannot be deleted (`BR-019`) → `409 TAXONOMY_IN_USE`. Deactivate hides from new selection; existing associations remain. Seeded with the seven Emirates. There is no DELETE route. Category management (`ADM-S14`, `FR-ADM-024`) is retired (`adr/0014`).
 
 ### 21.7 Review moderation (`ADM-S16`, `FR-ADM-026`)
 
@@ -1898,7 +1806,7 @@ Approve/reject/redact recomputes aggregates (`FR-SYS-012`) within 60 seconds via
 GET /v1/admin/reports/{name}
   name = acquisition | vendor-league | request-volume | offer-competitiveness |
          funnel | liquidity-gaps | rating-distribution
-  query: from, to, regionId, categoryId
+  query: from, to, regionId, requestType
   200 data: { name, generatedAt, rows: object[], series: object[] }
 
 POST /v1/admin/exports                         [ASSUMED] FR-ADM-028
@@ -1918,7 +1826,7 @@ GET  /v1/admin/announcements
 POST /v1/admin/announcements
 body: {
   titleEn, titleAr, bodyEn, bodyAr,
-  audience: { userTypes?: UserType[], accountStates?: AccountState[], regionIds?: UUID[], categoryIds?: UUID[] },
+  audience: { userTypes?: UserType[], accountStates?: AccountState[], regionIds?: UUID[] },
   channels: { inApp: boolean, push: boolean, email: boolean },
   critical: boolean,                 // overrides recipient preferences
   scheduledFor?: DateTime
@@ -1936,7 +1844,7 @@ PATCH /v1/admin/settings/{key}
 body: { value: JSON, confirm?: boolean }
 ```
 
-Minimum keys: `bullion.minimum_value_aed`, `offer.validity_hours_options`, `offer.default_validity_hours`, `request.lifetime_hours` (product default 48, `C-07`), `request.max_concurrent_live`, `purity.karat_list`, `media.max_images`, `media.max_bytes`, `subscription.products` (per Request type: price, period, grace). Review moderation mode is **not** a setting — hold-for-approval is fixed.
+Minimum keys: `bullion.minimum_value_aed`, `request.lifetime_hours` (product default 48, `C-07`), `request.max_concurrent_live`, `purity.karat_list`, `media.max_images`, `media.max_bytes`, `subscription.products` (per Request type: price, period, grace). Review moderation mode is **not** a setting — hold-for-approval is fixed.
 
 Each GET row: `{ key, value, dataType, allowedRange, requiresConfirmation, lastChangedBy, lastChangedAt }`.
 
@@ -1985,12 +1893,10 @@ GET  /v1/admin/admins
 POST /v1/admin/admins
 body: { email: string, displayName: string }
 201  { id, email, displayName, accountState: ACTIVE }
-     Temporary password emailed; 2FA enrolment required before first session is fully privileged.
-     No `role` field.
+     The new Admin signs in with Google using this email (adr/0010). No password, no `role` field.
 
 POST /v1/admin/admins/{id}/suspend
 POST /v1/admin/admins/{id}/revoke          // terminal; audit trail of past actions is retained
-POST /v1/admin/admins/{id}/password-reset
 ```
 
 An Admin cannot revoke their own last remaining active Admin account. `[PROPOSED]` guard.
@@ -2042,16 +1948,16 @@ Every FR in SRS §4 maps to at least one route or to a worker (no HTTP). `[ASSUM
 | VEN-010 | `GET /v1/requests/{id}` (vendor presenter), `POST /v1/matches/{id}/viewed` |
 | VEN-011 | presenter rule on every Vendor Request/Offer payload |
 | VEN-012–013 | `POST /v1/requests/{id}/offers` |
-| VEN-014 | `GET /v1/offers/{id}` (current terms), `POST /v1/offers/{id}/revise`, `/withdraw` |
+| VEN-014 | `GET /v1/offers/{id}`, `POST /v1/offers/{id}/withdraw` (revise always `403`, `adr/0015`) |
 | VEN-015 | uniqueness → `409 OFFER_ALREADY_PENDING` |
 | VEN-016–019 | `GET /v1/me/offers` |
 | VEN-020–021 | `GET /v1/me/connections`, `GET /v1/connections/{id}` |
 | VEN-022 | Talk payload + `POST /v1/connections/{id}/contact-events` |
 | VEN-023 | `GET /v1/me/vendor/performance`, `/export` |
 | VEN-024 | `GET/PATCH /v1/me/vendor` |
-| VEN-025 | `PUT /v1/me/vendor/categories`, `/regions`, `PATCH …/availability` |
+| VEN-025 | `PUT /v1/me/vendor/regions`, `PATCH /v1/me/vendor/availability` |
 | VEN-026 | `GET /v1/notifications*` |
-| VEN-027 | `GET/PATCH /v1/me/settings`, sessions, `POST /v1/auth/password` |
+| VEN-027 | `GET/PATCH /v1/me/settings`, sessions |
 | VEN-028 | `POST /v1/connections/{id}/reviews` |
 | VEN-029 | `GET /v1/me/reviews`, `POST /v1/reviews/{id}/response`, `/flag` |
 | VEN-030 | `POST /v1/abuse-reports` |
@@ -2061,7 +1967,7 @@ Every FR in SRS §4 maps to at least one route or to a worker (no HTTP). `[ASSUM
 
 | FR | Routes / mechanism |
 |---|---|
-| ADM-001 | `POST /v1/auth/google/session` (`AD-API-13`). No self-registration. Password + 2FA leftover until G2-A15. |
+| ADM-001 | `POST /v1/auth/google/session` (`AD-API-13`). No self-registration. |
 | ADM-002 | `/v1/admin/admins*` (coarse, no role column) |
 | ADM-003–009 | `GET /v1/admin/dashboard` |
 | ADM-010–012 | `/v1/admin/customers*` |
@@ -2069,7 +1975,7 @@ Every FR in SRS §4 maps to at least one route or to a worker (no HTTP). `[ASSUM
 | ADM-017–019 | `/v1/admin/requests*` |
 | ADM-020–021 | `/v1/admin/offers*` |
 | ADM-022–023 | `/v1/admin/connections*` |
-| ADM-024 | `/v1/admin/categories*` |
+| ADM-024 | — retired (`adr/0014`) |
 | ADM-025 | `/v1/admin/regions*` |
 | ADM-026 | `/v1/admin/reviews*` |
 | ADM-027–028 | `/v1/admin/reports/{name}`, `/v1/admin/exports*` |
@@ -2114,14 +2020,10 @@ These are recorded so implementation does not silently resolve them.
 | Object storage placement | `adr/0013` | All object buckets (`kyc`, `request-media`, `export`) on Oracle Object Storage S3 in `ap-hyderabad-1`. Paths and signed-URL flow unchanged. Production database region (`NFR-020`) stays open |
 | Admin data-grid build-or-buy (`AD-FE-12`) | `[BLOCKED]` Frontend | No API impact. Admin list contracts in §21 are grid-agnostic. |
 | `FR-ADM-002` Super / Ops / Analyst | Deferred by `AD-API-03` | Coarse `ADMIN`. Revisit before any permission split; identifiers on Admin routes stay stable. |
-| Offer validity options: `FR-VEN-013` (12/24/48) vs entity dictionary (24/48/72/168) | Spec tension | Inventory follows `FR-VEN-013` (`AD-API-07`). Align SRS §6 on the next revision. |
 | Type Subscription commercial flow | `[PROPOSED]` `AD-API-04` | Admin-grant, Vendor read-only. If in-app payment is later required, add routes under `/v1/me/subscriptions` without reusing these identifiers for a different meaning. |
-| Password reset | `[ASSUMED]` `AD-API-10` | Leftover with password login. Remove with G2-A15 after Google session is the only login. |
-| Password login + Admin 2FA routes | Leftover (`adr/0010`) | Still listed in §6/§8; delete under G2-A15. |
 | Biometric unlock (`FR-CUS-002` AC5) | Client-only | No API. Convenience layer over an existing session. |
 | Dashboard live-update without refresh (`FR-CUS-019` AC4, `NFR-003`) | `[PROPOSED]` | v1 is pull-to-refresh + focus refetch. No WebSocket/SSE (would not need a broker, but is out of v1 scope). |
 | Chart PNG export (`FR-ADM-028` AC1) | `[ASSUMED]` | Export `format=PNG` is specified; rendering is an Admin-worker concern. |
-| Enumeration-safe OTP login | `[PROPOSED]` | Dummy `challengeId` on unknown LOGIN numbers. |
 
 ---
 
@@ -2132,6 +2034,7 @@ These are recorded so implementation does not silently resolve them.
 | 0.1 | 1 Sep 2026 | Initial inventory against SRS v1.3 and backend architecture §13–§16. Locked: `AD-API-01`–`03`, shared resources, coarse Admin, full `[ASSUMED]` schemas. |
 | 0.2 | 7 Sep 2026 | `AD-API-13`: Google session exchange (`POST /v1/auth/google/session` + firebase alias) is the only login. §3.4, §5.1, §6, §8, §22 updated. Password/2FA marked leftover (G2-A15). G2-D02. |
 | 0.3 | 8 Sep 2026 | Sync to the Checkpoint-1 Customer presenters. §4.7 `RequestForCustomer` gains `unreadOfferCount: integer` (PENDING offers not yet viewed) on `GET /v1/me/requests` rows and `GET /v1/requests/{id}` — `SAM-GAP-1` / `CBG-01`, verified against `request.presenter.ts`. §11 `GET /v1/gold-rates`: recorded that every response shape, the display-not-licensed branch included, carries both `available` and `stale` (`CBG-02`), verified against `gold-rate.presenter.ts`. No route added. |
+| 0.4 | 1 Oct 2026 | Checked against the backend controllers and error catalogue. Removed routes that do not exist (Category, password login and reset, Admin 2FA, OAuth bind); added `POST /v1/offers/{id}/viewed`, `POST /v1/admin/audit-log`, `GET /v1/admin/exports/{id}/download`, `GET /v1/admin/{collection}/{id}/notes`, `POST /v1/auth/register/admin` (always 404) and the dev routes. Offers per `adr/0015`: no `validityHours`, `weightGrams` + `purityKarat` required, revise always 403, no `OFFERS_RECEIVED`. `AD-API-07` and `AD-API-10` retired. Error catalogue synced (`ACCOUNT_ROLE_*`, `LICENCE_ALREADY_REGISTERED`, `OFFER_REVISION_NOT_ALLOWED` added; 2FA and password codes removed). |
 
 ## Appendix B — Sign-off
 

@@ -83,7 +83,7 @@ It is written to be sufficient to lay out the repository, fix the state-manageme
 | **C-05 / BR-006** | Identity masking until Acceptance | §10 — the client models masked and revealed parties as **different types**, so a pre-acceptance screen is structurally incapable of rendering a phone number |
 | **C-07** | Requests hard-expire at 48 h | §11 — countdowns are driven by server time, never device time |
 | **C-03** | WhatsApp handoff, no in-app messaging | The Talk button builds a deep link and reports the tap; there is no message UI to build |
-| **C-13** | Object storage: Cloudflare R2, S3-compatible (`docs/adr/0008`) | §12 is written against pre-signed URL semantics; the flow is provider-agnostic and needs no change |
+| **C-13** | Object storage: Oracle Object Storage, S3-compatible, `ap-hyderabad-1` (`docs/adr/0013`) | §12 is written against pre-signed URL semantics; the flow is provider-agnostic and needs no change |
 
 ### 2.2 Quality attributes that shape the design
 
@@ -110,11 +110,11 @@ It is written to be sufficient to lay out the repository, fix the state-manageme
 | ID | Decision | Status |
 |---|---|---|
 | `AD-FE-01` | Flutter for all three surfaces; Admin as a Flutter Web target | Fixed (C-10) |
-| `AD-FE-02` | **Melos-managed monorepo** — two apps, shared packages *(Admin Checkpoint-1 built standalone in `apps/kh_admin`; ADM-S14/S15 taxonomy screens are implemented)* | `[PROPOSED]` |
+| `AD-FE-02` | **Melos-managed monorepo** — two apps, shared packages *(`kh_admin` sits outside the Melos workspace by design; `kh_mobile` and `packages/kh_*` are in it)* | `[PROPOSED]` |
 | `AD-FE-03` | **Riverpod** for state management and dependency injection | `[PROPOSED]` |
 | `AD-FE-04` | **go_router** with typed routes and declarative guards | `[PROPOSED]` |
 | `AD-FE-05` | **freezed + json_serializable** for immutable models and unions | `[PROPOSED]` |
-| `AD-FE-06` | API client **generated from the backend's OpenAPI document**, wrapped in hand-written repositories *(Deferred for Admin Checkpoint-1; hand-written typed repositories)* | `[PROPOSED]` |
+| `AD-FE-06` | API client **generated from the backend's OpenAPI document**, wrapped in hand-written repositories *(Not yet: both apps use hand-written typed repositories until response schemas are in the generated OpenAPI)* | `[PROPOSED]` |
 | `AD-FE-07` | **Masked and revealed parties are distinct sealed types** — not one nullable model | `[PROPOSED]` |
 | `AD-FE-08` | Feature-first module structure; layers within a feature, not across the app | `[PROPOSED]` |
 | `AD-FE-09` | **No local database in v1.** In-memory cache with explicit invalidation only | `[PROPOSED]` |
@@ -338,6 +338,8 @@ flowchart TB
     GUEST -->|Register as Jeweller| VREG["VEN-S01"]
 ```
 
+The Customer shell's bottom navigation has five tabs: **Home** (`CUS-S02` — hero, the four Request-type tiles, How this works; no Request list) · **My Requests** (`CUS-S24` — open Requests and drafts; its app bar opens History, `CUS-S17`) · **Connections** (`CUS-S16`) · **Alerts** (`CUS-S19`) · **Profile** (`CUS-S20`). Every tab except Home requires a session.
+
 The Awaiting Approval shell is a **separate shell, not a disabled state of the Vendor shell** (`C-04`, `BR-002`, `FR-VEN-003`). A non-`ACTIVE` Vendor's router simply has no marketplace routes mounted, so there is no navigation path, no cached feed and no dashboard data to leak. Building it as a permission flag inside the full shell would leave every one of those one bug away from being visible.
 
 ### 7.3 Route guards — usability, never security
@@ -427,7 +429,7 @@ Acceptance (`CUS-S14`) is the critical instance: irreversible (`BR-013`), with a
 
 | Data | Policy |
 |---|---|
-| Taxonomy — Categories, Regions | Long-lived; refreshed on app foreground |
+| Regions | Long-lived; refreshed on app foreground |
 | Platform settings, purity factors | Long-lived; refreshed on foreground |
 | Gold rate (`SH-DOM-01`) | Short-lived; visibly marked stale past the configured threshold rather than silently reused (`FR-CUS-018`) |
 | Request feed, Offer lists | Never cached across app launches; refreshed on foreground and on push (§11.3) |
@@ -501,7 +503,7 @@ That last row is a small decision with a large payoff: during the version overla
 
 `AD-FE-11`. Every response carries `meta.serverTime` (backend §13.2). The client maintains a rolling offset and derives every countdown, expiry and "time remaining" from it. Device time is used for nothing user-visible.
 
-This is not pedantry. The 48-hour Request expiry (C-07) and Offer validity are commercially and contractually meaningful; a device 20 minutes fast would show a Vendor that a Request is closed while it is still accepting Offers, and both parties would be right about what they saw. `SH-DOM-07` therefore consumes the offset, never `DateTime.now()` directly — a lint rule bans bare `DateTime.now()` outside `kh_core`'s clock.
+This is not pedantry. The 48-hour Request expiry (C-07), which every Offer on the Request shares (`adr/0015`), is commercially and contractually meaningful; a device 20 minutes fast would show a Vendor that a Request is closed while it is still accepting Offers, and both parties would be right about what they saw. `SH-DOM-07` therefore consumes the offset, never `DateTime.now()` directly — a lint rule bans bare `DateTime.now()` outside `kh_core`'s clock.
 
 ### 11.2 Timers
 
@@ -523,7 +525,7 @@ A WebSocket would be a better fit for the Vendor feed specifically. It is out of
 
 ## 12. Media Handling
 
-`FR-CUS-007`, `FR-VEN-002`, `NFR-005`. Provider is Cloudflare R2 (C-13, `docs/adr/0008`); the flow is provider-agnostic regardless.
+`FR-CUS-007`, `FR-VEN-002`, `NFR-005`. Provider is Oracle Object Storage (C-13, `docs/adr/0013`); the flow is provider-agnostic regardless.
 
 ```mermaid
 sequenceDiagram
@@ -650,7 +652,7 @@ Admins share links — "look at this vendor", "here is the queue I mean". Every 
 
 ### 16.4 Session and desktop expectations
 
-2FA at sign-in (`FR-ADM-001`); idle timeout shorter than mobile's, with a warning before it fires; browser refresh restores the current view from the URL and never loses a queue position; multiple tabs work independently. Desktop conventions the canvas does not provide by default — right-click context menus where they add value, `Esc` to close a dialog, `Enter` to confirm, `Ctrl/Cmd+F` handled or explicitly replaced by an in-app find, since browser find-in-page will not work on canvas-rendered content.
+Google Sign-In (`FR-ADM-001`, `adr/0010`); idle timeout shorter than mobile's, with a warning before it fires; browser refresh restores the current view from the URL and never loses a queue position; multiple tabs work independently. Desktop conventions the canvas does not provide by default — right-click context menus where they add value, `Esc` to close a dialog, `Enter` to confirm, `Ctrl/Cmd+F` handled or explicitly replaced by an in-app find, since browser find-in-page will not work on canvas-rendered content.
 
 That last one is worth naming: Admins **will** press Ctrl+F, and nothing will happen. An in-app search affordance on every list screen is the mitigation.
 
@@ -766,7 +768,7 @@ The critical paths that always run end to end: Customer publish → Vendor offer
 | 1 | **Admin data grid — build or buy** (`AD-FE-12`, §16.1) | `ADM-S03`…`ADM-S12`, `ADM-S17`, `ADM-S22` — fourteen screens. Must be decided before the first Admin list is built | Technical Lead |
 | 2 | **Visual design and design tokens** | Token values in §8.1. Structure can proceed on placeholders; final look cannot | UX |
 
-The Admin Portal as a Flutter Web target is **confirmed** (C-10, SRS v1.3, `docs/adr/0006`) — §16 and §15.2 stand, and the data-grid decision (item 1) is live rather than contingent. Object storage is **resolved** to Cloudflare R2 (C-13, `docs/adr/0008`); §12 is provider-agnostic and needs no frontend decision.
+The Admin Portal as a Flutter Web target is **confirmed** (C-10, SRS v1.3, `docs/adr/0006`) — §16 and §15.2 stand, and the data-grid decision (item 1) is live rather than contingent. Object storage is **resolved** to Oracle Object Storage (C-13, `docs/adr/0013`); §12 is provider-agnostic and needs no frontend decision.
 
 ### 21.2 Awaiting Technical Lead sign-off
 
@@ -833,7 +835,7 @@ Every `[PROPOSED]` row in §3. The ones worth real discussion: `AD-FE-03` (state
 | C-08 dual-mode single app | §4.1, §4.3, §7.2, §17.2 |
 | C-10 Flutter sole framework (Admin = Flutter Web, confirmed) | §4, §16, §21.1 |
 | `BR-006`, `BR-007` masking | **§10**, §8.4 |
-| `BR-001` OAuth publish gate | §7.3 |
+| `BR-001` Google sign-in at publish | §7.3 |
 | `adr/0011` Guest-first launch (`AD-FE-15`) | §6.2, §7.2, §7.3 |
 | `BR-002`, C-04 Vendor access gating | §7.2 |
 | `BR-013` acceptance irreversibility | §9.4 |
@@ -867,6 +869,7 @@ Every `[PROPOSED]` row in §3. The ones worth real discussion: `AD-FE-03` (state
 | 1.0 | 10 Aug 2026 | Initial frontend architecture, derived from SRS v1.2, ADR 0006 and `ui-screens/` |
 | 1.1 | 1 Sep 2026 | Re-based on SRS v1.3: C-10 confirmed (Admin Portal = Flutter Web) — §2.1 and Appendix B lose the `[ASSUMED]` tag; C-13 resolved (object storage → Cloudflare R2, `docs/adr/0008`). §21.1 blocking list drops both items; §16 / §15.2 stand as accepted risk |
 | 1.2 | 11 Sep 2026 | Guest-first launch (`AD-FE-15`, `adr/0011`, `CUS-S23`): splash → session restore or Guest Landing; login at publish; in-memory Guest draft. §6.2, §7.2, §7.3, Appendix A. |
+| 1.3 | 1 Oct 2026 | Re-based on SRS v1.6: Customer tabs stated in §7.2 (`CUS-S24` My Requests); C-13 → Oracle Object Storage (`adr/0013`); Admin login is Google (§16.4); Category dropped from cache policy (`adr/0014`); Offer validity folded into Request expiry (`adr/0015`) |
 
 | Role | Signs off on | Status |
 |---|---|---|

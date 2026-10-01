@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
-| **Document** | EN/AR notification copy per dispatch trigger (pre-code catalogue) |
-| **Version** | 0.3-remaining-rows |
-| **Status** | Draft — all §7.2 trigger copy authored (CP5-I01.2 Vendor/Admin; CP5-I01.3 Customer, dual-role Customer, announcement, security). |
-| **Date** | 8 September 2026 |
+| **Document** | EN/AR notification copy per dispatch trigger |
+| **Version** | 0.4 |
+| **Status** | Draft — copy authored for every Async-Contract §7.2 trigger |
+| **Date** | 1 October 2026 |
 | **Source of truth** | [`docs/Async-Contract.md`](Async-Contract.md) §7 (triggers, recipients, channels, deep links, `is_critical`) · [`docs/Requirements-Spec-v1.6.md`](Requirements-Spec-v1.6.md) `FR-CUS-032`, `FR-VEN-026`, `FR-SYS-008` · [`CONTEXT.md`](../CONTEXT.md) |
 | **Companion** | [`docs/Async-Contract.md`](Async-Contract.md) owns *when* and *to whom*; this document owns *wording*. |
 | **Encoding target** | `notification.title_en` / `title_ar` / `body_en` / `body_ar` / `deep_link` · `kh_l10n` template keys |
@@ -18,8 +18,8 @@
 1. [Purpose and status](#1-purpose-and-status)
 2. [Row schema](#2-row-schema)
 3. [Trigger index](#3-trigger-index)
-4. [Vendor-facing rows](#4-vendor-facing-rows) — **CP5-I01.2**
-5. [Remaining rows](#5-remaining-rows) — **CP5-I01.3**
+4. [Vendor-facing rows](#4-vendor-facing-rows)
+5. [Remaining rows](#5-remaining-rows)
 6. [Copy conventions](#6-copy-conventions)
 - [Appendix A — Revision history](#appendix-a--revision-history)
 
@@ -33,21 +33,13 @@
 
 **What this document does not do.** It does not invent event types, recipients, channels, deep links, or `is_critical` flags — those stay in Async-Contract §7.2. It does not restate dispatch retry or idempotency (`FR-SYS-008.3`, `FR-SYS-008.5`). It does not invent competing-Vendor identity or price in any payload (`BR-008`).
 
-**Authoring waves**
-
-| Wave | Task | Section | Scope |
-|---|---|---|---|
-| 0 | CP5-I01.1 | this skeleton | Schema, trigger index, empty row shells |
-| 1 | CP5-I01.2 | [§4](#4-vendor-facing-rows) | Rows where a Vendor is a recipient |
-| 2 | CP5-I01.3 | [§5](#5-remaining-rows) | Customer-only, announcement, and security-critical rows |
-
 Domain nouns follow [`CONTEXT.md`](../CONTEXT.md) exactly. A Request is never a "listing"; an Offer is never a "bid"; a Connection is never a "chat"; Fan-out is never a bare "broadcast".
 
 ---
 
 ## 2. Row schema
 
-Every filled catalogue row uses these columns. Values in the **Fixed from Async-Contract §7.2** group are cited, not re-decided. Values in the **Copy (this document)** group are authored in CP5-I01.2 / CP5-I01.3.
+Every filled catalogue row uses these columns. Values in the **Fixed from Async-Contract §7.2** group are cited, not re-decided. Values in the **Copy (this document)** group are authored here.
 
 | Column | Owner | Notes |
 |---|---|---|
@@ -57,65 +49,64 @@ Every filled catalogue row uses these columns. Values in the **Fixed from Async-
 | Channels | Async-Contract §7.2 | `IN_APP` / `PUSH` / `EMAIL` / `SMS` (`AD-ASYNC-07`) |
 | `is_critical` | Async-Contract §7.2 | `true` bypasses preferences and quiet hours (§7.1, `FR-SYS-008.2`) |
 | Deep link | Async-Contract §7.2 | Client route in `notification.deep_link` |
-| Template key | **This document** | `kh_l10n` key — TBD until wave fill |
+| Template key | **This document** | `kh_l10n` key |
 | Placeholders | **This document** | Named tokens only; never a competing Vendor’s identity, price, or terms (`BR-008`) |
-| Title EN / Title AR | **This document** | ≤ 200 chars (schema `title_en` / `title_ar`) — TBD |
-| Body EN / Body AR | **This document** | TBD |
+| Title EN / Title AR | **This document** | ≤ 200 chars (schema `title_en` / `title_ar`) |
+| Body EN / Body AR | **This document** | |
 | Quiet-hours behaviour | **This document** | Cite §7.1: honour preferences when `is_critical = no`; deliver when `is_critical = yes` |
-| `Vshell` allowed | **This document** | Whether a Vendor in Awaiting-Approval may receive this row (`Vshell` auth class in inventory §6) — TBD |
+| `Vshell` allowed | **This document** | Whether a Vendor in Awaiting-Approval may receive this row (`Vshell` auth class in inventory §6) |
 
-**Status marks used in empty shells**
+**Marks**
 
 | Mark | Meaning |
 |---|---|
 | *cited* | Copied from Async-Contract §7.2 for traceability |
-| — TBD | Awaits CP5-I01.2 or CP5-I01.3 |
 | — n/a | Column does not apply to this recipient role |
 
 ---
 
 ## 3. Trigger index
 
-Exact trigger set from [`Async-Contract.md`](Async-Contract.md) §7.2. **No events are added here.** Fill wave assigns which later task authors the copy columns.
+Exact trigger set from [`Async-Contract.md`](Async-Contract.md) §7.2. **No events are added here.**
 
-| # | Trigger (inventory §18) | Event | Recipient | Fill wave |
+| # | Trigger (inventory §18) | Event | Recipient | Copy in |
 |---|---|---|---|---|
-| 1 | New matched Request | `request.matched` | Vendor | CP5-I01.2 |
-| 2 | First Offer received | `offer.submitted` (`isFirstOfferOnRequest`) | Customer | CP5-I01.3 |
-| 3 | Subsequent Offer received | `offer.submitted` | Customer | CP5-I01.3 |
-| 4 | Offer revised | `offer.revised` | Customer | CP5-I01.3 |
-| 5 | Offer withdrawn | `offer.withdrawn` | Customer | CP5-I01.3 |
-| 6 | Request approaching expiry (T−6 h) | `request.expiry.warning` | Customer | CP5-I01.3 |
-| 7 | Request expired | `request.expired` | Customer + each affected Vendor | CP5-I01.2 |
-| 8 | Request edited | `request.edited` | Vendors with a pending Offer | CP5-I01.2 |
-| 9 | Request cancelled | `request.cancelled` | each affected Vendor | CP5-I01.2 |
-| 10 | Unfinished draft (T−3 d) | `request.draft.purge_warning` | Customer | CP5-I01.3 |
-| 11 | Offer approaching expiry (T−6 h) | `offer.expiry.warning` | Vendor (own Offer) | CP5-I01.2 |
-| 12 | Offer expired | `offer.expired` | Vendor + Customer | CP5-I01.2 |
-| 13 | Offer accepted (winner) | `offer.accepted` | winner Vendor | CP5-I01.2 |
-| 14 | Offer rejected (loser) | `offer.accepted` (per `rejectedOfferIds`) | loser Vendor | CP5-I01.2 |
-| 15 | Connected (Customer confirmation) | `offer.accepted` | Customer | CP5-I01.3 |
-| 16 | Connection closed | `connection.closed` | Customer + Vendor | CP5-I01.2 |
-| 17 | Review reminder | `connection.closed` | Customer + Vendor | CP5-I01.2 |
-| 18 | New review received | `review.published` | reviewed party | CP5-I01.2 |
-| 19 | Verification outcome | `vendor.verification.decided` | Vendor | CP5-I01.2 |
-| 20 | Document / KYC nearing expiry | `vendor.document.expiring` | Vendor + Admins | CP5-I01.2 |
-| 21 | Platform announcement | `announcement.scheduled` | expanded `audience` | CP5-I01.3 |
-| 22 | Security-critical account events | *inline `notifications:dispatch` `[PROPOSED]`* | affected user | CP5-I01.3 |
+| 1 | New matched Request | `request.matched` | Vendor | §4 |
+| 2 | First Offer received | `offer.submitted` (`isFirstOfferOnRequest`) | Customer | §5 |
+| 3 | Subsequent Offer received | `offer.submitted` | Customer | §5 |
+| 4 | ~~Offer revised~~ — retired (`adr/0015`) | `offer.revised` | — | — |
+| 5 | Offer withdrawn | `offer.withdrawn` | Customer | §5 |
+| 6 | Request approaching expiry (T−6 h) | `request.expiry.warning` | Customer | §5 |
+| 7 | Request expired | `request.expired` | Customer + each affected Vendor | §4 |
+| 8 | Request edited | `request.edited` | Vendors with a pending Offer | §4 |
+| 9 | Request cancelled | `request.cancelled` | each affected Vendor | §4 |
+| 10 | Unfinished draft (T−3 d) | `request.draft.purge_warning` | Customer | §5 |
+| 11 | Offer approaching expiry (T−6 h) | `offer.expiry.warning` | Vendor (own Offer) | §4 |
+| 12 | Offer expired | `offer.expired` | Vendor + Customer | §4 |
+| 13 | Offer accepted (winner) | `offer.accepted` | winner Vendor | §4 |
+| 14 | Offer rejected (loser) | `offer.accepted` (per `rejectedOfferIds`) | loser Vendor | §4 |
+| 15 | Connected (Customer confirmation) | `offer.accepted` | Customer | §5 |
+| 16 | Connection closed | `connection.closed` | Customer + Vendor | §4 |
+| 17 | Review reminder | `connection.closed` | Customer + Vendor | §4 |
+| 18 | New review received | `review.published` | reviewed party | §4 |
+| 19 | Verification outcome | `vendor.verification.decided` | Vendor | §4 |
+| 20 | Document / KYC nearing expiry | `vendor.document.expiring` | Vendor + Admins | §4 |
+| 21 | Platform announcement | `announcement.scheduled` | expanded `audience` | §5 |
+| 22 | Security-critical account events | *inline `notifications:dispatch` `[PROPOSED]`* | affected user | §5 |
 
-Rows 7, 12, 16, 17 and 20 notify more than one role under a single §7.2 trigger. Wave CP5-I01.2 authors Vendor-facing (and Admin, where listed) copy; CP5-I01.3 authors the separate Customer templates where wording or deep link differs. Event types are not forked.
+Rows 7, 12, 16, 17 and 20 notify more than one role under a single §7.2 trigger. §4 holds the Vendor-facing (and Admin, where listed) copy; §5 holds the separate Customer templates where wording or deep link differs. Event types are not forked.
 
 ---
 
 ## 4. Vendor-facing rows
 
-**Task:** CP5-I01.2. **Status:** filled — Vendor EN/AR copy (and Admin for #20). Customer wording for dual-role triggers (#7, #12, #16, #17) and Customer-as-reviewed-party (#18) is in [§5](#5-remaining-rows); event types are not forked.
+Vendor EN/AR copy (and Admin for #20). Customer wording for dual-role triggers (#7, #12, #16, #17) and Customer-as-reviewed-party (#18) is in [§5](#5-remaining-rows); event types are not forked.
 
 Fixed columns are cited from Async-Contract §7.2. Copy columns authored here. Quiet hours for every row below: **honour preferences and quiet hours at dispatch** (§7.1) because `is_critical = no`.
 
 | # | Trigger | Event | Recipient | Channels | `is_critical` | Deep link | Template key | Placeholders | Title EN | Title AR | Body EN | Body AR | Quiet hours | `Vshell` allowed |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | New matched Request | `request.matched` *cited* | Vendor | in-app, push *cited* | no *cited* | `/requests/{requestId}` *cited* | `notif.vendor.request_matched` | `{categoryLabel}`, `{regionLabel}`, `{requestType}` | New matched Request | طلب مطابق جديد | A new Request ({requestType}) in {categoryLabel} · {regionLabel} matches your profile. Open it to review and submit an Offer. | طلب جديد ({requestType}) في {categoryLabel} · {regionLabel} يطابق ملفك. افتحه للمراجعة وتقديم عرض. | honour (§7.1) | no |
+| 1 | New matched Request | `request.matched` *cited* | Vendor | in-app, push *cited* | no *cited* | `/requests/{requestId}` *cited* | `notif.vendor.request_matched` | `{regionLabel}`, `{requestType}` | New matched Request | طلب مطابق جديد | A new {requestType} Request in {regionLabel} is open to you. Open it to review and submit an Offer. | طلب جديد ({requestType}) في {regionLabel} متاح لك. افتحه للمراجعة وتقديم عرض. | honour (§7.1) | no |
 | 7 | Request expired | `request.expired` *cited* | each affected Vendor *(Customer → §5)* | in-app, push *cited* | no *cited* | `/requests/{requestId}` *cited* | `notif.vendor.request_expired` | `{requestId}` | Request expired | انتهت صلاحية الطلب | A Request you offered on has expired. Your Offer was withdrawn by the system. | انتهت صلاحية طلب قدّمت عليه عرضًا. سحب النظام عرضك. | honour (§7.1) | no |
 | 8 | Request edited | `request.edited` *cited* | Vendors with a pending Offer | in-app, push *cited* | no *cited* | `/requests/{requestId}` *cited* | `notif.vendor.request_edited` | `{requestId}` | Request edited | تم تعديل الطلب | A Request you offered on was edited. Review the changes before your Offer expires. | عُدّل طلب قدّمت عليه عرضًا. راجع التغييرات قبل انتهاء صلاحية عرضك. | honour (§7.1) | no |
 | 9 | Request cancelled | `request.cancelled` *cited* | each affected Vendor | in-app, push *cited* | no *cited* | `/requests/{requestId}` *cited* | `notif.vendor.request_cancelled` | `{requestId}` | Request cancelled | تم إلغاء الطلب | A Request you offered on was cancelled. Your Offer was withdrawn. | أُلغي طلب قدّمت عليه عرضًا. تم سحب عرضك. | honour (§7.1) | no |
@@ -134,7 +125,7 @@ Fixed columns are cited from Async-Contract §7.2. Copy columns authored here. Q
 
 ## 5. Remaining rows
 
-**Task:** CP5-I01.3. **Status:** filled — Customer-only rows, dual-role Customer templates (#7, #12, #16, #17, #18), announcement pass-through, and security-critical variants. Fixed columns cited from Async-Contract §7.2. No new event types.
+Customer-only rows, dual-role Customer templates (#7, #12, #16, #17, #18), announcement pass-through, and security-critical variants. Fixed columns cited from Async-Contract §7.2. No new event types.
 
 Quiet hours: **honour (§7.1)** when `is_critical = no`; **bypass (critical)** when `is_critical = yes` (#22) or when an announcement’s `critical = true` (#21).
 
@@ -142,7 +133,10 @@ Quiet hours: **honour (§7.1)** when `is_critical = no`; **bypass (critical)** w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 2 | First Offer received | `offer.submitted` (`isFirstOfferOnRequest`) *cited* | Customer | in-app, push *cited* | no *cited* | `/requests/{requestId}/offers` *cited* | `notif.customer.offer_submitted_first` | `{requestId}`, `{offerId}` *(never Vendor identity — `BR-006`)* | You have a new Offer | لديك عرض جديد | You received the first Offer on your Request. Open Offers to review price and terms. | وصل أول عرض على طلبك. افتح العروض لمراجعة السعر والشروط. | honour (§7.1) | — n/a |
 | 3 | Subsequent Offer received | `offer.submitted` *cited* | Customer | in-app, push *cited* | no *cited* | `/requests/{requestId}/offers` *cited* | `notif.customer.offer_submitted_subsequent` | `{requestId}`, `{offerId}` *(never Vendor identity — `BR-006`)* | Another Offer received | وصل عرض آخر | Another Offer arrived on your Request. Open Offers to compare. | وصل عرض آخر على طلبك. افتح العروض للمقارنة. | honour (§7.1) | — n/a |
-| 4 | Offer revised | `offer.revised` *cited* | Customer | in-app, push *cited* | no *cited* | `/requests/{requestId}/offers` *cited* | `notif.customer.offer_revised` | `{requestId}`, `{offerId}`, `{previousPrice}`, `{newPrice}` *(never Vendor identity — `BR-006`)* | An Offer was revised | تم تعديل عرض | An Offer on your Request was revised from {previousPrice} to {newPrice}. Review the updated terms. | عُدّل عرض على طلبك من {previousPrice} إلى {newPrice}. راجع الشروط المحدَّثة. | honour (§7.1) | — n/a |
+| 4 | ~~Offer revised~~ | `offer.revised` | — | — | — | — | — | — | — | — | — | — | — | — |
+
+Row 4 is retired: Offers cannot be revised (`adr/0015`), so `offer.revised` is never emitted. The `notif.customer.offer_revised` template is unused.
+
 | 5 | Offer withdrawn | `offer.withdrawn` *cited* | Customer | in-app, push *cited* | no *cited* | `/requests/{requestId}/offers` *cited* | `notif.customer.offer_withdrawn` | `{requestId}`, `{offerId}` *(never Vendor identity — `BR-006`)* | An Offer was withdrawn | تم سحب عرض | A Vendor withdrew an Offer on your Request. | سحب تاجر عرضًا على طلبك. | honour (§7.1) | — n/a |
 | 6 | Request approaching expiry (T−6 h) | `request.expiry.warning` *cited* | Customer | in-app, push *cited* | no *cited* | `/requests/{requestId}` *cited* | `notif.customer.request_expiry_warning` | `{requestId}`, `{hoursRemaining}`, `{expiresAt}` | Your Request expires soon | طلبك على وشك الانتهاء | Your Request expires in about {hoursRemaining} hours. No extension is available. | ينتهي طلبك خلال حوالي {hoursRemaining} ساعات. لا يتوفر تمديد. | honour (§7.1) | — n/a |
 | 7 | Request expired | `request.expired` *cited* | Customer | in-app, push *cited* | no *cited* | `/requests/{requestId}` *cited* | `notif.customer.request_expired` | `{requestId}`, `{expiredAt}` | Your Request expired | انتهت صلاحية طلبك | Your Request has expired. Pending Offers were withdrawn by the system. You may duplicate it to publish again. | انتهت صلاحية طلبك. سحب النظام العروض المعلّقة. يمكنك تكراره للنشر من جديد. | honour (§7.1) | — n/a |
@@ -166,7 +160,7 @@ Binding for all filled catalogue rows. Stated so implementers do not drift.
 3. **No competitor leakage (`BR-008`).** Loser and peer Vendor copy must not name another Vendor, their price, or their terms. Async-Contract §7.2 already marks Offer rejected (loser) as **no price, no identity**.
 4. **Quiet hours follow §7.1.** Non-critical rows honour `notification_preference` and quiet hours at dispatch time (`FR-CUS-034`, `FR-VEN-027`). Critical rows always deliver (`FR-SYS-008.2`).
 5. **In-app is always written.** Channel lists may omit push/email/SMS by preference; the in-app centre row is still created (`FR-SYS-008.6`).
-6. **`Vshell` is explicit.** Verification and document rows likely reach Awaiting-Approval Vendors; marketplace Fan-out rows typically do not. Each Vendor-facing row must say yes or no — do not leave the cell blank after CP5-I01.2.
+6. **`Vshell` is explicit.** Verification and document rows likely reach Awaiting-Approval Vendors; marketplace Fan-out rows typically do not. Each Vendor-facing row must say yes or no — never blank.
 7. **Locale.** Server selects EN/AR from `USER.preferred_language` with `Accept-Language` fallback (`NFR-024`, `NFR-022`). Catalogue authors supply both languages; they do not format money or dates in the template beyond placeholder tokens.
 
 ---
@@ -175,6 +169,7 @@ Binding for all filled catalogue rows. Stated so implementers do not drift.
 
 | Version | Date | Change |
 |---|---|---|
+| 0.4 | 1 Oct 2026 | Authoring-wave scaffolding removed (task ids, TBD marks). Row 4 `offer.revised` retired (`adr/0015`). Row 1 drops `{categoryLabel}` (`adr/0014`). |
 | 0.3-remaining-rows | 8 Sep 2026 | CP5-I01.3 — filled §5 Remaining rows: Customer-only (#2–#6, #10, #15), dual-role Customer templates (#7, #12, #16–#18), announcement pass-through (#21), security-critical variants (#22). Template keys, placeholders, EN/AR, quiet-hours, `Vshell`. Events from Async-Contract §7.2 only. |
 | 0.2-vendor-rows | 8 Sep 2026 | CP5-I01.2 — filled §4 Vendor-facing rows (and Admin for `vendor.document.expiring`): template keys, placeholders, EN/AR title/body, quiet-hours, `Vshell`. No new event types. §5 Remaining left for CP5-I01.3. |
 | 0.1-skeleton | 8 Sep 2026 | CP5-I01.1 — document skeleton: row schema, §7.2 trigger index, empty Vendor-facing and Remaining shells. No EN/AR copy. |

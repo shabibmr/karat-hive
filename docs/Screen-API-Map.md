@@ -7,7 +7,7 @@
 | **Version** | 0.3 |
 | **Status** | Draft — `[PROPOSED]`. Read alongside `docs/API-Route-Inventory.md`. |
 | **Date** | 11 September 2026 |
-| **Source of truth** | [`ui-screens/`](../ui-screens/) (68 screen files; `CUS-S23` per [`adr/0011`](adr/0011-guest-first-landing.md)) · [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) · [`docs/Requirements-Spec-v1.6.md`](Requirements-Spec-v1.6.md) · [`docs/adr/0010`](adr/0010-google-signin-only-login.md) · [`docs/adr/0011`](adr/0011-guest-first-landing.md) |
+| **Source of truth** | [`ui-screens/`](../ui-screens/) (69 screen files, 68 live — `ADM-S14` retired; `CUS-S23` per [`adr/0011`](adr/0011-guest-first-landing.md), `CUS-S24` My Requests) · [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) · [`docs/Requirements-Spec-v1.6.md`](Requirements-Spec-v1.6.md) · [`docs/adr/0010`](adr/0010-google-signin-only-login.md) · [`docs/adr/0011`](adr/0011-guest-first-landing.md) |
 | **Identifier prefix** | `SAM-GAP-nn` — gaps found by *this* document. Stable, never reused. |
 
 ---
@@ -19,7 +19,7 @@ inventory is organised **by user journey**. Neither view, on its own, proves tha
 screen can be built: a screen needs a call for its **initial load**, a call for **each
 action**, and a defined response for **each empty / error state** it renders.
 
-This document is the join. Each of the 68 screens is mapped to:
+This document is the join. Each of the 68 live screens is mapped to:
 
 - **Load / list** — what populates the screen on entry (`GET`s).
 - **Actions** — the endpoint behind every `Action`-kind field in the screen file.
@@ -42,7 +42,7 @@ Method: every screen file under `ui-screens/` was read and diffed against the Ro
 | `GET /v1/…` | Endpoint from the Route Inventory, verified present in §6 |
 | *client* | No API call — client-side navigation, composition, or device capability |
 | `→ CODE` | Error surfaced as this `error.code` (Route Inventory §5) |
-| ⚠️ `SAM-GAP-n` | Screen need not satisfied by the current inventory — see §5 |
+| `SAM-GAP-n` | A screen need the inventory once lacked — see §6 for how each was closed |
 
 Auth context is inherited from the screen's user (Customer / Vendor / Vendor-shell /
 Admin) and is not repeated per row.
@@ -54,19 +54,20 @@ Admin) and is not repeated per row.
 | Screen | Load / list | Actions | Empty / error |
 |---|---|---|---|
 | **CUS-S23** Guest Landing | *client* (cold start, no live token — `adr/0011`) | service card *client* → CUS-S03…S07 · How this works *client* · Log in *client* → CUS-S01 · Register as Jeweller *client* → `VEN-S01` | no API. Cancel Google returns here |
-| **CUS-S01** Login / signup | *client* (from CUS-S23 or CUS-S09 publish gate; **not** cold-start default) | `POST /v1/auth/google/session` (Firebase ID token → KH SessionBundle) · `POST /v1/auth/otp/request` · `POST /v1/auth/otp/verify` (prove real mobile) · `POST /v1/auth/register/customer` (completes a new Google user: terms + mobile) · `POST /v1/auth/logout` · biometric *client* | unbound Google token `→ 401 UNAUTHENTICATED` (backend does **not** auto-provision; `adr/0010`) · wrong/expired OTP `→ OTP_INVALID` / `OTP_EXPIRED` · `→ OTP_RATE_LIMITED` · duplicate number `→ MOBILE_ALREADY_REGISTERED` · `→ ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` · Google cancel → previous screen, keep Guest form |
-| **CUS-S02** Home | `GET /v1/me/requests` (default active states) | quick-create *client* → CUS-S03 · open Request *client* → CUS-S10 · view Offers *client* → CUS-S11 | no Requests → `data: []` (empty state) · unread-offer badge ⚠️ `SAM-GAP-1` |
-| **CUS-S03** Request type selection | `GET /v1/platform-config` (`maxConcurrentLiveRequests`). Guest: public config only; skip `GET /v1/me` | continue *client*. Guest allowed (`adr/0011`) | concurrent-limit block — signed-in client compares `GET /v1/me/requests` count vs config; Guest has no live Requests; hard stop is `→ CONCURRENT_REQUEST_LIMIT` at publish ⚠️ `SAM-GAP-2` |
-| **CUS-S04** Create — Find An Ornament | `GET /v1/categories` · `GET /v1/regions` · `GET /v1/gold-rates` · `GET /v1/platform-config` | `POST /v1/requests` (draft) · `PATCH /v1/requests/{id}` · save draft = `PATCH` · continue *client* → CUS-S09 | field errors `→ VALIDATION_FAILED` (`details[]`) · notes phone/email → `meta.warnings` on save · rate unavailable → `gold-rates.available:false` (compose still allowed) |
+| **CUS-S01** Login / signup | *client* (from CUS-S23 or CUS-S09 publish gate; **not** cold-start default) | `POST /v1/auth/google/session` (Firebase ID token → KH SessionBundle) · `POST /v1/auth/otp/request` · `POST /v1/auth/otp/verify` (prove the mobile number) · `POST /v1/auth/register/customer` (completes a new Google user: terms + mobile) · `POST /v1/auth/logout` · biometric *client* | unbound Google token `→ 401 UNAUTHENTICATED` (backend does **not** auto-provision; `adr/0010`) · wrong/expired OTP `→ OTP_INVALID` / `OTP_EXPIRED` · `→ OTP_RATE_LIMITED` · duplicate number `→ MOBILE_ALREADY_REGISTERED` · `→ ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` · Google cancel → previous screen, keep Guest form |
+| **CUS-S02** Home | `GET /v1/me` · `GET /v1/gold-rates` | Request-type tile *client* → CUS-S04…S07 · bell *client* → CUS-S19 | rates unavailable → `available:false` (hero still renders) |
+| **CUS-S24** My Requests | `GET /v1/me/requests?state=PUBLISHED,ACCEPTED` (Open) · `GET /v1/me/requests?state=DRAFT` (Drafts) | open Request *client* → CUS-S10 · resume draft *client* → CUS-S04…S09 · History *client* → CUS-S17 | none → `data: []` (empty state) · unread-Offer marker from `unreadOfferCount` (`SAM-GAP-1`) |
+| **CUS-S03** Request type selection | `GET /v1/platform-config` (`maxConcurrentLiveRequests`). Guest: public config only; skip `GET /v1/me` | continue *client*. Guest allowed (`adr/0011`) | concurrent-limit block — signed-in client compares `GET /v1/me/requests` count vs config; Guest has no live Requests; hard stop is `→ CONCURRENT_REQUEST_LIMIT` at publish `SAM-GAP-2` |
+| **CUS-S04** Create — Find An Ornament | `GET /v1/regions` · `GET /v1/gold-rates` · `GET /v1/platform-config` | `POST /v1/requests` (draft) · `PATCH /v1/requests/{id}` · save draft = `PATCH` · continue *client* → CUS-S09 (a Guest's draft stays in memory until publish, `adr/0011`) | field errors `→ VALIDATION_FAILED` (`details[]`) · notes phone/email → `meta.warnings` on save · rate unavailable → `gold-rates.available:false` (compose still allowed) |
 | **CUS-S05** Create — Sell Old Gold | as CUS-S04 | as CUS-S04 | as CUS-S04; valuation suppressed when `gold-rates.available:false` |
 | **CUS-S06** Create — Gold Coins | as CUS-S04 | as CUS-S04 | `quantity ≤ 0` `→ VALIDATION_FAILED` |
 | **CUS-S07** Create — Gold Bullion | as CUS-S04 (rate **required**) | as CUS-S04 | below floor `→ BULLION_BELOW_MINIMUM` (returns threshold + computed value) · no rate `→ GOLD_RATE_UNAVAILABLE` · stale rate → `gold-rates.stale:true` |
 | **CUS-S08** Image capture | — | `POST /v1/media/upload-intent` → PUT to storage → `POST /v1/media/{key}/complete` · remove = `DELETE /v1/media/{key}` · reorder = `mediaKeys[]` order on `PATCH /v1/requests/{id}` | failed upload → retry client-side · `→ MEDIA_TYPE_REJECTED` · `→ UPLOAD_NOT_COMPLETED` · post-processing `→ MEDIA_QUARANTINED` |
 | **CUS-S09** Request review & publish | `GET /v1/requests/{id}` when a server draft exists. Guest: in-memory form only (`adr/0011`) | `POST /v1/requests/{id}/publish` · save draft = `PATCH /v1/requests/{id}` (signed-in) · Google sign-in = `POST /v1/auth/google/session` (publish gate — `adr/0010`, `adr/0011`) then auto-publish if Customer | `→ OAUTH_REQUIRED` (publish refused when the Customer has no Google binding — `BR-001`, `FR-CUS-014`) · Guest cancel Login keeps form · Vendor from publish gate: drop draft, no publish · `→ MEDIA_NOT_READY` · `→ CONTACT_DETAILS_IN_TEXT` · `→ CONCURRENT_REQUEST_LIMIT` · `→ BULLION_BELOW_MINIMUM` · `→ GOLD_RATE_UNAVAILABLE` · validation summary `→ REQUEST_NOT_PUBLISHABLE` |
-| **CUS-S10** Request detail (my Request) | `GET /v1/requests/{id}` (owner presenter, offers nested) | `PATCH /v1/requests/{id}` (save edits) · `POST /v1/requests/{id}/cancel` · view Offers *client* → CUS-S11 · open Connection *client* → CUS-S15 ⚠️ `SAM-GAP-3` | structural edit `→ STRUCTURAL_FIELD_IMMUTABLE` · cancel after accept `→ REQUEST_NOT_CANCELLABLE` · zero Offers → empty state on nested `offers: []` |
-| **CUS-S11** Offers list | `GET /v1/requests/{id}/offers` (sort/filter query) | open Offer *client* → CUS-S13 · compare *client* → CUS-S12 · live update = client poll | no Offers → `data: []` + Request `expiresAt` · unread marker ⚠️ `SAM-GAP-1` |
+| **CUS-S10** Request detail (my Request) | `GET /v1/requests/{id}` (owner presenter, offers nested) | `POST /v1/requests/{id}/cancel` (no edit after publish, `FR-CUS-016` retired) · view Offers *client* → CUS-S11 · open Connection *client* → CUS-S15 `SAM-GAP-3` | cancel after accept `→ REQUEST_NOT_CANCELLABLE` · zero Offers → empty state on nested `offers: []` |
+| **CUS-S11** Offers list | `GET /v1/requests/{id}/offers` (sort/filter query) | open Offer *client* → CUS-S13 · compare *client* → CUS-S12 · live update = client poll | no Offers → `data: []` + Request `expiresAt` · unread marker `SAM-GAP-1` |
 | **CUS-S12** Offer comparison | *client* composition over `GET /v1/requests/{id}/offers` | `POST /v1/offers/{id}/accept` · open detail *client* → CUS-S13 | must select 2–4 → *client* guard |
-| **CUS-S13** Offer detail | `GET /v1/offers/{id}` · `GET /v1/offers/{id}/vendor-rating` | `POST /v1/offers/{id}/accept` · `POST /v1/offers/{id}/decline` · report → `POST /v1/abuse-reports` ⚠️ `SAM-GAP-4` | stale accept `→ OFFER_EXPIRED` / `OFFER_NOT_PENDING` · terminal Offer → read-only from `state` |
+| **CUS-S13** Offer detail | `GET /v1/offers/{id}` · `GET /v1/offers/{id}/vendor-rating` | `POST /v1/offers/{id}/accept` · `POST /v1/offers/{id}/decline` · report → `POST /v1/abuse-reports` `SAM-GAP-4` | stale accept `→ OFFER_EXPIRED` / `OFFER_NOT_PENDING` · terminal Offer → read-only from `state` |
 | **CUS-S14** Accept confirmation | *client* (carries Offer id) | `POST /v1/offers/{id}/accept` `{confirmation:"REVEAL_AND_CONNECT"}` | `→ OFFER_EXPIRED` · `→ OFFER_ALREADY_ACCEPTED` · `→ OFFER_NOT_PENDING` · `→ OFFER_NOT_OPEN` |
 | **CUS-S15** Connection detail | `GET /v1/connections/{id}` (Talk payload embedded) | `POST /v1/connections/{id}/contact-events` · `POST /v1/connections/{id}/close` · Talk = open `talk.waUrl` *client* · copy number *client* · review *client* → CUS-S18 · report → `POST /v1/abuse-reports` | not a party `→ NOT_FOUND` · closed → `talk.available:false` · WhatsApp missing → copy fallback *client* |
 | **CUS-S16** Connections list | `GET /v1/me/connections` (ACTIVE first) | Talk *client* · open detail *client* → CUS-S15 | none → `data: []` |
@@ -74,8 +75,8 @@ Admin) and is not repeated per row.
 | **CUS-S18** Leave review | `GET /v1/connections/{id}` (`myReview`) | `POST /v1/connections/{id}/reviews` · edit = `PATCH /v1/reviews/{id}` · withdraw = `POST /v1/reviews/{id}/withdraw` | `→ REVIEW_ALREADY_EXISTS` · `→ REVIEW_EDIT_WINDOW_CLOSED` · `→ NOT_A_PARTY` |
 | **CUS-S19** Notification centre | `GET /v1/notifications` | `POST /v1/notifications/{id}/read` · `POST /v1/notifications/read-all` · open deep link *client* | none → `data: []` |
 | **CUS-S20** Profile | `GET /v1/me` | `PATCH /v1/me` · `POST /v1/me/mobile/change` (+ `POST /v1/auth/otp/request` purpose `CHANGE_MOBILE`) | invalid email `→ VALIDATION_FAILED` · OTP failure `→ OTP_INVALID` |
-| **CUS-S21** Settings | `GET /v1/me/settings` | `PATCH /v1/me/settings` · `POST /v1/me/deactivate` · `POST /v1/me/deletion-requests` (+ `…/{id}/confirm`) · logout = `POST /v1/auth/logout` · legal/support links ⚠️ `SAM-GAP-5` | deletion blocked by recent Connection `→ FORBIDDEN` (`FR-CUS-004` AC2) |
-| **CUS-S22** Report abuse | *client* (entity context) | `POST /v1/abuse-reports` | `→ RATE_LIMITED` (5 / 24 h) · entity type coverage ⚠️ `SAM-GAP-4` |
+| **CUS-S21** Settings | `GET /v1/me/settings` | `PATCH /v1/me/settings` · `POST /v1/me/deactivate` · `POST /v1/me/deletion-requests` (+ `…/{id}/confirm`) · logout = `POST /v1/auth/logout` · legal/support links `SAM-GAP-5` | deletion blocked by recent Connection `→ FORBIDDEN` (`FR-CUS-004` AC2) |
+| **CUS-S22** Report abuse | *client* (entity context) | `POST /v1/abuse-reports` | `→ RATE_LIMITED` (5 / 24 h) · entity type coverage `SAM-GAP-4` |
 
 ---
 
@@ -86,27 +87,27 @@ non-`ACTIVE` Vendor may call; everything else is `→ VENDOR_NOT_ACTIVE`.
 
 | Screen | Load / list | Actions | Empty / error |
 |---|---|---|---|
-| **VEN-S01** Registration | `GET /v1/categories` · `GET /v1/regions` | `POST /v1/auth/otp/request` · `POST /v1/auth/otp/verify` · `POST /v1/auth/register/vendor` | duplicate mobile/licence `→ MOBILE_ALREADY_REGISTERED` / `CONFLICT` · OTP `→ OTP_INVALID` |
+| **VEN-S01** Registration | `GET /v1/regions` | `POST /v1/auth/otp/request` · `POST /v1/auth/otp/verify` · `POST /v1/auth/register/vendor` | duplicate mobile/licence `→ MOBILE_ALREADY_REGISTERED` / `LICENCE_ALREADY_REGISTERED` · OTP `→ OTP_INVALID` |
 | **VEN-S02** KYC document upload | `GET /v1/me/vendor/documents` | `POST /v1/media/upload-intent` (`KYC_DOCUMENT`) → PUT → `POST /v1/media/{key}/complete` · `POST /v1/me/vendor/documents` · replace = `DELETE /v1/media/{key}` then re-upload · `POST /v1/me/vendor/resubmit` | format/size `→ MEDIA_TYPE_REJECTED` · missing mandatory docs `→ VALIDATION_FAILED` |
-| **VEN-S03** Awaiting Approval shell | `GET /v1/me` (`vendor.lifecycle`, `awaitingApprovalReason`) ⚠️ `SAM-GAP-6` | re-upload *client* → VEN-S02 · complete Categories/Regions *client* → VEN-S16 ⚠️ `SAM-GAP-7` · support *client* · logout | rejected / more-info state from `GET /v1/me` |
-| **VEN-S04** Login | *client* | `POST /v1/auth/otp/request` · `POST /v1/auth/otp/verify` · `POST /v1/auth/login/password` | `→ ACCOUNT_LOCKED` (5 / 15 min) · `→ ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` · rejected → state message from login 403 |
+| **VEN-S03** Awaiting Approval shell | `GET /v1/me` (`vendor.lifecycle`, `awaitingApprovalReason`, `verificationMessage`) | re-upload *client* → VEN-S02 · support *client* · logout | rejected / more-info state from `GET /v1/me` |
+| **VEN-S04** Login | *client* | `POST /v1/auth/google/session` (Firebase ID token → KH SessionBundle) | unbound Google token `→ 401 UNAUTHENTICATED` → VEN-S01 · `→ ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` · rejected → VEN-S03 |
 | **VEN-S05** Dashboard | `GET /v1/me/dashboard` | pull-to-refresh = re-`GET` · open panels *client* | zero counts → empty guidance from `count: 0` |
-| **VEN-S06** Available Requests feed | `GET /v1/matches` | open detail *client* → VEN-S08 · open filters *client* → VEN-S07 · infinite scroll = `meta.nextCursor` | no matches → `data: []` (suggest broaden Categories/Regions/subscription) |
+| **VEN-S06** Available Requests feed | `GET /v1/matches` | open detail *client* → VEN-S08 · open filters *client* → VEN-S07 · infinite scroll = `meta.nextCursor` | no matches → `data: []` (suggest widening the Region filter or adding a Type Subscription) |
 | **VEN-S07** Request filters & presets | `GET /v1/filter-presets` | `POST /v1/filter-presets` · `PATCH /v1/filter-presets/{id}` · `DELETE /v1/filter-presets/{id}` · apply = `GET /v1/matches?presetId=` · reset *client* | zero results → `data: []` + reset CTA |
-| **VEN-S08** Request detail (masked) | `GET /v1/requests/{id}` (vendor presenter) | `POST /v1/matches/{requestId}/viewed` (on open) · Submit Offer *client* → VEN-S09 · Revise *client* → VEN-S10 · report → `POST /v1/abuse-reports` ⚠️ `SAM-GAP-4` | not in match set / terminal `→ NOT_FOUND` · closed since open → actions disabled from `state` |
+| **VEN-S08** Request detail (masked) | `GET /v1/requests/{id}` (vendor presenter) | `POST /v1/matches/{requestId}/viewed` (on open) · Submit Offer *client* → VEN-S09 · Revise *client* → VEN-S10 · report → `POST /v1/abuse-reports` `SAM-GAP-4` | not in match set / terminal `→ NOT_FOUND` · closed since open → actions disabled from `state` |
 | **VEN-S09** Submit Offer | `GET /v1/platform-config` (`offerValidityHours`) | `POST /v1/requests/{id}/offers` · media as CUS-S08 (`OFFER_IMAGE`) | `→ VENDOR_NOT_ACTIVE` · `→ SUBSCRIPTION_REQUIRED` · `→ NOT_IN_MATCH_SET` · `→ OFFER_NOT_OPEN` · `→ OFFER_ALREADY_PENDING` · `→ CONTACT_DETAILS_IN_TEXT` |
-| **VEN-S10** Revise / withdraw Offer | `GET /v1/offers/{id}` (vendor presenter) | `POST /v1/offers/{id}/revise` · `POST /v1/offers/{id}/withdraw` | `→ OFFER_REVISION_LIMIT` · `→ OFFER_NOT_PENDING` |
-| **VEN-S11** My Offers | `GET /v1/me/offers?tab=PENDING\|ACCEPTED\|CLOSED` | open detail *client* · revise/withdraw *client* → VEN-S10 · open Connection *client* → VEN-S13 (`connectionId`) | empty per tab → `data: []` |
+| **VEN-S10** Withdraw Offer | `GET /v1/offers/{id}` (vendor presenter) | `POST /v1/offers/{id}/withdraw` (revision is refused, `adr/0015`) | `→ OFFER_NOT_PENDING` |
+| **VEN-S11** My Offers | `GET /v1/me/offers?tab=PENDING\|ACCEPTED\|CLOSED` | open detail *client* · withdraw *client* → VEN-S10 · open Connection *client* → VEN-S13 (`connectionId`) | empty per tab → `data: []` |
 | **VEN-S12** Connections list | `GET /v1/me/connections` | Talk *client* · open detail *client* → VEN-S13 | none → `data: []` |
 | **VEN-S13** Connection detail | `GET /v1/connections/{id}` | `POST /v1/connections/{id}/contact-events` (`WHATSAPP` / `PHONE`) · `POST /v1/connections/{id}/close` · feedback *client* → VEN-S19 · report → `POST /v1/abuse-reports` | closed → `talk.available:false` · contact event on closed `→ CONNECTION_CLOSED` |
 | **VEN-S14** Offer history & performance | `GET /v1/me/offers` (terminal) · `GET /v1/me/vendor/performance` | `GET /v1/me/vendor/performance/export` | no terminal Offers → `data: []` |
 | **VEN-S15** Business profile | `GET /v1/me/vendor` | `PATCH /v1/me/vendor` | invalid email `→ VALIDATION_FAILED` · legal-identity edit → `lifecycle` returns to `PENDING_VERIFICATION` (`BR-004`) |
-| **VEN-S16** Categories, Regions, hours | `GET /v1/me/vendor` · `GET /v1/categories` · `GET /v1/regions` | `PUT /v1/me/vendor/categories` · `PUT /v1/me/vendor/regions` · `PATCH /v1/me/vendor/availability` | zero categories/regions → cannot activate (`FR-VEN-025` AC1) · auth for pre-`ACTIVE` use ⚠️ `SAM-GAP-7` |
+| **VEN-S16** Served Regions, hours | `GET /v1/me/vendor` · `GET /v1/regions` | `PUT /v1/me/vendor/regions` · `PATCH /v1/me/vendor/availability` | none selected → `VALIDATION_FAILED` (≥ 1 Region) · activation does not depend on this screen (`adr/0014`) |
 | **VEN-S17** Notification centre | `GET /v1/notifications` | `POST /v1/notifications/{id}/read` · open deep link *client* | none → `data: []` |
-| **VEN-S18** Settings | `GET /v1/me/settings` · `GET /v1/auth/sessions` | `PATCH /v1/me/settings` · `POST /v1/auth/password` · `DELETE /v1/auth/sessions/{id}` · logout | `→ PASSWORD_POLICY` · no extra sessions → `data: []` |
+| **VEN-S18** Settings | `GET /v1/me/settings` · `GET /v1/auth/sessions` | `PATCH /v1/me/settings` · `DELETE /v1/auth/sessions/{id}` · logout | no extra sessions → `data: []` |
 | **VEN-S19** Leave customer feedback | `GET /v1/connections/{id}` | `POST /v1/connections/{id}/reviews` | `→ REVIEW_ALREADY_EXISTS` |
-| **VEN-S20** My reviews & responses | `GET /v1/me/reviews` ⚠️ `SAM-GAP-8` | `POST /v1/reviews/{id}/response` · `POST /v1/reviews/{id}/flag` | no reviews → `data: []` · `→ CONFLICT` (one response per review) |
-| **VEN-S21** Report abuse | *client* (entity context) | `POST /v1/abuse-reports` | entity type coverage ⚠️ `SAM-GAP-4` |
+| **VEN-S20** My reviews & responses | `GET /v1/me/reviews` `SAM-GAP-8` | `POST /v1/reviews/{id}/response` · `POST /v1/reviews/{id}/flag` | no reviews → `data: []` · `→ CONFLICT` (one response per review) |
+| **VEN-S21** Report abuse | *client* (entity context) | `POST /v1/abuse-reports` | entity type coverage `SAM-GAP-4` |
 | **VEN-S22** Subscription by type | `GET /v1/me/subscriptions` · `GET /v1/platform-config` (`subscriptionContactUrl`) | subscribe/upgrade = deep link *client* (no in-app mutation, `AD-API-04`) | grace/expired → `state` on each `Subscription` row |
 
 ---
@@ -119,7 +120,7 @@ list GET that exposes personal data in bulk, and every mutation, is audited.
 
 | Screen | Load / list | Actions | Empty / error |
 |---|---|---|---|
-| **ADM-S01** Login with 2FA | *client* | `POST /v1/auth/login/password` (password-only in Checkpoint-1; 2FA deferred) | `→ ACCOUNT_LOCKED` (3 / 30 min) · `→ UNAUTHENTICATED` |
+| **ADM-S01** Login — Google Sign-In | *client* | `POST /v1/auth/google/session` | Google account with no Admin row `→ 401 UNAUTHENTICATED` · `→ ACCOUNT_SUSPENDED` |
 | **ADM-S02** Dashboard | `GET /v1/admin/dashboard?range=` | open queue/metric *client* (pre-filtered) | zero-activity period → zero-valued payload |
 | **ADM-S03** Customer list | `GET /v1/admin/customers` (filters, `q`) | open detail *client* → ADM-S04 | no matches → `data: []` |
 | **ADM-S04** Customer detail | `GET /v1/admin/customers/{id}` (opening audited) | `POST /v1/admin/customers/{id}/notes` · `…/suspend` · `…/reactivate` · `…/erasure` | already suspended `→ CONFLICT` |
@@ -129,19 +130,19 @@ list GET that exposes personal data in bulk, and every mutation, is audited.
 | **ADM-S08** Request list | `GET /v1/admin/requests` | open detail *client* → ADM-S09 | no matches → `data: []` |
 | **ADM-S09** Request detail | `GET /v1/admin/requests/{id}` (matched Vendors, Offers, transitions) | `POST /v1/admin/requests/{id}/remove` · `POST /v1/admin/requests/{id}/notes` | already `REMOVED` `→ CONFLICT` |
 | **ADM-S10** Offer list | `GET /v1/admin/offers` | open detail *client* → ADM-S11 | no matches → `data: []` |
-| **ADM-S11** Offer detail | `GET /v1/admin/offers/{id}` (revisions, transitions, `winningOfferId`) | `POST /v1/admin/offers/{id}/notes` | — (read-only commercial terms by design) |
+| **ADM-S11** Offer detail | `GET /v1/admin/offers/{id}` (transitions, `winningOfferId`) | `POST /v1/admin/offers/{id}/notes` | — (read-only commercial terms by design) |
 | **ADM-S12** Connection list | `GET /v1/admin/connections` (default `state=ACTIVE`, `noContact` flag) | open detail *client* → ADM-S13 | none → `data: []` |
 | **ADM-S13** Connection detail | `GET /v1/admin/connections/{id}` (both reviews, linked abuse reports) | `POST /v1/admin/connections/{id}/close` · `POST /v1/admin/connections/{id}/notes` | already `CLOSED` `→ CONNECTION_CLOSED` |
-| **ADM-S14** Category management [REMOVED - ADR 0014] | `GET /v1/admin/categories` (incl. inactive) | `POST /v1/admin/categories` · `PATCH /v1/admin/categories/{id}` · `POST /v1/admin/categories/{id}/deactivate` | in-use cannot be removed (deactivate only) · resolved `SAM-GAP-9` |
+| **ADM-S14** Category management — retired (`adr/0014`) | — | — | Screen retired with the Category entity. |
 | **ADM-S15** Region management | `GET /v1/admin/regions` | `POST /v1/admin/regions` · `PATCH /v1/admin/regions/{id}` · `POST /v1/admin/regions/{id}/deactivate` | as ADM-S14 · resolved `SAM-GAP-9` |
 | **ADM-S16** Review moderation | `GET /v1/admin/reviews?state=` | `POST /v1/admin/reviews/{id}/approve` · `…/reject` · `…/redact` (same three for Vendor responses) | empty queue → `data: []` |
 | **ADM-S17** Reports & analytics | `GET /v1/admin/reports/{name}` | `POST /v1/admin/exports` (CSV/XLSX/PNG) → poll `GET /v1/admin/exports/{id}` | empty period → empty `rows`/`series` · `→ EXPORT_IN_PROGRESS` · export failed → `status:"FAILED"` |
-| **ADM-S18** Announcement composer | `GET /v1/admin/announcements` | `POST /v1/admin/announcements` · `POST /v1/admin/announcements/{id}/cancel` | zero audience — no pre-send recipient count ⚠️ `SAM-GAP-10` · cancel after dispatch `→ CONFLICT` |
+| **ADM-S18** Announcement composer | `GET /v1/admin/announcements` | `POST /v1/admin/announcements` · `POST /v1/admin/announcements/{id}/cancel` | zero audience — no pre-send recipient count `SAM-GAP-10` · cancel after dispatch `→ CONFLICT` |
 | **ADM-S19** Platform settings | `GET /v1/admin/settings` | `PATCH /v1/admin/settings/{key}` (`confirm:true` for commercial keys) | out-of-range `→ SETTING_OUT_OF_RANGE` |
-| **ADM-S20** Gold rate configuration | — _(deferred; see SRS §7.4)_ | — _(deferred; see SRS §7.4)_ | Screen deferred — not in current Admin Portal build scope. |
+| **ADM-S20** Gold rate configuration | `GET /v1/admin/gold-rates` · `GET /v1/admin/gold-rates/history` | `POST /v1/admin/gold-rates/override` (reason + expiry) | feed down → last good value marked stale · Screen not built yet in `kh_admin`; routes exist |
 | **ADM-S21** Abuse report queue | `GET /v1/admin/abuse-reports` | `GET /v1/admin/abuse-reports/{id}` · `POST /v1/admin/abuse-reports/{id}/resolve` | empty queue → `data: []` |
-| **ADM-S22** Audit log viewer | `GET /v1/admin/audit-log` (access itself audited) | entry detail *client* (row is self-contained) ⚠️ `SAM-GAP-12` | no matches → `data: []` |
-| **ADM-S23** Admin user management | `GET /v1/admin/admins` | `POST /v1/admin/admins` · `…/suspend` · `…/revoke` · `…/password-reset` | duplicate email `→ CONFLICT` · role selector vs coarse RBAC ⚠️ `SAM-GAP-13` |
+| **ADM-S22** Audit log viewer | `GET /v1/admin/audit-log` (access itself audited) | entry detail *client* (row is self-contained) `SAM-GAP-12` | no matches → `data: []` |
+| **ADM-S23** Admin user management | `GET /v1/admin/admins` | `POST /v1/admin/admins` · `…/suspend` · `…/revoke` | duplicate email `→ CONFLICT` · no Role control (`AD-API-03`) |
 
 ---
 
@@ -153,44 +154,42 @@ Severity: **H** blocks a screen · **M** screen degrades or needs a client worka
 | ID | Sev | Screens | Gap | Suggested resolution |
 |---|---|---|---|---|
 | `SAM-GAP-1` | M | CUS-S02, CUS-S11 | **RESOLVED**: Screens render an **unread-Offer marker** (per Request on Home, per Offer in the list). `OfferForCustomer.viewedByCustomerAt` and `POST /v1/offers/{id}/viewed` are built, and `RequestForCustomer` carries `unreadOfferCount`. | Resolved — `request.repository.ts` `unreadOfferCountInclude` counts `PENDING` Offers with `viewedByCustomerAt` null; `request.presenter.ts` exposes it on list rows and `GET /v1/requests/{id}`. |
-| `SAM-GAP-2` | L | CUS-S03 | Screen blocks *entry* to the create flow when the live-Request cap is hit, but the only signal is `→ CONCURRENT_REQUEST_LIMIT` at publish. Client must count `GET /v1/me/requests` itself. | Add `liveRequestCount` / `canCreateRequest` to `GET /v1/me` or `GET /v1/platform-config` response `meta`. Low cost, avoids a dead-end flow. |
+| `SAM-GAP-2` | L | CUS-S03 | **RESOLVED**: Screen blocks *entry* to the create flow when the live-Request cap is hit. `GET /v1/me` carries `liveRequestCount` and `canCreateRequest`. | Resolved — `me.service.ts`. |
 | `SAM-GAP-3` | M | CUS-S10 | **RESOLVED (Checkpoint-1)**: Screen offers a "Close Connection path" when the Request is `ACCEPTED`, i.e. it must deep-link to the Connection. `RequestForCustomer` now carries `connectionId?` when `state = ACCEPTED`, sourced from the unique `Connection.offer_id` join (no denormalised column). | Resolved — `backend/src/modules/requests/repository/request.repository.ts` applies `acceptedOfferConnectionInclude` on `findById` / `findByIdForCustomer` / `listForCustomer`; `connectionIdForAcceptedRequest()` in `request.presenter.ts` derives the field. |
 | `SAM-GAP-4` | M | CUS-S13, CUS-S22, VEN-S08, VEN-S21 | **RESOLVED (Checkpoint-1)**: The report screens let a user report a **Vendor** (CUS-S22) or a **Customer** (VEN-S21) directly, with no Request/Offer/Connection in hand. `AbuseEntityType` now includes `VENDOR` and `CUSTOMER`. | Resolved — `backend/src/modules/abuse/controller/abuse.controller.ts` enum includes `VENDOR` / `CUSTOMER`; `abuse.repository.ts` `resolveReportedUserId` switch handles both. |
 | `SAM-GAP-5` | L | CUS-S21, VEN-S18 | **RESOLVED (Checkpoint-1)**: Settings screens link to Terms of Service, Privacy Policy, and Support contact. `GET /v1/platform-config` now returns these URLs. | Resolved — `backend/src/modules/taxonomy/application/platform-config.query.ts` returns `termsUrl`, `privacyUrl`, `supportContactUrl` (seed keys `legal.terms_url`, `legal.privacy_url`, `support.contact_url`). |
-| `SAM-GAP-6` | M | VEN-S03 | The shell shows the Admin's free-text **"request more information" message**. `POST /v1/admin/vendors/{id}/request-info` stores a `message`, but no Vendor-facing read model surfaces it — `VendorMe` has only `awaitingApprovalReason` (an enum) and `GET /v1/me/vendor` returns `verificationState`, not the message. | Add `verificationMessage?: string` (latest Admin message) to `VendorMe` / `GET /v1/me/vendor`. |
-| `SAM-GAP-7` | H | VEN-S03, VEN-S16 | `FR-VEN-025` AC1 and the VEN-S03 flow require a **VERIFIED-but-not-yet-ACTIVE** Vendor to set Categories and Regions in order to *become* `ACTIVE`. The Route Index marks `PUT /v1/me/vendor/categories` and `/regions` as auth **`V` (ACTIVE only)**, and Route Inventory §20 simultaneously says "required before first activation" — a contradiction. | Change the auth for `PUT /v1/me/vendor/categories`, `PUT /v1/me/vendor/regions` and `PATCH /v1/me/vendor/availability` to allow the `VERIFIED` pre-`ACTIVE` state (a `Vshell`-plus variant), and align §20 wording. |
-| `SAM-GAP-8` | M | VEN-S20 | Screen renders a **6-month rating trend chart**. `GET /v1/me/reviews` returns reviews; `GET /v1/me/vendor/performance` returns outcome counts. Neither returns a rating time series. | Add a `ratingTrend: { period, average, count }[]` block to `GET /v1/me/vendor/performance` (or a `?include=ratingTrend`). |
+| `SAM-GAP-6` | M | VEN-S03 | **RESOLVED**: The shell shows the Admin's free-text "request more information" message. `VendorMe.verificationMessage` carries it. | Resolved — `vendor_profile.verification_message`, `vendor-me.presenter.ts`. |
+| `SAM-GAP-7` | H | VEN-S03, VEN-S16 | **WITHDRAWN**: The gap was that a `VERIFIED`-not-`ACTIVE` Vendor had to set Categories and Regions to activate, while those routes were `ACTIVE`-only. Category is removed and approval activates in one step (`adr/0014`), so there is no pre-activation taxonomy step. | — |
+| `SAM-GAP-8` | M | VEN-S20 | **RESOLVED**: Screen renders a 6-month rating trend. `GET /v1/me/vendor/performance` returns `ratingTrend: { period, average, count }[]`. | Resolved — `vendor_profile.rating_trend`, maintained by the rating worker. |
 | `SAM-GAP-9` | L | ADM-S14, ADM-S15 | **RESOLVED (Checkpoint-1)**: Screen files listed a "Delete" action ("blocked if in use"); Route Inventory §21.6 states "There is no DELETE" (deactivate only). Screen files reworded to "Deactivate (in-use cannot be removed)", and Delete removed from UI. | Resolved in `ADM-S14-category-management.md` and `ADM-S15-region-management.md`. |
-| `SAM-GAP-10` | L | ADM-S18 | Screen has a "zero audience" edge state, implying an audience-size preview before send. No endpoint estimates recipient count for a given `audience` filter. | Add `POST /v1/admin/announcements/preview` → `{ estimatedRecipients }`, or accept that the count only appears in post-send `deliveryStats`. |
-| `SAM-GAP-11` | L | ADM-S20 | **Withdrawn** — ADM-S20 deferred from the current build; revisit when the gold-rate screen is scheduled. | **Withdrawn** — ADM-S20 deferred from the current build; revisit when the gold-rate screen is scheduled. |
-| `SAM-GAP-12` | L | ADM-S22 | Screen's "Exit → Entry detail" implies a single-entry view. Only `GET /v1/admin/audit-log` (collection) exists. | Confirm the list row carries `before`/`after`/`ip`/`userAgent` in full (it does per §21.13) so detail is client-side; otherwise add `GET /v1/admin/audit-log/{id}`. |
-| `SAM-GAP-13` | L | ADM-S23 | Screen has a **Role** selector (Super Admin / Operations / Analyst). `AD-API-03` defers `FR-ADM-002` roles; `POST /v1/admin/admins` has "No `role` field". Known tension (Route Inventory §23) — flagged here for screen alignment. | Remove the Role control from ADM-S23 for v1, or render it read-only as "Admin (coarse)". Revisit with `FR-ADM-002`. |
+| `SAM-GAP-10` | L | ADM-S18 | **ACCEPTED AS DESIGNED**: No endpoint previews the audience size; the count is computed at dispatch and appears in `deliveryStats` (Async-Contract §11). The "zero audience" state is shown after send. | — |
+| `SAM-GAP-11` | L | ADM-S20 | **RESOLVED (API)**: The gold-rate Admin routes exist (inventory §21). The `kh_admin` screen is not built yet. | — |
+| `SAM-GAP-12` | L | ADM-S22 | **RESOLVED**: List rows carry `before`/`after`/`ip`/`userAgent` in full, so the entry detail is client-side. No `GET /v1/admin/audit-log/{id}`. | — |
+| `SAM-GAP-13` | L | ADM-S23 | **RESOLVED**: The Role selector is removed from ADM-S23 for v1 (`AD-API-03`). | Revisit with `FR-ADM-002`. |
 
 ### Route-index hygiene (found while mapping — fixed in Route Inventory)
 
 - `POST /v1/me/deletion-requests/{id}/confirm` was described in Route Inventory §9 but
   absent from the §6 Route Index table. **Added.**
-- `GET /v1/offers/{id}` is used by VEN-S10 (revise) for the current-terms snapshot;
-  §22.2 traced `VEN-014` only to `/revise` + `/withdraw`. **`GET /v1/offers/{id}` added to
-  the `VEN-014` row.**
+- `GET /v1/offers/{id}` is used by VEN-S10 for the current-terms snapshot; §22.2 traced
+  `VEN-014` only to `/withdraw`. **`GET /v1/offers/{id}` added to the `VEN-014` row.**
 
 ---
 
 ## 7. Coverage statement
 
-- **68 / 68 screens** have a defined load path and a defined endpoint (or explicit
+- **68 / 68 live screens** have a defined load path and a defined endpoint (or explicit
   *client* behaviour) for every `Action` field. `CUS-S23` is client-only.
-- **13 gaps** (`SAM-GAP-1` … `13`). `SAM-GAP-3`, `4`, `5` are now resolved in the
-  Checkpoint-1 backend and `SAM-GAP-9` in the screen files; `SAM-GAP-1` is resolved too. Of the rest, `SAM-GAP-7` (High) is the only
-  live contradiction. None require a new resource — all are additive fields, an
-  auth-scope correction, one enum extension, or screen-file wording fixes.
+- **13 gaps** (`SAM-GAP-1` … `13`), none open: 10 resolved, `SAM-GAP-7` withdrawn
+  (`adr/0014`), `SAM-GAP-10` accepted as designed, and `SAM-GAP-11` resolved on the
+  API side with the `ADM-S20` screen still to build.
 - **2 route-index hygiene items** — fixed in `API-Route-Inventory.md` (see above).
-- Every *Empty / error / edge state* row in the 68 screen files maps to either an empty
+- Every *Empty / error / edge state* row in the live screen files maps to either an empty
   collection (`data: []`, never `404`, per §3.2) or a named `error.code` in Route
   Inventory §5.
 
-Re-run this diff whenever a screen file or the Route Inventory changes, and once more
-against the generated OpenAPI at first implementation (`NFR-030`).
+Re-run this diff whenever a screen file or the Route Inventory changes, and against the
+generated OpenAPI once it carries response schemas (`NFR-030`).
 
 ---
 
@@ -201,3 +200,4 @@ against the generated OpenAPI at first implementation (`NFR-030`).
 | 0.1 | 1 Sep 2026 | Initial map of all 67 screens against API Route Inventory v0.1. 13 gaps recorded. |
 | 0.2 | 8 Sep 2026 | `CUS-S01` / `CUS-S09` auth flow reworked to the Google-session path per [`adr/0010`](adr/0010-google-signin-only-login.md): `POST /v1/auth/oauth/bind` removed (no separate bind step), `POST /v1/auth/google/session` + `POST /v1/auth/register/customer` cited, unbound token → `401 UNAUTHENTICATED`. `OAUTH_REQUIRED` on `CUS-S09` publish kept (`BR-001`, `FR-CUS-014`). `SAM-GAP-3` / `4` / `5` marked resolved in the Checkpoint-1 backend; `SAM-GAP-1` flagged open as `Customer-App-Backend-Gaps.md` CBG-01. |
 | 0.3 | 11 Sep 2026 | Guest-first launch per [`adr/0011`](adr/0011-guest-first-landing.md): add `CUS-S23` (client-only). `CUS-S01` is Login from Guest or publish gate, not cold start. `CUS-S03` Guest-reachable. `CUS-S09` in-memory Guest form + login-at-publish auto-publish. Coverage 68/68. |
+| 0.4 | 1 Oct 2026 | Re-checked against the code and SRS v1.6. `CUS-S02` Home no longer lists Requests; `CUS-S24` My Requests added. Google-only login rows (`VEN-S04`, `ADM-S01`, `VEN-S18`). Category removed (`CUS-S04`, `VEN-S01`, `VEN-S06`, `VEN-S16`; `ADM-S14` retired). Revision removed (`VEN-S10`, `VEN-S11`, `ADM-S11`). `ADM-S20` mapped to its routes. `SAM-GAP-2`, `6`, `8`, `11`, `12`, `13` resolved; `7` withdrawn; `10` accepted. |

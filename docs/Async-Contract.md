@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **Product** | Karat Hive — Digital Jewellery Marketplace |
-| **Document** | Outbox events, consumers, scheduled jobs (pre-code contract) |
-| **Version** | 0.1 |
+| **Document** | Outbox events, consumers, scheduled jobs |
+| **Version** | 0.2 |
 | **Status** | Draft — `[PROPOSED]`. Technical Lead sign-off required before it becomes binding. |
-| **Date** | 1 September 2026 |
+| **Date** | 1 October 2026 (checked against `backend/src` — events, consumer registrations, `main.ts` jobs) |
 | **Source of truth** | [`docs/Requirements-Spec-v1.6.md`](Requirements-Spec-v1.6.md) §4.4, §5, §7.3 · [`CONTEXT.md`](../CONTEXT.md) · [`docs/Architecture-Backend.md`](Architecture-Backend.md) §9–§11, §15, §17 · [`docs/API-Route-Inventory.md`](API-Route-Inventory.md) §12, §18 · [`docs/Physical-Data-Model.md`](Physical-Data-Model.md) §3 |
 | **Encoding** | [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma) — `outbox_event`, `outbox_consumer`, `job_lock`, `notification`, `notification_delivery` |
 | **Companion** | `docs/Notification-Catalogue.md` — EN/AR bodies per trigger. This document fixes the *trigger*, *recipient*, *channel* and *deep link*; it never writes copy. |
@@ -62,8 +62,8 @@ Decisions made by this document. `Locked` means the SRS or architecture already 
 | `AD-ASYNC-07` | `notification_delivery.channel` and `.status` — free `varchar` in the schema today — are pinned to enums: `channel ∈ {IN_APP, PUSH, EMAIL, SMS}`; `status ∈ {PENDING, SENT, DELIVERED, FAILED, BOUNCED}`. §10. | `[PROPOSED]` |
 | `AD-ASYNC-08` | This document adds five events and four scheduled jobs the architecture §11 tables do not cover: `request.matched`, `request.edited`, `request.cancelled`, `offer.expiry.warning`, `announcement.scheduled`, `vendor.document.expiring`, `request.draft.purge_warning`; jobs `offer-expiry-warning`, `request-draft-purge`, `vendor-document-expiry`, `announcement-dispatch`. Each is `[PROPOSED]`. | `[PROPOSED]` |
 | `AD-ASYNC-09` | Scheduled jobs evaluate against **database time** (`now()`), never application time (architecture §17.5), and against the value **snapshotted onto the entity at creation** (`request.expires_at`, not the live `request.lifetime_hours` setting — `BR-020`, architecture §17.1). | Locked (`BR-020`, architecture §17.5) |
-| `AD-ASYNC-10` | The first-Offer `PUBLISHED → OFFERS_RECEIVED` transition happens **synchronously inside the `POST /v1/requests/{id}/offers` transaction** (inventory §15), not in an `offer.submitted` consumer. The reverse transition (`OFFERS_RECEIVED → PUBLISHED` when the last non-terminal Offer expires) is the `offers:request-state` consumer (`FR-SYS-004.4`). This reconciles the ambiguity in architecture §11.2. | `[PROPOSED]` |
-| `AD-ASYNC-11` | `request.cancelled` withdraws pending Offers **synchronously** in the cancel transaction (inventory §13); `request.expired` withdraws them **asynchronously** via the `requests:expiry-cascade` consumer. The asymmetry is deliberate: cancel touches one Request, the expiry sweep touches many and must stay bounded per run. | `[PROPOSED]` |
+| `AD-ASYNC-10` | *Retired.* There is no `OFFERS_RECEIVED` state (`adr/0015`), so no Request-state transition follows an Offer. Text kept for history: the first-Offer `PUBLISHED → OFFERS_RECEIVED` transition happened **synchronously inside the `POST /v1/requests/{id}/offers` transaction** (inventory §15), not in an `offer.submitted` consumer. This reconciles the ambiguity in architecture §11.2. | `[PROPOSED]` |
+| `AD-ASYNC-11` | Both `request.cancelled` and `request.expired` withdraw pending Offers (`WITHDRAWN_BY_SYSTEM`) **synchronously**, in the same transaction that changes the Request's state (cancel route; `request-expiry-sweep`, one transaction per Request). There is no cascade consumer. | `[PROPOSED]` |
 
 ---
 
@@ -151,7 +151,6 @@ data: {
   requestId:       UUID
   requestType:     RequestType         // FIND_ORNAMENT | SELL_OLD_GOLD | GOLD_COIN | GOLD_BULLION
   direction:       Direction           // BUY | SELL
-  categoryId:      UUID
   regionId:        UUID
   customerUserId:  UUID                 // routing only — never rendered to a Vendor
   publishedAt:     DateTime
@@ -161,13 +160,13 @@ data: {
 
 | Consumer | Action |
 |---|---|
-| `matching:fan-out` | Resolve the Match Set (architecture §11.5); bulk-insert `request_match` `ON CONFLICT DO NOTHING`; emit one `request.matched` per Vendor. Zero matches is success, not error: record the liquidity gap for `FR-ADM-027` and leave the Request `PUBLISHED` (`FR-SYS-001.3`). |
+| `matching.fan_out` | Resolve the Match Set (architecture §11.5); bulk-insert `request_match` `ON CONFLICT DO NOTHING`; emit one `request.matched` per Vendor. Zero matches is success, not error: record the liquidity gap for `FR-ADM-027` and leave the Request `PUBLISHED` (`FR-SYS-001.3`). |
 
 **Notes.** `meta.matchCount` on the publish HTTP response comes from a synchronous count, not from this event (inventory §13). Fan-out latency budget: 99 % within 60 s (`FR-SYS-001.1`, `NFR-004`).
 
 ### 4.2 `request.matched` **[new]**
 
-**Producer** `matching:fan-out` consumer (one event per matched Vendor).
+**Producer** `matching.fan_out` consumer (one event per matched Vendor).
 **Aggregate** `request_match` / `requestMatchId`
 
 ```
@@ -177,7 +176,6 @@ data: {
   vendorProfileId: UUID
   vendorUserId:    UUID
   requestType:     RequestType
-  category:        { id: UUID, labelEn: string, labelAr: string }
   region:          { id: UUID, labelEn: string, labelAr: string }
   matchedAt:       DateTime
 }
@@ -191,7 +189,7 @@ data: {
 
 ### 4.3 `request.edited` **[new]**
 
-**Producer** `requests` — in the `PATCH /v1/requests/{id}` transaction, only for a `PUBLISHED` / `OFFERS_RECEIVED` Request (inventory §13; `FR-CUS-016` AC4).
+**Producer** `requests` — in the `PATCH /v1/requests/{id}` transaction, only for a `PUBLISHED` Request (inventory §13). The Customer app no longer offers an edit surface after publish (`FR-CUS-016`, retired), so this event is rare.
 **Aggregate** `request` / `requestId`
 
 ```
@@ -239,13 +237,12 @@ data: {
   requestId:       UUID
   customerUserId:  UUID
   expiredAt:       DateTime
-  pendingOfferIds: UUID[]         // to be withdrawn by the cascade consumer
+  pendingOfferIds: UUID[]         // already WITHDRAWN_BY_SYSTEM in the sweep transaction; used to address Vendor notifications
 }
 ```
 
 | Consumer | Action |
 |---|---|
-| `requests:expiry-cascade` | Set each `pendingOfferIds` Offer to `WITHDRAWN_BY_SYSTEM`, guarded on current state (`FR-SYS-005.3`). |
 | `notifications:dispatch` | "Your Request expired" to the Customer; "A Request you offered on expired" to each affected Vendor. Deep link `/requests/{requestId}`. |
 
 **Notes.** The Request is retained in history and may be duplicated (`FR-SYS-005.4`, inventory §13 `/duplicate`). Hard expiry, no extension (`C-07`).
@@ -288,7 +285,7 @@ data: {
 
 ### 4.8 `offer.submitted`
 
-**Producer** `offers` — in the `POST /v1/requests/{id}/offers` transaction. The first-Offer `PUBLISHED → OFFERS_RECEIVED` transition is done **in that transaction**, not here (`AD-ASYNC-10`).
+**Producer** `offers` — in the `POST /v1/requests/{id}/offers` transaction. The Request stays `PUBLISHED`; its `offer_count` is incremented in that transaction (`adr/0015`).
 **Aggregate** `offer` / `offerId`
 
 ```
@@ -308,26 +305,9 @@ data: {
 
 **Notes.** The Customer may see the Offer **price and terms** pre-Acceptance (inventory §4.8); only the Vendor's **identity** is masked. The notification body must not name or label the Vendor.
 
-### 4.9 `offer.revised`
+### 4.9 `offer.revised` — retired
 
-**Producer** `offers` — in the `POST /v1/offers/{id}/revise` transaction (inventory §15; `FR-VEN-014`, max 3 revisions).
-**Aggregate** `offer` / `offerId`
-
-```
-data: {
-  offerId:        UUID
-  requestId:      UUID
-  customerUserId: UUID
-  previousPrice:  Money
-  newPrice:       Money
-  newExpiresAt:   DateTime          // reset, still <= parent Request hard expiry (C-07)
-  revisedAt:      DateTime
-}
-```
-
-| Consumer | Action |
-|---|---|
-| `notifications:dispatch` | "An Offer was revised" to the Customer, with previous and new price (inventory §15). Deep link `/requests/{requestId}/offers`. |
+Offers cannot be revised (`adr/0015`); `POST /v1/offers/{id}/revise` returns `403` and emits nothing. The event type stays in `outbox.events.ts` and the dispatcher's map, unused.
 
 ### 4.10 `offer.withdrawn`
 
@@ -380,16 +360,14 @@ data: {
   customerUserId:            UUID
   vendorUserId:              UUID
   expiredAt:                 DateTime
-  wasLastNonTerminalOffer:   boolean   // hint; the consumer re-checks
 }
 ```
 
 | Consumer | Action |
 |---|---|
-| `offers:request-state` | If the Request now has zero non-terminal Offers, revert `OFFERS_RECEIVED → PUBLISHED` (`FR-SYS-004.4`). Re-read; never trust `wasLastNonTerminalOffer`. |
 | `notifications:dispatch` | "Your Offer expired" to the Vendor; "An Offer expired" to the Customer (`FR-SYS-004.3`). |
 
-**Notes.** An `ACCEPTED` Offer is never touched by expiry (`FR-SYS-004.5`).
+**Notes.** An `ACCEPTED` Offer is never touched by expiry (`FR-SYS-004.5`). An Offer's `expires_at` equals its Request's, so this sweep and `request-expiry-sweep` reach the same Offers at the same moment; `request-expiry-sweep` normally wins and the Offer ends `WITHDRAWN_BY_SYSTEM` (`FR-SYS-004` AC4).
 
 ### 4.13 `offer.accepted`
 
@@ -537,7 +515,7 @@ data: {
 
 ### 4.18 `vendor.eligibility.changed`
 
-**Producer** `vendor-onboarding` (verification lost, account suspended/reactivated, Category/Region change) or `subscription` (Type Subscription added, lapsed to `EXPIRED`).
+**Producer** `vendor-onboarding` (verification decided or lost, account suspended/reactivated) or `subscription` (Type Subscription added, lapsed to `EXPIRED`).
 **Aggregate** `vendor_profile` / `vendorProfileId`
 
 ```
@@ -546,7 +524,6 @@ data: {
   vendorUserId:    UUID
   reason: "VERIFICATION_LOST" | "ACCOUNT_SUSPENDED" | "ACCOUNT_REACTIVATED"
         | "SUBSCRIPTION_ADDED" | "SUBSCRIPTION_LAPSED"
-        | "CATEGORY_CHANGED" | "REGION_CHANGED"
   affectedRequestTypes?: RequestType[]
   changedAt:       DateTime
 }
@@ -554,7 +531,7 @@ data: {
 
 | Consumer | Action |
 |---|---|
-| `matching:eligibility-recompute` | Recompute `request_match` for this Vendor across every **live** Request (`PUBLISHED` / `OFFERS_RECEIVED`). Insert new matches `ON CONFLICT DO NOTHING`; flip `request_match.is_eligible = false` where the Vendor no longer qualifies. **Never** touch matches for `ACCEPTED` or terminal Requests (`FR-SYS-002.3`). |
+| `matching.recompute_vendor` | Recompute `request_match` for this Vendor across every **live** (`PUBLISHED`) Request. Insert new matches `ON CONFLICT DO NOTHING`; flip `request_match.is_eligible = false` where the Vendor no longer qualifies. **Never** touch matches for `ACCEPTED` or terminal Requests (`FR-SYS-002.3`). |
 
 **Notes.** Existing Offers from a now-ineligible Vendor are handled per `FR-ADM-016`, not by this consumer. Suspension already takes effect on the Vendor's next call (token carries no entitlement claims, architecture §14.2); this event only fixes the feed.
 
@@ -592,7 +569,7 @@ data: {
 data: {
   announcementId: UUID
   scheduledFor:   DateTime
-  audience:       object            // { userTypes?, accountStates?, regionIds?, categoryIds? } — schema shape
+  audience:       object            // { userTypes?, accountStates?, regionIds? } — schema shape
   channels:       { inApp: boolean, push: boolean, email: boolean }
   critical:       boolean           // overrides recipient preferences and quiet hours
 }
@@ -628,19 +605,17 @@ data: {
 
 ## 5. Consumer registry
 
-Every value that may appear in `outbox_consumer.consumer` (`varchar(64)`). This is a **closed set** — a dispatcher encountering an unknown consumer name for an event type is a defect, not a no-op. Naming: `<module>:<handler>`.
+Every value that may appear in `outbox_consumer.consumer` (`varchar(64)`). This is a **closed set** — a dispatcher encountering an unknown consumer name for an event type is a defect, not a no-op. Naming: `<module>:<handler>`, except the two `matching.*` consumers, which use a dot.
 
 | `consumer` | Module | Subscribes to | Idempotency strategy (beyond the marker row) |
 |---|---|---|---|
-| `matching:fan-out` | `matching` | `request.published` | `request_match` unique `(request_id, vendor_profile_id)` + `ON CONFLICT DO NOTHING`; `request.matched` emission keyed on `request_match.id` |
-| `matching:eligibility-recompute` | `matching` | `vendor.eligibility.changed` | Full recompute for the Vendor's live Requests; upsert on `(request_id, vendor_profile_id)`; `is_eligible` set to a computed value, not toggled |
-| `requests:expiry-cascade` | `requests` | `request.expired` | Offer transition guarded on current state (`WHERE state = 'PENDING'`) |
-| `offers:request-state` | `offers` | `offer.expired` | Re-reads the Request's non-terminal Offer count; the `OFFERS_RECEIVED → PUBLISHED` update is guarded on current state |
+| `matching.fan_out` | `matching` | `request.published` | `request_match` unique `(request_id, vendor_profile_id)` + `ON CONFLICT DO NOTHING`; `request.matched` emission keyed on `request_match.id` |
+| `matching.recompute_vendor` | `matching` | `vendor.eligibility.changed` | Full recompute for the Vendor's live Requests; upsert on `(request_id, vendor_profile_id)`; `is_eligible` set to a computed value, not toggled |
 | `reviews:rating-recompute` | `reviews` | `review.published`, `review.moderated` | Full arithmetic-mean recompute over `PUBLISHED` reviews — naturally idempotent (`FR-SYS-012.3`) |
 | `media:process` | `media` | `media.uploaded` | Keyed on `media.id`; re-run tolerates an already-`READY` row (no-op) |
-| `notifications:dispatch` | `notifications` | `request.matched`, `request.edited`, `request.cancelled`, `request.expired`, `request.expiry.warning`, `request.draft.purge_warning`, `offer.submitted`, `offer.revised`, `offer.withdrawn`, `offer.expiry.warning`, `offer.expired`, `offer.accepted`, `connection.closed`, `review.published`, `vendor.verification.decided`, `announcement.scheduled`, `vendor.document.expiring` | One `notification` row per (event, recipient); the marker row `outbox_consumer(event_id, 'notifications:dispatch')` covers the whole recipient fan. Per-channel delivery is retried separately by the `notification-retry` job, keyed on `notification_delivery.attempt` |
+| `notifications:dispatch` | `notifications` | `request.matched`, `request.edited`, `request.cancelled`, `request.expired`, `request.expiry.warning`, `request.draft.purge_warning`, `offer.submitted`, `offer.withdrawn`, `offer.expiry.warning`, `offer.expired`, `offer.accepted`, `connection.closed`, `review.published`, `vendor.verification.decided`, `announcement.scheduled`, `vendor.document.expiring` | One `notification` row per (event, recipient); the marker row `outbox_consumer(event_id, 'notifications:dispatch')` covers the whole recipient fan. Per-channel delivery is retried separately by the `notification-retry` job, keyed on `notification_delivery.attempt` |
 
-**Consumer order per event.** Where an event has both a state consumer and `notifications:dispatch` (`request.expired`, `offer.expired`), the state consumer runs first so a notification never describes a state the database has not reached yet. The dispatcher runs consumers in the order listed in §4.
+**Consumer order per event.** State changes happen in the producing transaction, so `notifications:dispatch` never describes a state the database has not reached. Where an event has two consumers (`review.published`), they are independent.
 
 ---
 
@@ -652,7 +627,7 @@ Architecture §11.3 rows are preserved; the four **[new]** rows are `AD-ASYNC-08
 |---|---|---|---|---|---|---|
 | Offer expiry sweep | `offer-expiry-sweep` | 1 min | `offer WHERE state='PENDING' AND expires_at <= now()` (partial index) | `offer.state = EXPIRED`; `offer.expired` | Offer `EXPIRED` within 1 min of deadline (`FR-SYS-004.1` allows 5) | Vendor feed shows a live Offer past its countdown |
 | Offer expiry warning **[new]** | `offer-expiry-warning` | 5 min | `offer` pending, `expires_at` within 6 h, `expiry_warned_at IS NULL` | `offer.expiry_warned_at = now()`; `offer.expiry.warning` | Warning sent once, ≥ 5.5 h before expiry (`FR-VEN-013` AC4) | Vendor's Offer lapses with no warning |
-| Request expiry sweep | `request-expiry-sweep` | 1 min | `request WHERE state IN ('PUBLISHED','OFFERS_RECEIVED') AND expires_at <= now()` (partial index) | `request.state = EXPIRED`; `request.expired` | Request `EXPIRED` within 1 min of `expires_at` (`C-07`) | Customer countdown hits zero while the Request still shows live — a trust failure (architecture §11.3) |
+| Request expiry sweep | `request-expiry-sweep` | 1 min | `request WHERE state = 'PUBLISHED' AND expires_at <= now()` (partial index) | `request.state = EXPIRED`; pending Offers `WITHDRAWN_BY_SYSTEM` in the same transaction; `request.expired` | Request `EXPIRED` within 1 min of `expires_at` (`C-07`) | Customer countdown hits zero while the Request still shows live — a trust failure (architecture §11.3) |
 | Request expiry warning | `request-expiry-warning` | 5 min | `request` live, `expires_at` within 6 h, `expiry_warned_at IS NULL` | `request.expiry_warned_at = now()`; `request.expiry.warning` | Warning sent once, ~6 h before expiry (`FR-SYS-005.2`) | Customer's Request expires with no warning |
 | Draft purge **[new]** | `request-draft-purge` | Hourly | `request WHERE state='DRAFT'`: at age 27 d → warn; at age 30 d → delete | `request.draft_purge_warned_at`; `request.draft.purge_warning`; hard-delete draft + `request_media` at 30 d | Warned at T−3 d, purged at 30 d (`FR-CUS-015` AC4) | A draft the Customer expected to keep vanishes with no notice |
 | Outbox drain | — (SKIP LOCKED) | 5 s | `outbox_event WHERE state='PENDING' AND available_at <= now()` | Consumer side effects; `outbox_consumer` markers; `state` transitions | Time-critical events dispatched within 60 s (`NFR-004`) | Every notification and fan-out stalls; Requests do not expire (all `worker` instances down — architecture §19.2) |
@@ -663,8 +638,9 @@ Architecture §11.3 rows are preserved; the four **[new]** rows are `AD-ASYNC-08
 | Announcement dispatch **[new]** | `announcement-dispatch` | 1 min | `announcement WHERE scheduled_for <= now() AND cancelled_at IS NULL AND dispatch_stats IS NULL` | dispatch guard set; `announcement.scheduled` | Scheduled announcement fans out within 1 min of its time (`FR-ADM-029`) | A timed announcement is late or silent |
 | Vendor document expiry **[new]** | `vendor-document-expiry` | Daily 02:00 GST | `vendor_document WHERE expiry_date - now() <= 30 d AND reminder_sent_at IS NULL` | `vendor_document.reminder_sent_at`; `vendor.document.expiring` | Vendor + Admin reminded ~30 d out (`FR-VEN-002` AC4) | A licence lapses unnoticed; Vendor silently loses eligibility |
 | Retention purge | `retention-purge` | Daily 03:00 GST | Rows past their retention window (`NFR-021`): notifications > 90 d, orphan media > 30 d (`FR-SYS-009.6`), `idempotency_key` > 24 h, audit never | Hard-delete or anonymise-in-place (`AD-BE-13`) | Retention windows enforced (`NFR-021`) | None directly; a compliance failure |
+| Subscription expiry sweep | `subscription-expiry-sweep` | periodic | `vendor_type_subscription` past `period_end` | state → `EXPIRED`; `vendor.eligibility.changed` | Lapsed entitlements leave the match set promptly (`FR-VEN-031`) | A Vendor keeps seeing Requests after their Type Subscription lapsed |
 | Media processing | — (event-driven) | on `media.uploaded` | — | See `media:process`, §5 | Derivatives `READY` before the parent can publish | Request stuck un-publishable ("media not ready") |
-| Match-set recompute | — (event-driven) | on `vendor.eligibility.changed` | — | See `matching:eligibility-recompute`, §5 | Feed corrected within one drain cycle | Ineligible Vendor still sees a Request, or an eligible one does not |
+| Match-set recompute | — (event-driven) | on `vendor.eligibility.changed` | — | See `matching.recompute_vendor`, §5 | Feed corrected within one drain cycle | Ineligible Vendor still sees a Request, or an eligible one does not |
 
 **Cadence note.** Both expiry sweeps run every minute although `FR-SYS-004.1` permits five — a Customer-visible countdown (`SH-DOM-07`) reaching zero on a Request still marked live is a trust problem, not just a correctness one (architecture §11.3).
 
@@ -693,7 +669,6 @@ Covers the Customer triggers (`FR-CUS-032`) and Vendor triggers (`FR-VEN-026`) f
 | New matched Request | `request.matched` | Vendor — `vendorUserId` | in-app, push | no | `/requests/{requestId}` |
 | First Offer received | `offer.submitted` (`isFirstOfferOnRequest`) | Customer — `customerUserId` | in-app, push | no | `/requests/{requestId}/offers` |
 | Subsequent Offer received | `offer.submitted` | Customer | in-app, push | no | `/requests/{requestId}/offers` |
-| Offer revised | `offer.revised` | Customer | in-app, push | no | `/requests/{requestId}/offers` |
 | Offer withdrawn | `offer.withdrawn` | Customer | in-app, push | no | `/requests/{requestId}/offers` |
 | Request approaching expiry (T−6 h) | `request.expiry.warning` | Customer | in-app, push | no | `/requests/{requestId}` |
 | Request expired | `request.expired` | Customer + each affected Vendor | in-app, push | no | `/requests/{requestId}` |
@@ -737,7 +712,7 @@ Consolidated for the `Release-Gate-Tests.md` concurrency suite (document #5; arc
 | Expiry warning sent twice | `*_warned_at` / `reminder_sent_at` set once, checked in the job's `WHERE` | `FR-SYS-005.2`, `FR-VEN-013` AC4 |
 | Announcement dispatched twice | `dispatch_stats IS NULL` guard in the job's `WHERE`, set inside the dispatch transaction | `FR-ADM-029` |
 | Duplicate notification for one trigger | one `notification` row per (event, recipient); marker row covers the fan (`FR-SYS-008.5`) | `FR-SYS-008` |
-| Acceptance racing with Offer expiry | Offer validity re-checked **inside** the Acceptance transaction, not trusted from the render read (architecture §10.1) | `FR-SYS-004.2` |
+| Acceptance racing with Offer expiry | Offer `expires_at` re-checked **inside** the Acceptance transaction, not trusted from the render read (architecture §10.1) | `FR-SYS-004.2` |
 | Concurrent Acceptance on one Request | `SELECT … FOR UPDATE` of the `request` row serialises; the loser re-reads `ACCEPTED` and gets a domain error (`AD-BE-09`, `BR-011`) | `FR-SYS-006`, `FR-SYS-007` |
 
 ---
@@ -783,7 +758,7 @@ All `[PROPOSED]`, for Technical Lead sign-off. None changes an existing column's
 | 4 | `vendor_document` | add `reminder_sent_at timestamptz NULL` | `vendor.document.expiring` (`FR-VEN-002` AC4) |
 | 5 | `announcement` | dispatch guard: use `dispatch_stats IS NULL` as the "not yet dispatched" predicate, **or** add `dispatched_at timestamptz NULL` for clarity | `announcement.scheduled` |
 | 6 | `outbox_consumer` | no change — but the table is absent from Architecture Appendix C and Physical-Data-Model Appendix A. Add a row to both: "consumer idempotency marker, `(event_id, consumer)` PK, written on success" | architecture §11.1 |
-| 7 | *(none)* | `request_match.is_eligible` already exists (schema) and is the flip target for `matching:eligibility-recompute` — recorded here, no change | `FR-SYS-002.3` |
+| 7 | *(none)* | `request_match.is_eligible` already exists (schema) and is the flip target for `matching.recompute_vendor` — recorded here, no change | `FR-SYS-002.3` |
 
 Partial indexes the new jobs rely on (to be added to [`backend/prisma/sql/partial-indexes.sql`](../backend/prisma/sql/partial-indexes.sql), which Prisma cannot express — Physical-Data-Model §7):
 
@@ -807,14 +782,13 @@ Recorded so implementation does not silently resolve them.
 | Item | Kind | Impact on this contract |
 |---|---|---|
 | All `AD-ASYNC-*` marked `[PROPOSED]` | `[PROPOSED]` | Whole document is Draft until Technical Lead sign-off (Appendix B) |
-| Schema deltas §10 (items 1–5) | `[PROPOSED]` | Four jobs and their events cannot be built until the marker columns exist |
+| Schema deltas §10 (items 1–5) | `[PROPOSED]` | Applied in `schema.prisma` and the init migration; Technical Lead sign-off still pending |
 | Security-critical account-event notifications (§7.2 last row) — which producers, exact event names, SMS provider | `[ASSUMED]` (product) | SMS channel and `is_critical` path under-specified; SRS §12 lists the need, not the catalogue |
 | `request.edited` recipient scope — pending-Offer Vendors only, vs all matched Vendors | `[PROPOSED]` | Chosen: pending-Offer only. Revisit if `FR-CUS-016` AC is clarified |
 | Second review nudge if no review N days after `connection.closed` | `[ASSUMED]` (product) | Not built; only the immediate prompt on `connection.closed` exists |
 | No live-update channel in v1 (no WebSocket/SSE — inventory §23, `NFR-003`) | Client constraint | Dispatch latency is only felt on the client's next pull-to-refresh / focus refetch; the 60 s budgets (`NFR-004`) are server-to-notification, not server-to-screen |
 | Announcement audience-size preview has no endpoint (`SAM-GAP-10`) | Deferred | `announcement.scheduled` carries `audience`; the count is computed at dispatch, not previewable |
 | Yahoo Finance redistribution terms | `[BLOCKED]` — legal | `gold-rate-poll` and `gold-rate-stale-alert` run regardless; end-user *display* of the rate stays blocked (`AD-API-09`) |
-| Offer `validityHours` 12/24/48 (`FR-VEN-013`, `AD-API-07`) vs SRS §6.2 dictionary 24/48/72/168 | Spec tension (tracked in inventory §23) | This contract follows `FR-VEN-013`; `offer.expiry.warning` timing is unaffected |
 
 ---
 
@@ -822,6 +796,7 @@ Recorded so implementation does not silently resolve them.
 
 | Version | Date | Change |
 |---|---|---|
+| 0.2 | 1 October 2026 | Checked against the code. `offer.revised` retired and `AD-ASYNC-10` retired (`adr/0015`); `AD-ASYNC-11` corrected — expiry withdraws Offers in the sweep transaction; consumers `requests:expiry-cascade` and `offers:request-state` removed (never built); matching consumers renamed to their code names; `subscription-expiry-sweep` job added; Category removed from payloads (`adr/0014`). |
 | 0.1 | 1 September 2026 | Initial async contract against SRS v1.3, Architecture-Backend §11, API inventory 0.1, Physical-Data-Model 0.1. 21 events (14 from architecture §11.2 + 7 new), 7 consumers, 15 scheduled jobs (11 + 4 new), notification dispatch table, 5 proposed schema deltas. |
 
 ---
@@ -839,26 +814,25 @@ Recorded so implementation does not silently resolve them.
 
 | Event | Emitted by | Consumed by |
 |---|---|---|
-| `request.published` | `POST …/publish` txn | `matching:fan-out` |
-| `request.matched` | `matching:fan-out` | `notifications:dispatch` |
+| `request.published` | `POST …/publish` txn | `matching.fan_out` |
+| `request.matched` | `matching.fan_out` | `notifications:dispatch` |
 | `request.edited` | `PATCH /v1/requests/{id}` txn | `notifications:dispatch` |
 | `request.cancelled` | `POST …/cancel` txn | `notifications:dispatch` |
-| `request.expired` | `request-expiry-sweep` | `requests:expiry-cascade`, `notifications:dispatch` |
+| `request.expired` | `request-expiry-sweep` | `notifications:dispatch` |
 | `request.expiry.warning` | `request-expiry-warning` | `notifications:dispatch` |
 | `request.draft.purge_warning` | `request-draft-purge` | `notifications:dispatch` |
 | `offer.submitted` | `POST /v1/requests/{id}/offers` txn | `notifications:dispatch` |
-| `offer.revised` | `POST /v1/offers/{id}/revise` txn | `notifications:dispatch` |
 | `offer.withdrawn` | `POST /v1/offers/{id}/withdraw` txn | `notifications:dispatch` |
 | `offer.expiry.warning` | `offer-expiry-warning` | `notifications:dispatch` |
-| `offer.expired` | `offer-expiry-sweep` | `offers:request-state`, `notifications:dispatch` |
+| `offer.expired` | `offer-expiry-sweep` | `notifications:dispatch` |
 | `offer.accepted` | Acceptance txn (`connections`) | `notifications:dispatch` |
 | `connection.closed` | `POST /v1/connections/{id}/close` txn | `notifications:dispatch` |
 | `review.published` | `reviews` | `reviews:rating-recompute`, `notifications:dispatch` |
 | `review.moderated` | `POST /v1/admin/...` moderation txn | `reviews:rating-recompute` |
 | `vendor.verification.decided` | Admin verification txn | `notifications:dispatch` |
-| `vendor.eligibility.changed` | `vendor-onboarding` / `subscription` | `matching:eligibility-recompute` |
+| `vendor.eligibility.changed` | `vendor-onboarding` / `subscription` / `subscription-expiry-sweep` | `matching.recompute_vendor` |
 | `media.uploaded` | `POST /v1/media/{key}/complete` txn | `media:process` |
 | `announcement.scheduled` | `announcement-dispatch` (or inline for immediate) | `notifications:dispatch` |
 | `vendor.document.expiring` | `vendor-document-expiry` | `notifications:dispatch` |
 
-*End of document. Authoritative OpenAPI is generated from code (`NFR-030`) once the monolith exists; the outbox payloads above are the pre-code contract the workers are written against and must be diffed against the shipped event types at first implementation.*
+*End of document. The shipped event types are `backend/src/platform/outbox/outbox.events.ts`; a change there changes this contract.*

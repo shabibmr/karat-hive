@@ -13,9 +13,10 @@
 
 This is **not** OpenAPI and **not** Nest. Identity masking is a presenter concern (`FR-SYS-003`): the database stores full identity.
 
-**T36 status.** The SAM-GAP and Async-Contract §10 columns (`offer.viewed_by_customer_at`, `vendor_profile.verification_message`, `AbuseEntityType` + `VENDOR`/`CUSTOMER`, `expiry_warned_at`, `draft_purge_warned_at`, `vendor_document.reminder_sent_at`, and the matching partial indexes) are already in `prisma/migrations/20260901120000_init`. They remain **`[PROPOSED]`** until Technical Lead sign-off. They are not reverted; a follow-up migration would be noisier than leaving them in the unused init.
+**Async-Contract and SAM-GAP columns.** The SAM-GAP and Async-Contract §10 columns (`offer.viewed_by_customer_at`, `vendor_profile.verification_message`, `AbuseEntityType` + `VENDOR`/`CUSTOMER`, `expiry_warned_at`, `draft_purge_warned_at`, `vendor_document.reminder_sent_at`, and the matching partial indexes) are already in `prisma/migrations/20260901120000_init`. They remain **`[PROPOSED]`** until Technical Lead sign-off. They are not reverted; a follow-up migration would be noisier than leaving them in the unused init.
 
-**Checkpoint-1 follow-up.** `category.icon VARCHAR(100)` is in `prisma/migrations/20260906120000_category_icon`. Optional; omitted from JSON when null. Regions have no icon.
+
+**Offers (`adr/0015`).** `prisma/migrations/20260920143310_add_weight_and_purity_drop_validity` dropped `offer.validity_hours` and its `CHECK`, and added `offer.weight_grams` and `offer.purity_karat`. `offer.expires_at` is set to the parent Request's `expires_at`. `offer_revision` and `offer.revision_count` remain in the schema, unused.
 
 **Taxonomy.** `region` is single-level: `prisma/migrations/20260915120000_flatten_taxonomy` dropped `parent_id` and its self-referential FK and replaced the composite `(parent_id, display_order)` index with `(display_order)`. The `category` entity and its join tables were removed by `prisma/migrations/20260926140000_remove_category` ([`adr/0014`](adr/0014-remove-category-taxonomy-entity.md)).
 
@@ -68,7 +69,7 @@ SRS §6 entities plus Architecture Appendix C (`*`) plus inventory extras (`†`
 | `media` | `media`† |
 | `requests` | `request`, `request_media` |
 | `matching` | `request_match` |
-| `offers` | `offer`, `offer_revision`, `offer_media`†, `filter_preset`† |
+| `offers` | `offer`, `offer_revision` (unused, `adr/0015`), `offer_media`†, `filter_preset`† |
 | `connections` | `connection`, `contact_event` |
 | `reviews` | `review` |
 | `abuse` | `abuse_report` |
@@ -91,8 +92,8 @@ Legacy `vendor_profile.subscription_tier_id` from SRS §6.2 is **omitted**. Enti
 
 | Gap | Resolution |
 |---|---|
-| `ADMIN_PROFILE` has no field dictionary | `[PROPOSED]`: `display_name`, encrypted TOTP secret, `totp_confirmed_at`. **No `role`** (`AD-API-03`) |
-| Vendor ↔ Category / Region M:N unnamed | `vendor_region` |
+| `ADMIN_PROFILE` has no field dictionary | `[PROPOSED]`: `display_name`. **No `role`** (`AD-API-03`). The TOTP columns in the schema are unused — there is no platform 2FA (`adr/0010`) |
+| Vendor ↔ Region M:N unnamed | `vendor_region` |
 | Upload-intent pipeline has no entity | `media` holds object keys; `request_media` / `offer_media` / `vendor_document` attach them |
 | SRS `photo_url` / `logo_url` / `file_url` | Replaced by FKs to `media`. Signed URLs are issued at read time (`NFR-014`) |
 | Offer images (FR-VEN-012, up to 3) | `offer_media` |
@@ -130,7 +131,7 @@ Legacy `vendor_profile.subscription_tier_id` from SRS §6.2 is **omitted**. Enti
 - XOR: exactly one of customer/vendor/admin profile, matching `user.user_type`
 - Max 5 request images / 3 offer images
 - Masking (`FR-SYS-003`)
-- Offer validity clamp vs parent Request remaining life
+- Offer `expires_at` = parent Request `expires_at` (`adr/0015`)
 - Acceptance lock order (`SELECT … FOR UPDATE` of `request`, `AD-BE-09`)
 
 ---
@@ -143,8 +144,8 @@ Legacy `vendor_profile.subscription_tier_id` from SRS §6.2 is **omitted**. Enti
 | 2 | Customer Offers on a Request | `offer (request_id, state, submitted_at DESC)` |
 | 3 | Vendor My Offers | `offer (vendor_profile_id, state, submitted_at DESC)` |
 | 4 | Admin lists | `request (state, published_at)`, `vendor_profile (verification_state, created_at)`, `user (account_state, created_at)` — replica routing is later |
-| 5 | Expiry sweeps | Partial `offer (expires_at) WHERE state = 'PENDING'`; partial `request (expires_at) WHERE state IN ('PUBLISHED','OFFERS_RECEIVED')` |
-| 6 | Fan-out eligibility | `vendor_profile (verification_state, created_at)`; `vendor_category (category_id, vendor_profile_id)`; `vendor_region (region_id, vendor_profile_id)`; `vendor_type_subscription (request_type, state)` |
+| 5 | Expiry sweeps | Partial `offer (expires_at) WHERE state = 'PENDING'`; partial `request (expires_at) WHERE state = 'PUBLISHED'` |
+| 6 | Fan-out eligibility | `vendor_profile (verification_state, created_at)`; `vendor_type_subscription (request_type, state)`. Region is not an eligibility gate (`adr/0014`) |
 
 Search (`AD-BE-11`, C-12): `pg_trgm` GIN on `request.notes`, `request.reference`, `vendor_profile.trading_name`, `legal_business_name`, `trade_licence_number`, `user.mobile_number` — see `prisma/sql/extensions.sql`.
 
@@ -158,7 +159,6 @@ Applied from [`backend/prisma/sql/partial-indexes.sql`](../backend/prisma/sql/pa
 
 - Partial unique indexes (`BR-009`, live subscriptions)
 - Partial expiry indexes
-- `CHECK (validity_hours IN (12, 24, 48))`
 - `CREATE EXTENSION pg_trgm` / `pgcrypto`
 - GIN trgm indexes
 - Outbox claim partial index
@@ -172,7 +172,6 @@ Until that SQL runs, those rules exist only in application code — **do not shi
 
 | Item | Encoding in this schema | Status |
 |---|---|---|
-| Offer validity options | `CHECK (12, 24, 48)` (`AD-API-07`, `FR-VEN-013`) | `[PROPOSED]` vs SRS §6.2 `24/48/72/168` |
 | Admin roles Super/Ops/Analyst | Omitted (`AD-API-03`) | Deferred `FR-ADM-002` |
 | Type Subscription payment | `payment_reference` text only; no checkout tables (`AD-API-04`) | `[PROPOSED]` |
 | UUID v7 | App later; DB `gen_random_uuid()` now | `[PROPOSED]` |
@@ -180,7 +179,7 @@ Until that SQL runs, those rules exist only in application code — **do not shi
 | `notification_delivery.channel` / `.status` | Enums `NotificationChannel` / `NotificationDeliveryStatus` | Resolved (`AD-ASYNC-07`) — was free `varchar` |
 | `vendor_profile.rating_trend` shape | jsonb `[{ period, average, count }]` | `[PROPOSED]` (`SAM-GAP-8`) — encoding chosen here, not by Screen-API-Map |
 
-Yahoo redistribution and R2 residency do not change tables.
+Yahoo redistribution and object-storage residency do not change tables.
 
 ---
 
@@ -193,7 +192,7 @@ Default: a local PostgreSQL 16. Docker is optional and not required.
 cd backend && npx prisma migrate deploy
 ```
 
-Object storage for later media work: MinIO or R2 credentials in env. Not needed for schema migrate or `/health`. Seed contents: [`backend/prisma/seed/README.md`](../backend/prisma/seed/README.md).
+Object storage for media work: local disk or MinIO by default; Oracle Object Storage credentials (`OCI_S3_*`) for hosted environments (`adr/0013`). Not needed for schema migrate or `/health`. Seed contents: [`backend/prisma/seed/README.md`](../backend/prisma/seed/README.md).
 
 ---
 
@@ -213,17 +212,17 @@ This is enforced by a Supabase-side migration (`lock_down_data_api_public_schema
 
 | SRS entity | Table | Notes |
 |---|---|---|
-| `USER` | `user` | Extra: `token_version`, `email_pending`, ToS versions, quiet hours |
+| `USER` | `user` | Extra: `token_version`, `email_pending`, ToS versions, quiet hours. `password_hash`, `failed_login_attempts`, `locked_until` are unused — no role has a password (`adr/0010`) |
 | `CUSTOMER_PROFILE` | `customer_profile` | `photo_url` → `photo_media_id` |
-| `VENDOR_PROFILE` | `vendor_profile` | No `subscription_tier_id`; `logo_url` → `logo_media_id` |
-| `ADMIN_PROFILE` | `admin_profile` | Fields invented `[PROPOSED]` |
+| `VENDOR_PROFILE` | `vendor_profile` | `logo_url` → `logo_media_id`; + `contact_whatsapp`, `activated_at`, `verification_message`, `rating_trend` |
+| `ADMIN_PROFILE` | `admin_profile` | `display_name` `[PROPOSED]` |
 | `VENDOR_DOCUMENT` | `vendor_document` | `file_url` → `media_id` |
 | `VENDOR_TYPE_SUBSCRIPTION` | `vendor_type_subscription` | |
 | `REQUEST` | `request` | + `gemstones`, `expiry_warned_at` |
 | `REQUEST_MEDIA` | `request_media` | Join to `media` |
 | `REQUEST_MATCH` | `request_match` | |
-| `OFFER` | `offer` | |
-| `OFFER_REVISION` | `offer_revision` | |
+| `OFFER` | `offer` | `weight_grams`, `purity_karat`; no `validity_hours` (`adr/0015`) |
+| `OFFER_REVISION` | `offer_revision` | Retired in SRS v1.6; table unused |
 | `CONNECTION` | `connection` | |
 | `CONTACT_EVENT` | `contact_event` | |
 | `REVIEW` | `review` | + `vendor_response_state` |
@@ -240,6 +239,7 @@ This is enforced by a Supabase-side migration (`lock_down_data_api_public_schema
 
 | Version | Date | Change |
 |---|---|---|
+| 0.6 | 1 Oct 2026 | Re-based on SRS v1.6: Offer validity and revision removed (`adr/0015`); remaining Category references removed (`adr/0014`); unused TOTP and password columns noted; object storage is Oracle (`adr/0013`) |
 | 0.5 | 26 Sep 2026 | Category taxonomy entity completely removed per ADR 0014 / SRS v1.5 |
 | 0.4 | 15 Sep 2026 | Taxonomy flattened to 1 level (`20260915120000_flatten_taxonomy`) — `category`/`region` drop `parent_id` + self-referential FK; index becomes `(display_order)` |
 | 0.1 | 1 Sep 2026 | Initial physical model against SRS v1.3, Architecture-Backend §12, API inventory 0.1 |
