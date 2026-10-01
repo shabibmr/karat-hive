@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:kh_core/kh_core.dart';
 
 import '../../../app/session/session_controller.dart';
@@ -54,7 +55,7 @@ class OnboardingAuthenticated extends CustomerOnboardingState {
 /// tell an unbound identity from a plain sign-out, so this controller does its
 /// own `google/session` call to branch to the completion step.
 class CustomerOnboardingController
-    extends AutoDisposeNotifier<CustomerOnboardingState> {
+    extends Notifier<CustomerOnboardingState> {
   bool _disposed = false;
 
   @override
@@ -146,7 +147,7 @@ class CustomerOnboardingController
   }
 }
 
-final customerOnboardingControllerProvider = AutoDisposeNotifierProvider<
+final customerOnboardingControllerProvider = NotifierProvider.autoDispose<
     CustomerOnboardingController, CustomerOnboardingState>(
   CustomerOnboardingController.new,
 );

@@ -5,7 +5,7 @@ part 'verification_queue_item.g.dart';
 
 /// Summary row from `GET /v1/admin/verification-queue`.
 @freezed
-class VerificationQueueItem with _$VerificationQueueItem {
+abstract class VerificationQueueItem with _$VerificationQueueItem {
   const factory VerificationQueueItem({
     required String id,
     required String legalBusinessName,

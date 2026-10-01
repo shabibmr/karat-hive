@@ -77,7 +77,7 @@ class OwnerRequestDetailController
 
   Future<void> reload() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => build(arg));
+    state = await AsyncValue.guard(build);
   }
 
   Future<bool> save({
@@ -86,7 +86,7 @@ class OwnerRequestDetailController
     String? budgetMax,
     bool? budgetIsFlexible,
   }) async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return false;
     state = AsyncData(current.copyWith(saving: true, clearError: true));
     final repo = ref.read(requestManageRepositoryProvider);
@@ -110,7 +110,7 @@ class OwnerRequestDetailController
   }
 
   Future<bool> cancel({String? reason}) async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return false;
     state = AsyncData(current.copyWith(cancelling: true, clearError: true));
     final repo = ref.read(requestManageRepositoryProvider);

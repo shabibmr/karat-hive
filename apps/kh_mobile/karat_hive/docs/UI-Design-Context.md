@@ -1,214 +1,254 @@
-# Karat Hive Mobile — UI Design Context (Direction 1a "Classic")
+# Karat Hive Mobile — UI Design Context ("Modern Luxury Jewellery Editorial")
 
-The binding visual specification for `kh_mobile` Flutter UI: fonts, colours, spacing, shapes, components, screen layouts, motion, and RTL. Every value here is taken from the high-fidelity handoff in [`design_handoff_karat_hive/`](design_handoff_karat_hive/README.md) (`Karat Hive Home.dc.html` option **1a**, `Karat Hive Create Request.dc.html`), then mapped onto the existing `kh_design_system` package.
+The binding visual specification for `kh_mobile` Flutter UI: principles, colour, type, spacing, shape, components, screen layouts, motion, RTL and accessibility. It is built from the written design system [`designs/design-System.md`](../../../../designs/design-System.md), with the decisions locked by the champagne visual pass ([`apps/kh_mobile/designs/Implementation-Plan.md`](../../designs/Implementation-Plan.md) §3) applied on top. It maps everything onto the existing `kh_design_system` package.
 
 | | |
 |---|---|
-| **Status** | Draft — derived from the 1a handoff, 26 Sep 2026 |
-| **Scope** | `kh_mobile` Customer surface first (Home CUS-S02, Guest Landing CUS-S23, Create Request CUS-S04–S07); the tokens and components apply app-wide |
-| **Fidelity** | High. Colours, type, spacing and component states are final |
+| **Status** | Current — rewritten 30 Sep 2026. Supersedes Direction 1a "Classic" (archived at [`docs/old/UI-Design-Context-1a-Classic.md`](../../../../docs/old/UI-Design-Context-1a-Classic.md)) |
+| **Scope** | All of `kh_mobile`, Customer and Vendor. Customer surfaces are editorial; Vendor surfaces share the tokens at a higher density (§7.8) |
 | **Reference width** | 390 × 844 logical px (iPhone 14 class) |
 | **Code homes** | Tokens/theme/widgets → `packages/kh_design_system`; copy → `packages/kh_l10n/lib/src/strings.dart`; domain-aware widgets → `packages/kh_ui_domain` |
-| **Out of scope** | `kh_admin` keeps its own separate theme (`apps/kh_admin/lib/core/design/theme/`) — decided 26 Sep 2026. It does not depend on `kh_design_system` (its `KhStatusTone` is its own, `lib/core/design/widgets/kh_status_tone.dart`), so restyling that package does not change the Admin Portal |
+| **Screen mocks** | `apps/kh_mobile/designs/`: `Home-1.png`, `Find-orna-create.png`, `sell-my-create.png`, `Card-mock.png`, and the four tile photographs |
+| **Out of scope** | `kh_admin` keeps its own theme (`apps/kh_admin/lib/core/design/theme/`) and does not depend on `kh_design_system` |
 
-> **Precedence.** This document supersedes the earlier dark sapphire/`#D4AF37` design context, now archived at [`docs/old/Karat_Hive_UI_Design_Context.md`](../../../../docs/old/Karat_Hive_UI_Design_Context.md). Screens not yet redesigned in the 1a style (Offers UI, identity reveal, Vendor screens) take their visual language from this document; the archived one is history only. Neither overrides the SRS or `CONTEXT.md`.
+> **Precedence.** When sources disagree, the higher row wins:
+>
+> | # | Source | Wins over |
+> |---|---|---|
+> | 1 | SRS v1.5, [`CONTEXT.md`](../../../../CONTEXT.md), `docs/Architecture-Frontend.md`, the Customer shell IA in `CLAUDE.md` | Everything below. A mock or written rule that shows a control the domain forbids loses |
+> | 2 | Locked decisions — `Implementation-Plan.md` §3 | `design-System.md` where they conflict (colour hexes, CTA colour, fonts, five tabs, nav selection) |
+> | 3 | `design-System.md` | The mocks for anything they don't draw: spacing, type roles, borders, text actions, empty/loading/error rules |
+> | 4 | The mocks in `apps/kh_mobile/designs/` | — |
+>
+> Where this document states a target that the code doesn't meet yet, the gap is listed in §14.1. Treat the document as correct and the code as behind.
 
 ---
 
 ## 1. Design personality
 
-| Is | Is not |
-|---|---|
-| Warm, light, editorial — ivory paper, ink type, gold accents | Dark "luxury app" chrome, neon gold, gradients-everywhere |
-| Classic serif headlines over a quiet geometric sans | Decorative type in forms or data |
-| Dense but calm — hairlines instead of cards on forms | Card-inside-card nesting, heavy elevation |
-| Gold used as a *signal*: CTAs, active states, icons | Gold as a background wash over whole screens |
-| Photography-led service tiles | Clip-art or illustration-led tiles |
+> **Luxury through restraint — not decoration.** The jewellery is the visual focus; the UI almost disappears around it.
 
-**Brand-colour rule:** the pink in the logo is the logo's only. Pink never appears anywhere else in the UI.
+| Principle | Rule |
+|---|---|
+| Minimalism | Remove anything that doesn't help the user act or understand |
+| Whitespace | Generous spacing is intentional, not wasted |
+| Jewellery first | Photography gets more visual weight than UI decoration |
+| Quiet luxury | Gold is an accent, never the dominant colour (§2.6) |
+| Simple ornaments | Thin geometric lines and small motifs only (§6.17) |
+| Short copy | Prefer 1–3 word labels over sentences |
+| Flat | No heavy gradients, glassmorphism or hard shadows |
+| Soft geometry | Moderate corner rounding (8–16 px), not highly rounded "app" shapes |
+| Editorial | Closer to a luxury catalogue than a marketplace dashboard |
+| Material 3 foundation | M3 components and semantics, with the visual language overridden in `KhTheme` |
+
+**The Tiffany principle:** if removing a decorative element makes the jewellery more prominent, remove it. More whitespace, less ornament, less text, better photography and precise type make luxury. More gold, borders, ornaments and gradients don't.
+
+**The 70 / 20 / 10 rule:** 70% neutral space and surfaces, 20% content and imagery, 10% brand accent. Gold lives inside the 10%.
+
+**Explicitly avoid:** gold backgrounds, Art Deco borders, filigree, large gradients, glassmorphism, heavy shadows, long text blocks, badge clutter, too many pills, rainbow status colours, dense dashboards for Customers, every section in a card, decorative icons with no function, and showy animation.
+
+**Brand-colour rule:** the pink in the logo artwork belongs to the logo only. Pink never appears in UI chrome (lock #1).
 
 ---
 
 ## 2. Colour
 
-### 2.1 Primitive palette
+### 2.1 Palette
 
-| Token (proposed name) | Hex | Existing `KhTokens` field | Use |
-|---|---|---|---|
-| `gold` | `#C8A046` | `gold` ✅ | Primary accent: filled CTAs, active icons, toggles/checkbox on, Buy segment, carousel active dot, hero line 1 |
-| `goldDark` | `#8A6A1F` | **new** | Links, small labels, eyebrows, icon glyphs inside soft-gold circles |
-| `goldPressed` | `#B8903A` | **new** | Primary button pressed/hover |
-| `ink` | `#1C1B1A` | `ink` ✅ | All text, dark surfaces (hero), selected chips, active nav pill text |
-| `ivory` | `#FDFBF7` | `surface` ✅ | Screen background, cards, text on ink |
-| `paper` | `#FFFFFF` | **new** | Raised-on-ivory panels: stats strip, Guest accordion |
-| `navBackground` | `#F6F1E6` | **new** | Bottom navigation bar |
-| `danger` | `#B3261E` | `danger` ✅ | Notification badge, error text |
-| `success` / `warning` / `info` | `#2E7D32` / `#D9A441` / `#6D9BCB` | ✅ | Status only (not used in 1a screens) |
+The hexes are locked by the visual pass (`Implementation-Plan.md` §5) and live in `KhTokens.light`.
 
-### 2.2 Placeholder imagery
+| Token | Hex | Role |
+|---|---|---|
+| `gold` | `#D8A858` | Accent signal: Home icons, carousel dots and chevron, tile arrows, toggle/checkbox on, focus ring |
+| `goldDark` | `#8A6A1F` | Accessible gold: selected bottom-nav icon and label, links, text actions, eyebrows, small gold glyphs |
+| `ctaFill` | `#D8C0A8` | Champagne primary-action fill: filled buttons, selected condition chip, card CTA. Label is `ink` |
+| `ctaFillPressed` | computed | `ctaFill` lerped 10% toward `ink`. No separate sampled hex |
+| `ink` | `#1C1B1A` | All text, dark surfaces, selected chips |
+| `surface` (`ivory`) | `#FDFBF7` | Home, shell and general screen background |
+| `formSurface` | `#F0E8E0` | Create and review scaffolds only |
+| `paper` | `#FFFFFF` | Panels raised on ivory |
+| `navBackground` | `#F6F1E6` | Bottom navigation bar |
+| `danger` / `success` / `warning` / `info` | `#B3261E` / `#2E7D32` / `#D9A441` / `#6D9BCB` | Status only. Target is the muted set in §6.20 — see gap G-01 |
 
-Until real photography is sourced, image slots render a 135° diagonal stripe (6 px bands):
+**From `design-System.md`, not adopted:**
 
-| Context | Stripe A | Stripe B | Caption |
-|---|---|---|---|
-| On ivory (service tiles, photo thumbnails) | `#F1E9D8` | `#F8F3E8` | 8–9 px mono, `goldDark` |
-| On ink (hero photo pane) | `#2A2723` | `#33302A` | 9 px mono, `gold` |
+| Written value | Replaced by | Why |
+|---|---|---|
+| Charcoal `#242320` | `ink` `#1C1B1A` | Close enough; no second near-black (plan §3) |
+| Ivory `#FAF8F3` | `surface` `#FDFBF7` | Measured from `Home-1.png` |
+| Champagne `#C6A15B`, gold `#D4AF37`, gold-light `#E8D6A5` | `gold` `#D8A858`, `ctaFill` `#D8C0A8` | Measured from the mocks (plan §5) |
+| Stone ramp `stone50`–`stone600`, `mutedText` | The ink alpha ramp (§2.3) | Same job, one family, already in code |
+| Sapphire `#0A1128` | Not a token | "Optional legacy tone" in the written system; not introduced without a decision |
+| Pink `#F84080`, bronze `#906840` | Never | Lock #3 |
+
+### 2.2 Semantic roles
+
+Feature code never references a primitive hex. It reads `context.tokens.*` or `Theme.of(context)`. The written system's semantic names map onto `KhTokens` like this:
+
+| Semantic role (`design-System.md` §4) | `KhTokens` |
+|---|---|
+| `background` | `surface` (Home, shell) / `formSurface` (create, review) |
+| `surface` (raised) | `paper` |
+| `textPrimary` | `ink` |
+| `textSecondary` | `inkSecondary` (ink @ 0.62) |
+| `textDisabled` | `inkBorderCheck` (ink @ 0.40) |
+| `border` | `inkBorderSoft` (containers) / `inkBorderField` (controls) |
+| `divider` | `inkHairline` |
+| `accent` | `gold` (fills, icons) / `goldDark` (text) |
+| `actionPrimary` | `ctaFill` |
+| `success` / `error` / `warning` | `success` / `danger` / `warning` |
+
+New tokens get semantic names (`ctaFill`, `formSurface`), not visual ones (`goldButtonColor`). Existing names stay; don't rename them for style.
 
 ### 2.3 Opacity ramp (alpha tints)
 
-The design builds almost every secondary colour from `ink` or `gold` at a fixed opacity. Use these named levels; don't invent new ones.
+Secondary colours come from `ink` or `gold` at fixed alphas. Use these named getters; don't invent new levels.
 
-**Ink tints** (`ink.withValues(alpha: x)`)
+**Ink tints**
 
-| Alpha | Name | Use |
+| Alpha | Getter | Use |
 |---|---|---|
-| 0.06 | `inkFill` | Segmented-control track, stepper "–" button, nav top border |
-| 0.08 | `inkHairline` | Group dividers on forms, bottom action-bar top border |
-| 0.12 | `inkBorderSoft` | Card/tile borders, stats-strip cell separators, accordion border |
-| 0.15 | `inkBorderControl` | Back-button ring, toggle track (off) |
+| 0.06 | `inkFill` | Segmented track, stepper "–", nav top border, skeleton fill |
+| 0.08 | `inkHairline` | Form-group dividers, action-bar top border |
+| 0.12 | `inkBorderSoft` | Card, tile and panel borders |
+| 0.15 | `inkBorderControl` | Back-button ring, toggle track off |
 | 0.18 | `inkBorderChip` | Unselected chip border |
-| 0.20 | `inkBorderField` | Input field border (rest) |
-| 0.25 | `inkBorderButton` | Secondary (outlined) button border |
-| 0.40 | `inkBorderCheck` | Checkbox border (off), disabled text |
-| 0.50–0.55 | `inkMuted` | Trailing chevrons, placeholder icons. The handoff also uses it for label/caption text — see §2.5, text uses 0.62 |
-| 0.60–0.65 | `inkSecondary` | Subheads, unselected segment text, stat labels |
-| 0.70 | `inkNavIdle` | Inactive nav icon + label |
+| 0.20 | `inkBorderField` | Field border at rest |
+| 0.25 | `inkBorderButton` | Outlined button border |
+| 0.40 | `inkBorderCheck` | Checkbox border off, disabled text |
+| 0.55 | `inkMuted` | Icons and chevrons only — never text (§2.5) |
+| 0.62 | `inkSecondary` | Secondary text; the lowest alpha allowed for text |
+| 0.70 | `inkNavIdle` | Idle bottom-nav icon and label |
 
-**Gold tints** (`gold.withValues(alpha: x)`)
+**Gold tints**
 
-| Alpha | Name | Use |
+| Alpha | Getter | Use |
 |---|---|---|
-| 0.06 | `goldWash` | Add-photo tile background |
-| 0.09 | `goldPanel` | "How this works" panel background |
-| 0.12 | `goldTile` | Total-weight read-out tile |
-| 0.14 | `goldIconCircle` | Stat icon circle |
+| 0.06 | `goldWash` | Add-photo tile |
+| 0.09 | `goldPanel` | "How this works" panel |
+| 0.12 | `goldTile` | Read-out tile |
+| 0.14 | `goldIconCircle` | Icon circles |
 | 0.16 | `goldNumber` | Numbered guidance circle |
-| 0.22 | `goldStepperPlus` | Stepper "+" button |
-| 0.28 | `goldNavPill` | Active nav indicator pill |
-| 0.50 | `goldRing` | Step-icon circle border |
+| 0.22 | `goldStepperPlus` | Stepper "+" |
+| 0.50 | `goldRing` | Step-icon ring |
 | 0.70 | `goldDashed` | Add-photo dashed border |
-| 1.0 border 1.5 px | — | Focused / emphasised field |
 
-On-ink tint: inactive carousel dot = `ivory @ 0.45`.
+On ink or on photography: idle carousel dot = `ivoryDotIdle` (ivory @ 0.45).
 
-### 2.4 Semantic mapping to Material 3
+### 2.4 Material 3 mapping
 
-`KhTheme.light()` builds a `ColorScheme.fromSeed(seedColor: gold)` and overrides these roles so M3 widgets pick up the 1a palette without per-widget styling:
+`KhTheme.light()` seeds `ColorScheme.fromSeed(gold)` and overrides the roles so stock M3 widgets pick up the palette:
 
-| `ColorScheme` role | Value |
+| Role | Value |
 |---|---|
-| `primary` | `gold` |
-| `onPrimary` | `ink` (gold buttons carry **ink** text, not white) |
-| `secondary` | `ink` |
-| `onSecondary` | `ivory` |
-| `surface` | `ivory` |
-| `onSurface` | `ink` |
-| `onSurfaceVariant` | `ink @ 0.55` |
-| `surfaceContainerLowest` | `paper` (#FFF) |
+| `primary` / `onPrimary` | `gold` / `ink` |
+| `secondary` / `onSecondary` | `ink` / `surface` |
+| `surface` / `onSurface` | `surface` / `ink` |
+| `onSurfaceVariant` | `inkMuted` |
+| `surfaceContainerLowest` | `paper` |
 | `surfaceContainer` | `navBackground` |
-| `outline` | `ink @ 0.20` |
-| `outlineVariant` | `ink @ 0.08` |
-| `error` | `danger` |
+| `outline` / `outlineVariant` | `inkBorderField` / `inkHairline` |
+| `error` / `onError` | `danger` / `surface` |
+| `surfaceTint` | transparent — never tint by elevation |
 
-### 2.5 Contrast notes
+Filled and elevated buttons don't use `primary`; they use `ctaFill` directly (§6.1).
 
-| Pair | Ratio (approx.) | Verdict |
+### 2.5 Contrast
+
+Ratios computed for the locked hexes (WCAG 2.x).
+
+| Pair | Ratio | Verdict |
 |---|---|---|
-| `ink` on `ivory` | 16:1 | ✅ AAA |
-| `ink` on `gold` (CTA label) | ~7:1 | ✅ AAA |
-| `goldDark` on `ivory` (links, eyebrows) | ~4.9:1 | ✅ AA body |
-| `gold` on `ink` (hero line 1, Sell segment) | ~7:1 | ✅ |
-| `gold` on `ivory` | ~2.4:1 | ❌ never for text — icons ≥ 24 px or fills only |
-| `ink @ 0.62` on `ivory` | ~4.7:1 | ✅ AA — the lowest alpha allowed for text |
-| `ink @ 0.55` on `ivory` (field labels, captions) | ~3.8:1 | ⚠️ Fails AA for the 10.5–11 px text the handoff uses it on. **Deviation from the handoff:** render text at `ink @ 0.62`; keep 0.55 for icons/chevrons only |
+| `ink` on `surface` | 16.6:1 | AAA |
+| `ink` on `formSurface` | 14.2:1 | AAA |
+| `ink` on `ctaFill` (CTA label) | 9.8:1 | AAA |
+| `gold` on `ink`, `ink` on `gold` | 7.9:1 | AAA |
+| `inkNavIdle` on `navBackground` | 6.0:1 | AA |
+| `goldDark` on `surface` | 4.9:1 | AA body |
+| `inkSecondary` on `surface` | 4.8:1 | AA — lowest text alpha |
+| `goldDark` on `navBackground` | 4.5:1 | AA (selected nav label) |
+| `inkSecondary` on `formSurface` | 4.5:1 | AA, no margin — don't go lighter on form screens |
+| `goldDark` on `formSurface` | 4.2:1 | ⚠️ Fails AA for body text. On create/review screens use `goldDark` only for text ≥ 18.66 px bold / 24 px, or for icons; small eyebrows and labels use `ink`/`inkSecondary` |
+| `inkMuted` on `surface` | 3.8:1 | ❌ for text — icons and chevrons only |
+| `gold` on `surface` | 2.1:1 | ❌ never text, at any size. Icons ≥ 24 px and fills only |
+| `gold` on `navBackground` | 1.9:1 | ❌ — why selected nav uses `goldDark` (lock #6) |
+
+### 2.6 Gold usage
+
+Gold is used for selected states, thin separators, icons, focus, prices where they're the priority, the one important action, and brand details. It generally occupies **under 10%** of a screen. Never a background wash, never gold borders around everything, never a fully gold active nav item.
+
+**Exception (lock #13):** the Sell Old Gold compose screen puts a gold icon on each field row and may exceed 10%, because its mock does.
 
 ---
 
 ## 3. Typography
 
+Editorial, elegant and quiet. Luxury comes from **scale + whitespace + contrast**, not **bold + gold + borders + shadows**.
+
 ### 3.1 Families
 
-| Role | Latin | Arabic (`ar` locale) | Weights to bundle |
-|---|---|---|---|
-| **Display / headline** (serif) | Cormorant Garamond | Noto Naskh Arabic | 500, 600, 700, 500 italic |
-| **Body / UI** (sans) | DM Sans (optical size 9–40) | IBM Plex Sans Arabic | 400, 500, 600, 700 |
-| **Placeholder captions only** | platform monospace | — | — (dev placeholders, never shipped) |
+| Role | Latin | Arabic (`ar`) |
+|---|---|---|
+| Display / headline (serif) | Cormorant Garamond | Noto Naskh Arabic |
+| UI / body (sans) | DM Sans | IBM Plex Sans Arabic |
 
-Implementation:
-
-- Bundle the font files as assets in `packages/kh_design_system/fonts/` and declare them in its `pubspec.yaml` `fonts:` block. Reference them with `fontFamily: 'CormorantGaramond', package: 'kh_design_system'`. **Don't fetch fonts at runtime** (`google_fonts` HTTP), because the app must render correctly offline and on first launch.
-- Arabic fallback via `fontFamilyFallback: ['NotoNaskhArabic']` / `['IBMPlexSansArabic']`, or switch the family by locale in `KhTheme.light(locale:)`. Locale switching is preferred, and it's what `KhFonts.forLocale` does: Cormorant's Latin metrics shouldn't set the line height for Arabic runs.
-- The serif is a display face — never below 16 px, never in form values, prices-in-tables, or Vendor data screens.
+- **DM Sans, not Inter.** The written system recommends Inter; lock #7 keeps DM Sans. Don't add Inter.
+- Fonts are bundled in `packages/kh_design_system/fonts/` and declared in its `pubspec.yaml`. Never fetch fonts at runtime — the app must render offline and on first launch.
+- `KhFonts.forLocale` switches family by locale. Arabic drops letter-spacing to 0.
+- The serif is for *what this is*: page titles, hero lines, Request-type names, headline numbers. Never below 16 px, never on form values, prices in tables or Vendor data screens.
 
 ### 3.2 Type scale
 
-Sizes are logical px. `h` = line height as a multiple of size.
+Target roles from `design-System.md` §7. The "Shipped" column is what `KhTheme` carries today; see gap G-02.
 
-**Serif (Cormorant Garamond)**
+| M3 role | Target size / weight | Family | Use | Shipped |
+|---|---|---|---|---|
+| `displayLarge` | 40 / 400 | serif | Hero | 40 / 600 |
+| `displayMedium` | 32 / 400 | serif | Major editorial title | 34 / 600 |
+| `displaySmall` | 28 / 400 | serif | Guest headline, collection-scale title | 30 / 600 |
+| `headlineLarge` | 24 / 500 | serif | Screen title | 26 / 600 |
+| `headlineMedium` | 20 / 500 | serif | Section title | 24 / 600 |
+| `titleLarge` | 18 / 500 | serif | Card / Request title | 20 / 600 |
+| `bodyLarge` | 16 / 400 | sans | Main content, **form input values** | 14 / 400 |
+| `bodyMedium` | 14 / 400 | sans | Secondary content | 13 / 400 |
+| `bodySmall` | 12 / 400 | sans | Metadata, helper, error | 11 / 400 |
+| `labelLarge` | 14 / 500 | sans | Buttons, field labels | 14 / 600 |
+| `labelMedium` | 12 / 500 | sans | Small labels, nav | 12 / 500 |
+| `labelSmall` | 11 / 500 | sans | Micro metadata, uppercase labels | 10.5 / 600 |
 
-| Token | Size / weight / h | Colour | Where |
-|---|---|---|---|
-| `displayGuest` | 30 / 600 / 1.10 | ink | Guest headline "Request gold your way" |
-| `statNumber` | 28 / 700 / 1.00 | ink | Stats-strip numbers |
-| `sectionTitle` | 24 / 600 / 1.15 | ink | "What would you like to do?" |
-| `heroLead` | 23 / 600 / 1.15 | gold | Hero slide line 1 |
-| `blockTitle` | 22 / 600 | ink | "My activity" row header |
-| `screenTitle` | 21 / 600 / 1.10 | ink | Create Request screen title |
-| `heroBody` | 20 / 500 / 1.20 | ivory | Hero slide lines 2–3 |
-| `panelTitle` | 20 / 600 | ink | "How this works" panel title (Home) |
-| `accordionTitle` | 19 / 600 | ink | "How this works" accordion header (Guest) |
-| `cardTitle` | 17 / 600 / 1.10 | ink | Service card two-line title |
-| `purityChip` | 16 / 600 | ink / gold-on-ink | 24K/22K/21K/18K chips |
+Primary-button labels are the one place a heavier weight is allowed (`buttonPrimary`, 15 / 700) so the champagne CTA reads at a glance.
 
-**Sans (DM Sans)**
+### 3.3 `TextTheme` and `KhTypography`
 
-| Token | Size / weight / tracking | Colour | Where |
-|---|---|---|---|
-| `buttonPrimary` | 15 / 700 | ink | Filled gold CTA |
-| `buttonSecondary` | 14 / 600 | ink | Outlined button |
-| `segmentDirection` | 14 / 700 / +0.06 em, UPPERCASE | per state | BUY / SELL control |
-| `body` | 14 / 400 | ink | Field values, general body |
-| `bodyLoose` | 14 / 400 / h 1.5 | ink @ 0.65 | Guest subhead |
-| `link` | 14 / 600 | goldDark | "Log in" |
-| `linkSmall` | 13 / 600 | goldDark | "View all" |
-| `list` | 13 / 400 / h 1.45 | ink | Guidance lines |
-| `chip` | 13 / 500 (selected 600) | ink / ivory | Ornament-type chips |
-| `denomChip` | 12.5 / 500 (selected 600) | ink / gold-on-ink | Coin denomination chips |
-| `navLabel` | 12 / 500 (active 700) | ink @ 0.7 / ink | Bottom nav |
-| `segment` | 12 / 500 (selected 600) | ink @ 0.6 / ink | Budget-mode segmented control |
-| `statLabel` | 12 / 400 | ink @ 0.62 | Stats-strip label |
-| `stepLabel` | 11.5 / 600 / h 1.2 | ink | "1. Post a request" |
-| `caption` | 11 / 400 | ink @ 0.55 | Helper text, "Purity optional" |
-| `fieldLabel` | 10.5 / 600 / +0.08 em, UPPERCASE | ink @ 0.55 | Group labels above fields |
-| `fieldInlineLabel` | 10.5 / 400 | ink @ 0.55 | Small label inside a 48 px field |
-| `eyebrow` | 10 / 600 / +0.10 em, UPPERCASE | goldDark | "SPECIFY THE PIECE · BUY" |
-| `badge` | 10 / 600 / h 16 px | ivory | Notification count |
-| `numberBadge` | 11 / 700 | goldDark | Numbered guidance circle |
+Feature code reads `Theme.of(context).textTheme.*`, plus the `KhTypography` extension for specialist styles. Never construct a `TextStyle` inline.
 
-### 3.3 Mapping to `TextTheme`
-
-Feature code should read `Theme.of(context).textTheme.*` (plus a `KhTypography` extension for the specialist styles), never construct `TextStyle` inline.
-
-| M3 role | 1a token |
+| `KhTypography` role | Use |
 |---|---|
-| `displaySmall` | `displayGuest` |
-| `headlineMedium` | `sectionTitle` |
-| `headlineSmall` | `blockTitle` / `screenTitle` |
-| `titleLarge` | `panelTitle` |
-| `titleMedium` | `cardTitle` |
-| `bodyLarge` / `bodyMedium` | `body` / `list` |
-| `bodySmall` | `caption` |
-| `labelLarge` | `buttonSecondary` |
-| `labelMedium` | `navLabel` / `segment` |
-| `labelSmall` | `fieldLabel` |
-| extension | `statNumber`, `heroLead`, `heroBody`, `purityChip`, `eyebrow`, `segmentDirection` |
+| `heroLead`, `heroBody` | Hero display lines on photography |
+| `displayGuest`, `blockTitle`, `accordionTitle`, `statNumber`, `purityChip` | Serif specialist roles |
+| `buttonPrimary` | Filled CTA label |
+| `link`, `linkSmall` | Text actions in `goldDark` |
+| `chip`, `denomChip`, `segmentDirection` | Chip and segmented labels |
+| `fieldLabel`, `fieldInlineLabel`, `eyebrow` | Form labels and tracked uppercase |
+| `statLabel`, `stepLabel`, `bodyLoose`, `badge`, `numberBadge` | Small supporting text |
+| `tabular` | Numbers users compare (weight, AED, counts) |
 
-### 3.4 Type rules
+### 3.4 Letter spacing
 
-1. Serif = *what this is* (titles, hero, headline numbers); sans = *everything you read or type*.
-2. Uppercase is only for `fieldLabel`, `eyebrow` and `segmentDirection`, always tracked (+0.06 to +0.10 em). Never uppercase Arabic — there is no case, so only the tracking applies, and it should be set to 0 for Arabic.
-3. Numbers users compare (weights, AED, counts) use DM Sans with `FontFeature.tabularFigures()`. The single exception is `statNumber`, which is decorative.
-4. Units follow the value with a thin space in a muted weight: `24.50 g`, `8,000 AED`. Display in AED, grams and karat (see `CONTEXT.md` for the Karat vs Fineness terms).
+| Text | Tracking |
+|---|---|
+| Editorial headings (serif) | −0.5 to 0 |
+| Uppercase labels (`fieldLabel`, `eyebrow`, the brand wordmark) | +1.2 to +2.0 px |
+| Normal UI text | 0 |
+| Any Arabic run | 0 |
+
+### 3.5 Rules
+
+1. Serif names things; sans is everything you read or type.
+2. Don't use bold everywhere. Hierarchy comes from size and whitespace first.
+3. Uppercase only for tracked labels, eyebrows and the direction control. Never uppercase Arabic.
+4. Numbers users compare use `FontFeature.tabularFigures()` (`tabular`).
+5. Units follow the value: `24.50 g`, `AED 8,000`, `22K`. AED, grams, karat/fineness only (`CONTEXT.md` Karat vs Fineness).
 
 ---
 
@@ -216,276 +256,265 @@ Feature code should read `Theme.of(context).textTheme.*` (plus a `KhTypography` 
 
 ### 4.1 Spacing scale
 
-The existing `KhSpace` (4/8/16/24/32) covers most values. The 1a screens also use 10, 12, 14 and 22. Add the missing steps rather than hard-coding them:
+An **8-point system** with 4 as the half-step (`design-System.md` §9). Code names in `KhSpace` are authoritative; don't rename them to the written system's names.
 
-| Token | px | Existing | Use |
-|---|---|---|---|
-| `xxs` | 2 | new | Segmented-control inner padding, tight gaps |
-| `xs` | 4 | ✅ | Chip-row gaps, nav icon↔label |
-| `s6` | 6 | new | Chip gap, label→field gap, dots gap |
-| `sm` | 8 | ✅ | Paired-field gap, bottom-bar button gap |
-| `s10` | 10 | new | Service grid gap, title-row gap, badge inset |
-| `s12` | 12 | new | Vertical gap between form groups, card inner padding |
-| `s14` | 14 | new | Stat cell / accordion vertical padding |
-| `md` | 16 | ✅ | **Screen side gutter**, panel padding |
-| `s22` | 22 | new | Home/Guest section-to-section gap |
-| `lg` | 24 | ✅ | Section header top margin, footer gap |
-| `xl` | 32 | ✅ | Guest scroll bottom padding |
+| px | `KhSpace` | Use |
+|---|---|---|
+| 4 | `xs` | Micro spacing |
+| 8 | `sm` | Icon → text, paired-field gap |
+| 12 | `s12` | Compact component, gap between form groups |
+| 16 | `md` | Standard component padding, component gap, screen gutter |
+| 24 | `lg` | Section spacing |
+| 32 | `xl` | Major section spacing |
+| 40 / 48 / 64 / 80 | — | Page separation, hero separation, luxury whitespace. Not yet tokens (gap G-03) |
 
-### 4.2 Fixed dimensions
+`xxs` (2), `s6`, `s10`, `s14` and `s22` are off-grid steps carried over from 1a. Existing callers keep them; new code uses the 8-point steps.
 
-| Element | Size |
+### 4.2 Layout grid and fixed dimensions
+
+| Element | Value |
 |---|---|
-| Screen gutter | 16 px left/right, always |
-| App header row | 60 px tall |
-| Logo | 44 px tall (Home/Guest); 40 px allowed in compact headers |
-| Input / select / read-out row | **48 px, fixed** — every form row |
-| Primary & secondary button | 48 px |
+| Screen gutter | 16 px (the written system allows 16–20 and prefers 20 — open item O-01) |
+| Editorial / hero sections | Up to 24 px side padding |
+| Component gap / section gap | 16 / 24 px |
+| Photography grid | 2 columns, 8–12 px gap (service grid: 10) |
+| Horizontal carousels | 12–16 px gap |
+| App header | 56–64 px (shipped: 60) |
+| Input / select / read-out row | 48 px |
+| Primary and secondary button | 48 px (written range 48–52) |
 | Buy/Sell direction control | 46 px |
 | Back button | 36 px circle |
-| Ornament-type chip | 32 px tall, 12 px horizontal padding |
-| Denomination chip | 38 px |
-| Purity chip | 48 px |
-| Budget segment | 28 px (in a 32 px track) |
-| Toggle switch | 44 × 26 px, knob 20 px, 3 px inset |
-| Checkbox | 18 × 18 px |
-| Stepper button | 28 px circle |
-| Photo thumbnail / add tile | 64 × 64 px |
-| Service-card photo | 86 px tall |
-| Hero slide | min 208 px tall |
-| Icon badge (service card) | 32 × 32 px |
-| Stat icon circle | 32 px |
-| Step icon circle | 44 px |
-| Bottom nav | 80 px (12 top / 16 bottom padding) |
-| Nav active pill | 64 × 32 px |
+| Ornament-type chip / denomination chip / purity chip | 32 / 38 / 48 px |
+| Toggle / checkbox / stepper button | 44 × 26 / 18 × 18 / 28 px |
+| Photo thumbnail and add tile | 64 × 64 px |
+| Hero | min 208 px, grows to the tallest slide |
+| Bottom nav | 80 px |
 | Notification badge | min 16 × 16 px |
 
-**Touch targets:** anything smaller than 48 px (32 px chips, 28 px stepper buttons, 18 px checkbox, 36 px back button) must still receive a 48 × 48 hit area. Use `materialTapTargetSize: padded` or wrap in a `SizedBox`/`InkWell` with padding. The *visual* size stays as specified.
+**Touch targets:** 48 × 48 minimum on every interactive element — stricter than the written system's 44 × 44, and what `MaterialTapTargetSize.padded` gives. Smaller visuals (chips, stepper, checkbox, back button) keep their visual size and get padded hit areas.
 
 ### 4.3 Shape (radius)
 
-| Token (proposed) | px | Existing `KhRadius` | Use |
-|---|---|---|---|
-| `chipSm` | 5 | new | Checkbox |
-| `sm` | 8 | ✅ | Budget segment thumb |
-| `chipMd` | 10 | new | Denomination chips, segmented track, service icon badge |
-| `md` / `field` | 12 | ✅ | Inputs, purity chips, thumbnails, total-weight tile |
-| `card` | 16 | new | Cards, tiles, hero, stats strip, panels, accordion, Buy/Sell control, ornament chips |
-| `lg` | 20 | ✅ (keep for existing callers) | — |
-| `pill` | 24 | new | 48 px buttons (fully rounded) |
-| `full` | 999 | new | Circles, dots, badges |
+"Soft but restrained". Avoid making everything 24/28/32.
 
-Rule of thumb: radius ≈ one third of the element height for pills (`48 → 24`, `32 → 16`, `26 → 13`), 12 for fields, 16 for containers.
+| Component | Target | `KhRadius` |
+|---|---|---|
+| Checkbox | 5 | `chipSm` |
+| Segment thumb, small image | 8 | `sm` |
+| **Button** (primary and secondary) | **10** | `button` |
+| Denomination chip, segmented track | 10 | `chipMd` |
+| Input / field | 10 | `field` is 12 today (gap G-04) |
+| Product / Request image, thumbnail, purity chip | 12 | `md` |
+| Card, tile, hero, panel | 12–16 | `card` (16) |
+| Bottom sheet | 20 (top corners) | `lg` — sheets use `card` today (gap G-04) |
+| Ornament-type chip, status chip, dots, badges | fully rounded | `full` |
+| Avatar | circle | `full` |
+
+`pill` (24) is kept for legacy callers only. Primary buttons are never a stadium (lock #4).
 
 ### 4.4 Borders and elevation
 
-The 1a style is **flat**. Depth comes from borders and tint, not shadows.
+Mostly borderless-feeling and shadowless.
 
 | Level | Treatment | Use |
 |---|---|---|
-| 0 — flat | No border | Screen, form groups |
-| Hairline | 1 px `ink @ 0.08` | Form group dividers, bottom action bar top edge |
-| Outlined | 1 px `ink @ 0.12` | Cards, stats strip, accordion |
-| Control | 1 px `ink @ 0.20` | Fields |
-| Focus | 1.5 px `gold` | Focused field |
-| Lift (micro) | `0 1 2 ink@0.12` | Selected budget segment |
-| Lift (badge) | `0 1 3 ink@0.10` | Service card icon badge |
-| Hover / pressed card | `0 6 18 ink@0.08`, 200 ms | Service card press feedback |
+| Flat | No border | Screen, form groups |
+| Hairline | 1 px `inkHairline` | Group dividers, action-bar top edge |
+| Outlined | 1 px `inkBorderSoft` | Cards, tiles, panels |
+| Control | 1 px `inkBorderField` | Fields at rest |
+| Focus / selected | 1.5 px `gold` | Focused field, selected card or item |
+| Floating | `BoxShadow(blurRadius: 20, offset: (0, 6), color: black12)` | Floating surfaces only (sheets, overlays) |
 
-Never use Material elevation tints. Set `surfaceTintColor: Colors.transparent` on cards, app bars and sheets.
+Gold borders are reserved for a selected item, a focused control or the one important action. Elevation is 0 everywhere else; set `surfaceTintColor: Colors.transparent` on cards, app bars, dialogs and sheets.
 
 ---
 
 ## 5. Iconography
 
-- **Set:** Material Symbols **Outlined**, weight 400, grade 0, optical size to match. In Flutter use `Icons.*_outlined` equivalents, or the `material_symbols_icons` package if exact glyph parity matters.
-- **Filled variant** only for the *active* bottom-nav icon (`FILL 1`).
-- **Mirroring:** icons that imply direction (`arrow_back`, `arrow_forward`, `chevron_right`) flip in RTL. Flutter's `Icon` does this automatically for icons with `matchTextDirection: true`; set it on custom ones. Never flip non-directional glyphs (`handshake`, `diamond`, `balance`).
+- **One family:** Material Symbols / Material Icons, **Outlined**, thin and geometric. Never mix with FontAwesome, custom filled sets or emoji.
+- Filled glyph only for the selected bottom-nav destination.
+- **Sizes:** 20 standard, 24 primary action and nav, 28 feature icon, 32 empty-state icon.
+- Gold icons sparingly: Home tile arrows, hero chevron, Sell Old Gold row icons (lock #13). Small gold glyphs on light surfaces use `goldDark`.
+- Directional icons (`arrow_back`, `arrow_forward`, `chevron_right`) mirror in RTL (`matchTextDirection: true`). Non-directional glyphs (`handshake`, `diamond`, `balance`) never flip.
 
-| Context | Size | Colour |
-|---|---|---|
-| Header bell | 26 | ink |
-| Bottom nav | 24 | ink (active, filled) / ink @ 0.7 |
-| Step icon (in 44 circle) | 21–22 | goldDark |
-| Section/field accents | 22 | goldDark |
-| Service badge | 19 | gold |
-| Select-field chevron | 20 | ink @ 0.55 |
-| Stat icon / "View all" chevron | 18 | goldDark |
-| Arrow in 28 px gold circle | 17 | ivory |
-| Status bar / small inline | 14–17 | ink @ 0.55 |
-
-| Concept | Material Symbol | Flutter `Icons` |
-|---|---|---|
-| Home / My Requests / Connections / Alerts / Profile | `home` / `work` / `handshake` / `notifications` / `person` | `home` / `work` / `handshake` / `notifications` / `person` (+ `_outlined` when idle) |
-| Find An Ornament | `diamond` | `diamond_outlined` |
-| Sell Old Gold | `balance` | `balance` |
-| Gold Coin | `monetization_on` | `monetization_on_outlined` |
-| Gold Bullion | `crop_landscape` | `crop_landscape_outlined` |
-| Stats: Open / Offers waiting / Connections | `description` / `local_offer` / `handshake` | `description_outlined` / `local_offer_outlined` / `handshake_outlined` |
-| Steps | `post_add`, `groups`, `balance`, `handshake` | same names |
-| Add photo / info / back / accordion | `add_a_photo`, `info`, `arrow_back`, `expand_more`/`expand_less` | `add_a_photo_outlined`, `info_outline`, `arrow_back`, `expand_more`/`expand_less` |
+| Concept | `Icons` |
+|---|---|
+| Home / My Requests / Connections / Alerts / Profile | `home` / `work` / `handshake` / `notifications` / `person` (+ `_outlined` when idle) |
+| Find An Ornament / Sell Old Gold / Gold Coin / Gold Bullion | `diamond_outlined` / `balance` / `monetization_on_outlined` / `crop_landscape_outlined` |
+| Add photo / info / back / expand | `add_a_photo_outlined` / `info_outline` / `arrow_back` / `expand_more`, `expand_less` |
 
 ---
 
 ## 6. Components
 
-Each entry gives the visual spec, then the Flutter home. **Existing** means a widget already in `kh_design_system` that needs restyling; **new** means a widget to add. All are stateless and driven by props; state lives in the feature controller.
+Each entry gives the visual rule, then the Flutter home. Components are stateless and prop-driven; state lives in the feature controller. Build reusable components in `kh_design_system` rather than styling screens one by one.
 
 ### 6.1 Buttons
 
 | Variant | Spec | Flutter |
 |---|---|---|
-| **Primary** | 48 px, radius 24, fill `gold`, label 15/700 **ink**, pressed `#B8903A`, disabled `gold @ 0.4` | `KhButton` (existing) → `FilledButton` theme |
-| **Secondary** | 48 px, radius 24, 1 px `ink @ 0.25`, transparent, label 14/600 ink | `KhButton(secondary: true)` → `OutlinedButton` theme |
-| **Text / link** | 14/600 (or 13/600) `goldDark`, 10×12 padding, optional trailing chevron 18 | `TextButton` theme |
-| **Icon circle (back)** | 36 px circle, 1 px `ink @ 0.15`, `arrow_back` 20 | new `KhCircleIconButton` |
-| **Arrow chip** | 28 px gold circle, ivory `arrow_forward` 17 (mirrors) | part of `KhServiceCard` |
+| **Primary** | 48 px, radius 10, flat `ctaFill`, label `buttonPrimary` in `ink`, pressed `ctaFillPressed`, disabled `ctaFill @ 0.4` with `inkBorderCheck` label. No gradient, elevation 0 | `KhButton` → `FilledButton` theme |
+| **Secondary** | 48 px, radius 10, 1 px `inkBorderButton`, transparent, `labelLarge` ink | `KhButton(secondary: true)` → `OutlinedButton` theme |
+| **Text action** | `link` / `linkSmall` in `goldDark`, 10 × 12 padding, optional trailing chevron | `TextButton` theme |
+| **Back** | 36 px circle, 1 px `inkBorderControl`, `arrow_back` 20 | circle icon button |
 
-### 6.2 Bottom action bar (Create Request)
+- The written system's default "charcoal button, white label" is **not** the default (lock #2). Its "luxury CTA — champagne with dark text" *is* the primary button everywhere.
+- Prefer text actions ("View all →", "Edit", "Remove") over extra buttons. One filled button per view.
+- Press feedback: a slight fill change, not a scale or bounce.
 
-```
-┌──────────────────────────────────────────── 1px ink@0.08 ─┐
-│  [   Save draft   ]  [          Continue            ]    │  padding 10 16 28
-│      1fr (outlined)        1.8fr (filled gold)           │  gap 8
-└──────────────────────────────────────────────────────────┘
-```
+### 6.2 Bottom action bar (create and review)
 
-Fixed to the bottom, above the keyboard inset (`MediaQuery.viewInsets` + `SafeArea`). `Row` with `Expanded(flex: 10)` / `Expanded(flex: 18)`. New widget: `KhActionBar`.
+Fixed to the bottom above the keyboard inset (`viewInsets` + `SafeArea`), 1 px `inkHairline` top edge, padding 10 16 28.
 
-### 6.3 Form field (48 px row)
+- The primary CTA is a full-width rectangular button (Find review, Sell compose), or shares the row with a secondary at 1 : 1.8.
+- **Save draft** is an outlined or text secondary action on every create and review scaffold (C01).
 
-Two layouts share one shell: 48 px tall, radius 12, 1 px `ink @ 0.20`, 12 px horizontal padding.
+### 6.3 Form fields
 
-| Layout | Content | Example |
+Forms are extremely clean: a label, a field, an error, nothing else.
+
+| Part | Target | Shipped |
 |---|---|---|
-| **Stacked** | `fieldInlineLabel` (10.5) on top, value `body` (14) below, vertically centred | Weight `24.50 g`, Min `8,000 AED` |
-| **Inline** | Value/placeholder left, trailing widget right (chevron 20 @ 0.55, unit, switch) | Condition `Good ⌄`, Purity `24K ⌄` |
+| Label | 12–13 px, medium, `ink`, above the field | 10.5 px uppercase `fieldLabel` / inline `fieldInlineLabel` |
+| Input value | 16 px (`bodyLarge`) | 14 px |
+| Error | 12 px `danger`, below the row; the row stays 48 px | 11 px |
+| Row | 48 px, radius 10, 1 px `inkBorderField`; focus 1.5 px `gold`; disabled value `inkBorderCheck` | 48 px, radius 12 |
 
-| State | Change |
-|---|---|
-| Rest | border `ink @ 0.20` |
-| Focused | border 1.5 px `gold` |
-| Read-only (computed) | no border, fill `gold @ 0.12` (Total weight tile) or border kept + value non-editable (Weight mirroring total) |
-| Error | border 1.5 px `danger`, 11 px `danger` message **below** the row (row height stays 48) |
-| Disabled | value `ink @ 0.40` |
-
-Group labels (`fieldLabel`, 10.5/600 uppercase, `ink @ 0.55`) sit 6 px above a field or chip row. A right-aligned counter or note can share the label line (e.g. `REFERENCE PHOTOS ····· 2 / 5`).
-
-Flutter: restyle `KhTextField`, `KhNumericField` and `KhSelectField` through `InputDecorationTheme` (`isDense`, `contentPadding`, `constraints: BoxConstraints.tightFor(height: 48)`, `floatingLabelBehavior: always` with the small label style), rather than wrapping each call site. Notes stay single-line with ellipsis on the compose screen and open a full editor on tap.
+- **Read-only / computed** values (total weight): no border, `goldTile` fill.
+- **Sell Old Gold rows** (lock #13): hairline-separated groups on `formSurface`, a gold leading icon per row, value right-aligned.
+- **Search** (§25 of the written system): 48 px, radius 12, fill `inkFill`, no border, 1 px `gold` border on focus.
+- Style every field through `InputDecorationTheme`, not per call site. Notes stay single-line on the compose screen and open a full editor on tap.
 
 ### 6.4 Chips (single-select)
 
-| Chip | Size | Unselected | Selected | Layout |
-|---|---|---|---|---|
-| **Ornament type** | 32 px, radius 16, pad 0 12 | 1 px `ink @ 0.18`, 13/500 ink | fill `ink`, 13/600 **ivory** | One horizontal scrolling row, gap 6, bleeds to screen edge (−16 margin / +16 padding) |
-| **Purity** | 48 px, radius 12 | 1 px `ink @ 0.18`, serif 16/600 ink | fill `ink`, serif 16/600 **gold** | 4 equal columns, gap 4 |
-| **Coin denomination** | 38 px, radius 10 | 1 px `ink @ 0.18`, 12.5/500 | fill `ink`, 12.5/600 **gold** | 7 equal columns, gap 4, label `Xg` |
+Chips are for purity, ornament type, Region, Request Type and filters. **Never "category"** — the Category taxonomy entity is gone (`adr/0014`); what the written system calls a category selector is the ornament-type chip row.
 
-Implement one `KhChoiceChip` with a `size`/`typeface` variant, rather than restyling M3 `ChoiceChip` per call site. No checkmark, and no elevation change on select.
+| Chip | Size | Unselected | Selected |
+|---|---|---|---|
+| Ornament type | 32 px, fully rounded, pad 0 12 | 1 px `inkBorderChip`, `chip` ink | `ink` fill, ivory label, weight 600 |
+| Purity (karat) | 48 px, radius 12, 4-up | 1 px `inkBorderChip`, serif `purityChip` ink | `ink` fill, `gold` label |
+| Coin denomination | 38 px, radius 10, 7-up | 1 px `inkBorderChip`, `denomChip` | `ink` fill, `gold` label |
+| Condition (Sell) | 32 px, fully rounded | 1 px `inkBorderChip` | `ctaFill` fill, `ink` label |
 
-### 6.5 Toggle switch
+Selected state never relies on colour alone: fill *and* weight change, or a ✓. No colourful chips, no checkmark widget, no elevation change.
 
-44 × 26 track, radius 13; knob 20 px ivory with a 3 px inset. Off: track `ink @ 0.15`, knob at start. On: track `gold`, knob at end. The knob slides over 150 ms. It sits at the trailing end of a row whose label is 14/400 ink. In paired layouts (Mint + Sealed) the switch stacks above a caption-size label instead.
+### 6.5 Toggle
 
-Flutter: restyle `KhToggle` → `Switch` theme (`trackOutlineColor: transparent`, `thumbIcon: null`, custom `trackColor`/`thumbColor`). Don't use `SwitchListTile` on compose screens: its 56–72 px height breaks the 48 px row.
+44 × 26 track; 20 px ivory knob with a 3 px inset. Off: `inkBorderControl` track. On: `gold` track. 150 ms knob slide. Trailing end of a 48 px row; don't use `SwitchListTile` on compose screens.
 
 ### 6.6 Checkbox
 
-18 px, radius 5. Off: 1.5 px `ink @ 0.40` border. On: fill `gold`, check glyph ink ~14 px. The label is 14/400 ink with an 8 px gap, and the whole row is tappable. It follows the field above at −4 px (tight coupling). Replace `CheckboxListTile` on compose screens with a compact `KhCheckRow`.
+18 px, radius 5. Off: 1.5 px `inkBorderCheck`. On: `gold` fill with an ink check. The whole label row is the tap target (compact check row, not `CheckboxListTile`).
 
 ### 6.7 Segmented controls
 
 | Control | Spec |
 |---|---|
-| **Budget mode** ("Maximum only" / "Min–max range") | Track: pad 2, radius 10, fill `ink @ 0.06`. Segment: 28 px, pad 0 10. Selected: fill ivory, radius 8, shadow `0 1 2 ink@0.12`, 12/600. Unselected: 12/500 `ink @ 0.6`. Hugs content, right-aligned on the Budget label line |
-| **Direction** (BUY / SELL) | 46 px, radius 16, 1 px `ink` border, two equal cells, clipped. Buy selected: fill `gold`, ink text. Sell selected: fill `ink`, **gold** text. Unselected cell: transparent, `ink @ 0.6`. Label 14/700, +0.06 em, uppercase |
+| Budget mode ("Maximum only" / "Min–max range") | Track pad 2, radius 10, `inkFill`. Segment 28 px. Selected: ivory, radius 8, micro-shadow, 12/600. Idle: 12/500 `inkSecondary` |
+| Direction (BUY / SELL) | 46 px, radius 16, 1 px `ink` border, two equal cells. Buy selected: `gold` fill, ink text. Sell selected: `ink` fill, `gold` text. Label `segmentDirection`, uppercase, tracked |
 
-The Direction control replaces the navy `#1A2744` Sell fill that is hardcoded in `DirectionControl` today. Budget mode replaces the `Radio` pair in `BudgetEditor`. Put both in `kh_design_system` as `KhSegmentedControl<T>`. The existing `KhSegmentedTabs` stays for tab-like lists (Open/Drafts).
+### 6.8 Quantity stepper and read-out
 
-### 6.8 Quantity stepper + read-out
+`[ – ] 3 [ + ]` beside a read-out tile. "–" is a 28 px `inkFill` circle, disabled at 1; "+" is a 28 px `goldStepperPlus` circle. The value uses `tabular`. The read-out tile is 48 px, radius 12, `goldTile`, with a stacked label and value, recomputed live.
 
-A row of `[ – ] 3 [ + ]` beside a Total-weight tile (grid `110px | 1fr`, gap 8).
-- `–` 28 px circle, fill `ink @ 0.06`, disabled at 1.
-- `+` 28 px circle, fill `gold @ 0.22`.
-- Value 16/600, tabular figures.
-- Total tile: 48 px, radius 12, fill `gold @ 0.12`, stacked label "Total weight" + value `30.00 g`, recomputed live (`denomination × quantity`).
+### 6.9 Photos
 
-### 6.9 Photo strip
+- **Compose strip:** 64 × 64 thumbnails, radius 12, gap 8. The add tile has a 1.5 px dashed `goldDashed` border on `goldWash` with an `add_a_photo` icon. A counter `n / 5` sits on the label line. Sell Old Gold adds an info line: actual item only, no stock images.
+- **Review mosaic** (`Find-orna-create.png`): a mosaic of the Request's photos with a remaining-count overlay. Adapt the column count at wide widths so tiles don't balloon.
+- Photography carries the luxury: soft light, neutral backgrounds, close-ups. No text over jewellery, no heavy image borders, no badge clutter over photos.
 
-64 × 64 thumbnails, radius 12, gap 8, horizontal. The add tile uses a 1.5 px **dashed** border `gold @ 0.7`, fill `gold @ 0.06`, and an `add_a_photo` 22 goldDark icon. The counter `n / 5` sits on the label line. For Sell Old Gold, add a notice line: `info` 17 + 11 px goldDark text "Actual item only. No stock or catalogue images." Dashed borders need a `CustomPainter` (Flutter has no dashed `Border`); put it in `kh_media`/`kh_design_system` as `KhDashedTile`.
+### 6.10 Request-type tile (`KhServiceCard`)
 
-### 6.10 Service card (`KhServiceCard`, new)
+Full-bleed photograph (`assets/images/tile_*.webp`), serif title and a `gold` arrow circle overlaid at the bottom, radius `card`. The whole tile is one tap target and one semantics node ("Find An Ornament, button"). Used in a 2 × 2 grid with a 10 px gap on Home and Guest Landing. No icon badge. The stripe placeholder shows only when a photo is missing.
 
-```
-┌───────────────────────────┐  radius 16, 1px ink@0.12, fill ivory
-│ [◆]                        │  photo 86px (cover image / stripe placeholder)
-│                            │  badge 32×32 r10 ivory, shadow, icon 19 gold, inset 10/10 (start)
-├───────────────────────────┤
-│ Find an                    │  pad 10 12 12, gap 4
-│ Ornament                   │  serif 17/600 h1.1, two lines
-│                        (→) │  28px gold circle, arrow 17 ivory, aligned end
-└───────────────────────────┘
-```
+### 6.11 Hero carousel (`KhHeroCarousel`)
 
-Used in a 2 × 2 grid, 10 px gap, on both Home and Guest Landing (identical component). Press gives the card-lift shadow. The whole card is one tap target and one semantics node ("Find An Ornament, button").
+- Display type sits **on the jewellery photograph** (lock #8): `heroLead` + `heroBody`, then a 28 × 1.5 `gold` rule.
+- Radius `card`, clipped. Min height 208; the height follows the tallest slide, so wrapped Arabic or large text never clips.
+- Dots: active 18 × 6 `gold` pill, idle 6 × 6 `ivoryDotIdle`, each with a tall hit area. A `gold` circle chevron advances.
+- `PageView` swipe, 4.2 s autoplay (§8).
 
-### 6.11 Hero carousel (`KhHeroCarousel`, new)
+### 6.12 Activity summary (`KhStatStrip`)
 
-- Container: radius 16, fill `ink`, clipped.
-- Slide: `Row` with a 1.15 : 1 split, min height 208.
-  - Text pane: padding start 18 / end 6 / top 22 / bottom 40, gap 2.
-    - Line 1: `heroLead` in gold.
-    - Lines 2–3: `heroBody` in ivory.
-    - Then a 28 × 1.5 gold rule, 12 px below.
-  - Photo pane: dark stripe placeholder or image, caption bottom-start.
-- Dots sit bottom-start (14 bottom, 18 start), gap 6. Active dot: 18 × 6 gold pill. Inactive: 6 × 6 `ivory @ 0.45`. Dots are tappable, with 48 px hit area via padding.
-- Build it with `PageView` so swipe works (the prototype only has dot-tap; swipe is required in-app).
-
-### 6.12 Stats strip (`KhStatStrip`, new)
-
-3 equal columns, radius 16, 1 px `ink @ 0.12`, fill `paper`. Each cell has 14 × 12 padding and a 6 px gap. Cells after the first get a 1 px `ink @ 0.12` start border. Each cell contains:
-- a 32 px `gold @ 0.14` circle with an 18 px goldDark icon
-- the `statNumber` (28/700 serif)
-- the `statLabel` (12, `ink @ 0.62`)
-
-Each cell is tappable and deep-links to the filtered My Requests or Connections view.
+3 equal columns, radius `card`, 1 px `inkBorderSoft`, `paper` fill. Each cell has a 32 px `goldIconCircle` with an 18 px `goldDark` icon, a `statNumber` and a `statLabel`, and deep-links to the filtered My Requests or Connections view. Where it belongs on Home is open item O-03.
 
 ### 6.13 "How this works"
 
 | Variant | Spec |
 |---|---|
-| **Panel** (Home) | Radius 16, fill `gold @ 0.09`, pad 16 × 12. Title `panelTitle` pad 0 4 12. 4-column grid, gap 4. Each step: 44 px ivory circle with 1 px `gold @ 0.5` ring and a 21–22 goldDark icon, 6 px gap, `stepLabel` "1. Post a request" (no description) |
-| **Accordion** (Guest) | Radius 16, 1 px `ink @ 0.12`, fill `paper`. Header row pad 14 × 16: `accordionTitle` + `expand_more`/`expand_less`. Body pad 0 16 14, gap 8. Rows: 20 px `gold @ 0.16` circle with the number (11/700 goldDark) + 13/1.45 text, gap 10. 8 lines. Animate with `AnimatedSize` 200 ms |
+| Panel (Home) | Radius `card`, `goldPanel` fill. 4 steps, each a 44 px ivory circle with a `goldRing` ring, a `goldDark` icon and a `stepLabel` |
+| Accordion (Guest) | Radius `card`, 1 px `inkBorderSoft`, `paper`. Header `accordionTitle` + expand icon. Numbered rows use `goldNumber` circles and `numberBadge`. `AnimatedSize` 200 ms |
 
 ### 6.14 App header
 
-60 px, 16 px gutter.
-- Logo (44 px, `assets/karat-hive-logo.png`) at the start.
-- At the end, one of:
-  - **Home:** bell 26 in a 44 px box, with a `danger` badge (min 16, radius 8, 10/600 ivory, inset 6/6 from the top-end).
-  - **Guest:** "Log in" link.
+Clean and ivory: no elevation, minimal icons, the brand mark given breathing room. 56–64 px high, 16 px gutter.
 
-The logo is shown on light backgrounds only. Keep it at native aspect ratio and never tint it.
+- **Brand mark:** the tracked "KARAT HIVE" wordmark set in Cormorant, standing in for the clover lockup from `Home-1.png` until that asset exists (open item O-02). The wordmark is text on ivory, so it uses `goldDark` or `ink`, never `gold` (§2.5; gap G-05).
+- **Home:** bell in a 44 px box with a `danger` count badge (min 16, 10/600 ivory), inset from the top-end corner.
+- **Guest:** a "Log in" text action.
+- The pink logo artwork is not used in the app bar (plan §2).
 
-### 6.15 Compose screen header
+### 6.15 Compose header
 
-A row with gap 10 and padding 2 16 10. It contains the back button (36 circle) and a title column:
-- `screenTitle` (serif 21/600)
-- `eyebrow` (10/600 uppercase goldDark) with 1 px top margin, e.g. `SPECIFY THE PIECE · BUY`
+A row with the 36 px back button and a title column: the screen title (serif) and an uppercase tracked eyebrow ("SPECIFY THE PIECE · BUY"). On `formSurface` the eyebrow uses `inkSecondary`, not `goldDark` (§2.5). No `AppBar` elevation or colour change.
 
-No `AppBar` elevation or background change.
+### 6.16 Bottom navigation (`KhBottomNav` / `NavigationBar` theme)
 
-### 6.16 Bottom navigation (`KhBottomNav`, existing — restyle)
+- 80 px, `navBackground`, 1 px `inkFill` top border, elevation 0.
+- **No indicator pill** (`indicatorColor: transparent`).
+- **Selected:** filled icon 24 and label 12/700, both `goldDark` (lock #6).
+- **Idle:** outlined icon 24 and label 12/500, both `inkNavIdle`.
+- **Customer — five tabs, in order: Home · My Requests · Connections · Alerts · Profile** (lock #5; the written system's four-tab bar is not adopted). Vendor destinations are their own list. Guest Landing has no bottom nav.
 
-80 px, fill `navBackground #F6F1E6`, 1 px top border `ink @ 0.06`, padding 12 top / 16 bottom, 5 equal slots. Each item is a column with a 4 px gap:
-- **Active:** 64 × 32 pill, radius 16, fill `gold @ 0.28`, filled icon 24 ink; label 12/700 ink.
-- **Idle:** icon 24 outlined and label 12/500, both `ink @ 0.7`.
+### 6.17 Dividers and ornaments
 
-This matches M3 `NavigationBar` if you set `indicatorColor`, `indicatorShape: StadiumBorder()`, `height: 80` and `labelBehavior: alwaysShow`. Tabs, in order: **Home · My Requests · Connections · Alerts · Profile**. Guest Landing has **no** bottom nav.
+- Compose groups are separated by a full-width 1 px `inkHairline` with 12 px above and below — hairlines, not a card per group.
+- Ornaments are accents, not content: a thin line, a small ring outline, a tiny four-point ✦, a thin gold divider. Never filigree, ornate corners, repeated patterns or framed boxes.
 
-### 6.17 Dividers
+### 6.18 Summary card (Request / Offer)
 
-On compose screens, groups are separated by a full-width 1 px `ink @ 0.08` rule with 12 px space above and below. This replaces card-per-group. Use `Divider(height: 1, thickness: 1)` with the theme's `outlineVariant`.
+From `Card-mock.png` with the plan §4.6 corrections:
+
+- Image with a media-count badge, placed with `PositionedDirectional` so it mirrors.
+- Short meta: Request Type, localised ornament type, weight, karat. At most two metadata rows.
+- An **Indicative Value** panel, shown only when an Indicative Value exists. It is labelled "Indicative Value" (`CONTEXT.md`) and never shows a Customer budget in its place.
+- One filled **View Details** (`ctaFill`, radius 10).
+- **No Message or chat control** (lock #11). Talk exists only on a Connection, after Acceptance.
+- Elevation 0; separation is a 1 px `inkBorderSoft` border.
+
+### 6.19 Offer card and Offer comparison
+
+- **Offer card** order: price → key terms (karat · weight, making charge, readiness) → trust signals → one action. Highly readable, no decoration.
+- **Comparison:** a clean table (Offer A / B / C × price, making charge, readiness, rating), not stacked big cards. Highlight differences subtly.
+- **Before Acceptance, Vendor identity fields are absent** from the payload and the UI (`BR-006`). Trust signals such as verification status and rating may show; a name, logo or contact may not.
+- The Acceptance action may be labelled "Mark as Interested" (`CONTEXT.md` Acceptance). It always goes through a confirmation dialog (§6.22) that says it is irreversible, reveals both identities to that one Vendor, and rejects the other pending Offers.
+
+### 6.20 Status chips
+
+Small, muted, semantic — no rainbow. Colour is never the only signal; the label always shows.
+
+| State (per `CONTEXT.md`) | Treatment |
+|---|---|
+| Published, Offers received (active) | muted green `#557A62` |
+| Verification pending, other waiting states | muted amber `#A5793E` |
+| Accepted | champagne (`ctaFill` fill, ink label) |
+| Rejected, Removed | muted red `#9B514A` |
+| Expired, Cancelled, Closed, Draft | grey (`inkFill` fill, `inkSecondary` label) |
+
+The muted hexes are targets from the written system; they are not tokens yet (gap G-01).
+
+### 6.21 Empty, loading and error states
+
+| State | Rule |
+|---|---|
+| Empty | One 32 px outlined glyph (♢), a short title ("No Offers yet"), one short line ("Your Request is still open."). No illustration, no paragraph |
+| Loading | Skeletons in `inkFill` with a subtle shimmer, not spinners, wherever the layout is known |
+| Error | Calm: "Couldn't load Offers" / "Please try again." / a Retry action. Never alarmist copy |
+
+### 6.22 Dialogs and bottom sheets
+
+- **Dialogs** only for destructive, irreversible or important decisions (Acceptance, Cancel a Request, discard a draft). Title, one or two short lines, then Cancel and a confirming action. Radius `card`, no elevation tint.
+- **Bottom sheets** for filters, sorting, choosing purity, choosing Region. Top radius 20 (gap G-04), floating shadow (§4.4), one Apply action.
 
 ---
 
@@ -495,156 +524,204 @@ On compose screens, groups are separated by a full-width 1 px `ink @ 0.08` rule 
 
 ```mermaid
 flowchart TB
-  H["Header 60 — logo · bell+badge"] --> C["Hero carousel — 4 slides, ink, r16"]
-  C --> S1["Section title — What would you like to do? (24 serif, margin 24/12)"]
-  S1 --> G["2×2 Service cards — gap 10"]
-  G --> A["Row: My activity (22 serif) ··· View all › (margin 26/10)"]
-  A --> ST["Stats strip — Open · Offers waiting · Connections"]
-  ST --> HW["How this works panel — 4 icon steps (margin-top 22)"]
-  HW --> N["Bottom nav 80 — Home active"]
+  H["Header — brand mark · bell + badge"] --> R["Retry-publication banner (only when a publish failed)"]
+  R --> C["Hero carousel — type on photography"]
+  C --> S["Section title — What would you like to do?"]
+  S --> G["2 × 2 Request-type photo tiles — gap 10"]
+  G --> HW["How this works panel — 4 steps"]
+  HW --> N["Bottom nav — Home selected"]
 ```
 
-- Scroll body padding: 4 top, 16 sides, 24 bottom. Only the body scrolls; the header and nav are fixed.
-- The open-request list is **not** on Home. It lives under **My Requests**, with History in that tab's app bar.
+- One visual priority: brand → hero → Request actions → supporting content.
+- The body scrolls; header and nav are fixed. Content is a centred column of max 560 px.
+- The open-Request list is **not** on Home. It lives under **My Requests**, with History in that tab's app bar (`CLAUDE.md` shell IA).
 
 ### 7.2 Guest Landing (CUS-S23)
 
 ```mermaid
 flowchart TB
-  H["Header 60 — logo · Log in"] --> HL["Headline 30 serif + subhead 14/1.5 @0.65"]
-  HL --> G["2×2 Service cards (margin-top 22)"]
-  G --> AC["How this works accordion — 8 lines (margin-top 22)"]
-  AC --> F["Footer link, centered, underlined — Vendor sign-up (margin-top 24)"]
+  H["Header — brand mark · Log in"] --> HL["Headline (displaySmall) + one short subhead"]
+  HL --> G["2 × 2 Request-type photo tiles"]
+  G --> AC["How this works accordion"]
+  AC --> F["Footer text action — Vendor sign-up"]
 ```
 
-Scroll padding is 12 top, 16 sides, 32 bottom, with no bottom nav. A Guest can browse and compose (`adr/0011`); sign-in is asked for at publish, not here.
+No bottom nav. A Guest can browse and compose (`adr/0011`); sign-in is asked at publish, not here.
 
-### 7.3 Create Request (CUS-S04–S07) — shared anatomy
+### 7.3 Create Request — shared anatomy (CUS-S04–S07)
 
 ```
-┌ Compose header (back · title · eyebrow) ───────────────┐  fixed
-│ Body: padding 4 16 0, groups gap 12, hairline dividers │  scrolls if it must
-│   [photos]  ─  [type chips]  ─  [weight | purity]  ─    │
-│   [toggles/checks]  ─  [budget]  ─  [notes]             │
-└ Action bar: Save draft (1) · Continue (1.8) ───────────┘  fixed
+┌ Compose header (back · title · eyebrow) ────────────────┐  fixed
+│ formSurface body, 16 gutter, groups 12 apart, hairlines │  scrolls when it must
+└ Action bar: Save draft (secondary) · Continue (primary) ┘  fixed
 ```
 
-Density rules:
-1. One 48 px row per field. Pair related fields two-up (`Row` + two `Expanded`, gap 8).
-2. Chips on one line. If they overflow, scroll horizontally. Don't wrap them.
-3. Hairlines between groups; no cards.
-4. Conditional sections (gemstone fields, Min budget, the whole Budget block for Sell) are **really removed from the tree** (`if (...)`), never hidden with opacity or `Visibility(maintainSize)`.
-5. **One screen is the target, not a guarantee.** The body stays in a scroll view. At 390 × 844 in English with the keyboard down it should fit; with the keyboard open, larger text or Arabic it must scroll rather than overflow.
+- **Progressive disclosure** (`design-System.md` §28): the Request Type is chosen first, on the Home / Guest tiles; the type's screen then shows only its own fields. No extra wizard or stepper (lock #9).
+- The **field list** for each Request Type is owned by [`implementation_plan_create_request_screens.md`](implementation_plan_create_request_screens.md); this document owns only the chrome.
+- One 48 px row per field; pair related fields two-up; chips on one scrolling line; conditional sections removed from the tree, not hidden.
+- One screen is the target, not a guarantee: with the keyboard open, larger text or Arabic, it scrolls rather than overflows.
 
-| Screen | Groups, top → bottom |
+### 7.4 Find An Ornament — review
+
+From `Find-orna-create.png`: the photo mosaic with remaining count, labelled rows each with an **Edit** text action, and one full-width rectangular primary CTA, plus Save draft (§6.2). A budget entered as a range shows as a range; a maximum-only budget shows as "Up to AED n".
+
+### 7.5 Sell Old Gold — compose
+
+From `sell-my-create.png`, titled **Sell Old Gold** (lock #10; the mock's "Sell My Gold" is not the product name). `formSurface`, hairline groups, a gold icon per row, condition chips (§6.4), an Indicative Value panel and a rectangular CTA. No budget.
+
+The Indicative Value panel is computed from the Customer's stated weight and karat (`CONTEXT.md` Indicative Value). With no karat chosen, the panel shows no figure rather than assuming 24K. Showing a reference-rate-derived figure to end users also depends on the open Yahoo Finance decision (O-04).
+
+### 7.6 Buy/Sell Gold Coin(s) and Gold Bullion
+
+Shared chrome only: `formSurface`, radius-10 CTA, `ctaFill`, secondary text action. The direction control, denominations and budget rules stay as implemented.
+
+### 7.7 Composition by screen
+
+| Screen | Visual order |
 |---|---|
-| **Find An Ornament** (Buy fixed) | Reference photos `n/5` → Ornament type (optional) chips → Weight + Purity chips (4-up) → ☐ Weight is approximate · "Purity optional" → Includes gemstones ⏻ → *(if on)* Gemstone type + Count → Budget `[Max only \| Range]` → *(range)* Min + Max / *(max)* Max full width → ☐ Budget is flexible → Notes |
-| **Sell Old Gold** (Sell fixed) | Photos of your piece `n/5` + actual-item notice → Ornament type chips → Weight + Purity chips → ☐ Weight is approximate → Condition (optional) ⌄ → Original invoice or hallmark certificate ⏻ → Notes. **No Budget** |
-| **Buy/Sell Gold Coin(s)** | BUY/SELL control → Coin denomination 7-up chips → Quantity stepper + Total weight tile → Weight (read-only, mirrors total) + Purity `24K ⌄` → Mint/brand (optional) + Sealed ⏻ → *(Buy only)* Budget optional + Max + ☐ Flexible → Notes |
-| **Buy/Sell Gold Bullion** | BUY/SELL control → Bar weight + Quantity → Weight (mirrors) + Purity ⌄ → ☐ Weight is approximate → Refiner/brand (optional) → Serial/assay certificate present ⏻ → *(Buy only)* Budget → Notes |
+| Home | Brand → hero → Request actions → supporting content |
+| Request detail | Request → photographs → specification → Offers |
+| Offer detail | Price → terms → Vendor trust signals → action |
+| Profile | Identity → account → preferences |
 
-Eyebrow text follows direction: `Specify the piece · Buy` / `· Sell`.
+Build screens as `Scaffold` → app bar → `CustomScrollView` of sections. Never as container → card → container → card nesting.
+
+### 7.8 Customer vs Vendor density
+
+| | Customer | Vendor |
+|---|---|---|
+| Whitespace, imagery | High | Medium |
+| Text, metadata | Low | Medium to more |
+| Filters | Minimal | Extensive |
+| Cards | Large | Compact rows |
+| Dashboard | Editorial | Operational |
+
+Vendor screens share the tokens and theme but are **not** restyled into the Customer editorial layout. The Vendor monitors Requests and Offers often; density serves that.
 
 ---
 
 ## 8. Motion
 
-| Interaction | Duration | Curve |
-|---|---|---|
-| Carousel auto-advance | every 4200 ms | — |
-| Carousel slide transition | 600 ms | `Cubic(0.2, 0.7, 0.2, 1)` |
-| Card press shadow | 200 ms | `Curves.easeOut` |
-| Toggle knob / chip select / segment thumb | 150 ms | `Curves.easeOut` |
-| Accordion / conditional field reveal | 200 ms | `AnimatedSize`, `Curves.easeInOut` |
-| Page transition | platform default | — |
+Slow, subtle, deliberate.
 
-- **Reduced motion:** when `MediaQuery.disableAnimationsOf(context)` is true, stop carousel autoplay and make every transition instant.
-- **Autoplay behaviour:** pause autoplay while the user drags, and restart the 4.2 s timer after a manual change. Also pause when the Home tab isn't visible (`TickerMode`/visibility) so the timer doesn't run behind other tabs.
-- The earlier "gold-light sweep" animation from the old context document is **not** part of 1a. Don't add it to these screens.
+| Interaction | Duration | Curve | Constant |
+|---|---|---|---|
+| Default transition | 200 ms | `Curves.easeOut` | — |
+| "Luxury" transition (hero, sheet) | 300 ms | `Curves.easeInOut` | — |
+| Carousel autoplay / slide | every 4200 ms / 600 ms | `Cubic(0.2, 0.7, 0.2, 1)` | `KhMotion.carouselInterval`, `carouselSlide`, `carouselCurve` |
+| Chip, toggle, segment select | 150 ms | `Curves.easeOut` | `KhMotion.select` |
+| Conditional reveal, accordion | 200 ms | `AnimatedSize` | `KhMotion.reveal` |
+| Card press | 200 ms | `Curves.easeOut` | `KhMotion.cardPress` |
+
+- **Feedback:** every tap gets a response — button: slight fill/opacity change; card: scale to 0.99; selection: `gold` border; submission: a success confirmation.
+- **Avoid:** bouncing, excessive scaling, parallax, spinning jewellery, flashy transitions.
+- **Reduced motion:** when `MediaQuery.disableAnimationsOf(context)` is true, stop autoplay and make transitions instant. Pause autoplay while dragging and while Home isn't the visible tab.
 
 ---
 
 ## 9. RTL and Arabic
 
+The app supports English and Arabic, switched immediately with correct RTL layout. Don't mirror screenshots — build direction-aware layouts.
+
 | Concern | Rule |
 |---|---|
-| Direction | Driven by `Localizations` locale. Use `EdgeInsetsDirectional`, `AlignmentDirectional` and `start`/`end` everywhere; never `left`/`right` |
-| Fonts | Swap to Noto Naskh Arabic (serif roles) / IBM Plex Sans Arabic (sans roles) by locale; set letter-spacing to 0 for Arabic |
-| Mirroring | Carousel direction, dot position, badge inset, chevrons and arrows all mirror. Numbers stay LTR inside RTL runs (use Western digits unless Product decides otherwise) |
-| Copy | All strings in `kh_l10n` EN + AR. The Home/Guest Arabic copy exists in the prototype's `COPY.ar` block — import it from there |
-| Gap | **Create Request screens have no Arabic in the handoff.** Build them bidi-safe from the start and add the strings |
+| Direction | From the locale. `EdgeInsetsDirectional`, `AlignmentDirectional`, `PositionedDirectional`, `start`/`end` everywhere; never `left`/`right` |
+| Adapts automatically | Padding, navigation, arrows, alignment, icon placement, horizontal lists, forms, carousel direction, badge insets |
+| Fonts | Noto Naskh Arabic (serif roles), IBM Plex Sans Arabic (sans roles), letter-spacing 0 |
+| Numbers | Stay LTR inside RTL runs; Western digits unless Product decides otherwise |
+| Copy | Every user-visible string in `kh_l10n`, EN + AR — including labels derived from enums (ornament type, condition). Never display a wire value |
 
 ---
 
 ## 10. Responsive behaviour
 
-The handoff is drawn only at 390 px. The project rule is that every screen works at narrow **and** wide widths. Until a wide design exists, apply these `[PROPOSED]` rules:
+Mobile is primary, but no screen relies on a fixed size. Classes from `design-System.md` §41:
 
-| Width | Behaviour |
-|---|---|
-| < 360 | Gutter stays 16. Service grid stays 2-up, card titles may wrap to 3 lines. Purity chips stay 4-up; denominations drop to a horizontal scroll row |
-| 360–599 | As designed |
-| ≥ 600 (tablet / landscape / web) | Centre the content in a column of max 560 px. Service grid becomes 4-up. The hero keeps its 1.15:1 split with a max height of 260. Pairs stay two-up; the compose body stays max 560 |
+| Class | Width | Behaviour |
+|---|---|---|
+| Compact | < 600 dp | As designed. Below 360: gutter stays 16, tile titles may wrap, denominations scroll horizontally |
+| Medium | 600–840 dp | Content centres in a column of max 560 px. The service grid goes 4-up once its column is ≥ 520 px. The hero keeps its layout. Pairs stay two-up |
+| Expanded | > 840 dp | As Medium; photo mosaics and Offer comparison may use the extra width, but body text stays within the 560 column |
 
-Verify with a narrow (~320) and a wide (~1024) viewport before calling a screen done.
+Use `LayoutBuilder` on constraints, not device checks. Verify at a narrow (~320) **and** a wide (~1024) viewport before calling a screen done.
 
 ---
 
 ## 11. Accessibility
 
-- Minimum 48 × 48 hit area on every interactive element (see §4.2).
-- Text scales with system settings up to 200%. 48 px rows grow to fit text rather than clipping, which is another reason the compose body must scroll.
-- Semantics:
-  - Chips: `selected` state.
-  - Switch/checkbox rows: one merged node with the label.
-  - Stepper: announce the value on change.
-  - Carousel dots: "Slide 2 of 4".
-  - Notification badge: included in the bell's label ("Alerts, 3 new").
-- Never convey state by colour alone. Selected chips invert fill *and* weight; errors add text.
-- Placeholder captions (`ring`, `hero · gold necklace`) are dev-only and must never reach a release build.
+Target **WCAG 2.2 AA**.
+
+- 48 × 48 minimum hit area on every interactive element (§4.2).
+- Text contrast per §2.5. Nothing below `inkSecondary` for text; `gold` never for text.
+- Text scales with system settings up to 200%; 48 px rows grow rather than clip.
+- **Never rely on gold alone** to show state: selected = ✓ or weight change + gold border, not a gold border only. Errors add text.
+- Semantics: chips expose `selected`; switch and checkbox rows merge with their label; the stepper announces its value; carousel dots read "Slide 2 of 4"; the bell includes the count ("Alerts, 3 new").
+- Placeholder captions and stripe placeholders never reach a release build.
 
 ---
 
 ## 12. Terminology in UI copy
 
-The handoff copy was written before the `CONTEXT.md` vocabulary review. When moving strings into `kh_l10n`, use the glossary terms:
+The written design system uses retail-catalogue words. UI copy uses `CONTEXT.md` terms and honours its `_Avoid_` lists.
 
-| Handoff says | Use | Why |
+| Written system / mocks say | Use | Why |
 |---|---|---|
-| "Sell my Ornament" | **Sell Old Gold** (Request type) | `CONTEXT.md` Request type name |
-| "jeweller(s)" as the main noun | **Vendor(s)**, with "jeweller" only as a friendly synonym | `CONTEXT.md` Vendor `_Avoid_` list |
-| "Are you a jeweller? Register here." | Keep as marketing copy if Product agrees; the target is Vendor registration | Product call |
-| "Purity 24K · 999.9" (bullion) | Show **Karat** *or* **Fineness**, labelled as such | Karat and Fineness are distinct terms |
-| "deal", "bid", "listing", "chat" | Never | `_Avoid_` lists (Offer, Request, Connection) |
+| "category", "Category selector" | Ornament type, or Request Type | Category entity removed (`adr/0014`) |
+| "product", "collection", "new arrivals" | Request, ornament, piece | This is a Request-driven marketplace, not a catalogue |
+| "jeweller", "Verified Jeweller" | Vendor; "jeweller" only as a friendly synonym | Vendor `_Avoid_` list |
+| "Gold Coins", "Gold Bullion" tile labels | The Request Type names: Buy/Sell Gold Coin(s), Buy/Sell Gold Bullion | Request Type names are fixed (gap G-06) |
+| "Sell My Gold", "Sell my Ornament" | Sell Old Gold | Request Type name |
+| "Estimated Value" | Indicative Value | `CONTEXT.md` Indicative Value (`_Avoid_`: price, valuation, appraisal, quote) |
+| "Mark as Interested" | Allowed as the label for Acceptance | `CONTEXT.md` Acceptance |
+| "Message" on a card | No such control before Acceptance; "Talk" on a Connection | Lock #11, `C-03` |
+| "deal", "bid", "listing", "chat", "order" | Never | `_Avoid_` lists for Offer, Request, Connection |
+| "Purity 24K · 999.9" | Karat *or* Fineness, labelled as such | They are distinct terms |
+| "Explore", "Activity" tab | Home · My Requests · Connections · Alerts · Profile | Customer shell IA |
 
 ---
 
-## 13. Implementation checklist (`kh_design_system`)
+## 13. Implementation status (`kh_design_system`)
 
-| # | Change | File | Status |
-|---|---|---|---|
-| 1 | Add `goldDark`, `goldPressed`, `paper`, `navBackground` to `KhTokens`, plus the alpha-ramp getters (§2.3) | `lib/src/tokens.dart` | ✅ Done |
-| 2 | Add spacing steps 2/6/10/12/14/22 and radii 5/10/16/24/999 (keep existing getters) | `lib/src/tokens.dart` | ✅ Done |
-| 3 | Bundle the 4 font families; declare them in `pubspec.yaml` | `fonts/`, `pubspec.yaml` | ✅ Done — static TTFs + OFL licences in `fonts/` |
-| 4 | `KhTheme.light(locale:)` — ColorScheme overrides (§2.4), TextTheme (§3.3), `KhTypography` extension, Input/Filled/Outlined/Text button, Switch, Checkbox, NavigationBar, Divider themes | `lib/src/theme.dart` | ✅ Done — `KhTheme.light(locale:)` in `theme.dart`, `KhTypography`/`KhFonts` in `typography.dart`, `KhMotion` constants; used by `apps/kh_mobile/karat_hive/lib/app/app.dart`. `khTheme()` remains as an alias for tests |
-| 5 | Restyle existing: `KhButton`, `KhTextField`, `KhNumericField`, `KhSelectField`, `KhToggle`, `KhBottomNav` | `lib/src/widgets/` | Open |
-| 6 | New: `KhChoiceChip`, `KhSegmentedControl<T>`, `KhCheckRow`, `KhStepper`, `KhReadoutTile`, `KhActionBar`, `KhCircleIconButton`, `KhDashedTile`, `KhServiceCard`, `KhHeroCarousel`, `KhStatStrip`, `KhHowItWorks` (panel + accordion) | `lib/src/widgets/` | Partial — `KhServiceCard` (+ `KhStripePainter`, `KhServiceGrid`), `KhHowItWorksAccordion`, `KhHowItWorksPanel`, `KhHeroCarousel`, `KhStatStrip` and `KhBellButton` done, used by Guest Landing (CUS-S23) and Customer Home (CUS-S02); the compose widgets are open |
-| 7 | Move the hardcoded colours out of `DirectionControl` (`#1A2744` etc.) and onto the tokens | `request_create/.../create_fields.dart` | Open |
-| 8 | Add Home/Guest/carousel/guidance copy (EN + AR) and Create Request AR copy | `kh_l10n/lib/src/strings.dart` | Partial — Home and Guest copy done (`service.card.*`, `cus.home.*`); Create Request AR open |
-| 9 | Golden tests for each new widget at 320 / 390 / 1024 widths, LTR + RTL | `packages/kh_design_system/test/` | Open |
+| Area | File | Status |
+|---|---|---|
+| Palette, alpha ramp, spacing, radii (§2, §4) | `lib/src/tokens.dart` | Done: champagne hexes, `ctaFill`, `formSurface`, `button` radius |
+| Theme: ColorScheme, TextTheme, button/field/chip/toggle/checkbox/nav themes | `lib/src/theme.dart` | Done: radius-10 flat CTAs, `goldDark` nav, no indicator. Type sizes still 1a (G-02) |
+| Fonts and `KhTypography` | `fonts/`, `lib/src/typography.dart` | Done: Cormorant + DM Sans + Arabic pair, bundled |
+| Home and Guest widgets: `KhServiceCard`, `KhServiceGrid`, `KhHeroCarousel`, `KhHowItWorksPanel`, `KhHowItWorksAccordion`, `KhStatStrip`, `KhBellButton`, `KhBrandMark` | `lib/src/widgets/` | Done |
+| Compose widgets: choice chip, segmented control, check row, stepper, read-out tile, action bar, dashed tile | `lib/src/widgets/` | Partial — several still live in `request_create/.../create_fields.dart` |
+| Domain widgets: indicative valuation, purity picker | `packages/kh_ui_domain` | Exist; the Sell compose screen should reuse them rather than re-implement |
+| Status chip, empty/loading/error states, confirmation dialog | `kh_status_chip.dart`, `state_views.dart`, `kh_confirm_dialog.dart` | Exist; restyle to §6.20–§6.22 |
+| Goldens at 320 / 390 / 1024, LTR + RTL | `packages/kh_design_system/test/` | Partial |
+
+The package layout suggested at the end of `design-System.md` (`karat_hive_design/` with `tokens/`, `theme/`, `components/`) is not adopted: `packages/kh_design_system` already is that package (`docs/Architecture-Frontend.md`). Dark mode (`KhTheme.dark`) is not in scope.
 
 ---
 
-## 14. Open items
+## 14. Gaps and open items
+
+### 14.1 Gaps — the code is behind this document
+
+| ID | Gap | Where |
+|---|---|---|
+| G-01 | Status colours are the saturated 1a set; the target is the muted set in §6.20 | `tokens.dart`, `kh_status_chip.dart` |
+| G-02 | `TextTheme` still carries 1a sizes and weights (§3.2); form input 14 → 16, labels 10.5 → 12–13, errors 11 → 12 | `theme.dart`, `typography.dart` |
+| G-03 | No spacing tokens for 40 / 48 / 64 / 80 | `tokens.dart` `KhSpace` |
+| G-04 | Field radius 12 → 10; bottom-sheet top radius 16 → 20 | `tokens.dart`, `theme.dart` |
+| G-05 | Brand wordmark renders in `gold` on ivory (2.1:1); must be `goldDark` or `ink` | `kh_brand_mark.dart` |
+| G-06 | Request-type tiles use shortened labels ("Gold Coin(s)", "Gold Bullion") instead of the Request Type names | `kh_l10n` `service.card.*` |
+
+### 14.2 Open items
 
 Recorded as open; don't resolve them by inference.
 
-| Item | Blocks |
-|---|---|
-| **Anklet** chip — not in `OrnamentType` (backend enum + SRS change needed) or drop the chip | Ornament type chip row |
-| Bullion purity: Karat or Fineness? | Bullion purity picker label/values |
-| Validation/error states for all four compose screens, including the AED 500 bullion minimum (`BR-010`) | Compose screens' error styling (§6.3 gives the visual spec only) |
-| Wide-viewport layouts (only 390 px exists) | §10 is `[PROPOSED]` |
-| Real photography for hero slides and service tiles | Release build |
-| `support.js` is missing from the handoff, so the `.dc.html` prototypes don't run locally | Interactive review of the prototypes |
-| `ui-mock/` still implements the archived dark palette — re-base its Customer/Vendor screens on this document (`kh_admin` is deliberately excluded, see header) | Prototype matching the mobile app |
+| ID | Item | Blocks |
+|---|---|---|
+| O-01 | Screen gutter: shipped 16 vs the written system's preferred 20 | §4.2 |
+| O-02 | Clover brand-mark asset from `Home-1.png` | App header (wordmark stands in) |
+| O-03 | Activity summary on Home: the `CLAUDE.md` shell notes list it, `Home-1.png` doesn't show it, Home doesn't mount it today | §7.1 |
+| O-04 | Yahoo Finance redistribution terms (`CLAUDE.md` live open decisions) | Showing a reference-rate-derived Indicative Value to end users (§7.5) |
+| O-05 | **Anklet** chip — not in `OrnamentType` | Ornament-type chip row |
+| O-06 | Bullion purity: Karat or Fineness | Bullion purity label and values |
+| O-07 | Validation and error states for the four compose screens, including the bullion minimum (`BR-010`) | Compose error styling |
+| O-08 | Real photography for hero slides | Release build |
+| O-09 | `ui-mock/` still implements the archived dark palette | Prototype matching the app |

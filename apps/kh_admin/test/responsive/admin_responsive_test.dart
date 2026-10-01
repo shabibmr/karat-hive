@@ -152,7 +152,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Regions'), findsOneWidget);
+      expect(find.text('UAE Regions'), findsOneWidget);
       expect(find.byKey(const Key('taxonomy-add-root-button')), findsOneWidget);
     });
 

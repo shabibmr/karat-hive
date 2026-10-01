@@ -40,3 +40,5 @@ export 'src/widgets/kh_service_grid.dart';
 export 'src/widgets/kh_stat_strip.dart';
 export 'src/widgets/kh_hero_carousel.dart';
 export 'src/widgets/kh_bell_button.dart';
+export 'src/widgets/kh_brand_mark.dart';
+

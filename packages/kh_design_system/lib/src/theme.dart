@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:kh_design_system/src/tokens.dart';
 import 'package:kh_design_system/src/typography.dart';
 
-/// Karat Hive mobile theme — Direction 1a "Classic"
+/// Karat Hive mobile theme — Modern Luxury Jewellery Editorial
 /// (`apps/kh_mobile/karat_hive/docs/UI-Design-Context.md`).
 ///
 /// Warm, light and flat: ivory paper, ink type, gold as a signal. Depth comes
@@ -39,8 +39,8 @@ abstract final class KhTheme {
       surfaceTint: Colors.transparent,
     );
 
-    final pill = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(t.radius.pill),
+    final buttonShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(t.radius.button),
     );
     const buttonSize = Size(64, 48);
 
@@ -109,19 +109,21 @@ abstract final class KhTheme {
       dividerTheme: DividerThemeData(color: t.inkHairline, thickness: 1, space: 1),
       progressIndicatorTheme: ProgressIndicatorThemeData(color: t.gold),
 
-      // §6.1 Buttons — 48 px pills; gold CTAs carry ink text.
+      // Buttons — 48 × radius 10, flat ctaFill, ink label. Chips keep own radius.
       filledButtonTheme: FilledButtonThemeData(
         style: ButtonStyle(
           minimumSize: const WidgetStatePropertyAll(buttonSize),
-          shape: WidgetStatePropertyAll(pill),
+          shape: WidgetStatePropertyAll(buttonShape),
           elevation: const WidgetStatePropertyAll(0),
           textStyle: WidgetStatePropertyAll(type.buttonPrimary),
           backgroundColor: WidgetStateProperty.resolveWith((s) {
-            if (s.contains(WidgetState.disabled)) return t.gold.withValues(alpha: 0.4);
-            if (s.contains(WidgetState.pressed) || s.contains(WidgetState.hovered)) {
-              return t.goldPressed;
+            if (s.contains(WidgetState.disabled)) {
+              return t.ctaFill.withValues(alpha: 0.4);
             }
-            return t.gold;
+            if (s.contains(WidgetState.pressed) || s.contains(WidgetState.hovered)) {
+              return t.ctaFillPressed;
+            }
+            return t.ctaFill;
           }),
           foregroundColor: WidgetStateProperty.resolveWith(
             (s) => s.contains(WidgetState.disabled) ? t.inkBorderCheck : t.ink,
@@ -132,11 +134,11 @@ abstract final class KhTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           minimumSize: buttonSize,
-          shape: pill,
+          shape: buttonShape,
           elevation: 0,
-          backgroundColor: t.gold,
+          backgroundColor: t.ctaFill,
           foregroundColor: t.ink,
-          disabledBackgroundColor: t.gold.withValues(alpha: 0.4),
+          disabledBackgroundColor: t.ctaFill.withValues(alpha: 0.4),
           disabledForegroundColor: t.inkBorderCheck,
           textStyle: type.buttonPrimary,
           surfaceTintColor: Colors.transparent,
@@ -145,7 +147,7 @@ abstract final class KhTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: buttonSize,
-          shape: pill,
+          shape: buttonShape,
           foregroundColor: t.ink,
           disabledForegroundColor: t.inkBorderCheck,
           side: BorderSide(color: t.inkBorderButton),
@@ -229,24 +231,24 @@ abstract final class KhTheme {
         ),
       ),
 
-      // §6.16 Bottom navigation — 80 px, gold@0.28 stadium pill.
+      // Bottom navigation — 80 px, no stadium. Selected icon + label use goldDark
+      // (gold #D8A858 on #F6F1E6 is ~1.9:1; goldDark clears 4.5:1).
       navigationBarTheme: NavigationBarThemeData(
         height: 80,
         backgroundColor: t.navBackground,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        indicatorColor: t.goldNavPill,
-        indicatorShape: const StadiumBorder(),
+        indicatorColor: Colors.transparent,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected)
-              ? textTheme.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)
+              ? textTheme.labelMedium!.copyWith(color: t.goldDark, fontWeight: FontWeight.w700)
               : textTheme.labelMedium!.copyWith(color: t.inkNavIdle),
         ),
         iconTheme: WidgetStateProperty.resolveWith(
           (s) => IconThemeData(
             size: 24,
-            color: s.contains(WidgetState.selected) ? t.ink : t.inkNavIdle,
+            color: s.contains(WidgetState.selected) ? t.goldDark : t.inkNavIdle,
           ),
         ),
       ),
@@ -266,7 +268,7 @@ abstract final class KhTheme {
     );
   }
 
-  /// Material roles mapped onto the 1a scale (§3.3). Serif for titles, sans
+  /// Material roles mapped onto the type scale (§3.3). Serif for titles, sans
   /// for everything read or typed.
   static TextTheme _textTheme(KhFonts f, KhTokens t) {
     TextStyle ink(TextStyle s) => s.copyWith(color: t.ink);

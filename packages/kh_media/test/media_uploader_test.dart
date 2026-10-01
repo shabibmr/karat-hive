@@ -71,7 +71,14 @@ void main() {
     ).thenAnswer((_) async => const Err(ValidationFailure(code: 'TOO_LARGE', message: 'too big')));
 
     var putCalled = false;
-    final result = await uploader(putClient: _putDio(onPut: (_) => putCalled = true)).upload(
+    final events = <String>[];
+    final result = await MediaUploader(
+      api,
+      putClient: _putDio(onPut: (_) => putCalled = true),
+      pollInterval: Duration.zero,
+      sleep: (_) async {},
+      onDebug: (event, _) => events.add(event),
+    ).upload(
       file,
       purpose: MediaUploadPurpose.kycDocument,
       contentType: 'application/pdf',
@@ -79,6 +86,7 @@ void main() {
 
     expect(putCalled, isFalse);
     expect(result.failureOrNull, isA<ValidationFailure>());
+    expect(events, ['upload.start', 'upload.intentFailed']);
     verifyNever(() => api.completeUpload(any()));
   });
 
@@ -298,4 +306,35 @@ void main() {
     expect(capturedPurpose, 'KYC_DOCUMENT');
     expect(result.valueOrNull, 'kyc-key');
   });
+
+  test('onDebug receives diagnostic events across upload lifecycle', () async {
+    when(
+      () => api.uploadIntent(
+        purpose: any(named: 'purpose'),
+        contentType: any(named: 'contentType'),
+        byteSize: any(named: 'byteSize'),
+      ),
+    ).thenAnswer((_) async => Ok(_intent(key: 'debug-key', uploadUrl: 'https://cdn.example.com/put')));
+    when(() => api.completeUpload('debug-key')).thenAnswer((_) async => const Ok('READY'));
+
+    final events = <String, Map<String, Object?>>{};
+    final up = MediaUploader(
+      api,
+      putClient: _putDio(statusCode: 403),
+      pollInterval: Duration.zero,
+      onDebug: (ev, data) => events[ev] = data,
+    );
+
+    final result = await up.upload(
+      file,
+      purpose: MediaUploadPurpose.requestImage,
+      contentType: 'image/png',
+    );
+
+    expect(result.failureOrNull, isNotNull);
+    expect(events.keys, containsAll(['upload.start', 'upload.put', 'upload.putRejected']));
+    expect(events['upload.putRejected']?['status'], 403);
+    expect(events['upload.put']?['host'], 'cdn.example.com');
+  });
 }
+

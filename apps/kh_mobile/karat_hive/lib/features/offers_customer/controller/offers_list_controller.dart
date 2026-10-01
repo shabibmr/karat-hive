@@ -42,7 +42,7 @@ class OfferListFilters {
       );
 }
 
-class OfferListFiltersController extends AutoDisposeNotifier<OfferListFilters> {
+class OfferListFiltersController extends Notifier<OfferListFilters> {
   @override
   OfferListFilters build() => const OfferListFilters();
 
@@ -50,14 +50,18 @@ class OfferListFiltersController extends AutoDisposeNotifier<OfferListFilters> {
 }
 
 final offerListFiltersProvider =
-    AutoDisposeNotifierProvider<OfferListFiltersController, OfferListFilters>(
+    NotifierProvider.autoDispose<OfferListFiltersController, OfferListFilters>(
   OfferListFiltersController.new,
 );
 
-class OffersListController extends AutoDisposeFamilyNotifier<
-    PagedListController<OfferForCustomer>, String> {
+class OffersListController
+    extends Notifier<PagedListController<OfferForCustomer>> {
+  OffersListController(this.arg);
+
+  final String arg;
+
   @override
-  PagedListController<OfferForCustomer> build(String arg) {
+  PagedListController<OfferForCustomer> build() {
     final repo = ref.watch(offersCustomerRepositoryProvider);
     final filters = ref.watch(offerListFiltersProvider);
     final controller = PagedListController<OfferForCustomer>(
@@ -84,12 +88,12 @@ class OffersListController extends AutoDisposeFamilyNotifier<
   Future<void> retry() => state.retry();
 }
 
-final offersListControllerProvider = AutoDisposeNotifierProvider.family<
+final offersListControllerProvider = NotifierProvider.autoDispose.family<
     OffersListController, PagedListController<OfferForCustomer>, String>(
   OffersListController.new,
 );
 
-class CompareSelectionController extends AutoDisposeNotifier<Set<String>> {
+class CompareSelectionController extends Notifier<Set<String>> {
   @override
   Set<String> build() => <String>{};
 
@@ -105,6 +109,6 @@ class CompareSelectionController extends AutoDisposeNotifier<Set<String>> {
 }
 
 final compareSelectionProvider =
-    AutoDisposeNotifierProvider<CompareSelectionController, Set<String>>(
+    NotifierProvider.autoDispose<CompareSelectionController, Set<String>>(
   CompareSelectionController.new,
 );

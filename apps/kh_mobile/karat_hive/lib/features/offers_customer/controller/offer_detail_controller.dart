@@ -14,9 +14,13 @@ class OfferDetailBundle {
 }
 
 class OfferDetailController
-    extends AutoDisposeFamilyAsyncNotifier<OfferDetailBundle, String> {
+    extends AsyncNotifier<OfferDetailBundle> {
+  OfferDetailController(this.arg);
+
+  final String arg;
+
   @override
-  Future<OfferDetailBundle> build(String arg) async {
+  Future<OfferDetailBundle> build() async {
     final repo = ref.watch(offersCustomerRepositoryProvider);
     final offerRes = await repo.get(arg);
     final offer = offerRes.when(ok: (o) => o, err: (f) => throw f);
@@ -27,7 +31,7 @@ class OfferDetailController
 
   Future<void> reload() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => build(arg));
+    state = await AsyncValue.guard(build);
   }
 
   Future<Result<OfferForCustomer>> decline({String? reason, String? note}) {
@@ -67,9 +71,13 @@ class AcceptOfferUiState {
 }
 
 class AcceptOfferController
-    extends AutoDisposeFamilyNotifier<AcceptOfferUiState, String> {
+    extends Notifier<AcceptOfferUiState> {
+  AcceptOfferController(this.arg);
+
+  final String arg;
+
   @override
-  AcceptOfferUiState build(String arg) => const AcceptOfferUiState();
+  AcceptOfferUiState build() => const AcceptOfferUiState();
 
   String _ensureKey() {
     final existing = state.idempotencyKey;
@@ -130,7 +138,7 @@ class AcceptOfferController
   }
 }
 
-final acceptOfferProvider = AutoDisposeNotifierProvider.family<
+final acceptOfferProvider = NotifierProvider.autoDispose.family<
     AcceptOfferController, AcceptOfferUiState, String>(
   AcceptOfferController.new,
 );

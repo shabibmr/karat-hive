@@ -24,7 +24,7 @@ class MyRequestsFilters {
 }
 
 class MyRequestsFiltersController
-    extends AutoDisposeNotifier<MyRequestsFilters> {
+    extends Notifier<MyRequestsFilters> {
   @override
   MyRequestsFilters build() => const MyRequestsFilters();
 
@@ -35,14 +35,14 @@ class MyRequestsFiltersController
   }
 }
 
-final myRequestsFiltersProvider = AutoDisposeNotifierProvider<
+final myRequestsFiltersProvider = NotifierProvider.autoDispose<
     MyRequestsFiltersController, MyRequestsFilters>(
   MyRequestsFiltersController.new,
 );
 
 /// Open/live and draft Requests for the My Requests tab.
 class MyRequestsController
-    extends AutoDisposeNotifier<PagedListController<RequestForCustomer>> {
+    extends Notifier<PagedListController<RequestForCustomer>> {
   @override
   PagedListController<RequestForCustomer> build() {
     final repo = ref.watch(requestManageRepositoryProvider);
@@ -66,7 +66,7 @@ class MyRequestsController
   Future<void> retry() => state.retry();
 }
 
-final myRequestsControllerProvider = AutoDisposeNotifierProvider<
+final myRequestsControllerProvider = NotifierProvider.autoDispose<
     MyRequestsController, PagedListController<RequestForCustomer>>(
   MyRequestsController.new,
 );

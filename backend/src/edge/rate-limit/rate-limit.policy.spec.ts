@@ -28,3 +28,12 @@ describe('refillBucket', () => {
     expect(next.tokens).toBe(4);
   });
 });
+
+describe('scopeFor media reads', () => {
+  it('rate-limits anonymous GET /v1/media/:key but not other GETs', async () => {
+    const { scopeFor } = await import('./rate-limit.policy');
+    expect(scopeFor('GET', '/v1/media/abc.thumb')).toBe('media_read');
+    expect(scopeFor('POST', '/v1/media/upload-intent')).toBe('default_mutating');
+    expect(scopeFor('GET', '/v1/requests')).toBeNull();
+  });
+});

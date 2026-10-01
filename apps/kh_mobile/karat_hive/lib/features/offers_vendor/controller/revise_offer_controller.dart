@@ -68,9 +68,13 @@ class ReviseOfferSucceeded extends ReviseOfferState {
 }
 
 class ReviseOfferController
-    extends AutoDisposeFamilyNotifier<ReviseOfferState, String> {
+    extends Notifier<ReviseOfferState> {
+  ReviseOfferController(this.arg);
+
+  final String arg;
+
   @override
-  ReviseOfferState build(String offerId) {
+  ReviseOfferState build() {
     Future.microtask(_load);
     return const ReviseOfferLoading();
   }
@@ -149,7 +153,7 @@ class ReviseOfferController
   }
 }
 
-final reviseOfferControllerProvider = AutoDisposeNotifierProvider.family<
+final reviseOfferControllerProvider = NotifierProvider.autoDispose.family<
     ReviseOfferController, ReviseOfferState, String>(
   ReviseOfferController.new,
 );

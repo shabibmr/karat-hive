@@ -5,7 +5,7 @@ part 'verification_decision_dto.g.dart';
 
 /// Body for `POST /v1/admin/vendors/{id}/verify`.
 @freezed
-class VerifyDecisionDto with _$VerifyDecisionDto {
+abstract class VerifyDecisionDto with _$VerifyDecisionDto {
   const factory VerifyDecisionDto({
     required String rationale,
   }) = _VerifyDecisionDto;
@@ -16,7 +16,7 @@ class VerifyDecisionDto with _$VerifyDecisionDto {
 
 /// Body for `POST /v1/admin/vendors/{id}/reject`.
 @freezed
-class RejectDecisionDto with _$RejectDecisionDto {
+abstract class RejectDecisionDto with _$RejectDecisionDto {
   const factory RejectDecisionDto({
     required String rationale,
   }) = _RejectDecisionDto;
@@ -27,7 +27,7 @@ class RejectDecisionDto with _$RejectDecisionDto {
 
 /// Body for `POST /v1/admin/vendors/{id}/request-info`.
 @freezed
-class RequestInfoDto with _$RequestInfoDto {
+abstract class RequestInfoDto with _$RequestInfoDto {
   const factory RequestInfoDto({
     required String message,
   }) = _RequestInfoDto;

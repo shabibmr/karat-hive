@@ -114,10 +114,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('review-notes-field')), findsOneWidget);
+    expect(find.byKey(const Key('review-notes-row')), findsOneWidget);
+    expect(find.text('keep-me'), findsOneWidget);
+    expect(find.byKey(const Key('review-edit')), findsOneWidget);
+    expect(find.byKey(const Key('create-save-draft')), findsNothing);
     expect(container.read(requestCreateControllerProvider).notes, 'keep-me');
 
-    await tester.tap(find.text('Publish'));
+    await tester.tap(find.text('Publish Request'));
     await tester.pumpAndSettle();
 
     expect(container.read(pendingPublishIntentProvider), isTrue);
@@ -131,6 +134,7 @@ void main() {
     expect(find.byKey(const Key('customer-google-signin')), findsNothing);
     expect(container.read(pendingPublishIntentProvider), isTrue);
     expect(container.read(requestCreateControllerProvider).notes, 'keep-me');
-    expect(find.byKey(const Key('review-notes-field')), findsOneWidget);
+    expect(find.byKey(const Key('review-notes-row')), findsOneWidget);
   });
 }
+

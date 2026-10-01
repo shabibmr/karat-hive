@@ -4,16 +4,17 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_avif/flutter_avif.dart' as avif;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'media_asset.dart';
 
-/// Converts a picked image to AVIF on-device. Behind an interface so tests
-/// can inject a fake instead of exercising the native libavif binding.
+/// Re-encodes a picked image on-device before upload. Behind an interface so
+/// tests can inject a fake instead of exercising a native encoder binding.
 abstract class ImageConverter {
-  Future<MediaAsset> convertToAvif(File source);
+  Future<MediaAsset> convert(File source);
 
-  Future<MediaAsset> convertBytesToAvif(Uint8List bytes);
+  Future<MediaAsset> convertBytes(Uint8List bytes);
 }
 
 /// Encodes via `flutter_avif` (libavif) on every platform, including web.
@@ -28,40 +29,84 @@ class AvifImageConverter implements ImageConverter {
   final int maxDimension;
 
   @override
-  Future<MediaAsset> convertToAvif(File source) async {
+  Future<MediaAsset> convert(File source) async {
     final bytes = await source.readAsBytes();
-    return convertBytesToAvif(Uint8List.fromList(bytes));
+    return convertBytes(Uint8List.fromList(bytes));
   }
 
   @override
-  Future<MediaAsset> convertBytesToAvif(Uint8List bytes) async {
+  Future<MediaAsset> convertBytes(Uint8List bytes) async {
     final input = await downscaleForUpload(bytes, maxDimension: maxDimension);
     final avifBytes = await avif.encodeAvif(input);
-    if (kIsWeb) {
-      return MediaAsset(
-        bytes: avifBytes,
-        contentType: 'image/avif',
-        byteSize: avifBytes.length,
-      );
-    }
-    final dir = await getTemporaryDirectory();
-    final outPath =
-        '${dir.path}/kh_media_${DateTime.now().microsecondsSinceEpoch}.avif';
-    final outFile = await File(outPath).writeAsBytes(avifBytes, flush: true);
+    return _toAsset(avifBytes, contentType: 'image/avif', extension: 'avif');
+  }
+}
+
+/// Encodes via `flutter_image_compress` (libwebp on Android, SDWebImage on
+/// iOS) — several times faster than AVIF for a modest size cost, which is
+/// why Request images use it. Metadata is dropped (`keepExif` defaults to
+/// false) and EXIF orientation is applied before encoding.
+///
+/// Native-only: the plugin has no WebP encoder on web.
+class WebpImageConverter implements ImageConverter {
+  const WebpImageConverter({this.maxDimension = 2048, this.quality = 80});
+
+  final int maxDimension;
+
+  /// libwebp lossy quality, 0–100.
+  final int quality;
+
+  @override
+  Future<MediaAsset> convert(File source) async {
+    final bytes = await source.readAsBytes();
+    return convertBytes(Uint8List.fromList(bytes));
+  }
+
+  @override
+  Future<MediaAsset> convertBytes(Uint8List bytes) async {
+    final input = await downscaleForUpload(bytes, maxDimension: maxDimension);
+    // The plugin only ever shrinks to fit min{Width,Height}; `input` already
+    // fits inside maxDimension², so this bound never resizes again.
+    final webpBytes = await FlutterImageCompress.compressWithList(
+      input,
+      minWidth: maxDimension,
+      minHeight: maxDimension,
+      quality: quality,
+      format: CompressFormat.webp,
+    );
+    return _toAsset(webpBytes, contentType: 'image/webp', extension: 'webp');
+  }
+}
+
+Future<MediaAsset> _toAsset(
+  Uint8List bytes, {
+  required String contentType,
+  required String extension,
+}) async {
+  if (kIsWeb) {
     return MediaAsset(
-      file: outFile,
-      bytes: avifBytes,
-      contentType: 'image/avif',
-      byteSize: avifBytes.length,
+      bytes: bytes,
+      contentType: contentType,
+      byteSize: bytes.length,
     );
   }
+  final dir = await getTemporaryDirectory();
+  final outPath =
+      '${dir.path}/kh_media_${DateTime.now().microsecondsSinceEpoch}.$extension';
+  final outFile = await File(outPath).writeAsBytes(bytes, flush: true);
+  return MediaAsset(
+    file: outFile,
+    bytes: bytes,
+    contentType: contentType,
+    byteSize: bytes.length,
+  );
 }
 
 /// Returns [bytes] unchanged when the image's long edge is already within
 /// [maxDimension]; otherwise a PNG scaled to fit, aspect ratio preserved.
 ///
 /// Decoding through the engine applies EXIF orientation, so the result is
-/// upright — the same image `encodeAvif` would have decoded itself.
+/// upright — the same image the encoder would have decoded itself.
 Future<Uint8List> downscaleForUpload(
   Uint8List bytes, {
   required int maxDimension,

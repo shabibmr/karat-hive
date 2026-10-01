@@ -11,7 +11,7 @@ import '../repository/customer_auth_repository.dart';
 /// the server's localised `error.message` string (`NFR-024`) — the controller
 /// never composes prose and never shows a raw code.
 class CustomerCompletionController
-    extends AutoDisposeNotifier<CustomerCompletionForm> {
+    extends Notifier<CustomerCompletionForm> {
   bool _disposed = false;
 
   @override
@@ -152,7 +152,7 @@ class CustomerCompletionController
   }
 }
 
-final customerCompletionControllerProvider = AutoDisposeNotifierProvider<
+final customerCompletionControllerProvider = NotifierProvider.autoDispose<
     CustomerCompletionController, CustomerCompletionForm>(
   CustomerCompletionController.new,
 );

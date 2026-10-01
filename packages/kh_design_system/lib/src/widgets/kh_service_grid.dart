@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:kh_design_system/src/tokens.dart';
 
 /// Grid of [KhServiceCard]s: 2 × 2 on phones, one row of four once the
-/// column is ≥ 520 px (`UI-Design-Context.md` §10). Cards in a row share the
-/// tallest card's height, so titles that wrap don't stagger the arrows; pass
-/// cards built with `expand: true`.
+/// column is ≥ 520 px (`UI-Design-Context.md` §10). Cards have a fixed height
+/// (scaled with text size), so a row stays even when titles wrap.
 class KhServiceGrid extends StatelessWidget {
   const KhServiceGrid({super.key, required this.children});
 

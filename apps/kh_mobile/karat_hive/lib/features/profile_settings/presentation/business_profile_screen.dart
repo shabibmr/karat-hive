@@ -65,21 +65,18 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
   String? _pendingLogoMediaKey;
 
   Future<void> _pickLogo() async {
-    final res = await FilePicker.platform.pickFiles(
+    final file = await FilePicker.pickFile(
       type: FileType.image,
-      allowMultiple: false,
-      withData: true,
     );
-    final file = res?.files.single;
     if (file == null) return;
     final nativePath = kIsWeb ? null : file.path;
-    var bytes = file.bytes;
-    if ((bytes == null || bytes.isEmpty) &&
+    var bytes = await file.readAsBytes();
+    if (bytes.isEmpty &&
         nativePath != null &&
         nativePath.isNotEmpty) {
       bytes = await File(nativePath).readAsBytes();
     }
-    if (bytes == null || bytes.isEmpty) return;
+    if (bytes.isEmpty) return;
 
     final preview = Uint8List.fromList(bytes);
     setState(() => _pendingLogoBytes = preview);
@@ -246,13 +243,13 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
     final tokens = context.tokens;
 
     ref.listen<AsyncValue<VendorMe>>(vendorProfileProvider, (prev, next) {
-      final vendor = next.valueOrNull;
+      final vendor = next.value;
       if (vendor == null) return;
       if (_seeded && _boundProfileId == vendor.vendorProfileId) return;
       setState(() => _seedFrom(vendor));
     });
 
-    final initial = async.valueOrNull;
+    final initial = async.value;
     if (initial != null && !_seeded) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || _seeded) return;

@@ -31,7 +31,7 @@ class CreateFlowHeader extends StatelessWidget implements PreferredSizeWidget {
 
     return Container(
       height: 60,
-      color: tokens.surface,
+      color: tokens.formSurface,
       padding: EdgeInsets.symmetric(horizontal: tokens.space.md),
       child: Row(
         children: [
@@ -88,7 +88,7 @@ class CreateFlowHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-/// CU-03 — step progress + header block + keyboard-avoiding column.
+/// CU-03 — create/review scaffold on [KhTokens.formSurface] with shared CTAs.
 class CreateFlowChrome extends StatelessWidget {
   const CreateFlowChrome({
     super.key,
@@ -129,7 +129,7 @@ class CreateFlowChrome extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: tokens.surface,
+      backgroundColor: tokens.formSurface,
       appBar: CreateFlowHeader(
         title: title,
         eyebrow: effectiveEyebrow,
@@ -153,6 +153,7 @@ class CreateFlowChrome extends StatelessWidget {
   }
 }
 
+
 class KeyboardAvoidingView extends StatelessWidget {
   const KeyboardAvoidingView({super.key, required this.child});
   final Widget child;
@@ -166,6 +167,7 @@ class KeyboardAvoidingView extends StatelessWidget {
   }
 }
 
+/// Bottom bar for compose steps: text Save draft + filled Continue (T02).
 class DraftActions extends StatelessWidget {
   const DraftActions({
     super.key,
@@ -187,10 +189,12 @@ class DraftActions extends StatelessWidget {
     final tokens = context.tokens;
     return Container(
       decoration: BoxDecoration(
+        color: tokens.formSurface,
         border: Border(
           top: BorderSide(color: tokens.inkHairline, width: 1.0),
         ),
       ),
+
       padding: EdgeInsets.symmetric(
         horizontal: tokens.space.md,
         vertical: tokens.space.sm,
@@ -199,22 +203,22 @@ class DraftActions extends StatelessWidget {
         height: 48,
         child: Row(
           children: [
-            Expanded(
-              flex: 10,
-              child: KhButton(
-                key: const Key('create-save-draft'),
-                secondary: true,
-                label: createCopy(context, 'create.saveDraft', 'Save draft'),
-                busy: busy,
-                onPressed: busy ? null : onSaveDraft,
-                width: null,
-              ),
+            TextButton(
+              key: const Key('create-save-draft'),
+              onPressed: busy ? null : onSaveDraft,
+              child: busy
+                  ? SizedBox(
+                      height: tokens.space.md,
+                      width: tokens.space.md,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(createCopy(context, 'create.saveDraft', 'Save draft')),
             ),
             SizedBox(width: tokens.space.sm),
             Expanded(
-              flex: 18,
               child: KhButton(
-                label: continueLabel ?? createCopy(context, 'create.continue', 'Continue'),
+                label: continueLabel ??
+                    createCopy(context, 'create.continue', 'Continue'),
                 busy: busy,
                 onPressed: continueEnabled && !busy ? onContinue : null,
                 width: null,
@@ -226,3 +230,4 @@ class DraftActions extends StatelessWidget {
     );
   }
 }
+

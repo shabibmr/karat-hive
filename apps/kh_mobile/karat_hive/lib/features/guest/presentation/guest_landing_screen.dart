@@ -42,28 +42,28 @@ class GuestLandingScreen extends ConsumerWidget {
         tileKey: const Key('guest-type-ornament'),
         tapKey: const Key('guest-service-ornament'),
         title: strings.s('service.card.ornament'),
-        icon: Icons.diamond_outlined,
+        image: const AssetImage('assets/images/tile_find_ornament.webp'),
       ),
       _GuestService(
         type: RequestType.sellOldGold,
         tileKey: const Key('guest-type-sell-gold'),
         tapKey: const Key('guest-service-sell-gold'),
         title: strings.s('service.card.sellGold'),
-        icon: Icons.balance,
+        image: const AssetImage('assets/images/tile_sell_old_gold.webp'),
       ),
       _GuestService(
         type: RequestType.goldCoin,
         tileKey: const Key('guest-type-coins'),
         tapKey: const Key('guest-service-coins'),
         title: strings.s('service.card.coins'),
-        icon: Icons.monetization_on_outlined,
+        image: const AssetImage('assets/images/tile_gold_coin.webp'),
       ),
       _GuestService(
         type: RequestType.goldBullion,
         tileKey: const Key('guest-type-bullion'),
         tapKey: const Key('guest-service-bullion'),
         title: strings.s('service.card.bullion'),
-        icon: Icons.crop_landscape_outlined,
+        image: const AssetImage('assets/images/tile_gold_bullion.webp'),
       ),
     ];
 
@@ -105,10 +105,9 @@ class GuestLandingScreen extends ConsumerWidget {
                           for (final service in services)
                             KhServiceCard(
                               key: service.tileKey,
-                              expand: true,
                               tapKey: service.tapKey,
                               title: service.title,
-                              icon: service.icon,
+                              image: service.image,
                               onTap: () =>
                                   _openService(context, ref, service.type),
                             ),
@@ -170,7 +169,7 @@ class GuestLandingScreen extends ConsumerWidget {
   }
 }
 
-/// 60 px header: logo at the start, "Log in" link at the end (§6.14).
+/// 60 px header: tracked brand mark at the start, "Log in" at the end.
 class _GuestHeader extends StatelessWidget {
   const _GuestHeader({
     required this.logoLabel,
@@ -191,20 +190,16 @@ class _GuestHeader extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: tokens.space.md),
         child: Row(
           children: [
-            Image.asset(
-              'assets/karat-hive-logo.png',
-              height: 44,
-              semanticLabel: logoLabel,
-              // Tests and first frame without the asset still lay out.
-              errorBuilder: (_, __, ___) => Text(
-                logoLabel,
-                style: Theme.of(context).textTheme.titleLarge,
+            Flexible(
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: KhBrandMark(label: logoLabel),
               ),
             ),
             SizedBox(width: tokens.space.sm),
-            // Expanded: the Arabic label is long enough to crowd the logo at
-            // 320 px; it ellipsises rather than overflowing.
-            Expanded(
+            // Arabic "Log in" can crowd the mark at 320 px; ellipsis keeps
+            // the row from overflowing.
+            Flexible(
               child: Align(
                 alignment: AlignmentDirectional.centerEnd,
                 child: TextButton(
@@ -226,18 +221,19 @@ class _GuestHeader extends StatelessWidget {
   }
 }
 
+
 class _GuestService {
   const _GuestService({
     required this.type,
     required this.tileKey,
     required this.tapKey,
     required this.title,
-    required this.icon,
+    required this.image,
   });
 
   final RequestType type;
   final Key tileKey;
   final Key tapKey;
   final String title;
-  final IconData icon;
+  final ImageProvider image;
 }

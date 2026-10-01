@@ -6,7 +6,7 @@ part 'vendor_list_filters.freezed.dart';
 
 /// Filter bar state for ADM-S05 (`verificationState`, `accountState`, `q`).
 @freezed
-class VendorListFilters with _$VendorListFilters {
+abstract class VendorListFilters with _$VendorListFilters {
   const factory VendorListFilters({
     VendorVerificationState? verificationState,
     VendorAccountState? accountState,

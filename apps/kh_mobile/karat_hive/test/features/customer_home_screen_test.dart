@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:karat_hive/app/session/session_controller.dart';
@@ -115,7 +116,7 @@ void main() {
     );
   });
 
-  testWidgets('Customer Home dashboard shows hero, services, summary; no History',
+  testWidgets('Customer Home dashboard shows hero, services, how-it-works; no History',
       (tester) async {
     tester.view.physicalSize = const Size(800, 1200);
     tester.view.devicePixelRatio = 1.0;
@@ -135,46 +136,16 @@ void main() {
     expect(find.byKey(const Key('customer-type-sell-gold')), findsOneWidget);
     expect(find.byKey(const Key('customer-type-coins')), findsOneWidget);
     expect(find.byKey(const Key('customer-type-bullion')), findsOneWidget);
-    expect(find.byKey(const Key('summary-open')), findsOneWidget);
-    expect(find.byKey(const Key('summary-offers')), findsOneWidget);
-    expect(find.byKey(const Key('summary-connections')), findsOneWidget);
+    expect(find.byKey(const Key('summary-open')), findsNothing);
+    expect(find.byKey(const Key('summary-offers')), findsNothing);
+    expect(find.byKey(const Key('summary-connections')), findsNothing);
+    expect(find.byKey(const Key('customer-home-view-all')), findsNothing);
     expect(find.byKey(const Key('customer-home-how')), findsOneWidget);
-    expect(find.text('Find an Ornament'), findsOneWidget);
+    expect(find.text('Find An Ornament'), findsOneWidget);
     expect(find.text('What would you like to do?'), findsOneWidget);
+    expect(find.text('KARAT HIVE'), findsOneWidget);
     expect(find.byKey(const Key('open-history')), findsNothing);
     expect(find.byKey(const Key('quick-create')), findsNothing);
-  });
-
-  testWidgets('Summary strip shows the session and offer counts',
-      (tester) async {
-    // Tall enough that the strip is inside the ListView's built range.
-    tester.view.physicalSize = const Size(800, 1400);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(_host([
-      requestManageRepositoryProvider.overrideWithValue(repo),
-      sessionProvider.overrideWith(
-        () => FakeSessionController(_signedInCustomer()),
-      ),
-    ]));
-    await tester.pumpAndSettle();
-
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('summary-open')),
-        matching: find.text('2'),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('summary-connections')),
-        matching: find.text('3'),
-      ),
-      findsOneWidget,
-    );
   });
 
   testWidgets('Bell opens Alerts', (tester) async {

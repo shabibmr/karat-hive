@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:karat_hive/features/auth/presentation/vendor_login_screen.dart';
 import 'package:karat_hive/features/auth/repository/auth_repository.dart';

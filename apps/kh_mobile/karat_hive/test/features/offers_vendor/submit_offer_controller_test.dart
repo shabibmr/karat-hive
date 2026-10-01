@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,6 +67,7 @@ class FakeOffersVendorRepository implements OffersVendorRepository {
     this.configError,
     this.submitError,
     this.submitResult,
+    this.submitScript,
     this.hangRequest = false,
     this.hangConfig = false,
   });
@@ -76,12 +78,15 @@ class FakeOffersVendorRepository implements OffersVendorRepository {
   final Failure? configError;
   final Failure? submitError;
   final OfferForVendor? submitResult;
+  /// When set, each submit consumes the next entry. A null entry succeeds.
+  final List<Failure?>? submitScript;
   final bool hangRequest;
   final bool hangConfig;
 
   int getRequestCalls = 0;
   int getConfigCalls = 0;
   int submitCalls = 0;
+  void Function()? onSubmit;
   OfferTermsInput? lastTerms;
   String? lastSubmitRequestId;
 
@@ -113,7 +118,14 @@ class FakeOffersVendorRepository implements OffersVendorRepository {
     submitCalls++;
     lastSubmitRequestId = requestId;
     lastTerms = terms;
-    if (submitError != null) return Err(submitError!);
+    onSubmit?.call();
+    final script = submitScript;
+    if (script != null && script.isNotEmpty) {
+      final next = script.removeAt(0);
+      if (next != null) return Err(next);
+    } else if (submitError != null) {
+      return Err(submitError!);
+    }
     return Ok(
       submitResult ??
           _testOffer(
@@ -169,7 +181,7 @@ void main() {
     addTearDown(container.dispose);
     final sub = container.listen(
       submitOfferControllerProvider(requestId),
-      (_, __) {},
+      (_, _) {},
     );
     addTearDown(sub.close);
     return container;
@@ -322,6 +334,357 @@ void main() {
             .failure,
         isNull,
       );
+    });
+
+    test('web attach shows the photo and stores the server key without conversion',
+        () async {
+      String? uploadedType;
+      int? uploadedLength;
+      final container = ProviderContainer(
+        overrides: [
+          offersVendorRepositoryProvider.overrideWithValue(
+            FakeOffersVendorRepository(),
+          ),
+          offerUploadSkipsConversionProvider.overrideWithValue(true),
+          offerImageUploaderProvider.overrideWithValue(
+            OfferImageUploader((bytes, contentType, {onProgress}) async {
+              uploadedType = contentType;
+              uploadedLength = bytes.length;
+              onProgress?.call(1);
+              return const Ok('media-key-1');
+            }),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(submitOfferControllerProvider(requestId), (_, _) {});
+
+      await _waitUntilSettled(container, requestId);
+      await container
+          .read(submitOfferControllerProvider(requestId).notifier)
+          .addPickedImage(
+            bytes: Uint8List.fromList(const [1, 2, 3, 4]),
+            filename: 'ring.jpg',
+            contentType: 'image/jpeg',
+          );
+
+      final ready = container.read(submitOfferControllerProvider(requestId))
+          as SubmitOfferReady;
+      expect(uploadedType, 'image/jpeg');
+      expect(uploadedLength, 4);
+      expect(ready.images.single.key, 'media-key-1');
+      expect(ready.images.single.localBytes, [1, 2, 3, 4]);
+      expect(ready.images.single.uploading, isFalse);
+      expect(ready.draft.mediaKeys, ['media-key-1']);
+    });
+
+    test('failed attach keeps the preview and blocks submit', () async {
+      final repo = FakeOffersVendorRepository();
+      final container = ProviderContainer(
+        overrides: [
+          offersVendorRepositoryProvider.overrideWithValue(repo),
+          offerUploadSkipsConversionProvider.overrideWithValue(true),
+          offerImageUploaderProvider.overrideWithValue(
+            OfferImageUploader((bytes, contentType, {onProgress}) async {
+              return const Err(ServerFailure(message: 'Upload failed. Try again.'));
+            }),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(submitOfferControllerProvider(requestId), (_, _) {});
+
+      final loaded = await _waitUntilSettled(container, requestId);
+      (loaded as SubmitOfferReady).draft.offeredPrice = '5200';
+      loaded.draft.weightGrams = '15.00';
+
+      await container
+          .read(submitOfferControllerProvider(requestId).notifier)
+          .addPickedImage(
+            bytes: Uint8List.fromList(const [9, 9]),
+            filename: 'ring.jpg',
+            contentType: 'image/jpeg',
+          );
+
+      final afterUpload =
+          container.read(submitOfferControllerProvider(requestId))
+              as SubmitOfferReady;
+      expect(afterUpload.images.single.isPending, isTrue);
+      expect(afterUpload.images.single.localBytes, isNotEmpty);
+      expect(afterUpload.images.single.failure?.message, 'Upload failed. Try again.');
+      expect(afterUpload.draft.mediaKeys, isEmpty);
+
+      await container
+          .read(submitOfferControllerProvider(requestId).notifier)
+          .submit();
+      final afterSubmit =
+          container.read(submitOfferControllerProvider(requestId))
+              as SubmitOfferReady;
+      expect(
+        afterSubmit.failure?.message,
+        'Remove or retry the photo that failed to upload.',
+      );
+      expect(repo.submitCalls, 0);
+    });
+
+    test('submit retries while offer photos are still processing', () async {
+      final repo = FakeOffersVendorRepository(
+        submitScript: [
+          const ValidationFailure(code: 'MEDIA_NOT_READY', message: 'not ready'),
+          null,
+        ],
+      );
+      final container = ProviderContainer(
+        overrides: [
+          offersVendorRepositoryProvider.overrideWithValue(repo),
+          offerMediaReadyRetryDelayProvider.overrideWithValue(Duration.zero),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(submitOfferControllerProvider(requestId), (_, _) {});
+
+      final loaded = await _waitUntilSettled(container, requestId);
+      final ready = loaded as SubmitOfferReady;
+      ready.draft.offeredPrice = '5200';
+      ready.draft.weightGrams = '15.00';
+      ready.draft.mediaKeys.add('media-key-1');
+
+      await container
+          .read(submitOfferControllerProvider(requestId).notifier)
+          .submit();
+
+      expect(
+        container.read(submitOfferControllerProvider(requestId)),
+        isA<SubmitOfferSucceeded>(),
+      );
+      expect(repo.submitCalls, 2);
+    });
+
+    test('a failed photo can be removed and does not ride along on submit',
+        () async {
+      final repo = FakeOffersVendorRepository();
+      final container = ProviderContainer(
+        overrides: [
+          offersVendorRepositoryProvider.overrideWithValue(repo),
+          offerUploadSkipsConversionProvider.overrideWithValue(true),
+          offerImageUploaderProvider.overrideWithValue(
+            OfferImageUploader((bytes, contentType, {onProgress}) async {
+              return bytes.length == 1
+                  ? const Ok('media-key-ok')
+                  : const Err(ServerFailure(message: 'Upload failed. Try again.'));
+            }),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(submitOfferControllerProvider(requestId), (_, _) {});
+      final notifier =
+          container.read(submitOfferControllerProvider(requestId).notifier);
+      final loaded = await _waitUntilSettled(container, requestId);
+      final ready = loaded as SubmitOfferReady;
+      ready.draft.offeredPrice = '5200';
+      ready.draft.weightGrams = '15.00';
+
+      await notifier.addPickedImage(
+        bytes: Uint8List.fromList(const [1]),
+        filename: 'ok.jpg',
+        contentType: 'image/jpeg',
+      );
+      await notifier.addPickedImage(
+        bytes: Uint8List.fromList(const [2, 2]),
+        filename: 'bad.jpg',
+        contentType: 'image/jpeg',
+      );
+
+      final mixed = container.read(submitOfferControllerProvider(requestId))
+          as SubmitOfferReady;
+      final failed = mixed.images.singleWhere((image) => image.failure != null);
+      notifier.removeImage(failed.key);
+
+      final afterRemove =
+          container.read(submitOfferControllerProvider(requestId))
+              as SubmitOfferReady;
+      expect(afterRemove.images, hasLength(1));
+      expect(afterRemove.images.single.failure, isNull);
+      expect(afterRemove.draft.mediaKeys, ['media-key-ok']);
+
+      await notifier.addPickedImage(
+        bytes: Uint8List.fromList(const [3, 3]),
+        filename: 'bad-again.jpg',
+        contentType: 'image/jpeg',
+      );
+      await notifier.submit();
+      final blocked = container.read(submitOfferControllerProvider(requestId))
+          as SubmitOfferReady;
+      expect(blocked.failure, isA<ValidationFailure>());
+      expect(repo.submitCalls, 0);
+    });
+
+    test('leaving the screen stops a not-ready submit retry', () async {
+      late ProviderContainer container;
+      final repo = FakeOffersVendorRepository(
+        submitScript: [
+          const ValidationFailure(code: 'MEDIA_NOT_READY', message: 'not ready'),
+          null,
+        ],
+      );
+      container = ProviderContainer(
+        overrides: [
+          offersVendorRepositoryProvider.overrideWithValue(repo),
+          offerRetrySleepProvider.overrideWithValue((_) async {
+            container.dispose();
+          }),
+        ],
+      );
+      container.listen(submitOfferControllerProvider(requestId), (_, _) {});
+      final loaded = await _waitUntilSettled(container, requestId);
+      final ready = loaded as SubmitOfferReady;
+      ready.draft.offeredPrice = '5200';
+      ready.draft.weightGrams = '15.00';
+      ready.draft.mediaKeys.add('media-key-1');
+
+      await container
+          .read(submitOfferControllerProvider(requestId).notifier)
+          .submit();
+
+      expect(repo.submitCalls, 1);
+    });
+
+    test('a removed photo does not attach to a later pick of the same file',
+        () async {
+      final first = Completer<Result<String>>();
+      final second = Completer<Result<String>>();
+      var calls = 0;
+      final container = ProviderContainer(
+        overrides: [
+          offersVendorRepositoryProvider.overrideWithValue(
+            FakeOffersVendorRepository(),
+          ),
+          offerUploadSkipsConversionProvider.overrideWithValue(true),
+          offerImageUploaderProvider.overrideWithValue(
+            OfferImageUploader((bytes, contentType, {onProgress}) {
+              calls++;
+              return calls == 1 ? first.future : second.future;
+            }),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(submitOfferControllerProvider(requestId), (_, _) {});
+      await _waitUntilSettled(container, requestId);
+      final notifier =
+          container.read(submitOfferControllerProvider(requestId).notifier);
+      const bytes = [1, 2, 3];
+
+      final firstPick = notifier.addPickedImage(
+        bytes: Uint8List.fromList(bytes),
+        filename: 'ring.jpg',
+        contentType: 'image/jpeg',
+      );
+      await Future<void>.delayed(Duration.zero);
+      final pending = (container.read(submitOfferControllerProvider(requestId))
+              as SubmitOfferReady)
+          .images
+          .single
+          .key;
+      notifier.removeImage(pending);
+
+      final secondPick = notifier.addPickedImage(
+        bytes: Uint8List.fromList(bytes),
+        filename: 'ring.jpg',
+        contentType: 'image/jpeg',
+      );
+      await Future<void>.delayed(Duration.zero);
+      first.complete(const Ok('old-key'));
+      await firstPick;
+      second.complete(const Ok('new-key'));
+      await secondPick;
+
+      final ready = container.read(submitOfferControllerProvider(requestId))
+          as SubmitOfferReady;
+      expect(ready.images.single.key, 'new-key');
+      expect(ready.images.single.failure, isNull);
+      expect(ready.draft.mediaKeys, ['new-key']);
+    });
+
+    test('reloading the form still accepts a later photo', () async {
+      final first = Completer<Result<String>>();
+      var calls = 0;
+      final container = ProviderContainer(
+        overrides: [
+          offersVendorRepositoryProvider.overrideWithValue(
+            FakeOffersVendorRepository(),
+          ),
+          offerUploadSkipsConversionProvider.overrideWithValue(true),
+          offerImageUploaderProvider.overrideWithValue(
+            OfferImageUploader((bytes, contentType, {onProgress}) {
+              calls++;
+              if (calls == 1) return first.future;
+              return Future.value(const Ok('media-key-2'));
+            }),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(submitOfferControllerProvider(requestId), (_, _) {});
+      await _waitUntilSettled(container, requestId);
+      final notifier =
+          container.read(submitOfferControllerProvider(requestId).notifier);
+
+      final hanging = notifier.addPickedImage(
+        bytes: Uint8List.fromList(const [1]),
+        filename: 'ring.jpg',
+        contentType: 'image/jpeg',
+      );
+      await Future<void>.delayed(Duration.zero);
+      container.invalidate(submitOfferControllerProvider(requestId));
+      await _waitUntilSettled(container, requestId);
+      first.complete(const Ok('old-key'));
+      await hanging;
+
+      await container
+          .read(submitOfferControllerProvider(requestId).notifier)
+          .addPickedImage(
+            bytes: Uint8List.fromList(const [2]),
+            filename: 'band.jpg',
+            contentType: 'image/jpeg',
+          );
+
+      final ready = container.read(submitOfferControllerProvider(requestId))
+          as SubmitOfferReady;
+      expect(ready.images.single.key, 'media-key-2');
+      expect(ready.images.single.uploading, isFalse);
+      expect(ready.draft.mediaKeys, ['media-key-2']);
+    });
+
+    test('dispose during a not-ready submit does not start another attempt',
+        () async {
+      late ProviderContainer container;
+      final repo = FakeOffersVendorRepository(
+        submitScript: [
+          const ValidationFailure(code: 'MEDIA_NOT_READY', message: 'not ready'),
+        ],
+      );
+      container = ProviderContainer(
+        overrides: [
+          offersVendorRepositoryProvider.overrideWithValue(repo),
+        ],
+      );
+      container.listen(submitOfferControllerProvider(requestId), (_, _) {});
+      final loaded = await _waitUntilSettled(container, requestId);
+      final ready = loaded as SubmitOfferReady;
+      ready.draft.offeredPrice = '5200';
+      ready.draft.weightGrams = '15.00';
+      ready.draft.mediaKeys.add('media-key-1');
+      repo.onSubmit = () {
+        container.dispose();
+      };
+
+      await container
+          .read(submitOfferControllerProvider(requestId).notifier)
+          .submit();
+
+      expect(repo.submitCalls, 1);
     });
   });
 }

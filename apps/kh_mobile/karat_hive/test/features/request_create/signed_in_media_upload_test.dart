@@ -117,13 +117,13 @@ void main() {
       ),
     ).thenAnswer((inv) async {
       final contentType = inv.positionalArguments[1] as String;
-      expect(contentType, 'image/avif');
+      expect(contentType, 'image/webp');
       if (fail != null) return Err(fail);
       return Ok(key);
     });
   }
 
-  group('signed-in attach uploads AVIF immediately', () {
+  group('signed-in attach uploads WebP immediately', () {
     test('addImage converts then uploads; slot is READY', () async {
       stubUpload();
       final container = containerWith(SignedIn(_customer()));
@@ -138,7 +138,7 @@ void main() {
       expect(state.media.single.isLocalOnly, isFalse);
       expect(state.media.single.key, 'media-key-1');
       expect(state.mediaKeys, ['media-key-1']);
-      expect(state.media.single.contentType, 'image/avif');
+      expect(state.media.single.contentType, 'image/webp');
       verifyNever(() => repo.createDraft(any()));
       verifyNever(() => repo.patchDraft(any(), any()));
     });
@@ -183,7 +183,7 @@ void main() {
       );
     });
 
-    test('failed upload then retry uploads AVIF again', () async {
+    test('failed upload then retry uploads WebP again', () async {
       stubUpload(fail: const ServerFailure(message: 'network'));
       final container = containerWith(SignedIn(_customer()));
       final ctrl = container.read(requestCreateControllerProvider.notifier);
@@ -206,7 +206,7 @@ void main() {
   });
 
   group('guest attach then sign-in flush', () {
-    test('flush uploads AVIF without publish', () async {
+    test('flush uploads WebP without publish', () async {
       stubUpload();
       final sessionCtrl = _MutableSessionController(const SignedOut());
       final container = ProviderContainer(
@@ -278,7 +278,7 @@ void main() {
     });
   });
 
-  group('web upload skips client-side AVIF', () {
+  group('web upload skips client-side conversion', () {
     test('addImage uploads original bytes/contentType, no conversion', () async {
       when(
         () => repo.uploadRequestImageBytes(

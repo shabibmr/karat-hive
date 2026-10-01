@@ -111,4 +111,42 @@ describe('offer.presenter', () => {
     expect(presented.awardedElsewhere).toBe(true);
     expect(presented.terms.offeredPrice).toBe('2500');
   });
+
+  it('includes display and thumbnail URLs for READY offer photos', () => {
+    const withPhoto: PrismaOfferWithDetails = {
+      ...sampleOffer,
+      media: [
+        {
+          offerId: sampleOffer.id,
+          mediaId: 'media-1',
+          displayOrder: 0,
+          media: {
+            id: 'media-1',
+            key: 'photo-key',
+            purpose: 'OFFER_IMAGE',
+            bucket: 'REQUEST_MEDIA',
+            contentType: 'image/jpeg',
+            byteSize: 1200,
+            state: 'READY',
+            thumbnailKey: 'thumb-key',
+            uploadedByUserId: '44444444-4444-4444-4444-444444444444',
+            malwareScanState: 'CLEAN',
+            exifStripped: true,
+            createdAt: new Date('2026-09-07T12:00:00Z'),
+            updatedAt: new Date('2026-09-07T12:00:00Z'),
+          },
+        },
+      ],
+    };
+
+    const presented = presentOfferForCustomer(withPhoto);
+    expect(presented.media).toEqual([
+      expect.objectContaining({
+        key: 'photo-key',
+        contentType: 'image/jpeg',
+        displayUrl: '/v1/media/photo-key',
+        thumbnailUrl: '/v1/media/thumb-key',
+      }),
+    ]);
+  });
 });

@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, Res } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
 import { z } from 'zod';
+import { Public } from '../../../edge/auth/public.decorator';
 import { Viewer } from '../../../edge/auth/viewer.decorator';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
 import { zodBody } from '../../../edge/validation/zod-validation.pipe';
@@ -25,6 +26,11 @@ const uploadIntentSchema = z.object({
 export class MediaController {
   constructor(private readonly media: MediaService) {}
 
+  /**
+   * Public so `Image.network` can load it without a bearer token. Only allow-listed,
+   * READY display images are served; everything else 404s (see the service).
+   */
+  @Public()
   @Get(':key')
   async getMedia(
     @Param('key') key: string,
@@ -32,11 +38,12 @@ export class MediaController {
   ) {
     const result = await this.media.resolveMediaUrlOrStream(key);
     if (result.type === 'redirect') {
-      return reply.redirect(result.url, 307);
+      // Shorter than the 3600 s signature so a cached redirect never outlives it.
+      return reply.header('Cache-Control', 'public, max-age=300').redirect(result.url, 307);
     }
     return reply
       .header('Content-Type', result.contentType)
-      .header('Cache-Control', 'public, max-age=3600')
+      .header('Cache-Control', 'private, max-age=3600')
       .send(result.buffer);
   }
 

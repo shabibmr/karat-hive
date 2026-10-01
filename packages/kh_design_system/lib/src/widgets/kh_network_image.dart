@@ -1,13 +1,17 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_avif/flutter_avif.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
-/// Network image that routes AVIF through `flutter_avif` (libavif).
+/// Network image that routes AVIF through `flutter_avif` (libavif)
+/// and all other formats (WebP, JPEG, PNG) through `cached_network_image`.
 /// Flutter's built-in codecs do not reliably decode AVIF across platforms.
 ///
 /// Backend media URLs are relative (`/v1/media/<key>`); each app sets
 /// [urlResolver] once at bootstrap to resolve them against its API base URL.
 class KhNetworkImage extends StatelessWidget {
   static String? Function(String url)? urlResolver;
+  static BaseCacheManager? defaultCacheManager;
 
   /// [url] resolved through [urlResolver]; absolute URLs pass through.
   static String resolve(String url) {
@@ -27,6 +31,7 @@ class KhNetworkImage extends StatelessWidget {
     this.width,
     this.height,
     this.errorBuilder,
+    this.cacheManager,
   });
 
   final String url;
@@ -35,6 +40,7 @@ class KhNetworkImage extends StatelessWidget {
   final double? width;
   final double? height;
   final ImageErrorWidgetBuilder? errorBuilder;
+  final BaseCacheManager? cacheManager;
 
   bool get _isAvif =>
       contentType == 'image/avif' || url.toLowerCase().contains('.avif');
@@ -42,7 +48,7 @@ class KhNetworkImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final onError = errorBuilder ??
-        (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined));
+        (_, _, _) => const Center(child: Icon(Icons.broken_image_outlined));
     final resolved = resolve(url);
 
     if (_isAvif) {
@@ -55,16 +61,16 @@ class KhNetworkImage extends StatelessWidget {
       );
     }
 
-    return Image.network(
-      resolved,
+    return CachedNetworkImage(
+      imageUrl: resolved,
+      cacheManager: cacheManager ?? defaultCacheManager,
       fit: fit,
       width: width,
       height: height,
-      errorBuilder: onError,
-      loadingBuilder: (_, child, progress) {
-        if (progress == null) return child;
-        return const Center(child: CircularProgressIndicator(strokeWidth: 2));
-      },
+      placeholder: (_, _) => const Center(
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+      errorWidget: (context, url, error) => onError(context, error, null),
     );
   }
 }

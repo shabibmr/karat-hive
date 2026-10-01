@@ -177,8 +177,8 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLocale = ref.watch(appLocaleProvider).languageCode;
-    final patchedSettings = ref.watch(settingsControllerProvider).valueOrNull;
-    final serverSettings = ref.watch(userSettingsProvider).valueOrNull;
+    final patchedSettings = ref.watch(settingsControllerProvider).value;
+    final serverSettings = ref.watch(userSettingsProvider).value;
     final settings = patchedSettings ?? serverSettings;
     final notifications =
         settings?.notifications ?? const <String, NotificationChannelPref>{};
@@ -192,7 +192,7 @@ class SettingsScreen extends ConsumerWidget {
         : '07:00';
 
     final presetsAsync = ref.watch(filterPresetsListProvider);
-    final presets = presetsAsync.valueOrNull ?? const <FilterPresetItem>[];
+    final presets = presetsAsync.value ?? const <FilterPresetItem>[];
     final defaultPresetId = settings?.defaultFilterPresetId;
     final defaultPreset =
         (defaultPresetId != null && defaultPresetId.isNotEmpty)
@@ -202,7 +202,7 @@ class SettingsScreen extends ConsumerWidget {
 
     final sessionsAsync = ref.watch(activeSessionsProvider);
     final configAsync = ref.watch(platformConfigProvider);
-    final config = configAsync.valueOrNull;
+    final config = configAsync.value;
 
     final categories = [
       NotificationPreferenceCategory(

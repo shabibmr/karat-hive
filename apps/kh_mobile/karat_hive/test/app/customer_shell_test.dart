@@ -59,6 +59,7 @@ GoRouter _router() => GoRouter(
     );
 
 Widget _app(GoRouter router) => MaterialApp.router(
+      theme: khTheme(),
       routerConfig: router,
       supportedLocales: KhStrings.supportedLocales,
       localizationsDelegates: KhStrings.delegates,
@@ -75,6 +76,19 @@ void main() {
     final bar = tester.widget<KhBottomNav>(find.byType(KhBottomNav));
     expect(bar.destinations.length, 5);
     expect(bar.currentIndex, 0);
+
+    // V01 — selected nav uses goldDark; no stadium indicator.
+    final navTheme = Theme.of(tester.element(find.byType(KhBottomNav)))
+        .navigationBarTheme;
+    expect(navTheme.indicatorColor, Colors.transparent);
+    expect(
+      navTheme.iconTheme!.resolve({WidgetState.selected})!.color,
+      KhTokens.light.goldDark,
+    );
+    expect(
+      navTheme.labelTextStyle!.resolve({WidgetState.selected})!.color,
+      KhTokens.light.goldDark,
+    );
   });
 
   testWidgets('tapping a destination navigates and updates the selected index',

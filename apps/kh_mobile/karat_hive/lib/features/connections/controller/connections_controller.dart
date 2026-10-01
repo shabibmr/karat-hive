@@ -5,7 +5,7 @@ import 'package:kh_domain/kh_domain.dart';
 import '../repository/connections_repository.dart';
 
 class ConnectionsController
-    extends AutoDisposeNotifier<PagedListController<ConnectionForVendor>> {
+    extends Notifier<PagedListController<ConnectionForVendor>> {
   @override
   PagedListController<ConnectionForVendor> build() {
     final repo = ref.watch(connectionsRepositoryProvider);
@@ -32,7 +32,7 @@ class ConnectionsController
   Future<void> retry() => state.retry();
 }
 
-final connectionsControllerProvider = AutoDisposeNotifierProvider<
+final connectionsControllerProvider = NotifierProvider.autoDispose<
     ConnectionsController, PagedListController<ConnectionForVendor>>(
   ConnectionsController.new,
 );

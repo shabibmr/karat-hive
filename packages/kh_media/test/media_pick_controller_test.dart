@@ -13,27 +13,27 @@ class _MockApi extends Mock implements KhApi {}
 
 class _MockImagePicker extends Mock implements ImagePicker {}
 
-/// Converts by just relabeling the bytes as AVIF — avoids exercising the
-/// real libavif platform binding in unit tests.
+/// Converts by just relabeling the bytes as WebP — avoids exercising the
+/// real encoder platform binding in unit tests.
 class _FakeImageConverter implements ImageConverter {
   int convertCalls = 0;
 
   @override
-  Future<MediaAsset> convertToAvif(File source) async {
+  Future<MediaAsset> convert(File source) async {
     final bytes = await source.readAsBytes();
-    return convertBytesToAvif(Uint8List.fromList(bytes));
+    return convertBytes(Uint8List.fromList(bytes));
   }
 
   @override
-  Future<MediaAsset> convertBytesToAvif(Uint8List bytes) async {
+  Future<MediaAsset> convertBytes(Uint8List bytes) async {
     convertCalls++;
     final outPath =
-        '${Directory.systemTemp.path}/kh_media_fake_${DateTime.now().microsecondsSinceEpoch}.avif';
+        '${Directory.systemTemp.path}/kh_media_fake_${DateTime.now().microsecondsSinceEpoch}.webp';
     final outFile = await File(outPath).writeAsBytes(bytes);
     return MediaAsset(
       file: outFile,
       bytes: bytes,
-      contentType: 'image/avif',
+      contentType: 'image/webp',
       byteSize: bytes.length,
     );
   }
@@ -120,7 +120,7 @@ void main() {
       expect(c.hasPrefetchedIntent, isTrue);
     });
 
-    test('requests image/avif content type for image purposes', () async {
+    test('requests image/webp content type for image purposes on native', () async {
       String? capturedContentType;
       when(
         () => api.uploadIntent(
@@ -135,7 +135,7 @@ void main() {
 
       await controller(purpose: MediaUploadPurpose.offerImage).prefetchIntent();
 
-      expect(capturedContentType, 'image/avif');
+      expect(capturedContentType, 'image/webp');
     });
 
     test('requests application/pdf content type for KYC (dominant case)', () async {
@@ -229,7 +229,7 @@ void main() {
 
       final cached = await cache.get('slot-1');
       expect(cached, isNotNull);
-      expect(cached!.contentType, 'image/avif');
+      expect(cached!.contentType, 'image/webp');
     });
   });
 

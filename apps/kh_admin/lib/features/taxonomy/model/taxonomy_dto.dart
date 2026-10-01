@@ -5,7 +5,7 @@ part 'taxonomy_dto.g.dart';
 
 /// Request DTO for creating a new Category or Region node.
 @freezed
-class CreateTaxonomyDto with _$CreateTaxonomyDto {
+abstract class CreateTaxonomyDto with _$CreateTaxonomyDto {
   const factory CreateTaxonomyDto({
     required String nameEn,
     required String nameAr,
@@ -20,7 +20,7 @@ class CreateTaxonomyDto with _$CreateTaxonomyDto {
 
 /// Request DTO for updating an existing Category or Region node.
 @freezed
-class UpdateTaxonomyDto with _$UpdateTaxonomyDto {
+abstract class UpdateTaxonomyDto with _$UpdateTaxonomyDto {
   const factory UpdateTaxonomyDto({
     String? nameEn,
     String? nameAr,

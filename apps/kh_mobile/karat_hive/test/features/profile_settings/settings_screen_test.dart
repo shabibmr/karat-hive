@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:karat_hive/app/session/session_controller.dart';
 import 'package:karat_hive/features/profile_settings/controller/settings_controller.dart';
 import 'package:karat_hive/features/profile_settings/presentation/settings_screen.dart';
 import 'package:karat_hive/features/profile_settings/repository/profile_settings_repository.dart';
@@ -13,6 +15,8 @@ import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/fake_session.dart';
+
 class _MockProfileSettingsRepository extends Mock
     implements ProfileSettingsRepository {}
 
@@ -21,7 +25,13 @@ Widget _host({
   Widget child = const SettingsScreen(),
 }) {
   return ProviderScope(
-    overrides: overrides,
+    overrides: [
+      // `userSettingsProvider` only fetches for a signed-in session.
+      sessionProvider.overrideWith(
+        () => FakeSessionController(SignedIn(testVendorUser())),
+      ),
+      ...overrides,
+    ],
     child: Consumer(
       builder: (context, ref, _) {
         final locale = ref.watch(appLocaleProvider);
@@ -270,6 +280,63 @@ void main() {
   });
 
   group('AppLocaleNotifier unit tests', () {
+    test('Guest session never calls GET /v1/me/settings', () async {
+      final repo = _MockProfileSettingsRepository();
+      final container = ProviderContainer(
+        overrides: [
+          profileSettingsRepositoryProvider.overrideWithValue(repo),
+          sessionProvider.overrideWith(
+            () => FakeSessionController(const SignedOut()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.listen(appLocaleProvider, (_, __) {});
+      expect(await container.read(userSettingsProvider.future), isNull);
+
+      verifyZeroInteractions(repo);
+      expect(container.read(appLocaleProvider), const Locale('en'));
+    });
+
+    test('refreshUser (new SignedIn, same account) does not refetch', () async {
+      final session = FakeSessionController(SignedIn(testVendorUser()));
+      final container = ProviderContainer(
+        overrides: [
+          profileSettingsRepositoryProvider.overrideWithValue(repo),
+          sessionProvider.overrideWith(() => session),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.listen(userSettingsProvider, (_, __) {});
+      await container.read(userSettingsProvider.future);
+      session.emit(SignedIn(testVendorUser()));
+      await container.read(userSettingsProvider.future);
+
+      verify(() => repo.settings()).called(1);
+    });
+
+    test('sign-out drops the previous account language', () async {
+      currentLang = 'ar';
+      final session = FakeSessionController(SignedIn(testVendorUser()));
+      final container = ProviderContainer(
+        overrides: [
+          profileSettingsRepositoryProvider.overrideWithValue(repo),
+          sessionProvider.overrideWith(() => session),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.listen(appLocaleProvider, (_, __) {});
+      await container.read(userSettingsProvider.future);
+      expect(container.read(appLocaleProvider), const Locale('ar'));
+
+      session.emit(const SignedOut());
+      await container.read(userSettingsProvider.future);
+      expect(container.read(appLocaleProvider), const Locale('en'));
+    });
+
     test('initializes with ar when userSettingsProvider has ar', () async {
       final container = ProviderContainer(
         overrides: [

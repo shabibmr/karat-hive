@@ -174,7 +174,7 @@ class _AwaitingApprovalScreenState extends ConsumerState<AwaitingApprovalScreen>
       const SizedBox(height: 12),
       TextButton.icon(
         onPressed: () async {
-          final config = ref.read(platformConfigProvider).valueOrNull;
+          final config = ref.read(platformConfigProvider).value;
           final url = config?.supportContactUrl ?? 'https://karathive.ae/support';
           await openExternalUrl(url);
         },

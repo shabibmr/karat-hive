@@ -376,14 +376,49 @@ describe('MediaService.complete (G2-P02)', () => {
       });
     });
 
-    it('throws FORBIDDEN if media is quarantined', async () => {
+    it.each(['QUARANTINED', 'PENDING_UPLOAD', 'PENDING_PROCESSING', 'FAILED'] as const)(
+      'returns NOT_FOUND for a %s image (never serves unprocessed bytes)',
+      async (state) => {
+        vi.mocked(repo.findByKey).mockResolvedValue(
+          mediaRow({ key: 'img-q', state, purpose: 'REQUEST_IMAGE' }),
+        );
+        await expect(build({}).resolveMediaUrlOrStream('img-q')).rejects.toMatchObject({
+          errorCode: ErrorCode.NOT_FOUND,
+        });
+        expect(storage.createSignedDownloadUrl).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      'KYC_DOCUMENT',
+      'EXPORT_ARTEFACT',
+      'PROFILE_PHOTO',
+      'VENDOR_SHOP_PHOTO',
+    ] as const)('hides %s from the unauthenticated media route', async (purpose) => {
       vi.mocked(repo.findByKey).mockResolvedValue(
-        mediaRow({ key: 'img-q', state: 'QUARANTINED' }),
+        mediaRow({ key: 'priv-1', state: 'READY', purpose }),
       );
-      const svc = build({});
-      await expect(svc.resolveMediaUrlOrStream('img-q')).rejects.toMatchObject({
-        errorCode: ErrorCode.MEDIA_QUARANTINED,
+      await expect(build({}).resolveMediaUrlOrStream('priv-1')).rejects.toMatchObject({
+        errorCode: ErrorCode.NOT_FOUND,
       });
+      expect(storage.createSignedDownloadUrl).not.toHaveBeenCalled();
     });
+
+    it.each(['REQUEST_IMAGE', 'OFFER_IMAGE', 'VENDOR_LOGO'] as const)(
+      'serves a READY %s',
+      async (purpose) => {
+        vi.mocked(repo.findByKey).mockResolvedValue(
+          mediaRow({ key: 'pub-1', state: 'READY', purpose, uploadedByUserId: 'user-1' }),
+        );
+        vi.mocked(storage.createSignedDownloadUrl).mockResolvedValue({
+          url: 'https://oci.example/pub-1',
+          expiresAt: new Date(),
+        });
+        await expect(build({}).resolveMediaUrlOrStream('pub-1')).resolves.toEqual({
+          type: 'redirect',
+          url: 'https://oci.example/pub-1',
+        });
+      },
+    );
   });
 });

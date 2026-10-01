@@ -1,9 +1,35 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_avif/flutter_avif.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 
+class FakeFailingCacheManager implements BaseCacheManager {
+  @override
+  Stream<FileResponse> getFileStream(
+    String url, {
+    String? key,
+    Map<String, String>? headers,
+    bool? withProgress,
+  }) async* {
+    throw Exception('Failed to load image');
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void main() {
+  setUp(() {
+    KhNetworkImage.defaultCacheManager = FakeFailingCacheManager();
+  });
+
+  tearDown(() {
+    KhNetworkImage.defaultCacheManager = null;
+    KhNetworkImage.urlResolver = null;
+  });
+
   testWidgets('routes image/avif content type through AvifImage', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
@@ -17,7 +43,7 @@ void main() {
     );
 
     expect(find.byType(AvifImage), findsOneWidget);
-    expect(find.byType(Image), findsNothing);
+    expect(find.byType(CachedNetworkImage), findsNothing);
   });
 
   testWidgets('routes a .avif URL through AvifImage even with a default contentType',
@@ -33,7 +59,7 @@ void main() {
     expect(find.byType(AvifImage), findsOneWidget);
   });
 
-  testWidgets('routes non-AVIF content types through Image.network', (tester) async {
+  testWidgets('routes non-AVIF content types through CachedNetworkImage', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -42,7 +68,7 @@ void main() {
       ),
     );
 
-    expect(find.byType(Image), findsOneWidget);
+    expect(find.byType(CachedNetworkImage), findsOneWidget);
     expect(find.byType(AvifImage), findsNothing);
   });
 
@@ -56,7 +82,7 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
 
     expect(find.byIcon(Icons.broken_image_outlined), findsOneWidget);
   });
@@ -67,13 +93,13 @@ void main() {
         home: Scaffold(
           body: KhNetworkImage(
             url: 'https://example.com/logo.jpg',
-            errorBuilder: (_, __, ___) => const Text('custom-error'),
+            errorBuilder: (_, _, _) => const Text('custom-error'),
           ),
         ),
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
 
     expect(find.text('custom-error'), findsOneWidget);
     expect(find.byIcon(Icons.broken_image_outlined), findsNothing);

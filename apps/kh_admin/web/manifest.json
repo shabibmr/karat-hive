@@ -1,12 +1,12 @@
 {
     "name": "Karat Hive Admin",
-    "short_name": "Karat Hive Admin",
+    "short_name": "KH Admin",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#FDFBF7",
+    "theme_color": "#8F731B",
+    "description": "Karat Hive Admin — platform operations portal.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

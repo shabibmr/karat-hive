@@ -25,9 +25,9 @@ class MediaSlot {
   final String? localLabel;
   /// Absolute path for Guest-deferred upload on IO platforms (`adr/0011`).
   final String? localPath;
-  /// Original pick bytes for thumbnails (`Image.memory` cannot decode AVIF).
+  /// Original pick bytes, for thumbnails and re-conversion on retry.
   final Uint8List? localBytes;
-  /// Converted AVIF bytes ready to upload.
+  /// Converted (WebP on native) bytes ready to upload.
   final Uint8List? uploadBytes;
   final String? contentType;
   /// Resolved URL for a slot loaded from an already-uploaded Request (e.g.
@@ -182,7 +182,7 @@ class RequestCreateState {
   bool get mediaInFlight =>
       uploading || media.any((m) => m.uploading);
 
-  /// Guest: photos attached, none failed/in-flight (local AVIF is OK).
+  /// Guest: photos attached, none failed/in-flight (local converted bytes are OK).
   /// Signed-in publish uses [mediaKeysReady] instead.
   bool get photosAttachedReady {
     if (mediaInFlight || hasFailedMedia) return false;

@@ -4,7 +4,7 @@ import 'package:kh_domain/kh_domain.dart';
 import '../repository/subscription_repository.dart';
 
 class SubscriptionsListController
-    extends AutoDisposeAsyncNotifier<List<VendorSubscriptionItem>> {
+    extends AsyncNotifier<List<VendorSubscriptionItem>> {
   @override
   Future<List<VendorSubscriptionItem>> build() async {
     final repo = ref.watch(subscriptionRepositoryProvider);
