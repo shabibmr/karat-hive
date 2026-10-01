@@ -14,8 +14,7 @@ import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 import 'package:mocktail/mocktail.dart';
 
-/// The screen prefetches an upload-intent on mount (fire-and-forget); stub
-/// [KhApi] so that never reaches the network in widget tests.
+/// Stub [KhApi] so a stray media call never reaches the network in widget tests.
 class _StubKhApi extends Mock implements KhApi {}
 
 KhApi _stubApi() {

@@ -17,7 +17,14 @@ import {
 export type OfferMediaDto = {
   id: string;
   key: string;
+  state: Media['state'];
+  purpose: Media['purpose'];
+  contentType: string;
+  byteSize: number;
   displayOrder: number;
+  /** Relative `GET /v1/media/:key`. The client resolves it against its API base. */
+  displayUrl: string;
+  thumbnailUrl: string;
 };
 
 export type MaskedVendorDto = {
@@ -136,11 +143,23 @@ export function presentOfferMedia(
   return mediaList
     .filter((m) => m.media.state === 'READY')
     .sort((a, b) => a.displayOrder - b.displayOrder)
-    .map((m) => ({
-      id: m.media.id,
-      key: m.media.key,
-      displayOrder: m.displayOrder,
-    }));
+    .map((m) => {
+      const displayUrl = `/v1/media/${m.media.key}`;
+      const thumbnailUrl = m.media.thumbnailKey
+        ? `/v1/media/${m.media.thumbnailKey}`
+        : displayUrl;
+      return {
+        id: m.media.id,
+        key: m.media.key,
+        state: m.media.state,
+        purpose: m.media.purpose,
+        contentType: m.media.contentType,
+        byteSize: m.media.byteSize,
+        displayOrder: m.displayOrder,
+        displayUrl,
+        thumbnailUrl,
+      };
+    });
 }
 
 /**

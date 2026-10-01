@@ -116,6 +116,19 @@ export class OfferRepository {
     return !!match && match.isEligible;
   }
 
+  async findOfferMediaByKeys(keys: string[], tx?: DbTx) {
+    if (keys.length === 0) return [];
+    return this.db(tx).media.findMany({
+      where: { key: { in: keys } },
+      select: {
+        key: true,
+        state: true,
+        purpose: true,
+        uploadedByUserId: true,
+      },
+    });
+  }
+
   async findPendingOfferByVendor(
     vendorProfileId: string,
     requestId: string,
