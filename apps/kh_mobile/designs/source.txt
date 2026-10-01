@@ -1,0 +1,1487 @@
+Absolutely. Below is a **production-ready Flutter `KhTheme`** built directly around the Karat Hive design language we established: **warm white/ivory surfaces, charcoal typography, restrained champagne gold, generous whitespace, minimal borders, almost no elevation, and Material 3**.
+
+The original Karat Hive source describes a tokenized design architecture and Material-oriented component system; the implementation below applies the lighter, simpler direction we subsequently established rather than the earlier dark Art-Deco-heavy treatment. 
+
+# 1. `kh_theme.dart`
+
+```dart
+import 'package:flutter/material.dart';
+
+/// Karat Hive Design System
+///
+/// Modern Luxury Jewellery Editorial
+///
+/// Principles:
+/// - Warm white / ivory surfaces
+/// - Charcoal primary text
+/// - Champagne gold as a restrained accent
+/// - Minimal borders
+/// - Almost no elevation
+/// - Large whitespace
+/// - Soft geometry
+/// - Material 3 foundation
+/// - Jewellery imagery carries the visual weight
+abstract final class KhTheme {
+  KhTheme._();
+
+  // ---------------------------------------------------------------------------
+  // COLORS
+  // ---------------------------------------------------------------------------
+
+  static const ivory = Color(0xFFFAF8F3);
+  static const warmWhite = Color(0xFFFFFDFC);
+  static const white = Color(0xFFFFFFFF);
+
+  static const stone50 = Color(0xFFF7F5F0);
+  static const stone100 = Color(0xFFEDEAE3);
+  static const stone200 = Color(0xFFDCD8CF);
+  static const stone400 = Color(0xFFA8A39A);
+  static const stone600 = Color(0xFF706C65);
+
+  static const charcoal = Color(0xFF242320);
+  static const mutedText = Color(0xFF77736B);
+
+  static const champagne = Color(0xFFC6A15B);
+  static const gold = Color(0xFFD4AF37);
+  static const goldLight = Color(0xFFE8D6A5);
+
+  static const sapphire = Color(0xFF0A1128);
+
+  static const success = Color(0xFF557A62);
+  static const error = Color(0xFF9B514A);
+  static const warning = Color(0xFFA5793E);
+
+  // ---------------------------------------------------------------------------
+  // SPACING
+  // ---------------------------------------------------------------------------
+
+  static const double xxs = 4;
+  static const double xs = 8;
+  static const double sm = 12;
+  static const double md = 16;
+  static const double lg = 24;
+  static const double xl = 32;
+  static const double xxl = 40;
+  static const double xxxl = 48;
+  static const double huge = 64;
+  static const double massive = 80;
+
+  // ---------------------------------------------------------------------------
+  // RADII
+  // ---------------------------------------------------------------------------
+
+  static const double radiusXs = 4;
+  static const double radiusSm = 8;
+  static const double radiusMd = 12;
+  static const double radiusLg = 16;
+  static const double radiusXl = 20;
+
+  static const double radiusPill = 999;
+
+  // ---------------------------------------------------------------------------
+  // DIMENSIONS
+  // ---------------------------------------------------------------------------
+
+  static const double buttonHeight = 50;
+  static const double inputHeight = 48;
+  static const double searchHeight = 48;
+  static const double appBarHeight = 60;
+
+  static const double iconSmall = 18;
+  static const double iconMedium = 20;
+  static const double iconLarge = 24;
+  static const double iconFeature = 28;
+
+  static const double minTouchTarget = 44;
+
+  // ---------------------------------------------------------------------------
+  // TYPOGRAPHY
+  // ---------------------------------------------------------------------------
+
+  static const String displayFont = 'Cormorant Garamond';
+  static const String uiFont = 'Inter';
+
+  static TextTheme get _textTheme {
+    return const TextTheme(
+      displayLarge: TextStyle(
+        fontFamily: displayFont,
+        fontSize: 40,
+        fontWeight: FontWeight.w400,
+        height: 1.10,
+        letterSpacing: -0.4,
+        color: charcoal,
+      ),
+
+      displayMedium: TextStyle(
+        fontFamily: displayFont,
+        fontSize: 32,
+        fontWeight: FontWeight.w400,
+        height: 1.12,
+        letterSpacing: -0.2,
+        color: charcoal,
+      ),
+
+      displaySmall: TextStyle(
+        fontFamily: displayFont,
+        fontSize: 28,
+        fontWeight: FontWeight.w400,
+        height: 1.14,
+        color: charcoal,
+      ),
+
+      headlineLarge: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 24,
+        fontWeight: FontWeight.w500,
+        height: 1.20,
+        letterSpacing: -0.2,
+        color: charcoal,
+      ),
+
+      headlineMedium: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 20,
+        fontWeight: FontWeight.w500,
+        height: 1.25,
+        color: charcoal,
+      ),
+
+      headlineSmall: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        height: 1.28,
+        color: charcoal,
+      ),
+
+      titleLarge: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        height: 1.28,
+        color: charcoal,
+      ),
+
+      titleMedium: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        height: 1.30,
+        color: charcoal,
+      ),
+
+      titleSmall: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        height: 1.35,
+        color: charcoal,
+      ),
+
+      bodyLarge: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        height: 1.50,
+        color: charcoal,
+      ),
+
+      bodyMedium: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        height: 1.45,
+        color: charcoal,
+      ),
+
+      bodySmall: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        height: 1.40,
+        color: mutedText,
+      ),
+
+      labelLarge: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        height: 1.25,
+        letterSpacing: 0.1,
+        color: charcoal,
+      ),
+
+      labelMedium: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        height: 1.25,
+        letterSpacing: 0.4,
+        color: charcoal,
+      ),
+
+      labelSmall: TextStyle(
+        fontFamily: uiFont,
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+        height: 1.25,
+        letterSpacing: 1.2,
+        color: mutedText,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // LIGHT COLOR SCHEME
+  // ---------------------------------------------------------------------------
+
+  static const ColorScheme lightColorScheme = ColorScheme(
+    brightness: Brightness.light,
+
+    primary: charcoal,
+    onPrimary: white,
+
+    primaryContainer: stone100,
+    onPrimaryContainer: charcoal,
+
+    secondary: champagne,
+    onSecondary: white,
+
+    secondaryContainer: goldLight,
+    onSecondaryContainer: charcoal,
+
+    tertiary: sapphire,
+    onTertiary: white,
+
+    tertiaryContainer: stone100,
+    onTertiaryContainer: charcoal,
+
+    error: error,
+    onError: white,
+
+    errorContainer: Color(0xFFF4E2E0),
+    onErrorContainer: error,
+
+    surface: warmWhite,
+    onSurface: charcoal,
+
+    surfaceContainerHighest: stone100,
+    surfaceContainerHigh: Color(0xFFF2F0EB),
+    surfaceContainer: stone50,
+    surfaceContainerLow: Color(0xFFFBFAF7),
+    surfaceContainerLowest: white,
+
+    onSurfaceVariant: mutedText,
+
+    outline: stone200,
+    outlineVariant: Color(0xFFE7E3DB),
+
+    shadow: Color(0x1A000000),
+    scrim: Color(0x52000000),
+
+    inverseSurface: charcoal,
+    onInverseSurface: white,
+
+    inversePrimary: goldLight,
+  );
+
+  // ---------------------------------------------------------------------------
+  // DARK COLOR SCHEME
+  // ---------------------------------------------------------------------------
+
+  static const ColorScheme darkColorScheme = ColorScheme(
+    brightness: Brightness.dark,
+
+    primary: goldLight,
+    onPrimary: charcoal,
+
+    primaryContainer: Color(0xFF3A321E),
+    onPrimaryContainer: goldLight,
+
+    secondary: champagne,
+    onSecondary: charcoal,
+
+    secondaryContainer: Color(0xFF3A321E),
+    onSecondaryContainer: goldLight,
+
+    tertiary: Color(0xFFD9DCE5),
+    onTertiary: sapphire,
+
+    tertiaryContainer: Color(0xFF20283E),
+    onTertiaryContainer: Color(0xFFE8EAF0),
+
+    error: Color(0xFFE7AAA4),
+    onError: Color(0xFF3D1110),
+
+    errorContainer: Color(0xFF54201D),
+    onErrorContainer: Color(0xFFF5C9C5),
+
+    surface: Color(0xFF121212),
+    onSurface: Color(0xFFF4F1EA),
+
+    surfaceContainerHighest: Color(0xFF302F2B),
+    surfaceContainerHigh: Color(0xFF282723),
+    surfaceContainer: Color(0xFF211F1C),
+    surfaceContainerLow: Color(0xFF1A1917),
+    surfaceContainerLowest: Color(0xFF0C0C0B),
+
+    onSurfaceVariant: Color(0xFFCCC7BD),
+
+    outline: Color(0xFF5B574F),
+    outlineVariant: Color(0xFF3E3C38),
+
+    shadow: Color(0x66000000),
+    scrim: Color(0x99000000),
+
+    inverseSurface: Color(0xFFF4F1EA),
+    onInverseSurface: charcoal,
+
+    inversePrimary: champagne,
+  );
+
+  // ---------------------------------------------------------------------------
+  // LIGHT THEME
+  // ---------------------------------------------------------------------------
+
+  static ThemeData get light {
+    final scheme = lightColorScheme;
+
+    return ThemeData(
+      useMaterial3: true,
+
+      brightness: Brightness.light,
+
+      colorScheme: scheme,
+
+      scaffoldBackgroundColor: ivory,
+
+      fontFamily: uiFont,
+
+      textTheme: _textTheme,
+
+      visualDensity: VisualDensity.standard,
+
+      splashFactory: InkSparkle.splashFactory,
+
+      // -----------------------------------------------------------------------
+      // APP BAR
+      // -----------------------------------------------------------------------
+
+      appBarTheme: const AppBarTheme(
+        backgroundColor: warmWhite,
+        foregroundColor: charcoal,
+
+        elevation: 0,
+        scrolledUnderElevation: 0,
+
+        shadowColor: Colors.transparent,
+
+        surfaceTintColor: Colors.transparent,
+
+        centerTitle: false,
+
+        toolbarHeight: appBarHeight,
+
+        titleSpacing: md,
+
+        iconTheme: IconThemeData(
+          size: iconLarge,
+          color: charcoal,
+        ),
+
+        actionsIconTheme: IconThemeData(
+          size: iconLarge,
+          color: charcoal,
+        ),
+
+        titleTextStyle: TextStyle(
+          fontFamily: uiFont,
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+          height: 1.28,
+          color: charcoal,
+        ),
+      ),
+
+      // -----------------------------------------------------------------------
+      // BUTTONS
+      // -----------------------------------------------------------------------
+
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(
+            Size(double.infinity, buttonHeight),
+          ),
+
+          fixedSize: const WidgetStatePropertyAll(
+            Size.fromHeight(buttonHeight),
+          ),
+
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: lg),
+          ),
+
+          shape: const WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(radiusMd),
+              ),
+            ),
+          ),
+
+          elevation: const WidgetStatePropertyAll(0),
+
+          shadowColor: const WidgetStatePropertyAll(
+            Colors.transparent,
+          ),
+
+          backgroundColor: const WidgetStatePropertyAll(
+            charcoal,
+          ),
+
+          foregroundColor: const WidgetStatePropertyAll(
+            white,
+          ),
+
+          overlayColor: WidgetStateProperty.resolveWith(
+            (states) {
+              if (states.contains(WidgetState.pressed)) {
+                return white.withValues(alpha: 0.10);
+              }
+
+              if (states.contains(WidgetState.hovered)) {
+                return white.withValues(alpha: 0.06);
+              }
+
+              return null;
+            },
+          ),
+
+          textStyle: const WidgetStatePropertyAll(
+            TextStyle(
+              fontFamily: uiFont,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.1,
+            ),
+          ),
+        ),
+      ),
+
+      filledButtonTheme: FilledButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(
+            Size(double.infinity, buttonHeight),
+          ),
+
+          fixedSize: const WidgetStatePropertyAll(
+            Size.fromHeight(buttonHeight),
+          ),
+
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: lg),
+          ),
+
+          shape: const WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(radiusMd),
+              ),
+            ),
+          ),
+
+          elevation: const WidgetStatePropertyAll(0),
+
+          backgroundColor: const WidgetStatePropertyAll(
+            charcoal,
+          ),
+
+          foregroundColor: const WidgetStatePropertyAll(
+            white,
+          ),
+
+          textStyle: const WidgetStatePropertyAll(
+            TextStyle(
+              fontFamily: uiFont,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(
+            Size(double.infinity, buttonHeight),
+          ),
+
+          fixedSize: const WidgetStatePropertyAll(
+            Size.fromHeight(buttonHeight),
+          ),
+
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: lg),
+          ),
+
+          shape: const WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(radiusMd),
+              ),
+            ),
+          ),
+
+          side: const WidgetStatePropertyAll(
+            BorderSide(
+              color: stone200,
+              width: 1,
+            ),
+          ),
+
+          foregroundColor: const WidgetStatePropertyAll(
+            charcoal,
+          ),
+
+          textStyle: const WidgetStatePropertyAll(
+            TextStyle(
+              fontFamily: uiFont,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+
+      textButtonTheme: TextButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(
+            Size(minTouchTarget, minTouchTarget),
+          ),
+
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(
+              horizontal: sm,
+            ),
+          ),
+
+          foregroundColor: const WidgetStatePropertyAll(
+            charcoal,
+          ),
+
+          overlayColor: WidgetStatePropertyAll(
+            champagne.withValues(alpha: 0.08),
+          ),
+
+          textStyle: const WidgetStatePropertyAll(
+            TextStyle(
+              fontFamily: uiFont,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+
+      // -----------------------------------------------------------------------
+      // ICON BUTTON
+      // -----------------------------------------------------------------------
+
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(
+            Size(minTouchTarget, minTouchTarget),
+          ),
+
+          fixedSize: const WidgetStatePropertyAll(
+            Size(minTouchTarget, minTouchTarget),
+          ),
+
+          iconSize: const WidgetStatePropertyAll(
+            iconLarge,
+          ),
+
+          foregroundColor: const WidgetStatePropertyAll(
+            charcoal,
+          ),
+
+          shape: const WidgetStatePropertyAll(
+            CircleBorder(),
+          ),
+
+          overlayColor: WidgetStatePropertyAll(
+            champagne.withValues(alpha: 0.08),
+          ),
+        ),
+      ),
+
+      // -----------------------------------------------------------------------
+      // INPUTS
+      // -----------------------------------------------------------------------
+
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+
+        fillColor: stone50,
+
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: md,
+          vertical: 14,
+        ),
+
+        constraints: const BoxConstraints(
+          minHeight: inputHeight,
+        ),
+
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusMd),
+          ),
+          borderSide: BorderSide.none,
+        ),
+
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusMd),
+          ),
+          borderSide: BorderSide.none,
+        ),
+
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusMd),
+          ),
+          borderSide: BorderSide(
+            color: champagne,
+            width: 1,
+          ),
+        ),
+
+        errorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusMd),
+          ),
+          borderSide: BorderSide(
+            color: error,
+            width: 1,
+          ),
+        ),
+
+        focusedErrorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusMd),
+          ),
+          borderSide: BorderSide(
+            color: error,
+            width: 1,
+          ),
+        ),
+
+        labelStyle: const TextStyle(
+          fontFamily: uiFont,
+          fontSize: 14,
+          color: mutedText,
+        ),
+
+        floatingLabelStyle: const TextStyle(
+          fontFamily: uiFont,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: charcoal,
+        ),
+
+        hintStyle: const TextStyle(
+          fontFamily: uiFont,
+          fontSize: 14,
+          color: stone400,
+        ),
+
+        helperStyle: const TextStyle(
+          fontFamily: uiFont,
+          fontSize: 12,
+          color: mutedText,
+        ),
+
+        errorStyle: const TextStyle(
+          fontFamily: uiFont,
+          fontSize: 12,
+          color: error,
+        ),
+
+        prefixIconColor: stone600,
+        suffixIconColor: stone600,
+      ),
+
+      // -----------------------------------------------------------------------
+      // SEARCH BAR
+      // -----------------------------------------------------------------------
+
+      searchBarTheme: SearchBarThemeData(
+        elevation: const WidgetStatePropertyAll(0),
+
+        backgroundColor: const WidgetStatePropertyAll(
+          stone50,
+        ),
+
+        surfaceTintColor: const WidgetStatePropertyAll(
+          Colors.transparent,
+        ),
+
+        shadowColor: const WidgetStatePropertyAll(
+          Colors.transparent,
+        ),
+
+        side: const WidgetStatePropertyAll(
+          BorderSide.none,
+        ),
+
+        shape: const WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(radiusMd),
+            ),
+          ),
+        ),
+
+        constraints: const BoxConstraints(
+          minHeight: searchHeight,
+        ),
+
+        padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(
+            horizontal: md,
+          ),
+        ),
+
+        textStyle: const WidgetStatePropertyAll(
+          TextStyle(
+            fontFamily: uiFont,
+            fontSize: 14,
+            color: charcoal,
+          ),
+        ),
+
+        hintStyle: const WidgetStatePropertyAll(
+          TextStyle(
+            fontFamily: uiFont,
+            fontSize: 14,
+            color: stone400,
+          ),
+        ),
+      ),
+
+      // -----------------------------------------------------------------------
+      // CARD
+      // -----------------------------------------------------------------------
+
+      cardTheme: const CardThemeData(
+        color: white,
+
+        surfaceTintColor: Colors.transparent,
+
+        elevation: 0,
+
+        shadowColor: Colors.transparent,
+
+        margin: EdgeInsets.zero,
+
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusLg),
+          ),
+          side: BorderSide(
+            color: stone100,
+            width: 1,
+          ),
+        ),
+      ),
+
+      // -----------------------------------------------------------------------
+      // DIVIDER
+      // -----------------------------------------------------------------------
+
+      dividerTheme: const DividerThemeData(
+        color: stone100,
+        thickness: 1,
+        space: 1,
+      ),
+
+      // -----------------------------------------------------------------------
+      // CHIP
+      // -----------------------------------------------------------------------
+
+      chipTheme: ChipThemeData(
+        backgroundColor: stone50,
+
+        selectedColor: charcoal,
+
+        disabledColor: stone100,
+
+        surfaceTintColor: Colors.transparent,
+
+        side: const BorderSide(
+          color: stone200,
+          width: 1,
+        ),
+
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusPill),
+          ),
+        ),
+
+        padding: const EdgeInsets.symmetric(
+          horizontal: sm,
+          vertical: xs,
+        ),
+
+        labelStyle: const TextStyle(
+          fontFamily: uiFont,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: charcoal,
+        ),
+
+        secondaryLabelStyle: const TextStyle(
+          fontFamily: uiFont,
+          fontSize: 12,
+          color: mutedText,
+        ),
+
+        elevation: 0,
+
+        pressElevation: 0,
+      ),
+
+      // -----------------------------------------------------------------------
+      // NAVIGATION BAR
+      // -----------------------------------------------------------------------
+
+      navigationBarTheme: NavigationBarThemeData(
+        height: 72,
+
+        backgroundColor: warmWhite,
+
+        elevation: 0,
+
+        shadowColor: Colors.transparent,
+
+        surfaceTintColor: Colors.transparent,
+
+        indicatorColor: stone100,
+
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) {
+            final selected = states.contains(
+              WidgetState.selected,
+            );
+
+            return TextStyle(
+              fontFamily: uiFont,
+              fontSize: 11,
+              fontWeight: selected
+                  ? FontWeight.w500
+                  : FontWeight.w400,
+              letterSpacing: 0.2,
+              color: selected
+                  ? charcoal
+                  : stone400,
+            );
+          },
+        ),
+
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) {
+            final selected = states.contains(
+              WidgetState.selected,
+            );
+
+            return IconThemeData(
+              size: 22,
+              color: selected
+                  ? charcoal
+                  : stone400,
+            );
+          },
+        ),
+      ),
+
+      // -----------------------------------------------------------------------
+      // BOTTOM SHEET
+      // -----------------------------------------------------------------------
+
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: warmWhite,
+
+        surfaceTintColor: Colors.transparent,
+
+        elevation: 0,
+
+        modalElevation: 0,
+
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(radiusXl),
+          ),
+        ),
+
+        clipBehavior: Clip.antiAlias,
+      ),
+
+      // -----------------------------------------------------------------------
+      // DIALOG
+      // -----------------------------------------------------------------------
+
+      dialogTheme: const DialogThemeData(
+        backgroundColor: warmWhite,
+
+        surfaceTintColor: Colors.transparent,
+
+        elevation: 0,
+
+        shadowColor: Colors.transparent,
+
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusXl),
+          ),
+        ),
+
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: lg,
+          vertical: xl,
+        ),
+
+        titleTextStyle: TextStyle(
+          fontFamily: uiFont,
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
+          color: charcoal,
+        ),
+
+        contentTextStyle: TextStyle(
+          fontFamily: uiFont,
+          fontSize: 14,
+          height: 1.45,
+          color: mutedText,
+        ),
+      ),
+
+      // -----------------------------------------------------------------------
+      // SNACKBAR
+      // -----------------------------------------------------------------------
+
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: charcoal,
+
+        contentTextStyle: TextStyle(
+          fontFamily: uiFont,
+          fontSize: 14,
+          color: white,
+        ),
+
+        behavior: SnackBarBehavior.floating,
+
+        elevation: 0,
+
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusMd),
+          ),
+        ),
+
+        insetPadding: EdgeInsets.all(md),
+      ),
+
+      // -----------------------------------------------------------------------
+      // PROGRESS INDICATOR
+      // -----------------------------------------------------------------------
+
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: champagne,
+
+        linearTrackColor: stone100,
+
+        circularTrackColor: stone100,
+
+        linearMinHeight: 2,
+      ),
+
+      // -----------------------------------------------------------------------
+      // CHECKBOX
+      // -----------------------------------------------------------------------
+
+      checkboxTheme: CheckboxThemeData(
+        side: const BorderSide(
+          color: stone400,
+          width: 1.5,
+        ),
+
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusXs),
+          ),
+        ),
+
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) {
+            if (states.contains(WidgetState.selected)) {
+              return charcoal;
+            }
+
+            return Colors.transparent;
+          },
+        ),
+
+        checkColor: const WidgetStatePropertyAll(
+          white,
+        ),
+      ),
+
+      // -----------------------------------------------------------------------
+      // RADIO
+      // -----------------------------------------------------------------------
+
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) {
+            if (states.contains(WidgetState.selected)) {
+              return charcoal;
+            }
+
+            return stone400;
+          },
+        ),
+      ),
+
+      // -----------------------------------------------------------------------
+      // SWITCH
+      // -----------------------------------------------------------------------
+
+      switchTheme: SwitchThemeData(
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) {
+            if (states.contains(WidgetState.selected)) {
+              return charcoal;
+            }
+
+            return stone200;
+          },
+        ),
+
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) {
+            if (states.contains(WidgetState.selected)) {
+              return white;
+            }
+
+            return stone600;
+          },
+        ),
+
+        trackOutlineColor: const WidgetStatePropertyAll(
+          Colors.transparent,
+        ),
+      ),
+
+      // -----------------------------------------------------------------------
+      // TOOLTIP
+      // -----------------------------------------------------------------------
+
+      tooltipTheme: const TooltipThemeData(
+        decoration: BoxDecoration(
+          color: charcoal,
+
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusSm),
+          ),
+        ),
+
+        textStyle: TextStyle(
+          fontFamily: uiFont,
+          fontSize: 12,
+          color: white,
+        ),
+
+        padding: EdgeInsets.symmetric(
+          horizontal: sm,
+          vertical: xs,
+        ),
+      ),
+
+      // -----------------------------------------------------------------------
+      // PAGE TRANSITIONS
+      // -----------------------------------------------------------------------
+
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android:
+              FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS:
+              CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS:
+              CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows:
+              FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.linux:
+              FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.fuchsia:
+              FadeForwardsPageTransitionsBuilder(),
+        },
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // DARK THEME
+  // ---------------------------------------------------------------------------
+
+  static ThemeData get dark {
+    return light.copyWith(
+      brightness: Brightness.dark,
+      colorScheme: darkColorScheme,
+
+      scaffoldBackgroundColor: const Color(0xFF121212),
+
+      appBarTheme: light.appBarTheme.copyWith(
+        backgroundColor: const Color(0xFF121212),
+        foregroundColor: const Color(0xFFF4F1EA),
+      ),
+
+      cardTheme: const CardThemeData(
+        color: Color(0xFF1C1B19),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusLg),
+          ),
+          side: BorderSide(
+            color: Color(0xFF302E2A),
+            width: 1,
+          ),
+        ),
+      ),
+
+      inputDecorationTheme: light.inputDecorationTheme.copyWith(
+        fillColor: const Color(0xFF211F1C),
+
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusMd),
+          ),
+          borderSide: BorderSide.none,
+        ),
+
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(radiusMd),
+          ),
+          borderSide: BorderSide(
+            color: champagne,
+            width: 1,
+          ),
+        ),
+
+        hintStyle: const TextStyle(
+          fontFamily: uiFont,
+          fontSize: 14,
+          color: Color(0xFF77736B),
+        ),
+      ),
+
+      navigationBarTheme: light.navigationBarTheme.copyWith(
+        backgroundColor: const Color(0xFF121212),
+        indicatorColor: const Color(0xFF302F2B),
+      ),
+    );
+  }
+}
+```
+
+# 2. App-level usage
+
+Your `MaterialApp.router` becomes extremely simple:
+
+```dart
+MaterialApp.router(
+  debugShowCheckedModeBanner: false,
+
+  theme: KhTheme.light,
+
+  darkTheme: KhTheme.dark,
+
+  themeMode: ThemeMode.system,
+
+  routerConfig: router,
+);
+```
+
+---
+
+# 3. The important pixel rules
+
+This is the part I would treat as the **actual UI contract** rather than allowing individual screens to make their own decisions.
+
+| Token                   |  Exact value |
+| ----------------------- | -----------: |
+| Base spacing            |     **8 px** |
+| Page horizontal padding |    **20 px** |
+| Compact page padding    |    **16 px** |
+| Section spacing         |    **24 px** |
+| Major section spacing   | **32–48 px** |
+| Hero spacing            | **48–80 px** |
+| Input height            |    **48 px** |
+| Search height           |    **48 px** |
+| Button height           |    **50 px** |
+| App bar                 |    **60 px** |
+| Bottom navigation       |    **72 px** |
+| Small radius            |     **8 px** |
+| Standard radius         |    **12 px** |
+| Card radius             |    **16 px** |
+| Large surface radius    |    **20 px** |
+| Touch target            |   **≥44 px** |
+| Standard icon           | **20–24 px** |
+| Feature icon            |    **28 px** |
+| Product grid gap        |  **8–12 px** |
+| Card elevation          |        **0** |
+| App-bar elevation       |        **0** |
+| Button elevation        |        **0** |
+| Default animation       |   **200 ms** |
+
+---
+
+# 4. Typography hierarchy
+
+The theme intentionally separates **editorial typography** from **interface typography**:
+
+```text
+Cormorant Garamond
+        ↓
+Display / luxury / editorial moments
+
+Inter
+        ↓
+Everything functional
+```
+
+### Display
+
+```text
+Display Large     40 / 400
+Display Medium    32 / 400
+Display Small     28 / 400
+```
+
+### UI
+
+```text
+Headline Large    24 / 500
+Headline Medium   20 / 500
+Headline Small    18 / 500
+
+Title Large       18 / 500
+Title Medium      16 / 500
+Title Small       14 / 500
+
+Body Large        16 / 400
+Body Medium       14 / 400
+Body Small        12 / 400
+
+Label Large       14 / 500
+Label Medium      12 / 500
+Label Small       11 / 500
+```
+
+This means a product card should **not** start looking like:
+
+> Diamond Necklace
+> Elegant handcrafted necklace featuring...
+
+Instead:
+
+```text
+DIAMOND NECKLACE
+
+₹ 84,500
+```
+
+The **photography does the selling**.
+
+---
+
+# 5. Color hierarchy
+
+The most important rule is:
+
+```text
+                    KARAT HIVE
+                        │
+             ┌──────────┴──────────┐
+             │                     │
+        NEUTRAL SURFACES       BRAND ACCENT
+             │                     │
+      Ivory / White / Stone   Champagne / Gold
+             │                     │
+             └──────────┬──────────┘
+                        │
+                     CHARCOAL
+                   UI / Typography
+```
+
+### Primary application background
+
+```dart
+KhTheme.ivory
+// #FAF8F3
+```
+
+### Main surface
+
+```dart
+KhTheme.warmWhite
+// #FFFDFC
+```
+
+### Primary text
+
+```dart
+KhTheme.charcoal
+// #242320
+```
+
+### Brand accent
+
+```dart
+KhTheme.champagne
+// #C6A15B
+```
+
+### Strong gold
+
+```dart
+KhTheme.gold
+// #D4AF37
+```
+
+But **gold is not the primary UI color**.
+
+That distinction is important.
+
+The previous Art-Deco specification used gold much more aggressively; the current direction deliberately makes gold a **precision accent** rather than the dominant interface color. The original source itself defines gold as an interactive/accent token, which maps cleanly to this approach. 
+
+---
+
+# 6. What the theme deliberately does NOT do
+
+This is just as important as what it does.
+
+### No giant shadows
+
+```dart
+elevation: 0
+```
+
+### No gold buttons everywhere
+
+Primary CTA:
+
+```text
+CHARCOAL + WHITE
+```
+
+Gold is reserved for:
+
+```text
+• selected states
+• premium accents
+• subtle dividers
+• jewellery-related highlights
+• special CTAs
+```
+
+### No card around everything
+
+Bad:
+
+```text
+┌─────────────────────────┐
+│ Card                     │
+│  ┌─────────────────────┐│
+│  │ Card                ││
+│  │  Product            ││
+│  └─────────────────────┘│
+└─────────────────────────┘
+```
+
+Preferred:
+
+```text
+       PRODUCT IMAGE
+
+
+       Diamond Ring
+       ₹ 84,500
+```
+
+The **image itself creates the hierarchy**.
+
+---
+
+# 7. One important architectural change
+
+I would **not** put all of this permanently into one `kh_theme.dart` file in the final project.
+
+Use:
+
+```text
+lib/
+└── core/
+    └── theme/
+        ├── kh_theme.dart
+        ├── kh_colors.dart
+        ├── kh_typography.dart
+        ├── kh_spacing.dart
+        ├── kh_radius.dart
+        ├── kh_motion.dart
+        └── kh_component_themes.dart
+```
+
+Then:
+
+```dart
+KhTheme.light
+KhTheme.dark
+```
+
+becomes the single entry point, while the individual tokens remain reusable by components.
+
+For example:
+
+```dart
+Padding(
+  padding: const EdgeInsets.symmetric(
+    horizontal: KhSpacing.page,
+  ),
+)
+```
+
+rather than:
+
+```dart
+Padding(
+  padding: const EdgeInsets.symmetric(
+    horizontal: 20,
+  ),
+)
+```
+
+That distinction will matter enormously when we do the **complete UI overhaul**, because changing one token should update the entire application.
+
+### Final design-system rule
+
+> **Screens should consume the design system. Screens should never define the design system.**
+
+That gives us a stable foundation for the next layer: **`KhThemeExtension` + reusable `KhButton`, `KhProductCard`, `KhSectionHeader`, `KhSearchField`, `KhPrice`, `KhStatusChip`, etc.** This is where we can make the existing Karat Hive Flutter application visually consistent *pixel-by-pixel* rather than merely giving it a nicer `ThemeData`.
