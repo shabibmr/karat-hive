@@ -56,6 +56,7 @@ describe('OfferService', () => {
       }),
       isInMatchSet: vi.fn().mockResolvedValue(true),
       findPendingOfferByVendor: vi.fn().mockResolvedValue(null),
+      findOfferMediaByKeys: vi.fn().mockResolvedValue([]),
       createOffer: vi.fn().mockImplementation(async ({ terms, expiresAt }) => ({
         id: 'offer-1',
         requestId: 'req-1',
@@ -191,6 +192,31 @@ describe('OfferService', () => {
           errorCode: 'OFFER_ALREADY_PENDING',
         }),
       );
+    });
+
+    it('rejects while an offer photo is still processing', async () => {
+      vi.mocked(repo.findOfferMediaByKeys).mockResolvedValueOnce([
+        {
+          key: 'photo-1',
+          state: 'PENDING_PROCESSING',
+          purpose: 'OFFER_IMAGE',
+          uploadedByUserId: 'user-v1',
+        },
+      ] as unknown as Awaited<ReturnType<typeof repo.findOfferMediaByKeys>>);
+
+      await expect(
+        service.submitOffer(vendorViewer, 'req-1', {
+          offeredPrice: 3000,
+          weightGrams: 10,
+          purityKarat: '22K',
+          mediaKeys: ['photo-1'],
+        }),
+      ).rejects.toThrow(
+        expect.objectContaining({
+          errorCode: 'MEDIA_NOT_READY',
+        }),
+      );
+      expect(repo.createOffer).not.toHaveBeenCalled();
     });
   });
 

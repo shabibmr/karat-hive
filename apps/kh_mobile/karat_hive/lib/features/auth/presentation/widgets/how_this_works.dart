@@ -3,7 +3,7 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
 /// Shared Guest "How this works" steps: post → offers → accept → WhatsApp,
-/// plus per-type [extras], in the 1a accordion (`UI-Design-Context.md` §6.13).
+/// plus per-type [extras], in the "How this works" accordion (`UI-Design-Context.md` §6.13).
 class HowThisWorks extends StatelessWidget {
   const HowThisWorks({
     super.key,

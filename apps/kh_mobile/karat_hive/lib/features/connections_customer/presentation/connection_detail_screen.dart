@@ -67,7 +67,7 @@ class _ConnectionDetailScreenState
               IconButton(
                 key: const Key('connection-report'),
                 tooltip: s.s('connections.report'),
-                onPressed: async.valueOrNull == null
+                onPressed: async.value == null
                     ? null
                     : () => context.push(
                           '/customer/report?entityType=CONNECTION&entityId=${widget.connectionId}',

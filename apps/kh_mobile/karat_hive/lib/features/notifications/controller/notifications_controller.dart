@@ -16,7 +16,7 @@ final unreadNotificationsProvider = FutureProvider.autoDispose<bool>((
 
 /// Paged notification list (CUS-S19 / VEN-S17).
 class NotificationsController
-    extends AutoDisposeNotifier<PagedListController<AppNotification>> {
+    extends Notifier<PagedListController<AppNotification>> {
   @override
   PagedListController<AppNotification> build() {
     final repo = ref.watch(notificationsRepositoryProvider);
@@ -101,8 +101,7 @@ class NotificationsController
   }
 }
 
-final notificationsControllerProvider =
-    AutoDisposeNotifierProvider<
-      NotificationsController,
-      PagedListController<AppNotification>
-    >(NotificationsController.new);
+final notificationsControllerProvider = NotifierProvider.autoDispose<
+    NotificationsController, PagedListController<AppNotification>>(
+  NotificationsController.new,
+);

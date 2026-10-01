@@ -1,5 +1,5 @@
 name: kh_media
-description: Karat Hive shared media pick / on-device AVIF convert / cache / upload pipeline.
+description: Karat Hive shared media pick / on-device AVIF or WebP convert / cache / upload pipeline.
 publish_to: none
 resolution: workspace
 version: 0.1.0
@@ -18,9 +18,10 @@ dependencies:
     path: ../kh_api
   kh_core:
     path: ../kh_core
+  flutter_image_compress: ^2.5.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   mocktail: ^1.0.4

@@ -5,9 +5,13 @@ import 'package:kh_domain/kh_domain.dart';
 import '../repository/connections_repository.dart';
 
 class ConnectionDetailController
-    extends AutoDisposeFamilyAsyncNotifier<ConnectionForVendor, String> {
+    extends AsyncNotifier<ConnectionForVendor> {
+  ConnectionDetailController(this.arg);
+
+  final String arg;
+
   @override
-  Future<ConnectionForVendor> build(String arg) async {
+  Future<ConnectionForVendor> build() async {
     final repo = ref.watch(connectionsRepositoryProvider);
     final res = await repo.get(arg);
     return res.when(ok: (item) => item, err: (f) => throw f);

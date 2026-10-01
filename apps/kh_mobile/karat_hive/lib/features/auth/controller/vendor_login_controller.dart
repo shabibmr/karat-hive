@@ -30,7 +30,7 @@ class LoginAuthenticated extends LoginState {
   const LoginAuthenticated();
 }
 
-class VendorLoginController extends AutoDisposeNotifier<LoginState> {
+class VendorLoginController extends Notifier<LoginState> {
   bool _disposed = false;
 
   @override
@@ -97,6 +97,6 @@ class VendorLoginController extends AutoDisposeNotifier<LoginState> {
 }
 
 final vendorLoginControllerProvider =
-    AutoDisposeNotifierProvider<VendorLoginController, LoginState>(
+    NotifierProvider.autoDispose<VendorLoginController, LoginState>(
   VendorLoginController.new,
 );

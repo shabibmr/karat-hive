@@ -30,7 +30,7 @@ class MyOffersFilters {
   }
 }
 
-class MyOffersFiltersController extends AutoDisposeNotifier<MyOffersFilters> {
+class MyOffersFiltersController extends Notifier<MyOffersFilters> {
   @override
   MyOffersFilters build() => const MyOffersFilters();
 
@@ -46,12 +46,12 @@ class MyOffersFiltersController extends AutoDisposeNotifier<MyOffersFilters> {
 }
 
 final myOffersFiltersProvider =
-    AutoDisposeNotifierProvider<MyOffersFiltersController, MyOffersFilters>(
+    NotifierProvider.autoDispose<MyOffersFiltersController, MyOffersFilters>(
   MyOffersFiltersController.new,
 );
 
 class MyOffersController
-    extends AutoDisposeNotifier<PagedListController<OfferForVendor>> {
+    extends Notifier<PagedListController<OfferForVendor>> {
   @override
   PagedListController<OfferForVendor> build() {
     final filters = ref.watch(myOffersFiltersProvider);
@@ -84,7 +84,7 @@ class MyOffersController
   Future<void> retry() => state.retry();
 }
 
-final myOffersControllerProvider = AutoDisposeNotifierProvider<
+final myOffersControllerProvider = NotifierProvider.autoDispose<
     MyOffersController, PagedListController<OfferForVendor>>(
   MyOffersController.new,
 );

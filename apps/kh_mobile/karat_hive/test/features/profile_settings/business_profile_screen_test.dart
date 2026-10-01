@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:karat_hive/app/session/session_controller.dart';
 import 'package:karat_hive/features/profile_settings/controller/business_profile_controller.dart';
@@ -159,7 +160,10 @@ void main() {
         child: const BusinessProfileScreen(),
       ),
     );
-    await tester.pumpAndSettle();
+    // The logo's network placeholder spins until the (blocked) request ends,
+    // so pumpAndSettle would never return.
+    await tester.pump();
+    await tester.pump();
 
     expect(find.text('Change logo'), findsOneWidget);
     expect(find.text('Upload logo'), findsNothing);

@@ -67,6 +67,30 @@ describe('OciS3StorageAdapter', () => {
     expect(signed.uploadUrl).toContain('X-Amz-Signature=');
     expect(signed.uploadUrl).not.toContain('.r2.');
     expect(signed.requiredHeaders).toEqual({ 'Content-Type': 'application/pdf' });
+    // Only the target bucket is HEADed — not every configured bucket.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]![0])).toContain('/kyc');
+  });
+
+  it('signs request-media uploads even when the kyc bucket HEADs 403', async () => {
+    const fetchMock = vi.fn(async (url: unknown) => {
+      const path = String(url);
+      if (path.endsWith('/kyc')) return new Response('nope', { status: 403 });
+      return new Response(null, { status: 200 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const adapter = new OciS3StorageAdapter(env);
+    const signed = await adapter.createSignedUploadUrl({
+      bucket: 'request-media',
+      key: 'user/u1/REQUEST_IMAGE/img.png',
+      contentType: 'image/png',
+      ttlSeconds: 900,
+    });
+
+    expect(signed.uploadUrl).toContain('/request-media/');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]![0])).toContain('/request-media');
   });
 
   it('PUTs a bucket when HEAD returns 404', async () => {
@@ -84,12 +108,45 @@ describe('OciS3StorageAdapter', () => {
     expect(methods.filter((m) => m === 'PUT')).toHaveLength(3);
   });
 
-  it('fails when HEAD returns a non-404 error', async () => {
-    const fetchMock = vi.fn(async () => new Response('nope', { status: 403 }));
+  it('fails when HEAD returns a non-404 error, citing the request id', async () => {
+    const fetchMock = vi.fn(
+      async () => new Response(null, { status: 500, headers: { 'opc-request-id': 'hyd-1:abc' } }),
+    );
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(new OciS3StorageAdapter(env).ensureBuckets()).rejects.toThrow(
-      /OCI S3 head bucket kyc failed: 403/,
+      /OCI S3 head bucket kyc failed: 500 \(opc-request-id=hyd-1:abc\)/,
     );
+  });
+
+  it('accepts a bucket whose HEAD 403s but whose list probe succeeds', async () => {
+    const fetchMock = vi.fn(async (_url: unknown, init?: RequestInit) =>
+      init?.method === 'HEAD' ? new Response(null, { status: 403 }) : new Response('<xml/>', { status: 200 }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const adapter = new OciS3StorageAdapter(env);
+    await adapter.ensureBucket('kyc');
+    await adapter.ensureBucket('kyc');
+
+    const calls = fetchMock.mock.calls.map((c) => `${c[1]?.method} ${String(c[0])}`);
+    expect(calls).toEqual([
+      'HEAD https://axxa9erb3sgs.compat.objectstorage.ap-hyderabad-1.oraclecloud.com/kyc',
+      'GET https://axxa9erb3sgs.compat.objectstorage.ap-hyderabad-1.oraclecloud.com/kyc?max-keys=1',
+    ]);
+  });
+
+  it('fails with the request id when HEAD and the list probe both 403, and retries next time', async () => {
+    const fetchMock = vi.fn(
+      async () => new Response(null, { status: 403, headers: { 'opc-request-id': 'hyd-1:xyz' } }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const adapter = new OciS3StorageAdapter(env);
+    await expect(adapter.ensureBucket('kyc')).rejects.toThrow(
+      /head bucket kyc failed: 403 \(opc-request-id=hyd-1:xyz\)/,
+    );
+    await expect(adapter.ensureBucket('kyc')).rejects.toThrow(/403/);
+    expect(fetchMock).toHaveBeenCalledTimes(4); // failure evicts the cache entry
   });
 });

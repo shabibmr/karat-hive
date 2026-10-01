@@ -613,6 +613,7 @@ Mutating routes require `Idempotency-Key`; a `*` marks it mandatory.
 | POST* | `/v1/media/upload-intent` | C/V | CUS-007, VEN-002, SYS-009 | |
 | POST | `/v1/media/{key}/complete` | C/V | SYS-009 | |
 | DELETE | `/v1/media/{key}` | C/V | CUS-007 | |
+| GET | `/v1/media/{key}` | Public | — | `<key>.thumb` serves the derivative. Allow-listed purposes in `READY` only; KYC, export, profile and shop photos and unprocessed media `404`. Rate-limited per IP (`media_read`). `[PROPOSED]` |
 | POST | `/v1/requests` | C | CUS-005, CUS-015 | `[ASSUMED]` draft |
 | GET | `/v1/me/requests` | C | CUS-005, CUS-028 | |
 | GET | `/v1/requests/{id}` | C/V | CUS-016, VEN-010, SYS-003 | |

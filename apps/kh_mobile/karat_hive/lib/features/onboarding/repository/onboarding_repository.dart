@@ -30,7 +30,7 @@ class OnboardingRepository {
   Future<void> prefetchKycDocumentIntent() => _media.prefetchIntent();
 
   /// intent → PUT bytes → complete. Returns the media key on success.
-  /// Images (jpeg/png) are converted to AVIF on-device first; other types
+  /// Images (jpeg/png) are converted to AVIF on-device (KYC keeps AVIF) first; other types
   /// (PDFs) upload unmodified — PDF compression is a later pass. Cached
   /// under [type] so each document slot can retry independently.
   Future<Result<String>> uploadKycDocument(

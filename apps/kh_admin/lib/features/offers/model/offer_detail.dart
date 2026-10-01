@@ -43,7 +43,7 @@ class _PartyConverter implements JsonConverter<Party?, Object?> {
 
 /// Parent request summary embedded in [OfferDetail] (ADM-S11, E15, AD-FE-07).
 @freezed
-class OfferParentRequestSummary with _$OfferParentRequestSummary {
+abstract class OfferParentRequestSummary with _$OfferParentRequestSummary {
   const factory OfferParentRequestSummary({
     required String id,
     String? reference,
@@ -74,7 +74,7 @@ Map<String, dynamic> _sanitizeParentRequestJson(Map<String, dynamic> json) {
 
 /// Unmasked vendor profile summary embedded in [OfferDetail] (ADM-S11).
 @freezed
-class OfferVendorSummary with _$OfferVendorSummary {
+abstract class OfferVendorSummary with _$OfferVendorSummary {
   const factory OfferVendorSummary({
     required String id,
     required String legalBusinessName,
@@ -93,7 +93,7 @@ class OfferVendorSummary with _$OfferVendorSummary {
 
 /// Attached image or certificate in [OfferDetail] (ADM-S11).
 @freezed
-class OfferAttachment with _$OfferAttachment {
+abstract class OfferAttachment with _$OfferAttachment {
   const factory OfferAttachment({
     required String id,
     required String fileName,
@@ -109,7 +109,7 @@ class OfferAttachment with _$OfferAttachment {
 
 /// Historical revision snapshot for FR-VEN-014 in [OfferDetail] (ADM-S11).
 @freezed
-class OfferRevisionItem with _$OfferRevisionItem {
+abstract class OfferRevisionItem with _$OfferRevisionItem {
   const factory OfferRevisionItem({
     required int revisionNumber,
     required DateTime revisedAt,
@@ -127,7 +127,7 @@ class OfferRevisionItem with _$OfferRevisionItem {
 
 /// State transition audit entry in [OfferDetail] (ADM-S11).
 @freezed
-class OfferStateTransitionItem with _$OfferStateTransitionItem {
+abstract class OfferStateTransitionItem with _$OfferStateTransitionItem {
   const factory OfferStateTransitionItem({
     String? fromState,
     required String toState,
@@ -142,7 +142,7 @@ class OfferStateTransitionItem with _$OfferStateTransitionItem {
 
 /// Internal admin note for [OfferDetail] (ADM-S11).
 @freezed
-class OfferInternalNoteItem with _$OfferInternalNoteItem {
+abstract class OfferInternalNoteItem with _$OfferInternalNoteItem {
   const factory OfferInternalNoteItem({
     required String id,
     required String author,
@@ -156,7 +156,7 @@ class OfferInternalNoteItem with _$OfferInternalNoteItem {
 
 /// Full offer inspection model for ADM-S11.
 @freezed
-class OfferDetail with _$OfferDetail {
+abstract class OfferDetail with _$OfferDetail {
   const OfferDetail._();
 
   const factory OfferDetail({

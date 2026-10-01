@@ -18,11 +18,17 @@ class Env {
   }
 
   /// Resolves a server-relative path (e.g. `/v1/media/<key>`) against
-  /// [apiBaseUrl]. Already-absolute URLs pass through unchanged.
+  /// [apiBaseUrl]. Any URL with a scheme (http, blob, data…) passes through unchanged.
+  ///
+  /// Appends rather than `Uri.resolve`s: a leading `/` would otherwise replace
+  /// the base path and drop a deployment prefix like `/kh_api`.
   String? resolveUrl(String? path) {
     if (path == null || path.isEmpty) return null;
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return Uri.parse(apiBaseUrl).resolve(path).toString();
+    if (Uri.tryParse(path)?.hasScheme ?? false) return path;
+    final base = apiBaseUrl.endsWith('/')
+        ? apiBaseUrl.substring(0, apiBaseUrl.length - 1)
+        : apiBaseUrl;
+    return path.startsWith('/') ? '$base$path' : '$base/$path';
   }
 
   static Env fromDefines() {

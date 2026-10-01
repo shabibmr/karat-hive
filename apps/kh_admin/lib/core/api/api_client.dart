@@ -88,8 +88,13 @@ class ApiClient {
   /// current base URL. Already-absolute URLs pass through unchanged.
   String? resolveUrl(String? path) {
     if (path == null || path.isEmpty) return null;
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return Uri.parse(_dio.options.baseUrl).resolve(path).toString();
+    if (Uri.tryParse(path)?.hasScheme ?? false) return path;
+    // Append rather than `Uri.resolve`: a leading `/` would drop a base-path
+    // prefix such as `/kh_api`.
+    final base = _dio.options.baseUrl.endsWith('/')
+        ? _dio.options.baseUrl.substring(0, _dio.options.baseUrl.length - 1)
+        : _dio.options.baseUrl;
+    return path.startsWith('/') ? '$base$path' : '$base/$path';
   }
 
   /// Performs a GET request and unwraps the `{ data }` payload.

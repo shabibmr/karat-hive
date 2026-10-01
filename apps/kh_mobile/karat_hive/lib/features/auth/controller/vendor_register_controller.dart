@@ -150,7 +150,7 @@ final vendorRegisterControllerProvider =
   VendorRegisterController.new,
 );
 
-/// Overridable in tests to avoid exercising real AVIF encoding and network
+/// Overridable in tests to avoid exercising real image encoding and network
 /// upload from [VendorRegisterController._uploadLogoAfterRegister].
 final vendorLogoMediaControllerProvider = Provider<MediaPickController>((ref) {
   final api = ref.watch(khApiProvider);

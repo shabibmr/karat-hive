@@ -1,11 +1,11 @@
 {
-    "name": "karat_hive",
-    "short_name": "karat_hive",
+    "name": "Karat Hive",
+    "short_name": "Karat Hive",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FDFBF7",
+    "theme_color": "#8A6A1F",
+    "description": "Karat Hive — UAE gold marketplace for Customers and Vendors.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

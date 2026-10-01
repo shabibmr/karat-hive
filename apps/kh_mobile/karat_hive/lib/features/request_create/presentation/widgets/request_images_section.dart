@@ -27,22 +27,20 @@ class RequestImagesSection extends ConsumerWidget {
   final bool showActualItemNotice;
 
   Future<void> _pick(WidgetRef ref) async {
-    final res = await FilePicker.platform.pickFiles(
+    final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['jpg', 'jpeg', 'png'],
-      allowMultiple: true,
-      withData: true,
     );
-    if (res == null) return;
+    if (files.isEmpty) return;
     final controller = ref.read(requestCreateControllerProvider.notifier);
-    for (final f in res.files) {
+    for (final f in files) {
       // On web, PlatformFile.path throws — use bytes + name only.
       final path = kIsWeb ? null : f.path;
-      Uint8List? data = f.bytes;
-      if (data == null && path != null) {
+      Uint8List data = await f.readAsBytes();
+      if (data.isEmpty && path != null) {
         data = Uint8List.fromList(await File(path).readAsBytes());
       }
-      if (data == null || data.isEmpty) continue;
+      if (data.isEmpty) continue;
       final name = f.name.isNotEmpty
           ? f.name
           : (path?.split(RegExp(r'[/\\]')).last ?? 'photo.jpg');
@@ -162,7 +160,7 @@ class RequestImagesSection extends ConsumerWidget {
   }
 }
 
-/// Read-only thumbnails for Review (CUS-S09). Prefers in-memory bytes.
+/// Read-only thumbnails for non-Find Review (CUS-S09). Prefers in-memory bytes.
 class RequestMediaGallery extends StatelessWidget {
   const RequestMediaGallery({super.key, required this.media});
 
@@ -208,6 +206,97 @@ class RequestMediaGallery extends StatelessWidget {
     );
   }
 }
+
+/// Find An Ornament review mosaic (visual pass C02 / `Find-orna-create.png`).
+///
+/// 2-column photo grid with a remaining-count badge. Read-only — Edit on the
+/// review screen returns to compose to change photos.
+class RequestReviewMosaic extends StatelessWidget {
+  const RequestReviewMosaic({
+    super.key,
+    required this.media,
+    required this.maxImages,
+  });
+
+  final List<MediaSlot> media;
+  final int maxImages;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final remaining = (maxImages - media.length).clamp(0, maxImages);
+    final remainingLabel = createCopy(
+      context,
+      'create.photosRemaining',
+      '{n} photos remaining',
+    ).replaceAll('{n}', '$remaining');
+
+
+    if (media.isEmpty) {
+      return Container(
+        key: const Key('review-mosaic'),
+        height: 160,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: tokens.paper,
+          borderRadius: BorderRadius.circular(tokens.radius.md),
+          border: Border.all(color: tokens.inkHairline),
+        ),
+        child: Text(
+          createCopy(context, 'create.field.photosNone', 'No photos attached'),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      );
+    }
+
+    return Stack(
+      key: const Key('review-mosaic'),
+      children: [
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: media.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: tokens.space.sm,
+            crossAxisSpacing: tokens.space.sm,
+            childAspectRatio: 1.15,
+          ),
+          itemBuilder: (context, i) {
+            return ClipRRect(
+              key: Key('review-photo-$i'),
+              borderRadius: BorderRadius.circular(tokens.radius.md),
+              child: mediaSlotPreview(media[i]),
+            );
+          },
+        ),
+        if (remaining > 0)
+          PositionedDirectional(
+            end: tokens.space.sm,
+            bottom: tokens.space.sm,
+            child: Container(
+              key: const Key('review-photos-remaining'),
+              padding: EdgeInsets.symmetric(
+                horizontal: tokens.space.sm,
+                vertical: tokens.space.xs,
+              ),
+              decoration: BoxDecoration(
+                color: tokens.ink.withValues(alpha: 0.72),
+                borderRadius: BorderRadius.circular(tokens.radius.sm),
+              ),
+              child: Text(
+                remainingLabel,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: tokens.surface,
+                    ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 
 class _MediaTile extends StatelessWidget {
   const _MediaTile({

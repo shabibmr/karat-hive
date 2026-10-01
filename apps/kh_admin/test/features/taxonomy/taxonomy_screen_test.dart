@@ -127,8 +127,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // ADM-S15 header: gold eyebrow above the mock's screen heading.
-    expect(find.text('TAXONOMY CONFIG'), findsOneWidget);
-    expect(find.text('Regions'), findsOneWidget);
+    expect(find.text('GEOGRAPHIC TAXONOMY'), findsOneWidget);
+    expect(find.text('UAE Regions'), findsOneWidget);
     expect(find.text('Dubai'), findsOneWidget);
     expect(find.text('Sharjah'), findsOneWidget);
 

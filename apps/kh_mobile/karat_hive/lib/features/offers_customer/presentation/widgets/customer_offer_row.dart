@@ -38,6 +38,22 @@ class CustomerOfferRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (_offerPhoto(offer) case final photo?) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(tokens.radius.sm),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: KhNetworkImage(
+                      url: photo.url,
+                      contentType: photo.contentType,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+                SizedBox(height: tokens.space.sm),
+              ],
               Row(
                 children: [
                   if (onToggleSelect != null)
@@ -79,4 +95,15 @@ class CustomerOfferRow extends StatelessWidget {
       ),
     );
   }
+}
+
+({String url, String contentType})? _offerPhoto(OfferForCustomer offer) {
+  if (offer.terms.media.isEmpty) return null;
+  final media = offer.terms.media.first;
+  final url = media.thumbnailUrl ?? media.displayUrl;
+  if (url == null || url.isEmpty) return null;
+  return (
+    url: url,
+    contentType: media.contentType.isEmpty ? 'image/jpeg' : media.contentType,
+  );
 }

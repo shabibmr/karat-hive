@@ -7,7 +7,7 @@ part 'offer_list_item.g.dart';
 
 /// One row in `GET /v1/admin/offers` (ADM-S10).
 @freezed
-class OfferListItem with _$OfferListItem {
+abstract class OfferListItem with _$OfferListItem {
   const factory OfferListItem({
     required String id,
     String? reference,

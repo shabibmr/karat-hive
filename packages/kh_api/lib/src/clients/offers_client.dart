@@ -26,6 +26,57 @@ PagedResult<T> _paged<T>(
   );
 }
 
+Result<OfferForVendor> _parseOfferForVendor(dynamic raw) {
+  try {
+    if (raw is! Map) {
+      return const Err(ServerFailure(
+        code: 'BAD_RESPONSE',
+        message: 'Offer response was not an object.',
+      ));
+    }
+    return Ok(OfferForVendor.fromJson(Map<String, dynamic>.from(raw)));
+  } catch (_) {
+    return const Err(ServerFailure(
+      code: 'BAD_RESPONSE',
+      message: 'Could not read offer response.',
+    ));
+  }
+}
+
+Result<OfferForCustomer> _parseOfferForCustomer(dynamic raw) {
+  try {
+    if (raw is! Map) {
+      return const Err(ServerFailure(
+        code: 'BAD_RESPONSE',
+        message: 'Offer response was not an object.',
+      ));
+    }
+    return Ok(OfferForCustomer.fromJson(Map<String, dynamic>.from(raw)));
+  } catch (_) {
+    return const Err(ServerFailure(
+      code: 'BAD_RESPONSE',
+      message: 'Could not read offer response.',
+    ));
+  }
+}
+
+Result<VendorRatingDetail> _parseVendorRatingDetail(dynamic raw) {
+  try {
+    if (raw is! Map) {
+      return const Err(ServerFailure(
+        code: 'BAD_RESPONSE',
+        message: 'Vendor rating response was not an object.',
+      ));
+    }
+    return Ok(VendorRatingDetail.fromJson(Map<String, dynamic>.from(raw)));
+  } catch (_) {
+    return const Err(ServerFailure(
+      code: 'BAD_RESPONSE',
+      message: 'Could not read vendor rating response.',
+    ));
+  }
+}
+
 class OffersClient {
   const OffersClient(this._client);
   final KhApiClient _client;
@@ -41,10 +92,7 @@ class OffersClient {
       '/v1/requests/$requestId/offers',
       body: terms.toJson(),
     );
-    return r.when(
-      ok: (d) => Ok(OfferForVendor.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseOfferForVendor, err: Err.new);
   }
 
   Future<Result<OfferForVendor>> reviseOffer({
@@ -56,26 +104,17 @@ class OffersClient {
       '/v1/offers/$offerId/revise',
       body: terms.toJson(includeMediaKeys: false),
     );
-    return r.when(
-      ok: (d) => Ok(OfferForVendor.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseOfferForVendor, err: Err.new);
   }
 
   Future<Result<OfferForVendor>> withdrawOffer(String offerId) async {
     final r = await _client.send('POST', '/v1/offers/$offerId/withdraw');
-    return r.when(
-      ok: (d) => Ok(OfferForVendor.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseOfferForVendor, err: Err.new);
   }
 
   Future<Result<OfferForVendor>> getOffer(String offerId) async {
     final r = await _client.send('GET', '/v1/offers/$offerId');
-    return r.when(
-      ok: (d) => Ok(OfferForVendor.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseOfferForVendor, err: Err.new);
   }
 
   Future<Result<PagedResult<OfferForVendor>>> listMyOffers({
@@ -167,18 +206,12 @@ class OffersClient {
 
   Future<Result<OfferForCustomer>> get(String id) async {
     final r = await _client.send('GET', '/v1/offers/$id');
-    return r.when(
-      ok: (d) => Ok(OfferForCustomer.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseOfferForCustomer, err: Err.new);
   }
 
   Future<Result<VendorRatingDetail>> vendorRating(String offerId) async {
     final r = await _client.send('GET', '/v1/offers/$offerId/vendor-rating');
-    return r.when(
-      ok: (d) => Ok(VendorRatingDetail.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseVendorRatingDetail, err: Err.new);
   }
 
   /// Accept with a caller-held idempotency key (Architecture-Frontend §9.4).
@@ -211,9 +244,6 @@ class OffersClient {
         if (note != null) 'note': note,
       },
     );
-    return r.when(
-      ok: (d) => Ok(OfferForCustomer.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseOfferForCustomer, err: Err.new);
   }
 }

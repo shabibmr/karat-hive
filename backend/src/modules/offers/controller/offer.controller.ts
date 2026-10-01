@@ -57,8 +57,9 @@ export class OfferController {
     @Param('id') requestId: string,
     @Body(zodBody(submitOfferSchema)) body: SubmitOfferInput,
   ) {
-    const data = await this.offerService.submitOffer(viewer, requestId, body);
-    return { data };
+    // Return the resource directly — EnvelopeInterceptor wraps `{ data, meta }`.
+    // Returning `{ data }` here double-wraps and breaks clients that unwrap once.
+    return this.offerService.submitOffer(viewer, requestId, body);
   }
 
   @Get('requests/:id/offers')
@@ -85,8 +86,7 @@ export class OfferController {
     @Viewer() viewer: ViewerContext,
     @Param('id') id: string,
   ) {
-    const data = await this.offerService.getOfferById(viewer, id);
-    return { data };
+    return this.offerService.getOfferById(viewer, id);
   }
 
   @Get('offers/:id/vendor-rating')
@@ -94,8 +94,7 @@ export class OfferController {
     @Viewer() viewer: ViewerContext,
     @Param('id') id: string,
   ) {
-    const data = await this.offerService.getVendorRating(viewer, id);
-    return { data };
+    return this.offerService.getVendorRating(viewer, id);
   }
 
   @Post('offers/:id/revise')
@@ -107,8 +106,7 @@ export class OfferController {
     @Param('id') id: string,
     @Body(zodBody(reviseOfferSchema)) body: ReviseOfferInput,
   ) {
-    const data = await this.offerService.reviseOffer(viewer, id, body);
-    return { data };
+    return this.offerService.reviseOffer(viewer, id, body);
   }
 
   @Post('offers/:id/withdraw')
@@ -119,8 +117,7 @@ export class OfferController {
     @Viewer() viewer: ViewerContext,
     @Param('id') id: string,
   ) {
-    const data = await this.offerService.withdrawOffer(viewer, id);
-    return { data };
+    return this.offerService.withdrawOffer(viewer, id);
   }
 
   @Post('offers/:id/decline')
@@ -130,8 +127,7 @@ export class OfferController {
     @Param('id') id: string,
     @Body(zodBody(declineOfferSchema)) body: DeclineOfferInput,
   ) {
-    const data = await this.offerService.declineOffer(viewer, id, body);
-    return { data };
+    return this.offerService.declineOffer(viewer, id, body);
   }
 
   @Post('offers/:id/viewed')

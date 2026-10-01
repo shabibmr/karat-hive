@@ -4,7 +4,7 @@ import 'package:kh_domain/kh_domain.dart';
 import '../app/di.dart';
 
 class PlatformConfigController
-    extends AutoDisposeAsyncNotifier<PlatformConfig> {
+    extends AsyncNotifier<PlatformConfig> {
   @override
   Future<PlatformConfig> build() async {
     final r = await ref.watch(khApiProvider).platformConfig.getConfig();

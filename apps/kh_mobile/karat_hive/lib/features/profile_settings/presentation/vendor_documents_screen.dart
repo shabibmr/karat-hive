@@ -49,12 +49,10 @@ class VendorDocumentsScreen extends ConsumerWidget {
     WidgetRef ref,
     VendorDocumentType type,
   ) async {
-    final res = await FilePicker.platform.pickFiles(
+    final file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
-      withData: true,
     );
-    final file = res?.files.single;
     if (file == null) return;
     final ext = file.name.split('.').last.toLowerCase();
     final contentType = switch (ext) {
@@ -63,8 +61,8 @@ class VendorDocumentsScreen extends ConsumerWidget {
       _ => 'image/jpeg',
     };
     final controller = ref.read(vendorDocumentsControllerProvider.notifier);
-    final bytes = file.bytes;
-    if (bytes != null && bytes.isNotEmpty) {
+    final bytes = await file.readAsBytes();
+    if (bytes.isNotEmpty) {
       await controller.pickAndUploadBytes(type, bytes, contentType);
       return;
     }

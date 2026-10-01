@@ -11,14 +11,16 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_avif: ^3.1.0
+  cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
-  # Direction 1a "Classic" families (UI-Design-Context.md §3.1). Bundled, not
+  # Display and UI families (UI-Design-Context.md §3.1). Bundled, not
   # fetched at runtime, so first launch and offline render correctly. OFL-1.1,
   # licences alongside in fonts/.
   fonts:

@@ -8,6 +8,8 @@ export const RATE_LIMIT_SCOPES: Record<string, TokenBucketConfig> = {
   auth: { capacity: 20, refillPerMinute: 10 },
   otp: { capacity: 5, refillPerMinute: 5 },
   search: { capacity: 30, refillPerMinute: 30 },
+  // Anonymous image fetches; a feed renders many thumbnails and CGNAT shares IPs.
+  media_read: { capacity: 600, refillPerMinute: 600 },
 };
 
 export function scopeFor(method: string, url: string): string | null {
@@ -15,6 +17,7 @@ export function scopeFor(method: string, url: string): string | null {
   if (path === '/health' || path === '/ready') return null;
   if (path.startsWith('/v1/auth/otp')) return 'otp';
   if (path.startsWith('/v1/auth/')) return 'auth';
+  if (method.toUpperCase() === 'GET' && path.startsWith('/v1/media/')) return 'media_read';
   if (path.includes('/search') || path.endsWith('/matches')) return 'search';
   if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(method.toUpperCase())) return 'default_mutating';
   return null;

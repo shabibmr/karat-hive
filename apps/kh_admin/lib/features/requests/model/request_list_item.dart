@@ -7,7 +7,7 @@ part 'request_list_item.g.dart';
 
 /// One row in `GET /v1/admin/requests` (ADM-S08).
 @freezed
-class RequestListItem with _$RequestListItem {
+abstract class RequestListItem with _$RequestListItem {
   const RequestListItem._();
 
   const factory RequestListItem({

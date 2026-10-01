@@ -5,18 +5,16 @@ import 'package:kh_design_system/src/tokens.dart';
 import 'package:kh_design_system/src/typography.dart';
 import 'package:kh_design_system/src/widgets/kh_home_style.dart';
 
-/// Request-type service tile used in the 2×2 grid on Customer Home and Guest
-/// Landing (`UI-Design-Context.md` §6.10).
+/// Request-type photography tile for Customer Home and Guest Landing.
 ///
-/// Photo band (86 px) with a start-inset icon badge, a two-line serif title,
-/// and a gold arrow chip at the end. The whole card is one tap target and one
-/// semantics node.
+/// Default: full-bleed photo with overlaid title (Home-1 / visual pass H02).
+/// [editorial]: cream label-panel card used by the photographic Customer Home.
 class KhServiceCard extends StatefulWidget {
   const KhServiceCard({
     super.key,
     required this.title,
-    required this.icon,
     required this.onTap,
+    this.icon,
     this.image,
     this.tapKey,
     this.expand = false,
@@ -24,18 +22,10 @@ class KhServiceCard extends StatefulWidget {
   });
 
   final String title;
-  final IconData icon;
+  final IconData? icon;
   final VoidCallback onTap;
-
-  /// Cover photo. Until real photography exists, a striped placeholder (§2.2)
-  /// fills the band.
   final ImageProvider? image;
-
-  /// Key for the inner tap target, for tests and deep links.
   final Key? tapKey;
-
-  /// Fill a height-constrained slot (a stretched grid row) and pin the arrow
-  /// chip to the bottom edge, so wrapped titles don't stagger the arrows.
   final bool expand;
   final bool editorial;
 
@@ -44,6 +34,8 @@ class KhServiceCard extends StatefulWidget {
 }
 
 class _KhServiceCardState extends State<KhServiceCard> {
+  static const _tileHeight = 168.0;
+
   bool _pressed = false;
 
   @override
@@ -61,33 +53,70 @@ class _KhServiceCardState extends State<KhServiceCard> {
     final radius = BorderRadius.circular(t.radius.card);
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
-    final bounded = widget.expand;
-    final body = Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(
-        t.space.s12,
-        t.space.s10,
-        t.space.s12,
-        t.space.s12,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            widget.title,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: type.titleMedium,
-          ),
-          SizedBox(height: t.space.sm),
-          if (bounded) const Spacer(),
-          const Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: _ArrowChip(),
-          ),
-        ],
-      ),
+    final titleStyle = type.titleMedium?.copyWith(
+      color: t.surface,
+      shadows: [
+        Shadow(
+          color: t.ink.withValues(alpha: 0.45),
+          blurRadius: 8,
+          offset: const Offset(0, 1),
+        ),
+      ],
     );
 
+    final tile = Stack(
+      fit: StackFit.expand,
+      children: [
+        if (widget.image != null)
+          Image(
+            image: widget.image!,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) =>
+                CustomPaint(painter: KhStripePainter.onIvory()),
+          )
+        else
+          CustomPaint(painter: KhStripePainter.onIvory()),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                t.ink.withValues(alpha: 0),
+                t.ink.withValues(alpha: 0.40),
+                t.ink.withValues(alpha: 0.60),
+              ],
+              stops: const [0.30, 0.72, 1],
+            ),
+          ),
+        ),
+        PositionedDirectional(
+          start: t.space.s12,
+          end: t.space.s12,
+          bottom: t.space.s12,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Text(
+                  widget.title,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: titleStyle,
+                ),
+              ),
+              SizedBox(width: t.space.sm),
+              const _ArrowChip(),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    // Fixed base height so KhServiceGrid's IntrinsicHeight resolves; it grows
+    // with the text scale so a wrapped title stays on the scrim.
+    final tileHeight =
+        _tileHeight * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6);
     return Semantics(
       button: true,
       label: widget.title,
@@ -120,31 +149,10 @@ class _KhServiceCardState extends State<KhServiceCard> {
             borderRadius: radius,
             child: ClipRRect(
               borderRadius: radius,
-              child: Column(
-                mainAxisSize: bounded ? MainAxisSize.max : MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(
-                    height: 86,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (widget.image != null)
-                          Image(image: widget.image!, fit: BoxFit.cover)
-                        else
-                          CustomPaint(painter: KhStripePainter.onIvory()),
-                        PositionedDirectional(
-                          top: t.space.s10,
-                          start: t.space.s10,
-                          child: _IconBadge(icon: widget.icon),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // In a stretched grid row the body fills the remaining
-                  // height so every arrow chip sits on the bottom edge.
-                  if (bounded) Expanded(child: body) else body,
-                ],
+              child: SizedBox(
+                height: tileHeight,
+                width: double.infinity,
+                child: tile,
               ),
             ),
           ),
@@ -153,6 +161,7 @@ class _KhServiceCardState extends State<KhServiceCard> {
     );
   }
 }
+
 
 class _EditorialServiceCard extends StatelessWidget {
   const _EditorialServiceCard({
@@ -279,6 +288,7 @@ class _EditorialServiceCard extends StatelessWidget {
   );
 }
 
+
 class _LabelPanelClipper extends CustomClipper<Path> {
   const _LabelPanelClipper();
 
@@ -295,32 +305,6 @@ class _LabelPanelClipper extends CustomClipper<Path> {
   bool shouldReclip(_LabelPanelClipper oldClipper) => false;
 }
 
-class _IconBadge extends StatelessWidget {
-  const _IconBadge({required this.icon});
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: t.surface,
-        borderRadius: BorderRadius.circular(t.radius.chipMd),
-        boxShadow: [
-          BoxShadow(
-            color: t.ink.withValues(alpha: 0.10),
-            offset: const Offset(0, 1),
-            blurRadius: 3,
-          ),
-        ],
-      ),
-      child: Icon(icon, size: 19, color: t.gold),
-    );
-  }
-}
 
 class _ArrowChip extends StatelessWidget {
   const _ArrowChip();
@@ -333,13 +317,15 @@ class _ArrowChip extends StatelessWidget {
       height: 28,
       decoration: BoxDecoration(color: t.gold, shape: BoxShape.circle),
       // Icons.arrow_forward mirrors in RTL automatically.
-      child: Icon(Icons.arrow_forward, size: 17, color: t.surface),
+      child: Icon(Icons.arrow_forward, size: 17, color: t.ink),
     );
   }
 }
 
 /// 135° diagonal stripe (6 px bands) standing in for unsourced photography
 /// (§2.2).
+
+
 class KhStripePainter extends CustomPainter {
   const KhStripePainter({required this.a, required this.b});
 
@@ -378,3 +364,4 @@ class KhStripePainter extends CustomPainter {
   @override
   bool shouldRepaint(KhStripePainter old) => old.a != a || old.b != b;
 }
+

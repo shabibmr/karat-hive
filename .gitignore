@@ -5,6 +5,7 @@
 # OS cruft
 .DS_Store
 Thumbs.db
+*.log
 
 # Node (none today; ui-mock is served with `npx serve`)
 node_modules/

@@ -604,6 +604,7 @@ model Media {
   dataSubjectCerts  DataSubjectRequest[]
 
   @@index([state, createdAt])
+  @@index([thumbnailKey])
   @@map("media")
 }
 

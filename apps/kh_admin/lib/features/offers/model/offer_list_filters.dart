@@ -6,7 +6,7 @@ part 'offer_list_filters.freezed.dart';
 
 /// Filter bar state for ADM-S10 (`state`, `requestType`, `q`).
 @freezed
-class OfferListFilters with _$OfferListFilters {
+abstract class OfferListFilters with _$OfferListFilters {
   const factory OfferListFilters({
     OfferState? state,
     RequestType? requestType,

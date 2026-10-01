@@ -9,7 +9,6 @@ import 'package:kh_admin/core/design/widgets/kh_status_chip.dart';
 import 'package:kh_admin/features/vendors/model/vendor_detail.dart';
 import 'package:kh_admin/features/vendors/model/vendor_enums.dart';
 import 'package:kh_admin/l10n/app_localizations.dart';
-import 'package:kh_design_system/kh_design_system.dart' hide KhStatusChip;
 
 /// "Back to Vendors" button. Was `_VendorDetailScreenState._buildBackButton`
 /// (TR-S2-10).
@@ -52,9 +51,9 @@ class VendorDetailHeader extends ConsumerWidget {
       leading: logoUrl == null
           ? null
           : ClipOval(
-              child: KhNetworkImage(
+              child: Image.network(
+                logoUrl,
                 key: const Key('vendor-detail-logo'),
-                url: logoUrl,
                 width: 48,
                 height: 48,
                 fit: BoxFit.cover,

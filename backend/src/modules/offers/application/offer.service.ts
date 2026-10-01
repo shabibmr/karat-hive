@@ -3,6 +3,7 @@ import { ApiException } from '../../../edge/errors/api-exception';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import type { ViewerContext } from '../../../edge/auth/viewer-context';
 import { PrismaService } from '../../../platform/db/prisma.service';
+import type { DbTx } from '../../../platform/db/tx';
 import { enqueueOutbox } from '../../../platform/outbox/outbox.producer';
 import { Clock } from '../../../shared/clock';
 import {
@@ -38,6 +39,39 @@ export class OfferService {
       throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN);
     }
     return viewer.vendorProfileId;
+  }
+
+  /**
+   * Offer photos must be the caller's READY `OFFER_IMAGE` rows. A key that is
+   * still processing fails the submit so the client can retry, instead of
+   * creating an Offer with the photo silently dropped.
+   */
+  private async assertOfferMediaReady(
+    ownerUserId: string,
+    keys: string[],
+    tx: DbTx,
+  ): Promise<void> {
+    if (keys.length === 0) return;
+    const rows = await this.repo.findOfferMediaByKeys(keys, tx);
+    const byKey = new Map(rows.map((row) => [row.key, row]));
+    for (const key of keys) {
+      const media = byKey.get(key);
+      if (
+        !media ||
+        media.uploadedByUserId !== ownerUserId ||
+        media.purpose !== 'OFFER_IMAGE'
+      ) {
+        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.UPLOAD_NOT_COMPLETED, [
+          { path: 'mediaKeys', code: 'UNKNOWN', message: 'Unknown upload.' },
+        ]);
+      }
+      if (media.state === 'QUARANTINED') {
+        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.MEDIA_QUARANTINED);
+      }
+      if (media.state !== 'READY') {
+        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.MEDIA_NOT_READY);
+      }
+    }
   }
 
   private assertCustomer(viewer: ViewerContext): string {
@@ -105,6 +139,8 @@ export class OfferService {
 
     // 8. Execute in atomic transaction
     const createdOffer = await this.prisma.$transaction(async (tx) => {
+      await this.assertOfferMediaReady(viewer.userId, input.mediaKeys ?? [], tx);
+
       const offer = await this.repo.createOffer(
         {
           requestId,

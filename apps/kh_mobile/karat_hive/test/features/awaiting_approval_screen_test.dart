@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:karat_hive/app/session/session_controller.dart';
 import 'package:karat_hive/features/onboarding/controller/vendor_me_controller.dart';
@@ -13,6 +14,8 @@ import '../helpers/fake_session.dart';
 
 Widget _host({required List<Override> overrides}) {
   return ProviderScope(
+    // Riverpod 3 retries failed providers and stays in loading meanwhile.
+    retry: (_, _) => null,
     overrides: overrides,
     child: MaterialApp(
       theme: khTheme(),

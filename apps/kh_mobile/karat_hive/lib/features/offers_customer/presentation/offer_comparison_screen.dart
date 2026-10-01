@@ -111,6 +111,29 @@ class _CompareColumn extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             MaskedPartyLabel(party: offer.vendor, compact: true),
+            if (offer.terms.media.isNotEmpty &&
+                ((offer.terms.media.first.thumbnailUrl ??
+                        offer.terms.media.first.displayUrl) ??
+                    '')
+                    .isNotEmpty) ...[
+              SizedBox(height: tokens.space.sm),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(tokens.radius.sm),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: KhNetworkImage(
+                    url: offer.terms.media.first.thumbnailUrl ??
+                        offer.terms.media.first.displayUrl ??
+                        '',
+                    contentType: offer.terms.media.first.contentType.isEmpty
+                        ? 'image/jpeg'
+                        : offer.terms.media.first.contentType,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+            ],
             SizedBox(height: tokens.space.md),
             MoneyDisplay(amount: price, highlight: isBestPrice, delta: delta == 0 ? null : delta),
             if (making != null) ...[

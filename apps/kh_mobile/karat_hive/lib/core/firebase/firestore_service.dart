@@ -2,37 +2,38 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class FirestoreService {
-  FirestoreService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirestoreService({FirebaseFirestore? firestore}) : _override = firestore;
 
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _override;
 
-  FirebaseFirestore get instance => _firestore;
+  /// Lazily resolves so unit tests can construct the service without
+  /// initializing Firebase; first real use still needs a Firebase app.
+  FirebaseFirestore get instance => _override ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> collection(String collectionPath) =>
-      _firestore.collection(collectionPath);
+      instance.collection(collectionPath);
 
   DocumentReference<Map<String, dynamic>> document(String documentPath) =>
-      _firestore.doc(documentPath);
+      instance.doc(documentPath);
 
   Future<DocumentSnapshot<Map<String, dynamic>>> getDocument(String path) =>
-      _firestore.doc(path).get();
+      instance.doc(path).get();
 
   Future<void> setDocument(
     String path,
     Map<String, dynamic> data, {
     bool merge = true,
   }) =>
-      _firestore.doc(path).set(data, SetOptions(merge: merge));
+      instance.doc(path).set(data, SetOptions(merge: merge));
 
   Stream<DocumentSnapshot<Map<String, dynamic>>> documentStream(String path) =>
-      _firestore.doc(path).snapshots();
+      instance.doc(path).snapshots();
 
   Stream<QuerySnapshot<Map<String, dynamic>>> collectionStream(
     String collectionPath, {
     Query<Map<String, dynamic>> Function(Query<Map<String, dynamic>> query)? queryBuilder,
   }) {
-    final collectionRef = _firestore.collection(collectionPath);
+    final collectionRef = instance.collection(collectionPath);
     final query = queryBuilder != null ? queryBuilder(collectionRef) : collectionRef;
     return query.snapshots();
   }

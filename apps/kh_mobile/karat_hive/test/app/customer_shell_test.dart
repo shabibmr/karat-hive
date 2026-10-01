@@ -59,6 +59,7 @@ GoRouter _router() => GoRouter(
 );
 
 Widget _app(GoRouter router) => MaterialApp.router(
+  theme: khTheme(),
   routerConfig: router,
   supportedLocales: KhStrings.supportedLocales,
   localizationsDelegates: KhStrings.delegates,

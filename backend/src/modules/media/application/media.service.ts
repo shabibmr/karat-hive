@@ -25,6 +25,17 @@ import { MediaRepository } from '../repository/media.repository';
 import { presentMediaRef, type MediaRef, type UploadIntent } from '../presenter/media.presenter';
 import { PerfTimer } from '../../../platform/perf/perf-timer';
 
+/**
+ * Purposes served by the unauthenticated `GET /v1/media/:key`. Identity images
+ * (profile / shop photos) are deliberately excluded: they are revealed per
+ * Connection only (BR-007). New purposes are private until added here.
+ */
+const PUBLIC_MEDIA_PURPOSES: ReadonlySet<string> = new Set([
+  'REQUEST_IMAGE',
+  'OFFER_IMAGE',
+  'VENDOR_LOGO',
+]);
+
 @Injectable()
 export class MediaService {
   constructor(
@@ -225,31 +236,15 @@ export class MediaService {
     if (!media) {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
-    if (media.state === 'QUARANTINED') {
-      throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.MEDIA_QUARANTINED);
-    }
-    if (media.state === 'PENDING_UPLOAD' || media.state === 'FAILED') {
+    // Unauthenticated route: fail closed. Only processed (EXIF-stripped, scanned)
+    // display images are served; everything else 404s so existence is not leaked.
+    if (!PUBLIC_MEDIA_PURPOSES.has(media.purpose) || media.state !== 'READY') {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
-
-    let vendorProfileId: string | undefined;
-    if (
-      media.purpose === 'KYC_DOCUMENT' &&
-      media.uploadedByUserId &&
-      this.prisma.vendorProfile?.findUnique
-    ) {
-      const vp = await this.prisma.vendorProfile.findUnique({
-        where: { userId: media.uploadedByUserId },
-        select: { id: true },
-      });
-      vendorProfileId = vp?.id;
-    }
-    perf.lap('vendorProfileLookup');
 
     let objectKey = storagePath({
       purpose: media.purpose,
       key: media.key,
-      vendorProfileId,
       ownerUserId: media.uploadedByUserId ?? 'unknown',
     });
     const bucket = physicalBucketName(media.bucket, physicalBucketNamesFromEnv(this.env));

@@ -34,7 +34,11 @@ class OwnerRequestDetailState {
 }
 
 class OwnerRequestDetailController
-    extends AutoDisposeFamilyAsyncNotifier<OwnerRequestDetailState, String> {
+    extends AsyncNotifier<OwnerRequestDetailState> {
+  OwnerRequestDetailController(this.arg);
+
+  final String arg;
+
   /// Started in [build], ended by [markImagesLoaded] once the detail screen's
   /// gallery has finished loading (or immediately if there are no photos).
   /// `request.open_draft` / `request.open_published` — flow chosen once the
@@ -42,15 +46,16 @@ class OwnerRequestDetailController
   PerfLog? _openPerf;
 
   @override
-  Future<OwnerRequestDetailState> build(String arg) async {
+  Future<OwnerRequestDetailState> build() async {
     final perf = PerfLog('request.open', context: {'requestId': arg});
     final repo = ref.watch(requestManageRepositoryProvider);
     final res = await repo.getMine(arg);
     perf.lap('getMine');
     return res.when(
       ok: (req) {
-        perf.flow =
-            req.state == RequestState.published ? 'request.open_published' : 'request.open_draft';
+        perf.flow = req.state == RequestState.published
+            ? 'request.open_published'
+            : 'request.open_draft';
         _openPerf = perf;
         return OwnerRequestDetailState(request: req);
       },
@@ -70,14 +75,18 @@ class OwnerRequestDetailController
     if (perf != null) _finish(perf, arg, extra: {'imagesLoaded': count});
   }
 
-  void _finish(PerfLog perf, String requestId, {Map<String, Object?> extra = const {}}) {
+  void _finish(
+    PerfLog perf,
+    String requestId, {
+    Map<String, Object?> extra = const {},
+  }) {
     final result = perf.done(extra: extra);
     ref.read(perfLogSinkProvider).record(result, requestId: requestId);
   }
 
   Future<void> reload() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => build(arg));
+    state = await AsyncValue.guard(build);
   }
 
   Future<bool> save({
@@ -86,7 +95,7 @@ class OwnerRequestDetailController
     String? budgetMax,
     bool? budgetIsFlexible,
   }) async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return false;
     state = AsyncData(current.copyWith(saving: true, clearError: true));
     final repo = ref.read(requestManageRepositoryProvider);
@@ -110,7 +119,7 @@ class OwnerRequestDetailController
   }
 
   Future<bool> cancel({String? reason}) async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return false;
     state = AsyncData(current.copyWith(cancelling: true, clearError: true));
     final repo = ref.read(requestManageRepositoryProvider);

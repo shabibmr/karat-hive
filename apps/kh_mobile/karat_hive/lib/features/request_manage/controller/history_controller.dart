@@ -34,7 +34,7 @@ class HistoryQuery {
       );
 }
 
-class HistoryQueryController extends AutoDisposeNotifier<HistoryQuery> {
+class HistoryQueryController extends Notifier<HistoryQuery> {
   @override
   HistoryQuery build() => const HistoryQuery();
 
@@ -42,12 +42,12 @@ class HistoryQueryController extends AutoDisposeNotifier<HistoryQuery> {
 }
 
 final historyQueryProvider =
-    AutoDisposeNotifierProvider<HistoryQueryController, HistoryQuery>(
+    NotifierProvider.autoDispose<HistoryQueryController, HistoryQuery>(
   HistoryQueryController.new,
 );
 
 class HistoryController
-    extends AutoDisposeNotifier<PagedListController<RequestForCustomer>> {
+    extends Notifier<PagedListController<RequestForCustomer>> {
   @override
   PagedListController<RequestForCustomer> build() {
     final repo = ref.watch(requestManageRepositoryProvider);
@@ -74,7 +74,7 @@ class HistoryController
   Future<void> retry() => state.retry();
 }
 
-final historyControllerProvider = AutoDisposeNotifierProvider<HistoryController,
+final historyControllerProvider = NotifierProvider.autoDispose<HistoryController,
     PagedListController<RequestForCustomer>>(
   HistoryController.new,
 );

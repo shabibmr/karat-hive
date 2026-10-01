@@ -177,11 +177,6 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
                             request: req,
                             onOpen: () =>
                                 context.push('/customer/requests/${req.id}'),
-                            onViewOffers: isDrafts
-                                ? null
-                                : () => context.push(
-                                      '/customer/requests/${req.id}/offers',
-                                    ),
                           ),
                           SizedBox(height: tokens.space.sm),
                         ],

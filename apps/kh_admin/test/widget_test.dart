@@ -168,7 +168,7 @@ void main() {
 
     // Drawer is now open and sidebar contents appear
     expect(find.text('Karat Hive Portal'), findsOneWidget);
-    expect(find.text('Categories'), findsOneWidget);
+    expect(find.text('Regions'), findsOneWidget);
   });
 
   test('Design tokens expose sapphire/gold/cream palette correctly', () {
@@ -188,7 +188,7 @@ void main() {
   });
 
   testWidgets(
-      'dev auto-login lands on the dashboard shell with the Categories nav item',
+      'dev auto-login lands on the dashboard shell with the Regions nav item',
       (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1440, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -222,10 +222,10 @@ void main() {
     // The login screen must never appear.
     expect(find.text('Administrative Portal'), findsNothing);
 
-    // We land inside the shell, on the dashboard, with Categories reachable.
+    // We land inside the shell, on the dashboard, with Regions reachable.
     expect(find.text('Karat Hive Portal'), findsOneWidget);
     expect(find.text('Dashboard'), findsWidgets);
-    expect(find.text('Categories'), findsOneWidget);
+    expect(find.text('Regions'), findsOneWidget);
 
     // The bypass is always visible so it cannot ship unnoticed.
     expect(find.byKey(const Key('dev-autologin-badge')), findsOneWidget);

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
@@ -22,12 +23,24 @@ const Map<MediaUploadPurpose, int> mediaPurposeMaxBytes = {
 };
 
 /// The content type a prefetched intent is speculatively requested for.
-/// KYC's dominant case is a PDF; the two pure-image purposes always convert
-/// to AVIF on pick.
+/// KYC's dominant case is a PDF; the pure-image purposes convert to WebP on
+/// native and AVIF on web (the WebP encoder is native-only).
 String _speculativeContentType(MediaUploadPurpose purpose) =>
-    purpose == MediaUploadPurpose.kycDocument ? 'application/pdf' : 'image/avif';
+    purpose == MediaUploadPurpose.kycDocument
+        ? 'application/pdf'
+        : (kIsWeb ? 'image/avif' : 'image/webp');
 
-/// Orchestrates prefetch → pick → (image) convert-to-AVIF → cache → upload
+/// Offer images and Vendor logos use WebP on native; KYC images and web keep
+/// AVIF.
+ImageConverter _defaultConverterFor(MediaUploadPurpose purpose) {
+  final webp = !kIsWeb &&
+      (purpose == MediaUploadPurpose.requestImage ||
+          purpose == MediaUploadPurpose.offerImage ||
+          purpose == MediaUploadPurpose.vendorLogo);
+  return webp ? const WebpImageConverter() : const AvifImageConverter();
+}
+
+/// Orchestrates prefetch → pick → (image) convert → cache → upload
 /// → retry for one upload purpose (e.g. KYC documents, or offer/request
 /// images). One instance per screen; each operation is addressed by a
 /// caller-chosen `correlationId` (e.g. a document type, or a per-image slot
@@ -42,7 +55,7 @@ class MediaPickController {
     ImagePicker? imagePicker,
   })  : _uploader = uploader,
         _purpose = purpose,
-        _imageConverter = imageConverter ?? const AvifImageConverter(),
+        _imageConverter = imageConverter ?? _defaultConverterFor(purpose),
         _cache = cache ?? PendingUploadCache(),
         _imagePicker = imagePicker ?? ImagePicker();
 
@@ -75,7 +88,7 @@ class MediaPickController {
     }
   }
 
-  /// Picks an image (camera/gallery), converts it to AVIF, caches the
+  /// Picks an image (camera/gallery), converts it, caches the
   /// converted file under [correlationId], and uploads it. Returns `null`
   /// if the user cancelled the picker.
   Future<Result<String>?> pickImageConvertAndUpload({
@@ -94,25 +107,25 @@ class MediaPickController {
     );
   }
 
-  /// Converts an already-picked image file to AVIF, caches it under
+  /// Converts an already-picked image file, caches it under
   /// [correlationId], and uploads.
   Future<Result<String>> convertAndUpload(
     File file, {
     required String correlationId,
     void Function(double progress)? onProgress,
   }) async {
-    final asset = await _imageConverter.convertToAvif(file);
+    final asset = await _imageConverter.convert(file);
     await _cache.put(correlationId, asset);
     return _upload(asset, correlationId: correlationId, onProgress: onProgress);
   }
 
-  /// Web-safe: convert in-memory image bytes to AVIF and upload.
+  /// Web-safe: convert in-memory image bytes and upload.
   Future<Result<String>> convertBytesAndUpload(
     Uint8List bytes, {
     required String correlationId,
     void Function(double progress)? onProgress,
   }) async {
-    final asset = await _imageConverter.convertBytesToAvif(bytes);
+    final asset = await _imageConverter.convertBytes(bytes);
     if (asset.file != null) {
       await _cache.put(correlationId, asset);
     }

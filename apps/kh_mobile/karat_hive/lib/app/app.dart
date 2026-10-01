@@ -20,7 +20,7 @@ class KaratHiveApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Karat Hive',
       debugShowCheckedModeBanner: false,
-      // 1a "Classic" (docs/UI-Design-Context.md); locale picks Latin vs Arabic fonts.
+      // docs/UI-Design-Context.md; locale picks Latin vs Arabic fonts.
       theme: KhTheme.light(locale: locale),
       routeInformationProvider: router.routeInformationProvider,
       routeInformationParser: router.routeInformationParser,

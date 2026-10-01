@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
+import 'package:kh_l10n/kh_l10n.dart';
 
 import '../../controller/request_create_controller.dart';
 import '../../controller/request_create_state.dart';
 import 'create_flow_chrome.dart';
+
 
 class TaxonomySinglePick extends StatelessWidget {
   const TaxonomySinglePick({
@@ -94,7 +96,7 @@ class _InkPillChip extends StatelessWidget {
 }
 
 /// 46px height segmented pill control for Buy / Sell direction.
-/// Animated Buy (`#C8A046` gold fill) and Sell (`#1C1B1A` ink fill) state transitions.
+/// Animated Buy (gold token fill) and Sell (`#1C1B1A` ink fill) state transitions.
 class DirectionControl extends StatelessWidget {
   const DirectionControl({
     super.key,
@@ -105,7 +107,6 @@ class DirectionControl extends StatelessWidget {
   final Direction? value;
   final ValueChanged<Direction> onChanged;
 
-  static const _goldFill = Color(0xFFC8A046);
   static const _inkFill = Color(0xFF1C1B1A);
   static const _trackBg = Color(0xFFF5F4F0);
 
@@ -114,6 +115,7 @@ class DirectionControl extends StatelessWidget {
     final tokens = context.tokens;
     final selected = value ?? Direction.buy;
     final isBuy = selected == Direction.buy;
+    final goldFill = tokens.gold;
 
     return Padding(
       padding: EdgeInsets.only(bottom: tokens.space.lg),
@@ -138,12 +140,12 @@ class DirectionControl extends StatelessWidget {
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
                       decoration: BoxDecoration(
-                        color: isBuy ? _goldFill : Colors.transparent,
+                        color: isBuy ? goldFill : Colors.transparent,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: isBuy
                             ? [
                                 BoxShadow(
-                                  color: _goldFill.withValues(alpha: 0.3),
+                                  color: goldFill.withValues(alpha: 0.3),
                                   blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 ),
@@ -387,12 +389,15 @@ class OrnamentTypeChips extends StatelessWidget {
     required this.onChanged,
     this.errorText,
     this.optional = false,
+    this.showLabel = true,
   });
 
   final OrnamentType? value;
   final ValueChanged<OrnamentType> onChanged;
   final String? errorText;
   final bool optional;
+  final bool showLabel;
+
 
   String _displayName(BuildContext context, OrnamentType t) {
     return switch (t) {
@@ -416,17 +421,19 @@ class OrnamentTypeChips extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          optional
-              ? createCopy(
-                  context,
-                  'create.ornamentTypeOptional',
-                  'Ornament type (optional)',
-                )
-              : createCopy(context, 'create.ornamentType', 'Ornament type'),
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        SizedBox(height: tokens.space.sm),
+        if (showLabel) ...[
+          Text(
+            optional
+                ? createCopy(
+                    context,
+                    'create.ornamentTypeOptional',
+                    'Ornament type (optional)',
+                  )
+                : createCopy(context, 'create.ornamentType', 'Ornament type'),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          SizedBox(height: tokens.space.sm),
+        ],
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -456,6 +463,7 @@ class OrnamentTypeChips extends StatelessWidget {
     );
   }
 }
+
 
 /// Segmented control switching between "Maximum only" (1-up Max field) and "Min–max range" (2-up Min + Max fields).
 class BudgetEditor extends StatelessWidget {
@@ -682,7 +690,6 @@ class QuantityStepper extends StatelessWidget {
   final double? totalWeightGrams;
 
   static const _inkColor = Color(0xFF1C1B1A);
-  static const _goldFill = Color(0xFFC8A046);
 
   @override
   Widget build(BuildContext context) {
@@ -690,6 +697,7 @@ class QuantityStepper extends StatelessWidget {
     final fieldLabel = label ?? createCopy(context, 'create.quantity', 'Quantity');
     final canDecrement = value > min;
     final canIncrement = value < max;
+    final goldFill = tokens.gold;
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: tokens.space.xs),
@@ -709,9 +717,9 @@ class QuantityStepper extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: _goldFill.withValues(alpha: 0.15),
+                      color: goldFill.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(tokens.radius.sm),
-                      border: Border.all(color: _goldFill.withValues(alpha: 0.4)),
+                      border: Border.all(color: goldFill.withValues(alpha: 0.4)),
                     ),
                     child: Text(
                       '${createCopy(context, 'create.totalWeight', 'Total weight')}: ${totalWeightGrams!.toStringAsFixed(2)} g',
@@ -772,3 +780,237 @@ class QuantityStepper extends StatelessWidget {
     );
   }
 }
+
+String conditionDisplayName(BuildContext context, ItemCondition c) =>
+    switch (c) {
+      ItemCondition.brandNew =>
+        createCopy(context, 'create.condition.new', 'New'),
+      ItemCondition.likeNew =>
+        createCopy(context, 'create.condition.likeNew', 'Like new'),
+      ItemCondition.used =>
+        createCopy(context, 'create.condition.used', 'Used'),
+      ItemCondition.damaged =>
+        createCopy(context, 'create.condition.damaged', 'Damaged'),
+      ItemCondition.unknown => '—',
+    };
+
+/// Sell Old Gold condition chips (C03): selected fill is [KhTokens.ctaFill] + ink.
+class ConditionChips extends StatelessWidget {
+  const ConditionChips({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final ItemCondition? value;
+  final ValueChanged<ItemCondition> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final options = ItemCondition.values
+        .where((c) => c != ItemCondition.unknown)
+        .toList();
+
+    return Wrap(
+      spacing: tokens.space.xs,
+      runSpacing: tokens.space.xs,
+      children: [
+        for (final c in options)
+          _CtaFillChip(
+            key: Key('condition-chip-${c.wire}'),
+            label: conditionDisplayName(context, c),
+            selected: value == c,
+            onTap: () => onChanged(c),
+          ),
+      ],
+    );
+  }
+}
+
+class _CtaFillChip extends StatelessWidget {
+  const _CtaFillChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(tokens.radius.button),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: EdgeInsets.symmetric(
+            horizontal: tokens.space.md,
+            vertical: tokens.space.sm,
+          ),
+          decoration: BoxDecoration(
+            color: selected ? tokens.ctaFill : Colors.transparent,
+            borderRadius: BorderRadius.circular(tokens.radius.button),
+            border: Border.all(
+              color: selected ? tokens.ctaFill : tokens.inkBorderSoft,
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: tokens.ink,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Hairline icon-row group for Sell Old Gold compose (`sell-my-create.png` / C03).
+class SellIconFieldGroup extends StatelessWidget {
+  const SellIconFieldGroup({super.key, required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final rows = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      rows.add(children[i]);
+      if (i < children.length - 1) {
+        rows.add(Divider(height: 1, color: tokens.inkHairline));
+      }
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: tokens.paper,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        border: Border.all(color: tokens.inkHairline),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: rows,
+      ),
+    );
+  }
+}
+
+class SellIconFieldRow extends StatelessWidget {
+  const SellIconFieldRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.child,
+  });
+
+  final IconData icon;
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final fonts = KhFonts.forLocale(Localizations.maybeLocaleOf(context));
+    return Padding(
+      padding: EdgeInsets.all(tokens.space.md),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 22, color: tokens.gold),
+          SizedBox(width: tokens.space.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  fonts.isArabic ? label : label.toUpperCase(),
+                  style: fonts
+                      .sansStyle(10, FontWeight.w600, trackingEm: 0.10)
+                      .copyWith(color: tokens.inkSecondary),
+                ),
+                SizedBox(height: tokens.space.sm),
+                child,
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Indicative value card for Sell compose (C03). Hides when rates/weight missing.
+class SellIndicativeValuePanel extends StatelessWidget {
+  const SellIndicativeValuePanel({
+    super.key,
+    required this.valueAed,
+  });
+
+  final double? valueAed;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = valueAed;
+    if (value == null || value <= 0) return const SizedBox.shrink();
+
+    final tokens = context.tokens;
+    final locale = Localizations.localeOf(context).toString();
+    // Soft band around the point estimate when weight may be approximate.
+    final low = value * 0.96;
+    final high = value * 1.04;
+    final range = '${MoneyFormatter.aed(low, locale: locale)} – '
+        '${MoneyFormatter.aed(high, locale: locale)}';
+
+    return Container(
+      key: const Key('sell-indicative-panel'),
+      padding: EdgeInsets.all(tokens.space.md),
+      decoration: BoxDecoration(
+        color: tokens.paper,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        border: Border.all(color: tokens.inkHairline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            createCopy(context, 'create.indicativeTitle', 'Indicative value'),
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: tokens.inkSecondary,
+                ),
+          ),
+          SizedBox(height: tokens.space.xs),
+          Text(
+            range,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: tokens.ink,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          SizedBox(height: tokens.space.xs),
+          Text(
+            createCopy(
+              context,
+              'create.indicativeDisclaimer',
+              'Estimate only — final Offers may differ',
+            ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: tokens.inkSecondary,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
