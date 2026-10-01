@@ -26,6 +26,23 @@ PagedResult<T> _paged<T>(
   );
 }
 
+Result<OfferForVendor> _parseOfferForVendor(dynamic raw) {
+  try {
+    if (raw is! Map) {
+      return const Err(ServerFailure(
+        code: 'BAD_RESPONSE',
+        message: 'Offer response was not an object.',
+      ));
+    }
+    return Ok(OfferForVendor.fromJson(Map<String, dynamic>.from(raw)));
+  } catch (_) {
+    return const Err(ServerFailure(
+      code: 'BAD_RESPONSE',
+      message: 'Could not read offer response.',
+    ));
+  }
+}
+
 class OffersClient {
   const OffersClient(this._client);
   final KhApiClient _client;
@@ -41,10 +58,7 @@ class OffersClient {
       '/v1/requests/$requestId/offers',
       body: terms.toJson(),
     );
-    return r.when(
-      ok: (d) => Ok(OfferForVendor.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseOfferForVendor, err: Err.new);
   }
 
   Future<Result<OfferForVendor>> reviseOffer({
@@ -56,26 +70,17 @@ class OffersClient {
       '/v1/offers/$offerId/revise',
       body: terms.toJson(includeMediaKeys: false),
     );
-    return r.when(
-      ok: (d) => Ok(OfferForVendor.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseOfferForVendor, err: Err.new);
   }
 
   Future<Result<OfferForVendor>> withdrawOffer(String offerId) async {
     final r = await _client.send('POST', '/v1/offers/$offerId/withdraw');
-    return r.when(
-      ok: (d) => Ok(OfferForVendor.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseOfferForVendor, err: Err.new);
   }
 
   Future<Result<OfferForVendor>> getOffer(String offerId) async {
     final r = await _client.send('GET', '/v1/offers/$offerId');
-    return r.when(
-      ok: (d) => Ok(OfferForVendor.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseOfferForVendor, err: Err.new);
   }
 
   Future<Result<PagedResult<OfferForVendor>>> listMyOffers({

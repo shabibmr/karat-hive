@@ -9,7 +9,10 @@ import 'package:kh_media/kh_media.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../../../app/di.dart';
+import '../../../core/firebase/firestore_debug_logger.dart';
 import '../repository/offers_vendor_repository.dart';
+
+const _submitOfferLogScope = 'SubmitOffer';
 
 class OfferImageSlot {
   const OfferImageSlot({
@@ -92,7 +95,12 @@ final offerRetrySleepProvider = Provider<Future<void> Function(Duration)>(
 );
 
 final offerImageUploaderProvider = Provider<OfferImageUploader>((ref) {
-  final uploader = MediaUploader(ref.watch(khApiProvider));
+  final uploader = MediaUploader(
+    ref.watch(khApiProvider),
+    onDebug: ref
+        .watch(firestoreDebugLoggerProvider)
+        .sinkFor('OfferImageUpload'),
+  );
   return OfferImageUploader(
     (bytes, contentType, {onProgress}) => uploader.uploadBytes(
       bytes,
@@ -403,9 +411,28 @@ class SubmitOfferController extends Notifier<SubmitOfferState> {
     final current = state;
     if (current is! SubmitOfferReady || current.submitting) return;
     final gen = _gen;
+    final log = ref.read(firestoreDebugLoggerProvider);
+    final mediaKeys = List<String>.from(current.draft.mediaKeys);
+
+    log.log(_submitOfferLogScope, 'submit.tap', {
+      'requestId': arg,
+      'mediaKeyCount': mediaKeys.length,
+      'mediaKeys': mediaKeys,
+      'imageCount': current.images.length,
+      'uploadingCount':
+          current.images.where((image) => image.uploading).length,
+      'failedImageCount':
+          current.images.where((image) => image.failure != null).length,
+      'priceRaw': current.draft.offeredPrice,
+      'weightRaw': current.draft.weightGrams,
+    });
 
     final price = double.tryParse(current.draft.offeredPrice);
     if (price == null || price <= 0) {
+      log.log(_submitOfferLogScope, 'submit.validationFailed', {
+        'requestId': arg,
+        'reason': 'invalid_price',
+      });
       state = current.copyWith(
         failure: const ValidationFailure(message: 'Enter a valid offered price.'),
       );
@@ -414,6 +441,10 @@ class SubmitOfferController extends Notifier<SubmitOfferState> {
 
     final weight = double.tryParse(current.draft.weightGrams);
     if (weight == null || weight <= 0) {
+      log.log(_submitOfferLogScope, 'submit.validationFailed', {
+        'requestId': arg,
+        'reason': 'invalid_weight',
+      });
       state = current.copyWith(
         failure: const ValidationFailure(message: 'Enter a valid gold weight.'),
       );
@@ -421,6 +452,10 @@ class SubmitOfferController extends Notifier<SubmitOfferState> {
     }
 
     if (current.images.any((image) => image.uploading)) {
+      log.log(_submitOfferLogScope, 'submit.validationFailed', {
+        'requestId': arg,
+        'reason': 'image_uploading',
+      });
       state = current.copyWith(
         failure: const ValidationFailure(
           message: 'Photo is still uploading.',
@@ -430,6 +465,10 @@ class SubmitOfferController extends Notifier<SubmitOfferState> {
     }
 
     if (current.images.any((image) => image.failure != null)) {
+      log.log(_submitOfferLogScope, 'submit.validationFailed', {
+        'requestId': arg,
+        'reason': 'image_upload_failed',
+      });
       state = current.copyWith(
         failure: const ValidationFailure(
           message: 'Remove or retry the photo that failed to upload.',
@@ -438,7 +477,11 @@ class SubmitOfferController extends Notifier<SubmitOfferState> {
       return;
     }
 
-    if (current.draft.mediaKeys.isEmpty) {
+    if (mediaKeys.isEmpty) {
+      log.log(_submitOfferLogScope, 'submit.validationFailed', {
+        'requestId': arg,
+        'reason': 'no_media_keys',
+      });
       state = current.copyWith(
         failure: const ValidationFailure(
           message: 'Please add at least 1 image to your offer.',
@@ -449,28 +492,97 @@ class SubmitOfferController extends Notifier<SubmitOfferState> {
 
     state = current.copyWith(submitting: true, clearFailure: true);
     final delay = ref.read(offerMediaReadyRetryDelayProvider);
+    final startedAt = DateTime.now().toUtc();
+    log.log(_submitOfferLogScope, 'submit.api.start', {
+      'requestId': arg,
+      'mediaKeys': mediaKeys,
+      'delayMs': delay.inMilliseconds,
+      'maxRetries': _offerMediaReadyMaxRetries,
+    });
+
     var result = await _repo.submitOffer(
       requestId: arg,
       terms: current.draft.toInput(),
     );
+    log.log(_submitOfferLogScope, 'submit.api.result', {
+      'requestId': arg,
+      'attempt': 0,
+      'ok': result.isOk,
+      'code': result.failureOrNull?.code,
+      'message': result.failureOrNull?.message,
+      'elapsedMs': DateTime.now().toUtc().difference(startedAt).inMilliseconds,
+    });
+
     for (
       var n = 0;
       n < _offerMediaReadyMaxRetries &&
           result.failureOrNull?.code == 'MEDIA_NOT_READY';
       n++
     ) {
-      if (_stale(gen)) return;
+      if (_stale(gen)) {
+        log.log(_submitOfferLogScope, 'submit.stale', {
+          'requestId': arg,
+          'at': 'before_retry_sleep',
+          'attempt': n,
+        });
+        return;
+      }
+      log.log(_submitOfferLogScope, 'submit.mediaNotReady.retry', {
+        'requestId': arg,
+        'attempt': n + 1,
+        'delayMs': delay.inMilliseconds,
+      });
       await ref.read(offerRetrySleepProvider)(delay);
-      if (_stale(gen)) return;
+      if (_stale(gen)) {
+        log.log(_submitOfferLogScope, 'submit.stale', {
+          'requestId': arg,
+          'at': 'after_retry_sleep',
+          'attempt': n + 1,
+        });
+        return;
+      }
+      final retryStartedAt = DateTime.now().toUtc();
       result = await _repo.submitOffer(
         requestId: arg,
         terms: current.draft.toInput(),
       );
+      log.log(_submitOfferLogScope, 'submit.api.result', {
+        'requestId': arg,
+        'attempt': n + 1,
+        'ok': result.isOk,
+        'code': result.failureOrNull?.code,
+        'message': result.failureOrNull?.message,
+        'elapsedMs':
+            DateTime.now().toUtc().difference(retryStartedAt).inMilliseconds,
+      });
     }
-    if (_stale(gen)) return;
+    if (_stale(gen)) {
+      log.log(_submitOfferLogScope, 'submit.stale', {
+        'requestId': arg,
+        'at': 'after_retries',
+      });
+      return;
+    }
     result.when(
-      ok: (offer) => state = SubmitOfferSucceeded(offer),
-      err: (f) => state = current.copyWith(submitting: false, failure: f),
+      ok: (offer) {
+        log.log(_submitOfferLogScope, 'submit.succeeded', {
+          'requestId': arg,
+          'offerId': offer.id,
+          'totalElapsedMs':
+              DateTime.now().toUtc().difference(startedAt).inMilliseconds,
+        });
+        state = SubmitOfferSucceeded(offer);
+      },
+      err: (f) {
+        log.log(_submitOfferLogScope, 'submit.failed', {
+          'requestId': arg,
+          'code': f.code,
+          'message': f.message,
+          'totalElapsedMs':
+              DateTime.now().toUtc().difference(startedAt).inMilliseconds,
+        });
+        state = current.copyWith(submitting: false, failure: f);
+      },
     );
   }
 }

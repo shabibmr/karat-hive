@@ -312,27 +312,41 @@ abstract class OfferRequestSummary with _$OfferRequestSummary {
       _$OfferRequestSummaryFromJson(_normalizeOfferRequestSummaryJson(json));
 }
 
+/// Peels a mistaken extra `{ data: offer }` layer from double-enveloped
+/// responses (controller returned `{ data }` and EnvelopeInterceptor wrapped
+/// again). Prefer fixing the controller; this keeps older deployments parseable.
+Map<String, dynamic> _unwrapOfferResource(Map<String, dynamic> json) {
+  if (json['id'] != null) return json;
+  final nested = json['data'];
+  if (nested is Map) return _map(nested);
+  return json;
+}
+
 Map<String, dynamic> _normalizeOfferForVendorJson(Map<String, dynamic> json) {
-  final mediaRaw = json['media'] as List?;
+  final root = _unwrapOfferResource(json);
+  final mediaRaw = root['media'] as List?;
   final media = (mediaRaw ?? const [])
       .map((e) => MediaRef.fromJson(_map(e)))
       .toList(growable: false);
-  final summaryRaw = json['requestSummary'];
+  final summaryRaw = root['requestSummary'];
   return {
-    ...json,
-    'state': json['state']?.toString(),
-    'terms': _offerTermsFromJsonWithMedia(_map(json['terms']), media: media).toJson(),
+    ...root,
+    'id': root['id']?.toString() ?? '',
+    'requestId': root['requestId']?.toString() ?? '',
+    'state': root['state']?.toString(),
+    'terms': _offerTermsFromJsonWithMedia(_map(root['terms']), media: media).toJson(),
     'submittedAt':
-        (_dt(json['submittedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+        (_dt(root['submittedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
             .toIso8601String(),
-    'expiresAt': (_dt(json['expiresAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
+    'expiresAt': (_dt(root['expiresAt']) ?? DateTime.fromMillisecondsSinceEpoch(0))
         .toIso8601String(),
-    'decidedAt': _dt(json['decidedAt'])?.toIso8601String(),
-    'viewedByCustomerAt': _dt(json['viewedByCustomerAt'])?.toIso8601String(),
-    'revisionCount': (json['revisionCount'] as num?)?.toInt() ?? 0,
+    'decidedAt': _dt(root['decidedAt'])?.toIso8601String(),
+    'viewedByCustomerAt': _dt(root['viewedByCustomerAt'])?.toIso8601String(),
+    'revisionCount': (root['revisionCount'] as num?)?.toInt() ?? 0,
     'requestSummary': summaryRaw is Map ? _map(summaryRaw) : null,
-    'declineReason': json['declineReason'] as String?,
-    'awardedElsewhere': json['awardedElsewhere'] as bool? ?? false,
+    'declineReason': root['declineReason'] as String?,
+    'awardedElsewhere': root['awardedElsewhere'] as bool? ?? false,
+    'connectionId': root['connectionId'] as String?,
   };
 }
 
