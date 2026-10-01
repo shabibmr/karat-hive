@@ -9,7 +9,7 @@ An unauthenticated visitor in Customer mode. May browse the four Request Types a
 _Avoid_: anonymous user, visitor (as primary), signed-out Customer
 
 **Customer**:
-A retail individual who creates Requests to buy or sell gold or jewellery. Not business-KYC’d by the platform; must bind a one-time external identity before publishing any Request. Cold start without a live session is Guest, not this role (`adr/0011`).
+A retail individual who creates Requests to buy or sell gold or jewellery. Not business-KYC’d by the platform; signs in with Google (the only login, `adr/0010`) before publishing any Request. Cold start without a live session is Guest, not this role (`adr/0011`).
 _Avoid_: buyer, client, user (when meaning this role), account
 
 **Vendor**:
@@ -35,7 +35,7 @@ Whether the Customer wants to buy or sell on a Request. Fixed by type for Find A
 _Avoid_: side, intent (alone)
 
 **Offer**:
-A Vendor’s priced, time-limited response to a single Request. At most one non-terminal Offer per Vendor per Request; at most one Offer per Request may be accepted.
+A Vendor’s priced response to a single Request, stating the weight and karat it prices. It lives until its Request's hard expiry and cannot be revised: a Vendor changes terms by withdrawing and submitting a new Offer (`adr/0015`). At most one non-terminal Offer per Vendor per Request; at most one Offer per Request may be accepted.
 _Avoid_: bid, quote (as primary), proposal, price, deal
 
 **Acceptance**:
@@ -69,8 +69,8 @@ Removed entity (ADR 0014). Category taxonomy has been completely removed from ma
 _Avoid_: Category taxonomy, product taxonomy
 
 **Region**:
-Admin-maintained geographic area (for example emirate → area). Retained as an optional flat display and feed filter taxonomy, not a matching eligibility gate.
-_Avoid_: location, zone, city (unless as a Region leaf name)
+Admin-maintained geographic area (for example an emirate). A flat list ordered by display order, used for display and as a feed filter, never as a matching eligibility gate.
+_Avoid_: location, zone, city (unless as a Region name)
 
 **Type Subscription**:
 A paid Vendor entitlement to be matched to and offer on Requests of one specific Request Type. Independent per type; required in addition to Verification (`VERIFIED`) and `ACTIVE` account status.

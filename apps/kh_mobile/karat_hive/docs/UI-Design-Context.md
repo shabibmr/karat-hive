@@ -15,7 +15,7 @@ The binding visual specification for `kh_mobile` Flutter UI: principles, colour,
 >
 > | # | Source | Wins over |
 > |---|---|---|
-> | 1 | SRS v1.5, [`CONTEXT.md`](../../../../CONTEXT.md), `docs/Architecture-Frontend.md`, the Customer shell IA in `CLAUDE.md` | Everything below. A mock or written rule that shows a control the domain forbids loses |
+> | 1 | SRS v1.6, [`CONTEXT.md`](../../../../CONTEXT.md), `docs/Architecture-Frontend.md`, the Customer shell IA in `CLAUDE.md` | Everything below. A mock or written rule that shows a control the domain forbids loses |
 > | 2 | Locked decisions — §0 | `design-System.md` where they conflict (colour hexes, CTA colour, fonts, five tabs, nav selection) |
 > | 3 | `design-System.md` | The mocks for anything they don't draw: spacing, type roles, borders, text actions, empty/loading/error rules |
 > | 4 | The mocks in `apps/kh_mobile/designs/` | — |

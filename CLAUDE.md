@@ -14,11 +14,11 @@ When a decision needs tracing back, read in this order. Later documents may not 
 |---|---|
 | `docs/Requirements-raw.txt` | **Sole source input.** Never edit. Every requirement traces to a line number here |
 | `CONTEXT.md` | Ubiquitous language — binding vocabulary, including the `_Avoid_` list under each term |
-| `docs/Requirements-Spec-v1.5.md` | **Authoritative SRS.** What the system must do |
-| `docs/adr/0001`–`0014` | Why the shape is this shape, one decision each. `0010` Google-only login; `0011` Guest-first launch; `0013` object storage on Oracle S3 (`ap-hyderabad-1`; supersedes `0012` R2 KYC); `0014` Category taxonomy entity removed |
+| `docs/Requirements-Spec-v1.6.md` | **Authoritative SRS.** What the system must do |
+| `docs/adr/0001`–`0015` | Why the shape is this shape, one decision each. `0010` Google-only login; `0011` Guest-first launch; `0013` object storage on Oracle S3 (`ap-hyderabad-1`; supersedes `0012` R2 KYC); `0014` Category taxonomy entity removed; `0015` Offers live with their Request (no revision, no `OFFERS_RECEIVED`) |
 | `docs/Architecture-Backend.md`, `docs/Architecture-Frontend.md` | How it gets built. Derived from the SRS; cite it, never restate it |
-| `docs/API-Route-Inventory.md` | Pre-code HTTP catalogue (`[PROPOSED]`). Superseded by generated OpenAPI (`NFR-030`) once code exists |
-| `docs/Physical-Data-Model.md` | Pre-code Postgres schema (`[PROPOSED]`). Encoded in `backend/prisma/schema.prisma` |
+| `docs/API-Route-Inventory.md` | HTTP catalogue. Generated OpenAPI in `backend/openapi/` (`NFR-030`) supersedes it once response schemas are exported |
+| `docs/Physical-Data-Model.md` | Postgres schema decisions Prisma can't express on its own. The encoding is `backend/prisma/schema.prisma` |
 | `docs/Async-Contract.md`, `docs/Notification-Catalogue.md` | Outbox events, scheduled jobs and notification triggers; EN/AR notification copy per trigger |
 | `docs/Screen-API-Map.md` | Screen → endpoint coverage; gap register `SAM-GAP-nn` |
 | `ui-screens/` | Field-level inventory of the 68 screens, plus `component-widgets.md` (`SH-*` widgets) |
@@ -48,24 +48,24 @@ The connective tissue between documents. Stable, never reused. IDs sit close tog
 
 ## Roles and services
 
-Four actors, defined in `CONTEXT.md`: **Guest** (unauthenticated, browses and composes, cannot publish), **Customer** (one-time external identity binding before first publish), **Vendor** (needs `VERIFIED` + `ACTIVE` + an active Type Subscription for the Request type — verification alone is not enough, `BR-002`), **Platform Admin** (`kh_admin`). `kh_mobile` is one binary rendering as Customer or Vendor by account role; no account holds both.
+Four actors, defined in `CONTEXT.md`: **Guest** (unauthenticated, browses and composes, cannot publish), **Customer** (signs in with Google before first publish), **Vendor** (needs `VERIFIED` + `ACTIVE` + an active Type Subscription for the Request type — verification alone is not enough, `BR-002`), **Platform Admin** (`kh_admin`). `kh_mobile` is one binary rendering as Customer or Vendor by account role; no account holds both.
 
 Four Request Types, the unit of Vendor subscription entitlement and immutable once published: **Find An Ornament** (buy), **Sell Old Gold** (sell), **Buy/Sell Gold Coin(s)**, **Buy/Sell Gold Bullion** (direction chosen by the Customer on the last two).
 
 ## The 48-hour Request lifecycle
 
-A published Request hard-expires 48 hours after publication — no Customer extension, ever (`C-07`, `FR-SYS-005`). A T−6h warning notification fires before expiry. Vendor-chosen Offer validity (default 24h, up to 48h) can never extend past the parent Request's hard expiry.
+A published Request hard-expires 48 hours after publication — no Customer extension, ever (`C-07`, `FR-SYS-005`). A T−6h warning notification fires before expiry. Every Offer expires with its Request; Vendors don't choose a validity window and can't revise an Offer — they withdraw and resubmit (`adr/0015`).
 
 ```
-DRAFT → PUBLISHED → OFFERS_RECEIVED → ACCEPTED → CLOSED
-  ↓         ↓              ↓
-CANCELLED EXPIRED(48h)   EXPIRED(48h) / CANCELLED / REMOVED
+DRAFT → PUBLISHED → ACCEPTED → CLOSED
+  ↓         ↓
+CANCELLED EXPIRED(48h) / CANCELLED / REMOVED
 ```
 
-- `PUBLISHED` → `OFFERS_RECEIVED` on the first Offer; falls back to `PUBLISHED` if the last pending Offer expires unaccepted.
+- A Request stays `PUBLISHED` while Offers arrive; "has Offers" is `offerCount`, not a state.
 - **Acceptance is atomic and irreversible** (`BR-011`–`BR-013`): one Customer action accepts exactly one Offer, rejects every other pending Offer on that Request, creates exactly one Connection, and reveals both identities — one transaction.
 - Before acceptance, identity fields are **absent** from API payloads for both parties (`BR-006`), never null or client-hidden.
-- A Connection survives closure as a read-only record. "Talk" only opens a `wa.me` deep link — the platform never reads conversation content (`C-03`) and has no authoritative knowledge that a deal closed (`BR-015`; settlement is off-platform).
+- A Connection survives closure as a read-only record. "Talk" only opens a `wa.me` deep link — the platform never reads conversation content (`C-03`) and has no authoritative knowledge that a sale closed (`BR-015`; settlement is off-platform).
 - No broker, no Redis (`C-11`/`C-12`) — expiry, warnings, and other async effects run off a Postgres transactional outbox (`backend/src/platform/outbox/`) plus a scheduler (`backend/src/platform/scheduler/`), never a queue worker.
 
 ## Domain invariants

@@ -38,4 +38,4 @@ Cold start with no live session opens **Guest Landing** (`CUS-S23`) in Customer 
 
 **Non-goals (this slice).** Local draft persistence. Role chooser on the publish path. Big Jeweller CTA on Guest Landing.
 
-**Follow-up docs.** SRS v1.3 Appendix C still lists 22 Customer screens and describes OTP-first onboarding. Until an SRS bump, this ADR, [`ui-screens/customer/CUS-S23-guest-landing.md`](../../ui-screens/customer/CUS-S23-guest-landing.md), and the Customer checkpoint / build plan are the working rule for launch.
+**Follow-up docs.** Folded into SRS v1.6 on 1 Oct 2026 (§3.1, `FR-CUS-014`, `FR-CUS-015`, Appendix C `CUS-S23`). Screen: [`ui-screens/customer/CUS-S23-guest-landing.md`](../../ui-screens/customer/CUS-S23-guest-landing.md).
