@@ -28,7 +28,7 @@ Full Offer terms plus masked Vendor rating summary before Accept or Decline.
 | Warranty / buy-back terms | Display | — | text | |
 | Vendor free-text note | Display | — | text | |
 | Supporting images (≤3) | Display | — | gallery | Vendor-attached |
-| Validity / expiry | System | — | countdown | |
+| Expiry | System | — | countdown | = the Request's hard expiry (`FR-VEN-013`) |
 | Offer state | Display | — | PENDING / EXPIRED / … | Read-only if terminal |
 | Vendor masked label | Display | — | e.g. Verified Jeweller · Deira · ★ 4.6 · 128 deals | |
 | Aggregate rating | Display | — | 1 decimal | |

@@ -4,40 +4,35 @@
 |---|---|
 | **User** | Vendor |
 | **Platform** | Mobile — Vendor mode |
-| **Requirements** | `FR-VEN-003` |
+| **Requirements** | `FR-VEN-003`, [`adr/0010`](../../docs/adr/0010-google-signin-only-login.md) |
 
 ## Purpose
 
-Authenticate Vendor; route to Awaiting Approval shell or full app by state.
+Authenticate a Vendor with Google Sign-In; route to the Awaiting Approval shell or the full app by state.
 
 ## Entry / exit
 
 | Direction | Path |
 |---|---|
-| Entry | Cold start Vendor mode |
-| Exit | VEN-S03 or VEN-S05 |
+| Entry | Corner Log in on Guest Landing (`CUS-S23`) for a returning jeweller |
+| Exit | VEN-S03 or VEN-S05; unbound Google account → VEN-S01 |
 
 ## Fields
 
 | Field / UI element | Kind | Required | Type / options | Notes |
 |---|---|---|---|---|
-| Mobile number | Input | Conditional | E.164 | OTP path |
-| OTP | Input | Conditional | numeric | |
-| Business email | Input | Conditional | email | If password set |
-| Password | Input | Conditional | secret | |
-| Login | Action | — | — | |
+| Sign in with Google | Action | — | Google provider | Only login (`adr/0010`). No OTP, no password |
 | Register link | Action | — | — | → VEN-S01 |
-| Lockout message | Display | Conditional | — | 5 fails → 15 min lock |
 
 ## Validation & rules
 
-- Allowed: PENDING_VERIFICATION, VERIFIED (pre-ACTIVE), ACTIVE.
-- Refused: REJECTED, SUSPENDED, DEACTIVATED — state-appropriate message.
+- Allowed: PENDING_VERIFICATION, REJECTED (to resubmit), ACTIVE.
+- Refused: SUSPENDED, DEACTIVATED — state-appropriate message.
 - Session idle expiry: 14 days.
 
 ## Empty / error / edge states
 
-- Failed auth; lockout; suspended messaging.
+- Google sign-in cancelled; Google account not registered (→ VEN-S01); suspended messaging.
 
 ## Related screens
 

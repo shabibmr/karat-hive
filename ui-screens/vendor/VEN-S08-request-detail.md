@@ -15,7 +15,7 @@ Full Request attributes for Offer decision; Customer masked; competitive count o
 | Direction | Path |
 |---|---|
 | Entry | VEN-S06 |
-| Exit | VEN-S09 Submit Offer or VEN-S10 View/Revise |
+| Exit | VEN-S09 Submit Offer or VEN-S10 View / withdraw |
 
 ## Fields
 
@@ -25,14 +25,14 @@ Full Request attributes for Offer decision; Customer masked; competitive count o
 | Specification (type-specific) | Display | — | weight, purity, ornament, coins, bullion… | |
 | Budget | Display | — | AED range / flexible | |
 | Notes | Display | — | text | |
-| Category / Region | Display | — | — | |
+| Region | Display | — | — | |
 | Publication time | Display | — | datetime | |
 | Expiry | System | — | countdown | |
 | Offers already submitted (count) | Display | — | integer | No prices/terms of others (`BR-008`) |
 | Customer masked label | Display | — | e.g. Customer · Dubai · 3 previous deals | No name/mobile/email/address |
 | Customer rating signal (aggregate) | Display | Conditional | limited history rules | Visible to Vendors only (`BR-018`) |
 | Submit Offer | Action | Conditional | — | If no PENDING Offer |
-| View / Revise Offer | Action | Conditional | — | If PENDING exists → VEN-S10 |
+| View Offer | Action | Conditional | — | If PENDING exists → VEN-S10 |
 | Report Request | Action | — | — | → VEN-S21 |
 | Mark viewed | System | — | — | Decrements New Requests |
 

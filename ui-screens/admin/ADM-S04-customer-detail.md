@@ -22,7 +22,7 @@ Full Customer record, history, and suspension/deletion actions.
 | Field / UI element | Kind | Required | Type / options | Notes |
 |---|---|---|---|---|
 | Profile data (unmasked) | Display | — | name, mobile, email, photo, Region, language | |
-| Account state / created / OAuth bound | Display | — | — | |
+| Account state / created / Google bound | Display | — | — | |
 | Requests (all states) | Display | — | list | |
 | Offers received | Display | — | list | |
 | Connections | Display | — | list | |

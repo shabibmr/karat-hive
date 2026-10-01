@@ -26,7 +26,6 @@ App preferences, security credentials/sessions, legal links.
 | Notification channel prefs | Input | No | push / email | |
 | Quiet hours | Input | No | time window | |
 | Default filter preset (Requests) | Input | No | named preset | From VEN-S07 |
-| Set / change email password | Input | No | password | Credential for email login |
 | Active sessions list | Display | — | device/session | |
 | Revoke session | Action | — | — | Per session |
 | Vendor agreement link | Action | — | — | |

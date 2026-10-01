@@ -4,15 +4,18 @@
 **Platform:** Mobile app — Customer mode (iOS / Android, shared dual-mode binary)  
 **Optimisation:** Infrequent, high-intent sessions. Request creation completable in under 2 minutes for a returning user. Offer comparison legible without horizontal scroll. Live Requests hard-expire in **48 hours**.
 
-## Shell & navigation (inferred from FR set)
+## Shell & navigation
 
-Typical primary destinations:
+Bottom navigation: **Home · My Requests · Connections · Alerts · Profile** (`docs/Architecture-Frontend.md` §7.2). Every tab except Home requires login.
+
+Destinations:
 
 | Area | Screens |
 |---|---|
 | Guest (no session) | CUS-S23 |
 | Login / signup | CUS-S01 |
-| Home / Requests | CUS-S02 (signed-in Dashboard), CUS-S10 |
+| Home | CUS-S02 (signed-in home: hero, Request-type tiles, How this works) |
+| My Requests | CUS-S24 (open + drafts), CUS-S10; History CUS-S17 from its app bar |
 | Create | CUS-S03 → type-specific create → CUS-S08 → CUS-S09 |
 | Offers | CUS-S11, CUS-S12, CUS-S13, CUS-S14 |
 | Connections | CUS-S16, CUS-S15 |
@@ -29,8 +32,8 @@ Typical primary destinations:
 
 ## Identity masking
 
-Until Acceptance, Vendor identity on Offers is **masked** (label, Region, rating, deal count). Real Vendor business details appear only on **CUS-S15** after Mark as Interested.
+Until Acceptance, Vendor identity on Offers is **masked** (label, Region, rating, Connection count). Real Vendor business details appear only on **CUS-S15** after Mark as Interested.
 
 ## Inventory
 
-See [../README.md](../README.md) for the full CUS-S01…S23 table.
+See [../README.md](../README.md) for the full CUS-S01…S24 table.

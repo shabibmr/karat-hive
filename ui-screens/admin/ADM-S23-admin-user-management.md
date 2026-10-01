@@ -2,34 +2,31 @@
 
 | | |
 |---|---|
-| **User** | Platform Admin (Super Admin) |
+| **User** | Platform Admin |
 | **Platform** | Admin Portal (web) |
-| **Requirements** | `FR-ADM-002` |
+| **Requirements** | `FR-ADM-002`, `AD-API-03` |
 
 ## Purpose
 
-Provision Admin accounts with roles; suspend/revoke. No self-registration.
+Provision Admin accounts; suspend/revoke. No self-registration. Admin access is coarse in v1 — there are no roles (`AD-API-03`).
 
 ## Entry / exit
 
 | Direction | Path |
 |---|---|
-| Entry | Super Admin only nav |
+| Entry | Admin nav |
 | Exit | Created/suspended Admin |
 
 ## Fields
 
 | Field / UI element | Kind | Required | Type / options | Notes |
 |---|---|---|---|---|
-| Admin list | Display | — | name, email, role, state | |
-| Email | Input | Yes | email | Create |
+| Admin list | Display | — | name, email, state | |
+| Email | Input | Yes | email | The Google account email the new Admin will sign in with |
 | Name | Input | Yes | string | |
-| Role | Input | Yes | Super Admin · Operations Admin · Read-only Analyst | |
-| Temporary password / invite | System | — | — | Implementation detail |
-| Create Admin | Action | Super only | — | No self-register path anywhere |
-| Suspend Admin | Action | Super only | — | |
-| Revoke Admin | Action | Super only | — | Audit trail of past actions retained |
-| Role description | Display | — | permissions summary | Analyst: no mutations |
+| Create Admin | Action | — | — | No self-register path anywhere. No password is sent — the Admin signs in with Google (`adr/0010`) |
+| Suspend Admin | Action | — | — | |
+| Revoke Admin | Action | — | — | Audit trail of past actions retained |
 
 ## Validation & rules
 
@@ -39,7 +36,7 @@ Provision Admin accounts with roles; suspend/revoke. No self-registration.
 
 ## Empty / error / edge states
 
-- Duplicate email; last Super Admin protection (recommended).
+- Duplicate email; revoking the last active Admin (`[PROPOSED]` guard).
 
 ## Related screens
 

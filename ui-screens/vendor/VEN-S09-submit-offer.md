@@ -4,11 +4,11 @@
 |---|---|
 | **User** | Vendor |
 | **Platform** | Mobile — Vendor mode |
-| **Requirements** | `FR-VEN-012`, `FR-VEN-013`, `FR-VEN-015` |
+| **Requirements** | `FR-VEN-012`, `FR-VEN-013`, `FR-VEN-015`, [`adr/0015`](../../docs/adr/0015-offers-live-with-their-request.md) |
 
 ## Purpose
 
-Submit a priced, time-limited Offer against a matched open Request.
+Submit a priced Offer against a matched open Request. The Offer expires with the Request.
 
 ## Entry / exit
 
@@ -23,8 +23,9 @@ Submit a priced, time-limited Offer against a matched open Request.
 |---|---|---|---|---|
 | Parent Request summary | Display | — | masked Customer | |
 | Offered price (AED) | Input | Yes | decimal | |
-| Validity period | Input | Yes | **12 h / 24 h / 48 h** (FR default set); default 24 h | Options longer than Request remaining life not offered |
-| Absolute expiry | System | — | computed | Never later than Request hard expiry |
+| Weight (g) | Input | Yes | decimal | Prefilled from the Request when stated |
+| Karat | Input | Yes | 24K / 22K / 21K / 18K | Prefilled from the Request when stated |
+| Expiry | System | — | = Request hard expiry | Not chosen by the Vendor (`FR-VEN-013`) |
 | Making charges | Input | No | AED | |
 | Rate per gram | Input | No | AED/g | |
 | Delivery / readiness timeframe | Input | No | string ≤ 100 | |
@@ -38,10 +39,7 @@ Submit a priced, time-limited Offer against a matched open Request.
 - Vendor must be VERIFIED + ACTIVE + subscribed for Request type.
 - At most one PENDING Offer per Request (`BR-009`).
 - Note contact-detail scan (`BR-022`).
-
-### SRS tension
-
-- FR-VEN-013 options: **12 / 24 / 48 h**. Entity `OFFER.validity_hours` lists **24 / 48 / 72 / 168**. Resolve before build; document choice in settings (ADM-S19).
+- A sent Offer cannot be changed; the Vendor withdraws it (VEN-S10) and submits again.
 
 ## Empty / error / edge states
 

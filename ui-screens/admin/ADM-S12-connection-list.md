@@ -28,7 +28,7 @@ Browse Connections (default active); flag failed introductions (no Talk).
 | Column: connection date | Display | — | — | |
 | Column: Talk usage | Display | — | yes/no / count | CONTACT_EVENT |
 | Column: state | Display | — | ACTIVE / CLOSED | |
-| Filters: state, date range, Region, Category, no contact initiated | Filter / Sort | No | — | Default active |
+| Filters: state, date range, Region, no contact initiated | Filter / Sort | No | — | Default active |
 | Flag: no Talk after 48 h | Display | Conditional | — | Failed introduction signal |
 | Open detail | Action | — | — | → ADM-S13 |
 

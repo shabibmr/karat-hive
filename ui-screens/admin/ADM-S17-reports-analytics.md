@@ -24,7 +24,7 @@ Operational/business reports with charts, filters, and export.
 | Report type | Input | Yes | acquisition/retention; Vendor league; Request volume; Offer competitiveness; funnel; liquidity gaps; rating distribution | |
 | Date range | Filter / Sort | Yes | — | |
 | Filter Region | Filter / Sort | No | — | |
-| Filter Category | Filter / Sort | No | — | |
+| Filter Request type | Filter / Sort | No | — | |
 | Results table | Display | — | — | |
 | Charts | Display | — | — | |
 | Export CSV | Action | — | — | Honours filters |
@@ -35,7 +35,7 @@ Operational/business reports with charts, filters, and export.
 
 ## Validation & rules
 
-- Liquidity-gap report: Category/Region with Requests but no matched Vendors.
+- Liquidity-gap report: Request type / Region combinations with Requests but no matched Vendors or no Offers.
 - Indicative values labelled as such.
 
 ## Empty / error / edge states

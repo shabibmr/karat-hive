@@ -8,7 +8,7 @@
 
 ## Purpose
 
-Full Offer terms, revisions, state history; read-only commercial terms.
+Full Offer terms and state history; read-only commercial terms. Offers have no revisions (`adr/0015`).
 
 ## Entry / exit
 

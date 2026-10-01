@@ -4,46 +4,39 @@
 |---|---|
 | **User** | Customer |
 | **Platform** | Mobile — Customer mode |
-| **Requirements** | `FR-CUS-005` (entry), related open Requests |
+| **Requirements** | `FR-CUS-005` (entry), `FR-CUS-018` |
 
 ## Purpose
 
-Signed-in Customer Dashboard: live Requests and entry into create / offers / connections. Not Guest Landing (`CUS-S23`). Keep them different (`adr/0011`).
+Signed-in Customer home: brand, hero, and entry into the four Request types. Not Guest Landing (`CUS-S23`), and not the Request list — that is My Requests (`CUS-S24`). Keep them different (`adr/0011`).
 
 ## Entry / exit
 
 | Direction | Path |
 |---|---|
 | Entry | Live Customer token on launch; corner Log in as Customer (no draft); bottom-nav Home |
-| Exit | CUS-S03 create; CUS-S10 request detail; CUS-S11 offers; CUS-S16 connections |
+| Exit | CUS-S04…S07 create (per tile); CUS-S19 notifications (bell) |
 | Not an entry | No live token (that is CUS-S23) |
 
 ## Fields
 
 | Field / UI element | Kind | Required | Type / options | Notes |
 |---|---|---|---|---|
-| My Requests list | Display | — | cards/rows | Active non-terminal Requests |
-| Request thumbnail | Display | — | image | First media |
-| Request type | Display | — | enum label | |
-| Direction | Display | — | BUY / SELL | |
-| State | Display | — | PUBLISHED, OFFERS_RECEIVED, … | |
-| Offer count | Display | — | integer | Unread offers distinguished if available |
-| Expiry countdown / hard expiry | System | — | datetime | 48 h from publish |
-| Reference | Display | — | e.g. KH-RQ-… | When published |
-| Quick create CTA | Action | — | — | → CUS-S03 |
-| Open Request | Action | — | — | → CUS-S10 |
-| View Offers (per Request) | Action | — | — | → CUS-S11 |
-| Empty state — no Requests | Display | — | — | Prompt to create first Request |
+| Brand mark | Display | — | — | Tracked "KARAT HIVE" wordmark |
+| Notifications bell | Action | — | unread badge | → CUS-S19 |
+| Hero carousel | Display | — | slides | Display type on the photograph |
+| Request-type tiles | Action | — | Find An Ornament · Sell Old Gold · Buy/Sell Gold Coin(s) · Buy/Sell Gold Bullion | 2 × 2 grid; each opens that type's create screen |
+| How this works | Display | — | steps | |
 
 ## Validation & rules
 
-- Max **10** concurrent `PUBLISHED` Requests (create may be blocked).
-- Drafts may appear if draft feature is used (CUS-S09 / FR-CUS-015).
+- Home shows no Request list and no activity summary; live Requests are on My Requests (`CUS-S24`).
+- The create flow, not Home, enforces the live-Request cap from `canCreateRequest` on `GET /v1/me` (`FR-CUS-005` AC5).
 
 ## Empty / error / edge states
 
-- No live Requests: explanatory empty state + create CTA.
+- Gold rates unavailable: hero and tiles still render.
 
 ## Related screens
 
-CUS-S03 · CUS-S10 · CUS-S11 · CUS-S17 History
+CUS-S23 · CUS-S24 · CUS-S04…S07 · CUS-S19

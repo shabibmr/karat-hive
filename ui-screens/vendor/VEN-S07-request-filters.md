@@ -23,7 +23,6 @@ Search, filter, sort Available Requests; save named presets across sessions.
 |---|---|---|---|---|
 | Filter — Request type | Filter / Sort | No | enum multi | |
 | Filter — direction | Filter / Sort | No | BUY / SELL | |
-| Filter — Category | Filter / Sort | No | taxonomy | |
 | Filter — Region | Filter / Sort | No | taxonomy | |
 | Filter — weight range | Filter / Sort | No | g min–max | |
 | Filter — budget range | Filter / Sort | No | AED | |

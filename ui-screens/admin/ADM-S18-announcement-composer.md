@@ -24,7 +24,6 @@ Compose, target, schedule, and measure platform announcements.
 | Audience: user type | Input | Yes | Customer / Vendor / both | |
 | Audience: account state | Input | No | multi | |
 | Audience: Region | Input | No | multi | |
-| Audience: Category | Input | No | multi | Vendors primarily |
 | Channel: in-app | Input | No | boolean | |
 | Channel: push | Input | No | boolean | |
 | Channel: email | Input | No | boolean | |

@@ -24,7 +24,7 @@ The premier visual frontage of Karat Hive. A luxury digital salon facade present
 |---|---|---|---|---|
 | Salon Hero Header | Display | — | Eyebrow + title + subhead | Art Deco diamond badge + luxury editorial copy |
 | Request type cards | Input | Yes | 4 bespoke cards | Bespoke Art Deco icon frames, dual borders, gradient background |
-| Direction / Category pill | Display | — | BUY · BESPOKE / SELL · INSTANT / etc. | Clear direction badge on each card |
+| Direction pill | Display | — | BUY · BESPOKE / SELL · INSTANT / etc. | Clear direction badge on each card |
 | Highlights chips | Display | — | Feature tags | e.g. [Custom Designs], [24K / 999.9], [Sealed Packs] |
 | Type description | Display | — | Refined copy per type | Detailed purpose and scope |
 | Trust assurance footer | Display | — | Shield badge row | 100% Identity Masking · 48h Window · Verified UAE Jewellers |

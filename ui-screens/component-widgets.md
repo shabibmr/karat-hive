@@ -43,7 +43,7 @@ Domain terms follow root `CONTEXT.md` (Request, Offer, Acceptance, Connection, T
 | `SH-SHELL-06` | **Pull-to-refresh container** | onRefresh, lastUpdated | Lists, dashboards |
 | `SH-SHELL-07` | **Safe-area / keyboard avoiding layout** | form screens | Auth, create, offer forms |
 
-> **Note:** `SH-SHELL-05` is listed under shared *shell patterns* but content is Vendor-only. Customer has no equivalent marketplace lock shell beyond OAuth gate banners.
+> **Note:** `SH-SHELL-05` is listed under shared *shell patterns* but content is Vendor-only. Customer has no equivalent marketplace lock shell beyond the publish-gate banner.
 
 ## 1.2 Foundations (mobile + reusable concepts for Admin)
 
@@ -52,8 +52,8 @@ Domain terms follow root `CONTEXT.md` (Request, Offer, Acceptance, Connection, T
 | `SH-FND-01` | **Primary / secondary / destructive button** | loading, disabled, full-width | Global |
 | `SH-FND-02` | **Text field** | label, error, helper, maxLength, secure | Forms |
 | `SH-FND-03` | **Numeric field** | decimal places, min/max, unit suffix (g, AED) | Weight, price, budget |
-| `SH-FND-04` | **Select / dropdown** | single, searchable | Category, purity, reasons |
-| `SH-FND-05` | **Multi-select chips** | taxonomy multi | Categories, Regions (Vendor) |
+| `SH-FND-04` | **Select / dropdown** | single, searchable | Purity, reasons |
+| `SH-FND-05` | **Multi-select chips** | taxonomy multi | Regions (Vendor) |
 | `SH-FND-06` | **Toggle / switch** | — | Settings, flexible budget, away mode |
 | `SH-FND-07` | **Checkbox + legal link** | ToS / Privacy accept | Registration |
 | `SH-FND-08` | **Segmented control** | 2–n options | BUY/SELL, budget mode, tabs lite |
@@ -80,14 +80,14 @@ Domain terms follow root `CONTEXT.md` (Request, Offer, Acceptance, Connection, T
 
 | ID | Widget | Variants / props | Used by |
 |---|---|---|---|
-| `SH-AUTH-01` | **Mobile number field (UAE / E.164)** | country prefix fixed/configurable | CUS-S01, VEN-S01, VEN-S04 |
-| `SH-AUTH-02` | **OTP entry** | length, resend cooldown, expiry countdown | Customer + Vendor auth |
-| `SH-AUTH-03` | **OTP send / resend control** | rate-limit messaging | Auth flows |
-| `SH-AUTH-04` | **OAuth provider button row** | Google / Apple / configured; bound state | CUS-S01, CUS-S09 gate, CUS-S23 Log in |
-| `SH-AUTH-05` | **OAuth required banner / gate** | blocks publish only | CUS-S09, create flow |
+| `SH-AUTH-01` | **Mobile number field (UAE / E.164)** | country prefix fixed/configurable | CUS-S01, CUS-S20, VEN-S01 |
+| `SH-AUTH-02` | **OTP entry** | length, resend cooldown, expiry countdown | Mobile-number proof on signup and mobile change (never a login) |
+| `SH-AUTH-03` | **OTP send / resend control** | rate-limit messaging | Mobile-number proof |
+| `SH-AUTH-04` | **Sign in with Google button** | default / loading; the only login (`adr/0010`) | CUS-S01, CUS-S09 gate, CUS-S23 Log in, VEN-S04 |
+| `SH-AUTH-05` | **Login-to-publish banner / gate** | blocks publish only (`adr/0011`) | CUS-S09, create flow |
 | `SH-AUTH-06` | **Biometric unlock toggle / prompt** | Face ID / fingerprint | CUS-S01/S21; optional Vendor |
-| `SH-AUTH-07` | **Session lockout message** | duration, support | Auth failures |
-| `SH-AUTH-08` | **Email + password form** | show/hide password | VEN-S04, VEN-S18; Admin uses web variant |
+| `SH-AUTH-07` | **Account-state message** | suspended / deactivated / OTP locked | Auth failures |
+| `SH-AUTH-08` | **Email + password form — retired** | No passwords (`adr/0010`) | — |
 
 ## 1.4 Gold, money, time (domain chrome)
 
@@ -99,7 +99,7 @@ Domain terms follow root `CONTEXT.md` (Request, Offer, Acceptance, Connection, T
 | `SH-DOM-04` | **Money input (AED)** | min/max validation | Price, budget, making charges |
 | `SH-DOM-05` | **Weight input (grams)** | 0.10–5000.00, 2 dp; approximate flag | Request create |
 | `SH-DOM-06` | **Purity picker** | 24K / 22K / 21K / 18K (configurable list) | Request create, rate strip |
-| `SH-DOM-07` | **Hard expiry countdown** | Request 48 h; Offer validity; urgency style &lt; 6 h / &lt; 24 h | Request/Offer rows & detail |
+| `SH-DOM-07` | **Hard expiry countdown** | Request 48 h (Offers share it); urgency style &lt; 6 h / &lt; 24 h | Request/Offer rows & detail |
 | `SH-DOM-08` | **Relative time** | “2 h ago”, GST display | Feeds, lists |
 | `SH-DOM-09` | **Entity reference chip** | `KH-RQ-…` copyable | Request detail, Talk message, Admin |
 
@@ -108,7 +108,7 @@ Domain terms follow root `CONTEXT.md` (Request, Offer, Acceptance, Connection, T
 | ID | Widget | Variants / props | Used by |
 |---|---|---|---|
 | `SH-TAX-01` | **Category picker [REMOVED]** | Category taxonomy removed per ADR 0014 | Removed |
-| `SH-TAX-02` | **Region picker** | single / multi; emirate → area | Create, profile, VEN-S16 |
+| `SH-TAX-02` | **Region picker** | single / multi; flat list | Create, profile, VEN-S16 |
 | `SH-MED-01` | **Image capture / gallery picker** | max count, formats, size limit, progress, retry | CUS-S08; Offer images (≤3); shop photos |
 | `SH-MED-02` | **Image thumbnail grid** | reorder, remove, cover badge (first = thumbnail) | Create, edit Request |
 | `SH-MED-03` | **Image carousel / lightbox** | full resolution | Request detail, Offer detail, Admin |
@@ -131,7 +131,7 @@ Domain terms follow root `CONTEXT.md` (Request, Offer, Acceptance, Connection, T
 
 | ID | Widget | Variants / props | Used by |
 |---|---|---|---|
-| `SH-REQ-01` | **Request summary card** | owner view vs vendor view (masking, density) | CUS-S02/S10; VEN-S05/S06/S08 |
+| `SH-REQ-01` | **Request summary card** | owner view vs vendor view (masking, density) | CUS-S24/S10; VEN-S05/S06/S08 |
 | `SH-REQ-02` | **Request type tile** | 4 types + short description | CUS-S03 |
 | `SH-REQ-03` | **Request direction control** | fixed (display) vs selectable BUY/SELL | Create flows |
 | `SH-REQ-04` | **Budget editor** | max-only \| min–max; flexible flag; mandatory by type | Ornament + optional BUY |
@@ -140,8 +140,8 @@ Domain terms follow root `CONTEXT.md` (Request, Offer, Acceptance, Connection, T
 | `SH-REQ-07` | **Bullion bar weight + quantity + min-value gate** | shows threshold vs computed | CUS-S07 |
 | `SH-REQ-08` | **Request state timeline / history** | state transitions | Detail, Admin |
 | `SH-OFF-01` | **Offer summary row** | price, masked vendor/customer context, expiry, unread | CUS-S11; VEN-S11 |
-| `SH-OFF-02` | **Offer terms form** | price*, validity*, optional charges/rate/delivery/warranty/note/images | VEN-S09/S10 |
-| `SH-OFF-03` | **Offer validity picker** | configured hours; clamp to Request remaining life | VEN-S09/S10 |
+| `SH-OFF-02` | **Offer terms form** | price*, weight*, karat*, optional charges/rate/delivery/warranty/note/images | VEN-S09 |
+| `SH-OFF-03` | **Offer validity picker — retired** | Offers expire with their Request (`adr/0015`) | — |
 | `SH-OFF-04` | **Offer terms read-only block** | full attributes + images | CUS-S13; Connection; Admin |
 | `SH-CON-01` | **Connection summary row** | counterparty, ref, price, date, state | CUS-S16; VEN-S12; Admin |
 | `SH-CON-02` | **Talk (WhatsApp) button** | builds `wa.me` link + prefilled text; logs contact event | CUS-S15; VEN-S13 |
@@ -179,7 +179,7 @@ Admin does not share the mobile binary, but these are **shared across Admin scre
 | `SH-ADM-11` | **Chart block** | line/bar/pie as needed | Dashboard, reports |
 | | ⚠️ *Same as `SH-ADM-02`: charting comes from a Flutter package, not the browser — pick one that renders acceptably on Web and exports to PNG for `SH-ADM-12`.* | | |
 | `SH-ADM-12` | **Export control** | CSV / XLSX / PNG; async large job | ADM-S17; VEN history concept |
-| `SH-ADM-13` | **2FA code input** | TOTP/SMS | ADM-S01 |
+| `SH-ADM-13` | **2FA code input — retired** | No platform 2FA (`adr/0010`) | — |
 | `SH-ADM-14` | **Taxonomy tree editor** | 2-level create/rename/reorder/activate | ADM-S14/S15 |
 | `SH-ADM-15` | **Setting row editor** | current value, range, effect copy, confirm | ADM-S19 |
 | `SH-ADM-16` | **Audit entry row** | actor, action, target, before/after, IP, time | ADM-S22 |
@@ -195,14 +195,14 @@ Admin does not share the mobile binary, but these are **shared across Admin scre
 
 | ID | Widget | Purpose | Screens |
 |---|---|---|---|
-| `CU-01` | **Customer home Request list** | Owner-centric live Requests + quick create | CUS-S02 |
+| `CU-01` | **My Requests list** | Open / Drafts segments; History entry | CUS-S24 |
 | `CU-02` | **Request type selection grid** | Four type tiles with guidance | CUS-S03 |
 | `CU-03` | **Create flow wizard chrome** | Step progress for type-specific create | CUS-S04…S07 → S09 |
 | `CU-04` | **Find Ornament form section** | Spec + mandatory budget + gemstones | CUS-S04 |
 | `CU-05` | **Sell Old Gold form section** | Actual-item photo warning + condition + invoice flag | CUS-S05 |
 | `CU-06` | **Gold Coins form section** | Direction + denomination + packaging | CUS-S06 |
 | `CU-07` | **Gold Bullion form section** | Min-value gate messaging (AED floor) | CUS-S07 |
-| `CU-08` | **Request review & publish panel** | Full summary + draft + publish + OAuth gate | CUS-S09 |
+| `CU-08` | **Request review & publish panel** | Full summary + draft + publish + login gate | CUS-S09 |
 | `CU-09` | **Publish success confirmation** | Reference + hard expiry (48 h) | CUS-S09 |
 | `CU-10` | **Owner Request detail actions** | Edit notes/budget/images; cancel + reason | CUS-S10 |
 | `CU-11` | **Customer Offers list** | Unread markers; sort/filter for buyer interest | CUS-S11 |
@@ -220,7 +220,7 @@ Admin does not share the mobile binary, but these are **shared across Admin scre
 
 | ID | Widget | Purpose | Screens |
 |---|---|---|---|
-| `VE-01` | **Business registration form** | Legal/trading/licence/address/contact + OTP | VEN-S01 |
+| `VE-01` | **Business registration form** | Legal/trading/licence/address/contact + mobile OTP proof | VEN-S01 |
 | `VE-02` | **KYC document checklist** | Mandatory vs optional docs + expiry | VEN-S02 |
 | `VE-03` | **Awaiting Approval status panel** | State, Admin messages, re-upload, support | VEN-S03 |
 | `VE-04` | **Vendor dashboard** | Three count panels + rate + own rating + subscription snapshot | VEN-S05 |
@@ -229,17 +229,17 @@ Admin does not share the mobile binary, but these are **shared across Admin scre
 | `VE-07` | **Available Requests feed (dense)** | High-density rows; offer count without competitor prices | VEN-S06 |
 | `VE-08` | **Request filter sheet + saved presets** | Full filter set + named presets | VEN-S07 |
 | `VE-09` | **Vendor Request detail** | Full spec; masked Customer; competitive **count** only | VEN-S08 |
-| `VE-10` | **Submit Offer form** | Mandatory price + validity; optional terms; contact-scan on note | VEN-S09 |
-| `VE-11` | **Revise / withdraw Offer panel** | Revision remaining counter (max 3) | VEN-S10 |
+| `VE-10` | **Submit Offer form** | Mandatory price + weight + karat; optional terms; contact-scan on note | VEN-S09 |
+| `VE-11` | **Offer terms + withdraw panel** | Read-only terms; Withdraw while PENDING (no revision, `adr/0015`) | VEN-S10 |
 | `VE-12` | **My Offers tabbed list** | Pending / Accepted / Rejected–Expired | VEN-S11 |
-| `VE-13` | **Pending Offer row actions** | Revise + Withdraw + urgency | VEN-S11 |
+| `VE-13` | **Pending Offer row actions** | Withdraw + urgency | VEN-S11 |
 | `VE-14` | **Rejected Offer outcome row** | “Awarded elsewhere” without winning price/Vendor | VEN-S11 |
 | `VE-15` | **Vendor Connection detail** | Revealed **Customer** fields + Talk + Call | VEN-S13 |
 | `VE-16` | **Offer history & performance dashboard** | Acceptance rate, response time, relative-to-win aggregates | VEN-S14 |
 | `VE-17` | **Business profile editor** | Split editable vs re-verification-trigger fields | VEN-S15 |
 | `VE-18` | **Masked public preview card** | What Customers see pre-acceptance | VEN-S15 |
-| `VE-19` | **Categories / Regions / hours editor** | ≥1 each; volume estimate; away mode | VEN-S16 |
-| `VE-20` | **Vendor settings security block** | Password, active sessions, revoke | VEN-S18 |
+| `VE-19` | **Served Regions / hours editor** | ≥1 Region; away mode | VEN-S16 |
+| `VE-20` | **Vendor settings security block** | Active sessions, revoke | VEN-S18 |
 | `VE-21` | **My reviews & response composer** | Response ≤500; flag unfair | VEN-S20 |
 | `VE-22` | **Subscription by Request type board** | Four independent entitlements + subscribe/upgrade | VEN-S22 |
 | `VE-23` | **Type entitlement card** | State, period, price, CTA | VEN-S22 |
@@ -249,7 +249,7 @@ Admin does not share the mobile binary, but these are **shared across Admin scre
 
 | ID | Widget | Purpose | Screens |
 |---|---|---|---|
-| `AD-01` | **Admin login + 2FA flow** | Email/password + TOTP/SMS | ADM-S01 |
+| `AD-01` | **Admin Google sign-in** | Google button; not-an-Admin state | ADM-S01 |
 | `AD-02` | **Admin dashboard grid** | Metrics + three action queues | ADM-S02 |
 | `AD-03` | **Customer admin list/detail** | Unmasked PII columns; suspend/delete | ADM-S03/S04 |
 | `AD-04` | **Vendor admin list/detail** | Performance + state actions | ADM-S05/S06 |
@@ -257,7 +257,7 @@ Admin does not share the mobile binary, but these are **shared across Admin scre
 | `AD-06` | **Request admin oversight** | Matched Vendors, all Offers, remove Request | ADM-S08/S09 |
 | `AD-07` | **Offer admin oversight** | Revision history; winning Offer link (Admin-only) | ADM-S10/S11 |
 | `AD-08` | **Connection admin oversight** | Talk usage flags; admin close; no chat content | ADM-S12/S13 |
-| `AD-09` | **Category management UI** | EN/AR, icon, order, active; block delete-in-use | ADM-S14 |
+| `AD-09` | **Category management UI — retired** | Category removed (`adr/0014`) | — |
 | `AD-10` | **Region management UI** | Emirate → area tree | ADM-S15 |
 | `AD-11` | **Review moderation workspace** | Approve/Reject/Redact sticky bar | ADM-S16 |
 | `AD-12` | **Reports & analytics studio** | Report type selector + charts + export | ADM-S17 |
@@ -306,8 +306,10 @@ Example: **Connection detail**
 |---|---|---|
 | CUS-S23 | `SH-AUTH-04`, `SH-REQ-02`, `SH-FND-20` | Guest service cards + how-it-works |
 | CUS-S01 | `SH-AUTH-*`, `SH-FND-*` | — |
+| CUS-S02 | `SH-REQ-02`, `SH-FND-20` | Hero carousel, Request-type tiles |
+| CUS-S24 | `SH-REQ-01` | `CU-01` |
 | CUS-S03 | `SH-REQ-02` | `CU-02` |
-| CUS-S04…S07 | `SH-DOM-*`, `SH-TAX-*`, `SH-MED-*`, `SH-REQ-03…07` | `CU-03`…`CU-07` |
+| CUS-S04…S07 | `SH-DOM-*`, `SH-TAX-02`, `SH-MED-*`, `SH-REQ-03…07` | `CU-03`…`CU-07` |
 | CUS-S08 | `SH-MED-01`…`03` | — |
 | CUS-S09 | `SH-AUTH-05`, `SH-REQ-01` | `CU-08`, `CU-09` |
 | CUS-S11…S13 | `SH-OFF-*`, `SH-ID-*` | `CU-11`…`CU-13`, `CU-15`, `CU-20` |
@@ -321,7 +323,7 @@ Example: **Connection detail**
 | VEN-S01…S03 | `SH-AUTH-*`, `SH-MED-04` | `VE-01`…`VE-03` |
 | VEN-S05 | `SH-DOM-01`, `SH-ID-03` | `VE-04`…`VE-06` |
 | VEN-S06…S08 | `SH-REQ-01`, `SH-ID-01` | `VE-07`…`VE-09` |
-| VEN-S09…S11 | `SH-OFF-02`…`04` | `VE-10`…`VE-14` |
+| VEN-S09…S11 | `SH-OFF-02`, `SH-OFF-04` | `VE-10`…`VE-14` |
 | VEN-S13 | `SH-CON-02`…`04` | `VE-15` |
 | VEN-S22 | — | `VE-22`, `VE-23` |
 
@@ -368,4 +370,3 @@ Exact build packages may merge pure foundation controls into a design system; do
 - Requirements: `docs/Requirements-Spec-v1.6.md` Appendix C, §4, §6, §7.1
 - Stack constraints: `docs/Requirements-Spec-v1.6.md` §2.5 (C-10–C-13), `docs/adr/0006`, `docs/adr/0007`, `docs/adr/0008`
 - Language: `CONTEXT.md` (Identity Masking, Talk, Connection, etc.)
-- Known tension: Offer validity options — component `SH-OFF-03` must read configured set from platform settings (`ADM-S19`), not hard-code

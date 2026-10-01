@@ -8,7 +8,7 @@
 
 ## Purpose
 
-Browse open matched Requests (Category + Region + subscription type); Customer identity masked.
+Browse open matched Requests (VERIFIED + ACTIVE + Type Subscription for the Request type); served Regions filter the list by default. Customer identity masked.
 
 ## Entry / exit
 
@@ -39,12 +39,12 @@ Browse open matched Requests (Category + Region + subscription type); Customer i
 
 ## Validation & rules
 
-- Only matched Requests in PUBLISHED / OFFERS_RECEIVED.
+- Only matched Requests in PUBLISHED.
 - Customer identity absent from payload (`BR-006`, `NFR-013`).
 
 ## Empty / error / edge states
 
-- No matches; suggest broaden Categories/Regions or subscription.
+- No matches; suggest widening the Region filter or adding a Type Subscription.
 
 ## Related screens
 

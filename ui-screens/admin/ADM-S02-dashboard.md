@@ -30,7 +30,7 @@ Platform health landing with metric panels and actionable queue counts.
 | Requests metric | Display | — | by type/direction/state; ≥1 Offer %; zero-Offer expiry % | → ADM-S08 |
 | Offers metric | Display | — | by state; mean Offers/Request; TTF Offer; accept/expiry rates | → ADM-S10 |
 | Connections metric | Display | — | created; active vs closed; TTF Connection; Talk usage % | → ADM-S12 |
-| Platform statistics | Display | — | indicative gold weight/value; mean Request value; funnel; Category/Region mix | Labelled indicative |
+| Platform statistics | Display | — | indicative gold weight/value; mean Request value; funnel; Region mix | Labelled indicative |
 
 ## Validation & rules
 

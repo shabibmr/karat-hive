@@ -30,7 +30,7 @@ Manage independent subscription entitlements per Request type required for match
 | Renewal date | Display | — | datetime | |
 | Subscribe / upgrade | Action | — | per type | Upgrades immediate |
 | Downgrade / cancel notice | Display | — | — | Downgrades at period end |
-| Match eligibility explanation | Display | — | copy | Also needs VERIFIED+ACTIVE, Category, Region |
+| Match eligibility explanation | Display | — | copy | Also needs VERIFIED + ACTIVE; Region is not a gate |
 
 ## Validation & rules
 

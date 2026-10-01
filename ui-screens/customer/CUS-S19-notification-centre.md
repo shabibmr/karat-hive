@@ -23,7 +23,7 @@ In-app list of the last 90 days of notifications with read/unread and deep links
 |---|---|---|---|---|
 | Notification list | Display | — | 90 days | |
 | Title / body | Display | — | — | |
-| Category | Display | — | offer, expiry, revision, review reminder, announcement, security | |
+| Category | Display | — | offer, expiry, review reminder, announcement, security | |
 | Timestamp | Display | — | datetime | |
 | Read / unread | Display | — | state | |
 | Mark read | Action | — | — | |
@@ -32,7 +32,7 @@ In-app list of the last 90 days of notifications with read/unread and deep links
 
 ## Triggers (system-generated, not form fields)
 
-First Offer; subsequent Offers; Request expiry in **6 h**; Request expired; Offer withdrawn/revised; review reminder; platform announcement. **No** Request extension offer.
+First Offer; subsequent Offers; Request expiry in **6 h**; Request expired; Offer withdrawn; review reminder; platform announcement. **No** Request extension offer.
 
 ## Validation & rules
 

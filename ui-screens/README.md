@@ -12,10 +12,10 @@ Screen-level field inventory derived from `docs/Requirements-Spec-v1.6.md` (Appe
 
 | User | Platform | Screens | Folder |
 |---|---|---|---|
-| **Customer** | Flutter mobile — Customer mode | 23 | [customer/](customer/) |
+| **Customer** | Flutter mobile — Customer mode | 24 | [customer/](customer/) |
 | **Vendor** | Flutter mobile — Vendor mode | 22 | [vendor/](vendor/) |
-| **Platform Admin** | Flutter Web — Admin Portal (≥ 1280 px) | 23 | [admin/](admin/) |
-| **Total** | | **68** | |
+| **Platform Admin** | Flutter Web — Admin Portal (≥ 1280 px) | 23 (22 live; `ADM-S14` retired) | [admin/](admin/) |
+| **Total** | | **69 files, 68 live** | |
 
 One mobile binary, two modes by account role (Customer **or** Vendor, not both). Admin is a separate build of the same Flutter codebase, targeting Web (SRS C-10).
 
@@ -49,15 +49,16 @@ Every screen file uses this template:
 
 ---
 
-## Customer — `CUS-S01` … `CUS-S23`
+## Customer — `CUS-S01` … `CUS-S24`
 
-Working launch rule is [`adr/0011`](../docs/adr/0011-guest-first-landing.md): cold start with no live session is **CUS-S23**, not CUS-S01. SRS Appendix C still lists 22 Customer screens until the next SRS bump.
+Launch rule is [`adr/0011`](../docs/adr/0011-guest-first-landing.md): cold start with no live session is **CUS-S23**, not CUS-S01. Bottom navigation: Home (`CUS-S02`) · My Requests (`CUS-S24`) · Connections (`CUS-S16`) · Alerts (`CUS-S19`) · Profile (`CUS-S20`).
 
 | ID | Screen | File |
 |---|---|---|
 | CUS-S23 | Guest Landing — four services, how-it-works, Log in | [customer/CUS-S23-guest-landing.md](customer/CUS-S23-guest-landing.md) |
 | CUS-S01 | Login / Customer signup (Google; not cold start) | [customer/CUS-S01-onboarding.md](customer/CUS-S01-onboarding.md) |
-| CUS-S02 | Home — signed-in Dashboard, my Requests | [customer/CUS-S02-home.md](customer/CUS-S02-home.md) |
+| CUS-S02 | Home — signed-in: hero, Request-type tiles, How this works | [customer/CUS-S02-home.md](customer/CUS-S02-home.md) |
+| CUS-S24 | My Requests — open Requests and drafts; History entry | [customer/CUS-S24-my-requests.md](customer/CUS-S24-my-requests.md) |
 | CUS-S03 | Request type selection | [customer/CUS-S03-request-type-selection.md](customer/CUS-S03-request-type-selection.md) |
 | CUS-S04 | Create Request — Find An Ornament | [customer/CUS-S04-create-find-ornament.md](customer/CUS-S04-create-find-ornament.md) |
 | CUS-S05 | Create Request — Sell Old Gold | [customer/CUS-S05-create-sell-old-gold.md](customer/CUS-S05-create-sell-old-gold.md) |
@@ -94,13 +95,13 @@ Working launch rule is [`adr/0011`](../docs/adr/0011-guest-first-landing.md): co
 | VEN-S07 | Request filters & saved presets | [vendor/VEN-S07-request-filters.md](vendor/VEN-S07-request-filters.md) |
 | VEN-S08 | Request detail (masked Customer) | [vendor/VEN-S08-request-detail.md](vendor/VEN-S08-request-detail.md) |
 | VEN-S09 | Submit Offer | [vendor/VEN-S09-submit-offer.md](vendor/VEN-S09-submit-offer.md) |
-| VEN-S10 | Revise / withdraw Offer | [vendor/VEN-S10-revise-withdraw-offer.md](vendor/VEN-S10-revise-withdraw-offer.md) |
+| VEN-S10 | Withdraw Offer (no revision, `adr/0015`) | [vendor/VEN-S10-revise-withdraw-offer.md](vendor/VEN-S10-revise-withdraw-offer.md) |
 | VEN-S11 | My Offers — Pending / Accepted / Rejected–Expired | [vendor/VEN-S11-my-offers.md](vendor/VEN-S11-my-offers.md) |
 | VEN-S12 | Connections list | [vendor/VEN-S12-connections-list.md](vendor/VEN-S12-connections-list.md) |
 | VEN-S13 | Connection detail — revealed Customer, Talk / Call | [vendor/VEN-S13-connection-detail.md](vendor/VEN-S13-connection-detail.md) |
 | VEN-S14 | Offer history & performance | [vendor/VEN-S14-offer-history.md](vendor/VEN-S14-offer-history.md) |
 | VEN-S15 | Business profile | [vendor/VEN-S15-business-profile.md](vendor/VEN-S15-business-profile.md) |
-| VEN-S16 | Categories, Regions, business hours | [vendor/VEN-S16-categories-regions.md](vendor/VEN-S16-categories-regions.md) |
+| VEN-S16 | Served Regions, business hours | [vendor/VEN-S16-categories-regions.md](vendor/VEN-S16-categories-regions.md) |
 | VEN-S17 | Notification centre | [vendor/VEN-S17-notification-centre.md](vendor/VEN-S17-notification-centre.md) |
 | VEN-S18 | Settings | [vendor/VEN-S18-settings.md](vendor/VEN-S18-settings.md) |
 | VEN-S19 | Leave customer feedback | [vendor/VEN-S19-leave-customer-feedback.md](vendor/VEN-S19-leave-customer-feedback.md) |
@@ -114,7 +115,7 @@ Working launch rule is [`adr/0011`](../docs/adr/0011-guest-first-landing.md): co
 
 | ID | Screen | File |
 |---|---|---|
-| ADM-S01 | Login with 2FA | [admin/ADM-S01-login.md](admin/ADM-S01-login.md) |
+| ADM-S01 | Login — Google Sign-In | [admin/ADM-S01-login.md](admin/ADM-S01-login.md) |
 | ADM-S02 | Dashboard | [admin/ADM-S02-dashboard.md](admin/ADM-S02-dashboard.md) |
 | ADM-S03 | Customer list | [admin/ADM-S03-customer-list.md](admin/ADM-S03-customer-list.md) |
 | ADM-S04 | Customer detail | [admin/ADM-S04-customer-detail.md](admin/ADM-S04-customer-detail.md) |
@@ -127,24 +128,23 @@ Working launch rule is [`adr/0011`](../docs/adr/0011-guest-first-landing.md): co
 | ADM-S11 | Offer detail | [admin/ADM-S11-offer-detail.md](admin/ADM-S11-offer-detail.md) |
 | ADM-S12 | Connection list | [admin/ADM-S12-connection-list.md](admin/ADM-S12-connection-list.md) |
 | ADM-S13 | Connection detail | [admin/ADM-S13-connection-detail.md](admin/ADM-S13-connection-detail.md) |
-| ADM-S14 | Category management | [admin/ADM-S14-category-management.md](admin/ADM-S14-category-management.md) |
+| ADM-S14 | Category management — retired (`adr/0014`) | [admin/ADM-S14-category-management.md](admin/ADM-S14-category-management.md) |
 | ADM-S15 | Region management | [admin/ADM-S15-region-management.md](admin/ADM-S15-region-management.md) |
 | ADM-S16 | Review moderation queue | [admin/ADM-S16-review-moderation.md](admin/ADM-S16-review-moderation.md) |
 | ADM-S17 | Reports & analytics | [admin/ADM-S17-reports-analytics.md](admin/ADM-S17-reports-analytics.md) |
 | ADM-S18 | Announcement composer | [admin/ADM-S18-announcement-composer.md](admin/ADM-S18-announcement-composer.md) |
 | ADM-S19 | Platform settings | [admin/ADM-S19-platform-settings.md](admin/ADM-S19-platform-settings.md) |
-| ADM-S20 | Gold rate configuration _(deferred)_ | [admin/ADM-S20-gold-rate-configuration.md](admin/ADM-S20-gold-rate-configuration.md) |
+| ADM-S20 | Gold rate configuration _(not built yet in `kh_admin`)_ | [admin/ADM-S20-gold-rate-configuration.md](admin/ADM-S20-gold-rate-configuration.md) |
 | ADM-S21 | Abuse report queue | [admin/ADM-S21-abuse-report-queue.md](admin/ADM-S21-abuse-report-queue.md) |
 | ADM-S22 | Audit log viewer | [admin/ADM-S22-audit-log.md](admin/ADM-S22-audit-log.md) |
 | ADM-S23 | Admin user management | [admin/ADM-S23-admin-user-management.md](admin/ADM-S23-admin-user-management.md) |
 
 ---
 
-## Known SRS tensions (documented on affected screens)
+## Platform notes (documented on affected screens)
 
 | Topic | Screens | Notes |
 |---|---|---|
-| Offer validity options | VEN-S09, ADM-S19 | FR-VEN-013: 12 / 24 / 48 h; entity `OFFER.validity_hours`: 24 / 48 / 72 / 168 |
 | Dual-mode shell | Customer/Vendor README | One binary; mode by role |
 | Admin on Flutter Web | ADM-S03…S12, ADM-S17, ADM-S22 | Flutter Web for the Admin Portal is confirmed (C-10, SRS v1.3) and the risk is accepted. Dense tables, keyboard-driven queue processing, and text selection are not free on a canvas-rendered web target; the data-grid build-or-buy (`AD-FE-12`) is still open. SRS §7.1, `NFR-023`, `adr/0006` |
 | Object storage | CUS-S08, VEN-S02, ADM-S07, ADM-S09 | Hosted provider: Oracle Object Storage S3 Compatibility `ap-hyderabad-1` (`adr/0013`). MinIO/disk local/CI. SRS C-13, §7.6. India region — not a UAE residency guarantee |

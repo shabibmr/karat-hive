@@ -1,42 +1,41 @@
-# VEN-S16 · Categories, Regions, business hours
+# VEN-S16 · Served Regions, business hours
 
 | | |
 |---|---|
 | **User** | Vendor |
 | **Platform** | Mobile — Vendor mode |
-| **Requirements** | `FR-VEN-025` |
+| **Requirements** | `FR-VEN-025`, [`adr/0014`](../../docs/adr/0014-remove-category-taxonomy-entity.md) |
 
 ## Purpose
 
-Declare Categories and Regions that drive matching; optional hours and away mode.
+Declare the Regions the Vendor serves (their default feed filter), plus availability. Regions never gate matching or activation. There is no Category picker. (The file name keeps the old "categories" wording so links stay stable.)
 
 ## Entry / exit
 
 | Direction | Path |
 |---|---|
-| Entry | Onboarding to ACTIVE; settings/profile |
-| Exit | Save; volume estimate |
+| Entry | Vendor profile / settings |
+| Exit | Save |
 
 ## Fields
 
 | Field / UI element | Kind | Required | Type / options | Notes |
 |---|---|---|---|---|
-| Service Categories | Input | Yes | multi ≥1 | Cannot ACTIVE without |
-| Served Regions | Input | Yes | multi ≥1 | Cannot ACTIVE without |
+| Served Regions | Input | Yes | multi ≥1 | Default Region filter on VEN-S06 |
 | Business hours | Input | No | per weekday open/close | |
 | Away mode | Input | No | boolean | Suspends new-request notifications |
-| Matched-Request volume estimate | System | — | estimate | Based on current selection |
-| Save | Action | — | — | Applies to Requests published after change |
+| Save | Action | — | — | Takes effect immediately |
 
 ## Validation & rules
 
-- Changes do not retroactively alter existing matches.
+- At least one Region when saving.
 - Away mode ≠ account deactivation.
+- Matching depends on VERIFIED + ACTIVE + Type Subscription only (`BR-002`).
 
 ## Empty / error / edge states
 
-- Zero categories/regions selected: cannot activate.
+- No Region selected: save blocked.
 
 ## Related screens
 
-VEN-S03 · VEN-S15 · VEN-S05
+VEN-S15 · VEN-S05 · VEN-S06

@@ -14,18 +14,17 @@ Exclusive shell for non-ACTIVE Vendors: verification status, Admin messages, doc
 
 | Direction | Path |
 |---|---|
-| Entry | Login while PENDING_VERIFICATION / pre-ACTIVE |
+| Entry | Login while PENDING_VERIFICATION or REJECTED |
 | Exit | ACTIVE → VEN-S05; or refused states |
 
 ## Fields
 
 | Field / UI element | Kind | Required | Type / options | Notes |
 |---|---|---|---|---|
-| Verification state | Display | — | PENDING_VERIFICATION, REJECTED, VERIFIED (pre-ACTIVE) | |
+| Verification state | Display | — | PENDING_VERIFICATION, REJECTED | |
 | Expected review messaging | Display | — | copy | **No SLA promised** (PO) |
 | Admin message / more-info request | Display | — | text | |
 | Document re-upload | Action | Conditional | → VEN-S02 | If allowed |
-| Categories/Regions completion CTA | Action | Conditional | → VEN-S16 | VERIFIED → ACTIVE gate |
 | Support contact | Action | — | — | |
 | Logout | Action | — | — | |
 
@@ -40,4 +39,4 @@ Exclusive shell for non-ACTIVE Vendors: verification status, Admin messages, doc
 
 ## Related screens
 
-VEN-S02 · VEN-S16 · VEN-S05 (only when ACTIVE)
+VEN-S02 · VEN-S05 (only when ACTIVE; approval activates in one step)

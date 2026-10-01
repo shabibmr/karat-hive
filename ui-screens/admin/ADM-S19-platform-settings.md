@@ -22,8 +22,6 @@ Configure operational parameters without deploy; non-retroactive changes.
 | Field / UI element | Kind | Required | Type / options | Notes |
 |---|---|---|---|---|
 | Gold Bullion minimum value (AED) | Input | Yes | decimal | Default 500 |
-| Offer validity options | Input | Yes | set of hours | **Align with FR vs entity tension** |
-| Default Offer validity | Input | Yes | from options | Default 24 h in FR |
 | Request hard-expiry duration | Input | Yes | hours | Default 48 h |
 | Max concurrent PUBLISHED Requests / Customer | Input | Yes | integer | Default 10 |
 | Supported karat purities | Input | Yes | list | 24/22/21/18K default |
@@ -40,9 +38,7 @@ Configure operational parameters without deploy; non-retroactive changes.
 - Changes apply only to entities created after change (`BR-020`).
 - Every change audit-logged.
 
-### SRS tension
-
-Document resolved Offer validity option-set here once PO chooses FR-VEN-013 vs entity dictionary.
+- There is no Offer validity setting: an Offer expires with its Request (`adr/0015`).
 
 ## Empty / error / edge states
 

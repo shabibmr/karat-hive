@@ -23,7 +23,6 @@ Terminal Offer history with aggregate performance metrics (no competitor identit
 |---|---|---|---|---|
 | Filter — date range | Filter / Sort | No | — | |
 | Filter — Request type | Filter / Sort | No | — | |
-| Filter — Category | Filter / Sort | No | — | |
 | Filter — Region | Filter / Sort | No | — | |
 | Filter — outcome | Filter / Sort | No | terminal states | |
 | Offers submitted (period) | Display | — | integer | Aggregate |

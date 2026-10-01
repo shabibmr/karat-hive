@@ -25,12 +25,12 @@ Browse every Request in any state; Customer identity unmasked for Admin.
 | Column: type | Display | — | — | |
 | Column: direction | Display | — | — | |
 | Column: Customer | Display | — | unmasked | |
-| Column: Category / Region | Display | — | — | |
+| Column: Region | Display | — | — | |
 | Column: indicative value | Display | — | AED | |
 | Column: Offer count | Display | — | — | |
 | Column: state | Display | — | — | |
 | Column: publication date | Display | — | — | |
-| Filters: type, direction, state, Category, Region, value range, date range, zero Offers | Filter / Sort | No | — | |
+| Filters: type, direction, state, Region, value range, date range, zero Offers | Filter / Sort | No | — | |
 | Search: reference / notes | Filter / Sort | No | — | |
 | Open detail | Action | — | — | → ADM-S09 |
 

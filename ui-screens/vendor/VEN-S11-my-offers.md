@@ -15,7 +15,7 @@ All submitted Offers under tabs Pending / Accepted / Rejected–Expired.
 | Direction | Path |
 |---|---|
 | Entry | Dashboard; nav Offers |
-| Exit | Detail; Connection; revise |
+| Exit | Detail; Connection; withdraw |
 
 ## Fields
 
@@ -40,7 +40,7 @@ All submitted Offers under tabs Pending / Accepted / Rejected–Expired.
 | Field / UI element | Kind | Notes |
 |---|---|---|
 | Countdown to expiry | System | Prioritise &lt; 24 h |
-| Revise | Action | → VEN-S10 |
+| Withdraw | Action | → VEN-S10 |
 | Withdraw | Action | → VEN-S10 |
 
 ### Accepted tab extras

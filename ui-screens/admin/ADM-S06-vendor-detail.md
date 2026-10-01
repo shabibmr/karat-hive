@@ -24,7 +24,7 @@ Full Vendor record, KYC viewer, performance, activation controls.
 | Business profile (all fields) | Display | — | legal, trading, licence, address, contact, email, hours, away | |
 | KYC documents | Display | — | viewer | Each view audit-logged |
 | Verification history | Display | — | Admin + rationale | |
-| Categories / Regions served | Display | — | — | |
+| Regions served / Type Subscriptions | Display | — | — | |
 | Type subscriptions | Display | — | per Request type state | |
 | Offer history | Display | — | list | |
 | Connections | Display | — | list | |

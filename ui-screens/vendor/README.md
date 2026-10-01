@@ -8,10 +8,9 @@
 
 | Vendor state | Shell | Marketplace access |
 |---|---|---|
-| `PENDING_VERIFICATION`, more-info | **VEN-S03** Awaiting Approval | None |
-| `VERIFIED` but not `ACTIVE` | Constrained onboarding (categories/regions) | None |
+| `PENDING_VERIFICATION`, more-info, `REJECTED` | **VEN-S03** Awaiting Approval | None |
 | `ACTIVE` + type subscription | Full app (dashboard, feed, offers) | Yes for subscribed Request types |
-| `SUSPENDED` / `DEACTIVATED` / `REJECTED` | Login refused or status message | None |
+| `SUSPENDED` / `DEACTIVATED` | Login refused with status message | None |
 
 ## Primary destinations (ACTIVE)
 

@@ -8,14 +8,14 @@
 
 ## Purpose
 
-View own Request state, Offer count, edit allowed fields, or cancel while still open.
+View own Request state and Offer count, or cancel while still open. A published Request cannot be edited (`FR-CUS-016`, retired).
 
 ## Entry / exit
 
 | Direction | Path |
 |---|---|
-| Entry | Home; notifications; history |
-| Exit | CUS-S11 Offers; edit sub-flow; cancel |
+| Entry | My Requests (CUS-S24); notifications; history |
+| Exit | CUS-S11 Offers; cancel |
 
 ## Fields
 
@@ -25,21 +25,20 @@ View own Request state, Offer count, edit allowed fields, or cancel while still 
 | State | Display | — | state machine | |
 | Type / direction | Display | — | immutable after publish | Structural lock |
 | Weight, purity, quantity | Display | — | immutable after publish | `BR-014` |
-| Category / Region | Display | — | — | |
-| Notes | Input | No | text | Editable while PUBLISHED / OFFERS_RECEIVED |
-| Budget min/max / flexible | Input | Conditional | AED | Editable pre-acceptance |
-| Images | Input | Conditional | add/remove/reorder | Editable pre-acceptance |
+| Region | Display | — | — | |
+| Notes | Display | — | text | |
+| Budget min/max / flexible | Display | Conditional | AED | |
+| Images | Display | Conditional | gallery | |
 | Offer count | Display | — | integer | |
 | Expiry | System | — | countdown | |
 | View Offers | Action | — | — | → CUS-S11 |
-| Save edits | Action | — | — | Notifies Vendors with pending Offers |
 | Cancel Request | Action | — | — | Optional reason from list |
 | Cancellation reason | Input | No | configured list | Analytics |
 | Close Connection path | Action | Conditional | — | If ACCEPTED → Connection flow |
 
 ## Validation & rules
 
-- Edit blocked after Offer accepted.
+- No edit after publish; Cancel is the only mutating action while PUBLISHED.
 - Cancel blocked once ACCEPTED; only close Connection (`BR-013`).
 - Cancel → pending Offers `WITHDRAWN_BY_SYSTEM`.
 

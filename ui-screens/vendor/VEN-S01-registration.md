@@ -31,7 +31,6 @@ Self-register a Vendor business; account enters `PENDING_VERIFICATION` (marketpl
 | Mobile number | Input | Yes | E.164 | OTP verified before submit |
 | OTP | Input | Yes | numeric | |
 | Business email | Input | Yes | email | |
-| Service Categories | Input | Yes | multi-select ≥1 | Matching |
 | Served Regions | Input | Yes | multi-select ≥1 | Matching |
 | Accept Vendor agreement / Privacy | Input | Yes | checkbox | Assumed with registration |
 | Submit registration | Action | — | — | → PENDING_VERIFICATION |
