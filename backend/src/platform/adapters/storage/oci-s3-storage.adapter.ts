@@ -20,6 +20,10 @@ export function ociS3BucketNames(env: Env): string[] {
   return [env.OCI_S3_BUCKET_KYC, env.OCI_S3_BUCKET_REQUEST_MEDIA, env.OCI_S3_BUCKET_EXPORT];
 }
 
+function requestId(res: Response): string {
+  return res.headers.get('opc-request-id') ?? res.headers.get('x-amz-request-id') ?? 'n/a';
+}
+
 /**
  * Oracle Object Storage via the S3 Compatibility API (`adr/0013`).
  * Endpoint region places the bucket; no R2-style LocationConstraint body.
@@ -79,9 +83,11 @@ export class OciS3StorageAdapter implements ObjectStorage {
     });
     const head = await fetch(url, { method: 'HEAD', headers: headHeaders });
     if (head.ok) return;
+    if (head.status === 403 && (await this.listProbeOk(bucket))) return;
     if (head.status !== 404) {
+      // HEAD has no body; the request id is what Oracle support needs.
       throw new Error(
-        `OCI S3 head bucket ${bucket} failed: ${head.status} ${await head.text()}`,
+        `OCI S3 head bucket ${bucket} failed: ${head.status} (opc-request-id=${requestId(head)})`,
       );
     }
     const putHeaders = signHeaders(this.identity(), {
@@ -95,6 +101,30 @@ export class OciS3StorageAdapter implements ObjectStorage {
     if (res.ok || res.status === 409) return;
     const text = await res.text();
     throw new Error(`OCI S3 create bucket ${bucket} failed: ${res.status} ${text}`);
+  }
+
+  /**
+   * Oracle can 403 `HEAD bucket` while the same key may list it, so a 403 HEAD
+   * alone does not prove the bucket is unusable. Object ops are the real test.
+   */
+  private async listProbeOk(bucket: string): Promise<boolean> {
+    const url = new URL(`${this.endpoint()}/${bucket}?max-keys=1`);
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: signHeaders(this.identity(), {
+        method: 'GET',
+        url,
+        headers: { host: url.host },
+        body: new Uint8Array(),
+        now: new Date(),
+      }),
+    });
+    if (!res.ok) {
+      this.logger.warn(
+        `OCI S3 list probe ${bucket} failed: ${res.status} (opc-request-id=${requestId(res)})`,
+      );
+    }
+    return res.ok;
   }
 
   async createSignedUploadUrl(input: CreateSignedUploadInput): Promise<SignedUpload> {
