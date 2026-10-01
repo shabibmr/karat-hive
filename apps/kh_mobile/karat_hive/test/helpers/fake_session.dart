@@ -64,6 +64,10 @@ class FakeSessionController extends SessionController {
   @override
   SessionState build() => _initial;
 
+  /// Test hook: swap the session as sign-in / sign-out / refresh would.
+  // ignore: use_setters_to_change_properties
+  void emit(SessionState next) => state = next;
+
   @override
   Future<void> refreshUser() async {}
 }
