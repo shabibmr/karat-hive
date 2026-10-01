@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:karat_hive/app/guards.dart';
 import 'package:karat_hive/app/session/session_controller.dart';
-import 'package:karat_hive/features/auth/presentation/guest_landing_screen.dart';
+import 'package:karat_hive/features/guest/presentation/guest_landing_screen.dart';
 import 'package:karat_hive/features/auth/presentation/widgets/how_this_works.dart';
 import 'package:karat_hive/features/request_create/controller/request_create_controller.dart';
 import 'package:karat_hive/features/request_create/routes.dart';
