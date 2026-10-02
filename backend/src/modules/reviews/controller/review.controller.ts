@@ -50,13 +50,14 @@ export class ReviewController {
     @Param('id') connectionId: string,
     @Body(zodBody(createReviewSchema)) body: z.infer<typeof createReviewSchema>,
   ) {
-    const data = await this.reviewService.createReview(
+    // Return the resource directly — EnvelopeInterceptor wraps `{ data, meta }`.
+    // Returning `{ data }` here double-wraps and breaks clients that unwrap once.
+    return this.reviewService.createReview(
       viewer,
       connectionId,
       body.rating,
       body.comment,
     );
-    return { data };
   }
 
   @Get('me/reviews')
@@ -74,8 +75,7 @@ export class ReviewController {
     @Param('id') reviewId: string,
     @Body(zodBody(patchReviewSchema)) body: z.infer<typeof patchReviewSchema>,
   ) {
-    const data = await this.reviewService.updateReview(viewer, reviewId, body);
-    return { data };
+    return this.reviewService.updateReview(viewer, reviewId, body);
   }
 
   @Post('reviews/:id/withdraw')
@@ -83,8 +83,7 @@ export class ReviewController {
     @Viewer() viewer: ViewerContext,
     @Param('id') reviewId: string,
   ) {
-    const data = await this.reviewService.withdrawReview(viewer, reviewId);
-    return { data };
+    return this.reviewService.withdrawReview(viewer, reviewId);
   }
 
   @Post('reviews/:id/response')
@@ -93,12 +92,11 @@ export class ReviewController {
     @Param('id') reviewId: string,
     @Body(zodBody(respondReviewSchema)) body: z.infer<typeof respondReviewSchema>,
   ) {
-    const data = await this.reviewService.respondToReview(
+    return this.reviewService.respondToReview(
       viewer,
       reviewId,
       body.response,
     );
-    return { data };
   }
 
   @Post('reviews/:id/flag')
@@ -106,7 +104,6 @@ export class ReviewController {
     @Viewer() viewer: ViewerContext,
     @Param('id') reviewId: string,
   ) {
-    const data = await this.reviewService.flagReview(viewer, reviewId);
-    return { data };
+    return this.reviewService.flagReview(viewer, reviewId);
   }
 }

@@ -109,9 +109,12 @@ export class ReviewService {
       .map((r) => presentReview(r, viewer.userId))
       .filter((r): r is ReviewView => r !== null);
 
+    // Return { data, meta } so EnvelopeInterceptor treats this as a finished
+    // envelope. `{ data, pagination }` is not an envelope and gets nested under
+    // another `data`, which breaks `parsePagedEnvelope` (`data` must be a List).
     return {
       data,
-      pagination: {
+      meta: {
         nextCursor,
       },
     };

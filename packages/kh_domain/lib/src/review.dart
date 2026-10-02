@@ -1,9 +1,27 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'json_envelope.dart';
 import 'party.dart';
 
 part 'review.freezed.dart';
 part 'review.g.dart';
+
+/// Wire values for `GET /v1/me/reviews?role=` (`FR-VEN-029`).
+enum ReviewListRole {
+  author,
+  subject;
+
+  String get wire => switch (this) {
+        author => 'AUTHOR',
+        subject => 'SUBJECT',
+      };
+
+  static ReviewListRole? tryParse(String? raw) => switch (raw?.toUpperCase()) {
+        'AUTHOR' => author,
+        'SUBJECT' => subject,
+        _ => null,
+      };
+}
 
 enum ReviewState {
   pendingModeration,
@@ -71,22 +89,25 @@ abstract class ReviewVendorResponse with _$ReviewVendorResponse {
 }
 
 Map<String, dynamic> _normalizeReviewJson(Map<String, dynamic> json) {
-  final vr = json['vendorResponse'];
+  final root = unwrapResourceJson(json);
+  final vr = root['vendorResponse'];
   return {
-    ...json,
-    'authorType': json['authorType']?.toString(),
-    'rating': (json['rating'] as num?)?.toInt() ?? 0,
-    'state': json['state']?.toString(),
+    ...root,
+    'id': root['id']?.toString() ?? '',
+    'connectionId': root['connectionId']?.toString() ?? '',
+    'authorType': root['authorType']?.toString(),
+    'rating': (root['rating'] as num?)?.toInt() ?? 0,
+    'state': root['state']?.toString(),
     'vendorResponse':
         vr is Map ? Map<String, dynamic>.from(vr) : null,
-    'editableUntil': (DateTime.tryParse(json['editableUntil'] as String? ?? '') ??
+    'editableUntil': (DateTime.tryParse(root['editableUntil'] as String? ?? '') ??
             DateTime.fromMillisecondsSinceEpoch(0))
         .toIso8601String(),
-    'createdAt': (DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+    'createdAt': (DateTime.tryParse(root['createdAt'] as String? ?? '') ??
             DateTime.fromMillisecondsSinceEpoch(0))
         .toIso8601String(),
-    'publishedAt': json['publishedAt'] is String
-        ? (DateTime.tryParse(json['publishedAt'] as String)?.toIso8601String())
+    'publishedAt': root['publishedAt'] is String
+        ? (DateTime.tryParse(root['publishedAt'] as String)?.toIso8601String())
         : null,
   };
 }

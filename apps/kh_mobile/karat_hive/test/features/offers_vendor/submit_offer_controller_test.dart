@@ -11,11 +11,12 @@ import 'package:kh_domain/kh_domain.dart';
 VendorRequestItem _testRequest({
   String id = 'req-offer-1',
   String? reference = 'REQ-2026-0099',
+  String requestType = 'FIND_ORNAMENT',
 }) {
   return VendorRequestItem(
     id: id,
     reference: reference,
-    requestType: 'FIND_ORNAMENT',
+    requestType: requestType,
     direction: 'BUY',
     state: 'PUBLISHED',
     regionId: 'reg-dxb',
@@ -277,12 +278,34 @@ void main() {
       final state = container.read(submitOfferControllerProvider(requestId));
       expect(state, isA<SubmitOfferSucceeded>());
       expect((state as SubmitOfferSucceeded).offer.id, 'off-new');
+
       expect(repo.submitCalls, 1);
       expect(repo.lastSubmitRequestId, requestId);
       expect(repo.lastTerms!.offeredPrice, '5200.50');
       expect(repo.lastTerms!.weightGrams, '15.00');
       expect(repo.lastTerms!.purityKarat, '22K');
       expect(repo.lastTerms!.vendorNote, 'Ready in 2 days');
+    });
+
+    test('bullion submit succeeds without media keys', () async {
+      final repo = FakeOffersVendorRepository(
+        request: _testRequest(requestType: 'GOLD_BULLION'),
+        submitResult: _testOffer(id: 'off-bullion'),
+      );
+      final container = containerWith(repo);
+      final loaded = await _waitUntilSettled(container, requestId);
+      final ready = loaded as SubmitOfferReady;
+      ready.draft.offeredPrice = '9000';
+      ready.draft.weightGrams = '100.00';
+
+      await container
+          .read(submitOfferControllerProvider(requestId).notifier)
+          .submit();
+
+      final state = container.read(submitOfferControllerProvider(requestId));
+      expect(state, isA<SubmitOfferSucceeded>());
+      expect(repo.submitCalls, 1);
+      expect(repo.lastTerms!.mediaKeys, isEmpty);
     });
 
     test('submit API failure returns to ready with inline failure', () async {

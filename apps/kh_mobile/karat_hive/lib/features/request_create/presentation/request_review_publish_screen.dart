@@ -372,11 +372,13 @@ class _FindOrnamentReviewBody extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.all(tokens.space.md),
       children: [
-        RequestReviewMosaic(
-          media: state.media,
-          maxImages: state.maxImages,
-        ),
-        SizedBox(height: tokens.space.lg),
+        if (state.imagesAllowed) ...[
+          RequestReviewMosaic(
+            media: state.media,
+            maxImages: state.maxImages,
+          ),
+          SizedBox(height: tokens.space.lg),
+        ],
         for (var i = 0; i < rows.length; i++) ...[
           _IconReviewRow(data: rows[i]),
           if (i < rows.length - 1)
@@ -427,8 +429,10 @@ class _GenericReviewBody extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.all(tokens.space.md),
       children: [
-        RequestMediaGallery(media: state.media),
-        SizedBox(height: tokens.space.lg),
+        if (state.imagesAllowed) ...[
+          RequestMediaGallery(media: state.media),
+          SizedBox(height: tokens.space.lg),
+        ],
         Text(
           createCopy(context, 'create.reviewSummary', 'Summary'),
           style: Theme.of(context).textTheme.titleMedium,

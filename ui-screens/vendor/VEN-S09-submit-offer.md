@@ -29,7 +29,7 @@ Submit a priced, time-limited Offer against a matched open Request.
 | Rate per gram | Input | No | AED/g | |
 | Delivery / readiness timeframe | Input | No | string ≤ 100 | |
 | Warranty / buy-back terms | Input | No | text | |
-| Supporting images (≤3) | Input | No | JPEG/PNG | |
+| Supporting images (≤3) | Input | Conditional | JPEG/PNG | Required for Find An Ornament / Sell Old Gold; hidden for coins & bullion |
 | Free-text note | Input | No | text | Scanned for contact details — block if found |
 | Submit | Action | — | — | → PENDING |
 

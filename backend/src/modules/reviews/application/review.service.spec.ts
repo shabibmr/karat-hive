@@ -264,4 +264,36 @@ describe('ReviewService', () => {
     });
     expect(mockRepo.addVendorResponse).not.toHaveBeenCalled();
   });
+
+  it('listMyReviews returns { data, meta } so EnvelopeInterceptor does not nest', async () => {
+    vi.mocked(mockRepo.listReviewsForUser).mockResolvedValueOnce({
+      reviews: [
+        {
+          id: 'rev-1',
+          connectionId: 'conn-1',
+          authorType: 'CUSTOMER',
+          authorUserId: 'cust-1',
+          subjectUserId: 'vend-1',
+          rating: 5,
+          comment: 'Great',
+          state: 'PUBLISHED',
+          editableUntil: new Date('2026-03-15T12:00:00Z'),
+          createdAt: new Date('2026-03-01T12:00:00Z'),
+          publishedAt: new Date('2026-03-01T12:00:00Z'),
+          author: { customerProfile: { displayName: 'Alice' } },
+        },
+      ],
+      nextCursor: 'cursor-2',
+    } as never);
+
+    const result = await service.listMyReviews(
+      { userId: 'cust-1', role: 'CUSTOMER', accountState: 'ACTIVE' },
+      { role: 'AUTHOR' },
+    );
+
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0].id).toBe('rev-1');
+    expect(result.meta.nextCursor).toBe('cursor-2');
+    expect(result).not.toHaveProperty('pagination');
+  });
 });

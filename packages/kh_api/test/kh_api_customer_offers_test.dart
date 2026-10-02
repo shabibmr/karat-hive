@@ -273,6 +273,31 @@ void main() {
       );
     });
 
+    test('acceptOffer peels double-enveloped accept body from older deploys',
+        () async {
+      // Live shape when controller returned `{ data }` without `meta`:
+      // interceptor wraps again → client unwraps once → still nested `data`.
+      payload = {
+        'data': {
+          'data': {
+            'offer': customerOfferJson(state: 'ACCEPTED'),
+            'connection': customerConnectionJson(id: 'conn-double'),
+          },
+        },
+        'meta': {
+          'requestId': 'req-id-1',
+          'serverTime': '2026-09-01T12:00:00.000Z',
+          'nextCursor': null,
+        },
+      };
+
+      final res = await api.acceptOffer('off-1', idempotencyKey: 'idem-d');
+      expect(res.isOk, isTrue);
+      final accepted = (res as Ok<AcceptOfferResult>).value;
+      expect(accepted.connection.id, 'conn-double');
+      expect(accepted.offer.state, OfferState.accepted);
+    });
+
     test('declineOffer returns OfferForCustomer REJECTED', () async {
       payload = {
         'data': customerOfferJson(state: 'REJECTED'),

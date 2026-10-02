@@ -4,7 +4,7 @@
 |---|---|
 | **User** | Customer |
 | **Platform** | Mobile — Customer mode |
-| **Requirements** | `FR-CUS-012`, `FR-CUS-013`, `FR-CUS-007`, `FR-CUS-018` |
+| **Requirements** | `FR-CUS-012`, `FR-CUS-013`, `FR-CUS-018` |
 
 ## Purpose
 
@@ -15,7 +15,7 @@ Compose a buy or sell Request for gold bullion bars, enforcing the AED 500 minim
 | Direction | Path |
 |---|---|
 | Entry | CUS-S03 type = Gold Bullion |
-| Exit | CUS-S08; CUS-S09 |
+| Exit | CUS-S09 (no photos step) |
 
 ## Fields
 
@@ -31,7 +31,7 @@ Compose a buy or sell Request for gold bullion bars, enforcing the AED 500 minim
 | Serial / assay certificate present | Input | No | boolean | |
 | Budget (BUY) | Input | No | AED range | Optional |
 | Notes | Input | No | free text | |
-| Images | Input | Conditional | 1–5 | Optional BUY; **mandatory SELL** |
+| Images | — | No | — | Not offered for bullion (BUY or SELL) |
 | Reference gold rate | Display / System | — | AED/g | **Required** for min-value check |
 | Indicative value | System | — | total weight × rate | Compared to floor |
 | Minimum value threshold | Display | — | default AED 500 | Platform setting |
@@ -51,4 +51,4 @@ Compose a buy or sell Request for gold bullion bars, enforcing the AED 500 minim
 
 ## Related screens
 
-CUS-S08 · CUS-S09
+CUS-S09

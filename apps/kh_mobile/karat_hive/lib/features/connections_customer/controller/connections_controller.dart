@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+import '../../../app/di.dart';
+import '../../../core/firebase/firebase_analytics_service.dart';
 import '../repository/connections_repository.dart';
 
 class ConnectionsListController
@@ -54,19 +57,67 @@ class ConnectionDetailController
 
   @override
   Future<ConnectionForCustomer> build() async {
-    final repo = ref.watch(connectionsRepositoryProvider);
-    final r = await repo.getById(arg);
-    return r.when(ok: (c) => c, err: (f) => throw f);
+    return _load();
   }
 
   Future<void> reload() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      final repo = ref.read(connectionsRepositoryProvider);
-      final r = await repo.getById(arg);
-      return r.when(ok: (c) => c, err: (f) => throw f);
-    });
+    state = await AsyncValue.guard(_load);
   }
+
+  Future<ConnectionForCustomer> _load() async {
+    final repo = ref.read(connectionsRepositoryProvider);
+    final hasToken = await _hasAccessToken();
+    final r = await repo.getById(arg);
+    return r.when(
+      ok: (c) {
+        _logDetail('connection_detail_ok', hasToken: hasToken, failure: null);
+        return c;
+      },
+      err: (f) {
+        _logDetail('connection_detail_err', hasToken: hasToken, failure: f);
+        throw f;
+      },
+    );
+  }
+
+  Future<bool> _hasAccessToken() async {
+    try {
+      final tokens = await ref.read(tokenStorageProvider).read();
+      final access = tokens?.accessToken;
+      return access != null && access.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _logDetail(
+    String event, {
+    required bool hasToken,
+    required Failure? failure,
+  }) {
+    try {
+      final params = <String, Object>{
+        'connection_id': arg,
+        'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
+        'has_token': hasToken ? 1 : 0,
+        if (failure != null) 'err_type': failure.runtimeType.toString(),
+        if (failure?.code != null) 'err_code': failure!.code!,
+        if (failure?.message != null && failure!.message!.isNotEmpty)
+          'err_message': _clip(failure.message!),
+      };
+      // ignore: unawaited_futures — fire-and-forget diagnostic
+      ref.read(firebaseAnalyticsServiceProvider).logEvent(
+            name: event,
+            parameters: params,
+          );
+    } catch (_) {
+      // Diagnostics must never break the detail load path.
+    }
+  }
+
+  static String _clip(String value, [int max = 100]) =>
+      value.length <= max ? value : value.substring(0, max);
 
   Future<Result<void>> talkOpened() {
     return ref.read(connectionsRepositoryProvider).recordContactEvent(

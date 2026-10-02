@@ -9,6 +9,8 @@ import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../../../app/di.dart';
 import '../../../app/platform/open_url.dart';
+import '../../../core/failure_copy.dart';
+import '../../reviews/repository/reviews_repository.dart';
 import '../controller/connection_detail_controller.dart';
 import '../controller/connections_controller.dart';
 
@@ -78,23 +80,34 @@ class ConnectionDetailScreen extends ConsumerWidget {
         .read(connectionDetailProvider(connectionId).notifier)
         .close();
     if (!context.mounted) return;
-    res.when(
-      ok: (_) {
-        ref.invalidate(connectionsControllerProvider);
-        context.push('/vendor/connections/$connectionId/review');
-      },
-      err: (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              failure.message ??
-                  (l10n?.couldNotLoadConnection ??
+    if (res.isErr) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            khFailureMessage(
+              res.failureOrNull ??
+                  Exception(l10n?.couldNotLoadConnection ??
                       'Could not load this Connection.'),
+              l10n?.couldNotLoadConnection ??
+                  'Could not load this Connection.',
             ),
           ),
-        );
-      },
-    );
+        ),
+      );
+      return;
+    }
+
+    ref.invalidate(connectionsControllerProvider);
+    // Vendor Connection payload has no myReview; AUTHOR list is the source.
+    final alreadyReviewed = await ref
+        .read(reviewsRepositoryProvider)
+        .hasAuthoredForConnection(connectionId);
+    if (!context.mounted) return;
+    if (alreadyReviewed) {
+      context.go('/vendor/connections');
+    } else {
+      context.go('/vendor/connections/$connectionId/review');
+    }
   }
 
   @override

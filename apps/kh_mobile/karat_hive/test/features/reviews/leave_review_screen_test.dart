@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
@@ -52,7 +53,7 @@ class _MockReviewsRepository implements ReviewsRepository {
 
   @override
   Future<Result<PagedResult<Review>>> list({
-    String? role,
+    ReviewListRole? role,
     String? cursor,
     int limit = 20,
   }) async =>
@@ -100,6 +101,9 @@ void main() {
     expect(find.byKey(const Key('star-rating-input')), findsOneWidget);
     expect(find.byKey(const Key('review-comment-field')), findsOneWidget);
 
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
+
     await tester.enterText(
       find.byKey(const Key('review-comment-field-input')),
       'Smooth payment and clear specifications.',
@@ -132,6 +136,8 @@ void main() {
       ),
     );
 
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('leave-review-submit-button')));
     await tester.pumpAndSettle();
 
@@ -163,6 +169,9 @@ void main() {
     expect(find.text('Connection ID: conn-202'), findsOneWidget);
     expect(find.byKey(const Key('star-rating-input')), findsOneWidget);
     expect(find.byKey(const Key('review-comment-field')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
 
     await tester.enterText(
       find.byKey(const Key('review-comment-field-input')),
@@ -196,10 +205,236 @@ void main() {
       ),
     );
 
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('leave-review-submit-button')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('leave-review-already-reviewed')), findsOneWidget);
     expect(find.text('Review Already Submitted'), findsOneWidget);
+  });
+
+  testWidgets('star rating starts unset; submit without stars shows error',
+      (tester) async {
+    final mockRepo = _MockReviewsRepository();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          reviewsRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+        child: MaterialApp(
+          theme: khTheme(),
+          home: const LeaveReviewScreen(connectionId: 'conn-202'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('leave-review-submit-button')));
+    await tester.pump();
+
+    expect(mockRepo.lastRating, isNull);
+    expect(find.text('Please select a star rating (1–5).'), findsOneWidget);
+    expect(find.byKey(const Key('leave-review-submitted')), findsNothing);
+  });
+
+  testWidgets('VEN-S19 Done after submit goes to /vendor/connections',
+      (tester) async {
+    final mockRepo = _MockReviewsRepository();
+    Uri? listUri;
+    final router = GoRouter(
+      initialLocation: '/vendor/connections/conn-101/review',
+      routes: [
+        GoRoute(
+          path: '/vendor/connections',
+          builder: (context, state) {
+            listUri = state.uri;
+            return const Scaffold(body: Text('Vendor Connections List'));
+          },
+          routes: [
+            GoRoute(
+              path: ':connectionId/review',
+              builder: (context, state) => VendorLeaveReviewScreen(
+                connectionId: state.pathParameters['connectionId']!,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          reviewsRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+        child: MaterialApp.router(
+          theme: khTheme(),
+          routerConfig: router,
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('leave-review-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('leave-review-submitted')), findsOneWidget);
+    await tester.tap(find.widgetWithText(KhButton, 'Done'));
+    await tester.pumpAndSettle();
+
+    expect(listUri?.path, '/vendor/connections');
+    expect(find.text('Vendor Connections List'), findsOneWidget);
+  });
+
+  testWidgets('CUS-S18 Done after submit goes to /customer/connections',
+      (tester) async {
+    final mockRepo = _MockReviewsRepository();
+    Uri? listUri;
+    final router = GoRouter(
+      initialLocation: '/customer/connections/conn-202/review',
+      routes: [
+        GoRoute(
+          path: '/customer/connections',
+          builder: (context, state) {
+            listUri = state.uri;
+            return const Scaffold(body: Text('Customer Connections List'));
+          },
+          routes: [
+            GoRoute(
+              path: ':connectionId/review',
+              builder: (context, state) => LeaveReviewScreen(
+                connectionId: state.pathParameters['connectionId']!,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          reviewsRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+        child: MaterialApp.router(
+          theme: khTheme(),
+          routerConfig: router,
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('leave-review-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('leave-review-submitted')), findsOneWidget);
+    await tester.tap(find.widgetWithText(KhButton, 'Done'));
+    await tester.pumpAndSettle();
+
+    expect(listUri?.path, '/customer/connections');
+    expect(find.text('Customer Connections List'), findsOneWidget);
+  });
+
+  testWidgets('VEN-S19 Back on already-reviewed goes to /vendor/connections',
+      (tester) async {
+    final mockRepo = _MockReviewsRepository()..returnAlreadyExists = true;
+    Uri? listUri;
+    final router = GoRouter(
+      initialLocation: '/vendor/connections/conn-101/review',
+      routes: [
+        GoRoute(
+          path: '/vendor/connections',
+          builder: (context, state) {
+            listUri = state.uri;
+            return const Scaffold(body: Text('Vendor Connections List'));
+          },
+          routes: [
+            GoRoute(
+              path: ':connectionId/review',
+              builder: (context, state) => VendorLeaveReviewScreen(
+                connectionId: state.pathParameters['connectionId']!,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          reviewsRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+        child: MaterialApp.router(
+          theme: khTheme(),
+          routerConfig: router,
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('leave-review-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('leave-review-already-reviewed')), findsOneWidget);
+    await tester.tap(find.widgetWithText(KhButton, 'Back'));
+    await tester.pumpAndSettle();
+
+    expect(listUri?.path, '/vendor/connections');
+    expect(find.text('Vendor Connections List'), findsOneWidget);
+  });
+
+  testWidgets('CUS-S18 Back on already-reviewed goes to /customer/connections',
+      (tester) async {
+    final mockRepo = _MockReviewsRepository()..returnAlreadyExists = true;
+    Uri? listUri;
+    final router = GoRouter(
+      initialLocation: '/customer/connections/conn-202/review',
+      routes: [
+        GoRoute(
+          path: '/customer/connections',
+          builder: (context, state) {
+            listUri = state.uri;
+            return const Scaffold(body: Text('Customer Connections List'));
+          },
+          routes: [
+            GoRoute(
+              path: ':connectionId/review',
+              builder: (context, state) => LeaveReviewScreen(
+                connectionId: state.pathParameters['connectionId']!,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          reviewsRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+        child: MaterialApp.router(
+          theme: khTheme(),
+          routerConfig: router,
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('leave-review-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('leave-review-already-reviewed')), findsOneWidget);
+    await tester.tap(find.widgetWithText(KhButton, 'Back'));
+    await tester.pumpAndSettle();
+
+    expect(listUri?.path, '/customer/connections');
+    expect(find.text('Customer Connections List'), findsOneWidget);
   });
 }

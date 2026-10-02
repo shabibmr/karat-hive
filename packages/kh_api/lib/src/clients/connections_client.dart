@@ -2,6 +2,7 @@ import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
 import '../paged.dart';
+import '../parse_resource.dart';
 
 class ConnectionsClient {
   const ConnectionsClient(this._client);
@@ -122,10 +123,7 @@ class ConnectionsClient {
 
   Future<Result<ConnectionForCustomer>> getById(String id) async {
     final r = await _client.send('GET', '/v1/connections/$id');
-    return r.when(
-      ok: (d) => Ok(ConnectionForCustomer.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseConnectionForCustomer, err: Err.new);
   }
 
   Future<Result<ConnectionForCustomer>> closeForCustomer(
@@ -137,9 +135,14 @@ class ConnectionsClient {
       '/v1/connections/$id/close',
       body: {if (reason != null) 'reason': reason},
     );
-    return r.when(
-      ok: (d) => Ok(ConnectionForCustomer.fromJson(d as Map<String, dynamic>)),
-      err: Err.new,
-    );
+    return r.when(ok: _parseConnectionForCustomer, err: Err.new);
   }
 }
+
+Result<ConnectionForCustomer> _parseConnectionForCustomer(dynamic raw) =>
+    parseResource(
+      raw,
+      ConnectionForCustomer.fromJson,
+      notObjectMessage: 'Connection response was not an object.',
+      parseFailedMessage: 'Could not read connection response.',
+    );

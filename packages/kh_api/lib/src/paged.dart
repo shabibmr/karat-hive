@@ -13,8 +13,20 @@ PagedResult<T> parsePagedEnvelope<T>(
   }
   if (raw is Map) {
     final map = Map<String, dynamic>.from(raw);
-    final dataList = (map['data'] as List?) ?? const [];
-    final metaRaw = map['meta'];
+    // Canonical: `{ data: [...], meta: { nextCursor } }`.
+    // Older notifications/reviews mistake: service returned `{ data, pagination }`
+    // without `meta`, so EnvelopeInterceptor nested it as
+    // `{ data: { data: [...], pagination }, meta: { requestId, nextCursor: null } }`.
+    var payload = map;
+    final nested = map['data'];
+    if (nested is Map && nested['data'] is List) {
+      payload = Map<String, dynamic>.from(nested);
+    }
+
+    final dataRaw = payload['data'];
+    final dataList = dataRaw is List ? dataRaw : const [];
+    final metaRaw =
+        payload['meta'] ?? payload['pagination'] ?? map['meta'];
     final meta = metaRaw is Map
         ? Map<String, dynamic>.from(metaRaw)
         : const <String, dynamic>{};

@@ -23,7 +23,18 @@ class NotificationsClient {
       unwrapData: false,
     );
     return r.when(
-      ok: (raw) => Ok(parsePagedEnvelope(raw, AppNotification.fromJson)),
+      ok: (raw) {
+        try {
+          return Ok(parsePagedEnvelope(raw, AppNotification.fromJson));
+        } catch (e) {
+          return Err(
+            ServerFailure(
+              code: 'BAD_RESPONSE',
+              message: 'Could not load notifications.',
+            ),
+          );
+        }
+      },
       err: Err.new,
     );
   }

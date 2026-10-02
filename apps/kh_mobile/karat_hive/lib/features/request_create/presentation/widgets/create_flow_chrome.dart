@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
+import '../../routes.dart';
+
 String createCopy(BuildContext context, String key, String fallback) {
   final value = KhStrings.of(context).s(key);
   return value == key ? fallback : value;
@@ -46,11 +48,12 @@ class CreateFlowHeader extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             child: IconButton(
+              key: const Key('create-flow-back'),
               padding: EdgeInsets.zero,
               iconSize: 20,
               icon: const Icon(Icons.arrow_back),
               color: tokens.ink,
-              onPressed: onBack ?? () => Navigator.maybePop(context),
+              onPressed: onBack ?? () => exitRequestCreate(context),
             ),
           ),
           SizedBox(width: tokens.space.md),

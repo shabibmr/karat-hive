@@ -1,4 +1,5 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class FirebaseAnalyticsService {
@@ -15,8 +16,13 @@ class FirebaseAnalyticsService {
   Future<void> logEvent({
     required String name,
     Map<String, Object>? parameters,
-  }) =>
-      _analytics.logEvent(name: name, parameters: parameters);
+  }) async {
+    try {
+      await _analytics.logEvent(name: name, parameters: parameters);
+    } catch (e) {
+      debugPrint('[FirebaseAnalyticsService] logEvent($name) failed: $e');
+    }
+  }
 
   Future<void> logLogin({String? loginMethod}) =>
       _analytics.logLogin(loginMethod: loginMethod);

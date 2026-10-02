@@ -4,10 +4,66 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:karat_hive/features/connections/presentation/connection_detail_screen.dart';
 import 'package:karat_hive/features/connections/repository/connections_repository.dart';
+import 'package:karat_hive/features/reviews/repository/reviews_repository.dart';
+import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_domain/kh_domain.dart';
 import 'package:kh_l10n/kh_l10n.dart';
+
+class _FakeReviewsRepository implements ReviewsRepository {
+  _FakeReviewsRepository({this.authoredConnectionIds = const {}});
+
+  final Set<String> authoredConnectionIds;
+
+  @override
+  Future<Result<Review>> create({
+    required String connectionId,
+    required int rating,
+    String? comment,
+  }) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Result<void>> flag(String id) async => const Ok(null);
+
+  @override
+  Future<Result<PagedResult<Review>>> list({
+    ReviewListRole? role,
+    String? cursor,
+    int limit = 20,
+  }) async {
+    final items = authoredConnectionIds
+        .map(
+          (id) => Review(
+            id: 'rev-$id',
+            connectionId: id,
+            authorType: PartyRole.vendor,
+            rating: 5,
+            state: ReviewState.pendingModeration,
+            editableUntil: DateTime.now().add(const Duration(days: 14)),
+            createdAt: DateTime.now(),
+          ),
+        )
+        .toList();
+    return Ok(PagedResult(items: items));
+  }
+
+  @override
+  Future<Result<Review>> patch(String id, {int? rating, String? comment}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Result<Review>> respond(String id, {required String response}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Result<Review>> withdraw(String id) => throw UnimplementedError();
+
+  @override
+  Future<Result<VendorPerformanceDto>> getPerformance() =>
+      throw UnimplementedError();
+}
 
 class _FakeConnectionsRepository implements ConnectionsRepository {
   _FakeConnectionsRepository({required this.connection});
@@ -95,27 +151,39 @@ ConnectionForVendor _createConnection({
 GoRouter _buildRouter({
   required String initialLocation,
   void Function(Uri uri)? onReviewRouteVisited,
+  void Function(Uri uri)? onConnectionsListVisited,
   void Function(Uri uri)? onAbuseRouteVisited,
 }) {
   return GoRouter(
     initialLocation: initialLocation,
     routes: [
       GoRoute(
-        path: '/vendor/connections/:connectionId',
-        builder: (context, state) => ConnectionDetailScreen(
-          connectionId: state.pathParameters['connectionId']!,
-        ),
-      ),
-      GoRoute(
-        path: '/vendor/connections/:connectionId/review',
+        path: '/vendor/connections',
         builder: (context, state) {
-          onReviewRouteVisited?.call(state.uri);
-          return Scaffold(
-            body: Text(
-              'Review Destination connectionId=${state.pathParameters['connectionId']}',
-            ),
-          );
+          onConnectionsListVisited?.call(state.uri);
+          return const Scaffold(body: Text('Connections List'));
         },
+        routes: [
+          GoRoute(
+            path: ':connectionId',
+            builder: (context, state) => ConnectionDetailScreen(
+              connectionId: state.pathParameters['connectionId']!,
+            ),
+            routes: [
+              GoRoute(
+                path: 'review',
+                builder: (context, state) {
+                  onReviewRouteVisited?.call(state.uri);
+                  return Scaffold(
+                    body: Text(
+                      'Review Destination connectionId=${state.pathParameters['connectionId']}',
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
         path: '/abuse/new',
@@ -232,7 +300,7 @@ void main() {
   );
 
   testWidgets(
-    'closing connection succeeds and provides review navigation',
+    'closing connection with no review goes to leave-review',
     (tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
@@ -253,6 +321,9 @@ void main() {
         ProviderScope(
           overrides: [
             connectionsRepositoryProvider.overrideWithValue(repo),
+            reviewsRepositoryProvider.overrideWithValue(
+              _FakeReviewsRepository(),
+            ),
           ],
           child: MaterialApp.router(
             theme: khTheme(),
@@ -272,10 +343,8 @@ void main() {
       await tester.tap(closeButtonFinder);
       await tester.pumpAndSettle();
 
-      // Confirmation dialog should be visible
       expect(find.byType(KhConfirmDialog), findsOneWidget);
 
-      // Tap confirm button ("Close Connection") inside dialog
       final confirmButtonFinder = find.descendant(
         of: find.byType(KhConfirmDialog),
         matching: find.widgetWithText(KhButton, 'Close Connection'),
@@ -285,14 +354,72 @@ void main() {
       await tester.tap(confirmButtonFinder);
       await tester.pumpAndSettle();
 
-      // Verify repository close was invoked
       expect(repo.closeCallCount, 1);
       expect(repo.lastClosedId, 'conn-close-test');
-
-      // Verify navigated to review screen
       expect(visitedUri, isNotNull);
       expect(visitedUri!.path, '/vendor/connections/conn-close-test/review');
       expect(find.text('Review Destination connectionId=conn-close-test'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'closing connection after review goes to connections list',
+    (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = _FakeConnectionsRepository(
+        connection: _createConnection(
+          id: 'conn-close-reviewed',
+          state: ConnectionState.active,
+        ),
+      );
+
+      Uri? listUri;
+      final router = _buildRouter(
+        initialLocation: '/vendor/connections/conn-close-reviewed',
+        onConnectionsListVisited: (uri) => listUri = uri,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            connectionsRepositoryProvider.overrideWithValue(repo),
+            reviewsRepositoryProvider.overrideWithValue(
+              _FakeReviewsRepository(
+                authoredConnectionIds: {'conn-close-reviewed'},
+              ),
+            ),
+          ],
+          child: MaterialApp.router(
+            theme: khTheme(),
+            localizationsDelegates: KhStrings.delegates,
+            supportedLocales: KhStrings.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final closeButtonFinder = find.byKey(const Key('close-connection-button'));
+      await tester.ensureVisible(closeButtonFinder);
+      await tester.tap(closeButtonFinder);
+      await tester.pumpAndSettle();
+
+      final confirmButtonFinder = find.descendant(
+        of: find.byType(KhConfirmDialog),
+        matching: find.widgetWithText(KhButton, 'Close Connection'),
+      );
+      await tester.tap(confirmButtonFinder);
+      await tester.pumpAndSettle();
+
+      expect(repo.closeCallCount, 1);
+      expect(listUri, isNotNull);
+      expect(listUri!.path, '/vendor/connections');
+      expect(find.text('Connections List'), findsOneWidget);
     },
   );
 

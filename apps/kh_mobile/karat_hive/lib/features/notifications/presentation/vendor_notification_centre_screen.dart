@@ -8,6 +8,7 @@ import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../../../app/notification_deep_link.dart';
 import '../../../app/session/session_controller.dart';
+import '../../../core/failure_copy.dart';
 import '../controller/notifications_controller.dart';
 
 /// VEN-S17 — Vendor notification centre list (SH-NTF-01/02).
@@ -94,11 +95,10 @@ class VendorNotificationCentreScreen extends ConsumerWidget {
 
           if (listState.isInitialError) {
             return KhErrorView(
-              message: switch (listState.error) {
-                final Failure f =>
-                  f.message ?? 'Could not load notifications.',
-                _ => 'Could not load notifications.',
-              },
+              message: khFailureMessage(
+                listState.error ?? 'Could not load notifications.',
+                'Could not load notifications.',
+              ),
               onRetry: () =>
                   ref.read(notificationsControllerProvider.notifier).retry(),
             );

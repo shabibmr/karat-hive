@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
@@ -71,7 +72,7 @@ class _LeaveReviewBaseScreen extends ConsumerStatefulWidget {
 }
 
 class _LeaveReviewBaseScreenState extends ConsumerState<_LeaveReviewBaseScreen> {
-  int? _rating = 5;
+  int? _rating;
   final _commentController = TextEditingController();
   bool _busy = false;
   bool _alreadyReviewed = false;
@@ -178,7 +179,11 @@ class _LeaveReviewBaseScreenState extends ConsumerState<_LeaveReviewBaseScreen> 
                     SizedBox(height: tokens.space.lg),
                     KhButton(
                       label: 'Back',
-                      onPressed: () => Navigator.of(context).maybePop(),
+                      onPressed: () => context.go(
+                        isVendor
+                            ? '/vendor/connections'
+                            : '/customer/connections',
+                      ),
                     ),
                   ],
                 ),
@@ -224,7 +229,11 @@ class _LeaveReviewBaseScreenState extends ConsumerState<_LeaveReviewBaseScreen> 
                     SizedBox(height: tokens.space.lg),
                     KhButton(
                       label: 'Done',
-                      onPressed: () => Navigator.of(context).maybePop(),
+                      onPressed: () => context.go(
+                        isVendor
+                            ? '/vendor/connections'
+                            : '/customer/connections',
+                      ),
                     ),
                   ],
                 ),

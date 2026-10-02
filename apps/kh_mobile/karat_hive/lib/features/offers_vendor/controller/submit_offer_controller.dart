@@ -180,6 +180,10 @@ class SubmitOfferController extends Notifier<SubmitOfferState> {
 
   static const maxImages = 3;
 
+  /// Coins/bullion offers are terms-only; ornament / old-gold keep photos.
+  static bool mediaAllowedForRequestType(String requestType) =>
+      RequestType.parse(requestType).allowsMedia;
+
   int _gen = 0;
   int _pickSeq = 0;
 
@@ -248,6 +252,10 @@ class SubmitOfferController extends Notifier<SubmitOfferState> {
     required String contentType,
   }) async {
     final current = state;
+    if (current is SubmitOfferReady &&
+        !mediaAllowedForRequestType(current.request.requestType)) {
+      return;
+    }
     if (current is! SubmitOfferReady || current.submitting) return;
     if (current.images.length >= maxImages) return;
     if (bytes.isEmpty) return;
@@ -451,7 +459,10 @@ class SubmitOfferController extends Notifier<SubmitOfferState> {
       return;
     }
 
-    if (current.images.any((image) => image.uploading)) {
+    final mediaRequired =
+        mediaAllowedForRequestType(current.request.requestType);
+
+    if (mediaRequired && current.images.any((image) => image.uploading)) {
       log.log(_submitOfferLogScope, 'submit.validationFailed', {
         'requestId': arg,
         'reason': 'image_uploading',
@@ -464,7 +475,7 @@ class SubmitOfferController extends Notifier<SubmitOfferState> {
       return;
     }
 
-    if (current.images.any((image) => image.failure != null)) {
+    if (mediaRequired && current.images.any((image) => image.failure != null)) {
       log.log(_submitOfferLogScope, 'submit.validationFailed', {
         'requestId': arg,
         'reason': 'image_upload_failed',
@@ -477,7 +488,7 @@ class SubmitOfferController extends Notifier<SubmitOfferState> {
       return;
     }
 
-    if (mediaKeys.isEmpty) {
+    if (mediaRequired && mediaKeys.isEmpty) {
       log.log(_submitOfferLogScope, 'submit.validationFailed', {
         'requestId': arg,
         'reason': 'no_media_keys',

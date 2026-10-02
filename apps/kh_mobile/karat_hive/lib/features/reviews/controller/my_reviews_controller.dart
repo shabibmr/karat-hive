@@ -15,7 +15,8 @@ class MyReviewsController
     final controller = PagedListController<Review>(
       itemKey: (item) => item.id,
       fetcher: (cursor) async {
-        final res = await repo.list(role: 'SUBJECT', cursor: cursor);
+        final res =
+            await repo.list(role: ReviewListRole.subject, cursor: cursor);
         return res.when(
           ok: (page) => page,
           err: (failure) => throw failure,

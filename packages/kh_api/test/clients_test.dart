@@ -960,12 +960,38 @@ void main() {
         });
       });
 
-      final page = (await KhApi(client).reviews.list(role: 'SUBJECT')).unwrap();
+      final page =
+          (await KhApi(client).reviews.list(role: ReviewListRole.subject))
+              .unwrap();
       expect(page.items, hasLength(1));
       expect(page.items.first.id, 'rev-1');
       expect(page.items.first.rating, 5);
       expect(page.items.first.authorDisplayName, 'Fatima');
       expect(page.nextCursor, 'c2');
+    });
+
+    test('list peels nested data+pagination envelope', () async {
+      // Live Nest shape when list returns { data, pagination } without meta:
+      // EnvelopeInterceptor nests it under another data key.
+      final client = createClient((opts) async {
+        expect(opts.path, '/v1/me/reviews');
+        return jsonBody({
+          'data': {
+            'data': [reviewJson()],
+            'pagination': {'nextCursor': 'rev-next'},
+          },
+          'meta': {
+            'requestId': 'req-1',
+            'serverTime': '2026-09-08T10:00:00.000Z',
+            'nextCursor': null,
+          },
+        });
+      });
+
+      final page = (await KhApi(client).reviews.list()).unwrap();
+      expect(page.items, hasLength(1));
+      expect(page.items.first.id, 'rev-1');
+      expect(page.nextCursor, 'rev-next');
     });
 
     test('respond posts body.response and returns Review', () async {

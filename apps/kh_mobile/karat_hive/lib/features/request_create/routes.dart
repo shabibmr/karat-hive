@@ -30,23 +30,24 @@ abstract final class RequestCreatePaths {
       };
 }
 
-/// Safety net for entering this flow with no wizard history behind it
-/// (a deep link, or the post-login redirect landing straight on review) —
-/// `go_router` exits the app outright rather than popping when every nested
-/// Navigator's history is empty. Send the user somewhere sensible instead.
-Future<bool> _handleWizardRootExit(BuildContext context) async {
+/// Leave create-compose. Prefer a real pop when history exists (Home / Guest
+/// pushed the step). Otherwise go Home or Guest Landing — never rely on
+/// `GoRoute.onExit` returning false (that cancels the navigation).
+void exitRequestCreate(BuildContext context) {
+  if (context.canPop()) {
+    context.pop();
+    return;
+  }
   final session = ProviderScope.containerOf(context).read(sessionProvider);
   context.go(
     session is SignedIn ? AppGuards.homeFor(session) : AppGuards.customerGuest,
   );
-  return false;
 }
 
 final List<GoRoute> requestCreateRoutes = [
   GoRoute(
     path: RequestCreatePaths.type,
     builder: (_, __) => const RequestTypeScreen(),
-    onExit: (context, state) => _handleWizardRootExit(context),
   ),
   GoRoute(
     path: RequestCreatePaths.ornament,

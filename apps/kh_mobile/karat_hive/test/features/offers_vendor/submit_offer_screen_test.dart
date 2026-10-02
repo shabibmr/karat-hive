@@ -32,11 +32,12 @@ KhApi _stubApi() {
 VendorRequestItem _testRequest({
   String id = 'req-offer-1',
   String? reference = 'REQ-2026-0099',
+  String requestType = 'FIND_ORNAMENT',
 }) {
   return VendorRequestItem(
     id: id,
     reference: reference,
-    requestType: 'FIND_ORNAMENT',
+    requestType: requestType,
     direction: 'BUY',
     state: 'PUBLISHED',
     regionId: 'reg-dxb',
@@ -84,6 +85,7 @@ class FakeOffersVendorRepository implements OffersVendorRepository {
     this.requestError,
     this.configError,
     this.submitError,
+    this.submitResult,
     this.hangRequest = false,
     this.hangConfig = false,
   });
@@ -93,6 +95,7 @@ class FakeOffersVendorRepository implements OffersVendorRepository {
   final Failure? requestError;
   final Failure? configError;
   final Failure? submitError;
+  final OfferForVendor? submitResult;
   final bool hangRequest;
   final bool hangConfig;
 
@@ -123,7 +126,7 @@ class FakeOffersVendorRepository implements OffersVendorRepository {
   }) async {
     submitCalls++;
     if (submitError != null) return Err(submitError!);
-    return Ok(_testOffer(requestId: requestId));
+    return Ok(submitResult ?? _testOffer(requestId: requestId));
   }
 
   @override
@@ -268,6 +271,23 @@ void main() {
       expect(find.byKey(const Key('inline-error')), findsOneWidget);
       expect(find.text('Please add at least 1 image to your offer.'), findsOneWidget);
       expect(repo.submitCalls, 0);
+    });
+
+    testWidgets('coins request hides image slot and media hint', (tester) async {
+      await setTallSurface(tester);
+      final repo = FakeOffersVendorRepository(
+        request: _testRequest(requestType: 'GOLD_COIN'),
+      );
+
+      await tester.pumpWidget(_host(repo: repo));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('offer-image-add')), findsNothing);
+      expect(
+        find.text('At least 1 image is required (up to 3 images).'),
+        findsNothing,
+      );
+      expect(find.byKey(const Key('submit-offer-button')), findsOneWidget);
     });
   });
 }

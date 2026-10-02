@@ -23,6 +23,14 @@ void main() {
       expect(RequestType.goldCoin.wire, 'GOLD_COIN');
       expect(RequestType.goldBullion.wire, 'GOLD_BULLION');
     });
+
+    test('allowsMedia is false for coins and bullion only', () {
+      expect(RequestType.findOrnament.allowsMedia, isTrue);
+      expect(RequestType.sellOldGold.allowsMedia, isTrue);
+      expect(RequestType.goldCoin.allowsMedia, isFalse);
+      expect(RequestType.goldBullion.allowsMedia, isFalse);
+      expect(RequestType.unknown.allowsMedia, isTrue);
+    });
   });
 
   group('Direction', () {

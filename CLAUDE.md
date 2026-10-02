@@ -14,7 +14,7 @@ When a decision needs tracing back, read in this order. Later documents may not 
 |---|---|
 | `docs/Requirements-raw.txt` | **Sole source input.** Never edit. Every requirement traces to a line number here |
 | `CONTEXT.md` | Ubiquitous language — binding vocabulary, including the `_Avoid_` list under each term |
-| `docs/Requirements-Spec-v1.5.md` | **Authoritative SRS.** What the system must do |
+| `docs/Requirements-Spec-v1.6.md` | **Authoritative SRS.** What the system must do |
 | `docs/adr/0001`–`0014` | Why the shape is this shape, one decision each. `0010` Google-only login; `0011` Guest-first launch; `0013` object storage on Oracle S3 (`ap-hyderabad-1`; supersedes `0012` R2 KYC); `0014` Category taxonomy entity removed |
 | `docs/Architecture-Backend.md`, `docs/Architecture-Frontend.md` | How it gets built. Derived from the SRS; cite it, never restate it |
 | `docs/API-Route-Inventory.md` | Pre-code HTTP catalogue (`[PROPOSED]`). Superseded by generated OpenAPI (`NFR-030`) once code exists |

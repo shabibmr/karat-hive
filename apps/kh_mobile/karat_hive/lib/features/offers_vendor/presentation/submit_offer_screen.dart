@@ -107,17 +107,24 @@ class SubmitOfferScreen extends ConsumerWidget {
                   onChanged: () => ref
                       .read(submitOfferControllerProvider(requestId).notifier)
                       .touch(),
-                  mediaSlot: _OfferImagesSlot(
-                    images: images,
-                    enabled: !submitting && images.length < SubmitOfferController.maxImages,
-                    onAdd: () => _pick(ref),
-                    onRemove: (key) => ref
-                        .read(submitOfferControllerProvider(requestId).notifier)
-                        .removeImage(key),
-                    onRetry: (key) => ref
-                        .read(submitOfferControllerProvider(requestId).notifier)
-                        .retryImage(key),
-                  ),
+                  showMediaHint: false,
+                  mediaSlot: SubmitOfferController.mediaAllowedForRequestType(
+                          request.requestType)
+                      ? _OfferImagesSlot(
+                          images: images,
+                          enabled: !submitting &&
+                              images.length < SubmitOfferController.maxImages,
+                          onAdd: () => _pick(ref),
+                          onRemove: (key) => ref
+                              .read(submitOfferControllerProvider(requestId)
+                                  .notifier)
+                              .removeImage(key),
+                          onRetry: (key) => ref
+                              .read(submitOfferControllerProvider(requestId)
+                                  .notifier)
+                              .retryImage(key),
+                        )
+                      : null,
                 ),
                 if (failure != null) ...[
                   SizedBox(height: tokens.space.md),
