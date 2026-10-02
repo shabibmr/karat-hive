@@ -969,6 +969,7 @@ export class AdminRepository {
   async createAdmin(data: {
     email: string;
     displayName: string;
+    role: 'SUPER_ADMIN' | 'OPERATIONS_ADMIN' | 'READ_ONLY_ANALYST';
   }) {
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -984,6 +985,7 @@ export class AdminRepository {
         data: {
           userId: user.id,
           displayName: data.displayName,
+          role: data.role,
         },
       });
 

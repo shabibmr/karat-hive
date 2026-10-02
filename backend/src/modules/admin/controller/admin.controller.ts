@@ -93,6 +93,7 @@ const adminNoteSchema = z.object({
 const createAdminSchema = z.object({
   email: z.string().email().max(255),
   displayName: z.string().trim().min(1).max(100),
+  role: z.enum(['SUPER_ADMIN', 'OPERATIONS_ADMIN', 'READ_ONLY_ANALYST']),
 });
 
 const createAnnouncementSchema = z.object({

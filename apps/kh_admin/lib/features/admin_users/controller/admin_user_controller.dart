@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kh_admin/core/auth/admin_role.dart';
+import 'package:kh_admin/core/error/api_error_messages.dart';
 import 'package:kh_admin/core/list/cursor_paginated_notifier.dart';
 import 'package:kh_admin/core/list/list_state.dart';
 import 'package:kh_admin/core/list/paginated.dart';
@@ -71,18 +73,20 @@ class AdminUserController
   Future<bool> provisionAdmin({
     required String email,
     required String displayName,
+    required AdminRole role,
   }) async {
     try {
       await ref.read(adminUserRepositoryProvider).createAdmin(
             email: email,
             displayName: displayName,
+            role: role,
           );
       await refresh();
       return true;
     } on Object catch (e) {
       state = CursorListError<AdminUserItem, AdminUserFilters>(
         filters: state.filters,
-        errorMessage: 'Failed to provision admin: $e',
+        errorMessage: resolveApiErrorMessage(e, null),
         rawError: e,
         items: state.items,
         page: state.page,
@@ -102,7 +106,7 @@ class AdminUserController
     } on Object catch (e) {
       state = CursorListError<AdminUserItem, AdminUserFilters>(
         filters: state.filters,
-        errorMessage: 'Failed to suspend admin: $e',
+        errorMessage: resolveApiErrorMessage(e, null),
         rawError: e,
         items: state.items,
         page: state.page,
@@ -120,15 +124,9 @@ class AdminUserController
       await refresh();
       return true;
     } on Object catch (e) {
-      final errStr = e.toString();
-      final userMessage =
-          errStr.contains('409') || errStr.toLowerCase().contains('conflict')
-              ? 'Cannot revoke the last remaining active admin account.'
-              : 'Failed to revoke admin: $e';
-
       state = CursorListError<AdminUserItem, AdminUserFilters>(
         filters: state.filters,
-        errorMessage: userMessage,
+        errorMessage: resolveApiErrorMessage(e, null),
         rawError: e,
         items: state.items,
         page: state.page,

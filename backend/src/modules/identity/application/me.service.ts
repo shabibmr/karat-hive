@@ -77,7 +77,12 @@ export class MeService {
     return presentMe(
       user,
       vendor,
-      admin ? { displayName: admin.displayName } : null,
+      admin
+        ? {
+            displayName: admin.displayName,
+            role: admin.role,
+          }
+        : null,
       customerMe,
       oauthBound,
     );

@@ -90,6 +90,7 @@ export class AuthGuard implements CanActivate {
         vendorActivatedAt: user.vendorActivatedAt,
         customerProfileId: user.customerProfileId,
         adminProfileId: user.adminProfileId,
+        adminRole: user.adminRole,
       };
       return true;
     } catch (error: unknown) {

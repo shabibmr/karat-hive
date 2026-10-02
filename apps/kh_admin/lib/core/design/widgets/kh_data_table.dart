@@ -37,16 +37,34 @@ class KhDataTable extends StatelessWidget {
   const KhDataTable({
     super.key,
     required this.columns,
-    required this.rows,
+    this.rows,
+    this.itemCount,
+    this.rowBuilder,
     this.minWidth = 560,
     this.rowHeight,
     this.shrinkWrap,
     this.scrollController,
     this.physics,
-  });
+  }) : assert(
+         rows != null || (itemCount != null && rowBuilder != null),
+         'Provide either rows or itemCount + rowBuilder',
+       ),
+       assert(
+         rows == null || rowBuilder == null,
+         'rows and rowBuilder are mutually exclusive',
+       );
 
   final List<KhTableColumn> columns;
-  final List<KhTableRow> rows;
+
+  /// Legacy/pre-built row path. Prefer [itemCount] + [rowBuilder] for large
+  /// datasets so row widgets are created only when they enter the viewport.
+  final List<KhTableRow>? rows;
+
+  /// Number of lazily-built rows.
+  final int? itemCount;
+
+  /// Builds a single row on demand. The index is the visible item index.
+  final Widget Function(BuildContext context, int index)? rowBuilder;
   final double minWidth;
   final double? rowHeight;
   final bool? shrinkWrap;
@@ -87,13 +105,13 @@ class KhDataTable extends StatelessWidget {
                   physics: physics ?? const NeverScrollableScrollPhysics(),
                   controller: scrollController,
                   padding: EdgeInsets.zero,
-                  itemCount: rows.length,
+                  itemCount: itemCount ?? rows!.length,
                   itemExtent: rowHeight,
-                  itemBuilder: (context, index) => _bodyRow(
+                  itemBuilder: (context, index) => _buildIndexedRow(
                     context,
-                    rows[index],
-                    isLast: index == rows.length - 1,
-                    rowHeight: effectiveRowHeight,
+                    index,
+                    itemCount ?? rows!.length,
+                    effectiveRowHeight,
                   ),
                 ),
               ],
@@ -115,13 +133,13 @@ class KhDataTable extends StatelessWidget {
                     physics: physics,
                     controller: scrollController,
                     padding: EdgeInsets.zero,
-                    itemCount: rows.length,
+                    itemCount: itemCount ?? rows!.length,
                     itemExtent: rowHeight,
-                    itemBuilder: (context, index) => _bodyRow(
+                    itemBuilder: (context, index) => _buildIndexedRow(
                       context,
-                      rows[index],
-                      isLast: index == rows.length - 1,
-                      rowHeight: effectiveRowHeight,
+                      index,
+                      itemCount ?? rows!.length,
+                      effectiveRowHeight,
                     ),
                   ),
                 ),
@@ -171,6 +189,21 @@ class KhDataTable extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildIndexedRow(
+    BuildContext context,
+    int index,
+    int count,
+    double rowHeight,
+  ) {
+    final row = rowBuilder != null ? rowBuilder!(context, index) : rows![index];
+    return _bodyRow(
+      context,
+      row,
+      isLast: index == count - 1,
+      rowHeight: rowHeight,
     );
   }
 
