@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:kh_design_system/src/tokens.dart';
 import 'package:kh_design_system/src/typography.dart';
 
-/// Home / Guest app-bar wordmark (visual pass H03 / Home-1).
-///
-/// Tracked Cormorant “KARAT HIVE” in gold. Latin labels are uppercased with
-/// letter-spacing; Arabic keeps the localised form with no tracking. A clover
-/// glyph may sit ahead of the wordmark when an asset exists — its absence does
-/// not block this mark. Pink logo PNGs are never used here.
+/// Tracked Cormorant “KARAT HIVE” text wordmark in gold. Latin labels are
+/// uppercased with letter-spacing; Arabic keeps the localised form with no
+/// tracking. Not used by the Home / Guest app bar, which shows the brand logo
+/// image via `KhBrandHeader` (UI-Design-Context §6.14).
 class KhBrandMark extends StatelessWidget {
   const KhBrandMark({
     super.key,

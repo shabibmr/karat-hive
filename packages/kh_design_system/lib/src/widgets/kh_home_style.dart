@@ -13,7 +13,7 @@ abstract final class KhHomeStyle {
   static const gridGap = 12.0;
 }
 
-/// Centered brand lockup with independently accessible bell and profile actions.
+/// Centered brand logo with independently accessible bell and profile actions.
 class KhBrandHeader extends StatelessWidget {
   const KhBrandHeader({
     super.key,
@@ -49,28 +49,23 @@ class KhBrandHeader extends StatelessWidget {
             label: brandLabel,
             image: true,
             excludeSemantics: true,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(
-                  width: 25,
-                  height: 25,
-                  child: CustomPaint(painter: _BrandMarkPainter()),
+            child: Image.asset(
+              'assets/karat-hive-logo.png',
+              package: 'kh_design_system',
+              key: const Key('brand-header-logo'),
+              height: 48,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => Text(
+                brandLabel.toUpperCase(),
+                textScaler: TextScaler.noScaling,
+                style: const TextStyle(
+                  fontFamily: 'DMSans',
+                  package: 'kh_design_system',
+                  fontSize: 10,
+                  letterSpacing: 4.5,
+                  color: KhHomeStyle.ink,
                 ),
-                const SizedBox(height: 7),
-                Text(
-                  brandLabel.toUpperCase(),
-                  textScaler: TextScaler.noScaling,
-                  style: const TextStyle(
-                    fontFamily: 'DMSans',
-                    package: 'kh_design_system',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 4.5,
-                    color: KhHomeStyle.ink,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           PositionedDirectional(
@@ -140,35 +135,4 @@ class KhBrandHeader extends StatelessWidget {
       ),
     );
   }
-}
-
-class _BrandMarkPainter extends CustomPainter {
-  const _BrandMarkPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.scale(size.width / 48, size.height / 48);
-    final outline = Paint()
-      ..color = const Color(0xFFAE7A35)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.1;
-    final path = Path()
-      ..moveTo(24, 2)
-      ..cubicTo(30, 2, 34, 6, 34, 12)
-      ..cubicTo(41, 12, 46, 17, 46, 24)
-      ..cubicTo(46, 31, 41, 36, 34, 36)
-      ..cubicTo(34, 42, 30, 46, 24, 46)
-      ..cubicTo(18, 46, 14, 42, 14, 36)
-      ..cubicTo(7, 36, 2, 31, 2, 24)
-      ..cubicTo(2, 17, 7, 12, 14, 12)
-      ..cubicTo(14, 6, 18, 2, 24, 2)
-      ..close();
-    canvas.drawPath(path, outline);
-    outline.strokeWidth = 1.3;
-    canvas.drawLine(const Offset(15, 15), const Offset(33, 33), outline);
-    canvas.drawLine(const Offset(33, 15), const Offset(15, 33), outline);
-  }
-
-  @override
-  bool shouldRepaint(_BrandMarkPainter oldDelegate) => false;
 }

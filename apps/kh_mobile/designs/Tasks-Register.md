@@ -66,7 +66,7 @@ Depends on T03.
 |---|---|---|---|---|
 | H01 | done | Hero uses jewellery photography with the display lines on the image, as in `Home-1.png` | `customer_home_screen.dart`, hero widget it already uses | Hero type is the serif display. Copy stays in `kh_l10n` |
 | H02 | done | 2×2 tiles for Find An Ornament, Sell Old Gold, Gold Coin(s), Gold Bullion, using the four tile photos in this folder, each with a gold arrow. Tapping a tile still opens that Request type | `customer_home_screen.dart` | Four tiles. Open Requests are not mounted on Home |
-| H03 | done | App bar uses tracked “KARAT HIVE”. Do not use `logo-img.png`, `logo-img-2.png`, or the pink hand/moon image. A clover glyph may be added when an asset exists; its absence does not block H01–H02 | Home app bar / logo widget | The pink HIVE lockup is not on the app bar. Notification entry remains |
+| H03 | done (revised 2 Oct 2026) | App bar uses the brand logo `karat-hive-logo.png` (same asset as loading views), unrecoloured, 48 px high. Supersedes the tracked-wordmark approach; no clover asset needed | Home app bar / logo widget | The brand logo is on the app bar, centred. Notification entry remains |
 
 ---
 

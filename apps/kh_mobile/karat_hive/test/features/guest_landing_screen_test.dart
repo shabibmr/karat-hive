@@ -132,7 +132,7 @@ void main() {
     expect(find.text('Sell My\nGold'), findsOneWidget);
     expect(find.text('Gold\nCoins'), findsOneWidget);
     expect(find.text('Gold\nBullion'), findsOneWidget);
-    expect(find.text('KARAT HIVE'), findsOneWidget);
+    expect(find.byKey(const Key('brand-header-logo')), findsOneWidget);
     expect(find.text('Are you a jeweller? Register here.'), findsOneWidget);
   });
 
