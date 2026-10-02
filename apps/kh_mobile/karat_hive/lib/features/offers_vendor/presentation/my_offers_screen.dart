@@ -94,7 +94,7 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
               valueListenable: controller,
               builder: (context, listState, _) {
                 if (listState.status == PagedListStatus.loadingFirstPage) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const KhLoadingView();
                 }
                 if (listState.status == PagedListStatus.error &&
                     listState.items.isEmpty) {

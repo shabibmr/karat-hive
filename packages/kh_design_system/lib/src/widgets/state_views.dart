@@ -44,10 +44,51 @@ class KhErrorView extends StatelessWidget {
 }
 
 class KhLoadingView extends StatelessWidget {
-  const KhLoadingView({super.key});
+  const KhLoadingView({
+    super.key,
+    this.showLogo = true,
+    this.logoWidth = 140,
+    this.indicatorSize = 28,
+  });
+
+  final bool showLogo;
+  final double logoWidth;
+  final double indicatorSize;
+
   @override
-  Widget build(BuildContext context) =>
-      const Center(key: Key('loading-view'), child: CircularProgressIndicator());
+  Widget build(BuildContext context) {
+    return Center(
+      key: const Key('loading-view'),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showLogo) ...[
+            Image.asset(
+              'assets/karat-hive-logo.png',
+              package: 'kh_design_system',
+              width: logoWidth,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => Image.asset(
+                'assets/karat-hive-logo.png',
+                width: logoWidth,
+                fit: BoxFit.contain,
+                errorBuilder: (ctx, err, st) => const SizedBox.shrink(),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+          SizedBox(
+            width: indicatorSize,
+            height: indicatorSize,
+            child: const CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: Color(0xFF8A6A1F),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// SH-FND-13 inline — a form/banner error.
