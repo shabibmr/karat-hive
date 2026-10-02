@@ -7,6 +7,7 @@ import 'package:kh_l10n/kh_l10n.dart';
 import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../../../app/notification_deep_link.dart';
+import '../../../core/failure_copy.dart';
 import '../controller/notifications_controller.dart';
 
 /// CUS-S19 — Customer notification centre list (`FR-CUS-032`, SH-NTF-01/02).
@@ -92,11 +93,10 @@ class CustomerNotificationCentreScreen extends ConsumerWidget {
 
           if (listState.isInitialError) {
             return KhErrorView(
-              message: switch (listState.error) {
-                final Failure f =>
-                  f.message ?? 'Could not load notifications.',
-                _ => 'Could not load notifications.',
-              },
+              message: khFailureMessage(
+                listState.error ?? 'Could not load notifications.',
+                'Could not load notifications.',
+              ),
               onRetry: () =>
                   ref.read(notificationsControllerProvider.notifier).retry(),
             );

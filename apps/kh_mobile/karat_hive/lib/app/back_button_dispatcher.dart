@@ -13,9 +13,9 @@ import 'shells/active_shell_registry.dart';
 /// so it's the wrong tool for shell-root (bottom-nav tab) back behaviour.
 /// This dispatcher intercepts the OS back event itself, before go_router's
 /// route diffing runs, and only special-cases the case where nothing in any
-/// nested Navigator can pop. Everything else (including the wizard's own
-/// `RequestCreatePaths.type` onExit safety net) still goes through the
-/// router's default handling via `super.didPopRoute()`.
+/// nested Navigator can pop. Create-wizard AppBar back uses
+/// `exitRequestCreate` (pop, else go Home/Guest). Everything else still goes
+/// through the router's default handling via `super.didPopRoute()`.
 class AppBackButtonDispatcher extends RootBackButtonDispatcher {
   AppBackButtonDispatcher(this._router);
 

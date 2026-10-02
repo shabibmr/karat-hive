@@ -100,6 +100,9 @@ void main() {
     expect(find.byKey(const Key('star-rating-input')), findsOneWidget);
     expect(find.byKey(const Key('review-comment-field')), findsOneWidget);
 
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
+
     await tester.enterText(
       find.byKey(const Key('review-comment-field-input')),
       'Smooth payment and clear specifications.',
@@ -132,6 +135,8 @@ void main() {
       ),
     );
 
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('leave-review-submit-button')));
     await tester.pumpAndSettle();
 
@@ -163,6 +168,9 @@ void main() {
     expect(find.text('Connection ID: conn-202'), findsOneWidget);
     expect(find.byKey(const Key('star-rating-input')), findsOneWidget);
     expect(find.byKey(const Key('review-comment-field')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
 
     await tester.enterText(
       find.byKey(const Key('review-comment-field-input')),
@@ -196,6 +204,8 @@ void main() {
       ),
     );
 
+    await tester.tap(find.byKey(const Key('star-rating-input-star-5')));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('leave-review-submit-button')));
     await tester.pumpAndSettle();
 

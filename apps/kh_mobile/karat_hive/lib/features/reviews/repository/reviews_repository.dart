@@ -52,3 +52,15 @@ class ReviewsRepository {
   Future<Result<VendorPerformanceDto>> getPerformance() =>
       _api.performance.getPerformance();
 }
+
+extension ReviewsRepositoryAuthored on ReviewsRepository {
+  /// True when the viewer already authored a review for [connectionId] (`BR-017`).
+  /// On list failure, returns false so close can still offer leave-review.
+  Future<bool> hasAuthoredForConnection(String connectionId) async {
+    final res = await list(role: 'AUTHOR', limit: 50);
+    return res.when(
+      ok: (page) => page.items.any((r) => r.connectionId == connectionId),
+      err: (_) => false,
+    );
+  }
+}

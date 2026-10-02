@@ -10,6 +10,7 @@ import 'package:kh_ui_domain/kh_ui_domain.dart';
 import '../../../app/di.dart';
 import '../../../app/platform/open_url.dart';
 import '../../../core/failure_copy.dart';
+import '../../reviews/repository/reviews_repository.dart';
 import '../controller/connections_controller.dart';
 
 /// CUS-S15 — Connection detail. Counterparty identity is revealed.
@@ -256,16 +257,33 @@ class _Body extends ConsumerWidget {
               if (ok != true) return;
               final result = await notifier.close();
               if (!context.mounted) return;
-              result.when(
-                ok: (_) => context.push(
-                  '/customer/connections/${connection.id}/review',
-                ),
-                err: (f) => ScaffoldMessenger.of(context).showSnackBar(
+              if (result.isErr) {
+                ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(khFailureMessage(f, s.s('common.retry'))),
+                    content: Text(
+                      khFailureMessage(
+                        result.failureOrNull!,
+                        s.s('common.retry'),
+                      ),
+                    ),
                   ),
-                ),
-              );
+                );
+                return;
+              }
+
+              ref.invalidate(connectionsListProvider);
+              final alreadyReviewed = connection.myReview != null ||
+                  await ref
+                      .read(reviewsRepositoryProvider)
+                      .hasAuthoredForConnection(connection.id);
+              if (!context.mounted) return;
+              if (alreadyReviewed) {
+                context.go('/customer/connections');
+              } else {
+                context.go(
+                  '/customer/connections/${connection.id}/review',
+                );
+              }
             },
           ),
         ],

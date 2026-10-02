@@ -125,8 +125,9 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
+          key: const Key('create-type-back'),
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFFFDFBF7), size: 18),
-          onPressed: () => context.canPop() ? context.pop() : context.go('/customer/home'),
+          onPressed: () => exitRequestCreate(context),
         ),
         title: Text(
           createCopy(context, 'create.typeTitle', 'New Request'),

@@ -70,23 +70,38 @@ abstract class ReviewVendorResponse with _$ReviewVendorResponse {
       _$ReviewVendorResponseFromJson(_normalizeReviewVendorResponseJson(json));
 }
 
+/// Peels a mistaken extra `{ data: review }` layer from double-enveloped
+/// responses (controller returned `{ data }` and EnvelopeInterceptor wrapped
+/// again). Prefer fixing the controller; this keeps older deployments parseable.
+Map<String, dynamic> _unwrapReviewResource(Map<String, dynamic> json) {
+  if (json['id'] != null) return json;
+  final nested = json['data'];
+  if (nested is Map) {
+    return Map<String, dynamic>.from(nested);
+  }
+  return json;
+}
+
 Map<String, dynamic> _normalizeReviewJson(Map<String, dynamic> json) {
-  final vr = json['vendorResponse'];
+  final root = _unwrapReviewResource(json);
+  final vr = root['vendorResponse'];
   return {
-    ...json,
-    'authorType': json['authorType']?.toString(),
-    'rating': (json['rating'] as num?)?.toInt() ?? 0,
-    'state': json['state']?.toString(),
+    ...root,
+    'id': root['id']?.toString() ?? '',
+    'connectionId': root['connectionId']?.toString() ?? '',
+    'authorType': root['authorType']?.toString(),
+    'rating': (root['rating'] as num?)?.toInt() ?? 0,
+    'state': root['state']?.toString(),
     'vendorResponse':
         vr is Map ? Map<String, dynamic>.from(vr) : null,
-    'editableUntil': (DateTime.tryParse(json['editableUntil'] as String? ?? '') ??
+    'editableUntil': (DateTime.tryParse(root['editableUntil'] as String? ?? '') ??
             DateTime.fromMillisecondsSinceEpoch(0))
         .toIso8601String(),
-    'createdAt': (DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+    'createdAt': (DateTime.tryParse(root['createdAt'] as String? ?? '') ??
             DateTime.fromMillisecondsSinceEpoch(0))
         .toIso8601String(),
-    'publishedAt': json['publishedAt'] is String
-        ? (DateTime.tryParse(json['publishedAt'] as String)?.toIso8601String())
+    'publishedAt': root['publishedAt'] is String
+        ? (DateTime.tryParse(root['publishedAt'] as String)?.toIso8601String())
         : null,
   };
 }

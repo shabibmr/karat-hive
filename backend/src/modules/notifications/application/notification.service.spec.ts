@@ -89,6 +89,8 @@ describe('NotificationService', () => {
     expect(result.data).toHaveLength(1);
     expect(result.data[0].title).toBe('New offer received');
     expect(result.data[0].readAt).toBeUndefined();
+    expect(result.meta.nextCursor).toBeUndefined();
+    expect(result).not.toHaveProperty('pagination');
   });
 
   it('returns unread count', async () => {

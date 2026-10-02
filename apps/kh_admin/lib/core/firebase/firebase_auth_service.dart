@@ -90,6 +90,9 @@ class FirebaseAuthService {
     try {
       if (kIsWeb) {
         final googleProvider = GoogleAuthProvider();
+        // Force the account chooser so logout → login does not silently
+        // reuse the browser's last Google account.
+        googleProvider.setCustomParameters({'prompt': 'select_account'});
         return await auth.signInWithPopup(googleProvider);
       }
       final gsi = _googleSignIn;
@@ -131,12 +134,30 @@ class FirebaseAuthService {
   }
 
   /// Signs out from both Firebase and Google.
+  ///
+  /// Uses Google disconnect (not only signOut) so the next authenticate
+  /// must pick an account instead of reusing the last one.
   Future<void> signOut() async {
     try {
-      final futures = <Future<dynamic>>[];
-      if (_auth != null) futures.add(_auth!.signOut());
-      if (_googleSignIn != null) futures.add(_googleSignIn!.signOut());
-      await Future.wait(futures);
+      final gsi = _googleSignIn;
+      if (gsi != null) {
+        try {
+          await _ensureGoogleSignInInitialized();
+          await gsi.disconnect();
+        } on Object catch (e, st) {
+          _logger.error(
+            'Google disconnect failed, falling back to signOut',
+            e,
+            st,
+          );
+          try {
+            await gsi.signOut();
+          } on Object catch (_) {}
+        }
+      }
+      if (_auth != null) {
+        await _auth!.signOut();
+      }
     } on Object catch (e, st) {
       _logger.error('Error signing out', e, st);
       rethrow;

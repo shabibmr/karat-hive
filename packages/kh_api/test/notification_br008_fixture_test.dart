@@ -201,5 +201,43 @@ void main() {
         expect(item.title, isNot(matches(_leakyCopy)));
       }
     });
+
+    test('NotificationsClient.list peels nested data+pagination envelope', () async {
+      final loser = loserNotificationFixture();
+      // Live Nest shape when list returns { data, pagination } without meta:
+      // EnvelopeInterceptor nests it under another data key.
+      final envelope = {
+        'data': {
+          'data': [loser],
+          'pagination': {'nextCursor': 'ntf-next'},
+        },
+        'meta': {
+          'requestId': 'req-1',
+          'serverTime': '2026-09-08T10:00:00.000Z',
+          'nextCursor': null,
+        },
+      };
+
+      final dio = Dio();
+      dio.httpClientAdapter = _MockHttpAdapter((opts) async {
+        expect(opts.path, '/v1/notifications');
+        return _jsonBody(envelope);
+      });
+      final api = KhApi(
+        KhApiClient(
+          baseUrl: 'https://api.test',
+          tokenStorage: _MemoryTokenStorage(),
+          serverClock: ServerClock(),
+          dio: dio,
+        ),
+      );
+
+      final result = await api.notifications.list();
+      expect(result, isA<Ok<PagedResult<AppNotification>>>());
+      final page = (result as Ok<PagedResult<AppNotification>>).value;
+      expect(page.items, hasLength(1));
+      expect(page.items.first.id, loser['id']);
+      expect(page.nextCursor, 'ntf-next');
+    });
   });
 }

@@ -73,7 +73,7 @@ export class NotificationService {
   async listNotifications(
     viewer: ViewerContext,
     options: { unread?: boolean; limit?: number; cursor?: string },
-  ): Promise<{ data: NotificationView[]; pagination: { nextCursor?: string } }> {
+  ): Promise<{ data: NotificationView[]; meta: { nextCursor?: string } }> {
     const user = await this.prisma.user.findUnique({
       where: { id: viewer.userId },
       select: { preferredLanguage: true },
@@ -83,9 +83,12 @@ export class NotificationService {
     const { items, nextCursor } = await this.repo.listNotifications(viewer.userId, options);
 
     const data = items.map((item) => presentNotification(item, lang));
+    // Return { data, meta } so EnvelopeInterceptor treats this as a finished
+    // envelope. `{ data, pagination }` is not an envelope and gets nested under
+    // another `data`, which breaks `parsePagedEnvelope` (`data` must be a List).
     return {
       data,
-      pagination: {
+      meta: {
         nextCursor,
       },
     };
