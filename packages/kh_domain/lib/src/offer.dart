@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'json_envelope.dart';
 import 'party.dart';
 import 'request.dart';
 
@@ -46,11 +47,7 @@ class _OfferStateConverter implements JsonConverter<OfferState, String?> {
   String toJson(OfferState object) => object.wire;
 }
 
-Map<String, dynamic> _map(Object? raw) {
-  if (raw is Map<String, dynamic>) return raw;
-  if (raw is Map) return Map<String, dynamic>.from(raw);
-  return const {};
-}
+Map<String, dynamic> _map(Object? raw) => mapJson(raw);
 
 DateTime? _dt(Object? raw) {
   if (raw is String && raw.isNotEmpty) return DateTime.tryParse(raw);
@@ -109,7 +106,7 @@ OfferTerms _offerTermsFromJsonWithMedia(
 }
 
 Map<String, dynamic> _normalizeOfferForCustomerJson(Map<String, dynamic> json) {
-  final root = _unwrapOfferResource(json);
+  final root = unwrapResourceJson(json);
   final mediaRaw = root['media'] as List?;
   final media = (mediaRaw ?? const [])
       .map((e) => MediaRef.fromJson(_map(e)))
@@ -189,7 +186,7 @@ Map<String, dynamic> _ratingSummaryToJson(RatingSummary summary) =>
 
 Map<String, dynamic> _normalizeVendorRatingDetailJson(
     Map<String, dynamic> json) {
-  final root = _unwrapOfferResource(json);
+  final root = unwrapResourceJson(json);
   final excerptsRaw =
       root['excerpts'] ?? root['reviews'] ?? root['recentReviews'];
   final excerpts = <Map<String, dynamic>>[];
@@ -323,18 +320,8 @@ abstract class OfferRequestSummary with _$OfferRequestSummary {
       _$OfferRequestSummaryFromJson(_normalizeOfferRequestSummaryJson(json));
 }
 
-/// Peels a mistaken extra `{ data: offer }` layer from double-enveloped
-/// responses (controller returned `{ data }` and EnvelopeInterceptor wrapped
-/// again). Prefer fixing the controller; this keeps older deployments parseable.
-Map<String, dynamic> _unwrapOfferResource(Map<String, dynamic> json) {
-  if (json['id'] != null) return json;
-  final nested = json['data'];
-  if (nested is Map) return _map(nested);
-  return json;
-}
-
 Map<String, dynamic> _normalizeOfferForVendorJson(Map<String, dynamic> json) {
-  final root = _unwrapOfferResource(json);
+  final root = unwrapResourceJson(json);
   final mediaRaw = root['media'] as List?;
   final media = (mediaRaw ?? const [])
       .map((e) => MediaRef.fromJson(_map(e)))

@@ -1,6 +1,8 @@
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
+import '../parse_resource.dart';
+
 PagedResult<T> _paged<T>(
   dynamic raw,
   T Function(Map<String, dynamic>) parse,
@@ -26,74 +28,35 @@ PagedResult<T> _paged<T>(
   );
 }
 
-Result<OfferForVendor> _parseOfferForVendor(dynamic raw) {
-  try {
-    if (raw is! Map) {
-      return const Err(ServerFailure(
-        code: 'BAD_RESPONSE',
-        message: 'Offer response was not an object.',
-      ));
-    }
-    return Ok(OfferForVendor.fromJson(Map<String, dynamic>.from(raw)));
-  } catch (_) {
-    return const Err(ServerFailure(
-      code: 'BAD_RESPONSE',
-      message: 'Could not read offer response.',
-    ));
-  }
-}
+Result<OfferForVendor> _parseOfferForVendor(dynamic raw) => parseResource(
+      raw,
+      OfferForVendor.fromJson,
+      notObjectMessage: 'Offer response was not an object.',
+      parseFailedMessage: 'Could not read offer response.',
+    );
 
-Result<OfferForCustomer> _parseOfferForCustomer(dynamic raw) {
-  try {
-    if (raw is! Map) {
-      return const Err(ServerFailure(
-        code: 'BAD_RESPONSE',
-        message: 'Offer response was not an object.',
-      ));
-    }
-    return Ok(OfferForCustomer.fromJson(Map<String, dynamic>.from(raw)));
-  } catch (_) {
-    return const Err(ServerFailure(
-      code: 'BAD_RESPONSE',
-      message: 'Could not read offer response.',
-    ));
-  }
-}
+Result<OfferForCustomer> _parseOfferForCustomer(dynamic raw) => parseResource(
+      raw,
+      OfferForCustomer.fromJson,
+      notObjectMessage: 'Offer response was not an object.',
+      parseFailedMessage: 'Could not read offer response.',
+    );
 
-Result<VendorRatingDetail> _parseVendorRatingDetail(dynamic raw) {
-  try {
-    if (raw is! Map) {
-      return const Err(ServerFailure(
-        code: 'BAD_RESPONSE',
-        message: 'Vendor rating response was not an object.',
-      ));
-    }
-    return Ok(VendorRatingDetail.fromJson(Map<String, dynamic>.from(raw)));
-  } catch (_) {
-    return const Err(ServerFailure(
-      code: 'BAD_RESPONSE',
-      message: 'Could not read vendor rating response.',
-    ));
-  }
-}
+Result<VendorRatingDetail> _parseVendorRatingDetail(dynamic raw) =>
+    parseResource(
+      raw,
+      VendorRatingDetail.fromJson,
+      notObjectMessage: 'Vendor rating response was not an object.',
+      parseFailedMessage: 'Could not read vendor rating response.',
+    );
 
-Result<AcceptOfferResult> _parseAcceptOfferResult(dynamic raw) {
-  try {
-    if (raw is! Map) {
-      return const Err(ServerFailure(
-        code: 'BAD_RESPONSE',
-        message: 'Accept response was not an object.',
-      ));
-    }
-    return Ok(AcceptOfferResult.fromJson(Map<String, dynamic>.from(raw)));
-  } catch (_) {
-    return const Err(ServerFailure(
-      code: 'BAD_RESPONSE',
-      message: 'Could not read accept response.',
-    ));
-  }
-}
-
+Result<AcceptOfferResult> _parseAcceptOfferResult(dynamic raw) =>
+    parseResource(
+      raw,
+      AcceptOfferResult.fromJson,
+      notObjectMessage: 'Accept response was not an object.',
+      parseFailedMessage: 'Could not read accept response.',
+    );
 class OffersClient {
   const OffersClient(this._client);
   final KhApiClient _client;

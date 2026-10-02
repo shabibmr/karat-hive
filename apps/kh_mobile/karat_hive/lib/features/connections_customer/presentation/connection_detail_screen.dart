@@ -272,10 +272,12 @@ class _Body extends ConsumerWidget {
               }
 
               ref.invalidate(connectionsListProvider);
-              final alreadyReviewed = connection.myReview != null ||
-                  await ref
-                      .read(reviewsRepositoryProvider)
-                      .hasAuthoredForConnection(connection.id);
+              final alreadyReviewed = await ref
+                  .read(reviewsRepositoryProvider)
+                  .hasAuthoredForConnection(
+                    connection.id,
+                    myReview: connection.myReview,
+                  );
               if (!context.mounted) return;
               if (alreadyReviewed) {
                 context.go('/customer/connections');

@@ -2,6 +2,7 @@ import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
 import '../paged.dart';
+import '../parse_resource.dart';
 
 class ConnectionsClient {
   const ConnectionsClient(this._client);
@@ -138,21 +139,10 @@ class ConnectionsClient {
   }
 }
 
-Result<ConnectionForCustomer> _parseConnectionForCustomer(dynamic raw) {
-  try {
-    if (raw is! Map) {
-      return const Err(ServerFailure(
-        code: 'BAD_RESPONSE',
-        message: 'Connection response was not an object.',
-      ));
-    }
-    return Ok(
-      ConnectionForCustomer.fromJson(Map<String, dynamic>.from(raw)),
+Result<ConnectionForCustomer> _parseConnectionForCustomer(dynamic raw) =>
+    parseResource(
+      raw,
+      ConnectionForCustomer.fromJson,
+      notObjectMessage: 'Connection response was not an object.',
+      parseFailedMessage: 'Could not read connection response.',
     );
-  } catch (_) {
-    return const Err(ServerFailure(
-      code: 'BAD_RESPONSE',
-      message: 'Could not read connection response.',
-    ));
-  }
-}

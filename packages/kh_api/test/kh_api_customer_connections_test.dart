@@ -294,7 +294,11 @@ void main() {
         'meta': {'nextCursor': null, 'hasMore': false},
       };
 
-      final res = await api.listMyReviews(role: 'AUTHOR', limit: 15, cursor: 'c-rev');
+      final res = await api.listMyReviews(
+        role: ReviewListRole.author,
+        limit: 15,
+        cursor: 'c-rev',
+      );
 
       expect(lastRequest!.method, 'GET');
       expect(lastRequest!.path, '/v1/me/reviews');

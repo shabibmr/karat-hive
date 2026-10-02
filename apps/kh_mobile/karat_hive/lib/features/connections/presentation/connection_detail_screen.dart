@@ -9,6 +9,7 @@ import 'package:kh_ui_domain/kh_ui_domain.dart';
 
 import '../../../app/di.dart';
 import '../../../app/platform/open_url.dart';
+import '../../../core/failure_copy.dart';
 import '../../reviews/repository/reviews_repository.dart';
 import '../controller/connection_detail_controller.dart';
 import '../controller/connections_controller.dart';
@@ -80,13 +81,16 @@ class ConnectionDetailScreen extends ConsumerWidget {
         .close();
     if (!context.mounted) return;
     if (res.isErr) {
-      final failure = res.failureOrNull;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            failure?.message ??
-                (l10n?.couldNotLoadConnection ??
-                    'Could not load this Connection.'),
+            khFailureMessage(
+              res.failureOrNull ??
+                  Exception(l10n?.couldNotLoadConnection ??
+                      'Could not load this Connection.'),
+              l10n?.couldNotLoadConnection ??
+                  'Could not load this Connection.',
+            ),
           ),
         ),
       );
@@ -94,6 +98,7 @@ class ConnectionDetailScreen extends ConsumerWidget {
     }
 
     ref.invalidate(connectionsControllerProvider);
+    // Vendor Connection payload has no myReview; AUTHOR list is the source.
     final alreadyReviewed = await ref
         .read(reviewsRepositoryProvider)
         .hasAuthoredForConnection(connectionId);

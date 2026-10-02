@@ -24,9 +24,9 @@ class ReviewsRepository {
         comment: comment,
       );
 
-  /// `GET /v1/me/reviews` — [role] is `AUTHOR` | `SUBJECT` (`FR-VEN-029`).
+  /// `GET /v1/me/reviews` — [role] is author/subject (`FR-VEN-029`).
   Future<Result<PagedResult<Review>>> list({
-    String? role,
+    ReviewListRole? role,
     String? cursor,
     int limit = 20,
   }) =>
@@ -55,12 +55,42 @@ class ReviewsRepository {
 
 extension ReviewsRepositoryAuthored on ReviewsRepository {
   /// True when the viewer already authored a review for [connectionId] (`BR-017`).
-  /// On list failure, returns false so close can still offer leave-review.
-  Future<bool> hasAuthoredForConnection(String connectionId) async {
-    final res = await list(role: 'AUTHOR', limit: 50);
-    return res.when(
-      ok: (page) => page.items.any((r) => r.connectionId == connectionId),
-      err: (_) => false,
-    );
+  ///
+  /// [myReview] from a Connection detail payload short-circuits when present
+  /// (Customer presenters may include it; Vendor presenters often do not).
+  ///
+  /// Walks AUTHOR pages until the Connection is found or the cursor ends.
+  /// On list failure, returns false so close can still open leave-review;
+  /// leave-review surfaces `REVIEW_ALREADY_EXISTS` if a review already exists.
+  Future<bool> hasAuthoredForConnection(
+    String connectionId, {
+    Review? myReview,
+    int pageSize = 50,
+    int maxPages = 20,
+  }) async {
+    if (myReview != null) return true;
+
+    String? cursor;
+    for (var pageIndex = 0; pageIndex < maxPages; pageIndex++) {
+      final res = await list(
+        role: ReviewListRole.author,
+        cursor: cursor,
+        limit: pageSize,
+      );
+      final found = res.when(
+        ok: (page) {
+          if (page.items.any((r) => r.connectionId == connectionId)) {
+            return true;
+          }
+          final next = page.nextCursor;
+          if (next == null || next.isEmpty) return false;
+          cursor = next;
+          return null;
+        },
+        err: (_) => false,
+      );
+      if (found != null) return found;
+    }
+    return false;
   }
 }

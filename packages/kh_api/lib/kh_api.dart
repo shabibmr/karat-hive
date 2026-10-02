@@ -493,7 +493,7 @@ class KhApi {
       );
 
   Future<Result<PagedResult<Review>>> listMyReviews({
-    String? role, // AUTHOR | SUBJECT
+    ReviewListRole? role,
     int limit = 20,
     String? cursor,
   }) =>

@@ -1,9 +1,27 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'json_envelope.dart';
 import 'party.dart';
 
 part 'review.freezed.dart';
 part 'review.g.dart';
+
+/// Wire values for `GET /v1/me/reviews?role=` (`FR-VEN-029`).
+enum ReviewListRole {
+  author,
+  subject;
+
+  String get wire => switch (this) {
+        author => 'AUTHOR',
+        subject => 'SUBJECT',
+      };
+
+  static ReviewListRole? tryParse(String? raw) => switch (raw?.toUpperCase()) {
+        'AUTHOR' => author,
+        'SUBJECT' => subject,
+        _ => null,
+      };
+}
 
 enum ReviewState {
   pendingModeration,
@@ -70,20 +88,8 @@ abstract class ReviewVendorResponse with _$ReviewVendorResponse {
       _$ReviewVendorResponseFromJson(_normalizeReviewVendorResponseJson(json));
 }
 
-/// Peels a mistaken extra `{ data: review }` layer from double-enveloped
-/// responses (controller returned `{ data }` and EnvelopeInterceptor wrapped
-/// again). Prefer fixing the controller; this keeps older deployments parseable.
-Map<String, dynamic> _unwrapReviewResource(Map<String, dynamic> json) {
-  if (json['id'] != null) return json;
-  final nested = json['data'];
-  if (nested is Map) {
-    return Map<String, dynamic>.from(nested);
-  }
-  return json;
-}
-
 Map<String, dynamic> _normalizeReviewJson(Map<String, dynamic> json) {
-  final root = _unwrapReviewResource(json);
+  final root = unwrapResourceJson(json);
   final vr = root['vendorResponse'];
   return {
     ...root,

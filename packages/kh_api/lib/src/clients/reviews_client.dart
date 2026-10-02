@@ -2,23 +2,14 @@ import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
 
 import '../paged.dart';
+import '../parse_resource.dart';
 
-Result<Review> _parseReview(dynamic raw) {
-  try {
-    if (raw is! Map) {
-      return const Err(ServerFailure(
-        code: 'BAD_RESPONSE',
-        message: 'Review response was not an object.',
-      ));
-    }
-    return Ok(Review.fromJson(Map<String, dynamic>.from(raw)));
-  } catch (_) {
-    return const Err(ServerFailure(
-      code: 'BAD_RESPONSE',
-      message: 'Could not read review response.',
-    ));
-  }
-}
+Result<Review> _parseReview(dynamic raw) => parseResource(
+      raw,
+      Review.fromJson,
+      notObjectMessage: 'Review response was not an object.',
+      parseFailedMessage: 'Could not read review response.',
+    );
 
 class ReviewsClient {
   const ReviewsClient(this._client);
@@ -43,7 +34,7 @@ class ReviewsClient {
   /// `GET /v1/me/reviews` — authored by me, and (Vendor) published about me.
   /// [role] is `AUTHOR` | `SUBJECT` when provided (`FR-VEN-029`).
   Future<Result<PagedResult<Review>>> list({
-    String? role,
+    ReviewListRole? role,
     String? cursor,
     int limit = 20,
   }) async {
@@ -51,7 +42,7 @@ class ReviewsClient {
       'GET',
       '/v1/me/reviews',
       query: {
-        if (role != null) 'role': role,
+        if (role != null) 'role': role.wire,
         if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
         'limit': limit.toString(),
       },

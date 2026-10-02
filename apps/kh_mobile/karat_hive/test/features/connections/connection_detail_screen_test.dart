@@ -29,7 +29,7 @@ class _FakeReviewsRepository implements ReviewsRepository {
 
   @override
   Future<Result<PagedResult<Review>>> list({
-    String? role,
+    ReviewListRole? role,
     String? cursor,
     int limit = 20,
   }) async {

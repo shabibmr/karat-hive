@@ -960,7 +960,9 @@ void main() {
         });
       });
 
-      final page = (await KhApi(client).reviews.list(role: 'SUBJECT')).unwrap();
+      final page =
+          (await KhApi(client).reviews.list(role: ReviewListRole.subject))
+              .unwrap();
       expect(page.items, hasLength(1));
       expect(page.items.first.id, 'rev-1');
       expect(page.items.first.rating, 5);

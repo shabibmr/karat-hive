@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'json_envelope.dart';
 import 'offer.dart';
 import 'party.dart';
 import 'request.dart';
@@ -68,11 +69,7 @@ class _NullableClosedByConverter implements JsonConverter<ClosedBy?, String?> {
   String? toJson(ClosedBy? object) => object?.wire;
 }
 
-Map<String, dynamic> _map(Object? raw) {
-  if (raw is Map<String, dynamic>) return raw;
-  if (raw is Map) return Map<String, dynamic>.from(raw);
-  return const {};
-}
+Map<String, dynamic> _map(Object? raw) => mapJson(raw);
 
 DateTime? _dt(Object? raw) {
   if (raw is String && raw.isNotEmpty) return DateTime.tryParse(raw);
@@ -209,19 +206,9 @@ RevealedParty _vendorPartyFromJson(Object? raw) =>
 RevealedParty _customerPartyFromJson(Object? raw) =>
     RevealedParty.fromCustomerJson(_map(raw));
 
-/// Peels a mistaken extra `{ data: connection }` layer from double-enveloped
-/// responses (controller returned `{ data }` and EnvelopeInterceptor wrapped
-/// again). Prefer fixing the controller; this keeps older deployments parseable.
-Map<String, dynamic> _unwrapConnectionResource(Map<String, dynamic> json) {
-  if (json['id'] != null) return json;
-  final nested = json['data'];
-  if (nested is Map) return _map(nested);
-  return json;
-}
-
 Map<String, dynamic> _normalizeConnectionForCustomerJson(
     Map<String, dynamic> json) {
-  final root = _unwrapConnectionResource(json);
+  final root = unwrapResourceJson(json);
   final accepted = root['acceptedOffer'] ?? root['offer'];
   return {
     ...root,
@@ -294,7 +281,7 @@ abstract class AcceptOfferResult with _$AcceptOfferResult {
 
 Map<String, dynamic> _normalizeConnectionForVendorJson(
     Map<String, dynamic> json) {
-  final root = _unwrapConnectionResource(json);
+  final root = unwrapResourceJson(json);
   final accepted = root['acceptedOffer'] ?? root['offer'];
   return {
     ...root,
