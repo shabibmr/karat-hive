@@ -88,6 +88,7 @@ class KhStrings {
       'shell.nav.profile': 'Profile',
       'shell.exitPrompt': 'Press back again to exit',
       'guest.title': 'Karat Hive',
+      'splash.tagline': 'The Modern Gold Standard',
       'guest.logIn': 'Log in',
       'guest.headline': 'Request gold your way',
       'guest.subhead':
@@ -376,6 +377,7 @@ class KhStrings {
       'shell.nav.profile': 'الملف الشخصي',
       'shell.exitPrompt': 'اضغط رجوع مرة أخرى للخروج',
       'guest.title': 'كارات هايف',
+      'splash.tagline': 'المعيار الذهبي الحديث',
       'guest.logIn': 'تسجيل الدخول',
       'guest.headline': 'اطلب الذهب بطريقتك',
       'guest.subhead':
