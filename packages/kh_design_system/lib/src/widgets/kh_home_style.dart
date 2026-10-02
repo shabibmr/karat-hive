@@ -18,12 +18,13 @@ class KhBrandHeader extends StatelessWidget {
   const KhBrandHeader({
     super.key,
     required this.brandLabel,
-    required this.alertsLabel,
-    required this.profileLabel,
-    required this.onAlerts,
-    required this.onProfile,
+    this.alertsLabel = '',
+    this.profileLabel = '',
+    this.onAlerts,
+    this.onProfile,
     this.initial,
     this.hasUnread = false,
+    this.trailing,
   });
 
   final String brandLabel;
@@ -31,8 +32,11 @@ class KhBrandHeader extends StatelessWidget {
   final String profileLabel;
   final String? initial;
   final bool hasUnread;
-  final VoidCallback onAlerts;
-  final VoidCallback onProfile;
+  final VoidCallback? onAlerts;
+  final VoidCallback? onProfile;
+
+  /// Replaces the bell and profile actions (e.g. Guest "Log in").
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +76,8 @@ class KhBrandHeader extends StatelessWidget {
           PositionedDirectional(
             end: 10,
             bottom: 2,
-            child: Row(
+            top: trailing == null ? null : 0,
+            child: trailing ?? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(

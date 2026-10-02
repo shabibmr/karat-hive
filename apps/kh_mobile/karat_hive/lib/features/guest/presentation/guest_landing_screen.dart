@@ -10,16 +10,15 @@ import '../../auth/presentation/widgets/how_this_works.dart';
 import '../../request_create/controller/request_create_controller.dart';
 import '../../request_create/routes.dart';
 
-/// CUS-S23 Guest Landing (`adr/0011`), Direction 1a
-/// (`docs/UI-Design-Context.md` §7.2).
+/// CUS-S23 Guest Landing (`adr/0011`).
 ///
-/// Cold-start surface with no live session. Not the signed-in Dashboard, and
-/// no bottom nav. A Guest can browse and compose; sign-in is asked for at
-/// publish.
+/// Cold-start surface with no live session, dressed like Customer Home
+/// (brand header, editorial hero, photographic service cards) but with
+/// "Log in" in place of alerts/profile and no bottom nav. A Guest can browse
+/// and compose; sign-in is asked for at publish.
 class GuestLandingScreen extends ConsumerWidget {
   const GuestLandingScreen({super.key});
 
-  /// Content column cap on tablet / landscape / web (§10).
   static const _maxContentWidth = 560.0;
 
   void _openService(BuildContext context, WidgetRef ref, RequestType type) {
@@ -31,110 +30,172 @@ class GuestLandingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final strings = KhStrings.of(context);
+    final s = KhStrings.of(context);
     final l10n = AppLocalizations.of(context);
-    final tokens = context.tokens;
-    final typography = context.typography;
-
+    final slides = [
+      for (var i = 1; i <= 3; i++)
+        KhHeroSlide(
+          lead: s.s('cus.home.editorial.$i.a'),
+          line2: s.s('cus.home.editorial.$i.b'),
+          line3: s.s('cus.home.editorial.$i.c'),
+          image: const AssetImage('assets/home/hero-bangle.png'),
+        ),
+    ];
     final services = [
-      _GuestService(
+      (
         type: RequestType.findOrnament,
         tileKey: const Key('guest-type-ornament'),
         tapKey: const Key('guest-service-ornament'),
-        title: strings.s('service.card.ornament'),
-        image: const AssetImage('assets/images/tile_find_ornament.webp'),
+        title: s.s('cus.home.service.ornament'),
+        image: 'assets/home/ornament.png',
+        icon: Icons.diamond_outlined,
       ),
-      _GuestService(
+      (
         type: RequestType.sellOldGold,
         tileKey: const Key('guest-type-sell-gold'),
         tapKey: const Key('guest-service-sell-gold'),
-        title: strings.s('service.card.sellGold'),
-        image: const AssetImage('assets/images/tile_sell_old_gold.webp'),
+        title: s.s('cus.home.service.sellGold'),
+        image: 'assets/home/sell-gold.png',
+        icon: Icons.balance,
       ),
-      _GuestService(
+      (
         type: RequestType.goldCoin,
         tileKey: const Key('guest-type-coins'),
         tapKey: const Key('guest-service-coins'),
-        title: strings.s('service.card.coins'),
-        image: const AssetImage('assets/images/tile_gold_coin.webp'),
+        title: s.s('cus.home.service.coins'),
+        image: 'assets/home/coins.png',
+        icon: Icons.monetization_on_outlined,
       ),
-      _GuestService(
+      (
         type: RequestType.goldBullion,
         tileKey: const Key('guest-type-bullion'),
         tapKey: const Key('guest-service-bullion'),
-        title: strings.s('service.card.bullion'),
-        image: const AssetImage('assets/images/tile_gold_bullion.webp'),
+        title: s.s('cus.home.service.bullion'),
+        image: 'assets/home/bullion.png',
+        icon: Icons.crop_landscape_outlined,
       ),
     ];
 
+    final howItWorks = KeyedSubtree(
+      key: const Key('guest-how-it-works'),
+      child: HowThisWorks(
+        extras: [
+          l10n?.guestHowItWorksOrnamentExtra ??
+              'Budget and a reference photo help jewellers match what you want.',
+          l10n?.guestHowItWorksSellGoldExtra ??
+              'Photos must show the actual piece you are selling.',
+          l10n?.guestHowItWorksCoinsExtra ??
+              'Choose buy or sell, denomination, and quantity.',
+          l10n?.guestHowItWorksBullionExtra ??
+              'A minimum indicative value applies to bullion Requests.',
+        ],
+      ),
+    );
+
     return Scaffold(
       key: const Key('guest-landing'),
+      backgroundColor: KhHomeStyle.background,
+      // Takes the slot Customer Home gives to the bottom nav.
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: KhHomeStyle.background,
+          border: Border(top: BorderSide(color: KhHomeStyle.cream)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Center(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: _maxContentWidth,
+                maxHeight: MediaQuery.sizeOf(context).height * 0.5,
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: KhHomeStyle.pagePadding,
+                ),
+                child: howItWorks,
+              ),
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
+        bottom: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: _maxContentWidth),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _GuestHeader(
-                  logoLabel: strings.s('guest.title'),
-                  logInLabel: strings.s('guest.logIn'),
-                  onLogIn: () => context.go(AppGuards.customerOnboarding),
+                KhBrandHeader(
+                  brandLabel: s.s('guest.title'),
+                  trailing: Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: TextButton(
+                      key: const Key('guest-login'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: KhHomeStyle.gold,
+                      ),
+                      onPressed: () => context.go(AppGuards.customerOnboarding),
+                      // Arabic "Log in" can crowd the mark at 320 px; ellipsis
+                      // keeps the row from overflowing.
+                      child: Text(
+                        s.s('guest.logIn'),
+                        key: const Key('guest-log-in'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
                 ),
                 Expanded(
                   child: ListView(
-                    padding: EdgeInsetsDirectional.fromSTEB(
-                      tokens.space.md,
-                      tokens.space.s12,
-                      tokens.space.md,
-                      tokens.space.xl,
+                    clipBehavior: Clip.none,
+                    padding: const EdgeInsets.fromLTRB(
+                      KhHomeStyle.pagePadding,
+                      6,
+                      KhHomeStyle.pagePadding,
+                      22,
                     ),
                     children: [
-                      Text(
-                        strings.s('guest.headline'),
-                        style: typography.displayGuest,
+                      KhHeroCarousel(
+                        key: const Key('guest-landing-hero'),
+                        slides: slides,
+                        editorial: true,
+                        previousLabel: s.s('cus.home.previousSlide'),
+                        nextLabel: s.s('cus.home.nextSlide'),
+                        dotLabel: (i, n) => s
+                            .s('cus.home.heroDot')
+                            .replaceAll('{n}', '${i + 1}')
+                            .replaceAll('{count}', '$n'),
                       ),
-                      SizedBox(height: tokens.space.s6),
-                      Text(
-                        strings.s('guest.subhead'),
-                        style: typography.bodyLoose,
-                      ),
-                      SizedBox(height: tokens.space.s22),
+                      const SizedBox(height: 16),
                       KhServiceGrid(
+                        maxColumns: 2,
+                        equalizeHeight: false,
+                        spacing: KhHomeStyle.gridGap,
                         children: [
                           for (final service in services)
                             KhServiceCard(
                               key: service.tileKey,
                               tapKey: service.tapKey,
                               title: service.title,
-                              image: service.image,
+                              icon: service.icon,
+                              image: AssetImage(service.image),
+                              editorial: true,
                               onTap: () =>
                                   _openService(context, ref, service.type),
                             ),
                         ],
                       ),
-                      SizedBox(height: tokens.space.s22),
-                      KeyedSubtree(
-                        key: const Key('guest-how-it-works'),
-                        child: HowThisWorks(
-                          extras: [
-                            l10n?.guestHowItWorksOrnamentExtra ??
-                                'Budget and a reference photo help jewellers match what you want.',
-                            l10n?.guestHowItWorksSellGoldExtra ??
-                                'Photos must show the actual piece you are selling.',
-                            l10n?.guestHowItWorksCoinsExtra ??
-                                'Choose buy or sell, denomination, and quantity.',
-                            l10n?.guestHowItWorksBullionExtra ??
-                                'A minimum indicative value applies to bullion Requests.',
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: tokens.space.lg),
+                      const SizedBox(height: 22),
+                      const SizedBox(height: 8),
                       Center(
                         child: TextButton(
                           key: const Key('guest-jeweller'),
                           style: TextButton.styleFrom(
-                            foregroundColor: tokens.ink,
+                            foregroundColor: KhHomeStyle.ink,
                           ),
                           onPressed: () {
                             // Mid-create -> Vendor signup drops the in-memory
@@ -147,7 +208,7 @@ class GuestLandingScreen extends ConsumerWidget {
                             context.go(AppGuards.login);
                           },
                           child: Text(
-                            strings.s('guest.jewellerFooter'),
+                            s.s('guest.jewellerFooter'),
                             key: const Key('guest-jeweller-register'),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyLarge
@@ -167,73 +228,4 @@ class GuestLandingScreen extends ConsumerWidget {
       ),
     );
   }
-}
-
-/// 60 px header: tracked brand mark at the start, "Log in" at the end.
-class _GuestHeader extends StatelessWidget {
-  const _GuestHeader({
-    required this.logoLabel,
-    required this.logInLabel,
-    required this.onLogIn,
-  });
-
-  final String logoLabel;
-  final String logInLabel;
-  final VoidCallback onLogIn;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    return SizedBox(
-      height: 60,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: tokens.space.md),
-        child: Row(
-          children: [
-            Flexible(
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: KhBrandMark(label: logoLabel),
-              ),
-            ),
-            SizedBox(width: tokens.space.sm),
-            // Arabic "Log in" can crowd the mark at 320 px; ellipsis keeps
-            // the row from overflowing.
-            Flexible(
-              child: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: TextButton(
-                  key: const Key('guest-login'),
-                  onPressed: onLogIn,
-                  child: Text(
-                    logInLabel,
-                    key: const Key('guest-log-in'),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-class _GuestService {
-  const _GuestService({
-    required this.type,
-    required this.tileKey,
-    required this.tapKey,
-    required this.title,
-    required this.image,
-  });
-
-  final RequestType type;
-  final Key tileKey;
-  final Key tapKey;
-  final String title;
-  final ImageProvider image;
 }

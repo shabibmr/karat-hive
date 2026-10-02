@@ -127,12 +127,12 @@ void main() {
     expect(find.byKey(const Key('how-this-works')), findsOneWidget);
 
     expect(find.byType(FilledButton), findsNothing);
-    expect(find.text('Find An Ornament'), findsOneWidget);
-    expect(find.text('Sell Old Gold'), findsOneWidget);
-    expect(find.text('Gold Coin(s)'), findsOneWidget);
-    expect(find.text('Gold Bullion'), findsOneWidget);
+    expect(find.byKey(const Key('guest-landing-hero')), findsOneWidget);
+    expect(find.text('Find an\nOrnament'), findsOneWidget);
+    expect(find.text('Sell My\nGold'), findsOneWidget);
+    expect(find.text('Gold\nCoins'), findsOneWidget);
+    expect(find.text('Gold\nBullion'), findsOneWidget);
     expect(find.text('KARAT HIVE'), findsOneWidget);
-    expect(find.text('Request gold your way'), findsOneWidget);
     expect(find.text('Are you a jeweller? Register here.'), findsOneWidget);
   });
 
@@ -285,7 +285,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byKey(const Key('guest-type-ornament')),
-        matching: find.text('Find An Ornament'),
+        matching: find.text('Find an\nOrnament'),
       ),
     );
     await tester.pumpAndSettle();
