@@ -98,14 +98,16 @@ class _ComposeScreenHostState extends ConsumerState<ComposeScreenHost> {
             );
             return;
           }
-          final next = widget.combineImages
+          // Coins/bullion skip the photos step; ornament/sell-gold embed photos.
+          final skipImages = !state.imagesAllowed;
+          final next = widget.combineImages || skipImages
               ? RequestCreateStep.review
               : RequestCreateStep.images;
           final ok = await controller.persistAndGo(next);
           if (ok && context.mounted) {
             // push (not go): preserves history so back returns to this step.
             context.push(
-              widget.combineImages
+              widget.combineImages || skipImages
                   ? RequestCreatePaths.review
                   : RequestCreatePaths.images,
             );

@@ -159,7 +159,11 @@ class RequestCreateState {
 
   bool get capBlocked => !canCreateRequest;
 
+  /// False for coins/bullion — those types have no photo step.
+  bool get imagesAllowed => requestType?.allowsMedia ?? true;
+
   bool get imagesRequired {
+    if (!imagesAllowed) return false;
     final t = requestType;
     if (t == RequestType.findOrnament || t == RequestType.sellOldGold) {
       return true;

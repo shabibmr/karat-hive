@@ -4,7 +4,7 @@
 |---|---|
 | **User** | Customer |
 | **Platform** | Mobile — Customer mode |
-| **Requirements** | `FR-CUS-011`, `FR-CUS-007`, `FR-CUS-009`, `FR-CUS-018` |
+| **Requirements** | `FR-CUS-011`, `FR-CUS-009`, `FR-CUS-018` |
 
 ## Purpose
 
@@ -15,7 +15,7 @@ Compose a buy or sell Request for gold coins with denomination, quantity, and op
 | Direction | Path |
 |---|---|
 | Entry | CUS-S03 type = Gold Coins |
-| Exit | CUS-S08 (if images); CUS-S09 |
+| Exit | CUS-S09 (no photos step) |
 
 ## Fields
 
@@ -31,7 +31,7 @@ Compose a buy or sell Request for gold coins with denomination, quantity, and op
 | Packaging condition | Input | No | sealed / opened | |
 | Budget (BUY) | Input | No | min/max AED + flexible | Optional for non-ornament BUY |
 | Notes | Input | No | free text | |
-| Images | Input | Conditional | 1–5 via CUS-S08 | Optional BUY; **mandatory SELL** |
+| Images | — | No | — | Not offered for coins (BUY or SELL) |
 | Reference gold rate | Display / System | — | AED/g | |
 | Save draft | Action | — | — | |
 | Continue to review | Action | — | — | → CUS-S09 |
@@ -39,7 +39,7 @@ Compose a buy or sell Request for gold coins with denomination, quantity, and op
 ## Validation & rules
 
 - Direction mandatory.
-- Image rule depends on direction.
+- Photos are not part of the coins flow.
 
 ## Empty / error / edge states
 
@@ -47,4 +47,4 @@ Compose a buy or sell Request for gold coins with denomination, quantity, and op
 
 ## Related screens
 
-CUS-S08 · CUS-S09
+CUS-S09

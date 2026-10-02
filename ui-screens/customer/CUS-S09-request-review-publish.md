@@ -22,7 +22,7 @@ Review the full Request draft, save as draft (signed-in only), or publish to fan
 
 | Field / UI element | Kind | Required | Type / options | Notes |
 |---|---|---|---|---|
-| Full Request summary | Display | — | all type fields + images | Read-only review |
+| Full Request summary | Display | — | all type fields (+ images for ornament / Sell Old Gold) | Read-only review; coins/bullion have no photo block |
 | Indicative valuation / budget | Display | — | AED | Type-dependent |
 | OAuth / Login gate | Action / Display | Conditional | Google (`adr/0010`) | Guest, or signed-in without Google binding. Dismissible without wiping the in-memory form |
 | Save as draft | Action | — | — | Signed-in only. Guest draft is in-memory; no server draft |

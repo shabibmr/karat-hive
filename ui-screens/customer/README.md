@@ -13,7 +13,7 @@ Typical primary destinations:
 | Guest (no session) | CUS-S23 |
 | Login / signup | CUS-S01 |
 | Home / Requests | CUS-S02 (signed-in Dashboard), CUS-S10 |
-| Create | CUS-S03 → type-specific create → CUS-S08 → CUS-S09 |
+| Create | CUS-S03 → type-specific create → (CUS-S08 for ornament / Sell Old Gold) → CUS-S09 |
 | Offers | CUS-S11, CUS-S12, CUS-S13, CUS-S14 |
 | Connections | CUS-S16, CUS-S15 |
 | History | CUS-S17 |

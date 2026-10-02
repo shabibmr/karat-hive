@@ -14,7 +14,7 @@ Attach photographic images to a Request (camera or gallery), with reorder, remov
 
 | Direction | Path |
 |---|---|
-| Entry | From any create flow needing media |
+| Entry | Find An Ornament / Sell Old Gold create flows (coins & bullion skip photos) |
 | Exit | Back to create form with images attached |
 
 ## Fields

@@ -27,6 +27,12 @@ enum RequestType {
         goldBullion => 'GOLD_BULLION',
         unknown => 'UNKNOWN',
       };
+
+  /// Coins and bullion are specification-led; photos apply to ornament / old gold.
+  bool get allowsMedia => switch (this) {
+        goldCoin || goldBullion => false,
+        _ => true,
+      };
 }
 
 enum Direction {

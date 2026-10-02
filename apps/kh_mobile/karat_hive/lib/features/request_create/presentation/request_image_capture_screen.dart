@@ -11,7 +11,7 @@ import 'widgets/create_flow_chrome.dart';
 import 'widgets/request_images_section.dart';
 
 /// CUS-S08 — request images. Guest keeps files local until publish bind.
-/// Used by coins/bullion; Find Jewellery / Sell Gold embed images on compose.
+/// Find Jewellery / Sell Gold embed images on compose; coins/bullion skip photos.
 class RequestImageCaptureScreen extends ConsumerStatefulWidget {
   const RequestImageCaptureScreen({super.key});
 

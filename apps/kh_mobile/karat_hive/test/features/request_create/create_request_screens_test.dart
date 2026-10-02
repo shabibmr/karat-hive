@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:karat_hive/app/session/session_controller.dart';
 import 'package:karat_hive/features/request_create/controller/request_create_controller.dart';
+import 'package:karat_hive/features/request_create/controller/request_create_state.dart';
 import 'package:karat_hive/features/request_create/presentation/find_ornament_screen.dart';
 import 'package:karat_hive/features/request_create/presentation/request_review_publish_screen.dart';
 import 'package:karat_hive/features/request_create/presentation/widgets/create_fields.dart';
@@ -133,6 +134,41 @@ void main() {
       expect(find.textContaining('AED'), findsWidgets);
     });
 
+
+    testWidgets(
+        'coins and bullion never require images (including SELL)',
+        (tester) async {
+      final coins = createContainer();
+      final coinsCtrl = coins.read(requestCreateControllerProvider.notifier);
+      coinsCtrl.selectType(RequestType.goldCoin);
+      coinsCtrl.setDirection(Direction.sell);
+      expect(coins.read(requestCreateControllerProvider).imagesAllowed, isFalse);
+      expect(coins.read(requestCreateControllerProvider).imagesRequired, isFalse);
+
+      await tester.pumpWidget(_buildTestApp(const GoldCoinsScreen(), coins));
+      await tester.pumpAndSettle();
+      expect(find.byType(RequestImagesSection), findsNothing);
+
+      final ok = await coinsCtrl.persistAndGo(RequestCreateStep.review);
+      expect(ok, isTrue);
+      expect(
+        coins.read(requestCreateControllerProvider).step,
+        RequestCreateStep.review,
+      );
+
+      final bullion = createContainer();
+      bullion.read(requestCreateControllerProvider.notifier).selectType(
+            RequestType.goldBullion,
+          );
+      expect(
+        bullion.read(requestCreateControllerProvider).imagesAllowed,
+        isFalse,
+      );
+      expect(
+        bullion.read(requestCreateControllerProvider).imagesRequired,
+        isFalse,
+      );
+    });
 
     testWidgets(
         'GoldCoinsScreen updates total weight when denomination/quantity changes, and toggles budget editor visibility based on Direction',

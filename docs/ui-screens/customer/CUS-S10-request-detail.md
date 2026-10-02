@@ -28,7 +28,7 @@ View own Request state, Offer count, edit allowed fields, or cancel while still 
 | Category / Region | Display | — | — | |
 | Notes | Input | No | text | Editable while PUBLISHED / OFFERS_RECEIVED |
 | Budget min/max / flexible | Input | Conditional | AED | Editable pre-acceptance |
-| Images | Input | Conditional | add/remove/reorder | Editable pre-acceptance |
+| Images | Input | Conditional | add/remove/reorder | Ornament / Sell Old Gold only; not shown for coins/bullion |
 | Offer count | Display | — | integer | |
 | Expiry | System | — | countdown | |
 | View Offers | Action | — | — | → CUS-S11 |
