@@ -9,7 +9,7 @@ import 'active_shell_registry.dart';
 ///
 /// Destinations:
 /// Home / Dashboard (CUS-S02), My Requests (open list + History),
-/// Connections (CUS-S16), Alerts (CUS-S19), Profile (CUS-S20).
+/// Connections (CUS-S16), Profile (CUS-S20). Alerts remain accessible by bell.
 class CustomerShell extends StatelessWidget {
   const CustomerShell({super.key, required this.navigationShell});
 
@@ -18,19 +18,25 @@ class CustomerShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = KhStrings.of(context);
-    final selectedIndex = navigationShell.currentIndex.clamp(0, 4);
+    // Keep all five route branches so existing alert deep links remain valid.
+    // Only four branches have a visible tab; Profile is route branch 4.
+    const tabBranches = [0, 1, 2, 4];
+    final tabIndex = tabBranches.indexOf(navigationShell.currentIndex);
+    final selectedIndex = tabIndex < 0 ? 0 : tabIndex;
 
     // Read by AppBackButtonDispatcher to route hardware/gesture back presses
     // that have nothing left to pop: non-Home tab -> Home, Home -> confirm exit.
     ActiveShellRegistry.instance.current = ActiveShellInfo(
-      isHome: selectedIndex == 0,
+      isHome: navigationShell.currentIndex == 0,
       goHome: () => navigationShell.goBranch(0),
     );
 
     return Scaffold(
+      backgroundColor: KhHomeStyle.background,
       key: const Key('customer-shell'),
       body: navigationShell,
       bottomNavigationBar: KhBottomNav(
+        editorial: true,
         destinations: [
           KhNavDestination(
             label: strings.s('shell.nav.home'),
@@ -38,19 +44,14 @@ class CustomerShell extends StatelessWidget {
             selectedIcon: Icons.home,
           ),
           KhNavDestination(
-            label: strings.s('shell.nav.requests'),
-            icon: Icons.work_outline,
-            selectedIcon: Icons.work,
+            label: strings.s('cus.home.nav.requests'),
+            icon: Icons.description_outlined,
+            selectedIcon: Icons.description,
           ),
           KhNavDestination(
             label: strings.s('shell.nav.connections'),
-            icon: Icons.handshake_outlined,
-            selectedIcon: Icons.handshake,
-          ),
-          KhNavDestination(
-            label: strings.s('shell.nav.alerts'),
-            icon: Icons.notifications_outlined,
-            selectedIcon: Icons.notifications,
+            icon: Icons.groups_outlined,
+            selectedIcon: Icons.groups,
           ),
           KhNavDestination(
             label: strings.s('shell.nav.profile'),
@@ -61,8 +62,8 @@ class CustomerShell extends StatelessWidget {
         currentIndex: selectedIndex,
         onDestinationSelected: (index) {
           navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
+            tabBranches[index],
+            initialLocation: tabBranches[index] == navigationShell.currentIndex,
           );
         },
       ),

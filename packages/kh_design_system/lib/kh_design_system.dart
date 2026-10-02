@@ -41,4 +41,4 @@ export 'src/widgets/kh_stat_strip.dart';
 export 'src/widgets/kh_hero_carousel.dart';
 export 'src/widgets/kh_bell_button.dart';
 export 'src/widgets/kh_brand_mark.dart';
-
+export 'src/widgets/kh_home_style.dart';
