@@ -1,6 +1,13 @@
 import 'package:kh_core/kh_core.dart';
 import '../dtos.dart';
 
+abstract final class AuthAudience {
+  static const customerApp = 'CUSTOMER_APP';
+  static const vendorApp = 'VENDOR_APP';
+  static const mobileRestore = 'MOBILE_RESTORE';
+  static const adminPortal = 'ADMIN_PORTAL';
+}
+
 class AuthClient {
   const AuthClient(this._client);
   final KhApiClient _client;
@@ -58,10 +65,12 @@ class AuthClient {
   /// Optional [expectedRole] ('CUSTOMER', 'VENDOR', 'ADMIN') ensures role matching.
   Future<Result<SessionBundle>> googleSession({
     required String idToken,
+    String? audience,
     String? expectedRole,
   }) async {
     final r = await _client.send('POST', '/v1/auth/google/session', body: {
       'idToken': idToken,
+      if (audience != null) 'audience': audience,
       if (expectedRole != null) 'expectedRole': expectedRole,
     });
     return r.when(
@@ -75,10 +84,12 @@ class AuthClient {
   /// Optional [expectedRole] ('CUSTOMER', 'VENDOR', 'ADMIN') ensures role matching.
   Future<Result<SessionBundle>> firebaseSession({
     required String idToken,
+    String? audience,
     String? expectedRole,
   }) async {
     final r = await _client.send('POST', '/v1/auth/firebase/session', body: {
       'idToken': idToken,
+      if (audience != null) 'audience': audience,
       if (expectedRole != null) 'expectedRole': expectedRole,
     });
     return r.when(
@@ -89,10 +100,14 @@ class AuthClient {
 
   static Future<SessionTokens?> refresh(
     KhApiClient client,
-    String refreshToken,
-  ) async {
+    String refreshToken, {
+    String? audience,
+  }) async {
     final r = await client.send('POST', '/v1/auth/refresh',
-        body: {'refreshToken': refreshToken});
+        body: {
+      'refreshToken': refreshToken,
+      if (audience != null) 'audience': audience,
+    });
     return r.when(
       ok: (d) => SessionBundle.fromJson(d as Map<String, dynamic>).tokens,
       err: (_) => null,
