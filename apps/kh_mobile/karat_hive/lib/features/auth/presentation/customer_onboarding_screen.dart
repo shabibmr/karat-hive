@@ -24,11 +24,21 @@ class CustomerOnboardingScreen extends ConsumerWidget {
     final session = ref.watch(sessionProvider);
     final showBackToGuest = session is SignedOut;
 
+    final VoidCallback? onBack;
+    if (state is OnboardingNeedsCompletion) {
+      onBack = () async {
+        ref.read(customerOnboardingControllerProvider.notifier).resetToIdle();
+        await ref.read(sessionProvider.notifier).signOut();
+      };
+    } else if (showBackToGuest) {
+      onBack = () => context.go(AppGuards.customerGuest);
+    } else {
+      onBack = null;
+    }
+
     return KhScaffold(
       title: l10n.guestLogIn,
-      onBack: showBackToGuest
-          ? () => context.go(AppGuards.customerGuest)
-          : null,
+      onBack: onBack,
       body: switch (state) {
         OnboardingNeedsCompletion(
           :final firebaseIdToken,
