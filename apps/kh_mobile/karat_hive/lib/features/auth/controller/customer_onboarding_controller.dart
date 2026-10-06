@@ -93,7 +93,7 @@ class CustomerOnboardingController
     }
 
     final fbUser = _firebase.currentUser;
-    final result = await _repo.googleSession(idToken);
+    final result = await _repo.googleSession(idToken, audience: AuthAudience.customerApp);
     if (_disposed) return;
     await result.when(
       ok: (bundle) async {
