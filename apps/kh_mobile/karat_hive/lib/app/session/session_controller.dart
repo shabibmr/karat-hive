@@ -37,6 +37,11 @@ class UnboundGoogle extends SessionState {
 }
 
 /// Google/session refused with an account-state error and no usable MeUser.
+class AuthRejected extends SessionState {
+  const AuthRejected(this.failure);
+  final Failure failure;
+}
+
 class AuthBlocked extends SessionState {
   const AuthBlocked(this.failure);
   final Failure failure;
@@ -129,7 +134,10 @@ class SessionController extends Notifier<SessionState> {
         state = const SignedOut();
         return;
       }
-      final result = await _api.googleSession(idToken: idToken);
+      final result = await _api.googleSession(
+        idToken: idToken,
+        audience: AuthAudience.mobileRestore,
+      );
       await result.when(
         ok: (bundle) async {
           await _storage.save(bundle.tokens);
@@ -137,6 +145,11 @@ class SessionController extends Notifier<SessionState> {
         },
         err: (failure) async {
           await _storage.clear();
+          if (failure.code == 'ACCOUNT_ROLE_MISMATCH') {
+            await _authService.signOut();
+            state = AuthRejected(failure);
+            return;
+          }
           final code = failure.code;
           if (code != null && kAuthLockoutCodes.contains(code)) {
             state = AuthBlocked(failure);
@@ -180,9 +193,29 @@ class SessionController extends Notifier<SessionState> {
 
   Future<void> refreshUser() async {
     final result = await _api.me();
-    state = result.when(
-      ok: SignedIn.new,
-      err: (_) => const SignedOut(),
+    await result.when(
+      ok: (user) async {
+        if (user.role == UserRole.admin || user.role == UserRole.unknown) {
+          await _storage.clear();
+          await _authService.signOut();
+          state = AuthRejected(
+            const ForbiddenFailure(
+              code: 'ACCOUNT_ROLE_MISMATCH',
+              message: 'This account is not supported by the mobile application.',
+            ),
+          );
+          return;
+        }
+        state = SignedIn(user);
+      },
+      err: (failure) async {
+        if (failure is NetworkFailure ||
+            failure is TimeoutFailure ||
+            failure is ServerFailure) {
+          return; // preserve the last validated session
+        }
+        state = const SignedOut();
+      },
     );
   }
 
