@@ -7,6 +7,7 @@ import { AuditWriter } from '../../audit';
 import { FirebaseTokenService } from './firebase-token.service';
 import { SessionService } from './session.service';
 import { hashToken } from './token.service';
+import { AuthAudience, audienceMatchesRole } from '../domain/auth-audience';
 import type { User, UserType } from '@prisma/client';
 import type { SessionBundle } from '../presenter/session.presenter';
 
@@ -20,12 +21,27 @@ export class OAuthAccountService {
     private readonly audit: AuditWriter,
   ) {}
 
-  private assertUserCanLogin(user: User, expectedRole?: UserType): void {
+  private assertUserCanLogin(
+    user: User,
+    audience: AuthAudience,
+    expectedRole?: UserType,
+  ): void {
     if (user.deletedAt !== null) {
       throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
     }
     if (expectedRole !== undefined && user.userType !== expectedRole) {
-      throw new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ACCOUNT_ROLE_MISMATCH);
+      throw new ApiException(
+        HttpStatus.FORBIDDEN,
+        ErrorCode.ACCOUNT_ROLE_MISMATCH,
+        [{ code: 'actualRole', message: user.userType }],
+      );
+    }
+    if (!audienceMatchesRole(audience, user.userType)) {
+      throw new ApiException(
+        HttpStatus.FORBIDDEN,
+        ErrorCode.ACCOUNT_ROLE_MISMATCH,
+        [{ code: 'actualRole', message: user.userType }],
+      );
     }
     if (user.accountState !== 'ACTIVE') {
       if (user.accountState === 'SUSPENDED') {
@@ -41,6 +57,7 @@ export class OAuthAccountService {
   async createSessionFromFirebase(
     token: string,
     client: { ip?: string | null; userAgent?: string | null; acceptLanguage?: string },
+    audience: AuthAudience,
     expectedRole?: UserType,
   ): Promise<SessionBundle> {
     const claims = await this.firebaseTokens.verify(token);
@@ -54,8 +71,8 @@ export class OAuthAccountService {
     });
 
     if (existingBinding && existingBinding.user) {
-      this.assertUserCanLogin(existingBinding.user, expectedRole);
-      return this.sessionService.issueFor(existingBinding.user, client);
+      this.assertUserCanLogin(existingBinding.user, audience, expectedRole);
+      return this.sessionService.issueFor(existingBinding.user, client, audience);
     }
 
     // 2. If not bound, match by verified email (G2-A02: require claims.emailVerified === true)
@@ -66,7 +83,7 @@ export class OAuthAccountService {
       });
 
       if (matchedUser) {
-        this.assertUserCanLogin(matchedUser, expectedRole);
+        this.assertUserCanLogin(matchedUser, audience, expectedRole);
 
         await this.prisma.oauthBinding.upsert({
           where: {
@@ -96,7 +113,7 @@ export class OAuthAccountService {
           userAgent: client.userAgent ?? null,
         });
 
-        return this.sessionService.issueFor(matchedUser, client);
+        return this.sessionService.issueFor(matchedUser, client, audience);
       }
     }
 
@@ -108,7 +125,7 @@ export class OAuthAccountService {
       });
 
       if (matchedUser) {
-        this.assertUserCanLogin(matchedUser, expectedRole);
+        this.assertUserCanLogin(matchedUser, audience, expectedRole);
 
         await this.prisma.oauthBinding.upsert({
           where: {
@@ -138,7 +155,7 @@ export class OAuthAccountService {
           userAgent: client.userAgent ?? null,
         });
 
-        return this.sessionService.issueFor(matchedUser, client);
+        return this.sessionService.issueFor(matchedUser, client, audience);
       }
     }
 
