@@ -31,6 +31,7 @@ abstract final class AppGuards {
   static const customerAlerts = '/customer/alerts';
   static const customerProfile = '/customer/profile';
   static const customerBlocked = '/customer/blocked';
+  static const wrongAccount = '/wrong-account';
 
   /// Create-wizard prefix (CUS-S03…S09). Guest may compose; publish gates login.
   static const customerCreatePrefix = '/customer/requests/create';
@@ -84,6 +85,8 @@ abstract final class AppGuards {
         return customerRegister;
       case AuthBlocked():
         return location == customerBlocked ? null : customerBlocked;
+      case AuthRejected():
+        return location == wrongAccount ? null : wrongAccount;
       case final SignedIn signedIn:
         if (location == splash) return homeFor(signedIn);
         if (signedIn.isCustomer) return _customerRedirect(signedIn, location);
@@ -93,7 +96,7 @@ abstract final class AppGuards {
             location,
           );
         }
-        return customerGuest;
+        return wrongAccount;
     }
   }
 
