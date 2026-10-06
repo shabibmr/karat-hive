@@ -65,7 +65,7 @@ class VendorLoginController extends Notifier<LoginState> {
     }
 
     final fbUser = _firebase.currentUser;
-    final result = await _repo.googleSession(idToken, expectedRole: 'VENDOR');
+    final result = await _repo.googleSession(idToken, audience: AuthAudience.vendorApp);
     if (_disposed) return;
     await result.when(
       ok: (bundle) async {
