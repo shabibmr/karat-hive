@@ -7,6 +7,7 @@ import 'presentation/customer_onboarding_screen.dart';
 import 'presentation/customer_register_screen.dart';
 import 'presentation/vendor_login_screen.dart';
 import 'presentation/vendor_register_screen.dart';
+import 'presentation/wrong_account_screen.dart';
 
 final authRoutes = [
   GoRoute(
@@ -24,6 +25,10 @@ final authRoutes = [
   GoRoute(
     path: AppGuards.customerBlocked,
     builder: (_, __) => const AccountBlockedScreen(),
+  ),
+  GoRoute(
+    path: AppGuards.wrongAccount,
+    builder: (_, __) => const WrongAccountScreen(),
   ),
   GoRoute(path: AppGuards.login, builder: (_, __) => const VendorLoginScreen()),
   GoRoute(
