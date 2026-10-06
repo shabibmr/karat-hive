@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
@@ -11,7 +12,10 @@ import 'token_storage.dart';
 
 typedef TokenGetter = Future<String?> Function();
 typedef TokenRefreshHandler = Future<bool> Function();
-typedef RefreshCallback = Future<SessionTokens?> Function(String refreshToken);
+typedef RefreshCallback = Future<SessionTokens?> Function(
+  String refreshToken,
+  String? audience,
+);
 
 /// A cursor-paged collection response: the `data` array plus `meta.nextCursor`
 /// from the backend list envelope (Architecture-Frontend §9.6, backend §13.4).
@@ -315,5 +319,19 @@ class _ChainInterceptor extends Interceptor {
     final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
     return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-'
         '${hex.substring(16, 20)}-${hex.substring(20)}';
+  }
+}
+
+
+String? _readAccessAudience(String token) {
+  try {
+    final parts = token.split('.');
+    if (parts.length != 3) return null;
+    final payload = jsonDecode(
+      utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+    );
+    return payload is Map ? payload['aud']?.toString() : null;
+  } catch (_) {
+    return null;
   }
 }
