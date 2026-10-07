@@ -6,11 +6,13 @@ import { ENV, type Env } from '../../../config/env';
 import { PrismaService } from '../../../platform/db/prisma.service';
 import { Clock } from '../../../shared/clock';
 import { IdentityAuthError } from '../domain/identity-auth-error';
+import { AuthAudience, audienceMatchesRole } from '../domain/auth-audience';
 
 export type AccessClaims = {
   sub: string;
   role: UserType;
   ver: number;
+  audience: AuthAudience;
 };
 
 export type IssuedTokens = {
@@ -32,7 +34,14 @@ export class TokenService {
   async signAccess(claims: AccessClaims): Promise<{ token: string; expiresAt: Date }> {
     const now = this.clock.now();
     const expiresAt = new Date(now.getTime() + this.env.JWT_ACCESS_TTL_SECONDS * 1000);
-    const token = await new SignJWT({ role: claims.role, ver: claims.ver })
+    if (!audienceMatchesRole(claims.audience, claims.role)) {
+      throw new Error('Audience does not allow user role');
+    }
+    const token = await new SignJWT({
+      role: claims.role,
+      ver: claims.ver,
+      aud: claims.audience,
+    })
       .setProtectedHeader({ alg: 'HS256' })
       .setSubject(claims.sub)
       .setIssuedAt(Math.floor(now.getTime() / 1000))
@@ -47,10 +56,22 @@ export class TokenService {
       const sub = payload.sub;
       const role = payload['role'];
       const ver = payload['ver'];
-      if (typeof sub !== 'string' || typeof role !== 'string' || typeof ver !== 'number') {
+      const audience = payload['aud'];
+      if (
+        typeof sub !== 'string' ||
+        typeof role !== 'string' ||
+        typeof ver !== 'number' ||
+        typeof audience !== 'string' ||
+        !Object.values(AuthAudience).includes(audience as AuthAudience)
+      ) {
         throw new IdentityAuthError('UNAUTHENTICATED');
       }
-      return { sub, role: role as UserType, ver };
+      return {
+        sub,
+        role: role as UserType,
+        ver,
+        audience: audience as AuthAudience,
+      };
     } catch (error: unknown) {
       if (error instanceof IdentityAuthError) throw error;
       if (error instanceof errors.JWTExpired) {
@@ -66,6 +87,7 @@ export class TokenService {
     ip?: string | null;
     userAgent?: string | null;
     ttlMs: number;
+    audience: AuthAudience;
   }): Promise<{ refreshToken: string; refreshExpiresAt: Date; familyId: string }> {
     const familyId = args.familyId ?? randomUUID();
     const refreshToken = randomBytes(32).toString('base64url');
@@ -74,6 +96,7 @@ export class TokenService {
       data: {
         userId: args.userId,
         familyId,
+        audience: args.audience,
         tokenHash: hashToken(refreshToken),
         expiresAt: refreshExpiresAt,
         ip: args.ip ?? null,
@@ -88,12 +111,16 @@ export class TokenService {
     ttlMs: number,
     ip?: string | null,
     userAgent?: string | null,
+    audience: AuthAudience,
   ): Promise<IssuedTokens> {
     const now = this.clock.now();
     const existing = await this.prisma.refreshToken.findUnique({
       where: { tokenHash: hashToken(presented) },
     });
     if (!existing) {
+      throw new IdentityAuthError('UNAUTHENTICATED');
+    }
+    if (existing.audience !== audience) {
       throw new IdentityAuthError('UNAUTHENTICATED');
     }
     if (existing.rotatedAt !== null || existing.reuseDetectedAt !== null) {
@@ -105,7 +132,11 @@ export class TokenService {
     }
 
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: existing.userId } });
-    if (user.deletedAt !== null || user.accountState !== 'ACTIVE') {
+    if (
+      user.deletedAt !== null ||
+      user.accountState !== 'ACTIVE' ||
+      !audienceMatchesRole(existing.audience, user.userType)
+    ) {
       await this.revokeFamily(existing.familyId, now);
       throw new IdentityAuthError('UNAUTHENTICATED');
     }
@@ -119,11 +150,13 @@ export class TokenService {
       ip,
       userAgent,
       ttlMs,
+      audience: existing.audience,
     });
     const access = await this.signAccess({
       sub: user.id,
       role: user.userType,
       ver: user.tokenVersion,
+      audience: existing.audience,
     });
     return {
       accessToken: access.token,

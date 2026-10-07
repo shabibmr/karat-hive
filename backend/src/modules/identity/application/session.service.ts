@@ -9,6 +9,7 @@ import { MeService } from './me.service';
 import { TokenService, type IssuedTokens } from './token.service';
 import { UserRepository } from '../repository/user.repository';
 import { presentSession, type SessionBundle } from '../presenter/session.presenter';
+import { AuthAudience, audienceMatchesRole } from '../domain/auth-audience';
 
 type ClientInfo = { ip?: string | null; userAgent?: string | null };
 
@@ -26,17 +27,23 @@ export class SessionService {
     return this.env.JWT_REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000;
   }
 
-  async issueFor(user: User, client: ClientInfo = {}): Promise<SessionBundle> {
+  async issueFor(
+    user: User,
+    client: ClientInfo = {},
+    audience: AuthAudience = AuthAudience.MOBILE_RESTORE,
+  ): Promise<SessionBundle> {
     const access = await this.tokens.signAccess({
       sub: user.id,
       role: user.userType,
       ver: user.tokenVersion,
+      audience,
     });
     const refresh = await this.tokens.issueRefresh({
       userId: user.id,
       ip: client.ip ?? null,
       userAgent: client.userAgent ?? null,
       ttlMs: this.refreshTtlMs(),
+      audience,
     });
     const bundle: IssuedTokens = {
       accessToken: access.token,
@@ -49,7 +56,11 @@ export class SessionService {
     return presentSession(bundle, await this.me.forUser(user));
   }
 
-  async refresh(presented: string, client: ClientInfo = {}): Promise<SessionBundle> {
+  async refresh(
+    presented: string,
+    client: ClientInfo = {},
+    audience: AuthAudience,
+  ): Promise<SessionBundle> {
     let issued: IssuedTokens;
     try {
       issued = await this.tokens.rotateRefresh(
@@ -57,6 +68,7 @@ export class SessionService {
         this.refreshTtlMs(),
         client.ip ?? null,
         client.userAgent ?? null,
+        audience,
       );
     } catch (error: unknown) {
       if (error instanceof IdentityAuthError) {
@@ -72,6 +84,13 @@ export class SessionService {
     const user = await this.users.findById(claims.sub);
     if (!user || user.deletedAt) {
       throw new ApiException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHENTICATED);
+    }
+    if (!audienceMatchesRole(audience, user.userType)) {
+      throw new ApiException(
+        HttpStatus.FORBIDDEN,
+        ErrorCode.ACCOUNT_ROLE_MISMATCH,
+        [{ code: 'actualRole', message: user.userType }],
+      );
     }
     return presentSession(issued, await this.me.forUser(user));
   }

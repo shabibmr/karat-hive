@@ -146,22 +146,33 @@ class KhApi {
   /// (`AD-API-13`, G2-A14). Does not create a User; unbound → 401.
   Future<Result<SessionBundle>> googleSession({
     required String idToken,
+    String? audience,
     String? expectedRole,
   }) =>
-      auth.googleSession(idToken: idToken, expectedRole: expectedRole);
+      auth.googleSession(
+        idToken: idToken,
+        audience: audience,
+        expectedRole: expectedRole,
+      );
 
   /// Alias for [googleSession] using `/v1/auth/firebase/session`.
   Future<Result<SessionBundle>> firebaseSession({
     required String idToken,
+    String? audience,
     String? expectedRole,
   }) =>
-      auth.firebaseSession(idToken: idToken, expectedRole: expectedRole);
+      auth.firebaseSession(
+        idToken: idToken,
+        audience: audience,
+        expectedRole: expectedRole,
+      );
 
   static Future<SessionTokens?> refresh(
     KhApiClient client,
-    String refreshToken,
-  ) =>
-      AuthClient.refresh(client, refreshToken);
+    String refreshToken, {
+    String? audience,
+  }) =>
+      AuthClient.refresh(client, refreshToken, audience: audience);
 
   Future<void> logout(String? refreshToken) => auth.logout(refreshToken);
 

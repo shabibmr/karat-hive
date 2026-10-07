@@ -15,6 +15,7 @@ import { RegistrationService } from '../application/registration.service';
 import { SessionService, type SessionFamilyView } from '../application/session.service';
 import { clientInfoOf } from './client-info';
 import type { SessionBundle } from '../presenter/session.presenter';
+import { AuthAudience } from '../domain/auth-audience';
 
 const otpRequestSchema = z.object({
   mobileNumber: z
@@ -80,7 +81,16 @@ const registerVendorSchema = z
     { message: 'Either challengeId, firebaseToken, or mobileNumber is required.' },
   );
 
-const refreshSchema = z.object({ refreshToken: z.string().min(1) });
+const authAudienceSchema = z.enum([
+  AuthAudience.CUSTOMER_APP,
+  AuthAudience.VENDOR_APP,
+  AuthAudience.MOBILE_RESTORE,
+  AuthAudience.ADMIN_PORTAL,
+]);
+const refreshSchema = z.object({
+  refreshToken: z.string().min(1),
+  audience: authAudienceSchema,
+});
 const logoutSchema = z.object({
   refreshToken: z.string().min(1).optional(),
   allDevices: z.boolean().optional(),
@@ -95,10 +105,15 @@ const firebaseSessionSchema = z
     idToken: z.string().min(1).optional(),
     token: z.string().min(1).optional(),
     firebaseToken: z.string().min(1).optional(),
+    audience: authAudienceSchema.optional(),
     expectedRole: z.enum(['CUSTOMER', 'VENDOR', 'ADMIN']).optional(),
   })
   .refine((v) => Boolean(v.idToken || v.token || v.firebaseToken), {
     message: 'idToken, token, or firebaseToken is required.',
+  })
+  .refine((v) => Boolean(v.audience || v.expectedRole), {
+    message: 'audience is required.',
+    path: ['audience'],
   });
 
 @Controller('v1/auth')
@@ -120,7 +135,17 @@ export class AuthController {
     @Body(zodBody(firebaseSessionSchema)) body: z.infer<typeof firebaseSessionSchema>,
   ): Promise<SessionBundle> {
     const token = (body.idToken || body.token || body.firebaseToken)!;
-    return this.oauthAccount.createSessionFromFirebase(token, clientInfoOf(request), body.expectedRole);
+    return this.oauthAccount.createSessionFromFirebase(
+      token,
+      clientInfoOf(request),
+      (body.audience ??
+        (body.expectedRole === 'CUSTOMER'
+          ? AuthAudience.CUSTOMER_APP
+          : body.expectedRole === 'VENDOR'
+            ? AuthAudience.VENDOR_APP
+            : AuthAudience.ADMIN_PORTAL)),
+      body.expectedRole,
+    );
   }
 
   @Public()
@@ -132,7 +157,17 @@ export class AuthController {
     @Body(zodBody(firebaseSessionSchema)) body: z.infer<typeof firebaseSessionSchema>,
   ): Promise<SessionBundle> {
     const token = (body.idToken || body.token || body.firebaseToken)!;
-    return this.oauthAccount.createSessionFromFirebase(token, clientInfoOf(request), body.expectedRole);
+    return this.oauthAccount.createSessionFromFirebase(
+      token,
+      clientInfoOf(request),
+      (body.audience ??
+        (body.expectedRole === 'CUSTOMER'
+          ? AuthAudience.CUSTOMER_APP
+          : body.expectedRole === 'VENDOR'
+            ? AuthAudience.VENDOR_APP
+            : AuthAudience.ADMIN_PORTAL)),
+      body.expectedRole,
+    );
   }
 
   @Public()
@@ -197,7 +232,11 @@ export class AuthController {
     @Req() request: FastifyRequest,
     @Body(zodBody(refreshSchema)) body: z.infer<typeof refreshSchema>,
   ): Promise<SessionBundle> {
-    return this.session.refresh(body.refreshToken, clientInfoOf(request));
+    return this.session.refresh(
+      body.refreshToken,
+      clientInfoOf(request),
+      body.audience,
+    );
   }
 
   @Public()

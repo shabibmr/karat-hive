@@ -27,9 +27,14 @@ class CustomerAuthRepository {
   /// Unbound identity → `Err(UnauthorisedFailure(code: 'UNAUTHENTICATED'))`.
   Future<Result<SessionBundle>> googleSession(
     String idToken, {
+    String? audience = AuthAudience.customerApp,
     String? expectedRole = 'CUSTOMER',
   }) =>
-      _api.googleSession(idToken: idToken, expectedRole: expectedRole);
+      _api.googleSession(
+        idToken: idToken,
+        audience: audience,
+        expectedRole: expectedRole,
+      );
 
   /// Requests an OTP to prove a real mobile number for a new Customer.
   Future<Result<OtpChallenge>> requestOtp(String mobileNumber) =>

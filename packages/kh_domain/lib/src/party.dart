@@ -10,6 +10,7 @@ part 'party.g.dart';
 enum UserRole {
   customer,
   vendor,
+  admin,
   unknown;
 
   static UserRole parse(String? value) {
@@ -17,6 +18,7 @@ enum UserRole {
     return switch (value.toUpperCase().trim()) {
       'CUSTOMER' => UserRole.customer,
       'VENDOR' => UserRole.vendor,
+      'ADMIN' => UserRole.admin,
       _ => UserRole.unknown,
     };
   }
@@ -24,6 +26,7 @@ enum UserRole {
   String get wireName => switch (this) {
         UserRole.customer => 'CUSTOMER',
         UserRole.vendor => 'VENDOR',
+        UserRole.admin => 'ADMIN',
         UserRole.unknown => 'UNKNOWN',
       };
 

@@ -29,7 +29,7 @@ class AuthRepository {
   Future<SessionBundle> googleSession(String idToken) async {
     final res = await _apiClient.post(
       '/v1/auth/google/session',
-      data: {'idToken': idToken},
+      data: {'idToken': idToken, 'audience': 'ADMIN_PORTAL'},
     );
     return SessionBundle.fromJson(asMap(res));
   }
@@ -40,6 +40,7 @@ class AuthRepository {
       '/v1/auth/refresh',
       data: {
         'refreshToken': refreshToken,
+        'audience': 'ADMIN_PORTAL',
       },
     );
     return SessionBundle.fromJson(asMap(res));
