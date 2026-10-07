@@ -20,9 +20,12 @@ export function allowedRolesForAudience(audience: AuthAudience): readonly UserTy
       return ['CUSTOMER', 'VENDOR'];
     case AuthAudience.ADMIN_PORTAL:
       return ['ADMIN'];
+    default:
+      return [];
   }
 }
 
 export function audienceMatchesRole(audience: AuthAudience, role: UserType): boolean {
+  if (!audience) return false;
   return allowedRolesForAudience(audience).includes(role);
 }

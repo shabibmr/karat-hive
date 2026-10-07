@@ -206,7 +206,10 @@ class KhApiClient {
           refreshedOk = false;
           return;
         }
-        final next = await cb(current.refreshToken);
+        final next = await cb(
+          current.refreshToken,
+          _readAccessAudience(current.accessToken),
+        );
         if (next != null) {
           await tokenStorage.save(next);
           refreshedOk = true;

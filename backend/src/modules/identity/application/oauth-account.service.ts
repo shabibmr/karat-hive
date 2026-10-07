@@ -56,10 +56,29 @@ export class OAuthAccountService {
 
   async createSessionFromFirebase(
     token: string,
-    client: { ip?: string | null; userAgent?: string | null; acceptLanguage?: string },
-    audience: AuthAudience,
+    client: { ip?: string | null; userAgent?: string | null; acceptLanguage?: string } = {},
+    audienceOrRole?: AuthAudience | UserType,
     expectedRole?: UserType,
   ): Promise<SessionBundle> {
+    let audience: AuthAudience = AuthAudience.MOBILE_RESTORE;
+    let targetRole = expectedRole;
+
+    if (audienceOrRole) {
+      if (
+        audienceOrRole === 'CUSTOMER' ||
+        audienceOrRole === 'VENDOR' ||
+        audienceOrRole === 'ADMIN'
+      ) {
+        targetRole = audienceOrRole;
+        audience =
+          targetRole === 'ADMIN'
+            ? AuthAudience.ADMIN_PORTAL
+            : AuthAudience.MOBILE_RESTORE;
+      } else {
+        audience = audienceOrRole as AuthAudience;
+      }
+    }
+
     const claims = await this.firebaseTokens.verify(token);
     const subjectHash = hashToken(claims.uid);
     const now = this.clock.now();
@@ -71,8 +90,10 @@ export class OAuthAccountService {
     });
 
     if (existingBinding && existingBinding.user) {
-      this.assertUserCanLogin(existingBinding.user, audience, expectedRole);
-      return this.sessionService.issueFor(existingBinding.user, client, audience);
+      this.assertUserCanLogin(existingBinding.user, audience, targetRole);
+      return audienceOrRole === undefined
+        ? this.sessionService.issueFor(existingBinding.user, client)
+        : this.sessionService.issueFor(existingBinding.user, client, audience);
     }
 
     // 2. If not bound, match by verified email (G2-A02: require claims.emailVerified === true)
@@ -83,7 +104,7 @@ export class OAuthAccountService {
       });
 
       if (matchedUser) {
-        this.assertUserCanLogin(matchedUser, audience, expectedRole);
+        this.assertUserCanLogin(matchedUser, audience, targetRole);
 
         await this.prisma.oauthBinding.upsert({
           where: {
@@ -113,7 +134,9 @@ export class OAuthAccountService {
           userAgent: client.userAgent ?? null,
         });
 
-        return this.sessionService.issueFor(matchedUser, client, audience);
+        return audienceOrRole === undefined
+          ? this.sessionService.issueFor(matchedUser, client)
+          : this.sessionService.issueFor(matchedUser, client, audience);
       }
     }
 
@@ -125,7 +148,7 @@ export class OAuthAccountService {
       });
 
       if (matchedUser) {
-        this.assertUserCanLogin(matchedUser, audience, expectedRole);
+        this.assertUserCanLogin(matchedUser, audience, targetRole);
 
         await this.prisma.oauthBinding.upsert({
           where: {
@@ -155,7 +178,9 @@ export class OAuthAccountService {
           userAgent: client.userAgent ?? null,
         });
 
-        return this.sessionService.issueFor(matchedUser, client, audience);
+        return audienceOrRole === undefined
+          ? this.sessionService.issueFor(matchedUser, client)
+          : this.sessionService.issueFor(matchedUser, client, audience);
       }
     }
 

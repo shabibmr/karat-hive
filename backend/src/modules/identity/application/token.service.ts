@@ -12,7 +12,7 @@ export type AccessClaims = {
   sub: string;
   role: UserType;
   ver: number;
-  audience: AuthAudience;
+  audience?: AuthAudience;
 };
 
 export type IssuedTokens = {
@@ -34,13 +34,16 @@ export class TokenService {
   async signAccess(claims: AccessClaims): Promise<{ token: string; expiresAt: Date }> {
     const now = this.clock.now();
     const expiresAt = new Date(now.getTime() + this.env.JWT_ACCESS_TTL_SECONDS * 1000);
-    if (!audienceMatchesRole(claims.audience, claims.role)) {
+    const audience =
+      claims.audience ??
+      (claims.role === 'ADMIN' ? AuthAudience.ADMIN_PORTAL : AuthAudience.MOBILE_RESTORE);
+    if (!audienceMatchesRole(audience, claims.role)) {
       throw new Error('Audience does not allow user role');
     }
     const token = await new SignJWT({
       role: claims.role,
       ver: claims.ver,
-      aud: claims.audience,
+      aud: audience,
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setSubject(claims.sub)
@@ -87,16 +90,17 @@ export class TokenService {
     ip?: string | null;
     userAgent?: string | null;
     ttlMs: number;
-    audience: AuthAudience;
+    audience?: AuthAudience;
   }): Promise<{ refreshToken: string; refreshExpiresAt: Date; familyId: string }> {
     const familyId = args.familyId ?? randomUUID();
     const refreshToken = randomBytes(32).toString('base64url');
     const refreshExpiresAt = new Date(this.clock.now().getTime() + args.ttlMs);
+    const audience = args.audience ?? AuthAudience.MOBILE_RESTORE;
     await this.prisma.refreshToken.create({
       data: {
         userId: args.userId,
         familyId,
-        audience: args.audience,
+        audience,
         tokenHash: hashToken(refreshToken),
         expiresAt: refreshExpiresAt,
         ip: args.ip ?? null,
@@ -109,9 +113,9 @@ export class TokenService {
   async rotateRefresh(
     presented: string,
     ttlMs: number,
-    ip?: string | null,
-    userAgent?: string | null,
-    audience: AuthAudience,
+    ip: string | null = null,
+    userAgent: string | null = null,
+    audience: AuthAudience = AuthAudience.MOBILE_RESTORE,
   ): Promise<IssuedTokens> {
     const now = this.clock.now();
     const existing = await this.prisma.refreshToken.findUnique({

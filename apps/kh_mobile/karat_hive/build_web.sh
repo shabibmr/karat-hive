@@ -37,13 +37,7 @@ flutter build web \
   --dart-define="KH_FLAVOR=${FLAVOR}" \
   "$@" 2>&1 | tee "${LATEST_LOG}"
 
-if [ -n "${BASH_VERSION:-}" ]; then
-  BUILD_STATUS=${PIPESTATUS[0]}
-elif [ -n "${ZSH_VERSION:-}" ]; then
-  BUILD_STATUS=${pipestatus[1]}
-else
-  BUILD_STATUS=$?
-fi
+  BUILD_STATUS="${PIPESTATUS[0]}"
 
 # Copy the log to a timestamped file for historical tracking
 cp "${LATEST_LOG}" "${TIMESTAMPED_LOG}" 2>/dev/null || true

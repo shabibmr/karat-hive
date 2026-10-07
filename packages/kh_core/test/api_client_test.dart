@@ -103,7 +103,7 @@ void main() {
         }
         throw UnimplementedError(opts.path);
       },
-      onRefresh: (rt) async {
+      onRefresh: (rt, [audience]) async {
         refreshCalled = true;
         expect(rt, 'valid-refresh');
         return SessionTokens(
@@ -164,7 +164,7 @@ void main() {
         }
         throw UnimplementedError(opts.path);
       },
-      onRefresh: (rt) async {
+      onRefresh: (rt, [audience]) async {
         // Calling client.send for refresh as KhApi does:
         final r = await client.send('POST', '/v1/auth/refresh', body: {'refreshToken': rt});
         return r.when(
