@@ -54,7 +54,7 @@ class DefaultFirebaseOptions {
     // Same origin as the Admin Portal so Firebase auth helpers avoid
     // cross-site storage / COOP popup breakage. Apache proxies /__/auth/
     // to karat-hive-app.firebaseapp.com (Firebase redirect best practices).
-    authDomain: 'algoray.cloud',
+    authDomain: 'algoray.tech',
     storageBucket: 'karat-hive-app.firebasestorage.app',
   );
 

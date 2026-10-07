@@ -15,7 +15,7 @@ $LATEST_LOG = Join-Path $BUILD_DIR "run_chrome.log"
 $TIMESTAMPED_LOG = Join-Path $BUILD_DIR "run_chrome_${TIMESTAMP}.log"
 
 $BASE_HREF = if ($env:BASE_HREF) { $env:BASE_HREF } else { "/karat_hive/" }
-$API_BASE = if ($env:KH_API_BASE_URL) { $env:KH_API_BASE_URL } elseif ($env:KH_API_BASE) { $env:KH_API_BASE } else { "https://algoray.cloud/kh_api/" }
+$API_BASE = if ($env:KH_API_BASE_URL) { $env:KH_API_BASE_URL } elseif ($env:KH_API_BASE) { $env:KH_API_BASE } else { "https://algoray.tech/kh_api/" }
 $FLAVOR = if ($env:KH_FLAVOR) { $env:KH_FLAVOR } else { "prod" }
 $WEB_PORT = if ($env:WEB_PORT) { [int]$env:WEB_PORT } else { 8082 }
 

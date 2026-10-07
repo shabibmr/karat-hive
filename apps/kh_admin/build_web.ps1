@@ -15,7 +15,7 @@ $LATEST_LOG = Join-Path $BUILD_DIR "web_build.log"
 $TIMESTAMPED_LOG = Join-Path $BUILD_DIR "web_build_${TIMESTAMP}.log"
 
 $BASE_HREF = if ($env:BASE_HREF) { $env:BASE_HREF } else { "/hive_admin/" }
-$API_BASE = if ($env:KH_API_BASE) { $env:KH_API_BASE } else { "https://algoray.cloud/kh_api" }
+$API_BASE = if ($env:KH_API_BASE) { $env:KH_API_BASE } else { "https://algoray.tech/kh_api" }
 $FLAVOR = if ($env:KH_FLAVOR) { $env:KH_FLAVOR } else { "prod" }
 
 Write-Host "============================================================"

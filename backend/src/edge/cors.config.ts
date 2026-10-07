@@ -7,7 +7,7 @@ export const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   // - 192.168.0.0/16
   /^https?:\/\/(10(\.\d{1,3}){3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})(:\d+)?$/,
   // Production / staging domains and subdomains:
-  /^https:\/\/([a-z0-9-]+\.)?algoray\.cloud$/,
+  /^https:\/\/([a-z0-9-]+\.)?algoray\.tech$/,
 ];
 
 export const ALLOWED_METHODS = [

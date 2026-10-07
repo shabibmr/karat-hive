@@ -7,10 +7,10 @@ import 'package:kh_admin/core/api/api_exception.dart';
 import 'package:kh_admin/core/api/server_time_provider.dart';
 import 'package:kh_admin/core/platform/flavor.dart';
 
-/// Default base URL read from `--dart-define=KH_API_BASE`, defaulting to `https://algoray.cloud/kh_api`.
+/// Default base URL read from `--dart-define=KH_API_BASE`, defaulting to `https://algoray.tech/kh_api`.
 const String khApiBase = String.fromEnvironment(
   'KH_API_BASE',
-  defaultValue: 'https://algoray.cloud/kh_api',
+  defaultValue: 'https://algoray.tech/kh_api',
 );
 
 typedef TokenGetter = Future<String?> Function();

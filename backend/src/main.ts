@@ -30,7 +30,7 @@ async function bootstrap(): Promise<void> {
   app.enableShutdownHooks();
 
   // Flutter Web (kh_admin, kh_mobile) runs on an unpredictable localhost port
-  // in dev, and on algoray.cloud (and subdomains) in prod — neither sends
+  // in dev, and on algoray.tech (and subdomains) in prod — neither sends
   // cookies, so a wide origin allowlist carries no CSRF risk.
   // Methods must include PATCH/PUT/DELETE: admin taxonomy + settings use PATCH.
   // Nest/Fastify otherwise defaults to GET,HEAD,POST and browsers reject those

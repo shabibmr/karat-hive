@@ -7,7 +7,7 @@ param (
     [Parameter(Position = 1)]
     [string]$BaseHref = $(if ($env:BASE_HREF) { $env:BASE_HREF } else { "/" }),
 
-    [string]$ApiBase = $(if ($env:KH_API_BASE) { $env:KH_API_BASE } else { "https://algoray.cloud/kh_api/" }),
+    [string]$ApiBase = $(if ($env:KH_API_BASE) { $env:KH_API_BASE } else { "https://algoray.tech/kh_api/" }),
     [string]$Flavor = $(if ($env:KH_FLAVOR) { $env:KH_FLAVOR } else { "prod" }),
 
     [Parameter(ValueFromRemainingArguments = $true)]

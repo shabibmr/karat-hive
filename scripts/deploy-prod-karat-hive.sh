@@ -9,7 +9,7 @@ DEPLOY_DIR="${DEPLOY_DEST:-/var/www/html/karat/karat-hive}"
 BACKUP_ROOT="${BACKUP_ROOT:-/root/deploy_backups}"
 PUBLIC_URL="${PUBLIC_URL:-https://app.karathive.com/}"
 PUBLIC_URL_ALT="${PUBLIC_URL_ALT:-https://karathive.com/}"
-KH_API_BASE="${KH_API_BASE:-https://algoray.cloud/kh_api}"
+KH_API_BASE="${KH_API_BASE:-https://algoray.tech/kh_api}"
 KH_FLAVOR="${KH_FLAVOR:-prod}"
 BASE_HREF="${BASE_HREF:-/}"
 
@@ -28,7 +28,7 @@ Options:
   --skip-build         Deploy existing artifacts without compiling
   --skip-deploy        Compile Flutter web without deploying
   --base-href <path>   Set base href (default: /)
-  --api-base <url>     Set backend API base URL (default: https://algoray.cloud/kh_api)
+  --api-base <url>     Set backend API base URL (default: https://algoray.tech/kh_api)
   -h, --help           Show this help message
 
 EOF
@@ -48,7 +48,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --api-base)
-      KH_API_BASE="${2:-https://algoray.cloud/kh_api}"
+      KH_API_BASE="${2:-https://algoray.tech/kh_api}"
       shift 2
       ;;
     *) die "Unknown option: $1" ;;
