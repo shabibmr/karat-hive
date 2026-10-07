@@ -172,8 +172,14 @@ deploy_backend() {
     "${dest}/node_modules" 2>/dev/null || true
 
   require_cmd pm2
-  log "pm2 restart ${PM2_APP}"
-  pm2 restart "${PM2_APP}"
+  if pm2 describe "${PM2_APP}" >/dev/null 2>&1; then
+    log "pm2 restart ${PM2_APP}"
+    pm2 restart "${PM2_APP}"
+  else
+    log "pm2 start ./start.sh --name ${PM2_APP}"
+    pm2 start ./start.sh --name "${PM2_APP}"
+    pm2 save
+  fi
   wait_http_ok "${API_HEALTH_LOCAL}" "kh-api local health" 20 3
   log "kh-api public: HTTP $(http_code "${API_HEALTH_PUBLIC}")"
 }
