@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Dynamic remote environment configuration (System Architecture Note: Dynamic Environment Config)
+    // Public unauthenticated read allowed; writes are locked to Admin SDK / Service Account.
+    match /app_config/environment {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Temporary diagnostic logs for field debugging and media upload tracing (FirestoreDebugLogger)
+    match /debug_logs/{logId} {
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
+
+    // Default lock down for all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
