@@ -123,7 +123,7 @@ class ConnectionDetailScreen extends ConsumerWidget {
         title: Text(l10n?.connectionDetailTitle ?? 'Connection'),
       ),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const KhLoadingView(),
         error: (err, _) => KhErrorView(
           message: switch (err) {
             final Failure f => f.message ??

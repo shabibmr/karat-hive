@@ -449,10 +449,9 @@ Full-bleed photograph (`assets/images/tile_*.webp`), serif title and a `gold` ar
 
 Clean and ivory: no elevation, minimal icons, the brand mark given breathing room. 56–64 px high, 16 px gutter.
 
-- **Brand mark:** the tracked "KARAT HIVE" wordmark set in Cormorant, standing in for the clover lockup from `Home-1.png` until that asset exists (open item O-02). The wordmark is text on ivory, so it uses `goldDark` or `ink`, never `gold` (§2.5; gap G-05).
+- **Brand mark:** the brand logo image (`assets/karat-hive-logo.png`, the same asset as `KhLoadingView` and the splash), centred at 48 px high inside the 64 px bar, unrecoloured. It already carries the KARAT HIVE wordmark, so no text sits beside it. `KhBrandHeader` draws it; `brandLabel` is its semantic label and the text fallback if the image fails to load.
 - **Home:** bell in a 44 px box with a `danger` count badge (min 16, 10/600 ivory), inset from the top-end corner.
 - **Guest:** a "Log in" text action.
-- The pink logo artwork is not used in the app bar (plan §2).
 
 ### 6.15 Compose header
 
@@ -707,7 +706,7 @@ The package layout suggested at the end of `design-System.md` (`karat_hive_desig
 | G-02 | `TextTheme` still carries 1a sizes and weights (§3.2); form input 14 → 16, labels 10.5 → 12–13, errors 11 → 12 | `theme.dart`, `typography.dart` |
 | G-03 | No spacing tokens for 40 / 48 / 64 / 80 | `tokens.dart` `KhSpace` |
 | G-04 | Field radius 12 → 10; bottom-sheet top radius 16 → 20 | `tokens.dart`, `theme.dart` |
-| G-05 | Brand wordmark renders in `gold` on ivory (2.1:1); must be `goldDark` or `ink` | `kh_brand_mark.dart` |
+| G-05 | `KhBrandMark` text wordmark renders in `gold` on ivory (2.1:1); must be `goldDark` or `ink` if it is ever mounted again. It is no longer used in the app bar (§6.14) | `kh_brand_mark.dart` |
 | G-06 | Request-type tiles use shortened labels ("Gold Coin(s)", "Gold Bullion") instead of the Request Type names | `kh_l10n` `service.card.*` |
 
 ### 14.2 Open items
@@ -717,7 +716,7 @@ Recorded as open; don't resolve them by inference.
 | ID | Item | Blocks |
 |---|---|---|
 | O-01 | Screen gutter: shipped 16 vs the written system's preferred 20 | §4.2 |
-| O-02 | Clover brand-mark asset from `Home-1.png` | App header (wordmark stands in) |
+| ~~O-02~~ | Closed 2 Oct 2026: the app header uses the brand logo image; no clover asset is needed | — |
 | O-03 | Activity summary on Home: the `CLAUDE.md` shell notes list it, `Home-1.png` doesn't show it, Home doesn't mount it today | §7.1 |
 | O-04 | Yahoo Finance redistribution terms (`CLAUDE.md` live open decisions) | Showing a reference-rate-derived Indicative Value to end users (§7.5) |
 | O-05 | **Anklet** chip — not in `OrnamentType` | Ornament-type chip row |

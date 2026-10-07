@@ -66,9 +66,7 @@ class SubmitOfferScreen extends ConsumerWidget {
         key: const Key('submit-offer-screen'),
         appBar: AppBar(title: Text(l10n?.submitOfferTitle ?? 'Submit Offer')),
         body: switch (state) {
-          SubmitOfferLoading() || SubmitOfferSucceeded() => const Center(
-            child: CircularProgressIndicator(),
-          ),
+          SubmitOfferLoading() || SubmitOfferSucceeded() => const KhLoadingView(),
           SubmitOfferFailed(:final failure) => KhErrorView(
             message:
                 failure.message ??

@@ -31,9 +31,7 @@ class ReviseOfferScreen extends ConsumerWidget {
         key: const Key('revise-offer-screen'),
         appBar: AppBar(title: Text(l10n?.offerCurrentTerms ?? 'Offer Details')),
         body: switch (state) {
-          ReviseOfferLoading() || ReviseOfferSucceeded() => const Center(
-            child: CircularProgressIndicator(),
-          ),
+          ReviseOfferLoading() || ReviseOfferSucceeded() => const KhLoadingView(),
           ReviseOfferFailed(:final failure) => KhErrorView(
             message:
                 failure.message ??

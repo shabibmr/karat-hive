@@ -22,30 +22,41 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: colors.backgroundSurface,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: colors.gold400.withValues(alpha: 0.4),
-                  width: 1.5,
-                ),
-              ),
-              child: Icon(
-                Icons.diamond_outlined,
-                size: 32,
-                color: colors.goldPrimary,
-              ),
-            ),
-            SizedBox(height: spacing.md),
-            Text(
-              'KARAT HIVE',
-              style: typography.headline.copyWith(
-                color: colors.goldPrimary,
-                letterSpacing: 2.0,
-                fontWeight: FontWeight.w700,
+            Image.asset(
+              'assets/karat-hive-logo.png',
+              package: 'kh_design_system',
+              width: 180,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: colors.backgroundSurface,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: colors.gold400.withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.diamond_outlined,
+                      size: 32,
+                      color: colors.goldPrimary,
+                    ),
+                  ),
+                  SizedBox(height: spacing.md),
+                  Text(
+                    'KARAT HIVE',
+                    style: typography.headline.copyWith(
+                      color: colors.goldPrimary,
+                      letterSpacing: 2.0,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ),
             SizedBox(height: spacing.lg),

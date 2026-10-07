@@ -38,7 +38,7 @@ The audit that compared `design-System.md` to the mocks still stands for the fil
 | `Card-mock.png` | Summary card anatomy only. See §4.6 for the two corrections |
 | `find-ornament-img.png`, `sell-old-img.png`, `coin-img.png`, `bullion-img.png` | Tile photography |
 | `design-System.md` | Spacing, type roles, borders, text actions, empty rules the mocks do not draw |
-| `logo-img.png`, `logo-img-2.png`, `ChatGPT Image Sep 30, 2026, 03_41_02 AM.png` | Unused for the app bar. Pink “HIVE” lockup is not a UI colour |
+| `logo-img.png`, `logo-img-2.png`, `ChatGPT Image Sep 30, 2026, 03_41_02 AM.png` | Superseded: `karat-hive-logo.png` (the brand logo) is now the app-bar mark |
 
 Coins and Bullion have no new screen mock. They keep the field layout in the create-screen plan and pick up shared chrome only.
 
@@ -89,7 +89,7 @@ Vendor screens share this theme. They are not restyled into the Customer editori
 
 Home-1 is the layout reference: logo, notification entry, hero with type on the photograph, 2×2 photography tiles for the four Request types, gold arrow on each tile. The open-Request list stays on My Requests. Activity summary may remain under the grid; Home-1 does not show it, and removing it is out of this pass unless it collides with the 2×2.
 
-App-bar mark is the clover plus tracked “KARAT HIVE” from Home-1. The pink hand/moon files are not that mark. Until a clover asset exists, the wordmark is set in Cormorant with tracking; the clover is a follow-on asset task and does not block the screen.
+App-bar mark (revised 2 Oct 2026): the brand logo image `karat-hive-logo.png`, the same one used on loading and splash views, unrecoloured. This replaces the earlier clover plus tracked “KARAT HIVE” wordmark plan; no clover asset is needed.
 
 ### 4.3 Find An Ornament review
 

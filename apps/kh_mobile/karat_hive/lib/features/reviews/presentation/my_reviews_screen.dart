@@ -198,7 +198,7 @@ class _MyReviewsScreenState extends ConsumerState<MyReviewsScreen> {
                 SizedBox(height: tokens.space.sm),
 
                 if (paged.value.isLoading && paged.value.items.isEmpty) ...[
-                  const Center(child: CircularProgressIndicator()),
+                  const KhLoadingView(),
                 ] else if (paged.value.items.isEmpty) ...[
                   Card(
                     child: Padding(

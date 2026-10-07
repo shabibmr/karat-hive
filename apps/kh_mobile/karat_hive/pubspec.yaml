@@ -52,3 +52,4 @@ flutter:
   assets:
     - assets/karat-hive-logo.png
     - assets/images/
+    - assets/home/

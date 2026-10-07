@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/misc.dart';
+import 'package:flutter_riverpod/src/internals.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:karat_hive/app/session/session_controller.dart';
+import 'package:karat_hive/features/notifications/controller/notifications_controller.dart';
 import 'package:karat_hive/features/request_create/controller/request_create_controller.dart';
 import 'package:karat_hive/features/request_create/pending_publish_intent.dart';
 import 'package:karat_hive/features/request_manage/presentation/customer_home_screen.dart';
@@ -19,65 +20,72 @@ import '../helpers/fake_session.dart';
 class _MockRepo extends Mock implements RequestManageRepository {}
 
 GoRouter _testRouter() => GoRouter(
-      initialLocation: '/home',
-      routes: [
-        GoRoute(
-          path: '/home',
-          builder: (_, __) => const CustomerHomeScreen(),
-        ),
-        GoRoute(
-          path: '/customer/requests',
-          builder: (_, __) => const SizedBox(),
-        ),
-        GoRoute(
-          path: '/customer/connections',
-          builder: (_, __) => const SizedBox(),
-        ),
-        GoRoute(
-          path: '/customer/alerts',
-          builder: (_, __) => const SizedBox(key: Key('alerts-route')),
-        ),
-        GoRoute(
-          path: '/customer/requests/create/ornament',
-          builder: (_, __) => const SizedBox(),
-        ),
-        GoRoute(
-          path: '/customer/requests/create/sell-gold',
-          builder: (_, __) => const SizedBox(),
-        ),
-        GoRoute(
-          path: '/customer/requests/create/coins',
-          builder: (_, __) => const SizedBox(),
-        ),
-        GoRoute(
-          path: '/customer/requests/create/bullion',
-          builder: (_, __) => const SizedBox(),
-        ),
-        GoRoute(
-          path: '/customer/requests/create',
-          builder: (_, __) => const SizedBox(),
-        ),
-      ],
-    );
+  initialLocation: '/home',
+  routes: [
+    GoRoute(path: '/home', builder: (_, __) => const CustomerHomeScreen()),
+    GoRoute(path: '/customer/requests', builder: (_, __) => const SizedBox()),
+    GoRoute(
+      path: '/customer/connections',
+      builder: (_, __) => const SizedBox(),
+    ),
+    GoRoute(
+      path: '/customer/alerts',
+      builder: (_, __) => const SizedBox(key: Key('alerts-route')),
+    ),
+    GoRoute(
+      path: '/customer/profile',
+      builder: (_, __) => const SizedBox(key: Key('profile-route')),
+    ),
+    GoRoute(
+      path: '/customer/requests/create/ornament',
+      builder: (_, __) => const SizedBox(),
+    ),
+    GoRoute(
+      path: '/customer/requests/create/sell-gold',
+      builder: (_, __) => const SizedBox(),
+    ),
+    GoRoute(
+      path: '/customer/requests/create/coins',
+      builder: (_, __) => const SizedBox(),
+    ),
+    GoRoute(
+      path: '/customer/requests/create/bullion',
+      builder: (_, __) => const SizedBox(),
+    ),
+    GoRoute(
+      path: '/customer/requests/create',
+      builder: (_, __) => const SizedBox(),
+    ),
+  ],
+);
 
 Widget _host(
   List<Override> overrides, {
   GoRouter? router,
   Locale locale = const Locale('en'),
-}) =>
-    ProviderScope(
-      overrides: overrides,
-      child: MaterialApp.router(
-        theme: KhTheme.light(locale: locale),
-        locale: locale,
-        routerConfig: router ?? _testRouter(),
-        localizationsDelegates: const [
-          ...KhStrings.delegates,
-          AppLocalizations.delegate,
-        ],
-        supportedLocales: KhStrings.supportedLocales,
-      ),
-    );
+  double textScale = 1,
+}) => ProviderScope(
+  overrides: [
+    unreadNotificationsProvider.overrideWith((ref) async => false),
+    ...overrides,
+  ],
+  child: MaterialApp.router(
+    theme: KhTheme.light(locale: locale),
+    locale: locale,
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(
+        context,
+      ).copyWith(textScaler: TextScaler.linear(textScale)),
+      child: child!,
+    ),
+    routerConfig: router ?? _testRouter(),
+    localizationsDelegates: const [
+      ...KhStrings.delegates,
+      AppLocalizations.delegate,
+    ],
+    supportedLocales: KhStrings.supportedLocales,
+  ),
+);
 
 class _PendingPublishIntentTrue extends PendingPublishIntent {
   @override
@@ -85,50 +93,55 @@ class _PendingPublishIntentTrue extends PendingPublishIntent {
 }
 
 SignedIn _signedInCustomer() => SignedIn(
-      MeUser(
-        userId: 'u2',
-        userType: 'CUSTOMER',
-        mobileNumber: '+971500000002',
-        preferredLanguage: 'en',
-        liveRequestCount: 2,
-        customer: testCustomerMe(connectionCount: 3),
-      ),
-    );
+  MeUser(
+    userId: 'u2',
+    userType: 'CUSTOMER',
+    mobileNumber: '+971500000002',
+    preferredLanguage: 'en',
+    liveRequestCount: 2,
+    customer: testCustomerMe(connectionCount: 3),
+  ),
+);
 
 void main() {
   late _MockRepo repo;
 
   setUp(() {
     repo = _MockRepo();
-    when(() => repo.listMine(
-          cursor: any(named: 'cursor'),
-          limit: any(named: 'limit'),
-          state: any(named: 'state'),
-          requestType: any(named: 'requestType'),
-          direction: any(named: 'direction'),
-          q: any(named: 'q'),
-          from: any(named: 'from'),
-          to: any(named: 'to'),
-        )).thenAnswer(
+    when(
+      () => repo.listMine(
+        cursor: any(named: 'cursor'),
+        limit: any(named: 'limit'),
+        state: any(named: 'state'),
+        requestType: any(named: 'requestType'),
+        direction: any(named: 'direction'),
+        q: any(named: 'q'),
+        from: any(named: 'from'),
+        to: any(named: 'to'),
+      ),
+    ).thenAnswer(
       (_) async => const Ok(
         PagedResult<RequestForCustomer>(items: [], nextCursor: null),
       ),
     );
   });
 
-  testWidgets('Customer Home dashboard shows hero, services, how-it-works; no History',
-      (tester) async {
+  testWidgets('Customer Home shows the photographic hero and four services', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(800, 1200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(_host([
-      requestManageRepositoryProvider.overrideWithValue(repo),
-      sessionProvider.overrideWith(
-        () => FakeSessionController(_signedInCustomer()),
-      ),
-    ]));
+    await tester.pumpWidget(
+      _host([
+        requestManageRepositoryProvider.overrideWithValue(repo),
+        sessionProvider.overrideWith(
+          () => FakeSessionController(_signedInCustomer()),
+        ),
+      ]),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('customer-home-hero')), findsOneWidget);
@@ -137,24 +150,51 @@ void main() {
     expect(find.byKey(const Key('customer-type-coins')), findsOneWidget);
     expect(find.byKey(const Key('customer-type-bullion')), findsOneWidget);
     expect(find.byKey(const Key('summary-open')), findsNothing);
-    expect(find.byKey(const Key('summary-offers')), findsNothing);
-    expect(find.byKey(const Key('summary-connections')), findsNothing);
-    expect(find.byKey(const Key('customer-home-view-all')), findsNothing);
-    expect(find.byKey(const Key('customer-home-how')), findsOneWidget);
-    expect(find.text('Find An Ornament'), findsOneWidget);
-    expect(find.text('What would you like to do?'), findsOneWidget);
-    expect(find.text('KARAT HIVE'), findsOneWidget);
+    expect(find.byKey(const Key('customer-home-how')), findsNothing);
+    expect(find.text('Find an\nOrnament'), findsOneWidget);
+    expect(find.text('Sell My\nGold'), findsOneWidget);
+    expect(find.text('Gold\nCoins'), findsOneWidget);
+    expect(find.text('Gold\nBullion'), findsOneWidget);
+    expect(find.text('Timeless\nin every\ndetail'), findsOneWidget);
+    expect(find.text('What would you like to do?'), findsNothing);
     expect(find.byKey(const Key('open-history')), findsNothing);
     expect(find.byKey(const Key('quick-create')), findsNothing);
   });
 
+  testWidgets('Header shows the signed-in customer initial and opens Profile', (
+    tester,
+  ) async {
+    // Tall enough that the strip is inside the ListView's built range.
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _host([
+        requestManageRepositoryProvider.overrideWithValue(repo),
+        sessionProvider.overrideWith(
+          () => FakeSessionController(_signedInCustomer()),
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('A'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('customer-home-profile')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('profile-route')), findsOneWidget);
+  });
+
   testWidgets('Bell opens Alerts', (tester) async {
-    await tester.pumpWidget(_host([
-      requestManageRepositoryProvider.overrideWithValue(repo),
-      sessionProvider.overrideWith(
-        () => FakeSessionController(_signedInCustomer()),
-      ),
-    ]));
+    await tester.pumpWidget(
+      _host([
+        requestManageRepositoryProvider.overrideWithValue(repo),
+        sessionProvider.overrideWith(
+          () => FakeSessionController(_signedInCustomer()),
+        ),
+      ]),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('customer-home-alerts')));
@@ -162,14 +202,17 @@ void main() {
     expect(find.byKey(const Key('alerts-route')), findsOneWidget);
   });
 
-  testWidgets('Hero autoplays, and a dot tap jumps to that slide',
-      (tester) async {
-    await tester.pumpWidget(_host([
-      requestManageRepositoryProvider.overrideWithValue(repo),
-      sessionProvider.overrideWith(
-        () => FakeSessionController(_signedInCustomer()),
-      ),
-    ]));
+  testWidgets('Hero autoplays, and a dot tap jumps to that slide', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host([
+        requestManageRepositoryProvider.overrideWithValue(repo),
+        sessionProvider.overrideWith(
+          () => FakeSessionController(_signedInCustomer()),
+        ),
+      ]),
+    );
     await tester.pumpAndSettle();
 
     PageController controller() => tester
@@ -186,9 +229,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(controller().page, 1);
 
-    await tester.tap(find.bySemanticsLabel('Slide 4 of 4'));
+    await tester.tap(find.bySemanticsLabel('Slide 3 of 3'));
     await tester.pumpAndSettle();
-    expect(controller().page, 3);
+    expect(controller().page, 2);
+    await tester.tap(find.byTooltip('Next slide'));
+    await tester.pumpAndSettle();
+    expect(controller().page, 0);
+    await tester.tap(find.byTooltip('Previous slide'));
+    await tester.pumpAndSettle();
+    expect(controller().page, 2);
   });
 
   testWidgets('Hero does not autoplay under reduced motion', (tester) async {
@@ -211,10 +260,12 @@ void main() {
     expect(pageView.controller!.page, 0);
   });
 
-  testWidgets('Tapping a request type updates requestCreateController',
-      (tester) async {
+  testWidgets('Tapping a request type updates requestCreateController', (
+    tester,
+  ) async {
     final container = ProviderContainer(
       overrides: [
+        unreadNotificationsProvider.overrideWith((ref) async => false),
         requestManageRepositoryProvider.overrideWithValue(repo),
         sessionProvider.overrideWith(
           () => FakeSessionController(_signedInCustomer()),
@@ -250,38 +301,77 @@ void main() {
   });
 
   testWidgets(
-      'renders _RetryPublicationBanner without layout overflow when publish is pending',
-      (tester) async {
-    final container = ProviderContainer(
-      overrides: [
-        requestManageRepositoryProvider.overrideWithValue(repo),
-        sessionProvider.overrideWith(
-          () => FakeSessionController(_signedInCustomer()),
-        ),
-        pendingPublishIntentProvider.overrideWith(_PendingPublishIntentTrue.new),
-      ],
-    );
-    addTearDown(container.dispose);
+    'renders _RetryPublicationBanner without layout overflow when publish is pending',
+    (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          unreadNotificationsProvider.overrideWith((ref) async => false),
+          requestManageRepositoryProvider.overrideWithValue(repo),
+          sessionProvider.overrideWith(
+            () => FakeSessionController(_signedInCustomer()),
+          ),
+          pendingPublishIntentProvider.overrideWith(
+            _PendingPublishIntentTrue.new,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: MaterialApp.router(
-          theme: khTheme(),
-          routerConfig: _testRouter(),
-          localizationsDelegates: const [
-            ...KhStrings.delegates,
-            AppLocalizations.delegate,
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(
+            theme: khTheme(),
+            routerConfig: _testRouter(),
+            localizationsDelegates: const [
+              ...KhStrings.delegates,
+              AppLocalizations.delegate,
+            ],
+            supportedLocales: KhStrings.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Your request could not be published yet.'),
+        findsOneWidget,
+      );
+      expect(find.text('Try again'), findsOneWidget);
+    },
+  );
+
+  for (final locale in const [Locale('en'), Locale('ar')]) {
+    testWidgets('supports 200% text at 320 px (${locale.languageCode})', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        _host(
+          [
+            requestManageRepositoryProvider.overrideWithValue(repo),
+            sessionProvider.overrideWith(
+              () => FakeSessionController(_signedInCustomer()),
+            ),
           ],
-          supportedLocales: KhStrings.supportedLocales,
+          locale: locale,
+          textScale: 2,
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Your request could not be published yet.'), findsOneWidget);
-    expect(find.text('Retry'), findsOneWidget);
-  });
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('customer-type-bullion')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   for (final width in [320.0, 390.0, 1024.0]) {
     for (final locale in const [Locale('en'), Locale('ar')]) {
@@ -294,23 +384,20 @@ void main() {
           addTearDown(tester.view.resetDevicePixelRatio);
 
           await tester.pumpWidget(
-            _host(
-              [
-                requestManageRepositoryProvider.overrideWithValue(repo),
-                sessionProvider.overrideWith(
-                  () => FakeSessionController(_signedInCustomer()),
-                ),
-              ],
-              locale: locale,
-            ),
+            _host([
+              requestManageRepositoryProvider.overrideWithValue(repo),
+              sessionProvider.overrideWith(
+                () => FakeSessionController(_signedInCustomer()),
+              ),
+            ], locale: locale),
           );
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);
           expect(find.byType(KhServiceCard), findsNWidgets(4));
 
-          // Every section below the grid must lay out too.
+          // Reach the final tile even when the grid extends below the viewport.
           await tester.scrollUntilVisible(
-            find.byKey(const Key('customer-home-how')),
+            find.byKey(const Key('customer-type-bullion')),
             200,
             scrollable: find.byType(Scrollable).first,
           );
