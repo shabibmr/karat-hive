@@ -9,7 +9,7 @@
 ## 1. Network Architecture & Global Conventions
 
 ### 1.1 Base URL & Path Prefix
-* **Base URL**: Configurable via `--dart-define=KH_API_BASE` (e.g. `https://api.karathive.ae` or `https://algoray.cloud/kh_api`).
+* **Base URL**: Configurable via `--dart-define=KH_API_BASE` (e.g. `https://api.karathive.ae` or `https://algoray.tech/kh_api`).
 * **Path Prefix**: All domain and administrative endpoints are versioned under `/v1/`.
 * **Health/Readiness**: Root-level paths `/health` and `/ready`.
 

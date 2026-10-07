@@ -13,7 +13,7 @@ LATEST_LOG="${BUILD_DIR}/run_chrome.log"
 TIMESTAMPED_LOG="${BUILD_DIR}/run_chrome_${TIMESTAMP}.log"
 
 BASE_HREF="${BASE_HREF:-/}"
-API_BASE="${KH_API_BASE:-https://algoray.cloud/kh_api/}"
+API_BASE="${KH_API_BASE:-https://algoray.tech/kh_api/}"
 FLAVOR="${KH_FLAVOR:-prod}"
 WEB_PORT="${WEB_PORT:-5000}"
 

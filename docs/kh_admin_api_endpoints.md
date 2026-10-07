@@ -8,7 +8,7 @@
 
 The `kh_admin` web portal communicates with the Karat Hive backend via a centralized HTTP layer built on top of [Dio](file:///E:/work/karat_hive/apps/kh_admin/lib/core/api/api_client.dart):
 
-* **Base URL**: Configured via `--dart-define=KH_API_BASE`, defaulting to `https://algoray.cloud/kh_api`. It is also dynamically resolvable at startup from Firebase Firestore (`app_config/environment`).
+* **Base URL**: Configured via `--dart-define=KH_API_BASE`, defaulting to `https://algoray.tech/kh_api`. It is also dynamically resolvable at startup from Firebase Firestore (`app_config/environment`).
 * **Path Prefix**: All API paths are versioned under the `/v1/` prefix.
 * **Authentication**: All protected routes require an `Authorization: Bearer <accessToken>` header injected automatically by `ApiClient` from `TokenStorage`.
 * **Automatic Silent Token Refresh**: On receiving `401 Unauthorized` on any non-auth path, `ApiClient` triggers a single-flight mutex lock to call `POST /v1/auth/refresh`, updates local storage, and replays the original request transparently.

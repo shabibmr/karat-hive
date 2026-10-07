@@ -2,18 +2,18 @@
 .SYNOPSIS
     Seeds or updates the app_config/environment document in Firestore with API base URLs.
 .PARAMETER DevUrl
-    API URL for the dev flavor. Defaults to https://algoray.cloud/kh_api.
+    API URL for the dev flavor. Defaults to https://algoray.tech/kh_api.
 .PARAMETER StagingUrl
-    API URL for the staging flavor. Defaults to https://staging.algoray.cloud/kh_api.
+    API URL for the staging flavor. Defaults to https://staging.algoray.tech/kh_api.
 .PARAMETER ProdUrl
-    API URL for the prod flavor. Defaults to https://algoray.cloud/kh_api.
+    API URL for the prod flavor. Defaults to https://algoray.tech/kh_api.
 .PARAMETER ProjectId
     Firebase project ID. Defaults to karat-hive-app.
 #>
 param(
-    [string]$DevUrl = "https://algoray.cloud/kh_api",
-    [string]$StagingUrl = "https://staging.algoray.cloud/kh_api",
-    [string]$ProdUrl = "https://algoray.cloud/kh_api",
+    [string]$DevUrl = "https://algoray.tech/kh_api",
+    [string]$StagingUrl = "https://staging.algoray.tech/kh_api",
+    [string]$ProdUrl = "https://algoray.tech/kh_api",
     [string]$ProjectId = "karat-hive-app"
 )
 

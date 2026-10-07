@@ -19,10 +19,10 @@ PUBLIC_APP="${PUBLIC_APP:-https://app.karathive.com/}"
 PUBLIC_KARAT="${PUBLIC_KARAT:-https://karathive.com/}"
 PUBLIC_ADMIN="${PUBLIC_ADMIN:-https://admin.karathive.com/}"
 API_HEALTH_LOCAL="${API_HEALTH_LOCAL:-http://127.0.0.1:3007/v1/platform-config}"
-API_HEALTH_PUBLIC="${API_HEALTH_PUBLIC:-https://algoray.cloud/kh_api/v1/platform-config}"
+API_HEALTH_PUBLIC="${API_HEALTH_PUBLIC:-https://algoray.tech/kh_api/v1/platform-config}"
 
 PM2_APP="${PM2_APP:-kh-api}"
-KH_API_BASE="${KH_API_BASE:-https://algoray.cloud/kh_api}"
+KH_API_BASE="${KH_API_BASE:-https://algoray.tech/kh_api}"
 KH_FLAVOR="${KH_FLAVOR:-prod}"
 
 DO_APP=1

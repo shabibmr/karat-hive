@@ -13,7 +13,7 @@ LATEST_LOG="${BUILD_DIR}/web_build.log"
 TIMESTAMPED_LOG="${BUILD_DIR}/web_build_${TIMESTAMP}.log"
 
 BASE_HREF="${BASE_HREF:-/hive_admin/}"
-API_BASE="${KH_API_BASE:-https://algoray.cloud/kh_api}"
+API_BASE="${KH_API_BASE:-https://algoray.tech/kh_api}"
 FLAVOR="${KH_FLAVOR:-prod}"
 
 echo "============================================================"

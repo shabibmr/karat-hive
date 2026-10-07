@@ -3,19 +3,19 @@ import 'package:kh_core/kh_core.dart';
 
 void main() {
   group('Env.resolveUrl', () {
-    const prod = Env(flavor: Flavor.prod, apiBaseUrl: 'https://algoray.cloud/kh_api');
+    const prod = Env(flavor: Flavor.prod, apiBaseUrl: 'https://algoray.tech/kh_api');
 
     test('keeps the base path prefix for server-relative paths', () {
       expect(
         prod.resolveUrl('/v1/media/abc.thumb'),
-        'https://algoray.cloud/kh_api/v1/media/abc.thumb',
+        'https://algoray.tech/kh_api/v1/media/abc.thumb',
       );
     });
 
     test('tolerates a trailing slash on the base URL', () {
       expect(
-        prod.copyWith(apiBaseUrl: 'https://algoray.cloud/kh_api/').resolveUrl('/v1/media/a'),
-        'https://algoray.cloud/kh_api/v1/media/a',
+        prod.copyWith(apiBaseUrl: 'https://algoray.tech/kh_api/').resolveUrl('/v1/media/a'),
+        'https://algoray.tech/kh_api/v1/media/a',
       );
     });
 

@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Continue'
 
 $APP_DIR = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
 
-$API_BASE  = if ($env:KH_API_BASE_URL) { $env:KH_API_BASE_URL } elseif ($env:KH_API_BASE) { $env:KH_API_BASE } else { "https://algoray.cloud/kh_api/" }
+$API_BASE  = if ($env:KH_API_BASE_URL) { $env:KH_API_BASE_URL } elseif ($env:KH_API_BASE) { $env:KH_API_BASE } else { "https://algoray.tech/kh_api/" }
 $FLAVOR    = if ($env:KH_FLAVOR) { $env:KH_FLAVOR } else { "prod" }
 $BASE_HREF = if ($env:BASE_HREF) { $env:BASE_HREF } else { "/karat_hive/" }
 $WEB_PORT  = if ($env:WEB_PORT) { [int]$env:WEB_PORT } else { 5000 }

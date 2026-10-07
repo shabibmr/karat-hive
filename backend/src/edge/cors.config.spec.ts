@@ -32,18 +32,18 @@ describe('CORS Configuration', () => {
       expect(isOriginAllowed('http://172.20.10.2:8082')).toBe(true);
     });
 
-    it('allows production and staging algoray.cloud domains over HTTPS', () => {
-      expect(isOriginAllowed('https://algoray.cloud')).toBe(true);
-      expect(isOriginAllowed('https://admin.algoray.cloud')).toBe(true);
-      expect(isOriginAllowed('https://dev.algoray.cloud')).toBe(true);
-      expect(isOriginAllowed('https://staging.algoray.cloud')).toBe(true);
+    it('allows production and staging algoray.tech domains over HTTPS', () => {
+      expect(isOriginAllowed('https://algoray.tech')).toBe(true);
+      expect(isOriginAllowed('https://admin.algoray.tech')).toBe(true);
+      expect(isOriginAllowed('https://dev.algoray.tech')).toBe(true);
+      expect(isOriginAllowed('https://staging.algoray.tech')).toBe(true);
     });
 
     it('rejects unauthorized or attacker origins', () => {
       expect(isOriginAllowed('https://evil.com')).toBe(false);
-      expect(isOriginAllowed('https://fake-algoray.cloud')).toBe(false);
-      expect(isOriginAllowed('http://algoray.cloud')).toBe(false); // HTTP rejected for production
-      expect(isOriginAllowed('https://algoray.cloud.attacker.com')).toBe(false);
+      expect(isOriginAllowed('https://fake-algoray.tech')).toBe(false);
+      expect(isOriginAllowed('http://algoray.tech')).toBe(false); // HTTP rejected for production
+      expect(isOriginAllowed('https://algoray.tech.attacker.com')).toBe(false);
     });
   });
 
