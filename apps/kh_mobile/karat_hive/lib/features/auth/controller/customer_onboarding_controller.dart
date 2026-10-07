@@ -103,6 +103,12 @@ class CustomerOnboardingController
         state = const OnboardingAuthenticated();
       },
       err: (failure) async {
+        if (failure.code == 'ACCOUNT_ROLE_MISMATCH') {
+          try {
+            await _firebase.signOut();
+          } catch (_) {}
+          if (_disposed) return;
+        }
         state = _mapSignInFailure(
           failure,
           idToken,

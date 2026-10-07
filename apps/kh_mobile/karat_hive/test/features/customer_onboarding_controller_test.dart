@@ -173,6 +173,7 @@ void main() {
   });
 
   test('ACCOUNT_ROLE_MISMATCH surfaces as OnboardingFailure with ForbiddenFailure', () async {
+    when(() => firebase.signOut()).thenAnswer((_) async {});
     when(() => repo.googleSession(any())).thenAnswer(
       (_) async => const Err(ForbiddenFailure(
         code: 'ACCOUNT_ROLE_MISMATCH',
@@ -192,6 +193,7 @@ void main() {
     expect(failure, isA<ForbiddenFailure>());
     expect(failure.code, 'ACCOUNT_ROLE_MISMATCH');
     expect(failure.message, 'Your account type does not match the requested role.');
+    verify(() => firebase.signOut()).called(1);
   });
 
   test('ACCOUNT_ROLE_CONFLICT surfaces as OnboardingFailure with ConflictFailure', () async {

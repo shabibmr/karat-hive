@@ -189,4 +189,31 @@ void main() {
     expect(refreshAttempts, 1);
     expect(await tokens.read(), isNull);
   });
+
+  test('403 and 409 keep userType details on the failure', () async {
+    Future<Result<dynamic>> send(int status, String code) {
+      final client = createClient((_) async => jsonBody({
+            'error': {
+              'code': code,
+              'message': 'role',
+              'details': [
+                {'path': 'userType', 'code': 'VENDOR', 'message': 'VENDOR'},
+              ],
+            },
+          }, status: status));
+      return client.send('POST', '/v1/auth/google/session');
+    }
+
+    final forbidden = await send(403, 'ACCOUNT_ROLE_MISMATCH');
+    final mismatch = forbidden.failureOrNull!;
+    expect(mismatch, isA<ForbiddenFailure>());
+    expect(mismatch.code, 'ACCOUNT_ROLE_MISMATCH');
+    expect(mismatch.fieldErrors['userType'], 'VENDOR');
+    expect(mismatch.details['actualRole'], 'VENDOR');
+
+    final conflicted = await send(409, 'ACCOUNT_ROLE_CONFLICT');
+    final conflict = conflicted.failureOrNull!;
+    expect(conflict, isA<ConflictFailure>());
+    expect(conflict.fieldErrors['userType'], 'VENDOR');
+  });
 }

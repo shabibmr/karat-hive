@@ -13,6 +13,7 @@ import {
   OTP_MAX_ATTEMPTS,
 } from '../domain/otp-challenge';
 import { OtpRepository } from '../repository/otp.repository';
+import { userTypeDetail } from '../domain/user-type-detail';
 import { UserRepository } from '../repository/user.repository';
 
 export type IssueResult = { challengeId: string; expiresAt: Date; retryAfterSeconds: number };
@@ -40,7 +41,11 @@ export class OtpService {
       if (existingUser) {
         const expectedRole = purpose === 'REGISTER_CUSTOMER' ? 'CUSTOMER' : 'VENDOR';
         if (existingUser.userType !== expectedRole) {
-          throw new ApiException(HttpStatus.CONFLICT, ErrorCode.ACCOUNT_ROLE_CONFLICT);
+          throw new ApiException(
+            HttpStatus.CONFLICT,
+            ErrorCode.ACCOUNT_ROLE_CONFLICT,
+            userTypeDetail(existingUser.userType),
+          );
         }
         throw new ApiException(HttpStatus.CONFLICT, ErrorCode.MOBILE_ALREADY_REGISTERED);
       }

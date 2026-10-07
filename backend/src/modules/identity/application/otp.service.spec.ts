@@ -81,6 +81,7 @@ describe('OtpService', () => {
     ).rejects.toMatchObject({
       status: HttpStatus.CONFLICT,
       errorCode: ErrorCode.ACCOUNT_ROLE_CONFLICT,
+      details: [{ path: 'userType', code: 'VENDOR', message: 'VENDOR' }],
     });
   });
 
@@ -109,6 +110,7 @@ describe('OtpService', () => {
     ).rejects.toMatchObject({
       status: HttpStatus.CONFLICT,
       errorCode: ErrorCode.ACCOUNT_ROLE_CONFLICT,
+      details: [{ path: 'userType', code: 'CUSTOMER', message: 'CUSTOMER' }],
     });
   });
 });

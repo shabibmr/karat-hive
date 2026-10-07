@@ -28,7 +28,7 @@ class UnauthorisedFailure extends Failure {
 }
 
 class ForbiddenFailure extends Failure {
-  const ForbiddenFailure({super.code, super.message, super.details});
+  const ForbiddenFailure({super.code, super.message, super.details, super.fieldErrors});
 }
 
 class NotFoundFailure extends Failure {
@@ -36,7 +36,7 @@ class NotFoundFailure extends Failure {
 }
 
 class ConflictFailure extends Failure {
-  const ConflictFailure({super.code, super.message, super.details});
+  const ConflictFailure({super.code, super.message, super.details, super.fieldErrors});
 }
 
 class ValidationFailure extends Failure {

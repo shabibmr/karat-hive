@@ -213,6 +213,7 @@ describe('RegistrationService - registerCustomer', () => {
     ).rejects.toMatchObject({
       status: HttpStatus.CONFLICT,
       errorCode: ErrorCode.ACCOUNT_ROLE_CONFLICT,
+      details: [{ path: 'userType', code: 'VENDOR', message: 'VENDOR' }],
     });
   });
 
@@ -256,6 +257,7 @@ describe('RegistrationService - registerCustomer', () => {
     ).rejects.toMatchObject({
       status: HttpStatus.CONFLICT,
       errorCode: ErrorCode.ACCOUNT_ROLE_CONFLICT,
+      details: [{ path: 'userType', code: 'VENDOR', message: 'VENDOR' }],
     });
   });
 
@@ -485,6 +487,7 @@ describe('RegistrationService - registerVendor (G2-A11 Google completer)', () =>
     ).rejects.toMatchObject({
       status: HttpStatus.CONFLICT,
       errorCode: ErrorCode.ACCOUNT_ROLE_CONFLICT,
+      details: [{ path: 'userType', code: 'CUSTOMER', message: 'CUSTOMER' }],
     });
   });
 
@@ -510,6 +513,7 @@ describe('RegistrationService - registerVendor (G2-A11 Google completer)', () =>
     ).rejects.toMatchObject({
       status: HttpStatus.CONFLICT,
       errorCode: ErrorCode.ACCOUNT_ROLE_CONFLICT,
+      details: [{ path: 'userType', code: 'CUSTOMER', message: 'CUSTOMER' }],
     });
   });
 

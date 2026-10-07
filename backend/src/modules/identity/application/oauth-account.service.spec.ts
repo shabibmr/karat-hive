@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { HttpStatus } from '@nestjs/common';
 import { ErrorCode } from '../../../edge/errors/error-codes';
 import { Clock } from '../../../shared/clock';
+import { AuthAudience } from '../domain/auth-audience';
 import { OAuthAccountService } from './oauth-account.service';
 import { hashToken } from './token.service';
 import type { PrismaService } from '../../../platform/db/prisma.service';
@@ -250,7 +251,9 @@ describe('OAuthAccountService', () => {
     ).rejects.toMatchObject({
       status: HttpStatus.FORBIDDEN,
       errorCode: ErrorCode.ACCOUNT_ROLE_MISMATCH,
+      details: [{ path: 'userType', code: 'CUSTOMER', message: 'CUSTOMER' }],
     });
+    expect(sessionService.issueFor).not.toHaveBeenCalled();
   });
 
   it('succeeds when expectedRole matches userType', async () => {
@@ -288,6 +291,76 @@ describe('OAuthAccountService', () => {
 
     const res = await service.createSessionFromFirebase('valid-token', {}, 'CUSTOMER');
     expect(res).toEqual(mockSessionBundle);
+  });
+
+  function boundUserService(user: typeof mockUser) {
+    const firebaseTokens = {
+      verify: vi.fn().mockResolvedValue({
+        uid: 'google-uid-1',
+        email: user.email,
+        emailVerified: true,
+      }),
+    } as unknown as FirebaseTokenService;
+    const sessionService = {
+      issueFor: vi.fn().mockResolvedValue(mockSessionBundle),
+    } as unknown as SessionService;
+    const prisma = {
+      oauthBinding: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'ob-1',
+          userId: user.id,
+          user,
+        }),
+      },
+    } as unknown as PrismaService;
+    const audit = { append: vi.fn() } as unknown as AuditWriter;
+    return {
+      service: new OAuthAccountService(prisma, firebaseTokens, sessionService, mockClock, audit),
+      sessionService,
+    };
+  }
+
+  const adminUser = { ...mockUser, id: 'admin-1', userType: 'ADMIN' as const };
+
+  it('refuses an ADMIN session when expectedRole is omitted', async () => {
+    const { service, sessionService } = boundUserService(adminUser);
+    await expect(service.createSessionFromFirebase('valid-token', {})).rejects.toMatchObject({
+      status: HttpStatus.FORBIDDEN,
+      errorCode: ErrorCode.ACCOUNT_ROLE_MISMATCH,
+      details: [{ path: 'userType', code: 'ADMIN', message: 'ADMIN' }],
+    });
+    expect(sessionService.issueFor).not.toHaveBeenCalled();
+  });
+
+  it('refuses an ADMIN session when expectedRole is CUSTOMER', async () => {
+    const { service, sessionService } = boundUserService(adminUser);
+    await expect(
+      service.createSessionFromFirebase('valid-token', {}, 'CUSTOMER'),
+    ).rejects.toMatchObject({
+      status: HttpStatus.FORBIDDEN,
+      errorCode: ErrorCode.ACCOUNT_ROLE_MISMATCH,
+      details: [{ path: 'userType', code: 'ADMIN', message: 'ADMIN' }],
+    });
+    expect(sessionService.issueFor).not.toHaveBeenCalled();
+  });
+
+  it('issues a session when expectedRole is ADMIN for an admin user', async () => {
+    const { service, sessionService } = boundUserService(adminUser);
+    const res = await service.createSessionFromFirebase('valid-token', {}, 'ADMIN');
+    expect(res).toEqual(mockSessionBundle);
+    expect(sessionService.issueFor).toHaveBeenCalledWith(
+      adminUser,
+      {},
+      AuthAudience.ADMIN_PORTAL,
+    );
+  });
+
+  it('still issues a vendor session when expectedRole is omitted', async () => {
+    const vendor = { ...mockUser, id: 'vendor-1', userType: 'VENDOR' as const };
+    const { service, sessionService } = boundUserService(vendor);
+    const res = await service.createSessionFromFirebase('valid-token', {});
+    expect(res).toEqual(mockSessionBundle);
+    expect(sessionService.issueFor).toHaveBeenCalledWith(vendor, {});
   });
 
   it('throws 403 ACCOUNT_SUSPENDED when accountState is SUSPENDED', async () => {

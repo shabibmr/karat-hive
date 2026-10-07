@@ -6,6 +6,7 @@ import 'package:kh_l10n/kh_l10n.dart';
 
 import '../../../../app/guards.dart';
 import '../../controller/customer_onboarding_controller.dart';
+import '../auth_role_hint.dart';
 
 /// Shared Continue-with-Google panel for Login doors (GL-35).
 ///
@@ -41,7 +42,8 @@ class GoogleContinuePanel extends ConsumerWidget {
           KhInlineError(
             message: state.failure.message ?? l10n.authSignInFailed,
           ),
-          if (state.failure.code == 'ACCOUNT_ROLE_MISMATCH') ...[
+          if (state.failure.code == 'ACCOUNT_ROLE_MISMATCH' &&
+              showsVendorDoor(state.failure)) ...[
             const SizedBox(height: 8),
             KhButton(
               key: const Key('switch-to-vendor-btn'),

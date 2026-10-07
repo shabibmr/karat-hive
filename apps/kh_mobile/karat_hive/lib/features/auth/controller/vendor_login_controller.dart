@@ -75,6 +75,12 @@ class VendorLoginController extends Notifier<LoginState> {
         state = const LoginAuthenticated();
       },
       err: (failure) async {
+        if (failure.code == 'ACCOUNT_ROLE_MISMATCH') {
+          try {
+            await _firebase.signOut();
+          } catch (_) {}
+          if (_disposed) return;
+        }
         if (failure is UnauthorisedFailure &&
             (failure.code == null || failure.code == 'UNAUTHENTICATED')) {
           // Keep the Firebase token on session so vendor register can bind

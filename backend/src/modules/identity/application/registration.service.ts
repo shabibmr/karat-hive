@@ -12,6 +12,7 @@ import { FirebaseTokenService } from './firebase-token.service';
 import { OtpService } from './otp.service';
 import { SessionService } from './session.service';
 import { hashToken } from './token.service';
+import { userTypeDetail } from '../domain/user-type-detail';
 import { UserRepository } from '../repository/user.repository';
 import type { SessionBundle } from '../presenter/session.presenter';
 
@@ -119,7 +120,11 @@ export class RegistrationService {
     const existingMobileUser = await this.users.findByMobile(mobileNumber);
     if (existingMobileUser) {
       if (existingMobileUser.userType !== 'VENDOR') {
-        throw new ApiException(HttpStatus.CONFLICT, ErrorCode.ACCOUNT_ROLE_CONFLICT);
+        throw new ApiException(
+          HttpStatus.CONFLICT,
+          ErrorCode.ACCOUNT_ROLE_CONFLICT,
+          userTypeDetail(existingMobileUser.userType),
+        );
       }
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.MOBILE_ALREADY_REGISTERED);
     }
@@ -127,7 +132,11 @@ export class RegistrationService {
     const existingEmailUser = await this.users.findByEmail(input.businessEmail);
     if (existingEmailUser) {
       if (existingEmailUser.userType !== 'VENDOR') {
-        throw new ApiException(HttpStatus.CONFLICT, ErrorCode.ACCOUNT_ROLE_CONFLICT);
+        throw new ApiException(
+          HttpStatus.CONFLICT,
+          ErrorCode.ACCOUNT_ROLE_CONFLICT,
+          userTypeDetail(existingEmailUser.userType),
+        );
       }
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.EMAIL_ALREADY_REGISTERED);
     }
@@ -245,7 +254,11 @@ export class RegistrationService {
     const existingMobileUser = await this.users.findByMobile(mobileNumber);
     if (existingMobileUser) {
       if (existingMobileUser.userType !== 'CUSTOMER') {
-        throw new ApiException(HttpStatus.CONFLICT, ErrorCode.ACCOUNT_ROLE_CONFLICT);
+        throw new ApiException(
+          HttpStatus.CONFLICT,
+          ErrorCode.ACCOUNT_ROLE_CONFLICT,
+          userTypeDetail(existingMobileUser.userType),
+        );
       }
       throw new ApiException(HttpStatus.CONFLICT, ErrorCode.MOBILE_ALREADY_REGISTERED);
     }
@@ -254,7 +267,11 @@ export class RegistrationService {
       const existingEmailUser = await this.users.findByEmail(email);
       if (existingEmailUser) {
         if (existingEmailUser.userType !== 'CUSTOMER') {
-          throw new ApiException(HttpStatus.CONFLICT, ErrorCode.ACCOUNT_ROLE_CONFLICT);
+          throw new ApiException(
+            HttpStatus.CONFLICT,
+            ErrorCode.ACCOUNT_ROLE_CONFLICT,
+            userTypeDetail(existingEmailUser.userType),
+          );
         }
         throw new ApiException(HttpStatus.CONFLICT, ErrorCode.EMAIL_ALREADY_REGISTERED);
       }

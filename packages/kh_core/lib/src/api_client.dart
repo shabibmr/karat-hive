@@ -151,21 +151,41 @@ class KhApiClient {
     String? code;
     String? message;
     final fieldErrors = <String, String>{};
+    final details = <String, String>{};
     if (data is Map && data['error'] is Map) {
       final err = data['error'] as Map;
       code = err['code'] as String?;
       message = err['message'] as String?;
       for (final d in (err['details'] as List? ?? const [])) {
-        if (d is Map && d['path'] != null) {
-          fieldErrors[d['path'].toString()] = (d['message'] ?? '').toString();
+        if (d is! Map) continue;
+        final detailMessage = (d['message'] ?? '').toString();
+        final path = d['path']?.toString();
+        if (path != null && path.isNotEmpty) {
+          fieldErrors[path] = detailMessage;
+        }
+        final detailCode = d['code']?.toString();
+        if (detailCode == 'actualRole' || path == 'userType') {
+          if (detailMessage.isNotEmpty) details['actualRole'] = detailMessage;
+        } else if (detailCode != null && detailCode.isNotEmpty) {
+          details[detailCode] = detailMessage;
         }
       }
     }
     return switch (status) {
       401 => UnauthorisedFailure(code: code, message: message),
-      403 => ForbiddenFailure(code: code, message: message),
+      403 => ForbiddenFailure(
+          code: code,
+          message: message,
+          details: details,
+          fieldErrors: fieldErrors,
+        ),
       404 => NotFoundFailure(code: code, message: message),
-      409 => ConflictFailure(code: code, message: message),
+      409 => ConflictFailure(
+          code: code,
+          message: message,
+          details: details,
+          fieldErrors: fieldErrors,
+        ),
       422 || 400 => ValidationFailure(code: code, message: message, fieldErrors: fieldErrors),
       423 || 429 => RateLimitedFailure(code: code, message: message),
       503 => const MaintenanceFailure(),

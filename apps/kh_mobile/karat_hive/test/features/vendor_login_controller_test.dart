@@ -4,6 +4,7 @@ import 'package:karat_hive/app/session/session_controller.dart';
 import 'package:karat_hive/core/firebase/firebase_auth_service.dart';
 import 'package:karat_hive/features/auth/controller/vendor_login_controller.dart';
 import 'package:karat_hive/features/auth/repository/auth_repository.dart';
+import 'package:kh_api/kh_api.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -35,7 +36,7 @@ void main() {
 
   test('a bound Google token authenticates and seeds the session', () async {
     final bundle = testCustomerBundle();
-    when(() => repo.googleSession(any(), expectedRole: any(named: 'expectedRole')))
+    when(() => repo.googleSession(any(), audience: any(named: 'audience')))
         .thenAnswer((_) async => Ok(bundle));
     final c = container();
     addTearDown(c.dispose);
@@ -47,12 +48,12 @@ void main() {
       isA<LoginAuthenticated>(),
     );
     expect(session.authenticated.single, bundle);
-    verify(() => repo.googleSession(any(), expectedRole: 'VENDOR')).called(1);
+    verify(() => repo.googleSession(any(), audience: AuthAudience.vendorApp)).called(1);
   });
 
   test('an unbound Google token (401 UNAUTHENTICATED) needs registration',
       () async {
-    when(() => repo.googleSession(any(), expectedRole: any(named: 'expectedRole')))
+    when(() => repo.googleSession(any(), audience: any(named: 'audience')))
         .thenAnswer(
       (_) async => const Err(UnauthorisedFailure(code: 'UNAUTHENTICATED')),
     );
@@ -72,7 +73,7 @@ void main() {
   });
 
   test('a bare 401 with no code also needs registration', () async {
-    when(() => repo.googleSession(any(), expectedRole: any(named: 'expectedRole')))
+    when(() => repo.googleSession(any(), audience: any(named: 'audience')))
         .thenAnswer((_) async => const Err(UnauthorisedFailure()));
     final c = container();
     addTearDown(c.dispose);
@@ -86,8 +87,25 @@ void main() {
     expect(c.read(sessionProvider), isA<UnboundGoogle>());
   });
 
+  test('ACCOUNT_ROLE_MISMATCH signs out of Firebase and stays on the error', () async {
+    when(() => firebase.signOut()).thenAnswer((_) async {});
+    when(() => repo.googleSession(any(), audience: any(named: 'audience')))
+        .thenAnswer(
+      (_) async => const Err(ForbiddenFailure(code: 'ACCOUNT_ROLE_MISMATCH')),
+    );
+    final c = container();
+    addTearDown(c.dispose);
+
+    await c.read(vendorLoginControllerProvider.notifier).signInWithGoogle();
+
+    final state = c.read(vendorLoginControllerProvider);
+    expect(state, isA<LoginError>());
+    expect((state as LoginError).failure.code, 'ACCOUNT_ROLE_MISMATCH');
+    verify(() => firebase.signOut()).called(1);
+  });
+
   test('other server failures surface as LoginError', () async {
-    when(() => repo.googleSession(any(), expectedRole: any(named: 'expectedRole')))
+    when(() => repo.googleSession(any(), audience: any(named: 'audience')))
         .thenAnswer(
       (_) async => const Err(RateLimitedFailure(message: 'Too many codes.')),
     );

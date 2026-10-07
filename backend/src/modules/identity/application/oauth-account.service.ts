@@ -9,6 +9,7 @@ import { SessionService } from './session.service';
 import { hashToken } from './token.service';
 import { AuthAudience, audienceMatchesRole } from '../domain/auth-audience';
 import type { User, UserType } from '@prisma/client';
+import { userTypeDetail } from '../domain/user-type-detail';
 import type { SessionBundle } from '../presenter/session.presenter';
 
 @Injectable()
@@ -33,14 +34,14 @@ export class OAuthAccountService {
       throw new ApiException(
         HttpStatus.FORBIDDEN,
         ErrorCode.ACCOUNT_ROLE_MISMATCH,
-        [{ code: 'actualRole', message: user.userType }],
+        userTypeDetail(user.userType),
       );
     }
     if (!audienceMatchesRole(audience, user.userType)) {
       throw new ApiException(
         HttpStatus.FORBIDDEN,
         ErrorCode.ACCOUNT_ROLE_MISMATCH,
-        [{ code: 'actualRole', message: user.userType }],
+        userTypeDetail(user.userType),
       );
     }
     if (user.accountState !== 'ACTIVE') {

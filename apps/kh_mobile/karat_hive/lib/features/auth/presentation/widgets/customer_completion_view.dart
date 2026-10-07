@@ -7,6 +7,7 @@ import 'package:kh_l10n/kh_l10n.dart';
 import '../../../../app/guards.dart';
 import '../../controller/customer_completion_controller.dart';
 import '../../model/customer_completion_form.dart';
+import '../auth_role_hint.dart';
 
 /// Shared Customer signup form (CFE-10) — one controller for all doors (GL-42).
 class CustomerCompletionView extends ConsumerStatefulWidget {
@@ -85,7 +86,8 @@ class _CustomerCompletionViewState
           KhInlineError(
             message: form.failure!.message ?? l10n.authSignInFailed,
           ),
-          if (form.failure!.code == 'ACCOUNT_ROLE_CONFLICT') ...[
+          if (form.failure!.code == 'ACCOUNT_ROLE_CONFLICT' &&
+              showsVendorDoor(form.failure!)) ...[
             const SizedBox(height: 8),
             KhButton(
               key: const Key('switch-to-vendor-conflict-btn'),
