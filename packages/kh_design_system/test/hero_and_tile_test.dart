@@ -43,6 +43,7 @@ Widget _hero({ImageProvider? image}) => KhHeroCarousel(
   autoplay: false,
   dotLabel: (i, n) => 'Slide ${i + 1} of $n',
   nextLabel: 'Next slide',
+  prevLabel: 'Previous slide',
 );
 
 Widget _host(Widget child, {double width = 390, double textScale = 1}) =>
@@ -158,7 +159,7 @@ void main() {
       );
     });
 
-    testWidgets('next button is a labelled 48 px target that advances', (
+    testWidgets('next chevron is a labelled 48 px target that advances', (
       t,
     ) async {
       final handle = t.ensureSemantics();
@@ -173,8 +174,10 @@ void main() {
       expect(size.width, greaterThanOrEqualTo(48));
       expect(size.height, greaterThanOrEqualTo(48));
 
-      // Slide 1 is current; the semantics dot for slide 2 becomes selected
-      // after the tap. Check via the visible lead text.
+      // Home-1 also draws a previous chevron on the leading edge.
+      expect(find.byIcon(Icons.chevron_left), findsOneWidget);
+      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+
       expect(find.text('Lead 1'), findsWidgets);
       await t.tap(next);
       await t.pumpAndSettle();

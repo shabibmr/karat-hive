@@ -6,10 +6,8 @@ import 'package:kh_design_system/src/theme.dart';
 import 'package:kh_design_system/src/tokens.dart';
 import 'package:kh_design_system/src/typography.dart';
 import 'package:kh_design_system/src/widgets/kh_service_card.dart';
-import 'package:kh_design_system/src/widgets/kh_home_style.dart';
 
-/// One slide of a [KhHeroCarousel]: a gold lead line, two ivory lines, and a
-/// photo pane.
+/// One slide of a [KhHeroCarousel]: display lines over jewellery photography.
 class KhHeroSlide {
   const KhHeroSlide({
     required this.lead,
@@ -22,36 +20,39 @@ class KhHeroSlide {
   final String line2;
   final String line3;
 
-  /// Until real photography exists, a dark stripe placeholder fills the pane.
+  /// Full-bleed photo behind the display lines. Stripe placeholder when null.
   final ImageProvider? image;
 }
 
-/// Ink hero carousel on Customer Home (`UI-Design-Context.md` §6.11, §8).
+/// Hero carousel on Customer Home — jewellery photography with dark serif
+/// display lines on the image (Home-1).
 ///
 /// Swipeable [PageView]; autoplays every 4.2 s, pausing while dragged, while
 /// the route's tickers are muted (another tab is showing) and entirely under
-/// reduced motion. A manual change restarts the timer. The height follows the
-/// tallest slide (min 208), so wrapped Arabic or large text never clips.
+/// reduced motion. A manual change restarts the timer. White chevron discs
+/// overhang the left and right edges; only the photograph is clipped.
 class KhHeroCarousel extends StatefulWidget {
   const KhHeroCarousel({
     super.key,
     required this.slides,
     required this.dotLabel,
+    required this.nextLabel,
+    this.prevLabel,
     this.autoplay = true,
-    this.editorial = false,
-    this.previousLabel,
-    this.nextLabel,
-  }) : assert(slides.length > 0);
+  });
 
   final List<KhHeroSlide> slides;
 
   /// Semantics label for dot [index] (0-based) of [count], e.g. "Slide 2 of 4".
   final String Function(int index, int count) dotLabel;
 
+  /// Semantics label for the next-slide button.
+  final String nextLabel;
+
+  /// Semantics label for the previous-slide button. Falls back to [nextLabel].
+  final String? prevLabel;
+
   final bool autoplay;
-  final bool editorial;
-  final String? previousLabel;
-  final String? nextLabel;
 
   @override
   State<KhHeroCarousel> createState() => _KhHeroCarouselState();
@@ -59,6 +60,12 @@ class KhHeroCarousel extends StatefulWidget {
 
 class _KhHeroCarouselState extends State<KhHeroCarousel> {
   static const _minHeight = 208.0;
+  static const _maxMinHeight = 320.0;
+  static const _chevronOverhang = 20.0;
+
+  /// Home-1 active capsule / idle dots.
+  static const _dotActive = Color(0xFF9D7036);
+  static const _dotIdle = Color(0xFFE1D8CF);
 
   final _controller = PageController();
   Timer? _timer;
@@ -74,16 +81,7 @@ class _KhHeroCarouselState extends State<KhHeroCarousel> {
   @override
   void didUpdateWidget(KhHeroCarousel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.autoplay != widget.autoplay ||
-        oldWidget.slides.length != widget.slides.length) {
-      _restartTimer();
-    }
-    if (_page >= widget.slides.length) {
-      _page = widget.slides.length - 1;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _controller.hasClients) _controller.jumpToPage(_page);
-      });
-    }
+    if (oldWidget.autoplay != widget.autoplay) _restartTimer();
   }
 
   @override
@@ -136,28 +134,22 @@ class _KhHeroCarouselState extends State<KhHeroCarousel> {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final count = widget.slides.length;
+    final prevLabel = widget.prevLabel ?? 'Previous slide';
 
-    if (widget.editorial) {
-      return _EditorialHero(
-        slides: widget.slides,
-        controller: _controller,
-        currentPage: _page,
-        dotLabel: widget.dotLabel,
-        previousLabel: widget.previousLabel,
-        nextLabel: widget.nextLabel,
-        onScroll: _onScroll,
-        onPageChanged: (i) => setState(() => _page = i),
-        onSelect: _goTo,
-      );
-    }
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(t.radius.card),
-      child: ColoredBox(
-        color: t.ink,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: _minHeight),
+    return Padding(
+      // Room for the half-outside chevron discs.
+      padding: const EdgeInsets.symmetric(horizontal: _chevronOverhang),
+      child: LayoutBuilder(
+        builder: (context, box) => ConstrainedBox(
+          // 208 on phones; on wide columns grow toward 21:9 (capped at 320)
+          // so the landscape photo isn't cropped to a thin strip.
+          constraints: BoxConstraints(
+            minHeight: (box.maxWidth * 9 / 21)
+                .clamp(_minHeight, _maxMinHeight)
+                .toDouble(),
+          ),
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
               // Invisible copies of every slide size the Stack to the tallest
               // one; the PageView then fills that height.
@@ -171,14 +163,21 @@ class _KhHeroCarouselState extends State<KhHeroCarousel> {
                   ),
                 ),
               Positioned.fill(
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: _onScroll,
-                  child: PageView(
-                    controller: _controller,
-                    onPageChanged: (i) => setState(() => _page = i),
-                    children: [
-                      for (final slide in widget.slides) _Slide(slide: slide),
-                    ],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(t.radius.card),
+                  child: ColoredBox(
+                    color: t.ink,
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: _onScroll,
+                      child: PageView(
+                        controller: _controller,
+                        onPageChanged: (i) => setState(() => _page = i),
+                        children: [
+                          for (final slide in widget.slides)
+                            _Slide(slide: slide),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -192,221 +191,50 @@ class _KhHeroCarouselState extends State<KhHeroCarousel> {
                       for (var i = 0; i < count; i++)
                         _Dot(
                           active: i == _page,
+                          activeColor: _dotActive,
+                          idleColor: _dotIdle,
                           label: widget.dotLabel(i, count),
                           onTap: () => _goTo(i),
                         ),
                     ],
                   ),
                 ),
+              if (count > 1) ...[
+                PositionedDirectional(
+                  start: -_chevronOverhang,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _HeroChevronButton(
+                      label: prevLabel,
+                      icon: Icons.chevron_left,
+                      onPressed: () => _goTo(
+                        (_page - 1 + widget.slides.length) %
+                            widget.slides.length,
+                      ),
+                    ),
+                  ),
+                ),
+                PositionedDirectional(
+                  end: -_chevronOverhang,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _HeroChevronButton(
+                      label: widget.nextLabel,
+                      icon: Icons.chevron_right,
+                      onPressed: () =>
+                          _goTo((_page + 1) % widget.slides.length),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
       ),
     );
   }
-}
-
-class _EditorialHero extends StatelessWidget {
-  const _EditorialHero({
-    required this.slides,
-    required this.controller,
-    required this.currentPage,
-    required this.dotLabel,
-    required this.previousLabel,
-    required this.nextLabel,
-    required this.onScroll,
-    required this.onPageChanged,
-    required this.onSelect,
-  });
-
-  final List<KhHeroSlide> slides;
-  final PageController controller;
-  final int currentPage;
-  final String Function(int, int) dotLabel;
-  final String? previousLabel;
-  final String? nextLabel;
-  final bool Function(ScrollNotification) onScroll;
-  final ValueChanged<int> onPageChanged;
-  final ValueChanged<int> onSelect;
-
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final width = constraints.maxWidth;
-      final inset = width * 0.11;
-      final captionWidth = width * 0.48;
-      final font = KhFonts.forLocale(Localizations.maybeLocaleOf(context));
-      final style = font
-          .serifStyle(
-            (width * 0.084).clamp(24, 38),
-            FontWeight.w500,
-            height: 1.07,
-          )
-          .copyWith(color: KhHomeStyle.headline);
-      var height = width / 1.5;
-      for (final slide in slides) {
-        final measure = TextPainter(
-          text: TextSpan(text: _caption(slide), style: style),
-          textDirection: Directionality.of(context),
-          textScaler: MediaQuery.textScalerOf(context),
-        )..layout(maxWidth: captionWidth);
-        final needed = measure.height + 76;
-        if (needed > height) height = needed;
-        measure.dispose();
-      }
-      return SizedBox(
-        height: height,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(KhHomeStyle.radius),
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: onScroll,
-                  child: PageView(
-                    controller: controller,
-                    onPageChanged: onPageChanged,
-                    children: [
-                      for (final slide in slides)
-                        Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            ColoredBox(
-                              color: KhHomeStyle.cream,
-                              child: slide.image == null
-                                  ? const SizedBox.shrink()
-                                  : Image(
-                                      image: slide.image!,
-                                      fit: BoxFit.cover,
-                                      matchTextDirection: true,
-                                      excludeFromSemantics: true,
-                                      errorBuilder: (_, __, ___) =>
-                                          const SizedBox.shrink(),
-                                    ),
-                            ),
-                            PositionedDirectional(
-                              start: inset,
-                              top: 0,
-                              bottom: 30,
-                              width: captionWidth,
-                              child: Align(
-                                alignment: AlignmentDirectional.centerStart,
-                                child: Text(_caption(slide), style: style),
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            if (slides.length > 1) ...[
-              PositionedDirectional(
-                start: inset,
-                bottom: 7,
-                child: Row(
-                  children: [
-                    for (var i = 0; i < slides.length; i++)
-                      Semantics(
-                        button: true,
-                        selected: currentPage == i,
-                        label: dotLabel(i, slides.length),
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => onSelect(i),
-                          child: SizedBox(
-                            width: 16,
-                            height: 44,
-                            child: Center(
-                              child: Container(
-                                width: currentPage == i ? 12 : 7,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: currentPage == i
-                                      ? const Color(0xFF9C6B30)
-                                      : const Color(0xFFDED6CD),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              PositionedDirectional(
-                start: -18,
-                top: (height - 44) / 2,
-                child: _HeroArrow(
-                  label: previousLabel,
-                  forward: false,
-                  onTap: () => onSelect(
-                    (currentPage - 1 + slides.length) % slides.length,
-                  ),
-                ),
-              ),
-              PositionedDirectional(
-                end: -18,
-                top: (height - 44) / 2,
-                child: _HeroArrow(
-                  label: nextLabel,
-                  forward: true,
-                  onTap: () => onSelect((currentPage + 1) % slides.length),
-                ),
-              ),
-            ],
-          ],
-        ),
-      );
-    },
-  );
-
-  static String _caption(KhHeroSlide slide) => [
-    slide.lead,
-    slide.line2,
-    slide.line3,
-  ].where((s) => s.isNotEmpty).join('\n');
-}
-
-class _HeroArrow extends StatelessWidget {
-  const _HeroArrow({
-    required this.label,
-    required this.forward,
-    required this.onTap,
-  });
-  final String? label;
-  final bool forward;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    width: 44,
-    height: 44,
-    child: IconButton(
-      tooltip: label,
-      onPressed: onTap,
-      style: IconButton.styleFrom(
-        foregroundColor: KhHomeStyle.gold,
-        minimumSize: const Size(44, 44),
-        padding: const EdgeInsets.all(4),
-      ),
-      icon: Container(
-        width: 36,
-        height: 36,
-        decoration: const BoxDecoration(
-          color: KhHomeStyle.background,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          forward ? Icons.chevron_right : Icons.chevron_left,
-          size: 26,
-        ),
-      ),
-    ),
-  );
 }
 
 class _Slide extends StatelessWidget {
@@ -414,64 +242,127 @@ class _Slide extends StatelessWidget {
 
   final KhHeroSlide slide;
 
-  /// Lays out the text pane only, under unbounded height, to measure the
-  /// slide; the photo pane has no intrinsic height of its own.
+  /// Lays out the text column only, under unbounded height, to measure the
+  /// slide; the photo has no intrinsic height of its own.
   final bool sizingOnly;
+
+  /// Home-1 editorial ink on the photograph.
+  static const _editorialInk = Color(0xFF303331);
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final type = context.typography;
+    final fonts = KhFonts.forLocale(Localizations.localeOf(context));
+    final lineStyle =
+        fonts.serifStyle(32, FontWeight.w500, height: 1.15).copyWith(
+              color: _editorialInk,
+            );
 
-    return Row(
-      crossAxisAlignment: sizingOnly
-          ? CrossAxisAlignment.start
-          : CrossAxisAlignment.stretch,
+    final text = Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(28, 28, 56, 40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(slide.lead, style: lineStyle),
+          SizedBox(height: t.space.xxs),
+          Text(slide.line2, style: lineStyle),
+          SizedBox(height: t.space.xxs),
+          Text(slide.line3, style: lineStyle),
+        ],
+      ),
+    );
+
+    if (sizingOnly) return text;
+
+    return Stack(
+      fit: StackFit.expand,
       children: [
-        Expanded(
-          flex: 115,
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(18, 22, 6, 40),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(slide.lead, style: type.heroLead),
-                SizedBox(height: t.space.xxs),
-                Text(slide.line2, style: type.heroBody),
-                SizedBox(height: t.space.xxs),
-                Text(slide.line3, style: type.heroBody),
-                SizedBox(height: t.space.s12),
-                Container(width: 28, height: 1.5, color: t.gold),
-              ],
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 100,
-          child: sizingOnly
-              ? const SizedBox.shrink()
-              : slide.image != null
-              ? Image(image: slide.image!, fit: BoxFit.cover)
+        Positioned.fill(
+          child: slide.image != null
+              ? Image(
+                  image: slide.image!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) =>
+                      CustomPaint(painter: KhStripePainter.onInk()),
+                )
               : CustomPaint(painter: KhStripePainter.onInk()),
         ),
+        text,
       ],
     );
   }
 }
 
-/// Active 18 × 6 gold pill, idle 6 × 6 ivory @ 0.45; the padding gives each
+/// White circle with a gold chevron; hangs half outside the photo (Home-1).
+class _HeroChevronButton extends StatelessWidget {
+  const _HeroChevronButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    // 48 px hit area around the 40 px visual circle.
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: InkResponse(
+        onTap: onPressed,
+        radius: 24,
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Center(
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: t.paper,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: t.ink.withValues(alpha: 0.10),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(icon, size: 22, color: t.gold),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Active 18 × 6 gold pill, idle 6 × 6 warm grey; the padding gives each
 /// dot a tall hit area without spreading the dots apart.
 class _Dot extends StatelessWidget {
-  const _Dot({required this.active, required this.label, required this.onTap});
+  const _Dot({
+    required this.active,
+    required this.activeColor,
+    required this.idleColor,
+    required this.label,
+    required this.onTap,
+  });
 
   final bool active;
+  final Color activeColor;
+  final Color idleColor;
   final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
     final duration = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
         : KhMotion.select;
@@ -493,7 +384,7 @@ class _Dot extends StatelessWidget {
             width: active ? 18 : 6,
             height: 6,
             decoration: BoxDecoration(
-              color: active ? t.gold : t.ivoryDotIdle,
+              color: active ? activeColor : idleColor,
               borderRadius: BorderRadius.circular(3),
             ),
           ),

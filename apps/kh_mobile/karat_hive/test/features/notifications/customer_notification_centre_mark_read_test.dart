@@ -101,6 +101,10 @@ Widget _pumpCentre({
                 path: AppGuards.customerHome,
                 builder: (_, __) => const Text('home-body'),
               ),
+              GoRoute(
+                path: AppGuards.customerAlerts,
+                builder: (_, __) => const CustomerNotificationCentreScreen(),
+              ),
             ],
           ),
           StatefulShellBranch(
@@ -124,14 +128,6 @@ Widget _pumpCentre({
               GoRoute(
                 path: AppGuards.customerConnections,
                 builder: (_, __) => const Text('connections-body'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppGuards.customerAlerts,
-                builder: (_, __) => const CustomerNotificationCentreScreen(),
               ),
             ],
           ),

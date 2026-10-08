@@ -7,65 +7,90 @@ import 'active_shell_registry.dart';
 
 /// Authenticated Customer marketplace shell (SH-SHELL-01/02/03).
 ///
-/// Destinations:
-/// Home / Dashboard (CUS-S02), My Requests (open list + History),
-/// Connections (CUS-S16), Profile (CUS-S20). Alerts remain accessible by bell.
+/// Destinations match Home-1: Home · Requests · Connections · Profile.
+/// Alerts stay on the header bell (`/customer/alerts` on the Home branch).
 class CustomerShell extends StatelessWidget {
   const CustomerShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
+  /// Home-1 selected antique gold / idle grey.
+  static const _selected = Color(0xFF82521C);
+  static const _idle = Color(0xFF888682);
+  static const _barFill = Color(0xFFFEFBF6);
+
   @override
   Widget build(BuildContext context) {
     final strings = KhStrings.of(context);
-    // Keep all five route branches so existing alert deep links remain valid.
-    // Only four branches have a visible tab; Profile is route branch 4.
-    const tabBranches = [0, 1, 2, 4];
-    final tabIndex = tabBranches.indexOf(navigationShell.currentIndex);
-    final selectedIndex = tabIndex < 0 ? 0 : tabIndex;
+    final selectedIndex = navigationShell.currentIndex.clamp(0, 3);
+    final textTheme = Theme.of(context).textTheme;
 
     // Read by AppBackButtonDispatcher to route hardware/gesture back presses
     // that have nothing left to pop: non-Home tab -> Home, Home -> confirm exit.
     ActiveShellRegistry.instance.current = ActiveShellInfo(
-      isHome: navigationShell.currentIndex == 0,
+      isHome: selectedIndex == 0,
       goHome: () => navigationShell.goBranch(0),
     );
 
     return Scaffold(
-      backgroundColor: KhHomeStyle.background,
       key: const Key('customer-shell'),
       body: navigationShell,
-      bottomNavigationBar: KhBottomNav(
-        editorial: true,
-        destinations: [
-          KhNavDestination(
-            label: strings.s('shell.nav.home'),
-            icon: Icons.home_outlined,
-            selectedIcon: Icons.home,
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          navigationBarTheme: NavigationBarThemeData(
+            height: 80,
+            backgroundColor: _barFill,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            indicatorColor: Colors.transparent,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            labelTextStyle: WidgetStateProperty.resolveWith(
+              (s) => s.contains(WidgetState.selected)
+                  ? textTheme.labelMedium!.copyWith(
+                      color: _selected,
+                      fontWeight: FontWeight.w700,
+                    )
+                  : textTheme.labelMedium!.copyWith(color: _idle),
+            ),
+            iconTheme: WidgetStateProperty.resolveWith(
+              (s) => IconThemeData(
+                size: 24,
+                color: s.contains(WidgetState.selected) ? _selected : _idle,
+              ),
+            ),
           ),
-          KhNavDestination(
-            label: strings.s('cus.home.nav.requests'),
-            icon: Icons.description_outlined,
-            selectedIcon: Icons.description,
-          ),
-          KhNavDestination(
-            label: strings.s('shell.nav.connections'),
-            icon: Icons.groups_outlined,
-            selectedIcon: Icons.groups,
-          ),
-          KhNavDestination(
-            label: strings.s('shell.nav.profile'),
-            icon: Icons.person_outline,
-            selectedIcon: Icons.person,
-          ),
-        ],
-        currentIndex: selectedIndex,
-        onDestinationSelected: (index) {
-          navigationShell.goBranch(
-            tabBranches[index],
-            initialLocation: tabBranches[index] == navigationShell.currentIndex,
-          );
-        },
+        ),
+        child: KhBottomNav(
+          destinations: [
+            KhNavDestination(
+              label: strings.s('shell.nav.home'),
+              icon: Icons.home_outlined,
+              selectedIcon: Icons.home,
+            ),
+            KhNavDestination(
+              label: strings.s('shell.nav.requestsTab'),
+              icon: Icons.description_outlined,
+              selectedIcon: Icons.description,
+            ),
+            KhNavDestination(
+              label: strings.s('shell.nav.connections'),
+              icon: Icons.people_outline,
+              selectedIcon: Icons.people,
+            ),
+            KhNavDestination(
+              label: strings.s('shell.nav.profile'),
+              icon: Icons.person_outline,
+              selectedIcon: Icons.person,
+            ),
+          ],
+          currentIndex: selectedIndex,
+          onDestinationSelected: (index) {
+            navigationShell.goBranch(
+              index,
+              initialLocation: index == navigationShell.currentIndex,
+            );
+          },
+        ),
       ),
     );
   }

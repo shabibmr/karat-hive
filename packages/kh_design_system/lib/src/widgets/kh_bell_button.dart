@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 
 import 'package:kh_design_system/src/tokens.dart';
-import 'package:kh_design_system/src/typography.dart';
 
-/// Header bell with an unread badge (`UI-Design-Context.md` §6.14).
+/// Header bell with an unread indicator (Home-1).
 ///
-/// 44 px box, bell 26; the `danger` badge sits 6/6 in from the top-end and is
-/// omitted when [unreadCount] is null or 0. The count is part of
-/// [semanticLabel], not a separate node (§11).
+/// 48 px hit target, bell 26. When [showDot] is true or [unreadCount] > 0, an
+/// 8 px red dot sits at the top-end — no numeral, matching Home-1. The count
+/// stays in [semanticLabel] only.
 class KhBellButton extends StatelessWidget {
   const KhBellButton({
     super.key,
     required this.onPressed,
     required this.semanticLabel,
     this.unreadCount,
+    this.showDot = false,
+    this.iconColor,
   });
 
   final VoidCallback onPressed;
@@ -22,10 +23,20 @@ class KhBellButton extends StatelessWidget {
   final String semanticLabel;
   final int? unreadCount;
 
+  /// Draws the plain red unread dot even when [unreadCount] is null/0.
+  final bool showDot;
+
+  /// Defaults to [KhTokens.gold] (Home-1).
+  final Color? iconColor;
+
+  /// Home-1 badge red (`#D92B24`).
+  static const Color _dotRed = Color(0xFFD92B24);
+
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final count = unreadCount ?? 0;
+    final dotted = showDot || count > 0;
 
     return Semantics(
       button: true,
@@ -41,23 +52,21 @@ class KhBellButton extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Icon(Icons.notifications_outlined, size: 26, color: t.ink),
-              if (count > 0)
+              Icon(
+                Icons.notifications_outlined,
+                size: 26,
+                color: iconColor ?? t.gold,
+              ),
+              if (dotted)
                 PositionedDirectional(
-                  top: 8,
-                  end: 8,
+                  top: 10,
+                  end: 10,
                   child: Container(
-                    constraints: const BoxConstraints(minWidth: 16),
-                    height: 16,
-                    padding: EdgeInsets.symmetric(horizontal: t.space.xs),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: t.danger,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      count > 99 ? '99+' : '$count',
-                      style: context.typography.badge.copyWith(height: 1),
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: _dotRed,
+                      shape: BoxShape.circle,
                     ),
                   ),
                 ),

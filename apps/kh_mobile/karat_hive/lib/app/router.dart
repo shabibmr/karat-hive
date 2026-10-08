@@ -80,11 +80,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, navigationShell) =>
             CustomerShell(navigationShell: navigationShell),
         branches: [
+          // Home-1 four-tab shell: Alerts live on the Home branch (header bell),
+          // matching Vendor notifications — not a bottom destination.
           StatefulShellBranch(
             routes: [
               customerHomeRoute(),
               ...offersCustomerRoutes,
               ...abuseRoutes,
+              ...notificationsRoutes,
             ],
           ),
           StatefulShellBranch(
@@ -92,9 +95,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: customerConnectionRoutes,
-          ),
-          StatefulShellBranch(
-            routes: notificationsRoutes,
           ),
           StatefulShellBranch(
             routes: profileSettingsRoutes,

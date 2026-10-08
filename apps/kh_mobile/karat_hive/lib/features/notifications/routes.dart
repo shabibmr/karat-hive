@@ -4,7 +4,9 @@ import '../../app/guards.dart';
 import 'presentation/customer_notification_centre_screen.dart';
 import 'presentation/vendor_notification_centre_screen.dart';
 
-/// Customer alerts tab root (CUS-S19) — path `/customer/alerts`.
+/// Customer alerts (CUS-S19) — path `/customer/alerts`.
+/// Mounted on the Customer Home shell branch (header bell / push entry, not a
+/// bottom tab — Home-1 four-item bar).
 final notificationsRoutes = [
   GoRoute(
     path: AppGuards.customerAlerts,
