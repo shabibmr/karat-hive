@@ -124,5 +124,15 @@ Resolved, see `docs/old/README.md` and SRS Appendix D: `C-10` Admin Portal is Fl
 
 ## Agent skills
 
-- **Issue tracker:** GitHub issues on `github.com/shabibmr/karat-hive` via `gh`. See `docs/agents/issue-tracker.md`.
-- **Domain docs:** shared `CONTEXT.md` plus optional surface-specific `CONTEXT.md` under `backend/`, `apps/kh_mobile/karat_hive/`, `apps/kh_admin/` — see `CONTEXT-MAP.md` and `docs/agents/domain.md`.
+### Issue tracker
+
+GitHub issues on `github.com/shabibmr/karat-hive` via `gh`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical triage roles (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Shared `CONTEXT.md` plus per-surface context files. See `CONTEXT-MAP.md` and `docs/agents/domain.md`.
+
