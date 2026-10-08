@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -22,16 +23,6 @@ final requestImageConverterProvider = Provider<ImageConverter>(
 /// Overridable so tests can exercise the web upload branch without the web
 /// test runner — `kIsWeb` is a compile-time constant on the VM.
 final isWebPlatformProvider = Provider<bool>((ref) => kIsWeb);
-
-/// Wait between publish retries while photos finish server-side processing.
-/// Overridable so tests don't sleep.
-final mediaReadyRetryDelayProvider = Provider<Duration>(
-  (ref) => const Duration(seconds: 2),
-);
-
-/// ~60 s at the default delay — the same budget the uploader used to spend
-/// polling each photo for `READY` before this moved to publish time.
-const _mediaReadyMaxRetries = 30;
 
 Direction? directionForType(RequestType type) => switch (type) {
       RequestType.findOrnament => Direction.buy,
@@ -79,6 +70,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
 
   /// Shared so [build] and tests cannot overlap cold-boot restore.
   Future<void>? _restoreInFlight;
+
+  String? _lastSavedDraftFingerprint;
 
   @override
   RequestCreateState build() {
@@ -506,6 +499,11 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     }
     state = state.copyWith(busy: true, clearFailure: true, fieldErrors: const {});
     final body = draftBody();
+    final fingerprint = jsonEncode(body);
+    if (state.draftId != null && _lastSavedDraftFingerprint == fingerprint) {
+      state = state.copyWith(busy: false);
+      return true;
+    }
     final Result<DraftSaveResult> result;
     final id = state.draftId;
     if (id == null) {
@@ -520,6 +518,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           draftId: saved.request.id,
           warnings: saved.warnings,
         );
+        _lastSavedDraftFingerprint = fingerprint;
         return true;
       },
       err: (f) {
@@ -699,7 +698,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     }
     final next = [...state.media]..removeAt(index);
     state = state.copyWith(media: next);
-    if (state.draftId != null) await saveDraft();
   }
 
   Future<void> reorderMedia(int from, int to) async {
@@ -708,7 +706,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     final item = next.removeAt(from);
     next.insert(to, item);
     state = state.copyWith(media: next);
-    if (state.draftId != null) await saveDraft();
   }
 
   String _ensurePublishKey() {
@@ -727,7 +724,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     state = state.copyWith(awaitingLoginToPublish: false);
   }
 
-  /// Create/patch draft + publish. Upload only leftover local slots.
+  /// Ensure media is uploaded and server-ready, save the current draft only when dirty, then publish.
   Future<bool> publish() async {
     state = state.copyWith(busy: true, clearFailure: true, fieldErrors: const {});
 
@@ -761,7 +758,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     }
     state = state.copyWith(busy: true);
     final key = _ensurePublishKey();
-    final result = await _publishWhenMediaReady(id, key);
+    final result = await _repo.publish(id, idempotencyKey: key);
     return result.when(
       ok: (req) {
         state = state.copyWith(
@@ -782,25 +779,6 @@ class RequestCreateController extends Notifier<RequestCreateState> {
         return false;
       },
     );
-  }
-
-  /// Photos upload without waiting for server processing (`READY`), so a
-  /// fast publish can see `MEDIA_NOT_READY`; retry with the same idempotency
-  /// key — failed attempts are not cached against it.
-  Future<Result<RequestForCustomer>> _publishWhenMediaReady(
-    String id,
-    String idempotencyKey,
-  ) async {
-    final delay = ref.read(mediaReadyRetryDelayProvider);
-    var result = await _repo.publish(id, idempotencyKey: idempotencyKey);
-    for (var n = 0;
-        n < _mediaReadyMaxRetries &&
-            result.failureOrNull?.code == 'MEDIA_NOT_READY';
-        n++) {
-      await Future<void>.delayed(delay);
-      result = await _repo.publish(id, idempotencyKey: idempotencyKey);
-    }
-    return result;
   }
 
   /// Flush guest-local converted slots (also used after sign-in). Safe to call twice.
@@ -951,21 +929,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
             m,
       ],
     );
-    await _syncDraftMediaKeys();
     return true;
-  }
-
-  Future<void> _syncDraftMediaKeys() async {
-    final id = state.draftId;
-    if (id == null || _isGuest) return;
-    if (state.mediaKeys.isEmpty) return;
-    final result = await _repo.patchDraft(id, draftBody());
-    result.when(
-      ok: (saved) {
-        state = state.copyWith(warnings: saved.warnings);
-      },
-      err: (_) {},
-    );
   }
 
   /// Bind OAuth then retry publish with the **same** idempotency key.
