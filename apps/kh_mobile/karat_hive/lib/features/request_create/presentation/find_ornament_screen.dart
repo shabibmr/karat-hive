@@ -103,8 +103,8 @@ class _ComposeScreenHostState extends ConsumerState<ComposeScreenHost> {
           final next = widget.combineImages || skipImages
               ? RequestCreateStep.review
               : RequestCreateStep.images;
-          final ok = await controller.persistAndGo(next);
-          if (ok && context.mounted) {
+          controller.goTo(next);
+          if (context.mounted) {
             // push (not go): preserves history so back returns to this step.
             context.push(
               widget.combineImages || skipImages
