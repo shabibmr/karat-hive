@@ -84,7 +84,7 @@ class RequestCreateRepository {
       _media.upload(
         file,
         purpose: MediaUploadPurpose.requestImage,
-        awaitReady: false,
+        awaitReady: true,
         contentType: contentType,
         onProgress: onProgress,
       );
@@ -97,7 +97,7 @@ class RequestCreateRepository {
       _media.uploadBytes(
         bytes,
         purpose: MediaUploadPurpose.requestImage,
-        awaitReady: false,
+        awaitReady: true,
         contentType: contentType,
         onProgress: onProgress,
       );
