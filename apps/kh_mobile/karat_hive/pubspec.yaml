@@ -2,7 +2,7 @@ name: karat_hive
 description: Karat Hive — dual-mode Customer / Vendor mobile app.
 publish_to: none
 resolution: workspace
-version: 1.0.0+1
+version: 1.0.0+20
 
 environment:
   sdk: ">=3.9.0 <4.0.0"
