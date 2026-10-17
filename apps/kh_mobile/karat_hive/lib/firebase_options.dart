@@ -53,6 +53,7 @@ class DefaultFirebaseOptions {
     projectId: 'karat-hive-app',
     authDomain: 'karat-hive-app.firebaseapp.com',
     storageBucket: 'karat-hive-app.firebasestorage.app',
+    measurementId: 'G-99SJELNZJ3',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -65,10 +66,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCA1cpg1DRVSyccWVREhgDWL0-fjKjDk6A',
-    appId: '1:132845397292:ios:27e49abbd6a5f5856c3889',
+    appId: '1:132845397292:ios:c2e331c5fe47641b6c3889',
     messagingSenderId: '132845397292',
     projectId: 'karat-hive-app',
     storageBucket: 'karat-hive-app.firebasestorage.app',
-    iosBundleId: 'com.kh.karatHive',
+    androidClientId: '132845397292-2le5s0tqstmussqlura420n4829dai4l.apps.googleusercontent.com',
+    iosClientId: '132845397292-3e4ejs0picuoth3ftjmtrrkjohnccj5p.apps.googleusercontent.com',
+    iosBundleId: 'com.karathive.app',
   );
 }

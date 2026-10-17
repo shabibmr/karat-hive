@@ -20,6 +20,8 @@ build/
 
 # Secrets / local env
 .env
+ios-keys/
+*.p8
 
 # Local agent tool config
 .grok/

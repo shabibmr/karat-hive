@@ -39,10 +39,10 @@
               "client_type": 3
             },
             {
-              "client_id": "132845397292-pref5rmuu9bul4ukha5jibbffuvnpri3.apps.googleusercontent.com",
+              "client_id": "132845397292-3e4ejs0picuoth3ftjmtrrkjohnccj5p.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.kh.karatHive"
+                "bundle_id": "com.karathive.app"
               }
             }
           ]
@@ -83,10 +83,10 @@
               "client_type": 3
             },
             {
-              "client_id": "132845397292-pref5rmuu9bul4ukha5jibbffuvnpri3.apps.googleusercontent.com",
+              "client_id": "132845397292-3e4ejs0picuoth3ftjmtrrkjohnccj5p.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.kh.karatHive"
+                "bundle_id": "com.karathive.app"
               }
             }
           ]
