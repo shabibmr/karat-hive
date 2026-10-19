@@ -61,6 +61,12 @@ export class MediaRepository {
     return this.prisma.media.update({ where: { key }, data });
   }
 
+  /** Drop Request attachments for a media row (e.g. after quarantine). */
+  async detachFromRequests(mediaId: string): Promise<number> {
+    const result = await this.prisma.requestMedia.deleteMany({ where: { mediaId } });
+    return result.count;
+  }
+
   async deleteByKey(key: string): Promise<void> {
     await this.prisma.media.delete({ where: { key } });
   }

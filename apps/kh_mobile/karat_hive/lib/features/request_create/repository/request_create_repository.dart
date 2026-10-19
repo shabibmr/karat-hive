@@ -84,7 +84,8 @@ class RequestCreateRepository {
       _media.upload(
         file,
         purpose: MediaUploadPurpose.requestImage,
-        awaitReady: true,
+        // Key at PENDING_PROCESSING — client does not wait on media:process.
+        awaitReady: false,
         contentType: contentType,
         onProgress: onProgress,
       );
@@ -97,7 +98,7 @@ class RequestCreateRepository {
       _media.uploadBytes(
         bytes,
         purpose: MediaUploadPurpose.requestImage,
-        awaitReady: true,
+        awaitReady: false,
         contentType: contentType,
         onProgress: onProgress,
       );

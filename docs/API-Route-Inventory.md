@@ -551,7 +551,7 @@ Closed enumeration. Unknown codes must not be invented by clients. `message` is 
 | `NOT_A_PARTY` | 403 | Review or Talk without a Connection. |
 | `REVIEW_ALREADY_EXISTS` | 409 | One per party per Connection (`BR-017`). |
 | `REVIEW_EDIT_WINDOW_CLOSED` | 409 | Past 14 days (`FR-CUS-030`). |
-| `MEDIA_NOT_READY` | 422 | Parent publish blocked until `CLEAN`/`READY` (`FR-SYS-009`). |
+| `MEDIA_NOT_READY` | 422 | Reserved / Offer path. Request publish allows `PENDING_PROCESSING`; Vendors only receive READY media URLs (`FR-SYS-009`). |
 | `MEDIA_QUARANTINED` | 422 | Malware scan failed. |
 | `MEDIA_TYPE_REJECTED` | 422 | Content inspection failed. |
 | `UPLOAD_NOT_COMPLETED` | 409 | `complete` called before the PUT, or HEAD mismatch. |
@@ -1135,7 +1135,7 @@ No body. Server HEADs the object, verifies size and content-type, inserts the me
 
 Worker: magic-byte inspect → malware scan → strip all EXIF including GPS → re-encode → thumbnail → `READY` or `QUARANTINED` (`FR-SYS-009`). Originals are never served to counterparties before `READY`.
 
-A Request cannot be published while any attached media is not `READY` (`MEDIA_NOT_READY`) or is `QUARANTINED`.
+A Request cannot be published while any attached media is `QUARANTINED` (`MEDIA_QUARANTINED`). `PENDING_PROCESSING` is allowed — `GET /v1/media/:key` only serves READY, and vendor presenters omit non-READY rows.
 
 ### `DELETE /v1/media/{key}`
 
@@ -1229,7 +1229,7 @@ Transitions `DRAFT` → `PUBLISHED`. Server-side validation of type-specific man
 Refused when:
 
 - OAuth not bound → `403 OAUTH_REQUIRED` (`BR-001`)
-- media not `READY` → `422 MEDIA_NOT_READY` / `MEDIA_QUARANTINED`
+- media `QUARANTINED` → `422 MEDIA_QUARANTINED` (`PENDING_PROCESSING` is allowed on publish)
 - contact details in notes → `422 CONTACT_DETAILS_IN_TEXT`
 - live Request count ≥ configured max → `409 CONCURRENT_REQUEST_LIMIT`
 - bullion indicative value < floor → `422 BULLION_BELOW_MINIMUM`

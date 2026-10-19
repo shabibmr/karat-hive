@@ -73,6 +73,10 @@ class RequestCreateController extends Notifier<RequestCreateState> {
 
   String? _lastSavedDraftFingerprint;
 
+  /// In-flight upload Futures keyed by the placeholder slot key so Draft /
+  /// Publish can await the same work Continue ignores.
+  final Map<String, Future<bool>> _uploadFutures = {};
+
   @override
   RequestCreateState build() {
     ref.listen<SessionState>(sessionProvider, (prev, next) {
@@ -286,12 +290,8 @@ class RequestCreateController extends Notifier<RequestCreateState> {
 
   bool get _isGuest => ref.read(sessionProvider) is! SignedIn;
 
-  /// Guest: local converted bytes are enough. Signed-in: every slot must have a READY key.
-  bool get canContinuePhotos {
-    if (!state.photosAttachedReady) return false;
-    if (_isGuest) return true;
-    return state.mediaKeysReady;
-  }
+  /// Continue needs a preview only — upload may still be in flight.
+  bool get canContinuePhotos => state.photosAttachedReady;
 
   Future<void> loadLookups() async {
     state = state.copyWith(lookupsLoading: true, clearFailure: true);
@@ -491,6 +491,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
 
   /// Draft PATCH/POST — no mandatory-field validation (FR-CUS-015).
   /// Guest: in-memory only — no HTTP (`adr/0011`).
+  /// Waits for in-flight Uploading slots so mediaKeys are included.
   Future<bool> saveDraft() async {
     if (state.requestType == null) return false;
     if (_isGuest) {
@@ -498,6 +499,11 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       return true;
     }
     state = state.copyWith(busy: true, clearFailure: true, fieldErrors: const {});
+    final uploadsOk = await _waitForInFlightUploads();
+    if (!uploadsOk) {
+      state = state.copyWith(busy: false);
+      return false;
+    }
     final body = draftBody();
     final fingerprint = jsonEncode(body);
     if (state.draftId != null && _lastSavedDraftFingerprint == fingerprint) {
@@ -571,11 +577,11 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       localBytes: bytes,
       contentType: contentType,
       progress: 0,
-      uploading: true,
+      phase: _isGuest ? MediaSlotPhase.attached : MediaSlotPhase.uploading,
     );
     state = state.copyWith(
       media: [...state.media, placeholder],
-      uploading: true,
+      uploading: !_isGuest,
       clearFailure: true,
     );
 
@@ -587,7 +593,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           for (final m in state.media)
             if (m.key == key)
               m.copyWith(
-                uploading: false,
+                phase: MediaSlotPhase.failed,
                 failure: const ServerFailure(
                   message: 'Could not convert that photo. Try another.',
                 ),
@@ -609,7 +615,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
               m.copyWith(
                 uploadBytes: prepared.bytes,
                 contentType: prepared.contentType,
-                uploading: false,
+                phase: MediaSlotPhase.attached,
               )
             else
               m,
@@ -622,7 +628,11 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       media: [
         for (final m in state.media)
           if (m.key == key)
-            m.copyWith(uploadBytes: prepared.bytes, contentType: prepared.contentType)
+            m.copyWith(
+              uploadBytes: prepared.bytes,
+              contentType: prepared.contentType,
+              phase: MediaSlotPhase.uploading,
+            )
           else
             m,
       ],
@@ -647,6 +657,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
             for (var i = 0; i < state.media.length; i++)
               if (i == index)
                 slot.copyWith(
+                  phase: MediaSlotPhase.failed,
                   failure: const ServerFailure(
                     message: 'Could not convert that photo. Try another.',
                   ),
@@ -672,7 +683,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
       uploadBytes: uploadBytes,
       contentType: contentType,
       progress: 0,
-      uploading: !_isGuest,
+      phase: _isGuest ? MediaSlotPhase.attached : MediaSlotPhase.uploading,
     );
     state = state.copyWith(
       media: [
@@ -724,19 +735,10 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     state = state.copyWith(awaitingLoginToPublish: false);
   }
 
-  /// Ensure media is uploaded and server-ready, save the current draft only when dirty, then publish.
+  /// Wait for in-flight Uploading (keys), save draft when dirty, then publish.
+  /// Does not wait for server `media:process` / READY.
   Future<bool> publish() async {
     state = state.copyWith(busy: true, clearFailure: true, fieldErrors: const {});
-
-    if (state.media.any((m) => m.uploading)) {
-      state = state.copyWith(
-        busy: false,
-        failure: const ValidationFailure(
-          message: 'Wait for photos to finish uploading.',
-        ),
-      );
-      return false;
-    }
 
     if (state.media.any((m) => m.isLocalOnly)) {
       final uploaded = await _uploadPendingLocalMedia();
@@ -744,6 +746,12 @@ class RequestCreateController extends Notifier<RequestCreateState> {
         state = state.copyWith(busy: false);
         return false;
       }
+    }
+
+    final uploadsOk = await _waitForInFlightUploads();
+    if (!uploadsOk) {
+      state = state.copyWith(busy: false);
+      return false;
     }
 
     final saved = await saveDraft();
@@ -779,6 +787,42 @@ class RequestCreateController extends Notifier<RequestCreateState> {
         return false;
       },
     );
+  }
+
+  /// Await every in-flight upload Future. Failed slots stay failed; caller
+  /// decides whether to proceed (Draft may omit them; Publish may fail).
+  Future<bool> _waitForInFlightUploads() async {
+    final pending = List<Future<bool>>.from(_uploadFutures.values);
+    if (pending.isEmpty) {
+      return !state.media.any((m) => m.phase == MediaSlotPhase.uploading);
+    }
+    final results = await Future.wait(pending);
+    if (results.any((ok) => !ok)) return false;
+    return !state.media.any((m) => m.phase == MediaSlotPhase.uploading);
+  }
+
+  /// After Guest sign-in for Save draft: flush locals, PATCH draft, clear intent.
+  Future<bool> reconcilePendingSaveDraft() async {
+    final pending = ref.read(pendingSaveDraftIntentProvider);
+    if (!pending) return false;
+    final session = ref.read(sessionProvider);
+    if (session is! SignedIn) return false;
+    if (session.isVendor) {
+      resetFlow();
+      ref.read(pendingSaveDraftIntentProvider.notifier).clearPending();
+      unawaited(_clearPersistedDraft());
+      return false;
+    }
+    if (!session.isCustomer) return false;
+    await _refreshMeState();
+    final flushed = await flushPendingLocalMedia();
+    if (!flushed) return false;
+    final ok = await saveDraft();
+    if (ok) {
+      ref.read(pendingSaveDraftIntentProvider.notifier).clearPending();
+      unawaited(_clearPersistedDraft());
+    }
+    return ok;
   }
 
   /// Flush guest-local converted slots (also used after sign-in). Safe to call twice.
@@ -825,7 +869,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
               for (final m in state.media)
                 if (m.key == key)
                   m.copyWith(
-                    uploading: false,
+                    phase: MediaSlotPhase.failed,
                     failure: const ServerFailure(
                       message: 'Could not convert that photo. Try another.',
                     ),
@@ -840,7 +884,21 @@ class RequestCreateController extends Notifier<RequestCreateState> {
           media: [
             for (final m in state.media)
               if (m.key == key)
-                m.copyWith(uploadBytes: prepared.bytes, contentType: prepared.contentType)
+                m.copyWith(
+                  uploadBytes: prepared.bytes,
+                  contentType: prepared.contentType,
+                  phase: MediaSlotPhase.uploading,
+                )
+              else
+                m,
+          ],
+        );
+      } else {
+        state = state.copyWith(
+          media: [
+            for (final m in state.media)
+              if (m.key == key)
+                m.copyWith(phase: MediaSlotPhase.uploading)
               else
                 m,
           ],
@@ -872,7 +930,17 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     }
   }
 
-  Future<bool> _uploadConvertedSlot(String placeholderKey) async {
+  Future<bool> _uploadConvertedSlot(String placeholderKey) {
+    final existing = _uploadFutures[placeholderKey];
+    if (existing != null) return existing;
+    final future = _runUploadConvertedSlot(placeholderKey);
+    _uploadFutures[placeholderKey] = future;
+    return future.whenComplete(() {
+      _uploadFutures.remove(placeholderKey);
+    });
+  }
+
+  Future<bool> _runUploadConvertedSlot(String placeholderKey) async {
     MediaSlot? slot;
     for (final m in state.media) {
       if (m.key == placeholderKey) {
@@ -900,12 +968,12 @@ class RequestCreateController extends Notifier<RequestCreateState> {
     final fail = result.failureOrNull;
     if (fail != null) {
       state = state.copyWith(
-        uploading: false,
+        uploading: state.media.any((m) => m.key != placeholderKey && m.uploading),
         failure: fail,
         media: [
           for (final m in state.media)
             if (m.key == placeholderKey)
-              m.copyWith(uploading: false, failure: fail)
+              m.copyWith(phase: MediaSlotPhase.failed, failure: fail)
             else
               m,
         ],
@@ -924,6 +992,7 @@ class RequestCreateController extends Notifier<RequestCreateState> {
               localBytes: uploadSlot.localBytes,
               uploadBytes: uploadBytes,
               contentType: uploadContentType,
+              phase: MediaSlotPhase.uploaded,
             )
           else
             m,

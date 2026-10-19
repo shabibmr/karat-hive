@@ -812,7 +812,7 @@ sequenceDiagram
     W->>W: Malware scan → quarantine on failure
     W->>W: Strip ALL EXIF incl. GPS · re-encode · generate thumbnail
     W->>OS: PUT derivatives
-    W->>API: Mark READY (or QUARANTINED, blocking parent publication)
+    W->>API: Mark READY (or QUARANTINED + detach from Request)
 ```
 
 Direct-to-storage upload keeps 5 MB photographs off the application tier entirely, which is what makes `NFR-005` (5 MB over 4G in 15 seconds, with progress and resumable retry) achievable without the monolith becoming a file proxy.

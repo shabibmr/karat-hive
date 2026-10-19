@@ -181,7 +181,7 @@ void main() {
   });
 
   group('GL-60 router redirect after reconcile', () {
-    testWidgets('successful reconcile navigates to the request detail screen',
+    testWidgets('successful reconcile navigates to My Requests Open',
         (tester) async {
       stubHappyPublish();
       final sessionCtrl = _MutableSessionController(const SignedOut());
@@ -207,10 +207,10 @@ void main() {
             builder: (_, __) => const RequestReviewPublishScreen(),
           ),
           GoRoute(
-            path: '/customer/requests/:requestId',
+            path: '/customer/requests',
             builder: (context, state) => Text(
-              'detail:${state.pathParameters['requestId']}',
-              key: const Key('detail-screen'),
+              'open:${state.uri.queryParameters['tab']}',
+              key: const Key('open-list-screen'),
             ),
           ),
           GoRoute(
@@ -236,8 +236,8 @@ void main() {
       sessionCtrl.setSession(SignedIn(_customer()));
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('detail-screen')), findsOneWidget);
-      expect(find.text('detail:req-cold-1'), findsOneWidget);
+      expect(find.byKey(const Key('open-list-screen')), findsOneWidget);
+      expect(find.text('open:OPEN'), findsOneWidget);
     });
   });
 }

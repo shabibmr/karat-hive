@@ -7,6 +7,10 @@ enum RequestCreateStep { type, compose, images, review, success }
 
 enum BudgetMode { maxOnly, range }
 
+/// Per-thumbnail upload phase. Server cleaning (`media:process` → READY) is
+/// not modelled here — the client stops once `complete` returns a key.
+enum MediaSlotPhase { attached, uploading, uploaded, failed }
+
 class MediaSlot {
   const MediaSlot({
     required this.key,
@@ -17,7 +21,7 @@ class MediaSlot {
     this.contentType,
     this.remoteUrl,
     this.progress = 1,
-    this.uploading = false,
+    this.phase = MediaSlotPhase.uploaded,
     this.failure,
   });
 
@@ -34,8 +38,10 @@ class MediaSlot {
   /// resuming a saved draft) — no local bytes/path exist for these.
   final String? remoteUrl;
   final double progress;
-  final bool uploading;
+  final MediaSlotPhase phase;
   final Failure? failure;
+
+  bool get uploading => phase == MediaSlotPhase.uploading;
 
   bool get isLocalOnly =>
       (localPath != null || localBytes != null) &&
@@ -52,7 +58,7 @@ class MediaSlot {
     String? contentType,
     String? remoteUrl,
     double? progress,
-    bool? uploading,
+    MediaSlotPhase? phase,
     Failure? failure,
     bool clearFailure = false,
     bool clearLocal = false,
@@ -66,7 +72,7 @@ class MediaSlot {
         contentType: clearLocal ? null : (contentType ?? this.contentType),
         remoteUrl: remoteUrl ?? this.remoteUrl,
         progress: progress ?? this.progress,
-        uploading: uploading ?? this.uploading,
+        phase: phase ?? this.phase,
         failure: clearFailure ? null : (failure ?? this.failure),
       );
 }
@@ -186,18 +192,26 @@ class RequestCreateState {
   bool get mediaInFlight =>
       uploading || media.any((m) => m.uploading);
 
-  /// Guest: photos attached, none failed/in-flight (local converted bytes are OK).
-  /// Signed-in publish uses [mediaKeysReady] instead.
+  /// At least one usable preview for Continue (Attached / Uploading / Uploaded).
+  /// Failed slots do not count. In-flight upload does not block Continue.
   bool get photosAttachedReady {
-    if (mediaInFlight || hasFailedMedia) return false;
     if (imagesRequired && media.isEmpty) return false;
-    return true;
+    if (!imagesRequired) return true;
+    return media.any(
+      (m) =>
+          m.phase == MediaSlotPhase.attached ||
+          m.phase == MediaSlotPhase.uploading ||
+          m.phase == MediaSlotPhase.uploaded,
+    );
   }
 
-  /// Signed-in: every slot has a READY server key.
+  /// Every non-failed slot has a server media key (upload `complete` done).
+  /// Does not require READY — server cleaning runs in the background.
   bool get mediaKeysReady {
-    if (!photosAttachedReady) return false;
-    if (media.any((m) => m.isLocalOnly)) return false;
+    if (hasFailedMedia) return false;
+    if (media.any((m) => m.phase == MediaSlotPhase.uploading || m.isLocalOnly)) {
+      return false;
+    }
     if (imagesRequired && mediaKeys.isEmpty) return false;
     return true;
   }

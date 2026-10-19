@@ -56,6 +56,7 @@ describe('MediaProcessingService (G2-P02)', () => {
         key,
         ...data,
       })),
+      detachFromRequests: vi.fn().mockResolvedValue(0),
     } as unknown as MediaRepository;
 
     storage = {
@@ -145,6 +146,7 @@ describe('MediaProcessingService (G2-P02)', () => {
         malwareScanState: 'QUARANTINED',
       }),
     );
+    expect(repo.detachFromRequests).toHaveBeenCalledWith('media-1');
     expect(storage.putObject).not.toHaveBeenCalled();
   });
 
@@ -162,6 +164,7 @@ describe('MediaProcessingService (G2-P02)', () => {
       '11111111-1111-1111-1111-111111111111',
       expect.objectContaining({ state: 'QUARANTINED', malwareScanState: 'QUARANTINED' }),
     );
+    expect(repo.detachFromRequests).toHaveBeenCalledWith('media-1');
   });
 
   it('marks a clean PDF READY without a thumbnail', async () => {

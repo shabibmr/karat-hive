@@ -150,7 +150,7 @@ class RequestImagesSection extends ConsumerWidget {
               }
               return _DashedAddTile(
                 onTap: () => _pick(ref),
-                disabled: state.uploading,
+                disabled: false,
               );
             },
           ),

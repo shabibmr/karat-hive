@@ -579,7 +579,7 @@ data: {
 
 | Consumer | Action |
 |---|---|
-| `media:process` | Run the pipeline defined in inventory §12 / architecture §16 — **not restated here.** Worker input: the original object at `objectKey`. Worker output: `media.state = READY` with `thumbnail_key` set and `exif_stripped = true`, **or** `media.state = QUARANTINED` (malware / type-mismatch), which blocks the parent Request from publication (`FR-SYS-009.5`). |
+| `media:process` | Run the pipeline defined in inventory §12 / architecture §16 — **not restated here.** Worker input: the original object at `objectKey`. Worker output: `media.state = READY` with `thumbnail_key` set and `exif_stripped = true`, **or** `media.state = QUARANTINED` (malware / type-mismatch) which detaches the row from any Request (`FR-SYS-009.5`). Clients do not subscribe to this job. |
 
 **Notes.** Idempotent on `mediaId` (architecture §11.3). Originals are never served to a counterparty before `READY` (SRS §7.6).
 
@@ -663,7 +663,7 @@ Architecture §11.3 rows are preserved; the four **[new]** rows are `AD-ASYNC-08
 | Announcement dispatch **[new]** | `announcement-dispatch` | 1 min | `announcement WHERE scheduled_for <= now() AND cancelled_at IS NULL AND dispatch_stats IS NULL` | dispatch guard set; `announcement.scheduled` | Scheduled announcement fans out within 1 min of its time (`FR-ADM-029`) | A timed announcement is late or silent |
 | Vendor document expiry **[new]** | `vendor-document-expiry` | Daily 02:00 GST | `vendor_document WHERE expiry_date - now() <= 30 d AND reminder_sent_at IS NULL` | `vendor_document.reminder_sent_at`; `vendor.document.expiring` | Vendor + Admin reminded ~30 d out (`FR-VEN-002` AC4) | A licence lapses unnoticed; Vendor silently loses eligibility |
 | Retention purge | `retention-purge` | Daily 03:00 GST | Rows past their retention window (`NFR-021`): notifications > 90 d, orphan media > 30 d (`FR-SYS-009.6`), `idempotency_key` > 24 h, audit never | Hard-delete or anonymise-in-place (`AD-BE-13`) | Retention windows enforced (`NFR-021`) | None directly; a compliance failure |
-| Media processing | — (event-driven) | on `media.uploaded` | — | See `media:process`, §5 | Derivatives `READY` before the parent can publish | Request stuck un-publishable ("media not ready") |
+| Media processing | — (event-driven) | on `media.uploaded` | — | See `media:process`, §5 | Derivatives become `READY` (or quarantine detaches); parent may already be published | Vendor feed omits non-READY media until the next fetch |
 | Match-set recompute | — (event-driven) | on `vendor.eligibility.changed` | — | See `matching:eligibility-recompute`, §5 | Feed corrected within one drain cycle | Ineligible Vendor still sees a Request, or an eligible one does not |
 
 **Cadence note.** Both expiry sweeps run every minute although `FR-SYS-004.1` permits five — a Customer-visible countdown (`SH-DOM-07`) reaching zero on a Request still marked live is a trust problem, not just a correctness one (architecture §11.3).

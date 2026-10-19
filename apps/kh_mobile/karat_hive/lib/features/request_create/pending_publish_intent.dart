@@ -19,6 +19,19 @@ class PendingPublishIntent extends Notifier<bool> {
 final pendingPublishIntentProvider =
     NotifierProvider<PendingPublishIntent, bool>(PendingPublishIntent.new);
 
+/// Guest tapped Save draft — after login, flush uploads and PATCH draft only.
+class PendingSaveDraftIntent extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void setPending() => state = true;
+
+  void clearPending() => state = false;
+}
+
+final pendingSaveDraftIntentProvider =
+    NotifierProvider<PendingSaveDraftIntent, bool>(PendingSaveDraftIntent.new);
+
 /// Vendor login drops guest publish intent (GL-16 / GL-61). Idempotent.
 void clearPendingPublishIfVendor(
   SessionState session,

@@ -405,13 +405,12 @@ export class RequestService {
       mediaCount: existing.media.length,
     });
 
-    // 5. Validate media state (must all be READY)
+    // 5. Quarantined media cannot go live. PENDING_PROCESSING is allowed —
+    // GET /v1/media/:key only serves READY, and vendor presenters omit
+    // non-READY rows so counterparties never receive raw bytes (FR-SYS-009).
     for (const rm of existing.media) {
       if (rm.media.state === 'QUARANTINED') {
         throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.MEDIA_QUARANTINED);
-      }
-      if (rm.media.state !== 'READY') {
-        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCode.MEDIA_NOT_READY);
       }
     }
 

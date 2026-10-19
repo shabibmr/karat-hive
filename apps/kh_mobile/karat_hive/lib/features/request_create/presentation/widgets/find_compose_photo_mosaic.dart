@@ -73,7 +73,7 @@ class FindComposePhotoMosaic extends ConsumerWidget {
         height: 160,
         child: _MosaicAddTile(
           onTap: () => _pick(ref),
-          disabled: state.uploading,
+          disabled: false,
         ),
       );
     }
@@ -104,7 +104,7 @@ class FindComposePhotoMosaic extends ConsumerWidget {
             }
             return _MosaicAddTile(
               onTap: () => _pick(ref),
-              disabled: state.uploading,
+              disabled: false,
             );
           },
         ),

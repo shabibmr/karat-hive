@@ -60,7 +60,12 @@ export class MediaProcessingService {
         state: 'QUARANTINED',
         malwareScanState: 'QUARANTINED',
       });
-      this.logger.warn(`Quarantined media ${media.id} reason=${result.reason}`);
+      // Publish may already have attached this key while PENDING_PROCESSING.
+      // Detach so the live Request keeps serving without a locked file.
+      const detached = await this.repo.detachFromRequests(media.id);
+      this.logger.warn(
+        `Quarantined media ${media.id} reason=${result.reason} detachedFromRequests=${detached}`,
+      );
       return;
     }
 

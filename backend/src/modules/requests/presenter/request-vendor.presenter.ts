@@ -64,7 +64,13 @@ export function presentVendorRequest(
     region?: RegionSummary;
     media?: Array<{
       displayOrder: number;
-      media: { id: string; key: string; contentType: string; thumbnailKey?: string | null };
+      media: {
+        id: string;
+        key: string;
+        contentType: string;
+        thumbnailKey?: string | null;
+        state?: string;
+      };
     }>;
   },
   customerSummary?: Partial<MaskedCustomerSummary>,
@@ -72,17 +78,21 @@ export function presentVendorRequest(
   hasResponded = false,
 ): VendorRequestView {
   // Served by GET /v1/media/:key (public, redirects to the object store) — the
-  // client resolves this path against its own API base URL.
-  const mediaViews: MediaView[] | undefined = request.media?.map((m) => ({
-    id: m.media.id,
-    key: m.media.key,
-    contentType: m.media.contentType,
-    displayOrder: m.displayOrder,
-    displayUrl: `/v1/media/${m.media.key}`,
-    thumbnailUrl: m.media.thumbnailKey
-      ? `/v1/media/${m.media.thumbnailKey}`
-      : `/v1/media/${m.media.key}`,
-  }));
+  // client resolves this path against its own API base URL. Only READY media
+  // is listed; pending/quarantined rows are omitted so Vendors never see a
+  // broken URL for an unprocessed original (FR-SYS-009).
+  const mediaViews: MediaView[] | undefined = request.media
+    ?.filter((m) => m.media.state == null || m.media.state === 'READY')
+    .map((m) => ({
+      id: m.media.id,
+      key: m.media.key,
+      contentType: m.media.contentType,
+      displayOrder: m.displayOrder,
+      displayUrl: `/v1/media/${m.media.key}`,
+      thumbnailUrl: m.media.thumbnailKey
+        ? `/v1/media/${m.media.thumbnailKey}`
+        : `/v1/media/${m.media.key}`,
+    }));
 
   return {
     id: request.id,

@@ -303,27 +303,31 @@ describe('RequestService', () => {
       );
     });
 
-    it('throws 422 MEDIA_NOT_READY when an attached media item is not READY', async () => {
+    it('allows publish when an attached media item is still PENDING_PROCESSING', async () => {
+      const pendingMedia = [
+        {
+          requestId: 'req-1',
+          mediaId: 'm-1',
+          displayOrder: 0,
+          media: {
+            ...sampleRequestRow.media[0].media,
+            state: 'PENDING_PROCESSING' as const,
+          },
+        },
+      ];
       mockRepo.findByIdForCustomer.mockResolvedValueOnce({
         ...sampleRequestRow,
-        media: [
-          {
-            requestId: 'req-1',
-            mediaId: 'm-1',
-            displayOrder: 0,
-            media: {
-              ...sampleRequestRow.media[0].media,
-              state: 'PENDING_PROCESSING',
-            },
-          },
-        ],
+        media: pendingMedia,
       });
+      mockRepo.update.mockImplementationOnce((id, data) => ({
+        ...sampleRequestRow,
+        ...data,
+        media: pendingMedia,
+      }));
 
-      await expect(service.publish(customerViewer, 'req-1')).rejects.toThrow(
-        expect.objectContaining({
-          errorCode: ErrorCode.MEDIA_NOT_READY,
-        }),
-      );
+      const res = await service.publish(customerViewer, 'req-1');
+      expect(res.data.state).toBe('PUBLISHED');
+      expect(mockRepo.update).toHaveBeenCalled();
     });
 
     it('throws 422 MEDIA_QUARANTINED when an attached media item is quarantined', async () => {

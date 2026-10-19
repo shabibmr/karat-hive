@@ -327,7 +327,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Find An Ornament'), findsOneWidget);
+      // Review title uses service.card.ornament ("Find an Ornament").
+      expect(find.text('Find an Ornament'), findsOneWidget);
       expect(find.text('REVIEW YOUR REQUEST'), findsOneWidget);
       expect(find.byType(RequestReviewMosaic), findsOneWidget);
       expect(find.text('Necklace'), findsOneWidget);

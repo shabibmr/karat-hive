@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:karat_hive/app/session/session_controller.dart';
 import 'package:karat_hive/features/request_create/controller/request_create_controller.dart';
+import 'package:karat_hive/features/request_create/controller/request_create_state.dart';
 import 'package:karat_hive/features/request_create/repository/request_create_repository.dart';
 import 'package:kh_core/kh_core.dart';
 import 'package:kh_domain/kh_domain.dart';
@@ -100,7 +101,6 @@ void main() {
       overrides: [
         requestCreateRepositoryProvider.overrideWithValue(repo),
         requestImageConverterProvider.overrideWithValue(converter),
-        mediaReadyRetryDelayProvider.overrideWithValue(Duration.zero),
         sessionProvider.overrideWith(() => _MutableSessionController(session)),
       ],
     );
@@ -124,7 +124,7 @@ void main() {
   }
 
   group('signed-in attach uploads WebP immediately', () {
-    test('addImage converts then uploads; slot is READY', () async {
+    test('addImage converts then uploads; slot is uploaded (key at complete)', () async {
       stubUpload();
       final container = containerWith(SignedIn(_customer()));
       final ctrl = container.read(requestCreateControllerProvider.notifier);
@@ -137,13 +137,14 @@ void main() {
       expect(state.media, hasLength(1));
       expect(state.media.single.isLocalOnly, isFalse);
       expect(state.media.single.key, 'media-key-1');
+      expect(state.media.single.phase, MediaSlotPhase.uploaded);
       expect(state.mediaKeys, ['media-key-1']);
       expect(state.media.single.contentType, 'image/webp');
       verifyNever(() => repo.createDraft(any()));
       verifyNever(() => repo.patchDraft(any(), any()));
     });
 
-    test('addImage with existing draftId patches mediaKeys', () async {
+    test('saveDraft after upload patches mediaKeys', () async {
       stubUpload();
       when(() => repo.createDraft(any())).thenAnswer(
         (_) async => Ok(DraftSaveResult(request: _draftRequest())),
@@ -156,6 +157,9 @@ void main() {
       ctrl.selectType(RequestType.findOrnament);
       await ctrl.saveDraft();
       await ctrl.addImage(imageFile, 'image/jpeg');
+      // Upload alone does not PATCH; Draft waits for keys then saves.
+      verifyNever(() => repo.patchDraft(any(), any()));
+      await ctrl.saveDraft();
 
       final captured = verify(() => repo.patchDraft('req-draft-1', captureAny()))
           .captured
@@ -242,8 +246,8 @@ void main() {
     });
   });
 
-  group('publish after READY keys', () {
-    test('does not upload again; createDraft then publish', () async {
+  group('publish after uploaded keys', () {
+    test('does not upload again; createDraft then publish once', () async {
       final order = <String>[];
       when(
         () => repo.uploadRequestImageBytes(
@@ -313,68 +317,12 @@ void main() {
     });
   });
 
-  group('publish while photos are still processing', () {
-    void stubDraftAndUpload() {
+  group('publish does not wait on server processing', () {
+    test('surfaces non-media publish failures without retry', () async {
       stubUpload();
       when(() => repo.createDraft(any())).thenAnswer(
         (_) async => Ok(DraftSaveResult(request: _draftRequest())),
       );
-      when(() => repo.patchDraft(any(), any())).thenAnswer(
-        (_) async => Ok(DraftSaveResult(request: _draftRequest())),
-      );
-    }
-
-    const notReady = ValidationFailure(
-      code: 'MEDIA_NOT_READY',
-      message: 'Photos are still processing.',
-    );
-
-    test('retries MEDIA_NOT_READY with the same idempotency key', () async {
-      stubDraftAndUpload();
-      final keys = <String>[];
-      when(
-        () => repo.publish(any(), idempotencyKey: any(named: 'idempotencyKey')),
-      ).thenAnswer((inv) async {
-        keys.add(inv.namedArguments[#idempotencyKey] as String);
-        return keys.length < 3 ? const Err(notReady) : Ok(_publishedRequest());
-      });
-
-      final container = containerWith(SignedIn(_customer()));
-      final ctrl = container.read(requestCreateControllerProvider.notifier);
-      ctrl.selectType(RequestType.findOrnament);
-      await ctrl.addImage(imageFile, 'image/jpeg');
-
-      expect(await ctrl.publish(), isTrue);
-      expect(keys, hasLength(3));
-      expect(keys.toSet(), hasLength(1));
-    });
-
-    test('gives up and surfaces the failure if photos never become ready',
-        () async {
-      stubDraftAndUpload();
-      var calls = 0;
-      when(
-        () => repo.publish(any(), idempotencyKey: any(named: 'idempotencyKey')),
-      ).thenAnswer((_) async {
-        calls++;
-        return const Err(notReady);
-      });
-
-      final container = containerWith(SignedIn(_customer()));
-      final ctrl = container.read(requestCreateControllerProvider.notifier);
-      ctrl.selectType(RequestType.findOrnament);
-      await ctrl.addImage(imageFile, 'image/jpeg');
-
-      expect(await ctrl.publish(), isFalse);
-      expect(calls, 31);
-      expect(
-        container.read(requestCreateControllerProvider).failure?.code,
-        'MEDIA_NOT_READY',
-      );
-    });
-
-    test('other publish failures are not retried', () async {
-      stubDraftAndUpload();
       var calls = 0;
       when(
         () => repo.publish(any(), idempotencyKey: any(named: 'idempotencyKey')),

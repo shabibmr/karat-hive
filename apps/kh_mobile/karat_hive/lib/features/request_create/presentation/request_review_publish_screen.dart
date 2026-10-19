@@ -73,7 +73,7 @@ class _RequestReviewPublishScreenState
     if (!mounted) return;
     if (ok) {
       ref.read(requestCreateControllerProvider.notifier).resetFlow();
-      context.go(AppGuards.customerHome);
+      context.go('${AppGuards.customerRequests}?tab=OPEN');
     }
   }
 
@@ -99,10 +99,41 @@ class _RequestReviewPublishScreenState
     _overlaySheetOpen = false;
   }
 
+  /// Guest Save-draft overlay: flush uploads, PATCH draft, go to Drafts.
+  Future<void> _maybeReconcilePendingSaveDraft() async {
+    if (!ref.read(pendingSaveDraftIntentProvider)) return;
+    final session = ref.read(sessionProvider);
+    if (session is! SignedIn) return;
+
+    if (_overlaySheetOpen && mounted && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+
+    final ok = await ref
+        .read(requestCreateControllerProvider.notifier)
+        .reconcilePendingSaveDraft();
+    if (!mounted) return;
+    if (ok) {
+      ref.read(requestCreateControllerProvider.notifier).resetFlow();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            createCopy(context, 'create.draftSaved', 'Draft saved'),
+          ),
+        ),
+      );
+      context.go('${AppGuards.customerRequests}?tab=DRAFTS');
+    }
+  }
+
   /// GL-57…GL-60: reconcile a pending overlay-driven publish intent once the
-  /// Guest signs in, closing the overlay (if still open) and routing to the
-  /// newly-published Request's detail screen.
+  /// Guest signs in, closing the overlay (if still open) and routing to
+  /// My Requests → Open.
   Future<void> _maybeReconcilePendingOverlayIntent() async {
+    if (ref.read(pendingSaveDraftIntentProvider)) {
+      await _maybeReconcilePendingSaveDraft();
+      return;
+    }
     if (!ref.read(pendingPublishIntentProvider)) return;
     final session = ref.read(sessionProvider);
     if (session is! SignedIn) return;
@@ -116,13 +147,8 @@ class _RequestReviewPublishScreenState
         .reconcilePendingPublish();
     if (!mounted) return;
     if (ok) {
-      final published = ref.read(requestCreateControllerProvider).published;
       ref.read(requestCreateControllerProvider.notifier).resetFlow();
-      if (published != null) {
-        context.go('${AppGuards.customerRequests}/${published.id}');
-      } else {
-        context.go(AppGuards.customerHome);
-      }
+      context.go('${AppGuards.customerRequests}?tab=OPEN');
     }
   }
 
@@ -148,7 +174,7 @@ class _RequestReviewPublishScreenState
     if (!mounted) return;
     if (ok) {
       controller.resetFlow();
-      context.go(AppGuards.customerHome);
+      context.go('${AppGuards.customerRequests}?tab=OPEN');
       return;
     }
     final failure = ref.read(requestCreateControllerProvider).failure;
@@ -162,7 +188,7 @@ class _RequestReviewPublishScreenState
     final controller = ref.read(requestCreateControllerProvider.notifier);
 
     if (session is! SignedIn) {
-      ref.read(pendingPublishIntentProvider.notifier).setPending();
+      ref.read(pendingSaveDraftIntentProvider.notifier).setPending();
       unawaited(controller.persistPendingDraft());
       await _showGuestSignInOverlay();
       return;
@@ -202,7 +228,9 @@ class _RequestReviewPublishScreenState
           !_handledReturn) {
         _maybeAutoPublishAfterLogin();
       }
-      if (next is SignedIn && ref.read(pendingPublishIntentProvider)) {
+      if (next is SignedIn &&
+          (ref.read(pendingPublishIntentProvider) ||
+              ref.read(pendingSaveDraftIntentProvider))) {
         _maybeReconcilePendingOverlayIntent();
       }
     });
@@ -223,9 +251,11 @@ class _RequestReviewPublishScreenState
 
     final type = state.requestType;
     final isFind = type == RequestType.findOrnament;
-    final publishBusy = state.busy || state.uploading;
+    // Overlay while Draft/Publish awaits in-flight Uploading (busy flag).
+    // Per-tile progress covers upload; Continue-style gates stay free.
+    final publishBusy = state.busy;
     final publishEnabled = !publishBusy &&
-        !(session is SignedIn && !controller.canContinuePhotos);
+        !(session is SignedIn && state.imagesRequired && !controller.canContinuePhotos);
 
     return CreateFlowChrome(
       title: isFind
