@@ -64,6 +64,16 @@ void main() {
     );
   });
 
+  testWidgets('draft actions stay in a row at 390 and scale 1', (tester) async {
+    await tester.pumpWidget(host(actions(), width: 390));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<Flex>(find.byKey(const Key('create-draft-actions'))),
+      isA<Row>(),
+    );
+  });
+
   testWidgets('draft actions stack below 360', (tester) async {
     await tester.pumpWidget(host(actions(), width: 320));
     await tester.pumpAndSettle();

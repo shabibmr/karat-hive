@@ -205,14 +205,10 @@ class DraftActions extends StatelessWidget {
           top: BorderSide(color: tokens.inkHairline, width: 1.0),
         ),
       ),
-
-      padding: EdgeInsets.symmetric(
-        horizontal: tokens.space.md,
-        vertical: tokens.space.sm,
-      ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final scale = MediaQuery.textScalerOf(context).scale(1);
+          // Measure the bar, not the padded interior (16 + 16).
           final stack = constraints.maxWidth < 360 || scale >= 1.4;
           final save = TextButton(
             key: const Key('create-save-draft'),
@@ -250,9 +246,15 @@ class DraftActions extends StatelessWidget {
                     Expanded(child: continueButton),
                   ],
                 );
-          return ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 48),
-            child: bar,
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: tokens.space.md,
+              vertical: tokens.space.sm,
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: bar,
+            ),
           );
         },
       ),

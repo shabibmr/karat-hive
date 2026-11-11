@@ -77,16 +77,18 @@ class _ConnectionDetailScreenState
               ),
             ],
           ),
-          body: async.when(
-            loading: () => const KhLoadingView(),
-            error: (err, _) => KhErrorView(
-              message: khFailureMessage(err, s.s('common.retry')),
-              onRetry: () => ref
-                  .read(connectionDetailProvider(widget.connectionId).notifier)
-                  .reload(),
-              retryLabel: s.s('common.retry'),
+          body: KhCenteredContent(
+            child: async.when(
+              loading: () => const KhLoadingView(),
+              error: (err, _) => KhErrorView(
+                message: khFailureMessage(err, s.s('common.retry')),
+                onRetry: () => ref
+                    .read(connectionDetailProvider(widget.connectionId).notifier)
+                    .reload(),
+                retryLabel: s.s('common.retry'),
+              ),
+              data: (c) => _Body(connection: c),
             ),
-            data: (c) => _Body(connection: c),
           ),
         ),
         if (_obscureIdentity)

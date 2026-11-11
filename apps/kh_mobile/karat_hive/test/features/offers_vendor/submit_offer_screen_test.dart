@@ -254,6 +254,20 @@ void main() {
       expect(repo.submitCalls, 0);
     });
 
+    testWidgets('caps the form at 560 on a wide screen', (tester) async {
+      tester.view.physicalSize = const Size(1024, 768);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = FakeOffersVendorRepository(request: _testRequest());
+      await tester.pumpWidget(_host(repo: repo));
+      await tester.pumpAndSettle();
+
+      expect(tester.getSize(find.byType(Scaffold)).width, 1024);
+      expect(tester.getSize(find.byType(ListView).first).width, 560);
+    });
+
     testWidgets('submit with price but no image shows inline error',
         (tester) async {
       await setTallSurface(tester);

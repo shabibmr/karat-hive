@@ -30,7 +30,8 @@ class ReviseOfferScreen extends ConsumerWidget {
       child: Scaffold(
         key: const Key('revise-offer-screen'),
         appBar: AppBar(title: Text(l10n?.offerCurrentTerms ?? 'Offer Details')),
-        body: switch (state) {
+        body: KhCenteredContent(
+          child: switch (state) {
           ReviseOfferLoading() || ReviseOfferSucceeded() => const KhLoadingView(),
           ReviseOfferFailed(:final failure) => KhErrorView(
             message:
@@ -128,7 +129,8 @@ class ReviseOfferScreen extends ConsumerWidget {
                 ],
               ],
             ),
-        },
+          },
+        ),
       ),
     );
   }

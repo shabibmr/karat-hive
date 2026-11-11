@@ -191,5 +191,19 @@ void main() {
       expect(find.byKey(const Key('revise-offer-button')), findsNothing);
       expect(find.byKey(const Key('withdraw-offer-button')), findsOneWidget);
     });
+
+    testWidgets('caps the form at 560 on a wide screen', (tester) async {
+      tester.view.physicalSize = const Size(1024, 768);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = FakeOffersVendorRepository(offer: _testOffer());
+      await tester.pumpWidget(_host(repo: repo));
+      await tester.pumpAndSettle();
+
+      expect(tester.getSize(find.byType(Scaffold)).width, 1024);
+      expect(tester.getSize(find.byType(ListView).first).width, 560);
+    });
   });
 }

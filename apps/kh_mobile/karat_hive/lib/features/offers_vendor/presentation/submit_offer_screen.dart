@@ -65,7 +65,8 @@ class SubmitOfferScreen extends ConsumerWidget {
       child: Scaffold(
         key: const Key('submit-offer-screen'),
         appBar: AppBar(title: Text(l10n?.submitOfferTitle ?? 'Submit Offer')),
-        body: switch (state) {
+        body: KhCenteredContent(
+          child: switch (state) {
           SubmitOfferLoading() || SubmitOfferSucceeded() => const KhLoadingView(),
           SubmitOfferFailed(:final failure) => KhErrorView(
             message:
@@ -146,7 +147,8 @@ class SubmitOfferScreen extends ConsumerWidget {
                 ),
               ],
             ),
-        },
+          },
+        ),
       ),
     );
   }

@@ -251,6 +251,12 @@ void main() {
           isA<Column>(),
         );
       }
+      if (surface.size.width == 390 && surface.textScale == 1) {
+        expect(
+          tester.widget<Flex>(find.byKey(const Key('create-draft-actions'))),
+          isA<Row>(),
+        );
+      }
     });
 
     testWidgets('tab bars lay out at ${surface.label}', (tester) async {
