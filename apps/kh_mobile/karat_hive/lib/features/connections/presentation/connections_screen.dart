@@ -66,7 +66,8 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
       appBar: AppBar(
         title: Text(l10n?.connectionsTitle ?? 'Connections'),
       ),
-      body: ValueListenableBuilder<PagedListState<ConnectionForVendor>>(
+      body: KhCenteredContent(
+        child: ValueListenableBuilder<PagedListState<ConnectionForVendor>>(
         valueListenable: controller,
         builder: (context, listState, _) {
           if (listState.status == PagedListStatus.loadingFirstPage) {
@@ -162,6 +163,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
             ),
           );
         },
+        ),
       ),
     );
   }

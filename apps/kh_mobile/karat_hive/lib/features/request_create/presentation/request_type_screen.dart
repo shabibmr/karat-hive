@@ -140,7 +140,8 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
         ),
       ),
       body: SafeArea(
-        child: ListView(
+        child: KhCenteredContent(
+          child: ListView(
           padding: EdgeInsets.symmetric(
             horizontal: tokens.space.md,
             vertical: tokens.space.sm,
@@ -254,6 +255,7 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
             ),
             const SizedBox(height: 20),
           ],
+          ),
         ),
       ),
     );

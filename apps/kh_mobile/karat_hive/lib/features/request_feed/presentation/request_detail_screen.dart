@@ -59,7 +59,8 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
           ),
         ],
       ),
-      body: detailAsync.when(
+      body: KhCenteredContent(
+        child: detailAsync.when(
         loading: () => const Center(child: KhLoadingView()),
         error: (err, _) => Center(
           child: KhErrorView(
@@ -267,6 +268,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
             ],
           );
         },
+        ),
       ),
     );
   }

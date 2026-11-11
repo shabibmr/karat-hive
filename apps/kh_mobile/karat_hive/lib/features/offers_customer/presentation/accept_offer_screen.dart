@@ -32,7 +32,8 @@ class AcceptOfferScreen extends ConsumerWidget {
     return Scaffold(
       key: const Key('accept-offer-screen'),
       appBar: AppBar(title: Text(s.s('cus.s14.title'))),
-      body: detail.when(
+      body: KhCenteredContent(
+        child: detail.when(
         loading: () => const KhLoadingView(),
         error: (err, _) => KhErrorView(
           message: customerFailureMessage(
@@ -104,6 +105,7 @@ class AcceptOfferScreen extends ConsumerWidget {
             ],
           );
         },
+        ),
       ),
     );
   }

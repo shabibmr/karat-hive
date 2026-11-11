@@ -37,7 +37,8 @@ class _OwnerRequestDetailScreenState
     return Scaffold(
       key: const Key('owner-request-detail-screen'),
       appBar: AppBar(title: Text(s.s('cus.s10.title'))),
-      body: async.when(
+      body: KhCenteredContent(
+        child: async.when(
         loading: () => const KhLoadingView(),
         error: (err, _) => KhErrorView(
           message: customerFailureMessage(
@@ -219,6 +220,7 @@ class _OwnerRequestDetailScreenState
             ],
           );
         },
+        ),
       ),
     );
   }

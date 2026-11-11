@@ -96,7 +96,8 @@ class _CustomerOffersListScreenState
           ),
         ),
       ),
-      body: Column(
+      body: KhCenteredContent(
+        child: Column(
         children: [
           requestAsync.maybeWhen(
             data: (d) {
@@ -173,6 +174,7 @@ class _CustomerOffersListScreenState
             ),
           ),
         ],
+        ),
       ),
     );
   }

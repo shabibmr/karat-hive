@@ -37,7 +37,8 @@ class SubscriptionsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n?.subscriptionsTitle ?? 'Subscriptions & Entitlements'),
       ),
-      body: subsAsync.when(
+      body: KhCenteredContent(
+        child: subsAsync.when(
         loading: () => const Center(child: KhLoadingView()),
         error: (err, _) => Center(
           child: KhErrorView(
@@ -135,6 +136,7 @@ class SubscriptionsScreen extends ConsumerWidget {
             ],
           );
         },
+        ),
       ),
     );
   }

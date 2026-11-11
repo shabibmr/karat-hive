@@ -44,7 +44,8 @@ class _OfferDetailScreenState extends ConsumerState<OfferDetailScreen> {
           ),
         ],
       ),
-      body: async.when(
+      body: KhCenteredContent(
+        child: async.when(
         loading: () => const KhLoadingView(),
         error: (err, _) => KhErrorView(
           message: customerFailureMessage(
@@ -149,6 +150,7 @@ class _OfferDetailScreenState extends ConsumerState<OfferDetailScreen> {
             ],
           );
         },
+        ),
       ),
     );
   }
