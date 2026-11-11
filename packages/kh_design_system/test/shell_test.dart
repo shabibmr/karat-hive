@@ -115,4 +115,24 @@ void main() {
     expect(refreshed, isTrue);
     await tester.pumpAndSettle();
   });
+
+  testWidgets('KhScaffold keeps the page full bleed and caps the body at 560',
+      (tester) async {
+    tester.view.physicalSize = const Size(1024, 768);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _wrap(
+        const KhScaffold(
+          title: 'Dashboard',
+          body: SizedBox(key: Key('probe'), width: double.infinity, height: 8),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(Scaffold)).width, 1024);
+    expect(tester.getSize(find.byKey(const Key('probe'))).width, 560);
+  });
 }
