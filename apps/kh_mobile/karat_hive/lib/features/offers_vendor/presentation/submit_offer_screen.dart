@@ -26,7 +26,9 @@ class SubmitOfferScreen extends ConsumerWidget {
       allowedExtensions: const ['jpg', 'jpeg', 'png'],
     );
     if (files.isEmpty) return;
-    final controller = ref.read(submitOfferControllerProvider(requestId).notifier);
+    final controller = ref.read(
+      submitOfferControllerProvider(requestId).notifier,
+    );
     for (final f in files) {
       final path = kIsWeb ? null : f.path;
       Uint8List data = await f.readAsBytes();
@@ -67,86 +69,98 @@ class SubmitOfferScreen extends ConsumerWidget {
         appBar: AppBar(title: Text(l10n?.submitOfferTitle ?? 'Submit Offer')),
         body: KhCenteredContent(
           child: switch (state) {
-          SubmitOfferLoading() || SubmitOfferSucceeded() => const KhLoadingView(),
-          SubmitOfferFailed(:final failure) => KhErrorView(
-            message:
-                failure.message ??
-                (l10n?.couldNotLoadRequest ?? 'Could not load request.'),
-            onRetry: () =>
-                ref.invalidate(submitOfferControllerProvider(requestId)),
-          ),
-          SubmitOfferReady(
-            :final request,
-            :final draft,
-            :final submitting,
-            :final failure,
-            :final images,
-          ) =>
-            ListView(
-              padding: EdgeInsets.all(tokens.space.md),
-              children: [
-                Text(
-                  request.displayTitle(
-                    fallback: l10n?.requestFallback ?? 'Request',
+            SubmitOfferLoading() ||
+            SubmitOfferSucceeded() => const KhLoadingView(),
+            SubmitOfferFailed(:final failure) => KhErrorView(
+              message:
+                  failure.message ??
+                  (l10n?.couldNotLoadRequest ?? 'Could not load request.'),
+              onRetry: () =>
+                  ref.invalidate(submitOfferControllerProvider(requestId)),
+            ),
+            SubmitOfferReady(
+              :final request,
+              :final draft,
+              :final submitting,
+              :final failure,
+              :final images,
+            ) =>
+              ListView(
+                padding: EdgeInsets.all(tokens.space.md),
+                children: [
+                  Text(
+                    request.displayTitle(
+                      fallback: l10n?.requestFallback ?? 'Request',
+                    ),
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                SizedBox(height: tokens.space.xs),
-                Text(
-                  request.customer.displayPseudonym,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: tokens.ink.withValues(alpha: 0.7),
+                  SizedBox(height: tokens.space.xs),
+                  Text(
+                    request.customer.displayPseudonym,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: tokens.ink.withValues(alpha: 0.7),
+                    ),
                   ),
-                ),
-                SizedBox(height: tokens.space.lg),
-                OfferTermsForm(
-                  draft: draft,
-                  requestExpiresAt: request.expiresAt,
-                  now: clock.now(),
-                  onChanged: () => ref
-                      .read(submitOfferControllerProvider(requestId).notifier)
-                      .touch(),
-                  showMediaHint: false,
-                  mediaSlot: SubmitOfferController.mediaAllowedForRequestType(
-                          request.requestType)
-                      ? _OfferImagesSlot(
-                          images: images,
-                          enabled: !submitting &&
-                              images.length < SubmitOfferController.maxImages,
-                          onAdd: () => _pick(ref),
-                          onRemove: (key) => ref
-                              .read(submitOfferControllerProvider(requestId)
-                                  .notifier)
-                              .removeImage(key),
-                          onRetry: (key) => ref
-                              .read(submitOfferControllerProvider(requestId)
-                                  .notifier)
-                              .retryImage(key),
+                  SizedBox(height: tokens.space.lg),
+                  OfferTermsForm(
+                    draft: draft,
+                    requestExpiresAt: request.expiresAt,
+                    now: clock.now(),
+                    onChanged: () => ref
+                        .read(submitOfferControllerProvider(requestId).notifier)
+                        .touch(),
+                    showMediaHint: false,
+                    mediaSlot:
+                        SubmitOfferController.mediaAllowedForRequestType(
+                          request.requestType,
                         )
-                      : null,
-                ),
-                if (failure != null) ...[
-                  SizedBox(height: tokens.space.md),
-                  KhInlineError(
-                    message: failure.message ?? failure.code ?? 'Error',
+                        ? _OfferImagesSlot(
+                            images: images,
+                            enabled:
+                                !submitting &&
+                                images.length < SubmitOfferController.maxImages,
+                            onAdd: () => _pick(ref),
+                            onRemove: (key) => ref
+                                .read(
+                                  submitOfferControllerProvider(
+                                    requestId,
+                                  ).notifier,
+                                )
+                                .removeImage(key),
+                            onRetry: (key) => ref
+                                .read(
+                                  submitOfferControllerProvider(
+                                    requestId,
+                                  ).notifier,
+                                )
+                                .retryImage(key),
+                          )
+                        : null,
+                  ),
+                  if (failure != null) ...[
+                    SizedBox(height: tokens.space.md),
+                    KhInlineError(
+                      message: failure.message ?? failure.code ?? 'Error',
+                    ),
+                  ],
+                  SizedBox(height: tokens.space.lg),
+                  KhButton(
+                    key: const Key('submit-offer-button'),
+                    label: submitting
+                        ? (l10n?.commonSubmitting ?? 'Submitting…')
+                        : (l10n?.submitOfferAction ?? 'Submit Offer'),
+                    onPressed: submitting
+                        ? null
+                        : () => ref
+                              .read(
+                                submitOfferControllerProvider(
+                                  requestId,
+                                ).notifier,
+                              )
+                              .submit(),
                   ),
                 ],
-                SizedBox(height: tokens.space.lg),
-                KhButton(
-                  key: const Key('submit-offer-button'),
-                  label: submitting
-                      ? (l10n?.commonSubmitting ?? 'Submitting…')
-                      : (l10n?.submitOfferAction ?? 'Submit Offer'),
-                  onPressed: submitting
-                      ? null
-                      : () => ref
-                            .read(
-                              submitOfferControllerProvider(requestId).notifier,
-                            )
-                            .submit(),
-                ),
-              ],
-            ),
+              ),
           },
         ),
       ),
@@ -193,7 +207,9 @@ class _OfferImagesSlot extends StatelessWidget {
               _OfferImageTile(
                 slot: image,
                 onRemove: () => onRemove(image.key),
-                onRetry: image.failure == null ? null : () => onRetry(image.key),
+                onRetry: image.failure == null
+                    ? null
+                    : () => onRetry(image.key),
               ),
             if (enabled)
               ActionChip(
@@ -275,7 +291,10 @@ class _OfferImageTile extends StatelessWidget {
               child: IconButton(
                 key: Key('offer-remove-image-${slot.key}'),
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints.tightFor(width: 24, height: 24),
+                constraints: const BoxConstraints.tightFor(
+                  width: 24,
+                  height: 24,
+                ),
                 style: IconButton.styleFrom(
                   backgroundColor: const Color(0xCC000000),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,

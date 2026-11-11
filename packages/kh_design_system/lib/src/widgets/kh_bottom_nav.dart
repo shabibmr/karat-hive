@@ -4,15 +4,19 @@ import 'package:kh_design_system/src/typography.dart';
 import 'kh_badge.dart';
 import 'package:kh_design_system/src/widgets/kh_home_style.dart';
 
-/// Floor 80. Scale 1 stays 80; scale 2 grows to 82 (24 + 22 + 36).
+/// Floor 80. Scale 1 stays 80; scale 2 grows to 82.
+/// 24 = icon, 36 = label gap plus vertical padding.
 double khNavBarHeight(TextScaler scaler) {
   final grown = 24 + scaler.scale(11) + 36;
   return grown < 80 ? 80 : grown;
 }
 
-/// Five English Vendor labels do not fit under 360 px.
+/// Below this width the layout collapses: nav labels hide, draft actions stack.
+const double khNarrowWidth = 360;
+
+/// Five English Vendor labels do not fit under [khNarrowWidth].
 NavigationDestinationLabelBehavior khNavLabelBehavior(double width) {
-  return width < 360
+  return width < khNarrowWidth
       ? NavigationDestinationLabelBehavior.onlyShowSelected
       : NavigationDestinationLabelBehavior.alwaysShow;
 }

@@ -9,7 +9,8 @@ String createCopy(BuildContext context, String key, String fallback) {
   return value == key ? fallback : value;
 }
 
-/// At least 60. Grows with the 21px title and 10px eyebrow.
+/// At least 60. Grows with the 21px title and 10px eyebrow; 28 is the
+/// header's vertical padding plus the gap between them.
 double createFlowHeaderHeight(TextScaler scaler) {
   final grown = scaler.scale(21) + scaler.scale(10) + 28;
   return grown < 60 ? 60 : grown;
@@ -209,7 +210,7 @@ class DraftActions extends StatelessWidget {
         builder: (context, constraints) {
           final scale = MediaQuery.textScalerOf(context).scale(1);
           // Measure the bar, not the padded interior (16 + 16).
-          final stack = constraints.maxWidth < 360 || scale >= 1.4;
+          final stack = constraints.maxWidth < khNarrowWidth || scale >= 1.4;
           final save = TextButton(
             key: const Key('create-save-draft'),
             onPressed: busy ? null : onSaveDraft,

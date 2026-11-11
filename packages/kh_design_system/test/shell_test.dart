@@ -136,6 +136,34 @@ void main() {
     expect(tester.getSize(find.byKey(const Key('probe'))).width, 560);
   });
 
+  testWidgets('KhScaffold pull-to-refresh still fires at 1024 wide', (tester) async {
+    tester.view.physicalSize = const Size(1024, 768);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    var refreshed = false;
+    await tester.pumpWidget(
+      _wrap(
+        KhScaffold(
+          title: 'Dashboard',
+          onRefresh: () async {
+            refreshed = true;
+          },
+          body: ListView(
+            children: const [SizedBox(height: 1200, child: Text('wide-item'))],
+          ),
+        ),
+      ),
+    );
+
+    await tester.fling(find.text('wide-item'), const Offset(0, 300), 1000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(refreshed, isTrue);
+    await tester.pumpAndSettle();
+  });
+
   test('nav bar height grows with text scale and labels collapse under 360', () {
     expect(khNavBarHeight(TextScaler.noScaling), 80);
     expect(khNavBarHeight(const TextScaler.linear(2)), 82);
