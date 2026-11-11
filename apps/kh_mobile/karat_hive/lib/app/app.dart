@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_l10n/kh_l10n.dart';
@@ -22,6 +23,21 @@ class KaratHiveApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       // docs/UI-Design-Context.md; locale picks Latin vs Arabic fonts.
       theme: KhTheme.light(locale: locale),
+      builder: (context, child) {
+        // Dark icons on the ivory canvas. Edge-to-edge leaves the system
+        // bars transparent; light icons disappear into the page.
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light,
+            systemNavigationBarColor: Colors.transparent,
+            systemNavigationBarIconBrightness: Brightness.dark,
+            systemNavigationBarContrastEnforced: false,
+          ),
+          child: KhSystemInset(child: child ?? const SizedBox.shrink()),
+        );
+      },
       routeInformationProvider: router.routeInformationProvider,
       routeInformationParser: router.routeInformationParser,
       routerDelegate: router.routerDelegate,

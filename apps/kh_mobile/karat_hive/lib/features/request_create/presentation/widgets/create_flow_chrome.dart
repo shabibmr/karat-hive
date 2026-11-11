@@ -30,62 +30,76 @@ class CreateFlowHeader extends StatelessWidget implements PreferredSizeWidget {
     final tokens = context.tokens;
     final locale = Localizations.maybeLocaleOf(context);
     final fonts = KhFonts.forLocale(locale);
+    // Scaffold pins this bar to the top of the window. Pad by the status-bar
+    // inset so the back control and title are not drawn under it. When
+    // [KhSystemInset] has already consumed that inset, this padding is zero.
+    final topInset = MediaQuery.paddingOf(context).top;
 
-    return Container(
-      height: 60,
-      color: tokens.formSurface,
-      padding: EdgeInsets.symmetric(horizontal: tokens.space.md),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: tokens.inkBorderSoft,
-                width: 1,
+    return Padding(
+      padding: EdgeInsets.only(top: topInset),
+      child: Container(
+        height: 60,
+        color: tokens.formSurface,
+        padding: EdgeInsets.symmetric(horizontal: tokens.space.md),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: tokens.inkBorderSoft,
+                  width: 1,
+                ),
+              ),
+              child: IconButton(
+                key: const Key('create-flow-back'),
+                padding: EdgeInsets.zero,
+                iconSize: 20,
+                style: IconButton.styleFrom(
+                  fixedSize: const Size(36, 36),
+                  minimumSize: const Size(36, 36),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: EdgeInsets.zero,
+                ),
+                icon: const Icon(Icons.arrow_back),
+                color: tokens.ink,
+                onPressed: onBack ?? () => exitRequestCreate(context),
               ),
             ),
-            child: IconButton(
-              key: const Key('create-flow-back'),
-              padding: EdgeInsets.zero,
-              iconSize: 20,
-              icon: const Icon(Icons.arrow_back),
-              color: tokens.ink,
-              onPressed: onBack ?? () => exitRequestCreate(context),
-            ),
-          ),
-          SizedBox(width: tokens.space.md),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (eyebrow != null && eyebrow!.isNotEmpty)
+            SizedBox(width: tokens.space.md),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (eyebrow != null && eyebrow!.isNotEmpty)
+                    Text(
+                      fonts.isArabic ? eyebrow! : eyebrow!.toUpperCase(),
+                      style: fonts
+                          .sansStyle(
+                            10,
+                            FontWeight.w600,
+                            trackingEm: 0.10,
+                          )
+                          .copyWith(color: tokens.gold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   Text(
-                    fonts.isArabic ? eyebrow! : eyebrow!.toUpperCase(),
-                    style: fonts.sansStyle(
-                      10,
-                      FontWeight.w600,
-                      trackingEm: 0.10,
-                    ).copyWith(color: tokens.gold),
+                    title,
+                    style: fonts
+                        .serifStyle(21, FontWeight.w600)
+                        .copyWith(color: tokens.ink),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                Text(
-                  title,
-                  style: fonts.serifStyle(
-                    21,
-                    FontWeight.w600,
-                  ).copyWith(color: tokens.ink),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

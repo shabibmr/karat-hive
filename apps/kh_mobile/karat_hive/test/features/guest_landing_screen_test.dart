@@ -298,6 +298,74 @@ void main() {
     expect(router.state.uri.path, RequestCreatePaths.ornament);
   });
 
+  testWidgets(
+    'iPhone Dynamic Island keeps login and titles out of the system bars',
+    (tester) async {
+      // iPhone 16 Pro logical size. Top inset is the Dynamic Island;
+      // bottom is the home indicator.
+      const phone = Size(402, 874);
+      const statusBar = 59.0;
+      const homeIndicator = 34.0;
+      tester.view.physicalSize = phone;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sessionProvider.overrideWith(
+              () => FakeSessionController(const SignedOut()),
+            ),
+          ],
+          child: MaterialApp.router(
+            theme: KhTheme.light(),
+            localizationsDelegates: KhStrings.delegates,
+            supportedLocales: KhStrings.supportedLocales,
+            routerConfig: _landingRouter(),
+            builder: (context, child) {
+              final mq = MediaQuery.of(context);
+              return MediaQuery(
+                data: mq.copyWith(
+                  padding: const EdgeInsets.only(
+                    top: statusBar,
+                    bottom: homeIndicator,
+                  ),
+                  viewPadding: const EdgeInsets.only(
+                    top: statusBar,
+                    bottom: homeIndicator,
+                  ),
+                ),
+                child: KhSystemInset(child: child!),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final landing = tester.getRect(find.byKey(const Key('guest-landing')));
+      final login = tester.getRect(find.byKey(const Key('guest-login')));
+      final logo = tester.getRect(find.byKey(const Key('brand-header-logo')));
+      final title = tester.getRect(find.text('Find an\nOrnament'));
+      final how = tester.getRect(find.byKey(const Key('how-this-works')));
+
+      expect(landing.top, statusBar);
+      expect(landing.bottom, phone.height - homeIndicator);
+      expect(login.top, greaterThanOrEqualTo(statusBar));
+      // A second copy of the status-bar inset would push the button
+      // down by another ~59. It stays inside the 64 px header.
+      expect(login.top, lessThan(statusBar + 48));
+      expect(login.bottom, lessThanOrEqualTo(phone.height - homeIndicator));
+      expect(logo.right, lessThanOrEqualTo(login.left));
+      expect(title.top, greaterThanOrEqualTo(statusBar));
+      expect(title.left, greaterThanOrEqualTo(0));
+      expect(title.right, lessThanOrEqualTo(phone.width));
+      expect(how.bottom, lessThanOrEqualTo(phone.height - homeIndicator));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   // Narrow and wide viewports, LTR and RTL: no overflow (§10).
   for (final width in [320.0, 390.0, 1024.0]) {
     for (final locale in const [Locale('en'), Locale('ar')]) {
