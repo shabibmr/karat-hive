@@ -19,8 +19,6 @@ import '../../request_create/routes.dart';
 class GuestLandingScreen extends ConsumerWidget {
   const GuestLandingScreen({super.key});
 
-  static const _maxContentWidth = 560.0;
-
   void _openService(BuildContext context, WidgetRef ref, RequestType type) {
     ref.read(requestCreateControllerProvider.notifier).selectType(type);
     // push (not go): Guest Landing has no prior history, so `go()` here
@@ -107,7 +105,7 @@ class GuestLandingScreen extends ConsumerWidget {
             heightFactor: 1,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth: _maxContentWidth,
+                maxWidth: KhCenteredContent.maxWidth,
                 maxHeight: MediaQuery.sizeOf(context).height * 0.5,
               ),
               child: SingleChildScrollView(
@@ -122,10 +120,8 @@ class GuestLandingScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-            child: Column(
+        child: KhCenteredContent(
+          child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 KhBrandHeader(
@@ -225,7 +221,6 @@ class GuestLandingScreen extends ConsumerWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }

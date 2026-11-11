@@ -639,8 +639,8 @@ Mobile is primary, but no screen relies on a fixed size. Classes from `design-Sy
 | Class | Width | Behaviour |
 |---|---|---|
 | Compact | < 600 dp | As designed. Below 360: gutter stays 16, tile titles may wrap, denominations scroll horizontally |
-| Medium | 600–840 dp | Content centres in a column of max 560 px. The service grid goes 4-up once its column is ≥ 520 px. The hero keeps its layout. Pairs stay two-up |
-| Expanded | > 840 dp | As Medium; photo mosaics and Offer comparison may use the extra width, but body text stays within the 560 column |
+| Medium | 600–840 dp | Content centres in a column of max 560 px. Home and Guest service grids stay 2-up inside that column. The hero keeps its layout. Pairs stay two-up |
+| Expanded | > 840 dp | As Medium. Offer comparison may use the full width. Photo mosaics stay inside the 560 column |
 
 Use `LayoutBuilder` on constraints, not device checks. Verify at a narrow (~320) **and** a wide (~1024) viewport before calling a screen done.
 
