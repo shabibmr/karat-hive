@@ -4,6 +4,7 @@ export 'src/tokens.dart';
 export 'src/theme.dart';
 export 'src/typography.dart';
 export 'src/widgets/kh_scaffold.dart';
+export 'src/widgets/kh_centered_content.dart';
 export 'src/widgets/kh_app_bar.dart';
 export 'src/widgets/kh_bottom_nav.dart';
 export 'src/widgets/kh_app_shell.dart';
