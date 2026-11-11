@@ -24,7 +24,8 @@ class ConnectionsListScreen extends ConsumerWidget {
     return Scaffold(
       key: const Key('connections-list-screen'),
       appBar: AppBar(title: Text(s.s('connections.title'))),
-      body: async.when(
+      body: KhCenteredContent(
+        child: async.when(
         loading: () => const KhLoadingView(),
         error: (err, _) => KhErrorView(
           message: khFailureMessage(err, s.s('common.retry')),
@@ -70,6 +71,7 @@ class ConnectionsListScreen extends ConsumerWidget {
             ),
           );
         },
+        ),
       ),
     );
   }

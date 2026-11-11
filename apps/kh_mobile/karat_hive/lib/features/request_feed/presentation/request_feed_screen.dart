@@ -93,7 +93,8 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
           ),
         ],
       ),
-      body: ValueListenableBuilder<PagedListState<VendorRequestItem>>(
+      body: KhCenteredContent(
+        child: ValueListenableBuilder<PagedListState<VendorRequestItem>>(
         valueListenable: controller,
         builder: (context, state, _) {
           if (state.isInitialLoading) {
@@ -202,6 +203,7 @@ class _RequestFeedScreenState extends ConsumerState<RequestFeedScreen> {
             ),
           );
         },
+        ),
       ),
     );
   }

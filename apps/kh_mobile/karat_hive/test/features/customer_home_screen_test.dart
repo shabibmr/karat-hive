@@ -407,4 +407,30 @@ void main() {
       );
     }
   }
+
+  testWidgets('centres a 560-wide column and keeps a 2 by 2 grid at 1024', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1024, 768);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _host([
+        requestManageRepositoryProvider.overrideWithValue(repo),
+        sessionProvider.overrideWith(
+          () => FakeSessionController(_signedInCustomer()),
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(find.byType(ListView).first).width, 560);
+    final ornament = tester.getTopLeft(
+      find.byKey(const Key('customer-type-ornament')),
+    );
+    final coins = tester.getTopLeft(find.byKey(const Key('customer-type-coins')));
+    expect(coins.dy, greaterThan(ornament.dy));
+  });
 }

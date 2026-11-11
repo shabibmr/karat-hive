@@ -85,7 +85,8 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: KhCenteredContent(
+        child: Column(
         children: [
           Padding(
             padding: EdgeInsets.symmetric(vertical: tokens.space.sm),
@@ -187,6 +188,7 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

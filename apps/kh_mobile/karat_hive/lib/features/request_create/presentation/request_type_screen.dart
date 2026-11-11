@@ -42,7 +42,8 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
       return KhScaffold(
         title: createCopy(context, 'create.typeTitle', 'New Request'),
         body: KhErrorView(
-          message: state.failure!.message ??
+          message:
+              state.failure!.message ??
               createCopy(context, 'create.loadFailed', 'Could not load.'),
           onRetry: controller.loadLookups,
         ),
@@ -74,7 +75,11 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
           'Commission custom jewelry designs or match catalog pieces from verified UAE craftsmen.',
         ),
         icon: Icons.diamond_outlined,
-        highlights: const ['Custom Designs', 'Target Budget', 'Reference Photos'],
+        highlights: const [
+          'Custom Designs',
+          'Target Budget',
+          'Reference Photos',
+        ],
         key: const Key('type-find-ornament'),
       ),
       _TypeCardData(
@@ -100,7 +105,11 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
           'Trade Sovereigns, Krugerrands, and standard bullion coins at transparent market premiums.',
         ),
         icon: Icons.monetization_on_outlined,
-        highlights: const ['Standard Weights', 'Sealed Packs', 'Live Spot Rates'],
+        highlights: const [
+          'Standard Weights',
+          'Sealed Packs',
+          'Live Spot Rates',
+        ],
         key: const Key('type-gold-coin'),
       ),
       _TypeCardData(
@@ -126,7 +135,11 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
         centerTitle: true,
         leading: IconButton(
           key: const Key('create-type-back'),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFFFDFBF7), size: 18),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Color(0xFFFDFBF7),
+            size: 18,
+          ),
           onPressed: () => exitRequestCreate(context),
         ),
         title: Text(
@@ -140,120 +153,138 @@ class _RequestTypeScreenState extends ConsumerState<RequestTypeScreen> {
         ),
       ),
       body: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.symmetric(
-            horizontal: tokens.space.md,
-            vertical: tokens.space.sm,
-          ),
-          children: [
-            // Hero Salon Header
-            Center(
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
-                        width: 1,
+        child: KhCenteredContent(
+          child: ListView(
+            padding: EdgeInsets.symmetric(
+              horizontal: tokens.space.md,
+              vertical: tokens.space.sm,
+            ),
+            children: [
+              // Hero Salon Header
+              Center(
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: const Color(
+                            0xFFD4AF37,
+                          ).withValues(alpha: 0.35),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.diamond,
+                            size: 12,
+                            color: Color(0xFFF1E5AC),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'KARAT HIVE SALON',
+                            style: TextStyle(
+                              color: Color(0xFFF1E5AC),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.6,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.diamond, size: 12, color: Color(0xFFF1E5AC)),
-                        SizedBox(width: 8),
-                        Text(
-                          'KARAT HIVE SALON',
-                          style: TextStyle(
-                            color: Color(0xFFF1E5AC),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.6,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'What would you like to request?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFFFDFBF7),
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'Broadcast your specifications directly to certified UAE jewellers with zero intermediaries.',
+                    const SizedBox(height: 12),
+                    const Text(
+                      'What would you like to request?',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Color(0xFFB0B9D0),
-                        fontSize: 13.5,
-                        height: 1.4,
+                        color: Color(0xFFFDFBF7),
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.2,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-
-            // 4 Showroom Facade Cards
-            for (final card in types) ...[
-              _TypeTile(
-                data: card,
-                selected: state.requestType == card.type,
-                onTap: () {
-                  controller.selectType(card.type);
-                  // push (not go): preserves history so back returns here.
-                  context.push(RequestCreatePaths.composeFor(card.type));
-                },
-              ),
-              SizedBox(height: tokens.space.md),
-            ],
-
-            // Trust Assurance Footer
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFF111A36).withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                  width: 1,
+                    const SizedBox(height: 8),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'Broadcast your specifications directly to certified UAE jewellers with zero intermediaries.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(0xFFB0B9D0),
+                          fontSize: 13.5,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.verified_user_outlined, size: 15, color: Color(0xFFD4AF37)),
-                  SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      '100% Identity Masking  •  48h Window  •  Verified UAE Jewellers',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color(0xFFB0B9D0),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.2,
+
+              // 4 Showroom Facade Cards
+              for (final card in types) ...[
+                _TypeTile(
+                  data: card,
+                  selected: state.requestType == card.type,
+                  onTap: () {
+                    controller.selectType(card.type);
+                    // push (not go): preserves history so back returns here.
+                    context.push(RequestCreatePaths.composeFor(card.type));
+                  },
+                ),
+                SizedBox(height: tokens.space.md),
+              ],
+
+              // Trust Assurance Footer
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF111A36).withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                    width: 1,
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.verified_user_outlined,
+                      size: 15,
+                      color: Color(0xFFD4AF37),
+                    ),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '100% Identity Masking  •  48h Window  •  Verified UAE Jewellers',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(0xFFB0B9D0),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.2,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
@@ -327,14 +358,8 @@ class _TypeTile extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: selected
-                    ? const [
-                        Color(0xFF1E2A54),
-                        Color(0xFF131D3B),
-                      ]
-                    : const [
-                        Color(0xFF151F3D),
-                        Color(0xFF0E152C),
-                      ],
+                    ? const [Color(0xFF1E2A54), Color(0xFF131D3B)]
+                    : const [Color(0xFF151F3D), Color(0xFF0E152C)],
               ),
               border: Border.all(
                 color: selected
@@ -358,18 +383,19 @@ class _TypeTile extends StatelessWidget {
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF263566),
-                            Color(0xFF111A36),
-                          ],
+                          colors: [Color(0xFF263566), Color(0xFF111A36)],
                         ),
                         border: Border.all(
-                          color: const Color(0xFFD4AF37).withValues(alpha: 0.45),
+                          color: const Color(
+                            0xFFD4AF37,
+                          ).withValues(alpha: 0.45),
                           width: 1.2,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFD4AF37).withValues(alpha: 0.18),
+                            color: const Color(
+                              0xFFD4AF37,
+                            ).withValues(alpha: 0.18),
                             blurRadius: 8,
                           ),
                         ],
@@ -386,12 +412,19 @@ class _TypeTile extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFD4AF37).withValues(alpha: 0.10),
+                            color: const Color(
+                              0xFFD4AF37,
+                            ).withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
+                              color: const Color(
+                                0xFFD4AF37,
+                              ).withValues(alpha: 0.25),
                               width: 0.8,
                             ),
                           ),
@@ -455,12 +488,17 @@ class _TypeTile extends StatelessWidget {
                   children: [
                     for (final h in data.highlights)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 3.5,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF080D1F).withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: const Color(0xFFD4AF37).withValues(alpha: 0.18),
+                            color: const Color(
+                              0xFFD4AF37,
+                            ).withValues(alpha: 0.18),
                             width: 0.8,
                           ),
                         ),

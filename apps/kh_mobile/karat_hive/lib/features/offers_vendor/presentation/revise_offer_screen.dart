@@ -30,105 +30,108 @@ class ReviseOfferScreen extends ConsumerWidget {
       child: Scaffold(
         key: const Key('revise-offer-screen'),
         appBar: AppBar(title: Text(l10n?.offerCurrentTerms ?? 'Offer Details')),
-        body: switch (state) {
-          ReviseOfferLoading() || ReviseOfferSucceeded() => const KhLoadingView(),
-          ReviseOfferFailed(:final failure) => KhErrorView(
-            message:
-                failure.message ??
-                (l10n?.couldNotLoadOffer ?? 'Could not load offer.'),
-            onRetry: () =>
-                ref.invalidate(reviseOfferControllerProvider(offerId)),
-          ),
-          ReviseOfferReady(
-            :final offer,
-            :final submitting,
-            :final withdrawing,
-            :final failure,
-          ) =>
-            ListView(
-              padding: EdgeInsets.all(tokens.space.md),
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      l10n?.offerCurrentTerms ?? 'Current terms',
-                      style: Theme.of(context).textTheme.titleMedium,
+        body: KhCenteredContent(
+          child: switch (state) {
+            ReviseOfferLoading() ||
+            ReviseOfferSucceeded() => const KhLoadingView(),
+            ReviseOfferFailed(:final failure) => KhErrorView(
+              message:
+                  failure.message ??
+                  (l10n?.couldNotLoadOffer ?? 'Could not load offer.'),
+              onRetry: () =>
+                  ref.invalidate(reviseOfferControllerProvider(offerId)),
+            ),
+            ReviseOfferReady(
+              :final offer,
+              :final submitting,
+              :final withdrawing,
+              :final failure,
+            ) =>
+              ListView(
+                padding: EdgeInsets.all(tokens.space.md),
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        l10n?.offerCurrentTerms ?? 'Current terms',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      KhStatusChip(
+                        key: const Key('offer-seen-status-chip'),
+                        label: offer.isSeenByCustomer
+                            ? 'Seen by Customer'
+                            : 'Not Seen Yet',
+                        tone: offer.isSeenByCustomer
+                            ? KhStatusTone.accent
+                            : KhStatusTone.neutral,
+                        compact: true,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: tokens.space.sm),
+                  OfferTermsReadOnly(
+                    terms: offer.terms,
+                    expiresAt: offer.expiresAt,
+                  ),
+                  SizedBox(height: tokens.space.md),
+                  Container(
+                    padding: EdgeInsets.all(tokens.space.md),
+                    decoration: BoxDecoration(
+                      color: tokens.ink.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(tokens.radius.md),
                     ),
-                    KhStatusChip(
-                      key: const Key('offer-seen-status-chip'),
-                      label: offer.isSeenByCustomer
-                          ? 'Seen by Customer'
-                          : 'Not Seen Yet',
-                      tone: offer.isSeenByCustomer
-                          ? KhStatusTone.accent
-                          : KhStatusTone.neutral,
-                      compact: true,
+                    child: Text(
+                      'Offers cannot be updated once sent. You may withdraw this offer if you wish to submit a new one.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: tokens.ink.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ),
+                  if (failure != null) ...[
+                    SizedBox(height: tokens.space.md),
+                    KhInlineError(
+                      message: failure.message ?? failure.code ?? 'Error',
                     ),
                   ],
-                ),
-                SizedBox(height: tokens.space.sm),
-                OfferTermsReadOnly(
-                  terms: offer.terms,
-                  expiresAt: offer.expiresAt,
-                ),
-                SizedBox(height: tokens.space.md),
-                Container(
-                  padding: EdgeInsets.all(tokens.space.md),
-                  decoration: BoxDecoration(
-                    color: tokens.ink.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(tokens.radius.md),
-                  ),
-                  child: Text(
-                    'Offers cannot be updated once sent. You may withdraw this offer if you wish to submit a new one.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: tokens.ink.withValues(alpha: 0.7),
+                  if (offer.canWithdraw) ...[
+                    SizedBox(height: tokens.space.lg),
+                    KhButton(
+                      key: const Key('withdraw-offer-button'),
+                      label: withdrawing
+                          ? (l10n?.commonSubmitting ?? 'Submitting…')
+                          : (l10n?.withdrawOfferAction ?? 'Withdraw Offer'),
+                      onPressed: submitting || withdrawing
+                          ? null
+                          : () async {
+                              final confirmed = await showKhConfirmDialog(
+                                context,
+                                title:
+                                    l10n?.withdrawOfferConfirmTitle ??
+                                    'Withdraw this Offer?',
+                                body:
+                                    l10n?.withdrawOfferConfirmBody ??
+                                    'You can submit a new Offer afterwards if the Request is still open.',
+                                confirmLabel:
+                                    l10n?.withdrawOfferAction ?? 'Withdraw',
+                                cancelLabel: l10n?.commonCancel ?? 'Cancel',
+                              );
+                              if (confirmed == true && context.mounted) {
+                                await ref
+                                    .read(
+                                      reviseOfferControllerProvider(
+                                        offerId,
+                                      ).notifier,
+                                    )
+                                    .withdraw();
+                              }
+                            },
                     ),
-                  ),
-                ),
-                if (failure != null) ...[
-                  SizedBox(height: tokens.space.md),
-                  KhInlineError(
-                    message: failure.message ?? failure.code ?? 'Error',
-                  ),
+                  ],
                 ],
-                if (offer.canWithdraw) ...[
-                  SizedBox(height: tokens.space.lg),
-                  KhButton(
-                    key: const Key('withdraw-offer-button'),
-                    label: withdrawing
-                        ? (l10n?.commonSubmitting ?? 'Submitting…')
-                        : (l10n?.withdrawOfferAction ?? 'Withdraw Offer'),
-                    onPressed: submitting || withdrawing
-                        ? null
-                        : () async {
-                            final confirmed = await showKhConfirmDialog(
-                              context,
-                              title:
-                                   l10n?.withdrawOfferConfirmTitle ??
-                                  'Withdraw this Offer?',
-                              body:
-                                  l10n?.withdrawOfferConfirmBody ??
-                                  'You can submit a new Offer afterwards if the Request is still open.',
-                              confirmLabel:
-                                  l10n?.withdrawOfferAction ?? 'Withdraw',
-                              cancelLabel: l10n?.commonCancel ?? 'Cancel',
-                            );
-                            if (confirmed == true && context.mounted) {
-                              await ref
-                                  .read(
-                                    reviseOfferControllerProvider(
-                                      offerId,
-                                    ).notifier,
-                                  )
-                                  .withdraw();
-                            }
-                          },
-                  ),
-                ],
-              ],
-            ),
-        },
+              ),
+          },
+        ),
       ),
     );
   }

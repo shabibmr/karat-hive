@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:kh_design_system/src/tokens.dart';
 
-/// Grid of [KhServiceCard]s: 2 × 2 on phones, one row of four once the
-/// column is ≥ 520 px (`UI-Design-Context.md` §10). Cards in a row share the
+/// Grid of [KhServiceCard]s. Four-up runs only when [maxColumns] allows it
+/// and the column is ≥ 520 px. Home and Guest pass `maxColumns: 2`, so they
+/// stay 2 × 2 inside the 560 px column. Cards in a row share the
 /// tallest card's height, so titles that wrap don't stagger the arrows; pass
 /// cards built with `expand: true`.
 class KhServiceGrid extends StatelessWidget {

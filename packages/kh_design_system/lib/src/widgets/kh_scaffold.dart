@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'kh_app_bar.dart';
+import 'kh_centered_content.dart';
 import 'kh_pull_to_refresh.dart';
 
 class KhScaffold extends StatelessWidget {
@@ -23,7 +24,7 @@ class KhScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = SafeArea(child: body);
+    final content = SafeArea(child: KhCenteredContent(child: body));
     return Scaffold(
       appBar: KhAppBar(title: title, actions: actions, onBack: onBack),
       body: onRefresh == null

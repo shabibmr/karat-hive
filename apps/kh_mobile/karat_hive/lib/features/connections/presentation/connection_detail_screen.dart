@@ -122,7 +122,8 @@ class ConnectionDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n?.connectionDetailTitle ?? 'Connection'),
       ),
-      body: async.when(
+      body: KhCenteredContent(
+        child: async.when(
         loading: () => const KhLoadingView(),
         error: (err, _) => KhErrorView(
           message: switch (err) {
@@ -224,6 +225,7 @@ class ConnectionDetailScreen extends ConsumerWidget {
             ],
           );
         },
+        ),
       ),
     );
   }

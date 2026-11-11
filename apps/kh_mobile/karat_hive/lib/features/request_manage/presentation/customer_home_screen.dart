@@ -16,8 +16,6 @@ import '../../request_create/routes.dart';
 class CustomerHomeScreen extends ConsumerWidget {
   const CustomerHomeScreen({super.key});
 
-  static const _maxContentWidth = 560.0;
-
   void _openService(BuildContext context, WidgetRef ref, RequestType type) {
     ref.read(requestCreateControllerProvider.notifier).selectType(type);
     context.push(RequestCreatePaths.composeFor(type));
@@ -76,10 +74,8 @@ class CustomerHomeScreen extends ConsumerWidget {
       backgroundColor: KhHomeStyle.background,
       body: SafeArea(
         bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-            child: Column(
+        child: KhCenteredContent(
+          child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 KhBrandHeader(
@@ -155,7 +151,6 @@ class CustomerHomeScreen extends ConsumerWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }

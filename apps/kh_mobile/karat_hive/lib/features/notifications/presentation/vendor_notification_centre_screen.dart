@@ -86,7 +86,8 @@ class VendorNotificationCentreScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: ValueListenableBuilder<PagedListState<AppNotification>>(
+      body: KhCenteredContent(
+        child: ValueListenableBuilder<PagedListState<AppNotification>>(
         valueListenable: controller,
         builder: (context, listState, _) {
           if (listState.isInitialLoading || listState.isInitial) {
@@ -141,6 +142,7 @@ class VendorNotificationCentreScreen extends ConsumerWidget {
             ),
           );
         },
+        ),
       ),
     );
   }

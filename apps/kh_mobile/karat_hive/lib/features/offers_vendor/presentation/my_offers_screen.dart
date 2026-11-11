@@ -56,7 +56,8 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
       appBar: AppBar(
         title: Text(l10n?.myOffersTitle ?? 'My Offers'),
       ),
-      body: Column(
+      body: KhCenteredContent(
+        child: Column(
         children: [
           Padding(
             padding: EdgeInsets.symmetric(vertical: tokens.space.sm),
@@ -159,6 +160,7 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

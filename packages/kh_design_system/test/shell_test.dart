@@ -115,4 +115,109 @@ void main() {
     expect(refreshed, isTrue);
     await tester.pumpAndSettle();
   });
+
+  testWidgets('KhScaffold keeps the page full bleed and caps the body at 560',
+      (tester) async {
+    tester.view.physicalSize = const Size(1024, 768);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _wrap(
+        const KhScaffold(
+          title: 'Dashboard',
+          body: SizedBox(key: Key('probe'), width: double.infinity, height: 8),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(Scaffold)).width, 1024);
+    expect(tester.getSize(find.byKey(const Key('probe'))).width, 560);
+  });
+
+  testWidgets('KhScaffold pull-to-refresh still fires at 1024 wide', (tester) async {
+    tester.view.physicalSize = const Size(1024, 768);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    var refreshed = false;
+    await tester.pumpWidget(
+      _wrap(
+        KhScaffold(
+          title: 'Dashboard',
+          onRefresh: () async {
+            refreshed = true;
+          },
+          body: ListView(
+            children: const [SizedBox(height: 1200, child: Text('wide-item'))],
+          ),
+        ),
+      ),
+    );
+
+    await tester.fling(find.text('wide-item'), const Offset(0, 300), 1000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(refreshed, isTrue);
+    await tester.pumpAndSettle();
+  });
+
+  test('nav bar height grows with text scale and labels collapse under 360', () {
+    expect(khNavBarHeight(TextScaler.noScaling), 80);
+    expect(khNavBarHeight(const TextScaler.linear(2)), 82);
+    expect(
+      khNavLabelBehavior(359),
+      NavigationDestinationLabelBehavior.onlyShowSelected,
+    );
+    expect(
+      khNavLabelBehavior(360),
+      NavigationDestinationLabelBehavior.alwaysShow,
+    );
+  });
+
+  testWidgets('editorial nav keeps every label at text scale 2', (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: khTheme(),
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(2),
+            ),
+            child: child!,
+          );
+        },
+        home: Scaffold(
+          bottomNavigationBar: KhBottomNav(
+            editorial: true,
+            currentIndex: 0,
+            onDestinationSelected: (_) {},
+            destinations: const [
+              KhNavDestination(label: 'Home', icon: Icons.home_outlined),
+              KhNavDestination(
+                label: 'My Requests',
+                icon: Icons.list_alt_outlined,
+              ),
+              KhNavDestination(label: 'Connections', icon: Icons.link_outlined),
+              KhNavDestination(label: 'Profile', icon: Icons.person_outline),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('My Requests'), findsOneWidget);
+    expect(find.text('Connections'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
+    expect(tester.getSize(find.byType(NavigationBar)).height, 82);
+    expect(tester.takeException(), isNull);
+  });
 }

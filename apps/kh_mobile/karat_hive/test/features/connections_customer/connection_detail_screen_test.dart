@@ -246,6 +246,22 @@ void main() {
     expect(find.text('Al Baraka Gold'), findsOneWidget);
   });
 
+  testWidgets('caps the detail column at 560 and keeps the scaffold full width', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1024, 768);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final repo = _FakeConnectionsRepository(connection: _createConnection());
+    await tester.pumpWidget(_host(repo, 'conn-1'));
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(find.byType(Scaffold)).width, 1024);
+    expect(tester.getSize(find.byType(ListView).first).width, 560);
+  });
+
   testWidgets(
     'closing connection with no review goes to leave-review',
     (tester) async {

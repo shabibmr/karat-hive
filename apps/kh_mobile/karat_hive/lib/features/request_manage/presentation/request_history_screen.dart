@@ -53,7 +53,8 @@ class _RequestHistoryScreenState extends ConsumerState<RequestHistoryScreen> {
     return Scaffold(
       key: const Key('request-history-screen'),
       appBar: AppBar(title: Text(s.s('cus.s17.title'))),
-      body: Column(
+      body: KhCenteredContent(
+        child: Column(
         children: [
           Padding(
             padding: EdgeInsets.all(tokens.space.md),
@@ -117,6 +118,7 @@ class _RequestHistoryScreenState extends ConsumerState<RequestHistoryScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

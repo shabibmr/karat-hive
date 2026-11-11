@@ -19,8 +19,6 @@ import '../../request_create/routes.dart';
 class GuestLandingScreen extends ConsumerWidget {
   const GuestLandingScreen({super.key});
 
-  static const _maxContentWidth = 560.0;
-
   void _openService(BuildContext context, WidgetRef ref, RequestType type) {
     ref.read(requestCreateControllerProvider.notifier).selectType(type);
     // push (not go): Guest Landing has no prior history, so `go()` here
@@ -107,7 +105,7 @@ class GuestLandingScreen extends ConsumerWidget {
             heightFactor: 1,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth: _maxContentWidth,
+                maxWidth: KhCenteredContent.maxWidth,
                 maxHeight: MediaQuery.sizeOf(context).height * 0.5,
               ),
               child: SingleChildScrollView(
@@ -122,107 +120,102 @@ class GuestLandingScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                KhBrandHeader(
-                  brandLabel: s.s('guest.title'),
-                  trailing: Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: TextButton(
-                      key: const Key('guest-login'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: KhHomeStyle.gold,
-                      ),
-                      onPressed: () => context.go(AppGuards.customerOnboarding),
-                      // Arabic "Log in" can crowd the mark at 320 px; ellipsis
-                      // keeps the row from overflowing.
-                      child: Text(
-                        s.s('guest.logIn'),
-                        key: const Key('guest-log-in'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+        child: KhCenteredContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              KhBrandHeader(
+                brandLabel: s.s('guest.title'),
+                trailing: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: TextButton(
+                    key: const Key('guest-login'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: KhHomeStyle.gold,
+                    ),
+                    onPressed: () => context.go(AppGuards.customerOnboarding),
+                    // Arabic "Log in" can crowd the mark at 320 px; ellipsis
+                    // keeps the row from overflowing.
+                    child: Text(
+                      s.s('guest.logIn'),
+                      key: const Key('guest-log-in'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
-                Expanded(
-                  child: ListView(
-                    clipBehavior: Clip.none,
-                    padding: const EdgeInsets.fromLTRB(
-                      KhHomeStyle.pagePadding,
-                      6,
-                      KhHomeStyle.pagePadding,
-                      22,
+              ),
+              Expanded(
+                child: ListView(
+                  clipBehavior: Clip.none,
+                  padding: const EdgeInsets.fromLTRB(
+                    KhHomeStyle.pagePadding,
+                    6,
+                    KhHomeStyle.pagePadding,
+                    22,
+                  ),
+                  children: [
+                    KhHeroCarousel(
+                      key: const Key('guest-landing-hero'),
+                      slides: slides,
+                      editorial: true,
+                      previousLabel: s.s('cus.home.previousSlide'),
+                      nextLabel: s.s('cus.home.nextSlide'),
+                      dotLabel: (i, n) => s
+                          .s('cus.home.heroDot')
+                          .replaceAll('{n}', '${i + 1}')
+                          .replaceAll('{count}', '$n'),
                     ),
-                    children: [
-                      KhHeroCarousel(
-                        key: const Key('guest-landing-hero'),
-                        slides: slides,
-                        editorial: true,
-                        previousLabel: s.s('cus.home.previousSlide'),
-                        nextLabel: s.s('cus.home.nextSlide'),
-                        dotLabel: (i, n) => s
-                            .s('cus.home.heroDot')
-                            .replaceAll('{n}', '${i + 1}')
-                            .replaceAll('{count}', '$n'),
-                      ),
-                      const SizedBox(height: 16),
-                      KhServiceGrid(
-                        maxColumns: 2,
-                        equalizeHeight: false,
-                        spacing: KhHomeStyle.gridGap,
-                        children: [
-                          for (final service in services)
-                            KhServiceCard(
-                              key: service.tileKey,
-                              tapKey: service.tapKey,
-                              title: service.title,
-                              icon: service.icon,
-                              image: AssetImage(service.image),
-                              editorial: true,
-                              onTap: () =>
-                                  _openService(context, ref, service.type),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 22),
-                      const SizedBox(height: 8),
-                      Center(
-                        child: TextButton(
-                          key: const Key('guest-jeweller'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: KhHomeStyle.ink,
+                    const SizedBox(height: 16),
+                    KhServiceGrid(
+                      maxColumns: 2,
+                      equalizeHeight: false,
+                      spacing: KhHomeStyle.gridGap,
+                      children: [
+                        for (final service in services)
+                          KhServiceCard(
+                            key: service.tileKey,
+                            tapKey: service.tapKey,
+                            title: service.title,
+                            icon: service.icon,
+                            image: AssetImage(service.image),
+                            editorial: true,
+                            onTap: () =>
+                                _openService(context, ref, service.type),
                           ),
-                          onPressed: () {
-                            // Mid-create -> Vendor signup drops the in-memory
-                            // draft (GL-66).
-                            ref
-                                .read(requestCreateControllerProvider.notifier)
-                                .resetFlow();
-                            // Vendor register requires Google sign-in first
-                            // (ADR-0010).
-                            context.go(AppGuards.login);
-                          },
-                          child: Text(
-                            s.s('guest.jewellerFooter'),
-                            key: const Key('guest-jeweller-register'),
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(
-                                  decoration: TextDecoration.underline,
-                                ),
-                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+                    const SizedBox(height: 8),
+                    Center(
+                      child: TextButton(
+                        key: const Key('guest-jeweller'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: KhHomeStyle.ink,
+                        ),
+                        onPressed: () {
+                          // Mid-create -> Vendor signup drops the in-memory
+                          // draft (GL-66).
+                          ref
+                              .read(requestCreateControllerProvider.notifier)
+                              .resetFlow();
+                          // Vendor register requires Google sign-in first
+                          // (ADR-0010).
+                          context.go(AppGuards.login);
+                        },
+                        child: Text(
+                          s.s('guest.jewellerFooter'),
+                          key: const Key('guest-jeweller-register'),
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(decoration: TextDecoration.underline),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

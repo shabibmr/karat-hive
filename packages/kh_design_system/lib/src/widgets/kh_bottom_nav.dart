@@ -4,6 +4,23 @@ import 'package:kh_design_system/src/typography.dart';
 import 'kh_badge.dart';
 import 'package:kh_design_system/src/widgets/kh_home_style.dart';
 
+/// Floor 80. Scale 1 stays 80; scale 2 grows to 82.
+/// 24 = icon, 36 = label gap plus vertical padding.
+double khNavBarHeight(TextScaler scaler) {
+  final grown = 24 + scaler.scale(11) + 36;
+  return grown < 80 ? 80 : grown;
+}
+
+/// Below this width the layout collapses: nav labels hide, draft actions stack.
+const double khNarrowWidth = 360;
+
+/// Five English Vendor labels do not fit under [khNarrowWidth].
+NavigationDestinationLabelBehavior khNavLabelBehavior(double width) {
+  return width < khNarrowWidth
+      ? NavigationDestinationLabelBehavior.onlyShowSelected
+      : NavigationDestinationLabelBehavior.alwaysShow;
+}
+
 class KhNavDestination {
   const KhNavDestination({
     required this.label,
@@ -58,7 +75,7 @@ class KhBottomNav extends StatelessWidget {
     final fonts = KhFonts.forLocale(Localizations.maybeLocaleOf(context));
     return NavigationBarTheme(
       data: NavigationBarThemeData(
-        height: 64,
+        height: khNavBarHeight(MediaQuery.textScalerOf(context)),
         backgroundColor: KhHomeStyle.background,
         surfaceTintColor: Colors.transparent,
         elevation: 0,

@@ -9,21 +9,31 @@ String createCopy(BuildContext context, String key, String fallback) {
   return value == key ? fallback : value;
 }
 
-/// 60px top header block for CreateFlowChrome.
+/// At least 60. Grows with the 21px title and 10px eyebrow; 28 is the
+/// header's vertical padding plus the gap between them.
+double createFlowHeaderHeight(TextScaler scaler) {
+  final grown = scaler.scale(21) + scaler.scale(10) + 28;
+  return grown < 60 ? 60 : grown;
+}
+
+/// Top header block for CreateFlowChrome. [height] comes from
+/// [createFlowHeaderHeight].
 class CreateFlowHeader extends StatelessWidget implements PreferredSizeWidget {
   const CreateFlowHeader({
     super.key,
     required this.title,
+    required this.height,
     this.eyebrow,
     this.onBack,
   });
 
   final String title;
+  final double height;
   final String? eyebrow;
   final VoidCallback? onBack;
 
   @override
-  Size get preferredSize => const Size.fromHeight(60);
+  Size get preferredSize => Size.fromHeight(height);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +48,7 @@ class CreateFlowHeader extends StatelessWidget implements PreferredSizeWidget {
     return Padding(
       padding: EdgeInsets.only(top: topInset),
       child: Container(
-        height: 60,
+        height: height,
         color: tokens.formSurface,
         padding: EdgeInsets.symmetric(horizontal: tokens.space.md),
         child: Row(
@@ -48,10 +58,7 @@ class CreateFlowHeader extends StatelessWidget implements PreferredSizeWidget {
               height: 36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: tokens.inkBorderSoft,
-                  width: 1,
-                ),
+                border: Border.all(color: tokens.inkBorderSoft, width: 1),
               ),
               child: IconButton(
                 key: const Key('create-flow-back'),
@@ -78,11 +85,7 @@ class CreateFlowHeader extends StatelessWidget implements PreferredSizeWidget {
                     Text(
                       fonts.isArabic ? eyebrow! : eyebrow!.toUpperCase(),
                       style: fonts
-                          .sansStyle(
-                            10,
-                            FontWeight.w600,
-                            trackingEm: 0.10,
-                          )
+                          .sansStyle(10, FontWeight.w600, trackingEm: 0.10)
                           .copyWith(color: tokens.gold),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -134,15 +137,10 @@ class CreateFlowChrome extends StatelessWidget {
         ? eyebrow!
         : stepLabel;
 
-    Widget content = KeyboardAvoidingView(
-      child: child,
-    );
+    Widget content = KeyboardAvoidingView(child: child);
 
     if (onRefresh != null) {
-      content = KhPullToRefresh(
-        onRefresh: onRefresh!,
-        child: content,
-      );
+      content = KhPullToRefresh(onRefresh: onRefresh!, child: content);
     }
 
     return Scaffold(
@@ -151,25 +149,21 @@ class CreateFlowChrome extends StatelessWidget {
         title: title,
         eyebrow: effectiveEyebrow,
         onBack: onBack,
+        height: createFlowHeaderHeight(MediaQuery.textScalerOf(context)),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: content,
-            ),
-            if (bottom != null)
-              SafeArea(
-                top: false,
-                child: bottom!,
-              ),
-          ],
+        child: KhCenteredContent(
+          child: Column(
+            children: [
+              Expanded(child: content),
+              if (bottom != null) bottom!,
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
 
 class KeyboardAvoidingView extends StatelessWidget {
   const KeyboardAvoidingView({super.key, required this.child});
@@ -207,44 +201,62 @@ class DraftActions extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: tokens.formSurface,
-        border: Border(
-          top: BorderSide(color: tokens.inkHairline, width: 1.0),
-        ),
+        border: Border(top: BorderSide(color: tokens.inkHairline, width: 1.0)),
       ),
-
-      padding: EdgeInsets.symmetric(
-        horizontal: tokens.space.md,
-        vertical: tokens.space.sm,
-      ),
-      child: SizedBox(
-        height: 48,
-        child: Row(
-          children: [
-            TextButton(
-              key: const Key('create-save-draft'),
-              onPressed: busy ? null : onSaveDraft,
-              child: busy
-                  ? SizedBox(
-                      height: tokens.space.md,
-                      width: tokens.space.md,
-                      child: const CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(createCopy(context, 'create.saveDraft', 'Save draft')),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final scale = MediaQuery.textScalerOf(context).scale(1);
+          // Measure the bar, not the padded interior (16 + 16).
+          final stack = constraints.maxWidth < khNarrowWidth || scale >= 1.4;
+          final save = TextButton(
+            key: const Key('create-save-draft'),
+            onPressed: busy ? null : onSaveDraft,
+            child: busy
+                ? SizedBox(
+                    height: tokens.space.md,
+                    width: tokens.space.md,
+                    child: const CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(createCopy(context, 'create.saveDraft', 'Save draft')),
+          );
+          final continueButton = KhButton(
+            label:
+                continueLabel ??
+                createCopy(context, 'create.continue', 'Continue'),
+            busy: busy,
+            onPressed: continueEnabled && !busy ? onContinue : null,
+            width: stack ? double.infinity : null,
+          );
+          final bar = stack
+              ? Column(
+                  key: const Key('create-draft-actions'),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    save,
+                    SizedBox(height: tokens.space.sm),
+                    continueButton,
+                  ],
+                )
+              : Row(
+                  key: const Key('create-draft-actions'),
+                  children: [
+                    Flexible(child: save),
+                    SizedBox(width: tokens.space.sm),
+                    Expanded(child: continueButton),
+                  ],
+                );
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: tokens.space.md,
+              vertical: tokens.space.sm,
             ),
-            SizedBox(width: tokens.space.sm),
-            Expanded(
-              child: KhButton(
-                label: continueLabel ??
-                    createCopy(context, 'create.continue', 'Continue'),
-                busy: busy,
-                onPressed: continueEnabled && !busy ? onContinue : null,
-                width: null,
-              ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: bar,
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 }
-
