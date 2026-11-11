@@ -135,4 +135,61 @@ void main() {
     expect(tester.getSize(find.byType(Scaffold)).width, 1024);
     expect(tester.getSize(find.byKey(const Key('probe'))).width, 560);
   });
+
+  test('nav bar height grows with text scale and labels collapse under 360', () {
+    expect(khNavBarHeight(TextScaler.noScaling), 80);
+    expect(khNavBarHeight(const TextScaler.linear(2)), 82);
+    expect(
+      khNavLabelBehavior(359),
+      NavigationDestinationLabelBehavior.onlyShowSelected,
+    );
+    expect(
+      khNavLabelBehavior(360),
+      NavigationDestinationLabelBehavior.alwaysShow,
+    );
+  });
+
+  testWidgets('editorial nav keeps every label at text scale 2', (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: khTheme(),
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(2),
+            ),
+            child: child!,
+          );
+        },
+        home: Scaffold(
+          bottomNavigationBar: KhBottomNav(
+            editorial: true,
+            currentIndex: 0,
+            onDestinationSelected: (_) {},
+            destinations: const [
+              KhNavDestination(label: 'Home', icon: Icons.home_outlined),
+              KhNavDestination(
+                label: 'My Requests',
+                icon: Icons.list_alt_outlined,
+              ),
+              KhNavDestination(label: 'Connections', icon: Icons.link_outlined),
+              KhNavDestination(label: 'Profile', icon: Icons.person_outline),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('My Requests'), findsOneWidget);
+    expect(find.text('Connections'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
+    expect(tester.getSize(find.byType(NavigationBar)).height, 82);
+    expect(tester.takeException(), isNull);
+  });
 }

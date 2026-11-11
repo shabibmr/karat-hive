@@ -4,6 +4,19 @@ import 'package:kh_design_system/src/typography.dart';
 import 'kh_badge.dart';
 import 'package:kh_design_system/src/widgets/kh_home_style.dart';
 
+/// Floor 80. Scale 1 stays 80; scale 2 grows to 82 (24 + 22 + 36).
+double khNavBarHeight(TextScaler scaler) {
+  final grown = 24 + scaler.scale(11) + 36;
+  return grown < 80 ? 80 : grown;
+}
+
+/// Five English Vendor labels do not fit under 360 px.
+NavigationDestinationLabelBehavior khNavLabelBehavior(double width) {
+  return width < 360
+      ? NavigationDestinationLabelBehavior.onlyShowSelected
+      : NavigationDestinationLabelBehavior.alwaysShow;
+}
+
 class KhNavDestination {
   const KhNavDestination({
     required this.label,
@@ -58,7 +71,7 @@ class KhBottomNav extends StatelessWidget {
     final fonts = KhFonts.forLocale(Localizations.maybeLocaleOf(context));
     return NavigationBarTheme(
       data: NavigationBarThemeData(
-        height: 64,
+        height: khNavBarHeight(MediaQuery.textScalerOf(context)),
         backgroundColor: KhHomeStyle.background,
         surfaceTintColor: Colors.transparent,
         elevation: 0,

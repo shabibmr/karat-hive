@@ -33,7 +33,6 @@ class VendorShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
     final selectedIndex = navigationShell.currentIndex.clamp(0, 4);
 
     // Read by AppBackButtonDispatcher to route hardware/gesture back presses
@@ -46,39 +45,62 @@ class VendorShell extends StatelessWidget {
     return Scaffold(
       key: const Key('vendor-shell'),
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        key: const Key('vendor-bottom-nav'),
+      bottomNavigationBar: VendorBottomNav(
         selectedIndex: selectedIndex,
         onDestinationSelected: _onDestinationSelected,
-        indicatorColor: tokens.gold.withValues(alpha: 0.25),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.work_outline),
-            selectedIcon: Icon(Icons.work),
-            label: 'Requests',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.local_offer_outlined),
-            selectedIcon: Icon(Icons.local_offer),
-            label: 'Offers',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.handshake_outlined),
-            selectedIcon: Icon(Icons.handshake),
-            label: 'Connections',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
       ),
+    );
+  }
+}
+
+/// Five English destinations. Labels collapse below 360 px.
+class VendorBottomNav extends StatelessWidget {
+  const VendorBottomNav({
+    super.key,
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return NavigationBar(
+      key: const Key('vendor-bottom-nav'),
+      selectedIndex: selectedIndex,
+      onDestinationSelected: onDestinationSelected,
+      indicatorColor: tokens.gold.withValues(alpha: 0.25),
+      height: khNavBarHeight(MediaQuery.textScalerOf(context)),
+      labelBehavior: khNavLabelBehavior(MediaQuery.sizeOf(context).width),
+      destinations: const [
+        NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.work_outline),
+          selectedIcon: Icon(Icons.work),
+          label: 'Requests',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.local_offer_outlined),
+          selectedIcon: Icon(Icons.local_offer),
+          label: 'Offers',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.handshake_outlined),
+          selectedIcon: Icon(Icons.handshake),
+          label: 'Connections',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.person_outline),
+          selectedIcon: Icon(Icons.person),
+          label: 'Profile',
+        ),
+      ],
     );
   }
 }
