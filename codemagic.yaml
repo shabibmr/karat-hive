@@ -1,0 +1,50 @@
+# Codemagic CI — kh_mobile iOS release to App Store Connect / TestFlight.
+#
+# Flutter is pinned to the same version as .github/workflows/frontend.yml.
+# A floating `stable` broke `pub get`: newer SDKs pin test_api 0.7.14, which
+# pulls analyzer >=13 and conflicts with freezed 3.2.5 (analyzer <11) in
+# packages/kh_domain. Bump this, frontend.yml and the codegen stack together.
+#
+# The repo root is a Dart pub workspace, so `flutter pub get` runs at the root.
+# Generated *.freezed.dart / *.g.dart files are committed, so no codegen step.
+
+workflows:
+  ios-release:
+    name: iOS release (TestFlight)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      # Must match the App Store Connect API key name under
+      # Codemagic → Team settings → Integrations → Developer Portal.
+      app_store_connect: Karat Hive ASC
+    environment:
+      flutter: 3.44.7
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.karathive.app
+    scripts:
+      - name: Install workspace dependencies
+        script: flutter pub get
+      - name: Install pods
+        working_directory: apps/kh_mobile/karat_hive/ios
+        script: pod install
+      - name: Apply signing profiles
+        working_directory: apps/kh_mobile/karat_hive
+        script: xcode-project use-profiles --project "ios/*.xcodeproj"
+      - name: Build IPA
+        working_directory: apps/kh_mobile/karat_hive
+        # Version and build number come from pubspec.yaml (version: x.y.z+N);
+        # bump N before each upload — App Store Connect rejects duplicates.
+        script: |
+          flutter build ipa --release \
+            --dart-define-from-file=config/prod.json \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - apps/kh_mobile/karat_hive/build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
