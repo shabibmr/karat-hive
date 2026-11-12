@@ -16,7 +16,7 @@ workflows:
     integrations:
       # Must match the App Store Connect API key name under
       # Codemagic → Team settings → Integrations → Developer Portal.
-      app_store_connect: Karat Hive ASC
+      app_store_connect: Karat Hive
     environment:
       flutter: 3.44.7
       xcode: latest
