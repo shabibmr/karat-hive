@@ -8,6 +8,7 @@ import 'package:kh_domain/kh_domain.dart';
 
 import '../../core/firebase/firebase_auth_service.dart';
 import '../di.dart';
+import '../notifications/registered_device.dart';
 
 sealed class SessionState {
   const SessionState();
@@ -225,6 +226,12 @@ class SessionController extends Notifier<SessionState> {
   }
 
   Future<void> signOut() async {
+    // Must run while the access token is still valid.
+    final deviceId = ref.read(registeredDeviceIdProvider);
+    if (deviceId != null) {
+      await _api.deleteDevice(deviceId);
+      ref.read(registeredDeviceIdProvider.notifier).clear();
+    }
     final tokens = await _storage.read();
     if (tokens != null) {
       await _api.logout(tokens.refreshToken);

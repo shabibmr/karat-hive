@@ -35,6 +35,8 @@ class FirebaseNotificationService {
     }
   }
 
+  Future<RemoteMessage?> getInitialMessage() => _messaging.getInitialMessage();
+
   Stream<String> get onTokenRefresh => _messaging.onTokenRefresh;
 
   /// Subscribes to foreground and opened-app FCM streams. Caller must cancel

@@ -59,4 +59,34 @@ class NotificationsClient {
     final r = await _client.send('POST', '/v1/notifications/read-all');
     return r.when(ok: (_) => const Ok(null), err: Err.new);
   }
+
+  /// `POST /v1/devices` — idempotent upsert of this device's push token.
+  /// [platform] is `IOS` or `ANDROID`.
+  /// Returns the backend device id.
+  Future<Result<String?>> registerDevice({
+    required String platform,
+    required String pushToken,
+    String? label,
+  }) async {
+    final r = await _client.send(
+      'POST',
+      '/v1/devices',
+      body: {
+        'platform': platform,
+        'pushToken': pushToken,
+        if (label != null) 'label': label,
+      },
+    );
+    return r.when(
+      ok: (d) => Ok(d is Map ? d['id'] as String? : null),
+      err: Err.new,
+    );
+  }
+
+  /// `DELETE /v1/devices/:id` — stop pushing to this device (call while the
+  /// session is still authenticated).
+  Future<Result<void>> deleteDevice(String id) async {
+    final r = await _client.send('DELETE', '/v1/devices/$id');
+    return r.when(ok: (_) => const Ok(null), err: Err.new);
+  }
 }

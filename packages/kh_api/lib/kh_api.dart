@@ -552,6 +552,20 @@ class KhApi {
   Future<Result<void>> markAllNotificationsRead() =>
       notifications.markAllRead();
 
+  Future<Result<String?>> registerDevice({
+    required String platform,
+    required String pushToken,
+    String? label,
+  }) =>
+      notifications.registerDevice(
+        platform: platform,
+        pushToken: pushToken,
+        label: label,
+      );
+
+  Future<Result<void>> deleteDevice(String id) =>
+      notifications.deleteDevice(id);
+
   // --- settings (CUS-S21) ---
   Future<Result<UserSettingsDto>> getSettings() async {
     final r = await _client.send('GET', '/v1/me/settings');

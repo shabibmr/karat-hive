@@ -5,7 +5,9 @@ import 'package:kh_design_system/kh_design_system.dart';
 import 'package:kh_l10n/kh_l10n.dart';
 
 import '../features/profile_settings/controller/settings_controller.dart';
+import 'notifications/device_registration_binder.dart';
 import 'notifications/push_invalidation_binder.dart';
+import 'notifications/push_navigation_binder.dart';
 import 'router.dart';
 
 class KaratHiveApp extends ConsumerWidget {
@@ -15,12 +17,15 @@ class KaratHiveApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // AD-FE-10: keep FCM → provider invalidation subscribed for app lifetime.
     ref.watch(pushInvalidationBinderProvider);
+    ref.watch(deviceRegistrationBinderProvider);
+    ref.watch(pushNavigationBinderProvider);
     final router = ref.watch(routerProvider);
     final backButtonDispatcher = ref.watch(backButtonDispatcherProvider);
     final locale = ref.watch(appLocaleProvider);
     return MaterialApp.router(
       title: 'Karat Hive',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       // docs/UI-Design-Context.md; locale picks Latin vs Arabic fonts.
       theme: KhTheme.light(locale: locale),
       builder: (context, child) {
