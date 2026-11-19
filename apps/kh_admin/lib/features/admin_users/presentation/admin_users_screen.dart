@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kh_admin/core/router/admin_user_query_params.dart';
+import 'package:kh_admin/core/auth/admin_role.dart';
+import 'package:kh_admin/core/auth/admin_access_provider.dart';
 import 'package:kh_admin/core/design/theme/kh_theme.dart';
 import 'package:kh_admin/core/design/widgets/kh_data_table.dart';
 import 'package:kh_admin/core/design/widgets/kh_metric_card.dart';
@@ -19,7 +21,7 @@ import 'package:kh_admin/core/widgets/debounced_search_mixin.dart';
 ///
 /// Features:
 /// - Summary metric cards: Total Admins, Active, Suspended, Revoked
-/// - Provision Admin action dialog (email + displayName, strictly no role selector per SAM-GAP-13 & AD-API-03)
+/// - Provision Admin action dialog with explicit RBAC role selection
 /// - Search and lifecycle state filtering
 /// - Data table displaying Name, Email, Status, Created Date, and Suspend/Revoke actions
 /// - Confirmation dialogs for account suspension and revocation
@@ -94,6 +96,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
     final nameController = TextEditingController();
     final emailController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    var selectedRole = AdminRole.operationsAdmin;
     final messenger = ScaffoldMessenger.of(context);
 
     showDialog<void>(
@@ -120,7 +123,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Provision a new system administrator. An email with temporary credentials will be dispatched. System admin roles have fixed coarse administrative access (AD-API-03).',
+                        'Provision a new administrator and assign the least-privileged role required. The backend enforces the selected role on every Admin request.',
                         style: kh.typography.bodySmall.copyWith(
                           color: kh.colors.textSecondary,
                         ),
@@ -178,29 +181,37 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                           return null;
                         },
                       ),
-                      SizedBox(height: kh.spacing.sm),
-                      Container(
-                        padding: EdgeInsets.all(kh.spacing.sm),
-                        decoration: BoxDecoration(
-                          color: kh.colors.backgroundSurface,
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: kh.colors.borderSubtle),
+                      SizedBox(height: kh.spacing.md),
+                      DropdownButtonFormField<AdminRole>(
+                        key: const Key('admin-role-field'),
+                        value: selectedRole,
+                        decoration: InputDecoration(
+                          labelText: 'Role *',
+                          labelStyle: TextStyle(color: kh.colors.textSecondary),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: kh.colors.borderSubtle),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: kh.colors.goldPrimary),
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline, size: 16, color: kh.colors.goldPrimary),
-                            SizedBox(width: kh.spacing.xs),
-                            Expanded(
-                              child: Text(
-                                'Role is fixed: System Administrator (coarse RBAC)',
-                                style: kh.typography.caption.copyWith(
-                                  color: kh.colors.textSecondary,
-                                ),
+                        items: AdminRole.values
+                            .map(
+                              (role) => DropdownMenuItem<AdminRole>(
+                                value: role,
+                                child: Text(role.label),
                               ),
-                            ),
-                          ],
-                        ),
+                            )
+                            .toList(growable: false),
+                        onChanged: isBusy
+                            ? null
+                            : (value) {
+                                if (value != null) {
+                                  setDialogState(() => selectedRole = value);
+                                }
+                              },
                       ),
+
                     ],
                   ),
                 ),
@@ -228,6 +239,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                               .provisionAdmin(
                                 email: email,
                                 displayName: name,
+                                role: selectedRole,
                               );
 
                           if (!dialogCtx.mounted) return;
@@ -450,6 +462,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
     final filteredAdmins =
         ref.watch(adminUserControllerProvider.select((s) => s.filteredAdmins));
     final controller = ref.read(adminUserControllerProvider.notifier);
+    final canManageAdmins = ref.watch(adminAccessProvider)?.can(AdminPermission.adminUsersWrite) == true;
 
     // Sync search input if cleared externally
     if (_searchController.text != filters.query &&
@@ -468,7 +481,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
               eyebrow: 'Platform Administration',
               heading: 'Admin Users',
               supportingText:
-                  'Provision and manage system administrator accounts. Enforces coarse RBAC without role customization; at least one active admin must always be maintained.',
+                  'Provision and manage system administrator accounts with explicit role-based permissions. At least one active admin must always be maintained.',
               trailing: FilledButton.icon(
                 key: const Key('provision-admin-button'),
                 style: FilledButton.styleFrom(
@@ -479,7 +492,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                     vertical: kh.spacing.sm,
                   ),
                 ),
-                onPressed: _showProvisionDialog,
+                onPressed: canManageAdmins ? _showProvisionDialog : null,
                 icon: const Icon(Icons.person_add, size: 18),
                 label: const Text(
                   'Provision Admin',
@@ -614,15 +627,17 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                               columns: const [
                                 KhTableColumn('Name', flex: 3),
                                 KhTableColumn('Email', flex: 3),
+                                KhTableColumn('Role', flex: 2),
                                 KhTableColumn('Status', flex: 2),
                                 KhTableColumn('Created Date', flex: 2),
                                 KhTableColumn('Actions', flex: 2),
                               ],
-                              rows: filteredAdmins.map((item) {
+                              itemCount: filteredAdmins.length,
+                              rowBuilder: (context, index) {
+                                final item = filteredAdmins[index];
                                 return KhTableRow(
                                   key: ValueKey(item.id),
                                   cells: [
-                                    // Name + short ID
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
@@ -637,59 +652,52 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> with Deboun
                                         ),
                                       ],
                                     ),
-                                    // Email
                                     Text(
                                       item.email,
                                       style: kh.typography.bodySmall,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    // Status Chip
+                                    Text(
+                                      item.role?.label ?? 'Role unavailable',
+                                      style: kh.typography.bodySmall.copyWith(
+                                        color: item.role == null ? kh.colors.error : kh.colors.textSecondary,
+                                      ),
+                                    ),
                                     KhStatusChip(
                                       label: item.accountState.label,
                                       tone: item.accountState.tone,
                                       dense: true,
                                     ),
-                                    // Created Date
                                     Text(
                                       _formatDateTime(item.createdAt),
                                       style: kh.typography.bodySmall,
                                     ),
-                                    // Actions (Suspend / Revoke)
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        if (item.accountState == AdminAccountState.active)
+                                        if (item.accountState == AdminAccountState.active &&
+                                            canManageAdmins)
                                           IconButton(
                                             key: ValueKey('suspend-${item.id}'),
-                                            icon: Icon(
-                                              Icons.pause_circle_outline,
-                                              size: 18,
-                                              color: kh.colors.warning,
-                                            ),
+                                            icon: Icon(Icons.pause_circle_outline, size: 18, color: kh.colors.warning),
                                             tooltip: 'Suspend Admin',
                                             onPressed: () => _showSuspendDialog(item),
                                           ),
-                                        if (item.accountState != AdminAccountState.deactivated)
+                                        if (item.accountState != AdminAccountState.deactivated &&
+                                            ref.watch(adminAccessProvider)?.can(AdminPermission.adminUsersWrite) == true)
                                           IconButton(
                                             key: ValueKey('revoke-${item.id}'),
-                                            icon: Icon(
-                                              Icons.person_off_outlined,
-                                              size: 18,
-                                              color: kh.colors.error,
-                                            ),
+                                            icon: Icon(Icons.person_off_outlined, size: 18, color: kh.colors.error),
                                             tooltip: 'Revoke Admin',
                                             onPressed: () => _showRevokeDialog(item),
                                           ),
                                         if (item.accountState == AdminAccountState.deactivated)
-                                          Text(
-                                            'Revoked',
-                                            style: kh.typography.caption.copyWith(color: kh.colors.textMuted),
-                                          ),
+                                          Text('Revoked', style: kh.typography.caption.copyWith(color: kh.colors.textMuted)),
                                       ],
                                     ),
                                   ],
                                 );
-                              }).toList(),
+                              },
                             ),
             ),
           ],
