@@ -28,16 +28,51 @@ void main() {
     expect(en.tableKeys.toSet(), ar.tableKeys.toSet());
   });
 
-  test('Customer shell and auth keys exist in EN and AR (not identity fallback)', () {
+  const cardAndConditionKeys = [
+    'cus.card.estimatedValue',
+    'cus.card.viewDetails',
+    'create.condition.new',
+    'create.condition.likeNew',
+    'create.condition.used',
+    'create.condition.damaged',
+    'cus.requestType.UNKNOWN',
+    'cus.state.UNKNOWN',
+  ];
+
+  test(
+    'Customer shell and auth keys exist in EN and AR (not identity fallback)',
+    () {
+      final en = KhStrings(const Locale('en'));
+      final ar = KhStrings(const Locale('ar'));
+      for (final key in customerKeys) {
+        expect(en.s(key), isNot(equals(key)), reason: 'missing EN $key');
+        expect(ar.s(key), isNot(equals(key)), reason: 'missing AR $key');
+        expect(en.s(key), isNotEmpty);
+        expect(ar.s(key), isNotEmpty);
+        expect(
+          en.s(key),
+          isNot(equals(ar.s(key))),
+          reason: '$key should differ by locale',
+        );
+      }
+    },
+  );
+
+  test('My Requests card keys exist in EN and AR', () {
     final en = KhStrings(const Locale('en'));
     final ar = KhStrings(const Locale('ar'));
-    for (final key in customerKeys) {
+    for (final key in cardAndConditionKeys) {
       expect(en.s(key), isNot(equals(key)), reason: 'missing EN $key');
       expect(ar.s(key), isNot(equals(key)), reason: 'missing AR $key');
-      expect(en.s(key), isNotEmpty);
-      expect(ar.s(key), isNotEmpty);
-      expect(en.s(key), isNot(equals(ar.s(key))), reason: '$key should differ by locale');
+      expect(
+        en.s(key),
+        isNot(equals(ar.s(key))),
+        reason: '$key should differ by locale',
+      );
     }
+    expect(en.s('cus.card.estimatedValue'), 'Indicative Value');
+    expect(en.s('cus.card.viewDetails'), 'View Details');
+    expect(en.s('create.condition.new'), 'New');
   });
 
   test('Google sign-in and Customer register copy is Customer-facing', () {

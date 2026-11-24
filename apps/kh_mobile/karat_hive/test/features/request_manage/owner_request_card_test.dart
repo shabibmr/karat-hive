@@ -77,24 +77,25 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
 
       expect(find.byKey(Key('owner-request-card-${req.id}')), findsOneWidget);
-      expect(find.byKey(const Key('owner-request-media-count')), findsOneWidget);
-      expect(find.textContaining('Gold Coin'), findsOneWidget);
-      expect(find.textContaining('New'), findsOneWidget);
-      expect(find.textContaining('24K'), findsOneWidget);
-
       expect(
-        find.byKey(Key('owner-request-value-${req.id}')),
+        find.byKey(const Key('owner-request-media-count')),
         findsOneWidget,
       );
-      expect(find.text('Estimated Value'), findsOneWidget);
+      expect(find.textContaining('Gold Coin'), findsOneWidget);
+      expect(find.textContaining('· New'), findsOneWidget);
+      expect(find.textContaining('24K'), findsOneWidget);
+
+      expect(find.byKey(Key('owner-request-value-${req.id}')), findsOneWidget);
+      expect(find.text('Indicative Value'), findsOneWidget);
       expect(find.textContaining('AED'), findsWidgets);
 
       expect(find.text('Message'), findsNothing);
       expect(find.text('View offers'), findsNothing);
       expect(find.text('View Details'), findsOneWidget);
 
-      final viewDetails =
-          find.byKey(Key('owner-request-view-details-${req.id}'));
+      final viewDetails = find.byKey(
+        Key('owner-request-view-details-${req.id}'),
+      );
       expect(viewDetails, findsOneWidget);
 
       final theme = Theme.of(tester.element(find.byType(FilledButton)));
@@ -102,10 +103,7 @@ void main() {
         theme.filledButtonTheme.style?.backgroundColor?.resolve({}),
         KhTokens.light.ctaFill,
       );
-      expect(
-        KhTokens.light.ctaFill,
-        const Color(0xFFD8C0A8),
-      );
+      expect(KhTokens.light.ctaFill, const Color(0xFFD8C0A8));
 
       await tester.ensureVisible(viewDetails);
       await tester.tap(viewDetails);
@@ -114,8 +112,9 @@ void main() {
     },
   );
 
-  testWidgets('OwnerRequestCard hides value panel when no money fields',
-      (tester) async {
+  testWidgets('OwnerRequestCard hides value panel when no money fields', (
+    tester,
+  ) async {
     final req = RequestForCustomer(
       id: 'req-bare',
       requestType: RequestType.findOrnament,
@@ -144,7 +143,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Estimated Value'), findsNothing);
+    expect(find.text('Indicative Value'), findsNothing);
     expect(find.text('View Details'), findsOneWidget);
     expect(find.byKey(const Key('owner-request-media-count')), findsNothing);
   });

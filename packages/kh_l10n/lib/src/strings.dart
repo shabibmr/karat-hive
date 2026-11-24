@@ -24,11 +24,13 @@ class KhStrings {
   ];
 
   static KhStrings of(BuildContext context) =>
-      Localizations.of<KhStrings>(context, KhStrings) ?? KhStrings(const Locale('en'));
+      Localizations.of<KhStrings>(context, KhStrings) ??
+      KhStrings(const Locale('en'));
 
   bool get isRtl => locale.languageCode == 'ar';
 
-  Map<String, String> get _bundle => _table[locale.languageCode] ?? _table['en']!;
+  Map<String, String> get _bundle =>
+      _table[locale.languageCode] ?? _table['en']!;
 
   Iterable<String> get tableKeys => _bundle.keys;
 
@@ -107,16 +109,19 @@ class KhStrings {
           '1. Post a request\n2. Receive offers from verified jewellers\n3. Accept one offer to reveal identities\n4. Talk on WhatsApp to settle off-platform',
       'guest.jewellerFooter': 'Are you a jeweller? Register here.',
       'onboarding.awaitingTitle': 'Verification in progress',
-      'onboarding.pendingDocuments': 'Upload your business documents to continue.',
+      'onboarding.pendingDocuments':
+          'Upload your business documents to continue.',
       'onboarding.pendingAdmin': 'Our team is reviewing your documents.',
-      'onboarding.categoriesRequired': 'Choose the categories and regions you serve.',
+      'onboarding.categoriesRequired':
+          'Choose the categories and regions you serve.',
       'onboarding.rejected': 'Your application needs changes.',
       'onboarding.uploadKyc': 'Upload documents',
       'onboarding.resubmit': 'Resubmit for review',
       'onboarding.categoriesRegions': 'Categories & regions',
       'onboarding.save': 'Save',
       'onboarding.awayMode': 'Away mode',
-      'onboarding.awayModeHint': 'Pause new-request notifications without deactivating.',
+      'onboarding.awayModeHint':
+          'Pause new-request notifications without deactivating.',
       'onboarding.volumePlaceholder':
           'Matched-request volume will appear once matching is live.',
       'dashboard.title': 'Dashboard',
@@ -141,7 +146,8 @@ class KhStrings {
       'common.logout': 'Log out',
       'common.empty': 'Nothing here yet',
       'cus.home.title': 'My Requests',
-      'cus.home.empty': 'No active requests yet. Create a request to receive offers from verified jewelers.',
+      'cus.home.empty':
+          'No active requests yet. Create a request to receive offers from verified jewelers.',
       'cus.home.emptyDrafts':
           'No drafts yet. Save a request as draft to finish it later.',
       'cus.home.tabOpen': 'Open',
@@ -196,6 +202,8 @@ class KhStrings {
       'cus.home.previousSlide': 'Previous slide',
       'cus.home.nextSlide': 'Next slide',
       'cus.home.retryPublish': 'Your request could not be published yet.',
+      'cus.card.estimatedValue': 'Indicative Value',
+      'cus.card.viewDetails': 'View Details',
       'cus.s10.title': 'Request',
       'cus.s10.offers': 'Offers',
       'cus.s10.viewOffers': 'View offers',
@@ -206,14 +214,17 @@ class KhStrings {
       'cus.s10.budgetFlexible': 'Flexible budget',
       'cus.s10.saveEdits': 'Save edits',
       'cus.s10.cancelRequest': 'Cancel request',
-      'cus.s10.cancelBody': 'Pending offers will be withdrawn. This cannot be undone.',
+      'cus.s10.cancelBody':
+          'Pending offers will be withdrawn. This cannot be undone.',
       'cus.s10.cancelConfirm': 'Cancel this request',
-      'cus.s10.zeroOffers': 'No offers yet. This request expires according to the countdown above.',
+      'cus.s10.zeroOffers':
+          'No offers yet. This request expires according to the countdown above.',
       'cus.s17.title': 'History',
       'cus.s17.empty': 'No past requests yet.',
       'cus.s17.search': 'Search by reference',
       'cus.s11.title': 'Offers',
-      'cus.s11.empty': 'No offers yet. This request expires on the date shown above.',
+      'cus.s11.empty':
+          'No offers yet. This request expires on the date shown above.',
       'cus.s11.error': 'Could not load offers.',
       'cus.s11.compare': 'Compare selected',
       'cus.s11.compareHint': 'Select 2 to 4 offers to compare',
@@ -244,6 +255,7 @@ class KhStrings {
       'cus.requestType.SELL_OLD_GOLD': 'Sell old gold',
       'cus.requestType.GOLD_COIN': 'Gold coins',
       'cus.requestType.GOLD_BULLION': 'Gold bullion',
+      'cus.requestType.UNKNOWN': 'Request',
       'cus.state.DRAFT': 'Draft',
       'cus.state.PUBLISHED': 'Published',
       'cus.state.ACCEPTED': 'Accepted',
@@ -251,6 +263,7 @@ class KhStrings {
       'cus.state.EXPIRED': 'Expired',
       'cus.state.CANCELLED': 'Cancelled',
       'cus.state.REMOVED': 'Removed',
+      'cus.state.UNKNOWN': 'Unknown',
       'cus.cancel.CHANGED_MIND': 'Changed my mind',
       'cus.cancel.FOUND_ELSEWHERE': 'Found an alternative',
       'cus.cancel.WRONG_DETAILS': 'Details were incorrect',
@@ -269,18 +282,22 @@ class KhStrings {
       'common.copy': 'Copy',
       'common.checkStatus': 'Check status',
       'connections.title': 'Connections',
-      'connections.empty': 'No Connections yet. When you mark an Offer as Interested, the Vendor appears here.',
+      'connections.empty':
+          'No Connections yet. When you mark an Offer as Interested, the Vendor appears here.',
       'connections.active': 'Active',
       'connections.closed': 'Closed',
       'connections.talk': 'Talk on WhatsApp',
       'connections.copyNumber': 'Copy number',
       'connections.close': 'Close Connection',
       'connections.closeConfirmTitle': 'Close this Connection?',
-      'connections.closeConfirmBody': 'History stays available. Talk will no longer be offered.',
-      'connections.closedBanner': 'This Connection is closed. Identity and history remain for you.',
+      'connections.closeConfirmBody':
+          'History stays available. Talk will no longer be offered.',
+      'connections.closedBanner':
+          'This Connection is closed. Identity and history remain for you.',
       'connections.leaveReview': 'Leave a review',
       'connections.report': 'Report',
-      'connections.talkUnavailable': 'WhatsApp is not available. Copy the number instead.',
+      'connections.talkUnavailable':
+          'WhatsApp is not available. Copy the number instead.',
       'connections.numberCopied': 'Number copied',
       'review.title': 'Review',
       'review.rating': 'Rating',
@@ -296,7 +313,8 @@ class KhStrings {
       'notifications.empty': 'No notifications in the last 90 days.',
       'notifications.markAllRead': 'Mark all read',
       'notifications.unknownLinkTitle': 'This link cannot be opened',
-      'notifications.unknownLinkBody': 'The destination is not available in this version of the app.',
+      'notifications.unknownLinkBody':
+          'The destination is not available in this version of the app.',
       'profile.title': 'Profile',
       'profile.displayName': 'Display name',
       'profile.email': 'Email (optional)',
@@ -316,15 +334,20 @@ class KhStrings {
       'settings.support': 'Support',
       'settings.version': 'App version',
       'settings.deactivate': 'Deactivate account',
-      'settings.deactivateBody': 'Live Requests close and you cannot sign in until support restores the account.',
+      'settings.deactivateBody':
+          'Live Requests close and you cannot sign in until support restores the account.',
       'settings.delete': 'Request permanent deletion',
-      'settings.deleteStep1': 'Deletion is refused if you had a Connection in the last 30 days. Continue?',
-      'settings.deleteStep2': 'Enter the code sent to your current mobile to confirm.',
-      'settings.deleteQueued': 'Deletion queued. Personal data is removed within 30 days.',
+      'settings.deleteStep1':
+          'Deletion is refused if you had a Connection in the last 30 days. Continue?',
+      'settings.deleteStep2':
+          'Enter the code sent to your current mobile to confirm.',
+      'settings.deleteQueued':
+          'Deletion queued. Personal data is removed within 30 days.',
       'abuse.title': 'Report abuse',
       'abuse.category': 'Category',
       'abuse.details': 'Details',
-      'abuse.ack': 'Report received. The other party will not see your identity.',
+      'abuse.ack':
+          'Report received. The other party will not see your identity.',
       'abuse.fraudulentOffer': 'Fraudulent Offer',
       'abuse.abusiveBehaviour': 'Abusive behaviour',
       'abuse.offPlatform': 'Off-platform solicitation',
@@ -338,6 +361,10 @@ class KhStrings {
       'create.budgetRange': 'Min–max range',
       'create.packagingSealed': 'Sealed packaging',
       'create.assay': 'Serial / assay certificate present',
+      'create.condition.new': 'New',
+      'create.condition.likeNew': 'Like new',
+      'create.condition.used': 'Used',
+      'create.condition.damaged': 'Damaged',
     },
     'ar': {
       'app.title': 'كارات هايف',
@@ -404,8 +431,10 @@ class KhStrings {
       'onboarding.categoriesRegions': 'الفئات والمناطق',
       'onboarding.save': 'حفظ',
       'onboarding.awayMode': 'وضع الغياب',
-      'onboarding.awayModeHint': 'إيقاف إشعارات الطلبات الجديدة دون تعطيل الحساب.',
-      'onboarding.volumePlaceholder': 'يظهر حجم الطلبات المطابقة بعد تفعيل المطابقة.',
+      'onboarding.awayModeHint':
+          'إيقاف إشعارات الطلبات الجديدة دون تعطيل الحساب.',
+      'onboarding.volumePlaceholder':
+          'يظهر حجم الطلبات المطابقة بعد تفعيل المطابقة.',
       'dashboard.title': 'لوحة التحكم',
       'dashboard.rating': 'التقييم',
       'dashboard.noReviews': 'لا توجد تقييمات بعد',
@@ -428,7 +457,8 @@ class KhStrings {
       'common.logout': 'تسجيل الخروج',
       'common.empty': 'لا يوجد شيء بعد',
       'cus.home.title': 'طلباتي',
-      'cus.home.empty': 'لا توجد طلبات حيّة بعد. أنشئ طلباً لتستقبل عروض الصاغة الموثّقين.',
+      'cus.home.empty':
+          'لا توجد طلبات حيّة بعد. أنشئ طلباً لتستقبل عروض الصاغة الموثّقين.',
       'cus.home.emptyDrafts':
           'لا توجد مسودات بعد. احفظ طلباً كمسودة لإكماله لاحقاً.',
       'cus.home.tabOpen': 'مفتوحة',
@@ -443,8 +473,7 @@ class KhStrings {
       'cus.home.summaryOpen': 'مفتوحة',
       'cus.home.summaryOffers': 'عروض بانتظارك',
       'cus.home.summaryConnections': 'الاتصالات',
-      'cus.home.dashboardHint':
-          'الطلبات المفتوحة والسجل ضمن «طلباتي».',
+      'cus.home.dashboardHint': 'الطلبات المفتوحة والسجل ضمن «طلباتي».',
       'cus.home.whatTitle': 'ماذا تود أن تفعل؟',
       'cus.home.viewAll': 'عرض الكل',
       'cus.home.howTitle': 'كيف يعمل هذا',
@@ -482,6 +511,8 @@ class KhStrings {
       'cus.home.previousSlide': 'الشريحة السابقة',
       'cus.home.nextSlide': 'الشريحة التالية',
       'cus.home.retryPublish': 'تعذّر نشر طلبك حتى الآن.',
+      'cus.card.estimatedValue': 'القيمة الإرشادية',
+      'cus.card.viewDetails': 'عرض التفاصيل',
       'cus.s10.title': 'الطلب',
       'cus.s10.offers': 'العروض',
       'cus.s10.viewOffers': 'عرض العروض',
@@ -494,7 +525,8 @@ class KhStrings {
       'cus.s10.cancelRequest': 'إلغاء الطلب',
       'cus.s10.cancelBody': 'سيتم سحب العروض المعلّقة. لا يمكن التراجع.',
       'cus.s10.cancelConfirm': 'إلغاء هذا الطلب',
-      'cus.s10.zeroOffers': 'لا عروض بعد. ينتهي هذا الطلب حسب العدّ التنازلي أعلاه.',
+      'cus.s10.zeroOffers':
+          'لا عروض بعد. ينتهي هذا الطلب حسب العدّ التنازلي أعلاه.',
       'cus.s17.title': 'السجل',
       'cus.s17.empty': 'لا توجد طلبات سابقة بعد.',
       'cus.s17.search': 'البحث بالمرجع',
@@ -530,6 +562,7 @@ class KhStrings {
       'cus.requestType.SELL_OLD_GOLD': 'بيع ذهب مستعمل',
       'cus.requestType.GOLD_COIN': 'عملات ذهبية',
       'cus.requestType.GOLD_BULLION': 'سبائك ذهب',
+      'cus.requestType.UNKNOWN': 'طلب',
       'cus.state.DRAFT': 'مسودة',
       'cus.state.PUBLISHED': 'منشور',
       'cus.state.ACCEPTED': 'مقبول',
@@ -537,6 +570,7 @@ class KhStrings {
       'cus.state.EXPIRED': 'منتهٍ',
       'cus.state.CANCELLED': 'ملغى',
       'cus.state.REMOVED': 'محذوف',
+      'cus.state.UNKNOWN': 'غير معروف',
       'cus.cancel.CHANGED_MIND': 'غيّرت رأيي',
       'cus.cancel.FOUND_ELSEWHERE': 'وجدت خياراً آخر',
       'cus.cancel.WRONG_DETAILS': 'التفاصيل كانت خاطئة',
@@ -555,18 +589,21 @@ class KhStrings {
       'common.copy': 'نسخ',
       'common.checkStatus': 'تحقق من الحالة',
       'connections.title': 'الاتصالات',
-      'connections.empty': 'لا توجد اتصالات بعد. عند اهتمامك بعرض يظهر التاجر هنا.',
+      'connections.empty':
+          'لا توجد اتصالات بعد. عند اهتمامك بعرض يظهر التاجر هنا.',
       'connections.active': 'نشط',
       'connections.closed': 'مغلق',
       'connections.talk': 'التحدث عبر واتساب',
       'connections.copyNumber': 'نسخ الرقم',
       'connections.close': 'إغلاق الاتصال',
       'connections.closeConfirmTitle': 'إغلاق هذا الاتصال؟',
-      'connections.closeConfirmBody': 'يبقى السجل متاحاً. لن يُعرض التحدث بعد الإغلاق.',
+      'connections.closeConfirmBody':
+          'يبقى السجل متاحاً. لن يُعرض التحدث بعد الإغلاق.',
       'connections.closedBanner': 'هذا الاتصال مغلق. تبقى الهوية والسجل لك.',
       'connections.leaveReview': 'ترك تقييم',
       'connections.report': 'إبلاغ',
-      'connections.talkUnavailable': 'واتساب غير متاح. انسخ الرقم بدلاً من ذلك.',
+      'connections.talkUnavailable':
+          'واتساب غير متاح. انسخ الرقم بدلاً من ذلك.',
       'connections.numberCopied': 'تم نسخ الرقم',
       'review.title': 'التقييم',
       'review.rating': 'الدرجة',
@@ -602,11 +639,14 @@ class KhStrings {
       'settings.support': 'الدعم',
       'settings.version': 'إصدار التطبيق',
       'settings.deactivate': 'تعطيل الحساب',
-      'settings.deactivateBody': 'تُغلق الطلبات الحية ولا يمكنك تسجيل الدخول حتى يستعيد الدعم الحساب.',
+      'settings.deactivateBody':
+          'تُغلق الطلبات الحية ولا يمكنك تسجيل الدخول حتى يستعيد الدعم الحساب.',
       'settings.delete': 'طلب الحذف الدائم',
-      'settings.deleteStep1': 'يُرفض الحذف إن وُجد اتصال خلال 30 يوماً. المتابعة؟',
+      'settings.deleteStep1':
+          'يُرفض الحذف إن وُجد اتصال خلال 30 يوماً. المتابعة؟',
       'settings.deleteStep2': 'أدخل الرمز المرسل إلى جوالك الحالي للتأكيد.',
-      'settings.deleteQueued': 'تم وضع الحذف في قائمة الانتظار. تُزال البيانات الشخصية خلال 30 يوماً.',
+      'settings.deleteQueued':
+          'تم وضع الحذف في قائمة الانتظار. تُزال البيانات الشخصية خلال 30 يوماً.',
       'abuse.title': 'الإبلاغ عن إساءة',
       'abuse.category': 'الفئة',
       'abuse.details': 'التفاصيل',
@@ -624,6 +664,10 @@ class KhStrings {
       'create.budgetRange': 'نطاق الأدنى والأقصى',
       'create.packagingSealed': 'غلاف مختوم',
       'create.assay': 'شهادة الفحص / الرقم التسلسلي متوفرة',
+      'create.condition.new': 'جديدة',
+      'create.condition.likeNew': 'شبه جديدة',
+      'create.condition.used': 'مستعملة',
+      'create.condition.damaged': 'متضررة',
     },
   };
 }
