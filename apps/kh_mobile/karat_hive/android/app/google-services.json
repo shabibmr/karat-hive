@@ -66,6 +66,14 @@
           }
         },
         {
+          "client_id": "132845397292-ks532p0a2oicss3f46v6a0qvjof642g3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kh.karat_hive",
+            "certificate_hash": "f67162040cdcec0309f82c266a9224b1c903af5b"
+          }
+        },
+        {
           "client_id": "132845397292-t8q9pjhr4jdrei8ha44b0lipjd1c5h5n.apps.googleusercontent.com",
           "client_type": 3
         }
