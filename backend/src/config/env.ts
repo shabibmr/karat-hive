@@ -57,6 +57,9 @@ const envSchema = z
 
     // --- push (G2-N03). Optional; adapters stub when unset. ---
     FCM_SERVER_KEY: optionalString,
+    FCM_BEARER_TOKEN: optionalString,
+    FCM_SERVICE_ACCOUNT_EMAIL: optionalString,
+    FCM_SERVICE_ACCOUNT_PRIVATE_KEY: optionalString,
     APNS_KEY_ID: optionalString,
     APNS_TEAM_ID: optionalString,
     APNS_BUNDLE_ID: optionalString,
